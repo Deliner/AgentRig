@@ -4,6 +4,17 @@ A reusable worker environment for feature delivery through verified atomic chang
 
 Product code lives under Project. Its sibling Ledger holds the feature plan, decisions, and invariants. Start with just list and Ledger/Plan.md.
 
+[State](Ledger/State.md) is the compact current-work snapshot for a fresh session or interruption recovery. It records Focus, Workspace, Progress, Verification, Blockers, and Next action. Read it alongside Plan and compare its claims with Git before acting. Refresh it at meaningful VAC boundaries, blockers, and handoffs, and before known context resets; an abrupt crash can leave it stale. It is replaceable working context, not a second plan, authorization source, or VAC history. The gate checks its required nonempty sections, not the truth of its contents.
+
+All registered pre-tool checks share [.codex/hooks/agent_context.py](.codex/hooks/agent_context.py). SessionStart points fresh/resumed/compacted sessions at State and Plan and preserves the full complexity reminder. Before Edit, Write, or apply_patch, the dispatcher selects the short editing skill for each affected Ledger index or detail file, including both sides of a rename:
+
+- Plan: [edit-plan](.agents/skills/edit-plan/SKILL.md).
+- Decisions: [edit-decisions](.agents/skills/edit-decisions/SKILL.md).
+- Invariants: [edit-invariants](.agents/skills/edit-invariants/SKILL.md).
+- State: [edit-state](.agents/skills/edit-state/SKILL.md).
+
+These file-specific reminders add context without denying a tool call or claiming the skill was read. Existing complexity refresh denials and the shell command guard retain their behavior. Arbitrary shell write targets cannot be inferred reliably, so just write receives a conditional reminder to apply only matching skills. The dispatcher reuses the existing guard and complexity implementations; their source files remain the owners of those checks.
+
 Features describe product outcomes and observable acceptance, including substantial MVP capabilities or optimizations. The agent chooses architecture and delivery steps. [Plan](Ledger/Plan.md) documents the Markdown schema: stable IDs, delivery order, pending/active/paused/complete states, and explicit prerequisites. At most one feature is active; zero is valid. Paused features record blocker and resumption context, while completed features record acceptance verification.
 
 A VAC is one cohesive, independently checkable and revertible change. It may require multiple files, edits, tests, and corrections. Define its result and verification, iterate with focused checks, inspect and stage the change, and commit. The pre-commit hook verifies the staged tree before accepting the commit. Completed VACs live in Git; there is no separate VAC registry or per-edit lock.

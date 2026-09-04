@@ -2,10 +2,18 @@
 
 ## Resume before work
 
-1. Read Ledger/Plan.md, the active feature detail if present, and relevant decision and invariant details. Follow explicit superseding decisions; historical records do not override their successors.
+1. Read Ledger/State.md, Ledger/Plan.md, the active feature detail if present, and relevant decision and invariant details. Follow explicit superseding decisions; historical records do not override their successors.
 2. Inspect Git status and recent commits. Preserve unrelated changes.
 3. Apply the complexity-discipline skill for non-trivial design or implementation.
 4. Use norm-or-choice before changing durable policy, decisions, invariants, or these instructions.
+
+## Current state and editing guidance
+
+- Treat State as a compact recovery snapshot, not a second Plan or VAC history. Compare it with current Git state and contracts before following its next action; interrupted work may have advanced beyond the last snapshot.
+- Keep State's Focus, Workspace, Progress, Verification, Blockers, and Next action sections factual. Record the task, observed branch/revision, current VAC and pending work, actual check results, blocker, and concrete next step. Distinguish attempted work from verified results.
+- Update State at meaningful VAC/task boundaries, blockers, handoffs, and before a known interruption or context reset, as part of the relevant VAC. Reconcile it when switching branches; avoid extra state commits after every tool call.
+- Before editing Plan or its details, apply edit-plan; for Decisions, edit-decisions; for Invariants, edit-invariants; for State, edit-state. All four skills live under .agents/skills. Read only the matching skills.
+- The shared agent_context.py hook routes file-specific guidance and existing complexity/command checks. Ledger guidance adds context without blocking edits. For opaque shell writes, apply matching skills yourself; the hook cannot determine arbitrary script targets.
 
 ## Commands
 

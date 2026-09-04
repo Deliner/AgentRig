@@ -5,7 +5,7 @@ description: Deliver or resume an authorized product feature through verified at
 
 # Execute feature delivery
 
-Read Ledger/Plan.md, the active feature detail if present, applicable decisions and invariants, and Git state. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
+Read Ledger/State.md, Ledger/Plan.md, the active feature detail if present, applicable decisions and invariants, and Git state. Reconcile State's recorded task, current VAC, verification, blockers, and next action against the actual branch, diff, and recent commits; a crash can leave it stale. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
 
 At most one feature is active. If none is active, use an already authorized delivery instruction to select a ready pending feature or resume a paused one; otherwise report the current state and stop. Row order expresses intended priority, not independent authorization. Do not invent more work merely to keep the Plan active.
 
@@ -20,6 +20,8 @@ Before each verified atomic change (VAC), identify its intended result and suffi
 Edit, run focused checks, and correct freely within the VAC. Add or update tests when needed to verify changed behavior; a no-op or a prose edit does not require invented tests. Failed checks permit immediate correction. Inspect and stage only the coherent change, then commit with the result and verification described in the message. The pre-commit hook runs the complete staged-tree gate. Do not routinely run the same full gate manually before committing; use `just check` or `just check-staged` for diagnosis or an explicit verification need.
 
 Finish or deliberately discard only the current uncommitted VAC before beginning the next. Preserve unrelated work. Completed VACs are commits; there is no separate VAC registry, per-edit lock, or requirement to provoke a failed commit before fixing code.
+
+Use edit-state to refresh the compact State snapshot at meaningful VAC boundaries, blockers, handoffs, and before known interruptions/context resets. Include updates in the relevant VAC. Record only observed verification results and distinguish integration still to be performed from integration already observed in Git. On branch handoff or resume, reconcile State for the destination rather than carrying stale completion claims. Use edit-plan, edit-decisions, and edit-invariants before changing their respective Ledger files or details.
 
 ## Adapt the plan
 
