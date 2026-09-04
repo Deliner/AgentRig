@@ -6,8 +6,9 @@
 # DECISION: D005
 # DECISION: D010
 # DECISION: D011
+# DECISION: D015
 
 set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
-/usr/bin/python3 "$root/tooling/branch_workflow.py" guard-commit
+"$root/tooling/worker/run" guard-commit --root "$root"
 exec "$root/tooling/check.sh" --staged

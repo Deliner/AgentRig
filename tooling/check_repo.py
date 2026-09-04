@@ -10,13 +10,13 @@ from pathlib import Path
 
 from comment_parser import DECISION_ROW, INVARIANT_ROW, LINK, source_comments, table_rows
 from plan_policy import plan_errors
-from size_policy import size_findings
 
 # DECISION: D002
 # DECISION: D008
 # DECISION: D009
 # DECISION: D012
 # DECISION: D013
+# DECISION: D016
 
 LEDGER = Path("Ledger")
 DECISIONS = LEDGER / "Decisions.md"
@@ -205,9 +205,6 @@ def check(root: Path, history: Path) -> list[Finding]:
     findings.extend(invariant_findings(root))
     findings.extend(plan_findings(root))
     findings.extend(state_findings(root))
-    findings.extend(
-        Finding(level, message) for level, message in size_findings(root, repository_files(root))
-    )
     return findings
 
 

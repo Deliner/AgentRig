@@ -108,7 +108,6 @@ def test_committed_decisions_are_append_only(tmp_path: Path) -> None:
     )
 
 
-# INVARIANT: I004
 def test_size_thresholds_warn_then_fail(tmp_path: Path) -> None:
     source = tmp_path / "module.py"
     source.write_text("value = 1\n" * 301, encoding="utf-8")

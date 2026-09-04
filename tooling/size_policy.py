@@ -1,3 +1,4 @@
+# Historical Python parity reference; production execution uses tooling/worker (D015/D016).
 from __future__ import annotations
 
 from collections.abc import Iterable

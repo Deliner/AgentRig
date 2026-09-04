@@ -13,7 +13,7 @@
 - Keep State's Focus, Workspace, Progress, Verification, Blockers, and Next action sections factual. Record the task, observed branch/revision, current VAC and pending work, actual check results, blocker, and concrete next step. Distinguish attempted work from verified results.
 - Update State at meaningful VAC/task boundaries, blockers, handoffs, and before a known interruption or context reset, as part of the relevant VAC. Reconcile it when switching branches; avoid extra state commits after every tool call.
 - Before editing Plan or its details, apply edit-plan; for Decisions, edit-decisions; for Invariants, edit-invariants; for State, edit-state. All four skills live under .agents/skills. Read only the matching skills.
-- The shared agent_context.py hook routes file-specific guidance and existing complexity/command checks. Ledger guidance adds context without blocking edits. For opaque shell writes, apply matching skills yourself; the hook cannot determine arbitrary script targets.
+- The shared Rust hook in tooling/worker routes file-specific guidance and existing complexity/command checks. Ledger guidance adds context without blocking edits. For opaque shell writes, apply matching skills yourself; the hook cannot determine arbitrary script targets.
 
 ## Commands
 
@@ -56,3 +56,11 @@
 - Do not delete a feature branch after it has been merged.
 - Never bypass .githooks/pre-commit.
 - Treat source-size warnings as a prompt to reassess ownership; use a refactoring skill only when structural decomposition is justified.
+
+## Native runtime and configurable lint
+
+- Registered hooks and Git guards use tooling/worker/run. The launcher verifies a source fingerprint before using its cached locked release build; do not bypass it with a stale binary.
+- Structural lint is configured in tooling/worker/lint.toml and runs on staged commits and before integration. Use just lint for focused feedback and just lint-rules for supported target/language capabilities.
+- Each diagnostic names a repair skill. Consider the warning skill for soft findings; apply the error skill to correct blocking findings. External gate failures also name their configured skill.
+- Apply configure-linter before changing selectors, thresholds, rule kinds, or skill mappings. Do not weaken thresholds merely to pass. New compiled rules need declared capabilities, behavior tests, and repair guidance.
+- Rust source changes participate in rustfmt, Clippy, and native behavioral tests. Use // DECISION: DNNN for Rust traceability; existing mandatory Python/shell markers remain unchanged.

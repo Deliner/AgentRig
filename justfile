@@ -53,3 +53,11 @@ report:
 # What: reset the command-review baseline; Why: acknowledge an evidence-based command review.
 review-commands:
     @{{runner}} run review-commands
+
+# What: run configured structural lint; Why: report actionable rule and skill diagnostics.
+lint *args:
+    @{{runner}} run lint "$@"
+
+# What: list structural rule capabilities; Why: configure supported targets and languages.
+lint-rules:
+    @{{runner}} run lint-rules
