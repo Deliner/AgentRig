@@ -10,6 +10,7 @@ from size_policy import size_findings
 # DECISION: D007
 # DECISION: D008
 # DECISION: D009
+# DECISION: D012
 
 ROOT = Path(__file__).parents[2]
 
@@ -130,6 +131,5 @@ def test_worker_layout_and_detail_indexes() -> None:
     assert decision_findings(ROOT, ROOT) == []
 
 
-# INVARIANT: I009
-def test_plan_has_one_active_feature_with_complete_detail() -> None:
+def test_repository_plan_passes() -> None:
     assert plan_findings(ROOT) == []

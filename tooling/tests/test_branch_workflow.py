@@ -14,8 +14,10 @@ from branch_workflow import (
     reference_allowed,
     start_feature,
 )
+from plan_policy import plan_errors
 
 # DECISION: D010
+# DECISION: D012
 
 
 def git(root: Path, *args: str) -> str:
@@ -111,3 +113,84 @@ def test_feature_branch_policy(tmp_path: Path) -> None:
     )
     assert result.returncode != 0
     assert git(root, "rev-parse", "--verify", "feature/example") == feature_tip
+
+
+def delivery_plan(root: Path, prerequisite: str | None, feature: str) -> None:
+    details = root / "Ledger/Plan"
+    details.mkdir(parents=True, exist_ok=True)
+    rows = [
+        "# Plan",
+        "",
+        "| ID | Status | Depends on | Feature | User capability |",
+        "| --- | --- | --- | --- | --- |",
+    ]
+    states = {1: feature} if prerequisite is None else {2: prerequisite, 1: feature}
+    for identity, status in states.items():
+        dependency = "P002" if identity == 1 and prerequisite is not None else "-"
+        rows.append(
+            f"| [P{identity:03}](Plan/{identity:03}.md) | {status} | {dependency} "
+            "| Product outcome | User capability |"
+        )
+        (details / f"{identity:03}.md").write_text(
+            f"# P{identity:03}\n\n## Feature\n\nOutcome.\n\n"
+            "## User capability\n\nCapability.\n\n## Acceptance\n\nObservable result.\n\n"
+            "## Delivery\n\n"
+            + (
+                "Blocked on P002. Retain feature/product; resume after its delivery.\n"
+                if status == "paused"
+                else "Acceptance checks pass.\n"
+                if status == "complete"
+                else "Authorized work.\n"
+            ),
+            encoding="utf-8",
+        )
+    (root / "Ledger/Plan.md").write_text("\n".join(rows) + "\n", encoding="utf-8")
+    assert plan_errors(root) == []
+
+
+def test_plan_handoff_preserves_paused_work_and_latest_delivery(tmp_path: Path) -> None:
+    root = repository(tmp_path)
+    delivery_plan(root, None, "active")
+    commit(root, "initial product plan")
+    start_feature(root, "product")
+    (root / "unfinished-product.txt").write_text("verified partial result", encoding="utf-8")
+    commit(root, "product VAC")
+    product_vac = git(root, "rev-parse", "HEAD")
+    delivery_plan(root, "active", "paused")
+    commit(root, "plan-only prerequisite handoff")
+    handoff = git(root, "rev-parse", "HEAD")
+    changed = git(root, "diff-tree", "--no-commit-id", "--name-only", "-r", handoff)
+    assert all(path.startswith("Ledger/") for path in changed.splitlines())
+
+    git(root, "switch", "master")
+    start_feature(root, "prerequisite")
+    git(root, "cherry-pick", handoff)
+    assert plan_errors(root) == []
+    assert not (root / "unfinished-product.txt").exists()
+    assert git(root, "rev-parse", "feature/product") == handoff
+    assert is_ancestor(root, product_vac, "feature/product")
+    (root / "prerequisite.txt").write_text("delivered prerequisite", encoding="utf-8")
+    delivery_plan(root, "complete", "paused")
+    commit(root, "deliver prerequisite")
+    assert merge_feature(root) == 0
+    assert not (root / "unfinished-product.txt").exists()
+
+    git(root, "switch", "feature/product")
+    git(root, "rebase", "--rebase-merges", "master")
+    assert plan_errors(root) == []
+    plan = (root / "Ledger/Plan.md").read_text(encoding="utf-8")
+    assert "(Plan/002.md) | complete |" in plan
+    assert "(Plan/001.md) | paused |" in plan
+    assert (root / "unfinished-product.txt").read_text(encoding="utf-8") == (
+        "verified partial result"
+    )
+    assert (root / "prerequisite.txt").exists()
+    delivery_plan(root, "complete", "active")
+    commit(root, "resume against delivered prerequisite")
+    delivery_plan(root, "complete", "complete")
+    commit(root, "verify product acceptance")
+    assert merge_feature(root) == 0
+    assert plan_errors(root) == []
+    assert current_branch(root) == "master"
+    for branch in ("feature/product", "feature/prerequisite"):
+        assert is_ancestor(root, branch, "master")
