@@ -5,16 +5,9 @@
 # DECISION: D004
 # DECISION: D005
 # DECISION: D010
+# DECISION: D011
 
-set -uo pipefail
+set -euo pipefail
 root="$(git rev-parse --show-toplevel)"
-failure="$root/.git/codex-commit-failed"
-if ! /usr/bin/python3 "$root/tooling/branch_workflow.py" guard-commit; then
-    exit 1
-fi
-if "$root/tooling/check.sh" --staged; then
-    rm -f "$failure"
-else
-    : > "$failure"
-    exit 1
-fi
+/usr/bin/python3 "$root/tooling/branch_workflow.py" guard-commit
+exec "$root/tooling/check.sh" --staged
