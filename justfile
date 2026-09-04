@@ -61,3 +61,7 @@ lint *args:
 # What: list structural rule capabilities; Why: configure supported targets and languages.
 lint-rules:
     @{{runner}} run lint-rules
+
+# What: validate lint configuration and applicability; Why: reject invalid rules without analyzing source.
+lint-config-check *args:
+    @{{runner}} run lint-config-check "$@"

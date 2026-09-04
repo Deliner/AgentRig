@@ -1,5 +1,33 @@
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
+use std::path::Path;
+
+// DECISION: D018
+const HANDLERS: &[(&str, &[&str])] = &[("rust", &[".rs"]), ("python", &[".py", ".pyi"])];
+pub fn supports_path(path: &Path) -> bool {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .is_some_and(|ext| supported_extension(&format!(".{ext}")))
+}
+fn supported_extension(ext: &str) -> bool {
+    HANDLERS
+        .iter()
+        .any(|(_, extensions)| extensions.contains(&ext))
+}
+pub fn validate_includes(kind: &str, patterns: &[String]) -> Result<()> {
+    if !syntax(kind) {
+        return Ok(());
+    }
+    for pattern in patterns {
+        if let Some(ext) = Path::new(pattern).extension().and_then(|ext| ext.to_str()) {
+            let literal = !ext.contains(['*', '?', '[', ']', '{', '}', '\\']);
+            if literal {
+                validate_extensions(kind, &[format!(".{ext}")])?;
+            }
+        }
+    }
+    Ok(())
+}
 
 // DECISION: D016
 // DECISION: D017
@@ -19,12 +47,11 @@ pub fn target(kind: &str) -> Result<&'static str> {
     }
 }
 pub fn validate_extensions(kind: &str, extensions: &[String]) -> Result<()> {
-    let unsupported = syntax(kind)
-        && extensions
-            .iter()
-            .any(|ext| !matches!(ext.as_str(), ".rs" | ".py" | ".pyi"));
+    let unsupported = syntax(kind) && extensions.iter().any(|ext| !supported_extension(ext));
     if unsupported {
-        bail!("{kind}: handlers support only .rs, .py and .pyi");
+        bail!(
+            "{kind}: requested extensions {extensions:?} are incompatible; handlers support Rust (.rs) and Python (.py, .pyi)"
+        );
     }
     Ok(())
 }
@@ -51,7 +78,7 @@ pub fn catalog() -> Value {
     ] {
         entries.push(
             json!({"kind": kind, "target": "file", "languages": ["rust", "python"],
-            "handlers": {"rust": [".rs"], "python": [".py", ".pyi"]}, "metric": metric}),
+            "handlers": HANDLERS.iter().map(|(name, extensions)| (*name, *extensions)).collect::<std::collections::BTreeMap<_, _>>(), "extensions": HANDLERS.iter().flat_map(|(_, extensions)| extensions.iter()).collect::<Vec<_>>(), "metric": metric}),
         );
     }
     Value::Array(entries)

@@ -38,7 +38,11 @@ def test_shared_parse_error_and_extension_defaults(worker: Path, tmp_path: Path)
     numeric = numeric.replace('kind = "named-if-condition"', 'kind = "parameter-count"').replace(
         'level = "error"', "error = 1"
     )
-    config.write_text(original + numeric)
+    config.write_text(
+        (original + numeric).replace(
+            'include = ["src/**"]', 'include = ["src/**"]\nexclude = ["src/other.js"]'
+        )
+    )
     (tmp_path / "src/example.pyi").write_text("def example(one, two): ...")
     (tmp_path / "src/broken.rs").write_text("fn broken( {")
     (tmp_path / "src/other.js").write_text("not Rust or Python")

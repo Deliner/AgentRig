@@ -14,9 +14,14 @@ The hook registration invokes run hook with an explicit repository root. Ledger 
 
 lint.toml uses TOML version 1 of the worker schema. Unknown fields, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. A configuration failure exits 2 and points at configure-linter; a structural error exits 1; warnings alone exit 0.
 
+Validate independently with just lint-config-check. Use just lint-config-check -- --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
+
+Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
+
 Each rules entry requires:
 
 - id: unique diagnostic identity.
+- enabled: optional boolean, true by default. false skips target selection and execution; the entry still needs valid schema, capabilities and repair skills.
 - kind: an implemented rule from just lint-rules.
 - target: file or directory, compatible with that kind.
 - include: nonempty repository-relative glob list.
@@ -56,9 +61,20 @@ directory-entries counts immediate child names, including child directories, fro
 
 Current defaults retain warnings above 300 nonblank lines and errors above 500; directory warnings above 10 and errors above 15. Ledger/Decisions and Ledger/Invariants remain excluded from directory-size checks. All structural diagnostics include rule ID, path, measurement, limit, severity, and repair skill. Use just lint -- --json for structured output.
 
+Example syntax rule selection (inside its rules entry):
+
+~~~toml
+enabled = true
+include = ["Project/**"]
+exclude = ["Project/generated/**"]
+extensions = [".rs", ".py"]
+~~~
+
+Setting extensions = [".sh"] on function-lines fails with an error naming supported Rust/Python handlers. The same applies to numeric override selectors. File-size remains language independent, so it can select shell scripts.
+
 ### Syntax-aware rules
 
-The Rust engine parses each selected source once per run using Tree-sitter. Compiled handlers in src/lint/languages interpret Rust (.rs) and Python (.py, .pyi) syntax and produce measurements for the same rules. Empty extensions selects all supported suffixes; explicitly selecting an unsupported suffix for a syntax rule is a configuration error. Other file types remain available to language-independent rules. Files with parse errors block with a source location and repair skill, even when rule findings are warnings. This is syntax analysis, not type checking or name resolution.
+The Rust engine parses each selected source once per run using Tree-sitter. Compiled handlers in src/lint/languages interpret Rust (.rs) and Python (.py, .pyi) syntax and produce measurements for the same rules. Empty extensions applies the include/exclude selection without an implicit language filter: any selected file lacking a handler is a configuration error. In mixed directories, explicitly set extensions or exclude unsupported files. An unsupported literal suffix in include (such as scripts/*.sh) or extensions is rejected even if no files exist yet. Other glob forms are checked against the current inventory; validation does not predict future files. Other file types remain available to language-independent rules. Files with parse errors block with a source location and repair skill, even when rule findings are warnings. This is syntax analysis, not type checking or name resolution.
 
 - named-if-condition accepts one identifier or named field path, optionally parenthesized. Calls, comparisons, negations, boolean operators, indexing and literals must be assigned a meaningful name before branching. Rust else-if and Python elif, conditional expressions and comprehension filters are included. A simple Rust if let is a binding pattern and remains allowed; let chains are reported. The linter cannot prove that a Python name contains bool or that its name explains the branch.
 - function-lines counts nonblank lines from the function signature through the end of its body, including comments, docstrings and nested definitions. Decorators and preceding attributes are excluded. Methods, async functions, constructors, nested functions and anonymous closures/lambdas are included; declarations without bodies have no size finding. Nested functions are also measured independently.
