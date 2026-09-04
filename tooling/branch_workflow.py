@@ -40,7 +40,8 @@ def merge_in_progress(root: Path) -> bool:
 
 
 def commit_allowed(root: Path) -> bool:
-    return current_branch(root) != MASTER or merge_in_progress(root)
+    branch = current_branch(root)
+    return branch.startswith(FEATURE_PREFIX) or (branch == MASTER and merge_in_progress(root))
 
 
 def is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
@@ -55,12 +56,15 @@ def reference_allowed(root: Path, lines: list[str]) -> bool:
         if len(fields) != 3:
             return False
         old, new, reference = fields
-        if (
-            new == ZERO
-            and reference.startswith(f"refs/heads/{FEATURE_PREFIX}")
-            and is_ancestor(root, old, MASTER)
-        ):
-            return False
+        if new == ZERO and reference.startswith(f"refs/heads/{FEATURE_PREFIX}"):
+            tip = old
+            if old == ZERO:
+                result = git(root, "rev-parse", "--verify", f"{reference}^{{commit}}", check=False)
+                if result.returncode != 0:
+                    continue
+                tip = result.stdout.strip()
+            if is_ancestor(root, tip, MASTER):
+                return False
     return True
 
 
@@ -89,7 +93,7 @@ def merge_feature(root: Path) -> int:
         raise ValueError("feature-merge must run from a feature/* branch")
     require_clean(root)
     if not is_ancestor(root, MASTER, feature):
-        result = git(root, "rebase", MASTER, check=False)
+        result = git(root, "rebase", "--rebase-merges", MASTER, check=False)
         if result.returncode != 0:
             sys.stderr.write(result.stdout + result.stderr)
             return result.returncode
