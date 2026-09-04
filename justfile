@@ -38,6 +38,14 @@ check-staged:
 test *args:
     @{{runner}} run test "$@"
 
+# What: create a feature branch from master; Why: keep direct development commits off master.
+feature-start *args:
+    @{{runner}} run feature-start "$@"
+
+# What: rebase, verify, and merge the current feature; Why: integrate against current master without deleting feature history.
+feature-merge:
+    @{{runner}} run feature-merge
+
 # What: report command usage; Why: expose evidence for command-surface maintenance.
 report:
     @{{runner}} run report

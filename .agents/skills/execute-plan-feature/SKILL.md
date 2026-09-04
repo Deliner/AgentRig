@@ -11,4 +11,6 @@ Read applicable decisions and invariants, inspect Project and Git state, and cho
 
 Keep product implementation under Project. Change worker tooling or policy only when the active feature cannot be completed under the existing contract.
 
-Prepare one coherent change, run focused tests while iterating, then run just check. Mark the feature complete only when its observable acceptance behavior passes. Activate another existing feature only when the completed feature no longer has required work; do not invent a next feature.
+From `master`, start a retained feature branch with `just feature-start -- <name>` before editing. Prepare coherent commits there, run focused tests while iterating, then run `just check`. Mark the feature complete only when its observable acceptance behavior passes, commit that state, and integrate it with `just feature-merge`. If current `master` has advanced, let that command rebase and re-verify the feature before merging. Never delete the merged feature branch.
+
+Activate another existing feature only when the completed feature no longer has required work; do not invent a next feature.

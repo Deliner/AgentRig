@@ -24,6 +24,10 @@
 
 ## Edit and verify
 
+- Never commit directly on `master`. Start work from `master` with `just feature-start -- <name>`.
+- Commit feature work only on its retained `feature/<name>` branch.
+- Finish with `just feature-merge`; it rebases a divergent feature onto current `master`, verifies it, merges without flattening its commits, and keeps the feature branch.
+- Do not delete a feature branch after it has been merged.
 - Prepare one coherent edit. The checkpoint blocks a second edit until the changed contents are committed or reverted.
 - Run just check while iterating and just check-staged before committing.
 - Never bypass .githooks/pre-commit.

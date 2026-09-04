@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+# DECISION: D010
+
+set -euo pipefail
+root="$(git rev-parse --show-toplevel)"
+/usr/bin/python3 "$root/tooling/branch_workflow.py" guard-reference "$1"
