@@ -9,20 +9,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from comment_parser import DECISION_ROW, INVARIANT_ROW, LINK, source_comments, table_rows
+from plan_policy import plan_errors
 from size_policy import size_findings
 
 # DECISION: D002
 # DECISION: D008
 # DECISION: D009
+# DECISION: D012
 
 LEDGER = Path("Ledger")
 DECISIONS = LEDGER / "Decisions.md"
 INVARIANTS = LEDGER / "Invariants.md"
 PLAN = LEDGER / "Plan.md"
-PLAN_ROW = re.compile(
-    r"^\| \[(P\d{3})\]\((Plan/\d{3}\.md)\) "
-    r"\| (pending|active|complete) \| (.+) \| (.+) \|$"
-)
 
 
 @dataclass(frozen=True)
@@ -175,34 +173,7 @@ def invariant_findings(root: Path) -> list[Finding]:
 
 
 def plan_findings(root: Path) -> list[Finding]:
-    rows = table_rows(root / PLAN, PLAN_ROW)
-    findings: list[Finding] = []
-    ids = [row.group(1) for row in rows]
-    if len(ids) != len(set(ids)):
-        findings.append(Finding("error", "Plan IDs are not unique"))
-    if sum(row.group(3) == "active" for row in rows) != 1:
-        findings.append(Finding("error", "Plan must contain exactly one active feature"))
-    for row in rows:
-        plan_id, detail, _status, _feature, _capability = row.groups()
-        if detail != f"Plan/{plan_id[1:]}.md":
-            findings.append(Finding("error", f"{plan_id}: detail path does not match ID"))
-        path = root / LEDGER / detail
-        if not path.is_file():
-            findings.append(Finding("error", f"{plan_id}: missing detail file"))
-            continue
-        sections = re.findall(
-            r"^## ([A-Za-z ]+)\n\n(.+?)(?=\n## |\Z)",
-            path.read_text(encoding="utf-8"),
-            re.MULTILINE | re.DOTALL,
-        )
-        required = ["Feature", "User capability", "Acceptance"]
-        if [name for name, body in sections if body.strip()] != required:
-            findings.append(Finding("error", f"{plan_id}: incomplete feature contract"))
-    known = set(ids)
-    for path in (root / LEDGER / "Plan").glob("[0-9][0-9][0-9].md"):
-        if f"P{path.stem}" not in known:
-            findings.append(Finding("error", f"{path.relative_to(root)} is not indexed"))
-    return findings
+    return [Finding("error", message) for message in plan_errors(root)]
 
 
 def check(root: Path, history: Path) -> list[Finding]:

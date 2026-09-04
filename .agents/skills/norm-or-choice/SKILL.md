@@ -16,6 +16,8 @@ An invariant without a passing executable oracle is prohibited in this repositor
 
 A decision may create an invariant, and that invariant may cite the decision. Do not infer rationale from an invariant. Record that rationale as a separate decision.
 
-Revise explicitly. Replace an invariant only through a recorded decision. Supersede a decision only with a new decision that names the changed context and the displaced decision. Keep the old indexed record; the repository checker rejects modification or deletion of committed knowledge records.
+Revise explicitly. Replace an invariant only through a recorded decision, updating its predicate, detail, and exact test together. Supersede a decision only with a new decision that names the changed context and the displaced decision. Keep the old indexed decision and its detail; the repository checker rejects modification or deletion of committed decisions and removal of prior application links. Identify successors in the Decisions index so resume does not apply obsolete policy. Invariant records may change under an explicit decision; they are not append-only decision history.
+
+Ordinary Plan updates use the existing delivery policy: changing feature status, recording a discovered prerequisite, or adding authorized follow-ups does not itself require a new policy decision. Record a durable decision only when the update makes a genuine contextual choice that needs its own rationale. Feature details still state outcomes and acceptance, with Delivery context for the source of new work, blockers, and verification.
 
 At any scale, use the same test: an invariant can be violated; a decision can be reconsidered. They have different failure modes and must not share one record.

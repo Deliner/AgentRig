@@ -2,7 +2,7 @@
 
 Each row records one contextual choice. Application links identify every file governed by it.
 
-Current precedence: [D011](Decisions/011.md) supersedes the edit-checkpoint policy in D003. Superseded rows and detail files remain historical records; follow their explicit successors.
+Current precedence: [D011](Decisions/011.md) supersedes the edit-checkpoint policy in D003. [D012](Decisions/012.md) supersedes D009's exactly-one-active and sequencing rules while preserving its outcome-based feature contract. Superseded rows and detail files remain historical records; follow their explicit successors.
 
 | ID | Decision | Applies in |
 | --- | --- | --- |
@@ -17,3 +17,4 @@ Current precedence: [D011](Decisions/011.md) supersedes the edit-checkpoint poli
 | [D009](Decisions/009.md) | Drive development through user-facing Plan features while leaving implementation choices to the executing agent. | [instructions](../AGENTS.md), [plan](Plan.md), [feature](Plan/001.md), [execution skill](../.agents/skills/execute-plan-feature/SKILL.md), [checker](../tooling/check_repo.py), [tests](../tooling/tests/test_repo_policy.py) |
 | [D010](Decisions/010.md) | Develop on retained feature branches, rebase divergent work onto current master, and integrate it with an explicit merge. | [instructions](../AGENTS.md), [execution skill](../.agents/skills/execute-plan-feature/SKILL.md), [workflow](../tooling/branch_workflow.py), [recipes](../justfile), [catalog](../tooling/command_catalog.json), [pre-commit](../.githooks/pre-commit), [reference hook](../.githooks/reference-transaction), [tests](../tooling/tests/test_branch_workflow.py) |
 | [D011](Decisions/011.md) | Deliver cohesive VACs through the staged commit gate and retire per-edit checkpoint blocking. | [instructions](../AGENTS.md), [overview](../README.md), [execution skill](../.agents/skills/execute-plan-feature/SKILL.md), [retired adapter](../.codex/hooks/commit_checkpoint.py), [hooks](../.codex/hooks.json), [pre-commit](../.githooks/pre-commit), [tests](../tooling/tests/test_commit_checkpoint.py) |
+| [D012](Decisions/012.md) | Adapt outcome-based delivery through validated prerequisites, paused features, justified follow-ups, and retained branch handoffs. | [instructions](../AGENTS.md), [overview](../README.md), [plan](Plan.md), [execution skill](../.agents/skills/execute-plan-feature/SKILL.md), [classification skill](../.agents/skills/norm-or-choice/SKILL.md), [checker](../tooling/check_repo.py), [plan policy](../tooling/plan_policy.py), [plan tests](../tooling/tests/test_plan_policy.py), [repository tests](../tooling/tests/test_repo_policy.py), [branch tests](../tooling/tests/test_branch_workflow.py) |

@@ -1,20 +1,58 @@
 ---
 name: execute-plan-feature
-description: Implement or resume the one active user-facing feature in Ledger/Plan.md. Use for product work governed by the Discipline Worker feature plan; do not use for unrelated repository administration.
+description: Deliver or resume an authorized product feature through verified atomic changes and adapt its delivery plan when blockers or new requirements arise. Use for product work governed by Ledger/Plan.md; explicit worker-administration requests remain independently authorized.
 ---
 
-# Execute the active feature
+# Execute feature delivery
 
-Read Ledger/Plan.md and the detail for its single active entry. Treat the feature, user capability, and acceptance sections as the required result; do not infer implementation requirements from their examples or wording.
+Read Ledger/Plan.md, the active feature detail if present, applicable decisions and invariants, and Git state. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
 
-Read applicable decisions and invariants, inspect Project and Git state, and choose the smallest implementation that satisfies the feature. The executing agent owns implementation choices. Record a decision only when multiple admissible approaches require a durable contextual choice, and record an invariant only for must-hold observable behavior with an executable pytest oracle.
+At most one feature is active. If none is active, use an already authorized delivery instruction to select a ready pending feature or resume a paused one; otherwise report the current state and stop. Row order expresses intended priority, not independent authorization. Do not invent more work merely to keep the Plan active.
 
-Keep product implementation under Project. Change worker tooling or policy only when the active feature cannot be completed under the existing contract.
+Keep product implementation under Project. Change worker policy or tooling only when explicitly requested or when delivery cannot satisfy the existing contract without it. Record decisions only for genuine durable contextual choices, and invariants only for must-hold behavior with an executable pytest oracle.
 
-From `master`, start a retained feature branch with `just feature-start -- <name>` before editing. Deliver the feature in verified atomic changes (VACs). Before each VAC, identify its intended result and sufficient falsifiable verification. A VAC is one cohesive, independently checkable and revertible change, potentially spanning multiple files and edits. It need not be a complete user-facing feature.
+## Start and implement
 
-Edit, check, and correct freely within the VAC. Run focused tests appropriate to the change, inspect and stage only its contents, and commit with the result and verification described in the message. The pre-commit hook owns the complete staged-tree gate; do not duplicate that gate routinely before committing. Failures allow immediate correction. Finish or deliberately discard the current uncommitted VAC before starting the next. Preserve unrelated work and keep completed VACs as commits, without a separate VAC registry.
+From a clean master, use `just feature-start -- <name>`. For existing work, resume its retained branch instead of creating a replacement. Record useful branch/resume context in the feature's Delivery section; Git contains the completed VACs.
 
-Mark the feature complete only when its observable acceptance behavior passes, commit that state, and integrate it with `just feature-merge`. If current `master` has advanced, let that command rebase and re-verify the feature before merging. Never delete the merged feature branch.
+Before each verified atomic change (VAC), identify its intended result and sufficient falsifiable verification. A VAC is one cohesive, independently checkable and revertible change, potentially spanning several files, tool calls, and corrections. It need not deliver a whole feature. Choose the next step from current evidence without prescribing all future implementation steps.
 
-Activate another existing feature only when the completed feature no longer has required work; do not invent a next feature.
+Edit, run focused checks, and correct freely within the VAC. Add or update tests when needed to verify changed behavior; a no-op or a prose edit does not require invented tests. Failed checks permit immediate correction. Inspect and stage only the coherent change, then commit with the result and verification described in the message. The pre-commit hook runs the complete staged-tree gate. Do not routinely run the same full gate manually before committing; use `just check` or `just check-staged` for diagnosis or an explicit verification need.
+
+Finish or deliberately discard only the current uncommitted VAC before beginning the next. Preserve unrelated work. Completed VACs are commits; there is no separate VAC registry, per-edit lock, or requirement to provoke a failed commit before fixing code.
+
+## Adapt the plan
+
+Classify an obstacle against current acceptance:
+
+- A technical difficulty within the current contract stays inside the feature. Change the implementation or next VAC.
+- A necessary independent prerequisite pauses the current feature and goes before it in delivery order. Add its ID to the paused feature's Depends on.
+- A justified follow-up goes after the current feature while current delivery continues. Add a dependency on the current feature only if its outcome is actually required.
+- New instructions from the user or an authorized manager may add several pending features during work. Record their source and requested outcomes, keeping one active feature. Do not interrupt the current VAC unless the instruction changes priority or makes that VAC obsolete.
+
+New entries require a current requirement, observed constraint, or authorized instruction. Keep stable IDs, outcome-based details, and the reason/source in Delivery. Do not turn every implementation step into a feature or split solely because work is large.
+
+If later work is required for current acceptance, the current feature remains incomplete. Perform that work inside it or explicitly revise the result contract under the user's authorization. Do not silently shrink acceptance to manufacture completion.
+
+## Pause and hand off
+
+1. Inspect the current diff. Finish and verify the current VAC if it remains useful, or discard only its own uncommitted changes. Do not reset the branch's verified commits, delete its branch, or discard unrelated work.
+2. In a separate plan-only VAC, set the current feature to paused, record the concrete blocker, retained branch and condition for resumption in Delivery, and add the necessary prerequisite before it. Activate the prerequisite if its own dependencies are complete and delivery is authorized; otherwise leave zero active features. Commit only the relevant Plan index and detail changes and note that commit's hash.
+3. With a clean working tree, return to master using `just write -- git switch master`, create the prerequisite branch with `just feature-start -- <name>`, and carry over the plan-only commit with `just write -- git cherry-pick <plan-commit>`. Inspect the carried diff; it must contain no unfinished product code. Resolve any Plan conflict against current master without dropping newer entries or completion states.
+4. Deliver the prerequisite there. If the blocker instead requires external input and no prerequisite can proceed, stop with the retained branch and resume condition recorded; do not create speculative features.
+
+The prerequisite branch carries the updated Plan to master through its normal integration. Never merge the paused feature merely to publish a plan change. Existing unrelated work that prevents a clean switch must be preserved separately or left in its current checkout.
+
+## Resume
+
+After the prerequisite is accepted and integrated, switch to the paused feature's retained branch from a clean working tree. Reconcile it with current master using `just write -- git rebase --rebase-merges master`. Resolve conflicts using the latest delivered Plan as the baseline: preserve newly completed prerequisites and later instructions rather than restoring stale active states.
+
+Reassess retained VACs against the new prerequisite and current acceptance. Dependencies must be complete and no other feature active before setting this feature active. Update its Delivery context and verify affected behavior before committing the resumption VAC. Reuse valid work and revise obsolete work; do not assume old verification proves the rebased result.
+
+## Complete and integrate
+
+Verify the feature's observable acceptance, then record the actual checks and results in Delivery and mark it complete. Unmet acceptance remains required work. Leaving zero active features is valid; activate another existing feature only under an authorized delivery instruction.
+
+Commit the completion state and run `just feature-merge`. It rebases divergent work onto current master, verifies the integrated candidate, and merges without flattening feature commits. Keep the feature branch. After conflicts or rebase, reconcile Plan state and re-verify the affected result.
+
+Plan changes, VACs, and product completion have different boundaries: adding future work does not complete it, a passing VAC does not prove full feature acceptance, and a complete feature is delivered to master only after integration succeeds.

@@ -2,7 +2,7 @@
 
 ## Resume before work
 
-1. Read Ledger/Plan.md, the active feature detail, and relevant decision and invariant details.
+1. Read Ledger/Plan.md, the active feature detail if present, and relevant decision and invariant details. Follow explicit superseding decisions; historical records do not override their successors.
 2. Inspect Git status and recent commits. Preserve unrelated changes.
 3. Apply the complexity-discipline skill for non-trivial design or implementation.
 4. Use norm-or-choice before changing durable policy, decisions, invariants, or these instructions.
@@ -20,7 +20,16 @@
 - Add the exact marker # DECISION: DNNN to every linked Python or shell implementation.
 - Put # INVARIANT: INNN immediately before the linked test definition.
 - Plan entries describe user-facing functionality and capability, not implementation.
-- Work on one active Plan feature. The executing agent chooses the implementation and records only genuine durable choices.
+- Work on at most one active Plan feature. The executing agent chooses the implementation and records only genuine durable choices. No active feature is a valid idle state; start only work authorized by the user or an authorized manager.
+
+## Evolving the delivery plan
+
+- Keep feature IDs stable and use Plan row order for delivery priority. Record actual prerequisites in `Depends on`; active and complete features require completed prerequisites.
+- Add future features when grounded in current requirements, observed constraints, or user/authorized manager instructions. Describe their product results and source, then continue the current VAC unless priority or acceptance explicitly changes.
+- Treat implementation difficulties within the current contract as VAC work. Split a feature only for independently meaningful outcomes or necessary prerequisites, not merely because it needs many edits.
+- If a prerequisite blocks delivery, pause the current feature, record the blocker, retained branch, and resumption condition in its Delivery section, and put the prerequisite before it. Finish or discard only the current uncommitted VAC before switching; retain verified commits and unrelated work.
+- Carry a plan-only handoff commit to the new prerequisite branch from master, so the prerequisite can be delivered without merging unfinished product code. On resume, reconcile the retained branch with current master and the latest Plan before another VAC. Follow the execution skill for the concrete sequence.
+- Complete a feature only after its acceptance passes; record checks and results in Delivery. Required acceptance work cannot be deferred to a follow-up without an explicitly authorized contract change. Do not invent a next feature to keep the Plan active.
 
 ## Verified atomic changes
 
