@@ -6,7 +6,7 @@ Authorized worker task: add language-specific lint handlers for named if conditi
 
 ## Workspace
 
-Observed branch feature/language-aware-lint, based on master e6366c3. This VAC contains the Rust/Python handlers, schema/defaults, repair skills, behavioral tests and D017/I015. No unrelated changes were observed. Inspect Git before resuming.
+Observed branch feature/language-aware-lint, based on master e6366c3. Implementation VAC 6c2ad30 contains the Rust/Python handlers, schema/defaults, repair skills, behavioral tests and D017/I015. This handoff changes only State. No unrelated changes were observed. Inspect Git before resuming.
 
 ## Progress
 
@@ -14,7 +14,7 @@ Read and applied the full complexity-discipline and relevant Ledger/configuratio
 
 ## Verification
 
-Focused native tests passed 34 cases, covering both grammars, thresholds, receivers, parser errors (including missing unnamed tokens), skill diagnostics, selectors and staged source/config isolation. Three new skills passed quick_validate.py. The implementation still needs its full staged commit gate and feature integration; inspect the command log and Git for later progress.
+Focused native tests passed 34 cases, covering both grammars, thresholds, receivers, parser errors (including missing unnamed tokens), skill diagnostics, selectors and staged source/config isolation. Three new skills passed quick_validate.py. The full staged gate for 6c2ad30 passed: 133 pytest cases, rustfmt, Clippy and all existing Python/metadata checks. Integration remains the next operation; inspect Git for later progress.
 
 ## Blockers
 
@@ -22,4 +22,4 @@ None external. The first parser test exposed a missing-token traversal bug; it i
 
 ## Next action
 
-Review and commit this coherent VAC through the normal staged gate; correct any failures without bypassing hooks. After it passes, record the verified handoff and run just feature-merge, retaining the feature branch. If Git shows the branch already integrated, this task is complete; follow the next authorized instruction.
+If this handoff is uncommitted, commit it through the normal staged gate. Then run just feature-merge from the clean feature branch, retaining its reference. If Git shows the branch already integrated, this task is complete; follow the next authorized instruction.
