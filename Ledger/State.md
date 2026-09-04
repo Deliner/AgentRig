@@ -2,24 +2,24 @@
 
 ## Focus
 
-Authorized worker task: migrate hook services to Rust and implement configurable structural linting with per-rule repair skills. Product P001 remains unchanged.
+Authorized worker task: add language-specific lint handlers for named if conditions, function/method size and declared input counts. Product P001 remains unchanged.
 
 ## Workspace
 
-Observed branch feature/rust-worker-runtime, based on master 67ce484. Implementation is committed as 651b0d1; this final handoff updates only State. Inspect Git before resuming; no unrelated changes were observed.
+Observed branch feature/language-aware-lint, based on master e6366c3. Implementation VAC 6c2ad30 contains the Rust/Python handlers, schema/defaults, repair skills, behavioral tests and D017/I015. This handoff changes only State. No unrelated changes were observed. Inspect Git before resuming.
 
 ## Progress
 
-Full complexity-discipline and all repository editing/execution skills were read. Native hooks now own routing, command guards, reminder storage, transcript scanning, and Git commit/reference guards. TOML structural rules support targets, extensions, globs, warning/error thresholds, ordered overrides, and required skills. The staged and merge gate uses Rust lint and maps external check failures to repair skills. Python Ledger and Just/feature orchestration remain; historical Python hook/size code is retained for parity tests.
+Read and applied the full complexity-discipline and relevant Ledger/configuration/skill guidance. Tree-sitter handlers share per-file analysis and report locations; numeric rules support warning-only or blocking thresholds, while named conditions use an explicit level. Defaults expose existing violations as warnings (40 function lines, 4 parameters). Simple Rust if let retains bindings; inline boolean expressions and let chains are reported. Exact scope and limitations are in tooling/worker/README.md.
 
 ## Verification
 
-The full staged gate for 651b0d1 passed with 119 tests, rustfmt, Clippy, and all existing Python/metadata checks. The focused native run passed 37 cases, including source-fingerprint invalidation with an unchanged file timestamp and isolation of staged content/configuration. Both new skills passed quick_validate.py. Local 50-sample edit-hook median: Python 28.019 ms, registered Rust launcher 8.071 ms, binary alone 0.786 ms. This does not measure first compilation or all hook types.
+Focused native tests passed 34 cases, covering both grammars, thresholds, receivers, parser errors (including missing unnamed tokens), skill diagnostics, selectors and staged source/config isolation. Three new skills passed quick_validate.py. The full staged gate for 6c2ad30 passed: 133 pytest cases, rustfmt, Clippy and all existing Python/metadata checks. Integration remains the next operation; inspect Git for later progress.
 
 ## Blockers
 
-None external. Soft size warnings remain for complexity-discipline and the skills/tooling directories. Rust 1.98.1 with rustfmt/Clippy is installed and Cargo.lock is generated. Do not weaken limits merely to remove warnings.
+None external. The first parser test exposed a missing-token traversal bug; it is corrected and the regression passes. Initial new-rule lint reported 282 condition, 17 function-size and 6 parameter warnings in the then-current tree. These are reported debt, not a claim of strict conformance. No repository-wide rewrite was requested; enforcement is configurable.
 
 ## Next action
 
-Inspect Git first. If the feature branch is not integrated, commit this final State handoff through pre-commit and run just feature-merge from the clean feature branch, retaining its reference. If Git shows feature/rust-worker-runtime already integrated, this worker task is complete; follow the next authorized instruction without repeating the migration.
+If this handoff is uncommitted, commit it through the normal staged gate. Then run just feature-merge from the clean feature branch, retaining its reference. If Git shows the branch already integrated, this task is complete; follow the next authorized instruction.

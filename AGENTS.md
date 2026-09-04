@@ -64,3 +64,5 @@
 - Each diagnostic names a repair skill. Consider the warning skill for soft findings; apply the error skill to correct blocking findings. External gate failures also name their configured skill.
 - Apply configure-linter before changing selectors, thresholds, rule kinds, or skill mappings. Do not weaken thresholds merely to pass. New compiled rules need declared capabilities, behavior tests, and repair guidance.
 - Rust source changes participate in rustfmt, Clippy, and native behavioral tests. Use // DECISION: DNNN for Rust traceability; existing mandatory Python/shell markers remain unchanged.
+
+- Language rules use compiled Rust/Python syntax handlers. Current defaults warn for named-if-condition, function-lines and parameter-count; changing enforcement is a config/policy choice. Follow the reported repair skill, preserve evaluation and binding semantics, and do not hide findings by weakening selectors or limits. See tooling/worker/README.md for exact counting and parser scope.

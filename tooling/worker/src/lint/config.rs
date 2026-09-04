@@ -5,6 +5,7 @@ use serde::Deserialize;
 use std::{collections::HashSet, fs, path::Path};
 
 // DECISION: D016
+// DECISION: D017
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -27,8 +28,9 @@ pub struct Rule {
     pub exclude: Vec<String>,
     #[serde(default)]
     pub extensions: Vec<String>,
-    pub warning: u64,
-    pub error: u64,
+    pub warning: Option<u64>,
+    pub error: Option<u64>,
+    pub level: Option<Level>,
     pub warning_skill: String,
     pub error_skill: String,
     #[serde(default)]
@@ -42,6 +44,27 @@ pub struct Override {
     pub extensions: Vec<String>,
     pub warning: Option<u64>,
     pub error: Option<u64>,
+}
+#[derive(Clone, Copy, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Level {
+    Warning,
+    Error,
+}
+impl Level {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Warning => "warning",
+            Self::Error => "error",
+        }
+    }
+}
+pub fn thresholds(warning: Option<u64>, error: Option<u64>) -> Result<()> {
+    match (warning, error) {
+        (None, None) => bail!("at least one warning/error threshold is required"),
+        (Some(warning), Some(error)) if warning >= error => bail!("warning must be below error"),
+        _ => Ok(()),
+    }
 }
 pub fn globs(patterns: &[String]) -> Result<GlobSet> {
     let mut builder = GlobSetBuilder::new();
@@ -100,8 +123,23 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
         globs(&rule.include)?;
         globs(&rule.exclude)?;
         validate_extensions(&rule.extensions, &rule.target)?;
-        if rule.warning >= rule.error {
-            bail!("{}: warning must be below error", rule.id);
+        rules::validate_extensions(&rule.kind, &rule.extensions)?;
+        if rule.kind == "named-if-condition" {
+            if rule.level.is_none()
+                || rule.warning.is_some()
+                || rule.error.is_some()
+                || !rule.overrides.is_empty()
+            {
+                bail!(
+                    "{}: named-if-condition needs level, no thresholds or overrides",
+                    rule.id
+                );
+            }
+        } else {
+            if rule.level.is_some() {
+                bail!("{}: numeric rules use thresholds, not level", rule.id);
+            }
+            thresholds(rule.warning, rule.error)?;
         }
         skill(root, &rule.warning_skill)?;
         skill(root, &rule.error_skill)?;
@@ -111,6 +149,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
             }
             globs(&entry.include)?;
             validate_extensions(&entry.extensions, &rule.target)?;
+            rules::validate_extensions(&rule.kind, &entry.extensions)?;
             if let (Some(warning), Some(error)) = (entry.warning, entry.error)
                 && warning >= error
             {
