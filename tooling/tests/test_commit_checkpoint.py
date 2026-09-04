@@ -7,10 +7,12 @@ import sys
 from pathlib import Path
 
 import pytest
+from native_support import install_runner
 
 # DECISION: D003
 # DECISION: D011
 # DECISION: D014
+# DECISION: D015
 
 ROOT = Path(__file__).parents[2]
 
@@ -41,6 +43,7 @@ def test_vac_commit_boundary(tmp_path: Path) -> None:
     (hooks / "pre-commit").chmod(0o755)
     tooling = tmp_path / "tooling"
     tooling.mkdir()
+    install_runner(tmp_path)
     shutil.copy(ROOT / "tooling/branch_workflow.py", tooling / "branch_workflow.py")
     gate = tooling / "check.sh"
     gate.write_text(
@@ -99,4 +102,4 @@ def test_edit_hooks_keep_reminders_without_checkpoint() -> None:
     edits = [item for item in hooks["PreToolUse"] if "apply_patch" in item["matcher"].split("|")]
     assert len(edits) == 1
     assert len(edits[0]["hooks"]) == 1
-    assert "agent_context.py" in edits[0]["hooks"][0]["command"]
+    assert "tooling/worker/run" in edits[0]["hooks"][0]["command"]

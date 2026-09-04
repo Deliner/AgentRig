@@ -2,6 +2,7 @@
 
 """Shared session and pre-tool entrypoint for worker context and edit guidance."""
 
+# Historical Python parity reference; production execution uses tooling/worker (D015/D016).
 from __future__ import annotations
 
 import json

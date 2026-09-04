@@ -2,24 +2,24 @@
 
 ## Focus
 
-Worker task: fresh-session recovery state and centralized pre-edit guidance for Plan, Decisions, Invariants, and State. Implementation and verification are complete in 97a63ea; integration is the remaining step at the time of this handoff. The product feature remains [P001](Plan/001.md); this worker task does not implement its review MCP.
+Authorized worker task: migrate hook services to Rust and implement configurable structural linting with per-rule repair skills. Product P001 remains unchanged.
 
 ## Workspace
 
-Observed branch: feature/state-and-edit-guidance. Implementation revision: 97a63ea, based on master at a17c7c8. This handoff changes only State; no unfinished product changes or unrelated work were observed. The branch may already be integrated when read; inspect Git status, branch, and recent commits before resuming.
+Observed branch feature/rust-worker-runtime, based on master 67ce484. Rust source, its locked dependencies, skills, hook/gate wiring, and tests form the current VAC. Inspect Git before resuming; no unrelated changes were observed.
 
 ## Progress
 
-97a63ea adds this snapshot, four compact editing skills, a shared hook entrypoint, and executable checks. All registered pre-tool checks now route through agent_context.py. The prior VAC/Plan workflow and existing command/complexity checks are preserved. Product code remains a placeholder under Project. This final snapshot records the handoff without claiming a future merge has already occurred.
+Full complexity-discipline and all repository editing/execution skills were read. Native hooks now own routing, command guards, reminder storage, transcript scanning, and Git commit/reference guards. TOML structural rules support targets, extensions, globs, warning/error thresholds, ordered overrides, and required skills. The staged and merge gate uses Rust lint and maps external check failures to repair skills. Python Ledger and Just/feature orchestration remain; historical Python hook/size code is retained for parity tests.
 
 ## Verification
 
-The pre-commit staged gate for 97a63ea passed: 82 pytest cases, Ruff formatting/linting, strict mypy, typos, Vulture, and repository/catalog checks. All four editing skills passed skill-creator's quick_validate.py. Links in 42 Markdown files were checked and historical decision details preserved. Existing soft size warnings remain for complexity-discipline and the tooling directory. No failed check or simulation remains unresolved.
+The full working-tree gate passed with 118 tests, rustfmt, Clippy, and all existing Python/metadata checks. A subsequent focused run covers the final native changes and source-fingerprint cache test; inspect its result and the upcoming staged gate. Both new skills passed quick_validate.py. Local 50-sample edit-hook median: Python 28.019 ms, registered Rust launcher 8.071 ms, binary alone 0.786 ms. This does not measure first compilation or all hook types.
 
 ## Blockers
 
-None observed. A crash or interrupted command can leave this snapshot behind the working tree; inspect actual output and Git state before retrying.
+None external. Soft size warnings remain for complexity-discipline and the skills/tooling directories. Rust 1.98.1 with rustfmt/Clippy is installed and Cargo.lock is generated. Do not weaken limits merely to remove warnings.
 
 ## Next action
 
-First inspect Git. If feature/state-and-edit-guidance is not yet integrated, finish committing this State handoff through pre-commit and run just feature-merge from the clean feature branch. If the branch is already an ancestor of master, the worker task is complete: do not repeat it or create another housekeeping commit merely to restate the merge. Read the current Plan and follow the next authorized instruction; P001's product implementation remains undelivered.
+Inspect the diff and run the staged commit gate. Correct any remaining failure, then integrate with just feature-merge, retaining the feature branch. If Git shows feature/rust-worker-runtime already integrated, this worker task is complete; follow the next authorized instruction without repeating the migration.

@@ -1,0 +1,39 @@
+# Every rule declares supported target, selectors, thresholds, and repair skills.
+version = 1
+config_skill = ".agents/skills/configure-linter/SKILL.md"
+exclude = [".git", ".git/**", ".cache", ".cache/**", "**/__pycache__", "**/__pycache__/**", "**/.venv", "**/.venv/**", "**/target", "**/target/**"]
+
+[[rules]]
+id = "file-size"
+kind = "nonblank-lines"
+target = "file"
+include = ["**"]
+extensions = [".py", ".sh", ".rs", ".js", ".ts", ".tsx", ".jsx", ".go", ".c", ".h", ".cpp", ".cs", ".java", ".json", ".md", ".toml", ".txt", ".yaml", ".yml"]
+warning = 300
+error = 500
+warning_skill = ".agents/skills/refactor-large-file/SKILL.md"
+error_skill = ".agents/skills/refactor-large-file/SKILL.md"
+
+[[rules]]
+id = "directory-size"
+kind = "directory-entries"
+target = "directory"
+include = ["**"]
+exclude = ["Ledger/Decisions", "Ledger/Invariants"]
+warning = 10
+error = 15
+warning_skill = ".agents/skills/refactor-large-directory/SKILL.md"
+error_skill = ".agents/skills/refactor-large-directory/SKILL.md"
+
+# Repair guidance for each external stage of the same mandatory gate.
+[gate_skills]
+repo-policy = ".agents/skills/repair-verification/SKILL.md"
+command-policy = ".agents/skills/repair-verification/SKILL.md"
+ruff-format = ".agents/skills/repair-verification/SKILL.md"
+ruff = ".agents/skills/repair-verification/SKILL.md"
+mypy = ".agents/skills/repair-verification/SKILL.md"
+pytest = ".agents/skills/repair-verification/SKILL.md"
+typos = ".agents/skills/repair-verification/SKILL.md"
+vulture = ".agents/skills/repair-verification/SKILL.md"
+rustfmt = ".agents/skills/repair-verification/SKILL.md"
+clippy = ".agents/skills/repair-verification/SKILL.md"

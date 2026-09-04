@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# DECISION: D015
+set -euo pipefail
+source_dir="$(cd "$(dirname "$0")" && pwd)"
+root="$(cd "$source_dir/../.." && pwd)"
+target="$(printenv WORKER_TARGET_DIR || true)"
+if [[ -z "$target" ]]; then target="$root/.cache/worker"; fi
+binary="$target/release/discipline-worker"
+signature="$(cd "$source_dir" && find . -type f \( -name '*.rs' -o -name '*.txt' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
+saved=""
+if [[ -f "$target/source-signature" ]]; then read -r saved < "$target/source-signature"; fi
+if [[ ! -x "$binary" || "$saved" != "$signature" ]]; then
+    mkdir -p "$target"
+    (
+        flock 9
+        cargo +1.98.1 build --manifest-path "$source_dir/Cargo.toml" --target-dir "$target" --release --locked >&2
+        printf '%s\n' "$signature" > "$target/source-signature"
+    ) 9>"$target/build.lock"
+fi
+exec "$binary" "$@"

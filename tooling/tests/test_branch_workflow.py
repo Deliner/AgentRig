@@ -14,10 +14,12 @@ from branch_workflow import (
     reference_allowed,
     start_feature,
 )
+from native_support import install_runner
 from plan_policy import plan_errors
 
 # DECISION: D010
 # DECISION: D012
+# DECISION: D015
 
 
 def git(root: Path, *args: str) -> str:
@@ -41,6 +43,7 @@ def repository(root: Path) -> Path:
     git(root, "config", "user.email", "test@example.invalid")
     tooling = root / "tooling"
     tooling.mkdir()
+    install_runner(root)
     source_root = Path(__file__).parents[2]
     shutil.copy(source_root / "tooling" / "branch_workflow.py", tooling)
     hooks = root / ".githooks"

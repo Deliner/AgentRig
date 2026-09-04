@@ -1,0 +1,9 @@
+COMPLEXITY_DISCIPLINE_CHECKPOINT
+
+Reassess the current approach before making the next implementation decision.
+
+The purpose of this checkpoint is to preserve semantic alignment with the current requirements. Every distinction, mechanism, validation step, lifecycle rule, and guarantee should correspond either to an explicit requirement or to a necessary condition for correctness.
+
+Evidence of alignment: removing an element would violate a stated requirement or make the implementation incorrect.
+
+Boundary of the check: do not reinterpret or strengthen the requirements, expand the scope, or introduce new process merely to make the solution appear more complete. If no unsupported complexity is present, continue without redesigning the approach.

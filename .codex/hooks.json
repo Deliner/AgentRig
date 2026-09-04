@@ -7,8 +7,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/agent_context.py\"",
-            "timeout": 5,
+            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }
         ]
@@ -20,8 +20,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/agent_context.py\"",
-            "timeout": 5,
+            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }
         ]

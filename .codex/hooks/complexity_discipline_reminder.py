@@ -2,6 +2,7 @@
 
 """Project-local Codex adapter for the complexity-discipline reminder hook."""
 
+# Historical Python parity reference; production execution uses tooling/worker (D015/D016).
 from __future__ import annotations
 
 import argparse

@@ -12,6 +12,7 @@ from agent_context import LEDGER_SKILLS, dispatch
 
 # DECISION: D013
 # DECISION: D014
+# DECISION: D015
 
 ROOT = Path(__file__).parents[2]
 
@@ -175,7 +176,7 @@ def test_single_registered_entrypoint_and_json_protocol(tmp_path: Path) -> None:
     assert len(hooks["PreToolUse"]) == 1
     for event in ("SessionStart", "PreToolUse"):
         assert len(hooks[event][0]["hooks"]) == 1
-        assert "agent_context.py" in hooks[event][0]["hooks"][0]["command"]
+        assert "tooling/worker/run" in hooks[event][0]["hooks"][0]["command"]
     env = {**os.environ, "COMPLEXITY_DISCIPLINE_STATE_DIR": str(tmp_path / "state")}
     result = subprocess.run(
         [sys.executable, str(ROOT / ".codex/hooks/agent_context.py")],

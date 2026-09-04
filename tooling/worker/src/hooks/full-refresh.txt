@@ -1,0 +1,15 @@
+COMPLEXITY_DISCIPLINE_FULL_REFRESH_REQUIRED
+
+Before any further reasoning or action, apply the complete skill at:
+
+.agents/skills/complexity-discipline/SKILL.md
+
+Resolve this path relative to the repository root, regardless of the current working directory.
+
+Load and apply the complete current instructions from the specified skill source using a read-only mechanism permitted by the active environment, then reassess the deferred approach before retrying it.
+
+Evidence of completion: the complete current skill has been applied during this refresh and the active approach has been reassessed against all of its instructions.
+
+Boundary of completion: prior knowledge, an earlier application, a summary, metadata inspection, keyword search, or applying only part of the skill does not satisfy this requirement.
+
+If the skill cannot be loaded or applied completely, stop without continuing the original task and report that the mandatory refresh could not be performed.
