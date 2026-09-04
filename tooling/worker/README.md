@@ -22,13 +22,14 @@ Each rules entry requires:
 - include: nonempty repository-relative glob list.
 - exclude: optional rule-local glob list.
 - extensions: optional literal suffixes, such as .rs or .ts; only file rules accept them.
-- warning and error: nonnegative thresholds, warning strictly below error. Equality with a threshold passes that threshold; a greater value triggers it.
+- Numeric rules require warning, error, or both: nonnegative thresholds; warning must be strictly below error when both exist. Equality passes; a greater value triggers that level. Omit error for warnings only, or warning for blocking only.
+- named-if-condition instead requires level = "warning" or "error", with no numeric thresholds or threshold overrides.
 - warning_skill and error_skill: existing repository SKILL.md paths with name/description frontmatter.
 - overrides: optional ordered selector/threshold overrides.
 
 Global exclude removes paths from the inventory before directory counts. Rule-local exclude only suppresses diagnostics on matching targets. Globs are case-sensitive, use / separators, and treat * as one path component and ** as recursive. Root-directory diagnostics use the path ".".
 
-An override inherits the rule's target and repair skills. It supplies include, optional extensions, and at least one of warning/error. All matching overrides apply in declaration order; later supplied thresholds replace earlier values. Effective warning must remain below error. Different rules are independent and can both report on a file.
+An override inherits the rule's target and repair skills. It supplies include, optional extensions, and at least one of warning/error. All matching overrides apply in declaration order; later supplied thresholds replace earlier values. Effective warning must remain below error when both exist. An omitted override threshold inherits its prior value; overrides cannot remove thresholds. Different rules are independent and can both report on a file.
 
 Example, placed inside the file-size rule before the next rules entry:
 
@@ -55,7 +56,21 @@ directory-entries counts immediate child names, including child directories, fro
 
 Current defaults retain warnings above 300 nonblank lines and errors above 500; directory warnings above 10 and errors above 15. Ledger/Decisions and Ledger/Invariants remain excluded from directory-size checks. All structural diagnostics include rule ID, path, measurement, limit, severity, and repair skill. Use just lint -- --json for structured output.
 
-The registry in src/lint/rules.rs defines supported kinds and target/language capabilities. To add an actual rule, implement its measurement in the evaluator, update its registry metadata/validation and behavioral tests, and supply a repair skill. Syntax-aware language rules need their own parser and tests; extension selection alone does not claim AST analysis. The current extension point is compiled Rust code, not dynamically loaded plugins.
+### Syntax-aware rules
+
+The Rust engine parses each selected source once per run using Tree-sitter. Compiled handlers in src/lint/languages interpret Rust (.rs) and Python (.py, .pyi) syntax and produce measurements for the same rules. Empty extensions selects all supported suffixes; explicitly selecting an unsupported suffix for a syntax rule is a configuration error. Other file types remain available to language-independent rules. Files with parse errors block with a source location and repair skill, even when rule findings are warnings. This is syntax analysis, not type checking or name resolution.
+
+- named-if-condition accepts one identifier or named field path, optionally parenthesized. Calls, comparisons, negations, boolean operators, indexing and literals must be assigned a meaningful name before branching. Rust else-if and Python elif, conditional expressions and comprehension filters are included. A simple Rust if let is a binding pattern and remains allowed; let chains are reported. The linter cannot prove that a Python name contains bool or that its name explains the branch.
+- function-lines counts nonblank lines from the function signature through the end of its body, including comments, docstrings and nested definitions. Decorators and preceding attributes are excluded. Methods, async functions, constructors, nested functions and anonymous closures/lambdas are included; declarations without bodies have no size finding. Nested functions are also measured independently.
+- parameter-count counts declared inputs, including optional and variadic parameters as one each. Generic type parameters, commas inside types/defaults, and separators do not count. Rust self receivers (including typed self) and the first bound Python method receiver are excluded. For literal @staticmethod decorators, inputs all count; bound method/classmethod receivers do not. Decorator aliases are not resolved. Python constructors are checked through explicit __init__/__new__ declarations; Rust associated constructor functions such as new are ordinary functions. Calls, class inheritance arguments, generated constructors (such as dataclass) and macro-expanded code are not inferred.
+
+Defaults enable all three new rules across the existing Rust/Python harness as warnings: named conditions at every finding, functions above 40 nonblank lines, and signatures above 4 inputs. This initial rollout exposes existing violations without an unrelated repository-wide rewrite. To block named conditions, set level = "error". For numeric rules, add a justified hard threshold (for example, error = 60 for functions or error = 6 for parameters). Existing file/directory blocks remain active. Selectors and numeric overrides work identically for structural and syntax rules.
+
+Syntax diagnostics add a 1-based line and symbol to the existing JSON fields; text output renders file:line (symbol). Each finding points to name-if-condition, refactor-long-function or reduce-parameters. No automatic code transformation is performed.
+
+The registry in src/lint/rules.rs declares supported kinds, targets and actual handlers. To add a rule, implement its measurements, validation, behavioral tests and repair skill. To support another language, add its grammar and handler, update supported extensions and registry metadata together, and test its syntax against the existing rule semantics. The extension point is compiled Rust code; there is no dynamic plugin lifecycle. Rust macros are opaque token trees, and Python decorator aliases or generated declarations require semantic tooling beyond these handlers.
+
+Parser APIs and grammars: [Tree-sitter](https://docs.rs/tree-sitter/0.26.13/tree_sitter/), [Rust grammar](https://docs.rs/tree-sitter-rust/0.24.2/tree_sitter_rust/), [Python grammar](https://docs.rs/tree-sitter-python/0.25.0/tree_sitter_python/).
 
 ## Commit and merge gate
 

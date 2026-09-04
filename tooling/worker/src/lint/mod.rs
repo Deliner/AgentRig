@@ -1,13 +1,15 @@
 pub mod config;
 mod inventory;
+mod languages;
 pub mod rules;
 
-use anyhow::{Result, bail};
+use anyhow::Result;
 use config::{extension_matches, globs};
 use serde::Serialize;
-use std::{fs, path::Path};
+use std::{collections::HashMap, fs, path::Path};
 
 // DECISION: D016
+// DECISION: D017
 const CONFIG_SKILL: &str = ".agents/skills/configure-linter/SKILL.md";
 #[derive(Serialize)]
 pub struct Diagnostic {
@@ -18,10 +20,15 @@ pub struct Diagnostic {
     limit: Option<u64>,
     skill: String,
     message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    line: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    symbol: Option<String>,
 }
 fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
     let mut output = Vec::new();
+    let mut analyses = HashMap::new();
     for rule in &config.rules {
         let include = globs(&rule.include)?;
         let exclude = globs(&rule.exclude)?;
@@ -45,16 +52,51 @@ fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
             let (mut warning, mut error) = (rule.warning, rule.error);
             for (entry, selector) in rule.overrides.iter().zip(&overrides) {
                 if selector.is_match(path) && extension_matches(path, &entry.extensions) {
-                    warning = entry.warning.unwrap_or(warning);
-                    error = entry.error.unwrap_or(error);
+                    warning = entry.warning.or(warning);
+                    error = entry.error.or(error);
                 }
             }
-            if warning >= error {
-                bail!(
-                    "{} at {}: effective warning must be below error",
-                    rule.id,
-                    path.display()
-                );
+            if rule.level.is_none() {
+                config::thresholds(warning, error)?;
+            }
+            let syntax_rule = rules::syntax(&rule.kind);
+            if syntax_rule {
+                let supported = languages::supports(path);
+                if !supported {
+                    continue;
+                }
+                if !analyses.contains_key(path) {
+                    let source = fs::read_to_string(root.join(path))?;
+                    analyses.insert(path.clone(), languages::analyze(path, &source)?);
+                }
+                let analysis = &analyses[path];
+                if let Some(line) = analysis.parse_error {
+                    let reported = output.iter().any(|item: &Diagnostic| {
+                        item.rule == "syntax" && item.path == path.to_string_lossy()
+                    });
+                    if !reported {
+                        output.push(Diagnostic { rule: "syntax".into(), path: path.to_string_lossy().into_owned(),
+                            level: "error".into(), actual: None, limit: None, skill: rule.error_skill.clone(),
+                            message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
+                            line: Some(line), symbol: None });
+                    }
+                    continue;
+                }
+                for measured in analysis
+                    .measurements
+                    .iter()
+                    .filter(|item| item.kind == rule.kind)
+                {
+                    let mut diagnostic = match finding(rule, path, measured.actual, warning, error)?
+                    {
+                        Some(item) => item,
+                        None => continue,
+                    };
+                    diagnostic.line = Some(measured.line);
+                    diagnostic.symbol = Some(measured.symbol.clone());
+                    output.push(diagnostic);
+                }
+                continue;
             }
             let actual = match rule.kind.as_str() {
                 "nonblank-lines" => match String::from_utf8(fs::read(root.join(path))?) {
@@ -67,25 +109,49 @@ fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
                 "directory-entries" => inventory.directories[path].len() as u64,
                 _ => unreachable!("validated by rule registry"),
             };
-            let (level, limit, skill) = if actual > error {
-                ("error", error, &rule.error_skill)
-            } else if actual > warning {
-                ("warning", warning, &rule.warning_skill)
-            } else {
-                continue;
-            };
-            output.push(Diagnostic {
-                rule: rule.id.clone(),
-                path: path.to_string_lossy().into_owned(),
-                level: level.into(),
-                actual: Some(actual),
-                limit: Some(limit),
-                skill: skill.clone(),
-                message: format!("{} measures {actual}, exceeds {limit}", rule.kind),
-            });
+            if let Some(item) = finding(rule, path, actual, warning, error)? {
+                output.push(item);
+            }
         }
     }
     Ok(output)
+}
+fn finding(
+    rule: &config::Rule,
+    path: &Path,
+    actual: u64,
+    warning: Option<u64>,
+    error: Option<u64>,
+) -> Result<Option<Diagnostic>> {
+    let (level, limit) = if let Some(level) = rule.level {
+        (level.name(), None)
+    } else {
+        config::thresholds(warning, error)?;
+        match (warning, error) {
+            (_, Some(limit)) if actual > limit => ("error", Some(limit)),
+            (Some(limit), _) if actual > limit => ("warning", Some(limit)),
+            _ => return Ok(None),
+        }
+    };
+    let message = match limit {
+        Some(limit) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
+        None => "if condition must be one named value; give the branch reason a name".into(),
+    };
+    Ok(Some(Diagnostic {
+        rule: rule.id.clone(),
+        path: path.to_string_lossy().into_owned(),
+        level: level.into(),
+        actual: Some(actual),
+        limit,
+        skill: if level == "error" {
+            rule.error_skill.clone()
+        } else {
+            rule.warning_skill.clone()
+        },
+        message,
+        line: None,
+        symbol: None,
+    }))
 }
 pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
     let config = config::load(root, path);
@@ -106,6 +172,8 @@ pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
                 limit: None,
                 skill,
                 message: format!("{error:#}"),
+                line: None,
+                symbol: None,
             }],
             true,
         ),
@@ -119,7 +187,7 @@ pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
                 "{} [{}] {}: {}. ACTION: {} {}",
                 item.level.to_uppercase(),
                 item.rule,
-                item.path,
+                format_location(item),
                 item.message,
                 if item.level == "warning" {
                     "Consider"
@@ -131,4 +199,12 @@ pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
         }
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
+}
+
+fn format_location(item: &Diagnostic) -> String {
+    match (&item.line, &item.symbol) {
+        (Some(line), Some(symbol)) => format!("{}:{line} ({symbol})", item.path),
+        (Some(line), None) => format!("{}:{line}", item.path),
+        _ => item.path.clone(),
+    }
 }

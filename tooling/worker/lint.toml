@@ -26,6 +26,39 @@ warning_skill = ".agents/skills/refactor-large-directory/SKILL.md"
 error_skill = ".agents/skills/refactor-large-directory/SKILL.md"
 
 # Repair guidance for each external stage of the same mandatory gate.
+# Language rules start as warnings across the existing harness.
+# Use level = "error" for named conditions; add error = N to numeric rules to block.
+
+[[rules]]
+id = "named-if-condition"
+kind = "named-if-condition"
+target = "file"
+include = ["**"]
+extensions = [".rs", ".py", ".pyi"]
+level = "warning"
+warning_skill = ".agents/skills/name-if-condition/SKILL.md"
+error_skill = ".agents/skills/name-if-condition/SKILL.md"
+
+[[rules]]
+id = "function-lines"
+kind = "function-lines"
+target = "file"
+include = ["**"]
+extensions = [".rs", ".py", ".pyi"]
+warning = 40
+warning_skill = ".agents/skills/refactor-long-function/SKILL.md"
+error_skill = ".agents/skills/refactor-long-function/SKILL.md"
+
+[[rules]]
+id = "parameter-count"
+kind = "parameter-count"
+target = "file"
+include = ["**"]
+extensions = [".rs", ".py", ".pyi"]
+warning = 4
+warning_skill = ".agents/skills/reduce-parameters/SKILL.md"
+error_skill = ".agents/skills/reduce-parameters/SKILL.md"
+
 [gate_skills]
 repo-policy = ".agents/skills/repair-verification/SKILL.md"
 command-policy = ".agents/skills/repair-verification/SKILL.md"
