@@ -10,6 +10,7 @@ import pytest
 
 # DECISION: D003
 # DECISION: D011
+# DECISION: D014
 
 ROOT = Path(__file__).parents[2]
 
@@ -95,7 +96,7 @@ def test_edit_hooks_keep_reminders_without_checkpoint() -> None:
     configuration = json.loads((ROOT / ".codex/hooks.json").read_text(encoding="utf-8"))
     hooks = configuration["hooks"]
     assert "commit_checkpoint" not in json.dumps(hooks)
-    edits = [item for item in hooks["PreToolUse"] if item["matcher"] == "apply_patch|Edit|Write"]
+    edits = [item for item in hooks["PreToolUse"] if "apply_patch" in item["matcher"].split("|")]
     assert len(edits) == 1
     assert len(edits[0]["hooks"]) == 1
-    assert "complexity_discipline_reminder.py" in edits[0]["hooks"][0]["command"]
+    assert "agent_context.py" in edits[0]["hooks"][0]["command"]

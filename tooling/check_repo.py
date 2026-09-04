@@ -16,11 +16,13 @@ from size_policy import size_findings
 # DECISION: D008
 # DECISION: D009
 # DECISION: D012
+# DECISION: D013
 
 LEDGER = Path("Ledger")
 DECISIONS = LEDGER / "Decisions.md"
 INVARIANTS = LEDGER / "Invariants.md"
 PLAN = LEDGER / "Plan.md"
+STATE = LEDGER / "State.md"
 
 
 @dataclass(frozen=True)
@@ -176,6 +178,17 @@ def plan_findings(root: Path) -> list[Finding]:
     return [Finding("error", message) for message in plan_errors(root)]
 
 
+def state_findings(root: Path) -> list[Finding]:
+    path = root / STATE
+    if not path.is_file():
+        return [Finding("error", "missing required file Ledger/State.md")]
+    parts = re.split(r"^## ([^\n]+)\n", path.read_text(encoding="utf-8"), flags=re.MULTILINE)
+    required = ["Focus", "Workspace", "Progress", "Verification", "Blockers", "Next action"]
+    if parts[1::2] != required or not all(body.strip() for body in parts[2::2]):
+        return [Finding("error", "State requires nonempty recovery sections in canonical order")]
+    return []
+
+
 def check(root: Path, history: Path) -> list[Finding]:
     required = [
         root / "Project" / "README.md",
@@ -191,6 +204,7 @@ def check(root: Path, history: Path) -> list[Finding]:
     findings = decision_findings(root, history)
     findings.extend(invariant_findings(root))
     findings.extend(plan_findings(root))
+    findings.extend(state_findings(root))
     findings.extend(
         Finding(level, message) for level, message in size_findings(root, repository_files(root))
     )
