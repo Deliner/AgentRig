@@ -1,0 +1,13 @@
+{
+  "default": {"mode": "list", "description": "List agent commands", "requires": []},
+  "list": {"mode": "list", "description": "List agent commands", "requires": []},
+  "read": {"mode": "read", "description": "Run argv in a read-only sandbox", "requires": []},
+  "write": {"mode": "write", "description": "Run argv with normal repository access", "requires": []},
+  "status": {"mode": "command", "description": "Show concise Git status", "argv": ["git", "status", "--short"], "requires": []},
+  "diff": {"mode": "command", "description": "Show a Git diff", "argv": ["git", "diff"], "accepts_args": true, "requires": []},
+  "check": {"mode": "command", "description": "Run the complete repository gate", "argv": ["./tooling/check.sh"], "requires": ["tooling/check.sh"]},
+  "check-staged": {"mode": "command", "description": "Run the staged-tree gate", "argv": ["./tooling/check.sh", "--staged"], "requires": ["tooling/check.sh"]},
+  "test": {"mode": "command", "description": "Run pytest", "argv": ["uv", "run", "--locked", "--project", "tooling", "pytest", "-c", "tooling/pyproject.toml"], "accepts_args": true, "requires": ["tooling/pyproject.toml", "tooling/uv.lock"]},
+  "report": {"mode": "report", "description": "Report command usage", "requires": []},
+  "review-commands": {"mode": "review", "description": "Reset the command-review baseline", "requires": []}
+}

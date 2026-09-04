@@ -1,0 +1,51 @@
+{
+  "description": "Discipline Worker project hooks.",
+  "hooks": {
+    "SessionStart": [{
+      "matcher": "startup|resume|clear|compact",
+      "hooks": [{
+        "type": "command",
+        "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/complexity_discipline_reminder.py\" --config \"$(git rev-parse --show-toplevel)/.agents/skills/complexity-discipline/context-reminder.json\"",
+        "timeout": 5,
+        "statusMessage": "Loading complexity discipline"
+      }]
+    }],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Shell|exec_command",
+        "hooks": [{
+          "type": "command",
+          "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/just_command_guard.py\"",
+          "timeout": 5,
+          "statusMessage": "Checking Just command boundary"
+        }]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/complexity_discipline_reminder.py\" --config \"$(git rev-parse --show-toplevel)/.agents/skills/complexity-discipline/context-reminder.json\"",
+            "timeout": 5,
+            "statusMessage": "Checking complexity discipline"
+          },
+          {
+            "type": "command",
+            "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/commit_checkpoint.py\"",
+            "timeout": 5,
+            "statusMessage": "Checking edit checkpoint"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [{
+      "matcher": "apply_patch|Edit|Write",
+      "hooks": [{
+        "type": "command",
+        "command": "/usr/bin/python3 \"$(git rev-parse --show-toplevel)/.codex/hooks/commit_checkpoint.py\"",
+        "timeout": 5,
+        "statusMessage": "Recording edit checkpoint"
+      }]
+    }]
+  }
+}

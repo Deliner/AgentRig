@@ -1,0 +1,13 @@
+# Decisions
+
+Each row records one contextual choice. Application links identify every file governed by it.
+
+| ID | Decision | Applies in |
+| --- | --- | --- |
+| [D001](Decisions/001.md) | Separate contextual decisions from executable invariants. | [instructions](../AGENTS.md), [decisions](Decisions.md), [invariants](Invariants.md), [classification skill](../.agents/skills/norm-or-choice/SKILL.md) |
+| [D002](Decisions/002.md) | Enforce durable-knowledge links and size policy with one standard-library checker. | [checker](../tooling/check_repo.py), [parser](../tooling/comment_parser.py), [tests](../tooling/tests/test_repo_policy.py), [pre-commit](../.githooks/pre-commit) |
+| [D003](Decisions/003.md) | Block a second agent edit until prior edited contents are committed or reverted. | [checkpoint](../.codex/hooks/commit_checkpoint.py), [hooks](../.codex/hooks.json), [tests](../tooling/tests/test_commit_checkpoint.py), [pre-commit](../.githooks/pre-commit) |
+| [D004](Decisions/004.md) | Use Ruff, mypy, pytest, typos, and Vulture as the Python quality gate. | [configuration](../tooling/pyproject.toml), [gate](../tooling/check.sh), [pre-commit](../.githooks/pre-commit) |
+| [D005](Decisions/005.md) | Route agent shell operations through catalogued and logged Just recipes. | [instructions](../AGENTS.md), [recipes](../justfile), [catalog](../tooling/command_catalog.json), [runner](../tooling/command_runner.py), [catalog checker](../tooling/check_commands.py), [shell guard](../.codex/hooks/just_command_guard.py), [hooks](../.codex/hooks.json), [gate](../tooling/check.sh), [tests](../tooling/tests/test_command_workflow.py), [pre-commit](../.githooks/pre-commit) |
+| [D006](Decisions/006.md) | Inject complexity discipline at session start and configured attention intervals. | [instructions](../AGENTS.md), [skill](../.agents/skills/complexity-discipline/SKILL.md), [schedule](../.agents/skills/complexity-discipline/context-reminder.json), [hook](../.codex/hooks/complexity_discipline_reminder.py), [hooks](../.codex/hooks.json), [tests](../tooling/tests/test_complexity_reminder.py) |
+| [D007](Decisions/007.md) | Warn before size limits fail and route structural findings to focused refactoring skills. | [instructions](../AGENTS.md), [policy](../tooling/size_policy.py), [tests](../tooling/tests/test_repo_policy.py), [file skill](../.agents/skills/refactor-large-file/SKILL.md), [directory skill](../.agents/skills/refactor-large-directory/SKILL.md) |
