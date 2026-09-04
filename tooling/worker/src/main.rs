@@ -14,6 +14,7 @@ use std::{
 
 // DECISION: D015
 // DECISION: D016
+// DECISION: D018
 fn run() -> Result<i32> {
     let mut args: Vec<String> = env::args().skip(1).collect();
     let command = if args.is_empty() {
@@ -43,14 +44,19 @@ fn run() -> Result<i32> {
             }
             Ok(0)
         }
-        "lint" => {
+        "lint" | "lint-config-check" => {
             let config =
                 take_option(&mut args, "--config")?.unwrap_or("tooling/worker/lint.toml".into());
             let json = args.iter().any(|arg| arg == "--json");
             if args.iter().any(|arg| arg != "--json") {
                 bail!("unknown lint argument");
             }
-            lint::run(&root, &root.join(config), json)
+            lint::run(
+                &root,
+                &root.join(config),
+                json,
+                command == "lint-config-check",
+            )
         }
         "gate" => gate::run(&root, &args),
         "lint-rules" => {
@@ -62,7 +68,7 @@ fn run() -> Result<i32> {
             branch::guard_reference(&root, args.first().map(String::as_str).unwrap_or(""))
         }
         _ => bail!(
-            "usage: discipline-worker hook|lint|lint-rules|guard-commit|guard-reference [--root PATH]"
+            "usage: discipline-worker hook|lint|lint-config-check|lint-rules|guard-commit|guard-reference [--root PATH]"
         ),
     }
 }

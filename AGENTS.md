@@ -60,7 +60,7 @@
 ## Native runtime and configurable lint
 
 - Registered hooks and Git guards use tooling/worker/run. The launcher verifies a source fingerprint before using its cached locked release build; do not bypass it with a stale binary.
-- Structural lint is configured in tooling/worker/lint.toml and runs on staged commits and before integration. Use just lint for focused feedback and just lint-rules for supported target/language capabilities.
+- Structural lint is configured in tooling/worker/lint.toml and runs on staged commits and before integration. Use just lint for focused feedback, just lint-config-check for schema and target-applicability validation without source analysis, and just lint-rules for supported target/language capabilities. Unsupported selected languages are configuration errors; use explicit extensions/exclusions for mixed directories.
 - Each diagnostic names a repair skill. Consider the warning skill for soft findings; apply the error skill to correct blocking findings. External gate failures also name their configured skill.
 - Apply configure-linter before changing selectors, thresholds, rule kinds, or skill mappings. Do not weaken thresholds merely to pass. New compiled rules need declared capabilities, behavior tests, and repair guidance.
 - Rust source changes participate in rustfmt, Clippy, and native behavioral tests. Use // DECISION: DNNN for Rust traceability; existing mandatory Python/shell markers remain unchanged.

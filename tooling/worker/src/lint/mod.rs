@@ -2,14 +2,16 @@ pub mod config;
 mod inventory;
 mod languages;
 pub mod rules;
+mod selection;
 
 use anyhow::Result;
-use config::{extension_matches, globs};
+use config::globs;
 use serde::Serialize;
 use std::{collections::HashMap, fs, path::Path};
 
 // DECISION: D016
 // DECISION: D017
+// DECISION: D018
 const CONFIG_SKILL: &str = ".agents/skills/configure-linter/SKILL.md";
 #[derive(Serialize)]
 pub struct Diagnostic {
@@ -30,44 +32,17 @@ fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let mut output = Vec::new();
     let mut analyses = HashMap::new();
     for rule in &config.rules {
-        let include = globs(&rule.include)?;
-        let exclude = globs(&rule.exclude)?;
-        let overrides = rule
-            .overrides
-            .iter()
-            .map(|entry| globs(&entry.include))
-            .collect::<Result<Vec<_>>>()?;
-        let targets: Vec<_> = if rule.target == "file" {
-            inventory.files.iter().collect()
-        } else {
-            inventory.directories.keys().collect()
-        };
-        for path in targets {
-            if !include.is_match(path)
-                || exclude.is_match(path)
-                || !extension_matches(path, &rule.extensions)
-            {
-                continue;
-            }
-            let (mut warning, mut error) = (rule.warning, rule.error);
-            for (entry, selector) in rule.overrides.iter().zip(&overrides) {
-                if selector.is_match(path) && extension_matches(path, &entry.extensions) {
-                    warning = entry.warning.or(warning);
-                    error = entry.error.or(error);
-                }
-            }
-            if rule.level.is_none() {
-                config::thresholds(warning, error)?;
-            }
+        for selected in selection::select(rule, &inventory)? {
+            let selection::Selected {
+                path,
+                warning,
+                error,
+            } = selected;
             let syntax_rule = rules::syntax(&rule.kind);
             if syntax_rule {
-                let supported = languages::supports(path);
-                if !supported {
-                    continue;
-                }
                 if !analyses.contains_key(path) {
                     let source = fs::read_to_string(root.join(path))?;
-                    analyses.insert(path.clone(), languages::analyze(path, &source)?);
+                    analyses.insert(path.to_owned(), languages::analyze(path, &source)?);
                 }
                 let analysis = &analyses[path];
                 if let Some(line) = analysis.parse_error {
@@ -153,14 +128,24 @@ fn finding(
         symbol: None,
     }))
 }
-pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
+pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
     let config = config::load(root, path);
     let skill = config
         .as_ref()
         .map(|config| config.config_skill.as_str())
         .unwrap_or(CONFIG_SKILL)
         .to_owned();
-    let result = config.and_then(|config| evaluate(root, &config));
+    let result = config.and_then(|config| {
+        if validate_only {
+            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+            for rule in &config.rules {
+                selection::select(rule, &inventory)?;
+            }
+            Ok(Vec::new())
+        } else {
+            evaluate(root, &config)
+        }
+    });
     let (diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (
@@ -182,6 +167,9 @@ pub fn run(root: &Path, path: &Path, json: bool) -> Result<i32> {
     if json {
         println!("{}", serde_json::to_string(&diagnostics)?);
     } else {
+        if validate_only && !config_error {
+            println!("Lint configuration is valid: {}", path.display());
+        }
         for item in &diagnostics {
             println!(
                 "{} [{}] {}: {}. ACTION: {} {}",

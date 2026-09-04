@@ -6,6 +6,7 @@ use std::{collections::HashSet, fs, path::Path};
 
 // DECISION: D016
 // DECISION: D017
+// DECISION: D018
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -20,6 +21,8 @@ pub struct Config {
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rule {
+    #[serde(default = "enabled_by_default")]
+    pub enabled: bool,
     pub id: String,
     pub kind: String,
     pub target: String,
@@ -58,6 +61,9 @@ impl Level {
             Self::Error => "error",
         }
     }
+}
+fn enabled_by_default() -> bool {
+    true
 }
 pub fn thresholds(warning: Option<u64>, error: Option<u64>) -> Result<()> {
     match (warning, error) {
@@ -124,6 +130,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
         globs(&rule.exclude)?;
         validate_extensions(&rule.extensions, &rule.target)?;
         rules::validate_extensions(&rule.kind, &rule.extensions)?;
+        rules::validate_includes(&rule.kind, &rule.include)?;
         if rule.kind == "named-if-condition" {
             if rule.level.is_none()
                 || rule.warning.is_some()
@@ -150,6 +157,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
             globs(&entry.include)?;
             validate_extensions(&entry.extensions, &rule.target)?;
             rules::validate_extensions(&rule.kind, &entry.extensions)?;
+            rules::validate_includes(&rule.kind, &entry.include)?;
             if let (Some(warning), Some(error)) = (entry.warning, entry.error)
                 && warning >= error
             {

@@ -16,12 +16,6 @@ pub struct Analysis {
     pub measurements: Vec<Measurement>,
     pub parse_error: Option<usize>,
 }
-pub fn supports(path: &Path) -> bool {
-    matches!(
-        path.extension().and_then(|ext| ext.to_str()),
-        Some("rs" | "py" | "pyi")
-    )
-}
 pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
     let is_rust = path.extension().is_some_and(|ext| ext == "rs");
     let language = if is_rust {

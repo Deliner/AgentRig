@@ -138,5 +138,17 @@
     "requires": [
       "tooling/worker/run"
     ]
+  },
+  "lint-config-check": {
+    "mode": "command",
+    "description": "Validate lint configuration and selected target compatibility",
+    "argv": [
+      "./tooling/worker/run",
+      "lint-config-check"
+    ],
+    "accepts_args": true,
+    "requires": [
+      "tooling/worker/run"
+    ]
   }
 }
