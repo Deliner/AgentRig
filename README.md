@@ -1,5 +1,5 @@
 # Discipline Worker
 
-A reusable Python project environment for developing automation with explicit decisions, executable invariants, guarded agent commands, edit checkpoints, complexity reminders, and one quality gate.
+A reusable worker environment for feature-driven development with explicit decisions, executable invariants, guarded agent commands, edit checkpoints, complexity reminders, and one quality gate.
 
-Start with just list, inspect ledger/STATE.md, and keep product-specific rules out of the reusable tooling layer.
+Product code lives under Project. Its sibling Ledger holds the feature plan, decisions, and invariants. Start with just list and Ledger/Plan.md.

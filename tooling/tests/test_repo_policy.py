@@ -3,11 +3,13 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from check_repo import check, decision_findings, invariant_findings
+from check_repo import check, decision_findings, invariant_findings, plan_findings
 from size_policy import size_findings
 
 # DECISION: D002
 # DECISION: D007
+# DECISION: D008
+# DECISION: D009
 
 ROOT = Path(__file__).parents[2]
 
@@ -25,9 +27,9 @@ def decision_detail(path: Path) -> None:
 
 
 def minimal_ledger(root: Path, application: str = "../module.py") -> None:
-    decisions = root / "ledger" / "Decisions"
+    decisions = root / "Ledger" / "Decisions"
     decisions.mkdir(parents=True)
-    (root / "ledger" / "Decisions.md").write_text(
+    (root / "Ledger" / "Decisions.md").write_text(
         "# Decisions\n\n"
         "| ID | Decision | Applies in |\n"
         "| --- | --- | --- |\n"
@@ -35,7 +37,7 @@ def minimal_ledger(root: Path, application: str = "../module.py") -> None:
         encoding="utf-8",
     )
     decision_detail(decisions / "001.md")
-    (root / "ledger" / "Invariants.md").write_text(
+    (root / "Ledger" / "Invariants.md").write_text(
         "# Invariants\n\n| ID | Invariant | Enforced by |\n| --- | --- | --- |\n",
         encoding="utf-8",
     )
@@ -58,11 +60,17 @@ def test_invariant_links_require_marked_tests(tmp_path: Path) -> None:
     tests.mkdir()
     target = tests / "test_policy.py"
     target.write_text("def test_rule():\n    pass\n", encoding="utf-8")
-    (tmp_path / "ledger" / "Invariants.md").write_text(
+    details = tmp_path / "Ledger" / "Invariants"
+    details.mkdir()
+    (details / "001.md").write_text(
+        "# I001\n\n## Predicate\n\nRule.\n\n## Oracle\n\nOracle.\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "Ledger" / "Invariants.md").write_text(
         "# Invariants\n\n"
         "| ID | Invariant | Enforced by |\n"
         "| --- | --- | --- |\n"
-        "| I001 | Rule. | [test_rule](../tests/test_policy.py) |\n",
+        "| [I001](Invariants/001.md) | Rule. | [test_rule](../tests/test_policy.py) |\n",
         encoding="utf-8",
     )
     assert invariant_findings(tmp_path)
@@ -90,7 +98,7 @@ def test_committed_decisions_are_append_only(tmp_path: Path) -> None:
         cwd=tmp_path,
         check=True,
     )
-    index = tmp_path / "ledger" / "Decisions.md"
+    index = tmp_path / "Ledger" / "Decisions.md"
     index.write_text(
         index.read_text(encoding="utf-8").replace("Choice.", "Changed."), encoding="utf-8"
     )
@@ -110,3 +118,18 @@ def test_size_thresholds_warn_then_fail(tmp_path: Path) -> None:
 
 def test_worker_repository_policy_passes() -> None:
     assert [item for item in check(ROOT, ROOT) if item.level == "error"] == []
+
+
+# INVARIANT: I008
+def test_worker_layout_and_detail_indexes() -> None:
+    assert (ROOT / "Project" / "README.md").is_file()
+    assert (ROOT / "Ledger" / "Plan").is_dir()
+    assert (ROOT / "Ledger" / "Decisions").is_dir()
+    assert (ROOT / "Ledger" / "Invariants").is_dir()
+    assert invariant_findings(ROOT) == []
+    assert decision_findings(ROOT, ROOT) == []
+
+
+# INVARIANT: I009
+def test_plan_has_one_active_feature_with_complete_detail() -> None:
+    assert plan_findings(ROOT) == []

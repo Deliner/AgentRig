@@ -64,7 +64,7 @@ def size_findings(root: Path, paths: Iterable[Path]) -> list[tuple[str, str]]:
         findings.append((level, message))
     for directory, names in children.items():
         label = str(directory) if directory.parts else "."
-        if directory == Path("ledger/Decisions"):
+        if directory in {Path("Ledger/Decisions"), Path("Ledger/Invariants")}:
             continue
         if len(names) > 15:
             level, limit = "error", 15

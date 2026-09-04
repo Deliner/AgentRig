@@ -2,7 +2,7 @@
 
 ## Resume before work
 
-1. Read ledger/STATE.md and relevant decision details.
+1. Read Ledger/Plan.md, the active feature detail, and relevant decision and invariant details.
 2. Inspect Git status and recent commits. Preserve unrelated changes.
 3. Apply the complexity-discipline skill for non-trivial design or implementation.
 4. Use norm-or-choice before changing durable policy, decisions, invariants, or these instructions.
@@ -19,7 +19,8 @@
 - An invariant states observable behavior and links an exact marked pytest test.
 - Add the exact marker # DECISION: DNNN to every linked Python or shell implementation.
 - Put # INVARIANT: INNN immediately before the linked test definition.
-- Keep ledger/STATE.md limited to current facts and the next action.
+- Plan entries describe user-facing functionality and capability, not implementation.
+- Work on one active Plan feature. The executing agent chooses the implementation and records only genuine durable choices.
 
 ## Edit and verify
 

@@ -7,7 +7,10 @@ from pathlib import Path
 # DECISION: D002
 
 DECISION_ROW = re.compile(r"^\| \[(D\d{3})\]\((Decisions/\d{3}\.md)\) \| (.+) \| (.+) \|$")
-INVARIANT_ROW = re.compile(r"^\| (I\d{3}) \| (.+) \| \[([A-Za-z_]\w*)\]\(([^)]+\.py)\) \|$")
+INVARIANT_ROW = re.compile(
+    r"^\| \[(I\d{3})\]\((Invariants/\d{3}\.md)\) \| (.+) "
+    r"\| \[([A-Za-z_]\w*)\]\(([^)]+\.py)\) \|$"
+)
 LINK = re.compile(r"\[[^]]+\]\(([^)#]+)(?:#[^)]+)?\)")
 
 

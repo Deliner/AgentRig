@@ -12,10 +12,17 @@ from comment_parser import DECISION_ROW, INVARIANT_ROW, LINK, source_comments, t
 from size_policy import size_findings
 
 # DECISION: D002
+# DECISION: D008
+# DECISION: D009
 
-LEDGER = Path("ledger")
+LEDGER = Path("Ledger")
 DECISIONS = LEDGER / "Decisions.md"
 INVARIANTS = LEDGER / "Invariants.md"
+PLAN = LEDGER / "Plan.md"
+PLAN_ROW = re.compile(
+    r"^\| \[(P\d{3})\]\((Plan/\d{3}\.md)\) "
+    r"\| (pending|active|complete) \| (.+) \| (.+) \|$"
+)
 
 
 @dataclass(frozen=True)
@@ -26,6 +33,13 @@ class Finding:
 
 def git(root: Path, *args: str) -> subprocess.CompletedProcess[bytes]:
     return subprocess.run(["git", *args], cwd=root, check=False, capture_output=True)
+
+
+def history_file(history: Path, path: Path) -> subprocess.CompletedProcess[bytes]:
+    result = git(history, "show", f"HEAD:{path}")
+    if result.returncode == 0 or path.parts[:1] != ("Ledger",):
+        return result
+    return git(history, "show", f"HEAD:{Path('ledger', *path.parts[1:])}")
 
 
 def repository_files(root: Path) -> list[Path]:
@@ -90,7 +104,7 @@ def decision_findings(root: Path, history: Path) -> list[Finding]:
 def committed_decision_findings(
     root: Path, history: Path, current_rows: list[re.Match[str]]
 ) -> list[Finding]:
-    previous = git(history, "show", f"HEAD:{DECISIONS}")
+    previous = history_file(history, DECISIONS)
     if previous.returncode != 0:
         return []
     old_rows = [
@@ -107,7 +121,7 @@ def committed_decision_findings(
         delivered = new is not None and set(LINK.findall(applications)) <= set(
             LINK.findall(new.group(4))
         )
-        old_detail = git(history, "show", f"HEAD:{LEDGER / detail}")
+        old_detail = history_file(history, LEDGER / detail)
         current_detail = root / LEDGER / detail
         detail_stable = (
             old_detail.returncode != 0
@@ -126,7 +140,21 @@ def invariant_findings(root: Path) -> list[Finding]:
     if len(ids) != len(set(ids)):
         findings.append(Finding("error", "invariant IDs are not unique"))
     for row in rows:
-        invariant_id, _statement, test_name, target = row.groups()
+        invariant_id, detail, _statement, test_name, target = row.groups()
+        if detail != f"Invariants/{invariant_id[1:]}.md":
+            findings.append(Finding("error", f"{invariant_id}: detail path does not match ID"))
+        detail_path = root / LEDGER / detail
+        if not detail_path.is_file():
+            findings.append(Finding("error", f"{invariant_id}: missing detail file"))
+        else:
+            source = detail_path.read_text(encoding="utf-8")
+            sections = re.findall(
+                r"^## ([A-Za-z ]+)\n\n(.+?)(?=\n## |\Z)",
+                source,
+                re.MULTILINE | re.DOTALL,
+            )
+            if [name for name, body in sections if body.strip()] != ["Predicate", "Oracle"]:
+                findings.append(Finding("error", f"{invariant_id}: incomplete detail"))
         path = inside(root, root / LEDGER, target)
         if path is None or not path.is_file():
             findings.append(Finding("error", f"{invariant_id}: missing test {target}"))
@@ -139,11 +167,51 @@ def invariant_findings(root: Path) -> list[Finding]:
         )
         if marker is None:
             findings.append(Finding("error", f"{invariant_id}: marked test is absent"))
+    known = set(ids)
+    for path in (root / LEDGER / "Invariants").glob("[0-9][0-9][0-9].md"):
+        if f"I{path.stem}" not in known:
+            findings.append(Finding("error", f"{path.relative_to(root)} is not indexed"))
+    return findings
+
+
+def plan_findings(root: Path) -> list[Finding]:
+    rows = table_rows(root / PLAN, PLAN_ROW)
+    findings: list[Finding] = []
+    ids = [row.group(1) for row in rows]
+    if len(ids) != len(set(ids)):
+        findings.append(Finding("error", "Plan IDs are not unique"))
+    if sum(row.group(3) == "active" for row in rows) != 1:
+        findings.append(Finding("error", "Plan must contain exactly one active feature"))
+    for row in rows:
+        plan_id, detail, _status, _feature, _capability = row.groups()
+        if detail != f"Plan/{plan_id[1:]}.md":
+            findings.append(Finding("error", f"{plan_id}: detail path does not match ID"))
+        path = root / LEDGER / detail
+        if not path.is_file():
+            findings.append(Finding("error", f"{plan_id}: missing detail file"))
+            continue
+        sections = re.findall(
+            r"^## ([A-Za-z ]+)\n\n(.+?)(?=\n## |\Z)",
+            path.read_text(encoding="utf-8"),
+            re.MULTILINE | re.DOTALL,
+        )
+        required = ["Feature", "User capability", "Acceptance"]
+        if [name for name, body in sections if body.strip()] != required:
+            findings.append(Finding("error", f"{plan_id}: incomplete feature contract"))
+    known = set(ids)
+    for path in (root / LEDGER / "Plan").glob("[0-9][0-9][0-9].md"):
+        if f"P{path.stem}" not in known:
+            findings.append(Finding("error", f"{path.relative_to(root)} is not indexed"))
     return findings
 
 
 def check(root: Path, history: Path) -> list[Finding]:
-    required = [root / DECISIONS, root / INVARIANTS]
+    required = [
+        root / "Project" / "README.md",
+        root / DECISIONS,
+        root / INVARIANTS,
+        root / PLAN,
+    ]
     missing = [path for path in required if not path.is_file()]
     if missing:
         return [
@@ -151,6 +219,7 @@ def check(root: Path, history: Path) -> list[Finding]:
         ]
     findings = decision_findings(root, history)
     findings.extend(invariant_findings(root))
+    findings.extend(plan_findings(root))
     findings.extend(
         Finding(level, message) for level, message in size_findings(root, repository_files(root))
     )
