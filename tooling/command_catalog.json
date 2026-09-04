@@ -8,6 +8,8 @@
   "check": {"mode": "command", "description": "Run the complete repository gate", "argv": ["./tooling/check.sh"], "requires": ["tooling/check.sh"]},
   "check-staged": {"mode": "command", "description": "Run the staged-tree gate", "argv": ["./tooling/check.sh", "--staged"], "requires": ["tooling/check.sh"]},
   "test": {"mode": "command", "description": "Run pytest", "argv": ["uv", "run", "--locked", "--project", "tooling", "pytest", "-c", "tooling/pyproject.toml"], "accepts_args": true, "requires": ["tooling/pyproject.toml", "tooling/uv.lock"]},
+  "feature-start": {"mode": "command", "description": "Create a feature branch from master", "argv": ["python3", "tooling/branch_workflow.py", "start"], "accepts_args": true, "requires": ["tooling/branch_workflow.py"]},
+  "feature-merge": {"mode": "command", "description": "Rebase, verify, and merge the current feature", "argv": ["python3", "tooling/branch_workflow.py", "merge"], "requires": ["tooling/branch_workflow.py", "tooling/check.sh"]},
   "report": {"mode": "report", "description": "Report command usage", "requires": []},
   "review-commands": {"mode": "review", "description": "Reset the command-review baseline", "requires": []}
 }
