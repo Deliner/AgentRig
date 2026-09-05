@@ -3,7 +3,13 @@ name = "discipline-worker"
 version = "0.2.0"
 edition = "2024"
 
+[workspace]
+members = ["review"]
+default-members = ["."]
+resolver = "3"
+
 [dependencies]
+review-runner = { path = "review" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 toml = "1"

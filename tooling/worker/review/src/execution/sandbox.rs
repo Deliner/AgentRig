@@ -161,5 +161,5 @@ fn runtime_mounts(command: &mut Command) {
 fn cli(command: &mut Command, reviewer: &Reviewer) {
     command.args(["--ignore-user-config", "--ignore-rules", "--ephemeral", "--skip-git-repo-check", "--dangerously-bypass-approvals-and-sandbox", "--dangerously-bypass-hook-trust", "--json", "-m", &reviewer.model, "-c"])
         .arg(format!("model_reasoning_effort={:?}", reviewer.reasoning_effort))
-        .args(["-c", "features.hooks=true", "-c", "hooks.Stop=[{hooks=[{type=\"command\",command=\"/review-bin/review-runner hook\",timeout=10}]}]", "-"]);
+        .args(["-c", "features.hooks=true", "-c", "hooks.Stop=[{hooks=[{type=\"command\",command=\"/review-bin/review-runner review-hook\",timeout=10}]}]", "-"]);
 }

@@ -23,16 +23,8 @@ fn run() -> Result<i32> {
     if has_command {
         args.remove(0);
     }
-    match command.as_str() {
-        "--version" => {
-            println!("discipline-worker {}", scaffold::config::VERSION);
-            return Ok(0);
-        }
-        "--help" => {
-            print_help();
-            return Ok(0);
-        }
-        _ => {}
+    if let Some(result) = immediate(&command, &args) {
+        return result;
     }
     let root = project_root(&mut args, &command)?;
     let scaffold_command =
@@ -52,6 +44,21 @@ fn run() -> Result<i32> {
         ),
     }
 }
+fn immediate(command: &str, args: &[String]) -> Option<Result<i32>> {
+    Some(match command {
+        "review" => review_runner::cli::run(args).map(|()| 0),
+        "review-hook" => review_runner::execution::broker::hook().map(|()| 0),
+        "--version" => {
+            println!("discipline-worker {}", scaffold::config::VERSION);
+            Ok(0)
+        }
+        "--help" => {
+            print_help();
+            Ok(0)
+        }
+        _ => return None,
+    })
+}
 fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     let root = take_option(args, "--root")?
         .map(PathBuf::from)
@@ -64,7 +71,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "discipline-worker (Linux)\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
+        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
     );
 }
 fn hook(root: &Path) -> Result<i32> {

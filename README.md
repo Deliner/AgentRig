@@ -7,6 +7,7 @@ The worker is the product. Reusable capabilities belong under tooling/worker; Pr
 Start with [repository instructions](AGENTS.md), then `just resume`. [worker.toml](worker.toml) owns paths, commands, checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run catalog commands with `just run NAME -- ARGS`.
 
 - [Scaffold guide](tooling/worker/SCAFFOLD.md): installation, configuration, memory schemas, recovery and Git lifecycle.
+- [Review guide](tooling/worker/review/README.md): configured isolated review through the worker.
 - [Linter guide](tooling/worker/README.md): rule semantics, languages, selectors, severity and repair skills.
 - [Independent examples](tooling/worker/examples/README.md): Python and Rust consumers and repeatable measurements.
 - [Feature delivery skill](.agents/skills/execute-plan-feature/SKILL.md): VACs, evolving the plan, blockers and branch handoffs.

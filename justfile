@@ -62,4 +62,4 @@ upgrade *args:
 
 # What: invoke the shared review runner; Why: use the same review contract from Just and MCP.
 review *args:
-    @tooling/worker/run run review-runner -- "$@"
+    @tooling/worker/run run review -- "$@"

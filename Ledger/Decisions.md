@@ -31,4 +31,3 @@ Current precedence: [D022](Decisions/022.md) adds actionable verification eviden
 | [D025](Decisions/025.md) | Develop lint and review as portable worker capabilities while consumer projects own their configuration and source. | [instructions](../AGENTS.md), [overview](../README.md), [consumer scope](../Project/README.md), [delivery](Plan/002.md) |
 
 D025 supersedes D008 for this worker repository; the historical D008 statement and detail remain unchanged.
-

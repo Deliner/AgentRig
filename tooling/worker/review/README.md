@@ -15,18 +15,23 @@ libraries, resolver files and TLS certificates are mounted read-only.
 From this repository:
 
 ```sh
-just review config-check Project/review-mcp/config/review.toml
-just review run Project/review-mcp/config/review.toml /absolute/request.json
+just review config-check tooling/worker/review/config/review.toml
+just review run tooling/worker/review/config/review.toml /absolute/request.json
 ```
 
-For another project, copy this package, build it, and invoke the binary:
+The review engine is a worker library. The main `discipline-worker` executable
+exposes it through `review config-check CONFIG`, `review run CONFIG REQUEST_JSON`
+and `review mcp CONFIG`. The package also retains a `review-runner` CLI over the
+same library. Build from the worker workspace:
 
 ```sh
-cargo build --release --locked --manifest-path /package/review-mcp/Cargo.toml
-/path/to/review-runner config-check /package/review-mcp/config/review.toml
-/path/to/review-runner run /package/review-mcp/config/review.toml /absolute/request.json
-/path/to/review-runner mcp /package/review-mcp/config/review.toml
+cargo build --release --locked --manifest-path tooling/worker/Cargo.toml
+cargo build --release --locked --manifest-path tooling/worker/review/Cargo.toml
 ```
+
+Declarative installation of review resources into consumers is being added by
+P002. Until setup is delivered, pass an explicit review configuration and keep
+its referenced resources together.
 
 Example request file:
 
