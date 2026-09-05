@@ -1,3 +1,4 @@
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -21,9 +22,7 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
         original = path.read_text()
         assert before in original
         path.write_text(original.replace(before, after))
-        result = invoke(worker, tmp_path, "doctor")
-        assert result.returncode != 0
-        assert expected in result.stdout + result.stderr
+        verify_doctor_failure(worker, tmp_path, expected)
         path.write_text(original)
     hook = tmp_path / ".worker/hooks/pre-commit"
     hook.chmod(0o644)
@@ -34,6 +33,17 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
     result = invoke(worker, tmp_path, "doctor")
     assert result.returncode == 1
     assert "installed binary: MISSING OR INCOMPATIBLE" in result.stdout
+
+
+def verify_doctor_failure(worker: Path, root: Path, expected: str) -> None:
+    result = invoke(worker, root, "doctor")
+    assert result.returncode != 0
+    assert expected in result.stdout + result.stderr
+    assert ".worker/skills/repair/SKILL.md" in result.stderr
+    command = result.stderr.split("RERUN: ", 1)[1].splitlines()[0]
+    repeated = subprocess.run(shlex.split(command), capture_output=True, text=True, check=False)
+    assert repeated.returncode == result.returncode
+    assert expected in repeated.stdout + repeated.stderr
 
 
 @pytest.mark.parametrize("case", ["invalid-glob", "file-parent", "generated-parent"])
