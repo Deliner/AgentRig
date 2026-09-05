@@ -29,9 +29,10 @@ cargo build --release --locked --manifest-path tooling/worker/Cargo.toml
 cargo build --release --locked --manifest-path tooling/worker/review/Cargo.toml
 ```
 
-Declarative installation of review resources into consumers is being added by
-P002. Until setup is delivered, pass an explicit review configuration and keep
-its referenced resources together.
+Run `discipline-worker init --root CONSUMER --review true` to install review
+resources and the review skill with the worker. Edit the installed configuration,
+contracts and prompts for the consumer before requesting review. Declarative
+reconfiguration through setup is still being added by P002.
 
 Example request file:
 
@@ -142,6 +143,6 @@ real-client smoke is documented in COMPATIBILITY.md; no background job API is
 needed for that tested client. Calls are handled sequentially per stdio session,
 with parallelism inside each review.
 
-Copy [skills/review-project](skills/review-project) into the consuming project's
-skill directory and configure its MCP connection. This adapter selects the tool
+The worker installs [review-project](../assets/skills/review-project/SKILL.md)
+when review is enabled at initialization. Configure its MCP connection. This adapter selects the tool
 and Git boundary and returns the report to the caller without additional critics.

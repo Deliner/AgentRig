@@ -25,8 +25,15 @@ pub fn version(binary: &Path) -> Result<String> {
 }
 pub fn export(binary: &Path, config: &Config) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
-    let output = Command::new(binary)
-        .args(["init", "--root"])
+    let mut command = Command::new(binary);
+    let review = config.capabilities.review.is_some();
+    if review {
+        command.args(["init", "--review", "true"]);
+    } else {
+        command.arg("init");
+    }
+    let output = command
+        .arg("--root")
         .arg(directory.path())
         .args([
             "--skills",

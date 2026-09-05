@@ -3,6 +3,7 @@ mod assets;
 mod doctor;
 mod lint;
 pub(super) mod manifest;
+mod review;
 mod template;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};
@@ -67,6 +68,11 @@ fn bundle(options: &template::Options<'_>, config: &Config) -> Result<Files> {
             .to_vec(),
     );
     add_runtime(&mut files)?;
+    review::bundle(&mut files, config);
+    files.insert(
+        "AGENTS.md".into(),
+        assets::instructions(config).into_bytes(),
+    );
     files.insert(manifest::PATH.into(), manifest::installed(&files, config)?);
     Ok(files)
 }

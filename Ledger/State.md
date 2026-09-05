@@ -8,22 +8,22 @@ Deliver P002: portable worker capabilities, standalone lint, separate configurat
 
 Branch: feature/worker-capabilities
 
-Revision: 36fde3b
+Revision: 45dbdd5
 
-The review frontend VAC is committed. The current VAC selects project capabilities and resolves review commands through worker.toml.
+The capability selection VAC is committed. The current VAC installs the worker's review resources, skill and consumer instructions.
 
 ## Progress
 
-Review and standalone lint retain their shared implementations. worker.toml now declares capabilities: lint defaults to enabled, and review is enabled by a config reference. The loader validates enabled review resources/contracts and rejects unknown capability keys or disabled lint with a configured lint check. Worker review config-check, mcp and run can use the project declaration while explicit-config calls remain available.
+Init --review true installs the shared review configuration, contracts and prompts, plus the canonical review-project skill. Generated consumer instructions distinguish project sources from worker infrastructure. Just exposes review and lint. The existing manifest classifies review settings as configuration and prompts/skills/instructions as editable; release export includes enabled review assets.
 
 ## Verification
 
-The frontend VAC passed its full staged gate. Five focused capability/native-review tests pass, including configured MCP tools, disabled lint without a policy file, inconsistent gates, missing review resources and unknown capabilities. Strict lint has no errors. The current VAC's full staged gate is pending.
+The capability selection VAC passed its full staged gate. Ten focused capability/package tests pass, including installed-binary configuration validation and MCP tool discovery without worker sources. The moved skill passes skill-creator validation. Strict lint has no errors. The current VAC's full staged gate is pending.
 
 ## Blockers
 
-None. Resource installation, setup, and consumer reconfiguration/upgrade/rollback remain required. Reuse the existing package manifest and ownership rules.
+None. Setup, MCP registration, dependency checks and consumer reconfiguration/upgrade/rollback remain required. Reuse the existing package manifest and ownership rules.
 
 ## Next action
 
-Commit the capability selection VAC, then implement setup with standard assets, MCP registration and dependency diagnostics. Verify real external-consumer MCP review and the complete setup/update/rollback scenario before completing P002.
+Commit the review resource installation VAC, then implement setup with standard assets, MCP registration and dependency diagnostics. Verify real external-consumer MCP review and the complete setup/update/rollback scenario before completing P002.

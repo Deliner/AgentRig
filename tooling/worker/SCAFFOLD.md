@@ -32,7 +32,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 
 | Command | Result |
 | --- | --- |
-| `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, base branch and branch prefix. |
+| `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `doctor` | Diagnose the installed runtime, configured executables, sandbox and hooks. |
 | `commands` / `run NAME -- ARGS` | List or execute the shared catalog. Arguments remain argv elements. |

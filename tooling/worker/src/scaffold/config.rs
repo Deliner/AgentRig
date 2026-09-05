@@ -1,6 +1,6 @@
 mod capabilities;
 mod validation;
-pub use capabilities::Capabilities;
+pub use capabilities::{Capabilities, Review};
 // DECISION: D005
 use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize};

@@ -86,3 +86,10 @@ pub fn memory() -> BTreeMap<&'static str, String> {
     );
     files
 }
+
+pub fn instructions(config: &super::Config) -> String {
+    format!(
+        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under .worker; its configuration is worker.toml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with Git before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-decisions, edit-invariants or edit-state skill.\n\nUse just run read -- COMMAND for inspection and just run write -- COMMAND for authorized changes. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n\nReview, when enabled in worker.toml, uses the configured MCP tools or just review. Source changes and acceptance remain the calling workflow's responsibility.\n",
+        config.paths.memory, config.paths.memory, config.paths.skills
+    )
+}
