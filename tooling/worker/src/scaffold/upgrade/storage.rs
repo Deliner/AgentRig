@@ -76,3 +76,21 @@ pub fn payload(directory: &Path, hash: &str) -> Result<Vec<u8>> {
     );
     Ok(bytes)
 }
+pub fn replace(root: &Path, target: &State, directory: &Path) -> Result<()> {
+    let path = config::relative(root, &target.resolved)?;
+    match &target.sha256 {
+        Some(hash) => atomic(
+            &path,
+            &payload(directory, hash)?,
+            target.mode.context("file mode required")?,
+        ),
+        None => {
+            let exists = path.exists();
+            if exists {
+                fs::remove_file(&path)?;
+                fs::File::open(path.parent().context("file parent required")?)?.sync_all()?;
+            }
+            Ok(())
+        }
+    }
+}

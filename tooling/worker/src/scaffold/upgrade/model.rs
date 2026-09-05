@@ -44,3 +44,15 @@ pub struct Plan {
     pub manifest: Manifest,
     pub checks: Vec<String>,
 }
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Journal {
+    pub version: u32,
+    pub plan: String,
+    pub plan_sha256: String,
+    pub phase: String,
+    pub completed: Vec<String>,
+    pub restored: Vec<String>,
+    pub checks: BTreeMap<String, i32>,
+    pub next_action: String,
+}

@@ -1,3 +1,4 @@
+// DECISION: D024
 // DECISION: D023
 use super::{Files, config::Config};
 use anyhow::Result;
@@ -29,6 +30,8 @@ pub struct Manifest {
     pub package_version: String,
     pub config_schema: u32,
     pub files: BTreeMap<String, Entry>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub local: BTreeMap<String, Option<String>>,
 }
 pub fn installed(files: &Files, config: &Config) -> Result<Vec<u8>> {
     let files = files
@@ -49,6 +52,7 @@ pub fn installed(files: &Files, config: &Config) -> Result<Vec<u8>> {
         package_version: config.runtime.clone(),
         config_schema: config.version,
         files,
+        local: BTreeMap::new(),
     };
     Ok(serde_json::to_vec_pretty(&manifest)?)
 }
@@ -82,4 +86,14 @@ fn ownership(path: &str, config: &Config) -> Ownership {
     } else {
         Ownership::Asset
     }
+}
+
+pub fn approved(root: &std::path::Path, path: &str, bytes: &[u8]) -> bool {
+    let receipt = std::fs::read(root.join(PATH))
+        .ok()
+        .and_then(|bytes| serde_json::from_slice::<Manifest>(&bytes).ok());
+    receipt.is_some_and(|receipt| {
+        receipt.package_version == super::config::VERSION
+            && receipt.local.get(path) == Some(&Some(checksum(bytes)))
+    })
 }
