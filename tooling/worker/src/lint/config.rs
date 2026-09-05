@@ -2,7 +2,11 @@ use super::rules;
 use anyhow::{Result, bail};
 use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use serde::Deserialize;
-use std::{collections::HashSet, fs, path::Path};
+use std::{
+    collections::HashSet,
+    fs,
+    path::{Path, PathBuf},
+};
 
 // DECISION: D016
 // DECISION: D017
@@ -12,6 +16,7 @@ use std::{collections::HashSet, fs, path::Path};
 pub struct Config {
     pub version: u32,
     pub config_skill: String,
+    pub skill_root: Option<PathBuf>,
     #[serde(default)]
     pub exclude: Vec<String>,
     pub rules: Vec<Rule>,
@@ -107,12 +112,18 @@ pub fn skill(root: &Path, value: &str) -> Result<()> {
     Ok(())
 }
 pub fn load(root: &Path, path: &Path) -> Result<Config> {
-    let config: Config = toml::from_str(&fs::read_to_string(path)?)?;
+    let mut config: Config = toml::from_str(&fs::read_to_string(path)?)?;
+    let external = config
+        .skill_root
+        .as_ref()
+        .map(|directory| path.parent().unwrap_or(root).join(directory).canonicalize())
+        .transpose()?;
+    let resources = external.as_deref().unwrap_or(root);
     let unsupported_version = config.version != 1;
     if unsupported_version {
         bail!("unsupported config version {}", config.version);
     }
-    skill(root, &config.config_skill)?;
+    skill(resources, &config.config_skill)?;
     globs(&config.exclude)?;
     let missing_rules = config.rules.is_empty();
     if missing_rules {
@@ -124,9 +135,28 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
         if invalid_id {
             bail!("empty or duplicate rule ID");
         }
-        rule.validate(root)?;
+        rule.validate(resources)?;
+    }
+    if let Some(resources) = external {
+        resolve_guidance(&mut config, &resources);
     }
     Ok(config)
+}
+fn resolve_guidance(config: &mut Config, resources: &Path) {
+    config.config_skill = resources
+        .join(&config.config_skill)
+        .to_string_lossy()
+        .into_owned();
+    for rule in &mut config.rules {
+        rule.warning_skill = resources
+            .join(&rule.warning_skill)
+            .to_string_lossy()
+            .into_owned();
+        rule.error_skill = resources
+            .join(&rule.error_skill)
+            .to_string_lossy()
+            .into_owned();
+    }
 }
 impl Rule {
     fn validate(&self, root: &Path) -> Result<()> {

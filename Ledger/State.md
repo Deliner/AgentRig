@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P002: native worker capabilities, separate configuration, declarative setup and shared update ownership. Apply complexity-discipline.
+Deliver P002: native worker capabilities, standalone lint, separate configuration, declarative setup and shared update ownership. Apply complexity-discipline.
 
 ## Workspace
 
 Branch: feature/worker-capabilities
 
-Revision: 1cbbdeb
+Revision: a84e9d0
 
-The ownership/acceptance VAC is committed. The current VAC moves review into tooling/worker and links its library into the worker executable.
+The review integration VAC is committed after its full gate. The current VAC adds a native standalone lint executable over the worker's shared library.
 
 ## Progress
 
-Review now lives in tooling/worker/review in the worker Cargo workspace with one lockfile. Main worker review commands and the retained review-runner CLI call the same library. A distinct review-hook entrypoint avoids collision with worker hooks. The launcher fingerprints embedded JSON and excludes temporary review/report trees. Just and current guides point at the new owner. No duplicate Project implementation remains.
+Review is embedded in the worker and retains one implementation under tooling/worker/review. Lint, diagnostics and common utilities now form the worker library used by both executables. The release build produces discipline-worker and discipline-lint. Optional lint skill_root resolves a central skill bundle relative to the policy file while selectors still address the assessed project; existing configurations retain project-relative skill validation. Both successful findings and configuration errors point to the external guidance correctly.
 
 ## Verification
 
-The 21 relocated Rust review tests passed. Two new native worker tests passed for a full simulated review through the worker binary, its actual sandboxed Stop hook, and configured MCP discovery. Native Just review config-check validates the supplied profiles. Strict lint has no errors. Full staged gate for this VAC remains pending.
+Three new portable-lint tests pass: worker/standalone parity for Git and non-Git consumers, no consumer file changes, and actionable rejection of an incompatible language. Strict lint passes without errors. The prior native-review VAC passed all worker/review checks. The full staged gate for this standalone-lint VAC remains pending.
 
 ## Blockers
 
-None. Review resource installation, project capability configuration, worker setup and the standalone lint executable are still required. Existing lint --root/--config behavior already supports read-only external assessment.
+None. Project capabilities, review frontend declaration, resource installation, setup and consumer reconfiguration/upgrade/rollback remain required. Reuse the existing package manifest and ownership rules.
 
 ## Next action
 
-Commit the native-review VAC, then add the independent lint CLI over the same engine and implement capability-driven setup using package manifests. Preserve settings/memory and verify consumer setup, real MCP review, reconfiguration, upgrade and rollback before completing P002.
+Commit the standalone-lint VAC. Then implement worker capability configuration and setup from the user's declaration, including standard assets, MCP registration and dependency diagnostics. Verify real external-consumer MCP review and the complete setup/update/rollback scenario before completing P002.

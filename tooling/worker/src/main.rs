@@ -1,17 +1,16 @@
 // DECISION: D020
-mod diagnostics;
 mod hooks;
-mod lint;
 mod scaffold;
-mod util;
 
 use anyhow::{Result, bail};
+use discipline_worker::{diagnostics, lint, util};
 use serde_json::Value;
 use std::{
     env,
     io::{self, Read},
     path::{Path, PathBuf},
 };
+use util::take_option;
 
 // DECISION: D015
 // DECISION: D016
@@ -101,28 +100,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<
         }
         None => root.join("lint.toml"),
     };
-    let json = args.iter().any(|arg| arg == "--json");
-    let unknown_argument = args.iter().any(|arg| arg != "--json");
-    if unknown_argument {
-        bail!("unknown lint argument");
-    }
-    lint::run(root, &config, json, validate_only)
-}
-fn take_option(args: &mut Vec<String>, name: &str) -> Result<Option<String>> {
-    let Some(index) = args
-        .iter()
-        .take_while(|arg| arg.as_str() != "--")
-        .position(|arg| arg == name)
-    else {
-        return Ok(None);
-    };
-    args.remove(index);
-    let has_value = index < args.len() && !args[index].starts_with("--");
-    if has_value {
-        Ok(Some(args.remove(index)))
-    } else {
-        bail!("{name} requires a value")
-    }
+    lint::cli::execute(root, &config, args, validate_only)
 }
 fn main() {
     let code = match run() {

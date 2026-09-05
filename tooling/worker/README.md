@@ -101,3 +101,23 @@ Configuration parsing uses the [TOML serde library](https://docs.rs/toml/latest/
 ## Measured latency
 
 See [repeatable measurements](examples/LATENCY.md) and [their runner](examples/measure.py) for installed Python/Rust example results and measurement limits.
+
+## Standalone assessment
+
+The release build also produces `discipline-lint`, a native CLI over the same
+engine used by worker checks. Copy that executable outside the project to be
+assessed; no worker setup, memory, hooks or MCP are required there:
+
+```sh
+discipline-lint --root /projects/consumer --config /policies/lint.toml --json
+discipline-lint lint-config-check --root /projects/consumer --config /policies/lint.toml
+discipline-lint lint-rules
+```
+
+Source selectors always apply to the assessed root. By default, skill references
+retain their existing project-relative semantics. An external policy can set
+`skill_root = "skills"`, resolved relative to its configuration file, to use a
+separate skill bundle. References must still identify valid SKILL.md files inside
+that selected root. Diagnostics provide their resolved paths. The assessment
+writes no project files; worker and standalone findings agree for the same
+configuration apart from their executable-specific retry commands.
