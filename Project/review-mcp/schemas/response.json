@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "run_id",
+    "candidate",
+    "contract_digest",
+    "role",
+    "verdict",
+    "checks",
+    "observations"
+  ],
+  "properties": {
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "candidate": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_digest": {
+      "type": "string",
+      "minLength": 1
+    },
+    "role": {
+      "type": "string",
+      "minLength": 1
+    },
+    "verdict": {
+      "enum": [
+        "PASS",
+        "FAIL",
+        "BLOCKED"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contract_id",
+          "status",
+          "evidence",
+          "finding",
+          "minimal_fix"
+        ],
+        "properties": {
+          "contract_id": {
+            "type": "string"
+          },
+          "evidence": {
+            "type": "string"
+          },
+          "finding": {
+            "type": "string"
+          },
+          "minimal_fix": {
+            "type": "string"
+          },
+          "previous_omission": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "PASS",
+              "FAIL",
+              "BLOCKED",
+              "N/A"
+            ]
+          },
+          "late_finding": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

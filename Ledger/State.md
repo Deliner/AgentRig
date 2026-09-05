@@ -8,7 +8,7 @@ Implement P001, the user's configurable isolated review MCP and shared review-ru
 
 Branch: feature/review-mcp
 
-Revision: 83f7a01
+Revision: 140a35d
 
 The prior upgrade goal is integrated on master. This dedicated branch starts the resumed product feature. Product implementation belongs under Project/review-mcp.
 
@@ -18,6 +18,9 @@ Read the current skills and project contracts. Updated P001 with the user's conf
 
 ## Verification
 
+Six Rust tests now pass for configuration-relative resources, invalid configuration/assignments, response schema and identity, missing/duplicate IDs, FAIL/N/A consistency, and missing/oversized/symlink outputs. Strict lint and Clippy pass. Product Cargo test/Clippy/rustfmt commands are registered in worker.toml and Project participates in source scope. The current validator/configuration VAC awaits the full staged gate.
+
+
 Codex 0.153.4 with a fresh auth-only home and ignored user configuration ran inside bubblewrap. The Stop hook rejected a missing response, and the model continued and wrote the requested exact JSON. Earlier timeouts were diagnosed as the missing codex-code-mode-host executable. Copied authentication and temporary smoke directories were removed after recording evidence in Project/review-mcp/COMPATIBILITY.md. Production isolation, validator, protected counter and MCP-client acceptance are still unverified.
 
 ## Blockers
@@ -26,4 +29,4 @@ None. Use the supported Stop hook; no runner-only fallback is needed for this in
 
 ## Next action
 
-Commit the scoped feature resumption and compatibility evidence through the normal gate. Implement configuration/contracts and the shared response validator, then tracked-file snapshots and scope checks, isolated reviewer execution with protected attempts, deterministic persistent reports/cleanup, and configured MCP tools plus CLI/Just/skill. Verify a real client and complete all acceptance before integration.
+Commit the current configuration/shared-validator VAC, then implement tracked-file snapshots and scope checks, isolated reviewer execution with protected attempts, deterministic persistent reports/cleanup, and configured MCP tools plus CLI/Just/skill. Verify a real client and complete all acceptance before integration.
