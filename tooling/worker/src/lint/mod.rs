@@ -1,6 +1,7 @@
 pub mod cli;
 // DECISION: D007
 pub mod config;
+pub mod explain;
 pub mod inventory;
 pub mod languages;
 pub mod rules;

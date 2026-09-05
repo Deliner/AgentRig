@@ -67,3 +67,7 @@ review *args:
 # What: describe a lint rule; Why: inspect supported parameters and valid examples.
 lint-rule *args:
     @tooling/worker/run lint-rule "$@"
+
+# What: explain lint selection; Why: inspect exclusion reasons and effective thresholds.
+lint-explain *args:
+    @tooling/worker/run lint-explain "$@"

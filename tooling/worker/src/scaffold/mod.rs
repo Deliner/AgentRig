@@ -187,7 +187,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "lint" | "lint-config-check" | "review" | "setup" => {}
+        "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "review" | "setup" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

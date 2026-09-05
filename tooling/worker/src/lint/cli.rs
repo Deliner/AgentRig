@@ -28,14 +28,21 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         return discovery(&command, &args);
     }
     ensure!(
-        matches!(command.as_str(), "lint" | "lint-config-check"),
-        "expected lint, lint-config-check or lint-rules"
+        matches!(
+            command.as_str(),
+            "lint" | "lint-config-check" | "lint-explain"
+        ),
+        "expected lint, lint-config-check, lint-explain, lint-rule or lint-rules"
     );
     let root = take_option(&mut args, "--root")?
         .map(PathBuf::from)
         .unwrap_or(env::current_dir()?)
         .canonicalize()?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.toml".into());
+    let explain = command == "lint-explain";
+    if explain {
+        return super::explain::run(&root, &root.join(config), &args);
+    }
     execute(
         &root,
         &root.join(config),

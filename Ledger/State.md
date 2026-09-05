@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 26fe790
+Revision: 0bef357
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-The outcome contract is committed. The current VAC replaces string rule identities and duplicated defaults with typed kinds and descriptors. Registered language parsers/inspectors now own actual lint support. Catalog, validation and installed templates consume those owners. lint-rule provides readable details, JSON metadata and valid TOML examples through embedded and standalone CLI.
+Typed registry/discovery/default consolidation is committed. The current VAC adds lint-explain for worker and standalone CLI using the engine's compiled selectors and effective thresholds. It reports excluded/disabled/absent/wrong-target paths and matching override indexes. Installed Just recipes and shell-hook routes support both discovery commands.
 
 ## Verification
 
-The initial contract VAC passed its full gate (223 native tests and 22 review tests). This implementation passes 44 focused discovery/config/language/strict-default/standalone tests and strict lint with existing warnings only. The current commit gate is pending; lint-explain and all process/delegation acceptance remain outstanding.
+Registry VAC passed its full gate (232 native tests and 22 review tests). Explanation, structural behavior and shell-hook tests pass (54 cases), including standalone parity and invalid effective settings. This VAC still needs its staged gate. Process management, delegation and final independent consumer acceptance remain outstanding.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the registry/discovery VAC through the staged gate. Implement lint-explain using the same selection and effective-threshold logic; then proceed to managed process ownership and delegation in plan order.
+Commit selection explanation through the staged gate. Begin managed process ownership by inspecting Just execution, existing review process isolation and actual Linux containment capabilities, then implement the shared lifecycle with focused cleanup/recovery tests.

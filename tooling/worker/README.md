@@ -142,3 +142,13 @@ implemented language pairs when applicable, supply a repair skill and verify
 accepted/rejected source and configuration examples. Numeric rules use warning
 and error thresholds; policy rules use level. Existing configuration syntax and
 strict installed defaults are preserved.
+
+
+Use just lint-explain src/example.rs (or discipline-lint lint-explain with
+--root and --config) to see every configured rule's selection reason. --json
+returns the same information for automation. Selected entries include effective
+warning/error or level and zero-based matched override indexes, in application
+order. Disabled, excluded, extension-mismatched, wrong-target and absent inventory
+entries explain why no check runs. It reads configuration and inventory, without
+parsing source or running rule measurements. Invalid effective configuration
+still fails. Relative paths are resolved from the selected project root.

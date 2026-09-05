@@ -34,7 +34,7 @@ fn run() -> Result<i32> {
     match command.as_str() {
         "hook" => hook(&root),
         "review" => run_review(&root, args),
-        "lint" | "lint-config-check" => run_lint(&root, &mut args, command == "lint-config-check"),
+        "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
             "usage: discipline-worker hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
@@ -67,7 +67,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
+        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -87,7 +87,7 @@ fn hook(root: &Path) -> Result<i32> {
     }
     Ok(0)
 }
-fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<i32> {
+fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let explicit = take_option(args, "--config")?;
     let config = match explicit {
         Some(path) => root.join(path),
@@ -101,7 +101,11 @@ fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<
         }
         None => root.join("lint.toml"),
     };
-    lint::cli::execute(root, &config, args, validate_only)
+    let explain = command == "lint-explain";
+    if explain {
+        return lint::explain::run(root, &config, args);
+    }
+    lint::cli::execute(root, &config, args, command == "lint-config-check")
 }
 fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
     let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
