@@ -26,6 +26,20 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !sandbox_availability(context);
     failed |= !git_registration(context);
     failed |= !codex_registration(context)?;
+    if failed {
+        let rerun = crate::diagnostics::rerun(&context.root, &["doctor".into()]);
+        eprintln!(
+            "{}",
+            crate::diagnostics::Guidance {
+                level: "ERROR",
+                id: "doctor",
+                location: &context.root.display().to_string(),
+                message: "installation checks failed; see the individual results above",
+                skill: &context.config.config_skill,
+                rerun: &rerun,
+            }
+        );
+    }
     Ok(i32::from(failed))
 }
 fn installed_binary(context: &Context) -> bool {

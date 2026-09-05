@@ -2,28 +2,28 @@
 
 ## Focus
 
-Implement the four agent-native improvements requested in the attachment: outcome-driven VACs, actionable diagnostics, factual resume and improvement of guidance after concrete failures. D022 records the chosen evidence scope. P001 remains paused; migrations and broader dogfooding were not in the attachment.
+Complete the four requested agent-native improvements under D022. The main outcome, diagnostics, recovery and feedback implementation is integrated. Final audit identified doctor as the remaining check without skill/retry guidance; finish that diagnostic coverage. P001 remains paused.
 
 ## Workspace
 
-Branch: feature/agent-native-feedback
+Branch: feature/actionable-doctor-diagnostics
 
-Revision: bc63bd0
+Revision: 1fa16e6
 
-The main feedback and recovery VAC is committed at this revision. A focused follow-up fixes the observed Linux executable-replacement retry failure before integration. Compare current Git before resuming.
+This is the main feature merge and the current follow-up baseline. The retained feature/agent-native-feedback branch contains the two verified implementation VACs. Compare this snapshot with live Git before acting.
 
 ## Progress
 
-Shared diagnostics and selected gate retries are implemented. The latest gate attempt survives a fresh process and staged export, with content/HEAD freshness and unfinished status. Resume adds State revision comparison and merge/rebase facts. Report identifies consecutive check failures without asserting that a skill was read. Canonical execution and repair skills explain intent, evidence and feedback; the incorrect feature-start separator was corrected.
+VAC guidance connects intent and verification. Gate and standalone checks provide actionable retries; resume compares HEAD, worktree and index evidence and reports merge/rebase facts. Report identifies repeated check failures without claiming a skill was read. A demonstrated Linux executable-replacement retry failure is fixed. Doctor now uses the same diagnostic format after its original individual results.
 
 ## Verification
 
-The first full staged gate passed all 181 tests and all configured checks. A subsequent regression test demonstrated an invalid retry path ending in (deleted) after replacing the running executable. The targeted fix reuses the installed successor path, and the regression now passes. Verify the follow-up staged/integration gates before declaring delivery. All three edited skill validators passed.
+The main feature passed full staged and integration gates, with all 182 tests passing in the final runs. Strict language policy remains blocking and clean. All three edited skill validators passed. All four package tests passed, including emitted doctor retries for broken registration, missing tools and incompatible configuration. Verify the follow-up staged/integration gates before declaring delivery.
 
 ## Blockers
 
-None observed. Evidence describes repository inputs and observed HEAD, not external environment or dependencies. Automatic version migration is outside the requested scope.
+None observed. Evidence covers repository inputs and observed HEAD, not external environment or dependencies. Automatic version migration is outside the attachment scope.
 
 ## Next action
 
-Run the focused tests and strict checks, correct failures, then inspect and commit this VAC through the normal staged gate. Run just feature-merge on the clean feature branch, retain it and verify integration. If Git already proves those steps complete, audit the four attachment requirements against code and actual check results before declaring completion.
+Verify the doctor retry tests, commit this focused VAC through the complete staged gate and run just feature-merge on its clean branch. Retain both feature branches. If Git already confirms integration, audit the four attachment requirements against current code, tests and actual gate results before declaring the goal complete.
