@@ -1,5 +1,0 @@
-{
-  "attention_interval_tokens": 35000,
-  "full_refresh_interval_tokens": 140000,
-  "attention_message": "COMPLEXITY_DISCIPLINE_CHECKPOINT\n\nReassess the current approach before making the next implementation decision.\n\nThe purpose of this checkpoint is to preserve semantic alignment with the current requirements. Every distinction, mechanism, validation step, lifecycle rule, and guarantee should correspond either to an explicit requirement or to a necessary condition for correctness.\n\nEvidence of alignment: removing an element would violate a stated requirement or make the implementation incorrect.\n\nBoundary of the check: do not reinterpret or strengthen the requirements, expand the scope, or introduce new process merely to make the solution appear more complete. If no unsupported complexity is present, continue without redesigning the approach."
-}

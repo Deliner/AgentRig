@@ -1,3 +1,4 @@
+// DECISION: D010
 use super::{config::Context, gate};
 use crate::util::git;
 use anyhow::{Result, ensure};

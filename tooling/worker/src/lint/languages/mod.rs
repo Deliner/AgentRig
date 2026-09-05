@@ -20,6 +20,7 @@ pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
     let language = match path.extension().and_then(|ext| ext.to_str()) {
         Some("rs") => tree_sitter_rust::LANGUAGE,
         Some("py" | "pyi") => tree_sitter_python::LANGUAGE,
+        Some("sh") => tree_sitter_bash::LANGUAGE,
         _ => return Ok(None),
     };
     let mut parser = Parser::new();

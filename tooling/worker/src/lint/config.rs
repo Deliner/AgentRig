@@ -14,8 +14,6 @@ pub struct Config {
     pub config_skill: String,
     #[serde(default)]
     pub exclude: Vec<String>,
-    #[serde(default)]
-    pub gate_skills: std::collections::BTreeMap<String, String>,
     pub rules: Vec<Rule>,
 }
 #[derive(Deserialize)]
@@ -109,9 +107,6 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
     }
     skill(root, &config.config_skill)?;
     globs(&config.exclude)?;
-    for value in config.gate_skills.values() {
-        skill(root, value)?;
-    }
     if config.rules.is_empty() {
         bail!("at least one rule is required");
     }

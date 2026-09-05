@@ -1,3 +1,4 @@
+// DECISION: D007
 pub mod config;
 pub(crate) mod inventory;
 pub(crate) mod languages;
@@ -12,7 +13,7 @@ use std::{collections::HashMap, fs, path::Path};
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
-const CONFIG_SKILL: &str = ".agents/skills/configure-linter/SKILL.md";
+const CONFIG_SKILL: &str = "repair (set config_skill in the lint configuration)";
 #[derive(Serialize)]
 pub struct Diagnostic {
     rule: String,
@@ -130,11 +131,17 @@ fn finding(
 }
 pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
     let config = config::load(root, path);
-    let skill = config
-        .as_ref()
-        .map(|config| config.config_skill.as_str())
-        .unwrap_or(CONFIG_SKILL)
-        .to_owned();
+    // Resolve guidance independently of rule validation, including invalid rules.
+    let skill = fs::read_to_string(path)
+        .ok()
+        .and_then(|source| toml::from_str::<toml::Value>(&source).ok())
+        .and_then(|value| {
+            value
+                .get("config_skill")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        })
+        .unwrap_or_else(|| CONFIG_SKILL.to_owned());
     let result = config.and_then(|config| {
         if validate_only {
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;

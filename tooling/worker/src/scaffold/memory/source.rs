@@ -1,3 +1,4 @@
+// DECISION: D002
 use anyhow::{Result, ensure};
 use std::{
     collections::{HashMap, HashSet},
@@ -12,7 +13,10 @@ pub struct Source {
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let source = fs::read_to_string(path)?;
-    let Some(tree) = crate::lint::languages::parse(path, &source)? else {
+    let shebang = source.lines().next().unwrap_or("");
+    let shell = path.extension().is_none() && shebang.starts_with("#!") && shebang.contains("sh");
+    let parse_path = if shell { Path::new("source.sh") } else { path };
+    let Some(tree) = crate::lint::languages::parse(parse_path, &source)? else {
         return Ok(None);
     };
     ensure!(
@@ -63,28 +67,32 @@ impl Source {
 }
 
 fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
-    if let Some(parent) = node
-        .parent()
-        .filter(|parent| parent.kind() == "decorated_definition")
-    {
-        node = parent;
-    }
     let mut markers = HashSet::new();
-    while let Some(previous) = node.prev_named_sibling() {
-        let adjacent = source[previous.end_byte()..node.start_byte()]
-            .trim()
-            .is_empty();
-        if !adjacent {
-            break;
-        }
-        match previous.kind() {
-            "comment" | "line_comment" => {
-                markers.insert(source[previous.byte_range()].trim().to_owned());
+    loop {
+        let original = node;
+        while let Some(previous) = node.prev_named_sibling() {
+            let adjacent = source[previous.end_byte()..node.start_byte()]
+                .trim()
+                .is_empty();
+            if !adjacent {
+                break;
             }
-            "attribute_item" => {}
-            _ => break,
+            match previous.kind() {
+                "comment" | "line_comment" => {
+                    markers.insert(source[previous.byte_range()].trim().to_owned());
+                }
+                "attribute_item" => {}
+                _ => break,
+            }
+            node = previous;
         }
-        node = previous;
+        let Some(parent) = original
+            .parent()
+            .filter(|p| p.kind() == "decorated_definition")
+        else {
+            break;
+        };
+        node = parent;
     }
     markers
 }

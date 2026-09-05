@@ -1,3 +1,4 @@
+// DECISION: D005
 use super::{config::Context, process};
 use anyhow::{Context as _, Result, ensure};
 use fs2::FileExt;

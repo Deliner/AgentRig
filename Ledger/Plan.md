@@ -12,4 +12,4 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P001](Plan/001.md) | active | - | Isolated review MCP | Request reproducible multi-reviewer assessment of an exact project revision and receive one validated report. |
+| [P001](Plan/001.md) | paused | - | Isolated review MCP | Request reproducible multi-reviewer assessment of an exact project revision and receive one validated report. |

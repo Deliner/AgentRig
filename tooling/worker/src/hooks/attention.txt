@@ -2,7 +2,7 @@ COMPLEXITY_DISCIPLINE_CHECKPOINT
 
 Reassess the current approach before making the next implementation decision.
 
-The purpose of this checkpoint is to preserve semantic alignment with the current requirements. Every distinction, mechanism, validation step, lifecycle rule, and guarantee should correspond either to an explicit requirement or to a necessary condition for correctness.
+The purpose of this reminder is to preserve semantic alignment with the current requirements. Every distinction, mechanism, validation step, lifecycle rule, and guarantee should correspond either to an explicit requirement or to a necessary condition for correctness.
 
 Evidence of alignment: removing an element would violate a stated requirement or make the implementation incorrect.
 

@@ -158,7 +158,11 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
         ".worker/lint.toml".into(),
         lint::template(skill_root, options["source"])?.into_bytes(),
     );
-    files.insert(".worker/reminder.json".into(), serde_json::to_vec_pretty(&serde_json::json!({"attention_interval_tokens": 35000, "full_refresh_interval_tokens": 140000, "attention_message": "COMPLEXITY_DISCIPLINE_CHECKPOINT: reassess semantic alignment and necessary complexity before continuing."}))?);
+    files.insert(
+        ".worker/reminder.json".into(),
+        include_bytes!("../../../assets/skills/complexity-discipline/context-reminder.json")
+            .to_vec(),
+    );
     files.insert(".worker/.gitignore".into(), b"runtime/\n".to_vec());
     files.insert(
         ".worker/bin/discipline-worker".into(),

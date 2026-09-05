@@ -59,3 +59,10 @@ def invoke(
         capture_output=True,
         check=False,
     )
+
+
+def git(root: Path, *args: str, success: bool = True) -> subprocess.CompletedProcess[str]:
+    result = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
+    if success:
+        assert result.returncode == 0, result.stdout + result.stderr
+    return result

@@ -12,7 +12,7 @@ import pytest
 ROOT = Path(__file__).parents[3]
 SKILL = ".agents/skills/refactor-large-file/SKILL.md"
 CONFIG = f"""version = 1
-config_skill = ".agents/skills/configure-linter/SKILL.md"
+config_skill = ".agents/skills/repair/SKILL.md"
 
 [[rules]]
 id = "source"
@@ -113,7 +113,7 @@ def test_invalid_config_is_actionable(worker: Path, tmp_path: Path, old: str, ne
     code, items = lint(worker, tmp_path)
     assert code == 2
     assert items[0]["rule"] == "configuration"
-    assert items[0]["skill"].endswith("configure-linter/SKILL.md")
+    assert items[0]["skill"].endswith("repair/SKILL.md")
 
 
 def test_directory_counts_immediate_children(worker: Path, tmp_path: Path) -> None:
@@ -133,21 +133,6 @@ def test_directory_counts_immediate_children(worker: Path, tmp_path: Path) -> No
     code, items = lint(worker, tmp_path)
     assert code == 1
     assert items[0]["actual"] == 6
-
-
-def test_gate_failure_has_configured_skill(worker: Path, tmp_path: Path) -> None:
-    prepare(tmp_path, CONFIG + f'\n[gate_skills]\nexample = "{SKILL}"\n')
-    destination = tmp_path / "tooling/worker"
-    destination.mkdir(parents=True)
-    shutil.copy(tmp_path / "lint.toml", destination / "lint.toml")
-    result = subprocess.run(
-        [str(worker), "gate", "--root", str(tmp_path), "example", "--", "false"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert result.returncode == 1
-    assert SKILL in result.stderr
 
 
 def test_staged_files_and_config_are_isolated(worker: Path, tmp_path: Path) -> None:

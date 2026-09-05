@@ -8,9 +8,6 @@ use std::{
 };
 
 // DECISION: D015
-pub fn guard_commit(root: &Path) -> Result<i32> {
-    guard_commit_with(root, "master", "feature/")
-}
 pub fn guard_commit_with(root: &Path, base: &str, prefix: &str) -> Result<i32> {
     let branch = git(root, &["branch", "--show-current"])?;
     let merge = root
@@ -21,9 +18,6 @@ pub fn guard_commit_with(root: &Path, base: &str, prefix: &str) -> Result<i32> {
     }
     eprintln!("direct commits on {base} are prohibited; create a {prefix} branch");
     Ok(1)
-}
-pub fn guard_reference(root: &Path, phase: &str) -> Result<i32> {
-    guard_reference_with(root, phase, "master", "feature/")
 }
 pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) -> Result<i32> {
     if phase != "prepared" {

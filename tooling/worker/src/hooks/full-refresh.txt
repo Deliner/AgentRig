@@ -2,7 +2,7 @@ COMPLEXITY_DISCIPLINE_FULL_REFRESH_REQUIRED
 
 Before any further reasoning or action, apply the complete skill at:
 
-.agents/skills/complexity-discipline/SKILL.md
+{discipline_skill}
 
 Resolve this path relative to the repository root, regardless of the current working directory.
 

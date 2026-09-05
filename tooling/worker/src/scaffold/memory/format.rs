@@ -5,6 +5,23 @@ use std::{
     path::{Path, PathBuf},
 };
 
+pub const STATE_SECTIONS: &[&str] = &[
+    "Focus",
+    "Workspace",
+    "Progress",
+    "Verification",
+    "Blockers",
+    "Next action",
+];
+pub fn columns(prefix: char) -> &'static [&'static str] {
+    match prefix {
+        'P' => &["ID", "Status", "Depends on", "Feature", "User capability"],
+        'D' => &["ID", "Decision", "Applies in"],
+        'I' => &["ID", "Invariant", "Enforced by"],
+        _ => unreachable!("internal memory index kind"),
+    }
+}
+
 pub struct Row {
     pub id: String,
     pub detail: String,
@@ -33,11 +50,13 @@ pub fn links(cell: &str) -> Vec<String> {
     }
     output
 }
-pub fn table(path: &Path, prefix: char, columns: usize) -> Result<Vec<Row>> {
+pub fn table(path: &Path, prefix: char) -> Result<Vec<Row>> {
     let source = fs::read_to_string(path)?;
-    parse_table(&source, path, prefix, columns)
+    parse_table(&source, path, prefix)
 }
-pub fn parse_table(source: &str, path: &Path, prefix: char, columns: usize) -> Result<Vec<Row>> {
+pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> {
+    let expected = columns(prefix);
+    let columns = expected.len();
     let mut ids = HashSet::new();
     let mut rows = Vec::new();
     let mut header = false;
@@ -57,6 +76,11 @@ pub fn parse_table(source: &str, path: &Path, prefix: char, columns: usize) -> R
             path.display()
         );
         if cells[0] == "ID" {
+            ensure!(
+                cells == expected,
+                "{}: invalid table header",
+                path.display()
+            );
             header = true;
             continue;
         }

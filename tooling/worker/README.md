@@ -1,6 +1,6 @@
 # Rust worker runtime and structural linter
 
-The worker binary owns session/pre-edit hooks, command validation, complexity reminder state and transcript scanning, Git commit/reference guards, and structural lint. The existing Just command runner, feature integration orchestration, and Ledger checker remain Python; obsolete Python hook and size implementations are deleted; their prior contents remain in Git history. All hook logic, including Git guards, lives in src/hooks and shares this crate and launcher. Codex JSON registration and the two Git shell adapters only route events into it.
+The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project worker.toml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
 
 ## Build and execution
 
@@ -12,7 +12,7 @@ The hook registration invokes run hook with an explicit repository root. Ledger 
 
 ## Configuration
 
-lint.toml uses TOML version 1 of the worker schema. Unknown fields, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. A configuration failure exits 2 and points at configure-linter; a structural error exits 1; warnings alone exit 0.
+The lint file selected by worker.toml (or --config; standalone default lint.toml) uses TOML version 1 of the worker schema. Unknown fields, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
 
 Validate independently with just lint-config-check. Use just lint-config-check -- --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
@@ -92,12 +92,12 @@ Parser APIs and grammars: [Tree-sitter](https://docs.rs/tree-sitter/0.26.13/tree
 
 The pre-commit hook checks the actual exported Git index, including its Rust sources, lint config, and skill files. Structural lint runs before the other checks. The same gate runs on the integration candidate before merge and after a required rebase; errors stop the operation, warnings do not.
 
-gate_skills maps each external stage (repo-policy, command-policy, Ruff, mypy, pytest, typos, Vulture, rustfmt, Clippy) to an existing repair skill. Native gate execution preserves the original tool output and appends the configured skill on failure. Structural findings have their own per-rule skills. No automatic fixer weakens policy or modifies files.
+Each checks entry in worker.toml names its repair skill. The shared gate preserves original tool output and reports that skill on failure; structural findings use their rule-specific skills.
 
 Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
 Configuration parsing uses the [TOML serde library](https://docs.rs/toml/latest/toml/); selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
 
-## Observed hook latency
+## Measured latency
 
-Before deleting the Python reference under D019, 50 interleaved warm PreToolUse invocations for Ledger/State.md measured median wall times of 28.019 ms for the Python reference, 8.071 ms for the registered Rust launcher including source validation, and 0.786 ms for the binary alone. The registered path was about 3.5 times faster for this event. This is a local measurement of a simple edit hook, not a claim about every event, first compilation, or the whole quality gate.
+See [repeatable measurements](examples/LATENCY.md) and [their runner](examples/measure.py) for installed Python/Rust example results and measurement limits.
