@@ -174,6 +174,7 @@ pub(super) fn justfile() -> String {
         ("lint-explain", "lint-explain", true),
         ("jobs", "jobs", false),
         ("job-status", "job-status", true),
+        ("job-logs", "job-logs", true),
         ("review", "review", true),
     ] {
         source.push_str(&format!(

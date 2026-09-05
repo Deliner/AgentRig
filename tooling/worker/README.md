@@ -169,6 +169,13 @@ child invocation. Branch and project are captured independently of ownership.
 An orphaned run has a live child but no live runner; an interrupted run has
 neither. Inspect these states before deciding what to resume or clean up.
 
-This initial registry preserves the existing process-group signal forwarding.
-Detached descendants are not yet contained; cancellation, background log storage,
-shared-service lifetimes and owner-aware merge cleanup are pending in P003.
+The shared process runner records raw stdout/stderr while forwarding output to
+the caller. `just job-logs RUN_ID` returns the last 64 KiB of each stream as JSON,
+with byte counts and truncation flags; complete bytes remain in stdout.log and
+stderr.log beside the run record. Display replaces invalid UTF-8, stored logs do
+not. `report` aggregates these lifecycle records; commands.jsonl is no longer
+written or read. Old completion-only logs remain untouched as historical files.
+
+The runner preserves process-group signal forwarding. Detached descendants are
+not yet contained; explicit background execution, cancellation, shared-service
+lifetimes and owner-aware merge cleanup are pending in P003.

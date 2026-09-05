@@ -19,10 +19,9 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
     assert "input data" in result.stdout
     assert result.stderr == "stderr\n"
     assert invoke(worker, tmp_path, "run", "fail").returncode == 23
-    records = [
-        json.loads(line) for line in (tmp_path / ".runtime/commands.jsonl").read_text().splitlines()
-    ]
-    assert [record["exit_code"] for record in records] == [0, 23]
+    records = json.loads(invoke(worker, tmp_path, "jobs").stdout)
+    assert sorted(record["exit_code"] for record in records) == [0, 23]
+    assert not (tmp_path / ".runtime/commands.jsonl").exists()
     assert "fail 1 1" in invoke(worker, tmp_path, "report").stdout
     assert invoke(worker, tmp_path, "run", "unknown").returncode == 2
     assert invoke(worker, tmp_path, "run", "fail", "extra").returncode == 2
@@ -169,3 +168,25 @@ def test_spawn_failure_is_recorded(worker: Path, tmp_path: Path) -> None:
     assert row["state"] == "completed" and row["exit_code"] == 127
     assert "cannot execute" in row["error"]
     assert invoke(worker, tmp_path, "job-status", "../escape").returncode == 2
+
+
+def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -> None:
+    code = (
+        "import sys; sys.stdout.buffer.write(bytes([255])*131072); sys.stderr.write('error stream')"
+    )
+    project(tmp_path, CONFIG + "\n[commands.output]\nargv = " + json.dumps(["python3", "-c", code]))
+    result = subprocess.run(
+        [str(worker), "run", "--root", str(tmp_path), "output"], capture_output=True, check=False
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == bytes([255]) * 131072
+    assert result.stderr == b"error stream"
+    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
+    assert row["duration_seconds"] > 0
+    logs = json.loads(invoke(worker, tmp_path, "job-logs", row["run_id"]).stdout)
+    assert logs["stdout"]["truncated"] and logs["stdout"]["bytes"] == 131072
+    assert len(logs["stdout"]["text"]) == 65536
+    assert logs["stderr"]["text"] == "error stream"
+    directory = tmp_path / ".runtime/jobs" / row["run_id"]
+    assert (directory / "stdout.log").read_bytes() == result.stdout
+    assert (directory / "stderr.log").read_bytes() == result.stderr

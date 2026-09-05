@@ -1,5 +1,9 @@
 mod identity;
+mod logs;
+pub mod process;
+pub mod report;
 mod storage;
+mod streams;
 
 use anyhow::Result;
 use identity::Identity;
@@ -27,10 +31,13 @@ pub struct Record {
     pub supervisor: Identity,
     pub child: Option<Identity>,
     pub process_group: bool,
+    #[serde(default)]
+    pub duration_seconds: Option<f64>,
 }
 pub struct Job {
     directory: PathBuf,
     record: Record,
+    started: std::time::Instant,
 }
 impl Job {
     pub fn create(runtime: &Path, project: &Path, command: &str, cwd: &Path) -> Result<Self> {
@@ -60,8 +67,13 @@ impl Job {
             supervisor: Identity::read(std::process::id())?,
             child: None,
             process_group: false,
+            duration_seconds: None,
         };
-        let job = Self { directory, record };
+        let job = Self {
+            directory,
+            record,
+            started: std::time::Instant::now(),
+        };
         job.save()?;
         Ok(job)
     }
@@ -75,6 +87,7 @@ impl Job {
         self.save()
     }
     pub fn finish(&mut self, code: i32, error: Option<String>) -> Result<()> {
+        self.record.duration_seconds = Some(self.started.elapsed().as_secs_f64());
         self.record.finished = Some(now()?);
         self.record.exit_code = Some(code);
         self.record.error = error;
@@ -82,6 +95,16 @@ impl Job {
     }
     fn save(&self) -> Result<()> {
         storage::save(&self.directory, &self.record)
+    }
+    fn open_logs(&self) -> Result<(std::fs::File, std::fs::File)> {
+        use std::fs::OpenOptions;
+        let open = |name: &str| {
+            OpenOptions::new()
+                .create_new(true)
+                .write(true)
+                .open(self.directory.join(name))
+        };
+        Ok((open("stdout.log")?, open("stderr.log")?))
     }
 }
 pub fn owner() -> Option<String> {
@@ -108,6 +131,10 @@ pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
         "job-status" => {
             anyhow::ensure!(args.len() == 1, "job-status RUN_ID");
             status(runtime, &args[0])?
+        }
+        "job-logs" => {
+            anyhow::ensure!(args.len() == 1, "job-logs RUN_ID");
+            logs::read(runtime, &args[0])?
         }
         _ => anyhow::bail!("unknown jobs command {command}"),
     };

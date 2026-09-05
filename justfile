@@ -79,3 +79,7 @@ jobs:
 # What: inspect a managed run; Why: verify process liveness from its OS identity.
 job-status *args:
     @tooling/worker/run job-status "$@"
+
+# What: read command output; Why: recover logs after a session disconnects.
+job-logs *args:
+    @tooling/worker/run job-logs "$@"
