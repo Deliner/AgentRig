@@ -15,18 +15,24 @@ libraries, resolver files and TLS certificates are mounted read-only.
 From this repository:
 
 ```sh
-just review config-check Project/review-mcp/config/review.toml
-just review run Project/review-mcp/config/review.toml /absolute/request.json
+just review config-check tooling/worker/review/config/review.toml
+just review run tooling/worker/review/config/review.toml /absolute/request.json
 ```
 
-For another project, copy this package, build it, and invoke the binary:
+The review engine is a worker library. The main `discipline-worker` executable
+exposes it through `review config-check CONFIG`, `review run CONFIG REQUEST_JSON`
+and `review mcp CONFIG`. The package also retains a `review-runner` CLI over the
+same library. Build from the worker workspace:
 
 ```sh
-cargo build --release --locked --manifest-path /package/review-mcp/Cargo.toml
-/path/to/review-runner config-check /package/review-mcp/config/review.toml
-/path/to/review-runner run /package/review-mcp/config/review.toml /absolute/request.json
-/path/to/review-runner mcp /package/review-mcp/config/review.toml
+cargo build --release --locked --manifest-path tooling/worker/Cargo.toml
+cargo build --release --locked --manifest-path tooling/worker/review/Cargo.toml
 ```
+
+Run `discipline-worker init --root CONSUMER --review true` to install review
+resources and the review skill with the worker. Edit the installed configuration,
+contracts and prompts for the consumer before requesting review. Run `discipline-worker setup --root CONSUMER` to register MCP and check dependencies.
+Repeated setup preserves consumer settings and reports conflicting adapters.
 
 Example request file:
 
@@ -57,6 +63,11 @@ Start with [config/review.toml](config/review.toml). It defines named tools and
 shared reviewer definitions; role counts and names are not hardcoded. A role
 specifies its model, reasoning effort and prompt. Each tool selects roles and a
 project configuration. Restart MCP after changing its tool configuration.
+
+Each reviewer declares `frontend = "codex"`, its model, reasoning effort and
+prompt. Codex is the implemented executor; another frontend fails configuration
+validation before any critic starts. Existing configurations without `frontend`
+select Codex. The resolved frontend is retained in the report configuration.
 
 Resource paths are relative to the configuration that declares them. Project
 visibility and normative-document globs are relative to the checkout root.
@@ -132,6 +143,6 @@ real-client smoke is documented in COMPATIBILITY.md; no background job API is
 needed for that tested client. Calls are handled sequentially per stdio session,
 with parallelism inside each review.
 
-Copy [skills/review-project](skills/review-project) into the consuming project's
-skill directory and configure its MCP connection. This adapter selects the tool
+The worker installs [review-project](../assets/skills/review-project/SKILL.md)
+when review is enabled at initialization. Run worker setup to configure its MCP connection. This adapter selects the tool
 and Git boundary and returns the report to the caller without additional critics.

@@ -1,10 +1,13 @@
 # Discipline Worker
 
-A configurable Rust harness for agent feature delivery through verified atomic changes (VACs), with recovery state, durable decisions, executable invariants and a shared commit/merge gate.
+This repository develops a portable Rust worker for agent-native software development. Other projects consume its configurable environment: verified atomic changes (VACs), recovery state, durable decisions, executable invariants, structural lint and isolated review. Deterministic access boundaries and checks support development quality; model judgments remain probabilistic.
+
+The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through worker.toml and separate lint/review configuration. Use worker setup to prepare a consumer from its declaration; the linter also runs independently against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
 
 Start with [repository instructions](AGENTS.md), then `just resume`. [worker.toml](worker.toml) owns paths, commands, checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run catalog commands with `just run NAME -- ARGS`.
 
 - [Scaffold guide](tooling/worker/SCAFFOLD.md): installation, configuration, memory schemas, recovery and Git lifecycle.
+- [Review guide](tooling/worker/review/README.md): configured isolated review through the worker.
 - [Linter guide](tooling/worker/README.md): rule semantics, languages, selectors, severity and repair skills.
 - [Independent examples](tooling/worker/examples/README.md): Python and Rust consumers and repeatable measurements.
 - [Feature delivery skill](.agents/skills/execute-plan-feature/SKILL.md): VACs, evolving the plan, blockers and branch handoffs.

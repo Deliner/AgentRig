@@ -16,8 +16,11 @@ impl Config {
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
         self.validate_oracles()?;
-        crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
-            .context("paths.lint")?;
+        self.capabilities.validate(root, &self.checks)?;
+        if self.capabilities.lint {
+            crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
+                .context("paths.lint")?;
+        }
         Ok(())
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {

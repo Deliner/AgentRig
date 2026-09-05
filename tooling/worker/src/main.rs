@@ -1,17 +1,16 @@
 // DECISION: D020
-mod diagnostics;
 mod hooks;
-mod lint;
 mod scaffold;
-mod util;
 
 use anyhow::{Result, bail};
+use discipline_worker::{diagnostics, lint, util};
 use serde_json::Value;
 use std::{
     env,
     io::{self, Read},
     path::{Path, PathBuf},
 };
+use util::take_option;
 
 // DECISION: D015
 // DECISION: D016
@@ -23,16 +22,8 @@ fn run() -> Result<i32> {
     if has_command {
         args.remove(0);
     }
-    match command.as_str() {
-        "--version" => {
-            println!("discipline-worker {}", scaffold::config::VERSION);
-            return Ok(0);
-        }
-        "--help" => {
-            print_help();
-            return Ok(0);
-        }
-        _ => {}
+    if let Some(result) = immediate(&command) {
+        return result;
     }
     let root = project_root(&mut args, &command)?;
     let scaffold_command =
@@ -42,6 +33,7 @@ fn run() -> Result<i32> {
     }
     match command.as_str() {
         "hook" => hook(&root),
+        "review" => run_review(&root, args),
         "lint" | "lint-config-check" => run_lint(&root, &mut args, command == "lint-config-check"),
         "lint-rules" => {
             println!("{}", lint::rules::catalog());
@@ -51,6 +43,20 @@ fn run() -> Result<i32> {
             "usage: discipline-worker hook|lint|lint-config-check|lint-rules|guard-commit|guard-reference [--root PATH]"
         ),
     }
+}
+fn immediate(command: &str) -> Option<Result<i32>> {
+    Some(match command {
+        "review-hook" => review_runner::execution::broker::hook().map(|()| 0),
+        "--version" => {
+            println!("discipline-worker {}", scaffold::config::VERSION);
+            Ok(0)
+        }
+        "--help" => {
+            print_help();
+            Ok(0)
+        }
+        _ => return None,
+    })
 }
 fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     let root = take_option(args, "--root")?
@@ -64,7 +70,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "discipline-worker (Linux)\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
+        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -90,32 +96,33 @@ fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<
         Some(path) => root.join(path),
         None if root.join(scaffold::config::FILE).is_file() => {
             let context = scaffold::config::Context::load(root)?;
+            anyhow::ensure!(
+                context.config.capabilities.lint,
+                "capabilities.lint is disabled"
+            );
             context.path(&context.config.paths.lint)?
         }
         None => root.join("lint.toml"),
     };
-    let json = args.iter().any(|arg| arg == "--json");
-    let unknown_argument = args.iter().any(|arg| arg != "--json");
-    if unknown_argument {
-        bail!("unknown lint argument");
-    }
-    lint::run(root, &config, json, validate_only)
+    lint::cli::execute(root, &config, args, validate_only)
 }
-fn take_option(args: &mut Vec<String>, name: &str) -> Result<Option<String>> {
-    let Some(index) = args
-        .iter()
-        .take_while(|arg| arg.as_str() != "--")
-        .position(|arg| arg == name)
-    else {
-        return Ok(None);
-    };
-    args.remove(index);
-    let has_value = index < args.len() && !args[index].starts_with("--");
-    if has_value {
-        Ok(Some(args.remove(index)))
-    } else {
-        bail!("{name} requires a value")
+fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
+    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
+        || matches!(args.as_slice(), [command, _] if command == "run");
+    if configured {
+        let context = scaffold::config::Context::load(root)?;
+        let review = context.config.capabilities.review.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("review is not enabled; configure capabilities.review.config")
+        })?;
+        args.insert(
+            1,
+            context.path(&review.config)?.to_string_lossy().into_owned(),
+        );
     }
+    for argument in args.iter_mut().skip(1) {
+        *argument = root.join(&*argument).to_string_lossy().into_owned();
+    }
+    review_runner::cli::run(&args).map(|()| 0)
 }
 fn main() {
     let code = match run() {

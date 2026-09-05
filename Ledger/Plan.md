@@ -13,3 +13,4 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
 | [P001](Plan/001.md) | complete | - | Isolated review MCP | Request reproducible multi-reviewer assessment of an exact project revision and receive one validated report. |
+| [P002](Plan/002.md) | complete | P001 | Portable worker capabilities and setup | Configure and prepare a consuming project with shipped lint/review, safely repeat setup and update or roll back the environment. |

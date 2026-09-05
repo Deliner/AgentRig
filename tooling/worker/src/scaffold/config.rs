@@ -1,4 +1,6 @@
+mod capabilities;
 mod validation;
+pub use capabilities::{Capabilities, Review};
 // DECISION: D005
 use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -17,6 +19,8 @@ pub struct Config {
     pub runtime: String,
     pub config_skill: String,
     pub paths: Paths,
+    #[serde(default)]
+    pub capabilities: Capabilities,
     #[serde(default)]
     pub git: Git,
     #[serde(default)]

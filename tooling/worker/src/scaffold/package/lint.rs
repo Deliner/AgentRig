@@ -2,13 +2,13 @@
 use anyhow::Result;
 use serde_json::json;
 
-pub fn template(skills: &str, source: &str) -> Result<String> {
+pub fn template(skills: &str, sources: &[String]) -> Result<String> {
     let mut rules = Vec::new();
     for &(id, kind, target, skill, warning, error) in DEFAULT_RULES {
         let skill = format!("{skills}/{skill}/SKILL.md");
         let mut rule = json!({
             "id": id, "kind": kind, "target": target,
-            "include": [format!("{source}/**")],
+            "include": sources,
             "warning_skill": skill, "error_skill": skill,
         });
         let named_condition = kind == "named-if-condition";

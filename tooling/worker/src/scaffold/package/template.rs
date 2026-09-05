@@ -5,6 +5,7 @@ pub(super) type Options<'a> = BTreeMap<&'a str, &'a str>;
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options = BTreeMap::from([
         ("language", "python"),
+        ("review", "false"),
         ("source", "src"),
         ("memory", "memory"),
         ("skills", ".worker/skills"),
@@ -13,7 +14,7 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     ]);
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--source PATH] [--memory PATH] [--skills PATH] [--base BRANCH] [--prefix PREFIX]"
+        "init [--language python|rust] [--source PATH] [--memory PATH] [--skills PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -25,6 +26,10 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
         ["python", "rust"].contains(&language),
         "init supports python or rust"
     );
+    ensure!(
+        ["true", "false"].contains(&options["review"]),
+        "init --review expects true or false"
+    );
     for key in ["source", "memory", "skills"] {
         config::relative(root, options[key])?;
     }
@@ -35,6 +40,12 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
         version: 1,
+        capabilities: config::Capabilities {
+            lint: true,
+            review: (options["review"] == "true").then(|| config::Review {
+                config: super::review::CONFIG.into(),
+            }),
+        },
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
@@ -156,6 +167,10 @@ pub(super) fn justfile() -> String {
         ("feature-start", "feature-start", true),
         ("feature-merge", "feature-merge", false),
         ("upgrade", "upgrade", true),
+        ("setup", "setup", false),
+        ("lint", "lint", true),
+        ("lint-config-check", "lint-config-check", true),
+        ("review", "review", true),
     ] {
         source.push_str(&format!(
             "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",

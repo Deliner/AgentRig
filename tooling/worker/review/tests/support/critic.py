@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import json
-import socket
+import subprocess
 import sys
 import time
 from pathlib import Path
@@ -9,9 +9,10 @@ MODE = "pass"
 
 
 def hook():
-    with socket.socket(socket.AF_UNIX) as connection:
-        connection.connect("/review-bin/control.sock")
-        return json.loads(connection.recv(65536))
+    output = subprocess.run(
+        ["/review-bin/review-runner", "review-hook"], capture_output=True, text=True, check=True
+    )
+    return json.loads(output.stdout)
 
 
 def isolation():

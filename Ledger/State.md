@@ -2,28 +2,28 @@
 
 ## Focus
 
-P001 acceptance is implemented and verified. Finish its normal commit gate and integration, then close the user's review-MCP goal.
+Complete and integrate P002 portable worker delivery. All feature acceptance has evidence; final commit/integration gates remain pending. Apply complexity-discipline.
 
 ## Workspace
 
-Branch: feature/review-mcp
+Branch: feature/worker-capabilities
 
-Revision: 9db3287
+Revision: fe31ee6
 
-The MCP/interface VAC is committed after its complete gate passed. The current final VAC adds late BLOCKED handling, direct concurrency/cleanup-failure verification and the acceptance record.
+The setup VAC is committed. The current completion VAC preserves setup file modes and records consumer verification and usage guidance.
 
 ## Progress
 
-Configured MCP tools, CLI and Just share the isolated Rust runner. Configuration/resources/contracts are validated, exact Git scope is exported, protected Stop validation and attempts bound each role, and deterministic persistent reports survive normal cleanup and reported failure paths. The short project skill adapter is validated. P001 is marked complete on observable acceptance; integration remains pending.
+Worker ships review and lint with separate validated configuration and declarative setup. The standalone linter shares the engine and does not install into assessed projects. An external consumer passed real MCP review, repeat setup, reconfiguration, an adjacent-release update and rollback. The final setup correction reuses upgrade file states to preserve permissions and detect changed inputs; documentation/examples describe configuration, authentication and conflicts.
 
 ## Verification
 
-Twenty-one focused Rust tests pass, including overlapping critic execution, late FAIL/BLOCKED explanation checks, report persistence failure and a real permission-induced cleanup failure. Strict lint has no errors; configured directory/skill warnings remain warnings. Previous execution and MCP VACs passed their full staged gates with all 208 worker tests. Real official MCP-client/Codex runs passed in 69 and 96 seconds; a 120-second timeout produced BLOCKED and completed cleanup. Final production smoke confirmed fresh CLI configuration and no inherited host skills/hooks. See Plan/001.md and Project/review-mcp/COMPATIBILITY.md for acceptance evidence.
+Real Codex review run-1MQ3Fy passed in 93.5 seconds with reports saved, cleanup complete and temporary authentication removed. Upgrade/rollback restored 47 original consumer files and their modes; report SHA-256 remained a8f0343d0ec272de877acea46863c288f32392dabc2ced0bc23da40f0db08b24. The isolated 0.3.0 build was a verification fixture, not a published release. Six setup tests pass after reproducing and fixing the 0600 permission regression. Strict lint has no errors. Prior VAC full gates passed; the final staged and integration gates are pending.
 
 ## Blockers
 
-None. No background job interface is needed for the tested client with its configured timeout.
+None. See tooling/worker/examples/PORTABILITY.md for acceptance evidence and its limits. No new feature is authorized by the completed Plan.
 
 ## Next action
 
-Commit this final VAC through the staged gate, then run just feature-merge. Inspect master, retained branch, integration result and workspace cleanliness. Mark the active review-MCP goal complete only after successful integration; no post-merge State-only commit is required.
+Commit the completion VAC through the full staged gate. Run just feature-merge, inspect clean master and the retained feature branch, and close the active goal only after integration passes.

@@ -1,7 +1,8 @@
+pub mod cli;
 // DECISION: D007
 pub mod config;
-pub(crate) mod inventory;
-pub(crate) mod languages;
+pub mod inventory;
+pub mod languages;
 pub mod rules;
 mod selection;
 
@@ -238,16 +239,7 @@ fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnost
 }
 fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
     // Resolve guidance independently of rule validation, including invalid rules.
-    let skill = fs::read_to_string(path)
-        .ok()
-        .and_then(|source| toml::from_str::<toml::Value>(&source).ok())
-        .and_then(|value| {
-            value
-                .get("config_skill")
-                .and_then(toml::Value::as_str)
-                .map(str::to_owned)
-        })
-        .unwrap_or_else(|| CONFIG_SKILL.to_owned());
+    let skill = configuration_skill(path).unwrap_or_else(|| CONFIG_SKILL.to_owned());
     Diagnostic {
         rule: "configuration".into(),
         path: path.display().to_string(),
@@ -259,6 +251,24 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
         line: None,
         symbol: None,
         rerun: String::new(),
+    }
+}
+fn configuration_skill(path: &Path) -> Option<String> {
+    let source = fs::read_to_string(path).ok()?;
+    let value: toml::Value = toml::from_str(&source).ok()?;
+    let skill = value.get("config_skill")?.as_str()?;
+    match value.get("skill_root").and_then(toml::Value::as_str) {
+        Some(root) => {
+            let candidate = path.parent()?.join(root).join(skill);
+            Some(
+                candidate
+                    .canonicalize()
+                    .unwrap_or(candidate)
+                    .to_string_lossy()
+                    .into_owned(),
+            )
+        }
+        None => Some(skill.into()),
     }
 }
 fn print_diagnostic(item: &Diagnostic) {

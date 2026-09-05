@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
 pub const PATH: &str = ".worker/manifest.json";
-#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum Ownership {
     Runtime,
@@ -16,7 +16,7 @@ pub enum Ownership {
     Editable,
     Memory,
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Entry {
     pub sha256: String,
@@ -69,11 +69,13 @@ fn ownership(path: &str, config: &Config) -> Ownership {
         .iter()
         .any(|name| path == format!("{}/{name}.md", config.paths.memory));
     let settings = ["worker.toml", ".codex/config.toml", &config.paths.lint].contains(&path)
-        || config.hooks.reminder.as_deref() == Some(path);
+        || config.hooks.reminder.as_deref() == Some(path)
+        || path.starts_with(".worker/review/config/");
     let editable = (path.starts_with(&format!("{}/", config.paths.skills))
         && path.ends_with("/SKILL.md"))
         || path.starts_with(".worker/hooks/")
-        || ["justfile", ".codex/hooks.json"].contains(&path);
+        || path.starts_with(".worker/review/prompts/")
+        || ["AGENTS.md", "justfile", ".codex/hooks.json"].contains(&path);
     let runtime = path == ".worker/bin/discipline-worker";
     if memory {
         Ownership::Memory

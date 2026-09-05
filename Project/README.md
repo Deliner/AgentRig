@@ -1,3 +1,5 @@
-# Project
+# Consumer projects
 
-Product implementation belongs here. [Plan](../Ledger/Plan.md) owns feature priorities and acceptance; [State](../Ledger/State.md) records the current task. Worker runtime code lives in tooling/worker, and durable project memory lives in Ledger.
+This repository develops the worker under tooling/worker. This directory is reserved for projects that consume or demonstrate that environment, not implementations of worker capabilities.
+
+[Plan](../Ledger/Plan.md) and [State](../Ledger/State.md) govern development of the worker itself. Consuming projects own their source code, configuration, requirements and memory.

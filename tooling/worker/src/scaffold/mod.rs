@@ -24,6 +24,7 @@ pub fn owns(command: &str) -> bool {
             | "feature-start"
             | "feature-merge"
             | "init"
+            | "setup"
             | "doctor"
             | "upgrade"
     )
@@ -31,6 +32,7 @@ pub fn owns(command: &str) -> bool {
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
+        "setup" => return package::setup(root, args),
         "upgrade" => return upgrade::run(root, args),
         "check" => {
             let (staged, only) = gate::arguments(args)?;
@@ -138,12 +140,16 @@ fn run_command(context: &config::Context, name: &str, extra: &[String]) -> Resul
     Ok(code)
 }
 fn config_check(context: &config::Context) -> Result<i32> {
-    let code = crate::lint::run(
-        &context.root,
-        &context.path(&context.config.paths.lint)?,
-        true,
-        true,
-    )?;
+    let code = if context.config.capabilities.lint {
+        crate::lint::run(
+            &context.root,
+            &context.path(&context.config.paths.lint)?,
+            true,
+            true,
+        )?
+    } else {
+        0
+    };
     let valid = code == 0;
     if valid {
         println!(
@@ -181,7 +187,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "lint" | "lint-config-check" => {}
+        "lint" | "lint-config-check" | "review" | "setup" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

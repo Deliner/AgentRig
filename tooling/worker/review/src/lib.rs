@@ -11,3 +11,5 @@ pub mod run;
 pub mod snapshot;
 
 pub mod mcp;
+
+pub mod cli;

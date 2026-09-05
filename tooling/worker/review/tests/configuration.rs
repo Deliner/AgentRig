@@ -40,3 +40,31 @@ fn rejects_invalid_configuration_before_execution() {
         assert!(config::load(&path).is_err(), "accepted {new}");
     }
 }
+
+#[test]
+fn frontend_is_explicit_and_unsupported_executors_are_rejected() {
+    let root = tempfile::tempdir().unwrap();
+    let path = fixture(root.path());
+    let source = fs::read_to_string(&path).unwrap();
+    assert_eq!(
+        config::load(&path).unwrap().reviewers["critic"].frontend,
+        "codex"
+    );
+    let explicit = source.replace("[reviewers.critic]", "[reviewers.critic]\nfrontend='codex'");
+    fs::write(&path, &explicit).unwrap();
+    let loaded = config::load(&path).unwrap();
+    assert_eq!(loaded.reviewers["critic"].frontend, "codex");
+    let recorded = serde_json::to_value(&loaded).unwrap();
+    assert_eq!(recorded["reviewers"]["critic"]["frontend"], "codex");
+    fs::write(
+        &path,
+        explicit.replace("frontend='codex'", "frontend='unknown'"),
+    )
+    .unwrap();
+    let error = config::load(&path).unwrap_err().to_string();
+    assert!(error.contains("unsupported frontend"), "{error}");
+    assert!(
+        error.contains("critic") && error.contains("supported: codex"),
+        "{error}"
+    );
+}

@@ -1,5 +1,5 @@
 use super::super::{config, package::manifest};
-use super::model::State;
+pub use super::model::State;
 use anyhow::{Context as _, Result, ensure};
 use serde::Serialize;
 use std::{
