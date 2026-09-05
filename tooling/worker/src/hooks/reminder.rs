@@ -17,8 +17,10 @@ const ATTENTION: &str = include_str!("attention.txt");
 fn hash(value: &str) -> String {
     format!("{:x}", Sha256::digest(value.as_bytes()))
 }
-fn state_path(event: &Value) -> Result<(File, PathBuf)> {
-    let root = if let Ok(value) = env::var("COMPLEXITY_DISCIPLINE_STATE_DIR") {
+fn state_path(event: &Value, directory: Option<&Path>) -> Result<(File, PathBuf)> {
+    let root = if let Some(path) = directory {
+        path.to_owned()
+    } else if let Ok(value) = env::var("COMPLEXITY_DISCIPLINE_STATE_DIR") {
         PathBuf::from(value)
     } else {
         let home = env::var("HOME")?;
@@ -54,10 +56,13 @@ fn save(path: &Path, state: &Value) -> Result<()> {
     Ok(())
 }
 pub fn start(event: &Value) -> Result<()> {
+    start_at(event, None)
+}
+pub fn start_at(event: &Value, directory: Option<&Path>) -> Result<()> {
     let transcript = text(event, "transcript_path");
     let (tokens, offset) = transcript::tokens(Path::new(transcript), 0).unwrap_or_default();
     let baseline = tokens.last().copied().unwrap_or(0);
-    let (_lock, path) = state_path(event)?;
+    let (_lock, path) = state_path(event, directory)?;
     save(
         &path,
         &json!({"transcript_path": transcript, "scan_offset": offset,
@@ -65,11 +70,18 @@ pub fn start(event: &Value) -> Result<()> {
     )
 }
 pub fn before(root: &Path, event: &Value) -> Result<Option<String>> {
+    let config = object(&root.join(".agents/skills/complexity-discipline/context-reminder.json"));
+    before_at(event, &config, None)
+}
+pub fn before_at(
+    event: &Value,
+    config: &Value,
+    directory: Option<&Path>,
+) -> Result<Option<String>> {
     let transcript = text(event, "transcript_path");
     if transcript.is_empty() {
         return Ok(None);
     }
-    let config = object(&root.join(".agents/skills/complexity-discipline/context-reminder.json"));
     let mut attention = config["attention_interval_tokens"]
         .as_u64()
         .filter(|n| *n > 0)
@@ -86,7 +98,7 @@ pub fn before(root: &Path, event: &Value) -> Result<Option<String>> {
         .as_str()
         .filter(|s| !s.trim().is_empty())
         .unwrap_or(ATTENTION);
-    let (_lock, path) = state_path(event)?;
+    let (_lock, path) = state_path(event, directory)?;
     let mut state = object(&path);
     if text(&state, "transcript_path") != transcript {
         state = json!({"transcript_path": transcript, "scan_offset": 0,

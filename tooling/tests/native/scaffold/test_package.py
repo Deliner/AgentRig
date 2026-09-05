@@ -1,0 +1,52 @@
+import subprocess
+from pathlib import Path
+
+import pytest
+from support import invoke
+
+
+def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    assert invoke(worker, tmp_path, "doctor").returncode == 0
+    changes = [
+        (".codex/config.toml", "hooks = true", "hooks = false", "Codex registration"),
+        (".codex/hooks.json", "SessionStart", "UnknownEvent", "Codex registration"),
+        (".worker/hooks/pre-commit", "--staged", "--incorrect", "Git hooks"),
+        ("worker.toml", '"python3"', '"missing-tool-xyz"', "MISSING"),
+        ("worker.toml", 'runtime = "0.1.0"', 'runtime = "999.0.0"', "project pins"),
+    ]
+    for name, before, after, expected in changes:
+        path = tmp_path / name
+        original = path.read_text()
+        assert before in original
+        path.write_text(original.replace(before, after))
+        result = invoke(worker, tmp_path, "doctor")
+        assert result.returncode != 0
+        assert expected in result.stdout + result.stderr
+        path.write_text(original)
+    hook = tmp_path / ".worker/hooks/pre-commit"
+    hook.chmod(0o644)
+    assert invoke(worker, tmp_path, "doctor").returncode == 1
+    hook.chmod(0o755)
+    binary = tmp_path / ".worker/bin/discipline-worker"
+    binary.write_text("#!/bin/sh\necho discipline-worker 999.0.0\n")
+    result = invoke(worker, tmp_path, "doctor")
+    assert result.returncode == 1
+    assert "installed binary: MISSING OR INCOMPATIBLE" in result.stdout
+
+
+@pytest.mark.parametrize("case", ["invalid-glob", "file-parent", "generated-parent"])
+def test_init_rejects_invalid_layout_before_writing(
+    worker: Path, tmp_path: Path, case: str
+) -> None:
+    args = ["--source", "src/["]
+    if case == "file-parent":
+        (tmp_path / ".codex").write_text("user data")
+        args = []
+    elif case == "generated-parent":
+        args = ["--skills", ".worker/bin/discipline-worker"]
+    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    result = invoke(worker, tmp_path, "init", *args)
+    assert result.returncode == 2
+    assert {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()} == before

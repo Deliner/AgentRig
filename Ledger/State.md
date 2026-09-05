@@ -2,24 +2,24 @@
 
 ## Focus
 
-Authorized worker task: remove duplicate Python hooks/size lint and consolidate hook implementation and build ownership in Rust. P001 remains unchanged.
+Implement the standalone portable scaffold plan in .tmp/scaffold-implementation-plan.md. The authorized outcome is one configurable Rust runtime serving independent Python and Rust projects. Adoption by this worker repository is not required. P001 remains unchanged.
 
 ## Workspace
 
-Observed branch feature/remove-legacy-hooks based on master 375f595. This VAC removes legacy code, moves Git guards into native hooks, migrates tests and records explicit D019 historical application-link replacements. No unrelated changes were observed; reconcile with Git on resume.
+Observed branch feature/portable-scaffold, based on master 3278ea5. Current coherent change adds the portable runtime, configuration, execution, gate, memory, installation, hooks and consumer examples. The input plan remains untracked under .tmp; preserve it without including it in the implementation commit. Reconcile this snapshot with Git before continuing.
 
 ## Progress
 
-Codex session/edit hooks and complexity reminders already used Rust. Removed their Python references and retired checkpoint adapter, the Python size checker, and duplicate Git guard commands/functions in branch_workflow.py. Every hook implementation is now under tooling/worker/src/hooks with one crate/launcher; thin registration/Git adapters remain. Python Ledger/Just/feature orchestration retains independent responsibilities. Tests invoke the native binary and assert behavior without Python hook algorithms.
+A shared typed TOML context configures paths, commands, checks, Git, hooks and oracles. Native execution preserves argv/streams/signals, read-only bubblewrap isolation and command logs. The gate checks working trees or exported indexes. Memory checks use Rust/Python syntax handlers, bind invariant markers to functions and discover actual pytest/Cargo targets; committed decision history is checked against HEAD even for index snapshots. Resume reports memory and Git facts without writes. Init supplies a pinned binary, all five lint rules, eleven skills, four memory routes and thin Just/Git/agent adapters. Doctor checks installed version, tools, registration, permissions and sandbox. Standalone documentation and Python/Rust example sources are present.
 
 ## Verification
 
-50 focused hook/command/VAC tests passed, including token thresholds, retry/full refresh, transcript offsets, compaction and storage failures. Nine Ledger/branch tests passed, including the explicit native-link migration and rejection of other substitutions. Full staged gate and merge remain pending; check Git and command logs for later progress.
+24 focused scaffold tests passed, including complete independent project delivery, real Git hooks, staged-memory history, unsupported language rejection and repair, missing oracle targets, isolation/signals, collision preservation and installation diagnostics. 64 scaffold/legacy hook/context tests passed before the latest package refinements. Eleven installed skills passed skill-creator quick_validate. Rust Clippy passed before the latest doctor version check; formatting has been applied. Full staged gate and commit are next; consult Git and command logs for subsequent evidence.
 
 ## Blockers
 
-None. D019 explicitly updates historical application links while preserving decision identities, statements and detail history. Source-file deletion does not remove branch/VAC or reminder coverage. Previous implementation content remains in Git history.
+None. The overall implementation plan is not yet complete. Remaining evidence includes portable reminder boundaries/retry/compaction, divergent Git rebase/conflict and gate-failure recovery, measured cold/warm hook and small lint latency, and a requirement-by-requirement completion audit. Review known edge cases in configuration validation and oracle binding against those requirements without expanding the product scope.
 
 ## Next action
 
-Commit the coherent VAC through the normal staged gate and correct any failures without bypassing hooks. Then run just feature-merge from the clean branch, retaining its reference. If Git shows feature/remove-legacy-hooks integrated, this task is complete; follow the next authorized instruction.
+Stage only this coherent implementation and State, inspect the staged diff, then commit through the full pre-commit gate and correct any reported failures. Continue remaining plan verification and fixes on the retained feature branch. Finish with verified integration only after every plan requirement is supported by current evidence.

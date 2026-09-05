@@ -1,0 +1,234 @@
+mod format;
+mod history;
+mod oracles;
+mod source;
+
+use super::config::Context;
+use anyhow::{Result, ensure};
+use format::{Row, sections, table, target};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    path::Path,
+};
+
+pub fn check(context: &Context) -> Result<i32> {
+    check_with_history(context, &context.root)
+}
+pub fn check_with_history(context: &Context, git_root: &Path) -> Result<i32> {
+    let memory = context.path(&context.config.paths.memory)?;
+    history::check(context, git_root)?;
+    plan(context, &memory)?;
+    decisions(context, &memory)?;
+    invariants(context, &memory)?;
+    sections(
+        &memory.join("State.md"),
+        &[
+            "Focus",
+            "Workspace",
+            "Progress",
+            "Verification",
+            "Blockers",
+            "Next action",
+        ],
+        None,
+    )?;
+    Ok(0)
+}
+fn details(
+    context: &Context,
+    memory: &Path,
+    rows: &[Row],
+    directory: &str,
+    headings: &[&str],
+    optional: Option<&str>,
+) -> Result<()> {
+    let mut known = HashSet::new();
+    for row in rows {
+        ensure!(
+            row.detail == format!("{directory}/{}.md", &row.id[1..]),
+            "{}: detail path does not match ID",
+            row.id
+        );
+        known.insert(row.detail.clone());
+        sections(
+            &target(&context.root, memory, &row.detail)?,
+            headings,
+            optional,
+        )?;
+    }
+    let path = memory.join(directory);
+    if path.is_dir() {
+        for entry in fs::read_dir(path)? {
+            let path = entry?.path();
+            let numeric = path
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .is_some_and(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()));
+            if numeric {
+                ensure!(
+                    known.contains(&format!(
+                        "{directory}/{}",
+                        path.file_name().unwrap().to_string_lossy()
+                    )),
+                    "unindexed detail {}",
+                    path.display()
+                );
+            }
+        }
+    }
+    Ok(())
+}
+fn plan(context: &Context, memory: &Path) -> Result<()> {
+    let rows = table(&memory.join("Plan.md"), 'P', 5)?;
+    details(
+        context,
+        memory,
+        &rows,
+        "Plan",
+        &["Feature", "User capability", "Acceptance"],
+        Some("Delivery"),
+    )?;
+    ensure!(
+        rows.iter().filter(|row| row.cells[1] == "active").count() <= 1,
+        "Plan has multiple active features"
+    );
+    let index: HashMap<_, _> = rows.iter().map(|row| (row.id.as_str(), row)).collect();
+    let mut graph = HashMap::new();
+    for row in &rows {
+        let status = row.cells[1].as_str();
+        ensure!(
+            ["pending", "active", "paused", "complete"].contains(&status),
+            "{}: invalid status {status}",
+            row.id
+        );
+        if ["paused", "complete"].contains(&status) {
+            let source = fs::read_to_string(memory.join(&row.detail))?;
+            ensure!(
+                source.lines().any(|line| line == "## Delivery"),
+                "{}: {status} requires Delivery",
+                row.id
+            );
+        }
+        let dependencies: Vec<_> = if row.cells[2] == "-" {
+            Vec::new()
+        } else {
+            row.cells[2].split(',').map(str::trim).collect()
+        };
+        ensure!(
+            dependencies.iter().collect::<HashSet<_>>().len() == dependencies.len(),
+            "{}: duplicate dependencies",
+            row.id
+        );
+        for dependency in &dependencies {
+            let prior = index
+                .get(dependency)
+                .ok_or_else(|| anyhow::anyhow!("{}: unknown dependency {dependency}", row.id))?;
+            ensure!(
+                !["active", "complete"].contains(&status) || prior.cells[1] == "complete",
+                "{}: prerequisite {dependency} is incomplete",
+                row.id
+            );
+        }
+        graph.insert(row.id.as_str(), dependencies);
+    }
+    let mut done = HashSet::new();
+    while done.len() < rows.len() {
+        let before = done.len();
+        for (id, dependencies) in &graph {
+            if dependencies.iter().all(|id| done.contains(id)) {
+                done.insert(*id);
+            }
+        }
+        ensure!(done.len() > before, "Plan dependency cycle");
+    }
+    Ok(())
+}
+fn decisions(context: &Context, memory: &Path) -> Result<()> {
+    let rows = table(&memory.join("Decisions.md"), 'D', 3)?;
+    details(
+        context,
+        memory,
+        &rows,
+        "Decisions",
+        &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
+        None,
+    )?;
+    for row in &rows {
+        let links = format::links(&row.cells[2]);
+        ensure!(!links.is_empty(), "{}: application link required", row.id);
+        for link in links {
+            let path = target(&context.root, memory, &link)?;
+            match source::inspect(&path)? {
+                Some(source) => ensure!(
+                    source.marker("DECISION", &row.id),
+                    "{}: decision marker absent in {}",
+                    row.id,
+                    path.display()
+                ),
+                None => eprintln!(
+                    "WARNING [{}]: marker inspection unsupported for {}",
+                    row.id,
+                    path.display()
+                ),
+            }
+        }
+    }
+    Ok(())
+}
+fn invariants(context: &Context, memory: &Path) -> Result<()> {
+    let rows = table(&memory.join("Invariants.md"), 'I', 3)?;
+    details(
+        context,
+        memory,
+        &rows,
+        "Invariants",
+        &["Predicate", "Oracle"],
+        None,
+    )?;
+    for row in &rows {
+        let (name, link) = format::link(&row.cells[2])?;
+        let path = target(&context.root, memory, &link)?;
+        let source = source::inspect(&path)?
+            .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
+        ensure!(
+            source.marked_function(&name, &row.id),
+            "{}: marked oracle function {name} missing",
+            row.id
+        );
+        oracles::validate(context, &row.id, &name, &path)?;
+    }
+    Ok(())
+}
+pub fn resume(context: &Context) -> Result<()> {
+    let memory = context.path(&context.config.paths.memory)?;
+    let state = fs::read_to_string(memory.join("State.md"))?;
+    let plan = fs::read_to_string(memory.join("Plan.md"))?;
+    let git = |args: &[&str]| crate::util::git(&context.root, args).unwrap_or_default();
+    let branch = git(&["branch", "--show-current"]);
+    let revision = git(&["rev-parse", "HEAD"]);
+    let status = git(&["status", "--short"]);
+    let claims: Vec<_> = state
+        .lines()
+        .filter_map(|line| {
+            line.strip_prefix("Branch: ")
+                .map(|s| (s.trim_matches('`'), branch.as_str()))
+                .or_else(|| {
+                    line.strip_prefix("Revision: ")
+                        .map(|s| (s.trim_matches('`'), revision.as_str()))
+                })
+        })
+        .collect();
+    let snapshot = if claims.is_empty() {
+        "unverified"
+    } else if claims.iter().all(|(saved, current)| saved == current) {
+        "current"
+    } else {
+        "stale"
+    };
+    println!(
+        "{}",
+        serde_json::json!({"state": state, "plan": plan, "git": {"branch": branch, "revision": revision, "status": status}, "snapshot": snapshot})
+    );
+    Ok(())
+}

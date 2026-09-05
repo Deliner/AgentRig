@@ -6,7 +6,7 @@ root="$(cd "$source_dir/../.." && pwd)"
 target="$(printenv WORKER_TARGET_DIR || true)"
 if [[ -z "$target" ]]; then target="$root/.cache/worker"; fi
 binary="$target/release/discipline-worker"
-signature="$(cd "$source_dir" && find . -type f \( -name '*.rs' -o -name '*.txt' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
+signature="$(cd "$source_dir" && find . -type f \( -path './assets/*' -o -name '*.rs' -o -name '*.txt' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
 saved=""
 if [[ -f "$target/source-signature" ]]; then read -r saved < "$target/source-signature"; fi
 if [[ ! -x "$binary" || "$saved" != "$signature" ]]; then

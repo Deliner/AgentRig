@@ -1,6 +1,6 @@
 pub mod config;
-mod inventory;
-mod languages;
+pub(crate) mod inventory;
+pub(crate) mod languages;
 pub mod rules;
 mod selection;
 

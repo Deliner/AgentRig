@@ -16,18 +16,23 @@ pub struct Analysis {
     pub measurements: Vec<Measurement>,
     pub parse_error: Option<usize>,
 }
-pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
-    let is_rust = path.extension().is_some_and(|ext| ext == "rs");
-    let language = if is_rust {
-        tree_sitter_rust::LANGUAGE
-    } else {
-        tree_sitter_python::LANGUAGE
+pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
+    let language = match path.extension().and_then(|ext| ext.to_str()) {
+        Some("rs") => tree_sitter_rust::LANGUAGE,
+        Some("py" | "pyi") => tree_sitter_python::LANGUAGE,
+        _ => return Ok(None),
     };
     let mut parser = Parser::new();
     parser.set_language(&language.into())?;
-    let tree = parser
-        .parse(source, None)
-        .context("parser returned no tree")?;
+    Ok(Some(
+        parser
+            .parse(source, None)
+            .context("parser returned no tree")?,
+    ))
+}
+pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
+    let is_rust = path.extension().is_some_and(|ext| ext == "rs");
+    let tree = parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
         measurements: Vec::new(),
         parse_error: None,
