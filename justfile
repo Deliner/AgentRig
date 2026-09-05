@@ -71,3 +71,11 @@ lint-rule *args:
 # What: explain lint selection; Why: inspect exclusion reasons and effective thresholds.
 lint-explain *args:
     @tooling/worker/run lint-explain "$@"
+
+# What: list managed runs; Why: inspect ongoing commands and recovered state.
+jobs:
+    @tooling/worker/run jobs
+
+# What: inspect a managed run; Why: verify process liveness from its OS identity.
+job-status *args:
+    @tooling/worker/run job-status "$@"

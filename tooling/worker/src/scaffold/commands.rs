@@ -46,9 +46,16 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
 pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) -> Result<Output> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
+    let runtime = context.path(&context.config.paths.runtime)?;
+    let mut job = discipline_worker::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
+    job.prepare(&argv)?;
     let started = Instant::now();
-    let result = process::execute(&cwd, &argv, spec.read_only, capture);
+    let result = process::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
     let code = result.as_ref().map(process::exit_code).unwrap_or(127);
+    job.finish(
+        code,
+        result.as_ref().err().map(|error| format!("{error:#}")),
+    )?;
     append(
         context,
         &Record {

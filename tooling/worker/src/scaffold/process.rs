@@ -7,7 +7,7 @@ use std::{
     io::IsTerminal,
     os::unix::process::{CommandExt, ExitStatusExt},
     path::Path,
-    process::{Command, Output, Stdio},
+    process::{Child, Command, Output, Stdio},
 };
 
 pub fn run(root: &Path, argv: &[String], read_only: bool) -> Result<i32> {
@@ -20,6 +20,15 @@ pub fn exit_code(output: &Output) -> i32 {
         .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(1))
 }
 pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> Result<Output> {
+    tracked(root, argv, (read_only, capture), None)
+}
+pub fn tracked(
+    root: &Path,
+    argv: &[String],
+    options: (bool, bool),
+    job: Option<&mut discipline_worker::jobs::Job>,
+) -> Result<Output> {
+    let (read_only, capture) = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let mut command = if read_only {
         sandbox(root, argv)?
@@ -43,11 +52,28 @@ pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> 
         command.process_group(0);
     }
     let signals = Signals::new([SIGINT, SIGTERM, SIGHUP])?;
-    let handle = signals.handle();
     let child = command
         .spawn()
         .with_context(|| format!("cannot execute {}", argv[0]))?;
+    wait(child, signals, group, job)
+}
+fn wait(
+    mut child: Child,
+    signals: Signals,
+    group: bool,
+    job: Option<&mut discipline_worker::jobs::Job>,
+) -> Result<Output> {
+    let handle = signals.handle();
     let pid = child.id() as i32;
+    let attached = job.map(|job| job.attach(child.id(), group)).transpose();
+    if let Err(error) = attached {
+        unsafe {
+            libc::kill(if group { -pid } else { pid }, SIGTERM);
+        }
+        let _ = child.kill();
+        let _ = child.wait();
+        return Err(error);
+    }
     let forwarding = forward_signals(signals, pid, group);
     let result = child.wait_with_output();
     handle.close();

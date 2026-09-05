@@ -152,3 +152,23 @@ order. Disabled, excluded, extension-mismatched, wrong-target and absent invento
 entries explain why no check runs. It reads configuration and inventory, without
 parsing source or running rule measurements. Invalid effective configuration
 still fails. Relative paths are resolved from the selected project root.
+
+## Managed command visibility
+
+Catalog commands create a unique run record before execution under the configured
+runtime/jobs directory. `just jobs`, `just job-status RUN_ID` and `just resume`
+show the saved command and current OS observations. Identity combines PID, boot
+ID and process start ticks; a saved PID alone never establishes liveness.
+Leader CPU ticks and resident bytes are point-in-time measurements, not totals
+for detached descendants. Completion records the exit code and launch errors.
+
+Set WORKER_OWNER to a stable task/session identity when launching commands outside
+an agent session. Otherwise CODEX_THREAD_ID, then CODEX_SESSION_ID is used; without
+either, the run gets its own owner. WORKER_PARENT_RUN optionally associates a
+child invocation. Branch and project are captured independently of ownership.
+An orphaned run has a live child but no live runner; an interrupted run has
+neither. Inspect these states before deciding what to resume or clean up.
+
+This initial registry preserves the existing process-group signal forwarding.
+Detached descendants are not yet contained; cancellation, background log storage,
+shared-service lifetimes and owner-aware merge cleanup are pending in P003.

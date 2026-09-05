@@ -4,6 +4,7 @@ import signal
 import subprocess
 import time
 from pathlib import Path
+from typing import Any
 
 import pytest
 from support import CONFIG, invoke, project
@@ -92,3 +93,79 @@ def test_signal_reaches_child(worker: Path, tmp_path: Path) -> None:
         if child_running:
             process.kill()
             process.communicate()
+
+
+def wait_for_job(worker: Path, root: Path) -> dict[str, Any]:
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        result = invoke(worker, root, "jobs")
+        assert result.returncode == 0, result.stderr
+        rows: list[dict[str, Any]] = json.loads(result.stdout)
+        for row in rows:
+            running = row["state"] == "running"
+            if running:
+                return row
+        time.sleep(0.01)
+    raise AssertionError("managed command did not become visible")
+
+
+def start(worker: Path, root: Path) -> subprocess.Popen[bytes]:
+    project(root, CONFIG + '\n[commands.wait]\nargv = ["sleep", "60"]\n')
+    return subprocess.Popen(
+        [str(worker), "run", "--root", str(root), "wait"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        env={**os.environ, "WORKER_OWNER": "test-owner", "WORKER_PARENT_RUN": "parent-run"},
+    )
+
+
+def test_live_command_identity_and_completion(worker: Path, tmp_path: Path) -> None:
+    process = start(worker, tmp_path)
+    try:
+        row = wait_for_job(worker, tmp_path)
+        assert row["owner"] == "test-owner" and row["parent_run"] == "parent-run"
+        assert row["supervisor"]["pid"] == process.pid
+        assert row["child"]["start_ticks"] > 0
+        assert row["leader_resources"]["resident_bytes"] > 0
+        assert row["branch"] is None
+        process.send_signal(signal.SIGTERM)
+        assert process.wait(timeout=5) == 143
+        result = invoke(worker, tmp_path, "job-status", row["run_id"])
+        finished = json.loads(result.stdout)
+        assert finished["state"] == "completed" and finished["exit_code"] == 143
+        assert finished["leader_resources"] is None
+    finally:
+        alive = process.poll() is None
+        if alive:
+            process.terminate()
+            process.wait(timeout=5)
+
+
+def test_recovery_does_not_trust_saved_pid(worker: Path, tmp_path: Path) -> None:
+    process = start(worker, tmp_path)
+    row = wait_for_job(worker, tmp_path)
+    child = row["child"]["pid"]
+    try:
+        process.kill()
+        process.wait(timeout=5)
+        orphan = json.loads(invoke(worker, tmp_path, "job-status", row["run_id"]).stdout)
+        assert orphan["state"] == "orphaned"
+        path = tmp_path / ".runtime/jobs" / row["run_id"] / "record.json"
+        saved = json.loads(path.read_text())
+        saved["child"]["start_ticks"] += 1
+        path.write_text(json.dumps(saved))
+        stale = json.loads(invoke(worker, tmp_path, "job-status", row["run_id"]).stdout)
+        assert stale["state"] == "interrupted" and stale["leader_resources"] is None
+        os.kill(child, 0)
+    finally:
+        os.kill(child, signal.SIGKILL)
+
+
+def test_spawn_failure_is_recorded(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path, CONFIG + '\n[commands.missing]\nargv = ["/missing-worker-test-binary"]\n')
+    assert invoke(worker, tmp_path, "run", "missing").returncode == 127
+    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
+    assert row["state"] == "completed" and row["exit_code"] == 127
+    assert "cannot execute" in row["error"]
+    assert invoke(worker, tmp_path, "job-status", "../escape").returncode == 2
