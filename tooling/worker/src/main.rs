@@ -1,6 +1,7 @@
 mod gate;
 mod hooks;
 mod lint;
+mod scaffold;
 mod util;
 
 use anyhow::{Result, bail};
@@ -21,10 +22,29 @@ fn run() -> Result<i32> {
     } else {
         args.remove(0)
     };
+    if command == "--version" {
+        println!("discipline-worker {}", scaffold::config::VERSION);
+        return Ok(0);
+    }
+    if command == "--help" {
+        println!(
+            "discipline-worker (Linux)\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
+        );
+        return Ok(0);
+    }
     let root = take_option(&mut args, "--root")?
         .map(PathBuf::from)
         .unwrap_or(env::current_dir()?);
+    if command == "init" {
+        std::fs::create_dir_all(&root)?;
+    }
     let root = root.canonicalize()?;
+    if scaffold::owns(&command)
+        || (root.join("worker.toml").is_file()
+            && matches!(command.as_str(), "guard-commit" | "guard-reference"))
+    {
+        return scaffold::run(&root, &command, &args);
+    }
     match command.as_str() {
         "hook" => {
             let mut input = String::new();
@@ -44,18 +64,20 @@ fn run() -> Result<i32> {
             Ok(0)
         }
         "lint" | "lint-config-check" => {
-            let config =
-                take_option(&mut args, "--config")?.unwrap_or("tooling/worker/lint.toml".into());
+            let explicit = take_option(&mut args, "--config")?;
+            let config = match explicit {
+                Some(path) => root.join(path),
+                None if root.join(scaffold::config::FILE).is_file() => {
+                    let context = scaffold::config::Context::load(&root)?;
+                    context.path(&context.config.paths.lint)?
+                }
+                None => root.join("tooling/worker/lint.toml"),
+            };
             let json = args.iter().any(|arg| arg == "--json");
             if args.iter().any(|arg| arg != "--json") {
                 bail!("unknown lint argument");
             }
-            lint::run(
-                &root,
-                &root.join(config),
-                json,
-                command == "lint-config-check",
-            )
+            lint::run(&root, &config, json, command == "lint-config-check")
         }
         "gate" => gate::run(&root, &args),
         "lint-rules" => {

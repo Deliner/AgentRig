@@ -32,7 +32,7 @@ pub fn command(event: &Value) -> Option<&str> {
         .iter()
         .find_map(|key| event["tool_input"][key].as_str())
 }
-pub fn validate(root: &Path, command: Option<&str>) -> Result<Vec<String>> {
+pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
     let command =
         command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
     if outer_control(command) {
@@ -46,6 +46,10 @@ pub fn validate(root: &Path, command: Option<&str>) -> Result<Vec<String>> {
     {
         bail!("Direct shell commands are disabled; use a recipe from just list.");
     }
+    Ok(argv)
+}
+pub fn validate(root: &Path, command: Option<&str>) -> Result<Vec<String>> {
+    let argv = arguments(command)?;
     let catalog: Value =
         serde_json::from_slice(&fs::read(root.join("tooling/command_catalog.json"))?)?;
     if argv.len() > 1 && (argv[1].starts_with('-') || catalog.get(&argv[1]).is_none()) {

@@ -9,17 +9,23 @@ use std::{
 
 // DECISION: D015
 pub fn guard_commit(root: &Path) -> Result<i32> {
+    guard_commit_with(root, "master", "feature/")
+}
+pub fn guard_commit_with(root: &Path, base: &str, prefix: &str) -> Result<i32> {
     let branch = git(root, &["branch", "--show-current"])?;
     let merge = root
         .join(git(root, &["rev-parse", "--git-path", "MERGE_HEAD"])?)
         .exists();
-    if branch.starts_with("feature/") || (branch == "master" && merge) {
+    if branch.starts_with(prefix) || (branch == base && merge) {
         return Ok(0);
     }
-    eprintln!("direct commits on master are prohibited; use just feature-start");
+    eprintln!("direct commits on {base} are prohibited; create a {prefix} branch");
     Ok(1)
 }
 pub fn guard_reference(root: &Path, phase: &str) -> Result<i32> {
+    guard_reference_with(root, phase, "master", "feature/")
+}
+pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) -> Result<i32> {
     if phase != "prepared" {
         return Ok(0);
     }
@@ -31,7 +37,8 @@ pub fn guard_reference(root: &Path, phase: &str) -> Result<i32> {
             return Ok(1);
         }
         let [old, new, reference] = [fields[0], fields[1], fields[2]];
-        if new.chars().all(|ch| ch == '0') && reference.starts_with("refs/heads/feature/") {
+        if new.chars().all(|ch| ch == '0') && reference.starts_with(&format!("refs/heads/{prefix}"))
+        {
             let tip = if old.chars().all(|ch| ch == '0') {
                 match git(
                     root,
@@ -44,7 +51,7 @@ pub fn guard_reference(root: &Path, phase: &str) -> Result<i32> {
                 old.to_owned()
             };
             if Command::new("git")
-                .args(["merge-base", "--is-ancestor", &tip, "master"])
+                .args(["merge-base", "--is-ancestor", &tip, base])
                 .current_dir(root)
                 .status()?
                 .success()

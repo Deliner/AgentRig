@@ -2,24 +2,24 @@
 
 ## Focus
 
-Authorized worker task: remove duplicate Python hooks/size lint and consolidate hook implementation and build ownership in Rust. P001 remains unchanged.
+Implement the standalone portable scaffold plan in .tmp/scaffold-implementation-plan.md. One configurable Rust runtime serves independent Python and Rust projects. Adoption by this worker repository is not required. P001 remains unchanged.
 
 ## Workspace
 
-Observed branch feature/remove-legacy-hooks based on master 375f595. This VAC removes legacy code, moves Git guards into native hooks, migrates tests and records explicit D019 historical application-link replacements. No unrelated changes were observed; reconcile with Git on resume.
+Observed branch feature/portable-scaffold at 2ec5dfb, based on master 3278ea5. The first runtime change is committed. The current VAC completes Git/reminder verification, strengthens exact oracle binding and config validation, and supplies latency measurements. The local input plan remains in .tmp and is excluded through .git/info/exclude; it is not part of product history.
 
 ## Progress
 
-Codex session/edit hooks and complexity reminders already used Rust. Removed their Python references and retired checkpoint adapter, the Python size checker, and duplicate Git guard commands/functions in branch_workflow.py. Every hook implementation is now under tooling/worker/src/hooks with one crate/launcher; thin registration/Git adapters remain. Python Ledger/Just/feature orchestration retains independent responsibilities. Tests invoke the native binary and assert behavior without Python hook algorithms.
+All eight implementation areas are present: typed project configuration; a shared command catalog and process executor; worktree/index gates; language-aware memory checks and read-only resume; configured hooks and Git operations; pinned-binary initialization and installation diagnostics; eleven bundled skills and five lint rules; standalone documentation and two independent example projects. Consumer integration tests now copy the shipped example sources and invoke installed Just recipes and real Git hooks. Oracle binding includes class/module scope and rejects ambiguous declarations. Rebase preserves merge history, conflicts remain recoverable, and failed gates preserve branch tips and work.
 
 ## Verification
 
-50 focused hook/command/VAC tests passed, including token thresholds, retry/full refresh, transcript offsets, compaction and storage failures. Nine Ledger/branch tests passed, including the explicit native-link migration and rejection of other substitutions. Full staged gate and merge remain pending; check Git and command logs for later progress.
+38 focused scaffold tests passed, covering both language deliveries, unsupported language repair, staged history, exact/missing oracles, command isolation/signals, initialization and doctor failures, Git divergence/conflict/dirty work, configured reminder thresholds, retry and compaction. Installed skills passed quick_validate. The first implementation commit passed the full staged gate with 172 tests. Current VAC final staged gate and integration are pending; consult Git and command logs for subsequent results. The repeatable benchmark in tooling/worker/examples/measure.py produced examples/LATENCY.md: repeated edit hooks about 1.3 ms and small-source lint about 1.8 ms on this Linux machine, with first-process results and measurement limits documented.
 
 ## Blockers
 
-None. D019 explicitly updates historical application links while preserving decision identities, statements and detail history. Source-file deletion does not remove branch/VAC or reminder coverage. Previous implementation content remains in Git history.
+None. Product scope remains the portable scaffold; no daemon, scheduler, cloud state, dynamic plugin system or mandatory self-adoption was added. Final verification and integration must finish before declaring the active goal complete.
 
 ## Next action
 
-Commit the coherent VAC through the normal staged gate and correct any failures without bypassing hooks. Then run just feature-merge from the clean branch, retaining its reference. If Git shows feature/remove-legacy-hooks integrated, this task is complete; follow the next authorized instruction.
+Commit this verified VAC through the full staged gate, correct any failures, then run just feature-merge from the clean retained branch. After integration, verify Git status, merge parents, retained feature reference and final gate evidence against the standalone plan. If those observations confirm integration and all plan requirements remain satisfied, the scaffold task is complete; follow only a new authorized objective.
