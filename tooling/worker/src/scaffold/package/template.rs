@@ -167,6 +167,7 @@ pub(super) fn justfile() -> String {
         ("feature-start", "feature-start", true),
         ("feature-merge", "feature-merge", false),
         ("upgrade", "upgrade", true),
+        ("setup", "setup", false),
         ("lint", "lint", true),
         ("lint-config-check", "lint-config-check", true),
         ("review", "review", true),

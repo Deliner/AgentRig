@@ -22,7 +22,31 @@ capability keys fail the schema check. `review config-check`, `review mcp` and
 `review run REQUEST_JSON` use the project's configured review. Explicit review
 config paths remain available for standalone calls. `--root` selects the consumer
 for configured calls; resource paths inside review configs remain config-relative.
-Resource installation through `setup` is still pending P002 delivery.
+`discipline-worker setup --root CONSUMER` reads the existing declaration and
+prepares the environment. To obtain a starting declaration and assets, use
+`init --root CONSUMER --review true`, edit the generated settings, then run setup.
+Setup can also start from only worker.toml and any custom referenced resources.
+It installs missing stock assets, validates a temporary preview, registers Git
+hooks and the `worker_review` MCP server, creates runtime/report directories and
+runs doctor. A new consumer receives a Git repository on the configured base.
+Authentication is separate: provide Codex authentication through CODEX_HOME;
+REVIEW_CODEX_BIN can select the installed native CLI. These environment variables
+are forwarded to MCP; setup never copies credentials into the project.
+
+Repeated setup preserves configuration, memory, comments and unrelated Codex
+settings. Unchanged stock assets can be refreshed within the pinned release.
+Locally modified skills/adapters, conflicting hook registration or conflicting
+MCP settings stop setup before file installation and identify the preserved
+conflict. Reconcile that named file/setting and retry. Disabling review requires
+disabling or removing an existing worker_review MCP entry; setup reports the
+conflict instead of silently replacing it. Missing dependencies are reported by
+doctor after installation; fix them and repeat setup. Release changes use upgrade.
+Setup uses the installation manifest and the same atomic writer as upgrade.
+
+The generated MCP entry sets the documented
+[Codex stdio settings and tool timeout](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
+Its timeout exceeds the review deadline by 60 seconds; the launcher resolves the
+consumer Git root, so the command does not contain the worker repository path.
 
 New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
@@ -32,6 +56,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 
 | Command | Result |
 | --- | --- |
+| `setup` | Install or reconcile the existing declaration, register adapters/MCP and diagnose dependencies; preserve settings and report conflicts. |
 | `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `doctor` | Diagnose the installed runtime, configured executables, sandbox and hooks. |

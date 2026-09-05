@@ -4,6 +4,8 @@ mod doctor;
 mod lint;
 pub(super) mod manifest;
 mod review;
+mod setup;
+pub use setup::run as setup;
 mod template;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};
@@ -18,7 +20,7 @@ type Files = BTreeMap<String, Vec<u8>>;
 pub fn init(root: &Path, args: &[String]) -> Result<i32> {
     let options = template::options(root, args)?;
     let config = template::config(&options);
-    let files = bundle(&options, &config)?;
+    let files = bundle(&config)?;
     check_collisions(root, &files)?;
     // Check existing Git hook ownership before creating any files.
     let git = root.join(".git").exists();
@@ -42,8 +44,8 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
     );
     Ok(0)
 }
-fn bundle(options: &template::Options<'_>, config: &Config) -> Result<Files> {
-    let skill_root = options["skills"];
+fn bundle(config: &Config) -> Result<Files> {
+    let skill_root = &config.paths.skills;
     let mut files = BTreeMap::<String, Vec<u8>>::new();
     files.insert(
         config::FILE.into(),
@@ -54,19 +56,11 @@ fn bundle(options: &template::Options<'_>, config: &Config) -> Result<Files> {
     }
     for (name, source) in assets::memory() {
         files.insert(
-            format!("{}/{name}.md", options["memory"]),
+            format!("{}/{name}.md", config.paths.memory),
             source.into_bytes(),
         );
     }
-    files.insert(
-        ".worker/lint.toml".into(),
-        lint::template(skill_root, options["source"])?.into_bytes(),
-    );
-    files.insert(
-        ".worker/reminder.json".into(),
-        include_bytes!("../../../assets/skills/complexity-discipline/context-reminder.json")
-            .to_vec(),
-    );
+    add_policy(&mut files, config)?;
     add_runtime(&mut files)?;
     review::bundle(&mut files, config);
     files.insert(
@@ -75,6 +69,22 @@ fn bundle(options: &template::Options<'_>, config: &Config) -> Result<Files> {
     );
     files.insert(manifest::PATH.into(), manifest::installed(&files, config)?);
     Ok(files)
+}
+fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
+    if config.capabilities.lint {
+        files.insert(
+            config.paths.lint.clone(),
+            lint::template(&config.paths.skills, &config.paths.sources)?.into_bytes(),
+        );
+    }
+    if let Some(path) = &config.hooks.reminder {
+        files.insert(
+            path.clone(),
+            include_bytes!("../../../assets/skills/complexity-discipline/context-reminder.json")
+                .to_vec(),
+        );
+    }
+    Ok(())
 }
 fn add_runtime(files: &mut Files) -> Result<()> {
     files.insert(".worker/.gitignore".into(), b"runtime/\n".to_vec());

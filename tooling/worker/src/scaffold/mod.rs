@@ -24,6 +24,7 @@ pub fn owns(command: &str) -> bool {
             | "feature-start"
             | "feature-merge"
             | "init"
+            | "setup"
             | "doctor"
             | "upgrade"
     )
@@ -31,6 +32,7 @@ pub fn owns(command: &str) -> bool {
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
+        "setup" => return package::setup(root, args),
         "upgrade" => return upgrade::run(root, args),
         "check" => {
             let (staged, only) = gate::arguments(args)?;
@@ -185,7 +187,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "lint" | "lint-config-check" | "review" => {}
+        "lint" | "lint-config-check" | "review" | "setup" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

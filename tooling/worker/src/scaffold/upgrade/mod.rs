@@ -6,7 +6,7 @@ mod plan;
 pub(crate) mod recovery;
 pub(super) mod release;
 mod review;
-mod storage;
+pub(crate) mod storage;
 
 use anyhow::{Result, bail};
 use std::path::Path;

@@ -24,6 +24,7 @@ pub fn run(context: &Context) -> Result<i32> {
     let mut failed = !installed_binary(context);
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
+    failed |= !review_dependencies(context);
     failed |= !git_registration(context);
     failed |= !codex_registration(context)?;
     if failed {
@@ -81,7 +82,8 @@ fn sandbox_availability(context: &Context) -> bool {
         .config
         .commands
         .values()
-        .any(|command| command.read_only);
+        .any(|command| command.read_only)
+        || context.config.capabilities.review.is_some();
     if read_only {
         let probe = Command::new("bwrap")
             .args(["--ro-bind", "/", "/", "--unshare-all", "--", "true"])
@@ -147,4 +149,25 @@ fn codex_registration(context: &Context) -> Result<bool> {
         }
     );
     Ok(codex)
+}
+
+fn review_dependencies(context: &Context) -> bool {
+    let enabled = context.config.capabilities.review.is_some();
+    if enabled {
+        let native = review_runner::execution::sandbox::native_codex();
+        let available = native.as_ref().is_ok_and(|path| {
+            available(&path.to_string_lossy(), &context.root)
+                && path.with_file_name("codex-code-mode-host").is_file()
+        });
+        println!(
+            "review Codex and code-mode host: {}",
+            if available {
+                "available"
+            } else {
+                "MISSING; install Codex or set REVIEW_CODEX_BIN"
+            }
+        );
+        return available;
+    }
+    true
 }

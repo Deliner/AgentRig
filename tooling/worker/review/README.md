@@ -31,8 +31,8 @@ cargo build --release --locked --manifest-path tooling/worker/review/Cargo.toml
 
 Run `discipline-worker init --root CONSUMER --review true` to install review
 resources and the review skill with the worker. Edit the installed configuration,
-contracts and prompts for the consumer before requesting review. Declarative
-reconfiguration through setup is still being added by P002.
+contracts and prompts for the consumer before requesting review. Run `discipline-worker setup --root CONSUMER` to register MCP and check dependencies.
+Repeated setup preserves consumer settings and reports conflicting adapters.
 
 Example request file:
 
@@ -144,5 +144,5 @@ needed for that tested client. Calls are handled sequentially per stdio session,
 with parallelism inside each review.
 
 The worker installs [review-project](../assets/skills/review-project/SKILL.md)
-when review is enabled at initialization. Configure its MCP connection. This adapter selects the tool
+when review is enabled at initialization. Run worker setup to configure its MCP connection. This adapter selects the tool
 and Git boundary and returns the report to the caller without additional critics.

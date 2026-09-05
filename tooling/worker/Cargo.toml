@@ -14,6 +14,7 @@ review-runner = { path = "review" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 toml = "1"
+toml_edit = "0.25"
 globset = "0.4"
 sha2 = "0.10"
 fs2 = "0.4"
