@@ -1,5 +1,6 @@
 import hashlib
 import json
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -127,3 +128,35 @@ def test_kept_adapter_is_explicitly_approved(
     assert invoke(worker, tmp_path, "doctor").returncode == 0
     adapter.write_text(original + "# Unreviewed subsequent change.\n")
     assert invoke(worker, tmp_path, "doctor").returncode != 0
+
+
+def test_rust_consumer_upgrade(worker: Path, predecessor: Path, tmp_path: Path) -> None:
+    example = Path(__file__).parents[4] / "tooling/worker/examples/rust"
+    shutil.copytree(example, tmp_path, dirs_exist_ok=True)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    installed = invoke(
+        predecessor,
+        tmp_path,
+        "init",
+        "--language",
+        "rust",
+        "--source",
+        "crates/engine",
+        "--memory",
+        "knowledge",
+        "--skills",
+        "policies",
+    )
+    assert installed.returncode == 0, installed.stderr
+    config = (tmp_path / "worker.toml").read_bytes()
+    lint = (tmp_path / ".worker/lint.toml").read_bytes()
+    result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
+    assert result.returncode == 0, result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    assert "test result: ok" in applied.stdout
+    assert (tmp_path / ".worker/lint.toml").read_bytes() == lint
+    assert (tmp_path / "worker.toml").read_bytes() == config.replace(b'"0.1.0"', b'"0.2.0"', 1)
+    assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
+    assert (tmp_path / "worker.toml").read_bytes() == config

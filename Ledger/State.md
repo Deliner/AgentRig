@@ -8,9 +8,9 @@ Deliver the authorized upgrade MVP: ownership receipts, reviewable plans, explic
 
 Branch: feature/scaffold-upgrades
 
-Revision: 3b79ee2
+Revision: 1feb8ab
 
-Receipt and planner VACs are committed; the planner passed its full staged gate with 190 tests. The current VAC completes application and recovery for 0.1.0 to 0.2.0.
+Receipt, planner and application/recovery VACs are committed. The application commit passed the full staged gate with 206 tests. Final verification adds real Rust consumer migration and rollback alongside existing Python coverage.
 
 ## Progress
 
@@ -18,7 +18,7 @@ Apply verifies reviewed paths/bytes/modes and payloads, resolves only explicit k
 
 ## Verification
 
-Twenty-two focused upgrade tests pass against actual pinned 0.1.0 builds, with and without receipts. They cover custom configuration paths, local skill/adapter conflicts, stale plans, preserved memory, apply/rollback, failed checks followed by successful resume, later edit protection, repeated apply after rollback, process interruption and mixed-installation recovery through Just. Strict lint reports no errors. Full staged verification for this VAC and final integration remain pending.
+Twenty-two focused upgrade tests passed against actual pinned 0.1.0 builds, with and without receipts, and the complete staged gate passed 206 tests. Two additional Rust consumer tests now pass with real Cargo test execution and exact preservation of project settings/lint configuration. They cover custom configuration paths, local skill/adapter conflicts, stale plans, preserved memory, apply/rollback, failed checks followed by successful resume, later edit protection, repeated apply after rollback, process interruption and mixed-installation recovery through Just. Strict lint reports no errors. The final Rust verification VAC and integration gates remain pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None. Retain the supplied new executable throughout consumer recovery, as docume
 
 ## Next action
 
-Commit this cohesive application/recovery VAC through the full staged gate, correct any observed failures, audit the attachment against the actual implementation and test coverage, then integrate with feature-merge. Mark the goal complete only after verified clean integration.
+Commit the final Rust consumer verification through the staged gate, then run feature-merge and inspect clean integration. The attachment audit is covered by receipt/package tests; reviewable diff/conflict/settings tests; apply/rollback/local adapter tests; interrupted and mixed-installation recovery tests; and real Python/Rust project verification. No functional requirement remains unimplemented. Mark the goal complete only after verified integration.
