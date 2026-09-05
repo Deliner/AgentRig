@@ -65,7 +65,10 @@ def wait_for_checks(path: Path, process: subprocess.Popen[str]) -> None:
         present = path.is_file()
         if present:
             journal = json.loads(path.read_text())
-            running_tests = journal["phase"] == "validating" and "doctor" in journal["checks"]
+            running_tests = (
+                journal["phase"] == "validating"
+                and path.parents[2].joinpath("test-started").is_file()
+            )
             if running_tests:
                 return
         time.sleep(0.01)
@@ -77,7 +80,12 @@ def test_interrupted_verification_resumes(worker: Path, predecessor: Path, tmp_p
     source = tmp_path / "src"
     source.mkdir()
     test = source / "test_slow.py"
-    test.write_text("import time\ndef test_slow():\n    time.sleep(30)\n")
+    test.write_text(
+        "import time\nfrom pathlib import Path\n"
+        "def test_slow():\n"
+        "    Path('.worker/runtime/test-started').write_text('ready')\n"
+        "    time.sleep(30)\n"
+    )
     journal = path.parent.parent / "operation/journal.json"
     with (tmp_path / "upgrade.log").open("w") as log:
         process = subprocess.Popen(
