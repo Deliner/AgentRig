@@ -2,28 +2,28 @@
 
 ## Focus
 
-The user requires hard enforcement of named-if-condition, function-lines and parameter-count, and repair of all existing violations. D021 records blocking defaults at the existing limits: named conditions, at most 40 nonblank function lines and 4 counted inputs. P001 remains paused for the authorized maintenance priority.
+Implement the four agent-native improvements requested in the attachment: outcome-driven VACs, actionable diagnostics, factual resume and improvement of guidance after concrete failures. D022 records the chosen evidence scope. P001 remains paused; migrations and broader dogfooding were not in the attachment.
 
 ## Workspace
 
-Branch: feature/strict-language-lint
+Branch: feature/agent-native-feedback
 
-Revision: 823b3dc
+Revision: bc63bd0
 
-This is the pre-change baseline, not a claim that the working tree is unchanged. Reconcile the recorded branch and baseline with current Git before acting. The coherent VAC combines strict policy with the refactoring necessary to pass it.
+The main feedback and recovery VAC is committed at this revision. A focused follow-up fixes the observed Linux executable-replacement retry failure before integration. Compare current Git before resuming.
 
 ## Progress
 
-Rust runtime, Python tests and benchmark have been refactored into cohesive operations with named branch reasons. The linter's scope and counting semantics are preserved. Repository configuration and new consumer templates use error severity and hard numeric limits. I017 exercises rejecting each violation and accepting exact boundaries in both languages. Current documentation identifies D021 as superseding D017's advisory rollout.
+Shared diagnostics and selected gate retries are implemented. The latest gate attempt survives a fresh process and staged export, with content/HEAD freshness and unfinished status. Resume adds State revision comparison and merge/rebase facts. Report identifies consecutive check failures without asserting that a skill was read. Canonical execution and repair skills explain intent, evidence and feedback; the incorrect feature-start separator was corrected.
 
 ## Verification
 
-163 native behavioral tests passed after enabling strict defaults. Clippy, mypy and memory/oracle validation passed. The three language rules report zero findings; remaining advisory diagnostics concern the existing skill file and directory sizes. The refactored benchmark ran successfully on both installed examples. The final staged and integration gates are executed by the normal commit/merge workflow; inspect their actual results before declaring delivery.
+The first full staged gate passed all 181 tests and all configured checks. A subsequent regression test demonstrated an invalid retry path ending in (deleted) after replacing the running executable. The targeted fix reuses the installed successor path, and the regression now passes. Verify the follow-up staged/integration gates before declaring delivery. All three edited skill validators passed.
 
 ## Blockers
 
-None observed. Existing consumer configurations are not silently rewritten; newly initialized consumers receive the new defaults.
+None observed. Evidence describes repository inputs and observed HEAD, not external environment or dependencies. Automatic version migration is outside the requested scope.
 
 ## Next action
 
-Inspect and commit this coherent VAC through the full staged gate, correcting failures. Once committed on its clean feature branch, run just feature-merge and verify clean master plus the retained feature reference. If Git already confirms that integration, the strict-language task is delivered; follow new authorized instructions rather than restarting it or P001.
+Run the focused tests and strict checks, correct failures, then inspect and commit this VAC through the normal staged gate. Run just feature-merge on the clean feature branch, retain it and verify integration. If Git already proves those steps complete, audit the four attachment requirements against code and actual check results before declaring completion.

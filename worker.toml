@@ -245,3 +245,13 @@ target = "tooling/tests/native/test_config_check.py::test_config_rejects_unsuppo
 check = "test"
 runner = "pytest"
 target = "tooling/tests/native/scaffold/test_strict.py::test_strict_defaults_block_delivery"
+
+[oracles.I018]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_feedback.py::test_evidence_tracks_content_and_partial_checks"
+
+[oracles.I019]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_real_conflict"

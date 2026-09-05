@@ -1,4 +1,5 @@
 // DECISION: D020
+mod diagnostics;
 mod hooks;
 mod lint;
 mod scaffold;
@@ -63,7 +64,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "discipline-worker (Linux)\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
+        "discipline-worker (Linux)\ninit | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base and --prefix."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -120,7 +121,7 @@ fn main() {
     let code = match run() {
         Ok(code) => code,
         Err(error) => {
-            eprintln!("worker: {error:#}");
+            eprintln!("{}", diagnostics::failure(&error));
             2
         }
     };

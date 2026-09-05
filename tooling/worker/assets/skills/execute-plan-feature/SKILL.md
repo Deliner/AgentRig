@@ -5,7 +5,7 @@ description: Deliver or resume an authorized product feature through verified at
 
 # Execute feature delivery
 
-Read worker.toml for paths and Git base/prefix, then the configured State and Plan, the active feature detail if present, applicable decisions and invariants, and Git state. Reconcile State's recorded task, current VAC, verification, blockers, and next action against the actual branch, diff, and recent commits; a crash can leave it stale. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
+Run `just resume` to observe Git operations, State revision and the latest check evidence; reconcile those facts before choosing the next step. An unfinished check is not proof that a process is still running. Read worker.toml for paths and Git base/prefix, then the configured State and Plan, the active feature detail if present, applicable decisions and invariants, and Git state. Reconcile State's recorded task, current VAC, verification, blockers, and next action against the actual branch, diff, and recent commits; a crash can leave it stale. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
 
 At most one feature is active. If none is active, use an already authorized delivery instruction to select a ready pending feature or resume a paused one; otherwise report the current state and stop. Row order expresses intended priority, not independent authorization. Do not invent more work merely to keep the Plan active.
 
@@ -13,11 +13,11 @@ Keep product implementation in the configured source locations. Change worker po
 
 ## Start and implement
 
-From a clean the configured base branch, use `just feature-start -- <name>`. For existing work, resume its retained branch instead of creating a replacement. Record useful branch/resume context in the feature's Delivery section; Git contains the completed VACs.
+From a clean configured base branch, use `just feature-start <name>`. For existing work, resume its retained branch instead of creating a replacement. Record useful branch/resume context in the feature's Delivery section; Git contains the completed VACs.
 
-Before each verified atomic change (VAC), identify its intended result and sufficient falsifiable verification. A VAC is one cohesive, independently checkable and revertible change, potentially spanning several files, tool calls, and corrections. It need not deliver a whole feature. Choose the next step from current evidence without prescribing all future implementation steps.
+Before each verified atomic change (VAC), state in the current context: "After this change, X becomes possible; verify it through Y." Choose an observable result and a falsifiable check. A VAC is one cohesive, independently checkable and revertible change, potentially spanning several files, tool calls, and corrections. It need not deliver a whole feature. Choose the next step from current evidence without prescribing all future implementation steps.
 
-Edit, run focused checks, and correct freely within the VAC. Add or update tests when needed to verify changed behavior; a no-op or a prose edit does not require invented tests. Failed checks permit immediate correction. Inspect and stage only the coherent change, then commit with the result and verification described in the message. The pre-commit hook runs the complete staged-tree gate. Do not routinely run the same full gate manually before committing; use `just check` or `just check --staged` for diagnosis or an explicit verification need.
+Edit, run focused checks, and correct freely within the VAC. Add or update tests when needed to verify changed behavior; a no-op or a prose edit does not require invented tests. Failed checks permit immediate correction. Inspect and stage only the coherent change, then describe the intended result, observed verification and any remaining limits in the commit message. A passing check is evidence only for the behavior it exercises. The pre-commit hook runs the complete staged-tree gate. Do not routinely run the same full gate manually before committing; use `just check --only CHECK_ID` for a focused retry, adding `--staged` when checking the index. This never replaces the complete commit or integration gate.
 
 Finish or deliberately discard only the current uncommitted VAC before beginning the next. Preserve unrelated work. Completed VACs are commits; there is no separate VAC registry, per-edit lock, or requirement to provoke a failed commit before fixing code.
 
@@ -40,14 +40,14 @@ If later work is required for current acceptance, the current feature remains in
 
 1. Inspect the current diff. Finish and verify the current VAC if it remains useful, or discard only its own uncommitted changes. Do not reset the branch's verified commits, delete its branch, or discard unrelated work.
 2. In a separate plan-only VAC, set the current feature to paused, record the concrete blocker, retained branch and condition for resumption in Delivery, and add the necessary prerequisite before it. Activate the prerequisite if its own dependencies are complete and delivery is authorized; otherwise leave zero active features. Commit only the relevant Plan index and detail changes and note that commit's hash.
-3. With a clean working tree, return to the configured base branch using `just run write -- git switch <base>`, create the prerequisite branch with `just feature-start -- <name>`, and carry over the plan-only commit with `just run write -- git cherry-pick <plan-commit>`. Inspect the carried diff; it must contain no unfinished product code. Resolve any Plan conflict against current the configured base branch without dropping newer entries or completion states.
+3. With a clean working tree, return to the configured base branch using `just run write -- git switch <base>`, create the prerequisite branch with `just feature-start <name>`, and carry over the plan-only commit with `just run write -- git cherry-pick <plan-commit>`. Inspect the carried diff; it must contain no unfinished product code. Resolve any Plan conflict against current configured base branch without dropping newer entries or completion states.
 4. Deliver the prerequisite there. If the blocker instead requires external input and no prerequisite can proceed, stop with the retained branch and resume condition recorded; do not create speculative features.
 
 The prerequisite branch carries the updated Plan to the configured base branch through its normal integration. Never merge the paused feature merely to publish a plan change. Existing unrelated work that prevents a clean switch must be preserved separately or left in its current checkout.
 
 ## Resume
 
-After the prerequisite is accepted and integrated, switch to the paused feature's retained branch from a clean working tree. Reconcile it with current the configured base branch using `just run write -- git rebase --rebase-merges <base>`. Resolve conflicts using the latest delivered Plan as the baseline: preserve newly completed prerequisites and later instructions rather than restoring stale active states.
+After the prerequisite is accepted and integrated, switch to the paused feature's retained branch from a clean working tree. Reconcile it with current configured base branch using `just run write -- git rebase --rebase-merges <base>`. Resolve conflicts using the latest delivered Plan as the baseline: preserve newly completed prerequisites and later instructions rather than restoring stale active states.
 
 Reassess retained VACs against the new prerequisite and current acceptance. Dependencies must be complete and no other feature active before setting this feature active. Update its Delivery context and verify affected behavior before committing the resumption VAC. Reuse valid work and revise obsolete work; do not assume old verification proves the rebased result.
 
@@ -55,6 +55,6 @@ Reassess retained VACs against the new prerequisite and current acceptance. Depe
 
 Verify the feature's observable acceptance, then record the actual checks and results in Delivery and mark it complete. Unmet acceptance remains required work. Leaving zero active features is valid; activate another existing feature only under an authorized delivery instruction.
 
-Commit the completion state and run `just feature-merge`. It rebases divergent work onto current the configured base branch, verifies the integrated candidate, and merges without flattening feature commits. Keep the feature branch. After conflicts or rebase, reconcile Plan state and re-verify the affected result.
+Commit the completion state and run `just feature-merge`. It rebases divergent work onto current configured base branch, verifies the integrated candidate, and merges without flattening feature commits. Keep the feature branch. After conflicts or rebase, reconcile Plan state and re-verify the affected result.
 
 Plan changes, VACs, and product completion have different boundaries: adding future work does not complete it, a passing VAC does not prove full feature acceptance, and a complete feature is delivered to the configured base branch only after integration succeeds.
