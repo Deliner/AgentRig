@@ -26,7 +26,7 @@ impl fmt::Display for Guidance<'_> {
     }
 }
 pub fn rerun(root: &Path, args: &[String]) -> String {
-    let binary = std::env::current_exe().unwrap_or_else(|_| "discipline-worker".into());
+    let binary = executable();
     let mut argv = vec![binary.to_string_lossy().into_owned()];
     argv.extend(args.first().cloned());
     argv.extend(["--root".into(), root.to_string_lossy().into_owned()]);
@@ -41,7 +41,7 @@ pub fn failure(error: &anyhow::Error) -> String {
         .ok()
         .and_then(|source| toml::from_str::<toml::Value>(&source).ok());
     let skill = repair_skill(config.as_ref(), command);
-    let binary = std::env::current_exe().unwrap_or_else(|_| "discipline-worker".into());
+    let binary = executable();
     let rerun = shell_words::join(
         std::iter::once(binary.to_string_lossy().into_owned()).chain(args.iter().cloned()),
     );
@@ -97,4 +97,20 @@ fn repair_skill<'a>(config: Option<&'a toml::Value>, command: &str) -> &'a str {
         .or_else(|| config.and_then(|config| config.get("config_skill")))
         .and_then(toml::Value::as_str)
         .unwrap_or("config_skill in worker.toml (repair configuration syntax first)")
+}
+
+fn executable() -> std::path::PathBuf {
+    let observed = std::env::current_exe().unwrap_or_else(|_| "discipline-worker".into());
+    let available = observed.is_file();
+    if available {
+        return observed;
+    }
+    // Linux marks a replaced running executable as deleted; rerun its installed successor.
+    observed
+        .file_name()
+        .and_then(|name| name.to_str())
+        .and_then(|name| name.strip_suffix(" (deleted)"))
+        .map(|name| observed.with_file_name(name))
+        .filter(|path| path.is_file())
+        .unwrap_or(observed)
 }

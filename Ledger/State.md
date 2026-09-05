@@ -8,9 +8,9 @@ Implement the four agent-native improvements requested in the attachment: outcom
 
 Branch: feature/agent-native-feedback
 
-Revision: c9054ec
+Revision: bc63bd0
 
-This records the pre-change baseline. Compare current Git before resuming; the feature implements one coherent feedback and recovery VAC.
+The main feedback and recovery VAC is committed at this revision. A focused follow-up fixes the observed Linux executable-replacement retry failure before integration. Compare current Git before resuming.
 
 ## Progress
 
@@ -18,7 +18,7 @@ Shared diagnostics and selected gate retries are implemented. The latest gate at
 
 ## Verification
 
-180 native tests passed. After the final retry and index-freshness refinements, all 24 affected gate, feedback and independent-consumer tests passed. Strict lint reports no errors; Clippy, mypy, memory/oracle validation and all three edited skill validators passed. The full staged and integration gates run during the normal commit/merge workflow; inspect their actual results before declaring delivery.
+The first full staged gate passed all 181 tests and all configured checks. A subsequent regression test demonstrated an invalid retry path ending in (deleted) after replacing the running executable. The targeted fix reuses the installed successor path, and the regression now passes. Verify the follow-up staged/integration gates before declaring delivery. All three edited skill validators passed.
 
 ## Blockers
 

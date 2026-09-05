@@ -1,4 +1,5 @@
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -133,3 +134,19 @@ def test_standalone_failure_has_executable_guidance(
         shlex.split(command_line), capture_output=True, text=True, check=False
     )
     assert repeated.returncode == result.returncode, repeated.stderr
+
+
+def test_retry_survives_running_binary_replacement(worker: Path, tmp_path: Path) -> None:
+    config = (CONFIG + GATE).replace(
+        "exit 23", "cp worker worker.next; mv worker.next worker; exit 23"
+    )
+    project(tmp_path, config)
+    executable = tmp_path / "worker"
+    shutil.copy2(worker, executable)
+    result = invoke(executable, tmp_path, "run", "fail")
+    assert result.returncode == 23, result.stderr
+    command = result.stderr.split("RERUN: ", 1)[1].splitlines()[0]
+    argv = shlex.split(command)
+    assert Path(argv[0]).is_file(), command
+    repeated = subprocess.run(argv, capture_output=True, text=True, check=False)
+    assert repeated.returncode == 23, repeated.stderr
