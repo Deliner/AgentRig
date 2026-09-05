@@ -1,0 +1,1 @@
+Check assigned correctness requirements, changed control flow and tests. Look for demonstrable regressions and missing cases that violate the contract. Cite repository-relative path:line evidence. Keep stylistic or out-of-contract suggestions in observations.

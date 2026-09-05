@@ -18,3 +18,24 @@ tests additionally execute real bubblewrap with two simulated CLI processes,
 assert read-only mounts and hidden host configuration, and exercise timeouts,
 format exhaustion, failure reports and repeat-review findings. These tests do
 not substitute for the remaining real MCP-client and Codex configuration smoke.
+
+## MCP and production isolation
+
+The official Python MCP SDK 1.29.1 initialized the stdio service, listed the
+configured tool and called it with a real gpt-5.6-luna/high critic. A 69-second
+call returned PASS. An expanded probe hit the configured 120-second execution
+timeout and returned a BLOCKED report with cleanup complete; the client stayed
+connected. With the execution deadline raised to 300 seconds and the client
+read timeout to 360 seconds, the expanded probe returned PASS in 96 seconds.
+No background polling API was necessary for this client.
+
+The authentication source deliberately included invalid user configuration,
+a poison skill and invalid host hooks. The critic observed that none were
+inherited: host home, .git and sibling reviewers were absent; the private CLI
+configuration lacked the injected marker, and the poison skill and host hook
+files were absent. Codex creates a fresh config.toml itself, so testing that
+this filename never exists would be incorrect. Deterministic bubblewrap tests
+perform actual overwrite attempts and verify the read-only project, inputs
+and validator mounts; the model smoke's noclobber probes are not used as the
+proof of mount permissions. Exact response and bounded CLI events were retained,
+and copied authentication/runtime were removed.

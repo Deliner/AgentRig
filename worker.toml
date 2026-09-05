@@ -290,3 +290,8 @@ kind = "command"
 command = "review-rustfmt"
 include = ["Project/**"]
 skill = ".agents/skills/repair/SKILL.md"
+
+[commands.review-runner]
+argv = ["cargo", "+1.98.1", "run", "--quiet", "--manifest-path", "Project/review-mcp/Cargo.toml", "--locked", "--"]
+accepts_args = true
+read_only = false

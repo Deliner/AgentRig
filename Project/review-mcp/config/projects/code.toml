@@ -1,0 +1,8 @@
+schema_version = 1
+
+[repository]
+visible_paths = ["src/**", "tests/**", "docs/**", "ledger/**"]
+contract_paths = ["docs/requirements.md"]
+
+[review]
+contract = "../contracts/code.json"

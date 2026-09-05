@@ -135,3 +135,63 @@ fn scope_rejection_is_persisted_before_any_model_runs() {
     );
     assert_eq!(report["request"]["candidate"], "HEAD");
 }
+
+#[test]
+fn mcp_lists_configured_tools_and_validates_arguments() {
+    use review_runner::mcp::Server;
+    use serde_json::json;
+    let fixture = Fixture::new("pass");
+    let mut server = Server::new(&fixture.0.path().join("config.toml")).unwrap();
+    let init = server.message(json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}})).unwrap();
+    assert_eq!(
+        init["result"]["capabilities"]["tools"]["listChanged"],
+        false
+    );
+    let list = server
+        .message(json!({"jsonrpc":"2.0","id":2,"method":"tools/list"}))
+        .unwrap();
+    assert_eq!(list["result"]["tools"][0]["name"], "review_code");
+    assert_eq!(
+        list["result"]["tools"][0]["inputSchema"]["additionalProperties"],
+        false
+    );
+    let rejected = server.message(json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"review_code","arguments":{"root":".","base":"HEAD","candidate":"HEAD","tool":"override"}}})).unwrap();
+    assert_eq!(rejected["error"]["code"], -32602);
+    assert!(
+        server
+            .message(json!({"jsonrpc":"2.0","method":"notifications/initialized"}))
+            .is_none()
+    );
+}
+
+#[test]
+fn failed_report_storage_retains_emergency_evidence() {
+    use std::{fs, process::Command};
+    let fixture = Fixture::new("pass");
+    fixture.run(None);
+    let root = fixture.0.path();
+    fs::remove_dir_all(root.join("reports")).unwrap();
+    fs::write(root.join("reports"), "storage unavailable").unwrap();
+    let output = Command::new(env!("CARGO_BIN_EXE_review-runner"))
+        .arg("run")
+        .arg(root.join("config.toml"))
+        .arg(root.join("request.json"))
+        .env("REVIEW_CODEX_BIN", root.join("codex"))
+        .env("CODEX_HOME", root.join("auth"))
+        .output()
+        .unwrap();
+    assert_eq!(output.status.code(), Some(2));
+    assert!(String::from_utf8_lossy(&output.stderr).contains("evidence retained"));
+    let runtime = fs::read_dir(root.join("runtime"))
+        .unwrap()
+        .next()
+        .unwrap()
+        .unwrap()
+        .path();
+    let id = runtime.file_name().unwrap().to_str().unwrap();
+    let report: serde_json::Value =
+        serde_json::from_slice(&fs::read(runtime.join(format!("{id}.json"))).unwrap()).unwrap();
+    assert_eq!(report["verdict"], "BLOCKED");
+    assert!(report["roles"][0]["raw_response"].is_string());
+    assert!(!runtime.join("reviewers/first/codex/auth.json").exists());
+}

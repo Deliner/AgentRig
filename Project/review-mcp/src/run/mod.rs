@@ -60,6 +60,7 @@ pub fn run(path: &Path, request: Request) -> Result<Report> {
 fn finish(directory: tempfile::TempDir, report: &mut Report, root: &Path) -> Result<()> {
     if let Err(error) = report.save(root) {
         report.technical_error = Some(format!("report persistence failed: {error:#}"));
+        report.verdict = "BLOCKED".into();
         let _ = report.save(directory.path());
         let retained = directory.keep();
         return Err(error.context(format!(

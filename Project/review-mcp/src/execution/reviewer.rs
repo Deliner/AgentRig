@@ -35,6 +35,8 @@ pub struct RoleResult {
     pub technical_error: Option<String>,
     #[serde(default)]
     pub cli_stderr: Option<String>,
+    #[serde(default)]
+    pub cli_events: Option<String>,
 }
 pub fn review(task: Task<'_>) -> RoleResult {
     let mut result = RoleResult {
@@ -46,6 +48,7 @@ pub fn review(task: Task<'_>) -> RoleResult {
         raw_response: None,
         technical_error: None,
         cli_stderr: None,
+        cli_events: None,
     };
     if let Err(error) = execute(&task, &mut result) {
         result.technical_error = Some(format!("{error:#}"));
@@ -57,6 +60,7 @@ pub fn review(task: Task<'_>) -> RoleResult {
         result.raw_response = fs::read_to_string(path).ok();
     }
     result.cli_stderr = diagnostics(&task.layout.role.join("cli.stderr"));
+    result.cli_events = diagnostics(&task.layout.role.join("cli.jsonl"));
     let _ = fs::remove_file(task.layout.role.join("codex/auth.json"));
     result
 }
