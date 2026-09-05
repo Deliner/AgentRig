@@ -2,7 +2,7 @@
 
 The portable entry point is `worker.toml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
-A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. Updates and automatic migrations are outside this version.
+A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrade planning below for the supported transition and current implementation limits.
 
 New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
@@ -60,3 +60,20 @@ The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, i
 `report` shows consecutive failures of a check and its presented skill and retry command. Counts reset on success or when that check is absent from the previous attempt; they describe check attempts, not identical errors or proof of reading guidance. If an applied skill fails to help with the same concrete error, use the repair skill to correct the canonical instruction or diagnostic and verify the actual failed scenario. VAC intent and observed verification belong in context and commit descriptions; there is no manager, scheduler or extra checkpoint.
 
 The four editing skills and one route handler provide pre-edit guidance. Complexity reminders retain session/compaction accounting and retry behavior using the configured schedule. The worker repository uses the same runtime; its worker.toml supplies repository-specific paths, commands and oracles. Canonical skills live in assets/skills, are embedded at build time, and are exposed to this repository through .agents/skills.
+
+
+## Upgrade planning
+
+The 0.2.0 executable can prepare the explicit 0.1.0 → 0.2.0 transition:
+`/path/to/new/discipline-worker upgrade plan /path/to/new/discipline-worker --root PROJECT`.
+The release argument is a local executable. Its existing `init` exports stock
+content into a temporary directory using the project's memory and skill paths.
+A 0.1.0 installation without a receipt reconstructs its stock baseline using
+its installed executable; the plan identifies that origin.
+
+The command writes `plan.json`, `diff.txt` and checksummed before/after blobs
+under the configured runtime directory's `upgrade/plan-*` directory. It shows
+local conflicts and the required config-check, doctor and project check steps.
+Settings and memory stay intact; the runtime pin changes while TOML comments
+are preserved. Planning leaves installed files unchanged. Applying the plan,
+resolving conflicts and recovery commands are still under implementation.

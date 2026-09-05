@@ -30,7 +30,7 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("old", "new"),
     [
-        ('runtime = "0.1.0"', 'runtime = "9.0.0"'),
+        ('runtime = "0.2.0"', 'runtime = "9.0.0"'),
         ("version = 1", "version = 7"),
         ('memory = "notes"', 'memory = "../outside"'),
         ("read_only = true", 'read_only = "true"'),

@@ -2,7 +2,7 @@ mod adapters;
 mod assets;
 mod doctor;
 mod lint;
-mod manifest;
+pub(super) mod manifest;
 mod template;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};

@@ -6,6 +6,7 @@ mod git;
 mod memory;
 mod package;
 mod process;
+mod upgrade;
 
 use anyhow::{Result, bail};
 use std::path::Path;
@@ -24,11 +25,13 @@ pub fn owns(command: &str) -> bool {
             | "feature-merge"
             | "init"
             | "doctor"
+            | "upgrade"
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
+        "upgrade" => return upgrade::run(root, args),
         "check" => {
             let (staged, only) = gate::arguments(args)?;
             return gate::selected(root, staged, only);
