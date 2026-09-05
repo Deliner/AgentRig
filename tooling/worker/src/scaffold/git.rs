@@ -47,23 +47,9 @@ pub fn merge(context: &Context) -> Result<i32> {
         settings.prefix
     );
     clean(root)?;
-    if !ancestor(root, &settings.base, &feature)? {
-        let code = super::process::run(
-            root,
-            &[
-                "git".into(),
-                "rebase".into(),
-                "--rebase-merges".into(),
-                settings.base.clone(),
-            ],
-            false,
-        )?;
-        if code != 0 {
-            return Ok(code);
-        }
-    }
-    let code = gate::run(root, false)?;
-    if code != 0 {
+    let code = prepare_integration(context, &feature)?;
+    let failed = code != 0;
+    if failed {
         return Ok(code);
     }
     clean(root)?;
@@ -71,10 +57,14 @@ pub fn merge(context: &Context) -> Result<i32> {
     git(root, &["switch", &settings.base])?;
     let unchanged = git(root, &["rev-parse", &settings.base])? == base
         && ancestor(root, &settings.base, &feature)?;
-    if !unchanged {
+    let base_advanced = !unchanged;
+    if base_advanced {
         git(root, &["switch", &feature])?;
         anyhow::bail!("base advanced during integration; retry from the feature branch");
     }
+    merge_branch(root, &feature)
+}
+fn merge_branch(root: &Path, feature: &str) -> Result<i32> {
     let code = super::process::run(
         root,
         &[
@@ -82,12 +72,36 @@ pub fn merge(context: &Context) -> Result<i32> {
             "merge".into(),
             "--no-ff".into(),
             "--no-edit".into(),
-            feature.clone(),
+            feature.to_owned(),
         ],
         false,
     )?;
-    if code == 0 {
+    let merged = code == 0;
+    if merged {
         println!("merged {feature}; branch retained");
     }
     Ok(code)
+}
+
+fn prepare_integration(context: &Context, feature: &str) -> Result<i32> {
+    let root = &context.root;
+    let base = &context.config.git.base;
+    let divergent = !ancestor(root, base, feature)?;
+    if divergent {
+        let code = super::process::run(
+            root,
+            &[
+                "git".into(),
+                "rebase".into(),
+                "--rebase-merges".into(),
+                base.clone(),
+            ],
+            false,
+        )?;
+        let failed = code != 0;
+        if failed {
+            return Ok(code);
+        }
+    }
+    gate::run(root, false)
 }

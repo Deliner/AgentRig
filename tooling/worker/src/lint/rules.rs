@@ -15,7 +15,8 @@ fn supported_extension(ext: &str) -> bool {
         .any(|(_, extensions)| extensions.contains(&ext))
 }
 pub fn validate_includes(kind: &str, patterns: &[String]) -> Result<()> {
-    if !syntax(kind) {
+    let structural = !syntax(kind);
+    if structural {
         return Ok(());
     }
     for pattern in patterns {

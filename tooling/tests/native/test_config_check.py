@@ -30,7 +30,8 @@ def test_config_rejects_unsupported_language(worker: Path, tmp_path: Path, selec
     configure(tmp_path, "named-if-condition")
     path = tmp_path / "lint.toml"
     config = path.read_text().replace('extensions = [".rs", ".py", ".pyi"]', "")
-    if selector.startswith("include"):
+    include_selector = selector.startswith("include")
+    if include_selector:
         config = config.replace('include = ["src/**"]', selector)
     else:
         config += selector + "\n"

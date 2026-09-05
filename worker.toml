@@ -240,3 +240,8 @@ target = "tooling/tests/native/test_language.py::test_language_conditions"
 check = "test"
 runner = "pytest"
 target = "tooling/tests/native/test_config_check.py::test_config_rejects_unsupported_language"
+
+[oracles.I017]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_strict.py::test_strict_defaults_block_delivery"

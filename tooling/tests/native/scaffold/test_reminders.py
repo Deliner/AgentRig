@@ -1,7 +1,9 @@
 # DECISION: D019
 # DECISION: D006
 import json
+import subprocess
 from pathlib import Path
+from typing import Any
 
 import pytest
 from support import invoke, project
@@ -9,29 +11,9 @@ from support import invoke, project
 
 # INVARIANT: I007
 def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path: Path) -> None:
-    assert (
-        invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
-    )
-    config = tmp_path / "worker.toml"
-    config.write_text(
-        config.read_text()
-        .replace('runtime = ".worker/runtime"', 'runtime = ".scratch/state"')
-        .replace('reminder = ".worker/reminder.json"', 'reminder = ".scratch/reminder.json"')
-    )
+    common = configured_session(worker, tmp_path)
     scratch = tmp_path / ".scratch"
-    scratch.mkdir()
-    (scratch / "reminder.json").write_text(
-        json.dumps(
-            {
-                "attention_interval_tokens": 100,
-                "full_refresh_interval_tokens": 300,
-                "attention_message": "REASSESS_CURRENT_WORK",
-            }
-        )
-    )
     transcript = scratch / "transcript.jsonl"
-    transcript.touch()
-    common = {"cwd": str(tmp_path), "session_id": "portable", "transcript_path": str(transcript)}
     start = {**common, "hook_event_name": "SessionStart"}
     result = invoke(worker, tmp_path, "hook", input=json.dumps(start))
     assert result.returncode == 0
@@ -45,41 +27,10 @@ def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path:
         "tool_name": "Write",
         "tool_input": {"file_path": "notes/State.md"},
     }
-    for count, expected in [
-        (99, None),
-        (100, "REASSESS_CURRENT_WORK"),
-        (100, None),
-        (200, "REASSESS_CURRENT_WORK"),
-        (201, None),
-        (300, "FULL_REFRESH_REQUIRED"),
-        (301, None),
-        (50, None),
-        (149, None),
-        (150, "REASSESS_CURRENT_WORK"),
-    ]:
-        with transcript.open("a") as stream:
-            stream.write(
-                json.dumps(
-                    {
-                        "type": "event_msg",
-                        "payload": {
-                            "type": "token_count",
-                            "info": {"last_token_usage": {"input_tokens": count}},
-                        },
-                    }
-                )
-                + "\n"
-            )
+    for count, expected in SCHEDULE:
+        append_tokens(transcript, count)
         result = invoke(worker, tmp_path, "hook", input=json.dumps(edit))
-        assert result.returncode == 0
-        output = json.loads(result.stdout)["hookSpecificOutput"]
-        if expected is None:
-            assert "permissionDecision" not in output
-        else:
-            assert output["permissionDecision"] == "deny"
-            assert expected in output["permissionDecisionReason"]
-        assert "guides/edit-state/SKILL.md" in result.stdout
-        assert ".agents/" not in result.stdout
+        assert_reminder(result, expected)
     saved = next((scratch / "state/reminders").glob("*.json"))
     assert json.loads(saved.read_text())["scan_offset"] == transcript.stat().st_size
     result = invoke(worker, tmp_path, "hook", input=json.dumps({**start, "source": "compact"}))
@@ -164,3 +115,66 @@ def test_partial_and_truncated_transcripts_recover(worker: Path, tmp_path: Path)
     with transcript.open("a") as stream:
         stream.write("invalid complete record\n" + record + "\n")
     assert "deny" in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
+
+
+SCHEDULE: list[tuple[int, str | None]] = [
+    (99, None),
+    (100, "REASSESS_CURRENT_WORK"),
+    (100, None),
+    (200, "REASSESS_CURRENT_WORK"),
+    (201, None),
+    (300, "FULL_REFRESH_REQUIRED"),
+    (301, None),
+    (50, None),
+    (149, None),
+    (150, "REASSESS_CURRENT_WORK"),
+]
+
+
+def configured_session(worker: Path, tmp_path: Path) -> dict[str, Any]:
+    assert (
+        invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
+    )
+    config = tmp_path / "worker.toml"
+    config.write_text(
+        config.read_text()
+        .replace('runtime = ".worker/runtime"', 'runtime = ".scratch/state"')
+        .replace('reminder = ".worker/reminder.json"', 'reminder = ".scratch/reminder.json"')
+    )
+    scratch = tmp_path / ".scratch"
+    scratch.mkdir()
+    (scratch / "reminder.json").write_text(
+        json.dumps(
+            {
+                "attention_interval_tokens": 100,
+                "full_refresh_interval_tokens": 300,
+                "attention_message": "REASSESS_CURRENT_WORK",
+            }
+        )
+    )
+    transcript = scratch / "transcript.jsonl"
+    transcript.touch()
+    common = {"cwd": str(tmp_path), "session_id": "portable", "transcript_path": str(transcript)}
+    return common
+
+
+def append_tokens(transcript: Path, count: int) -> None:
+    record = {
+        "type": "event_msg",
+        "payload": {"type": "token_count", "info": {"last_token_usage": {"input_tokens": count}}},
+    }
+    with transcript.open("a") as stream:
+        stream.write(json.dumps(record) + "\n")
+
+
+def assert_reminder(result: subprocess.CompletedProcess[str], expected: str | None) -> None:
+    assert result.returncode == 0
+    output = json.loads(result.stdout)["hookSpecificOutput"]
+    no_reminder_expected = expected is None
+    if no_reminder_expected:
+        assert "permissionDecision" not in output
+    else:
+        assert output["permissionDecision"] == "deny"
+        assert expected is not None and expected in output["permissionDecisionReason"]
+    assert "guides/edit-state/SKILL.md" in result.stdout
+    assert ".agents/" not in result.stdout

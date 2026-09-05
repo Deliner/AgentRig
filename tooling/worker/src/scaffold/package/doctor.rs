@@ -8,19 +8,27 @@ fn available(program: &str, cwd: &Path) -> bool {
         path.metadata()
             .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
     };
-    if program.contains('/') {
+    let explicit_path = program.contains('/');
+    if explicit_path {
         return executable(&cwd.join(program));
     }
     env::var_os("PATH")
         .is_some_and(|paths| env::split_paths(&paths).any(|path| executable(&path.join(program))))
 }
 pub fn run(context: &Context) -> Result<i32> {
-    let mut failed = false;
     println!(
         "runtime {}: compatible; platform {}",
         super::super::config::VERSION,
         env::consts::OS
     );
+    let mut failed = !installed_binary(context);
+    failed |= !command_availability(context)?;
+    failed |= !sandbox_availability(context);
+    failed |= !git_registration(context);
+    failed |= !codex_registration(context)?;
+    Ok(i32::from(failed))
+}
+fn installed_binary(context: &Context) -> bool {
     let installed = Command::new(context.root.join(".worker/bin/discipline-worker"))
         .arg("--version")
         .output();
@@ -37,7 +45,10 @@ pub fn run(context: &Context) -> Result<i32> {
             "MISSING OR INCOMPATIBLE"
         }
     );
-    failed |= !matches;
+    matches
+}
+fn command_availability(context: &Context) -> Result<bool> {
+    let mut failed = false;
     for (name, command) in &context.config.commands {
         if let Some(program) = command.argv.first() {
             let found = available(program, &context.path(&command.cwd)?);
@@ -48,6 +59,10 @@ pub fn run(context: &Context) -> Result<i32> {
             failed |= !found;
         }
     }
+    Ok(!failed)
+}
+fn sandbox_availability(context: &Context) -> bool {
+    let mut failed = false;
     let read_only = context
         .config
         .commands
@@ -64,6 +79,9 @@ pub fn run(context: &Context) -> Result<i32> {
         );
         failed |= !works;
     }
+    !failed
+}
+fn git_registration(context: &Context) -> bool {
     let hooks =
         crate::util::git(&context.root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
     let registered = hooks == ".worker/hooks"
@@ -79,7 +97,9 @@ pub fn run(context: &Context) -> Result<i32> {
             "NOT REGISTERED OR CHANGED; verify core.hooksPath, adapter contents and executable permissions"
         }
     );
-    failed |= !registered;
+    registered
+}
+fn codex_registration(context: &Context) -> Result<bool> {
     let settings = fs::read_to_string(context.root.join(".codex/config.toml"))
         .ok()
         .and_then(|text| toml::from_str::<toml::Value>(&text).ok());
@@ -110,6 +130,5 @@ pub fn run(context: &Context) -> Result<i32> {
             "MISSING OR CHANGED; inspect .codex/config.toml and .codex/hooks.json"
         }
     );
-    failed |= !codex;
-    Ok(i32::from(failed))
+    Ok(codex)
 }

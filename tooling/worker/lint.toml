@@ -29,9 +29,8 @@ error = 15
 warning_skill = ".agents/skills/refactor-large-directory/SKILL.md"
 error_skill = ".agents/skills/refactor-large-directory/SKILL.md"
 
-# Repair guidance for each external stage of the same mandatory gate.
-# Language rules start as warnings across the existing harness.
-# Use level = "error" for named conditions; add error = N to numeric rules to block.
+# DECISION: D021
+# All language rules block delivery; the same defaults are installed in consumers.
 
 [[rules]]
 # Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
@@ -40,7 +39,7 @@ kind = "named-if-condition"
 target = "file"
 include = ["**"]
 extensions = [".rs", ".py", ".pyi"]
-level = "warning"
+level = "error"
 warning_skill = ".agents/skills/name-if-condition/SKILL.md"
 error_skill = ".agents/skills/name-if-condition/SKILL.md"
 
@@ -51,7 +50,7 @@ kind = "function-lines"
 target = "file"
 include = ["**"]
 extensions = [".rs", ".py", ".pyi"]
-warning = 40
+error = 40
 warning_skill = ".agents/skills/refactor-long-function/SKILL.md"
 error_skill = ".agents/skills/refactor-long-function/SKILL.md"
 
@@ -62,6 +61,6 @@ kind = "parameter-count"
 target = "file"
 include = ["**"]
 extensions = [".rs", ".py", ".pyi"]
-warning = 4
+error = 4
 warning_skill = ".agents/skills/reduce-parameters/SKILL.md"
 error_skill = ".agents/skills/reduce-parameters/SKILL.md"

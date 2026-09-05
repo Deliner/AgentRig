@@ -1,6 +1,6 @@
 use super::super::{
     commands,
-    config::{Context, Runner},
+    config::{Context, Oracle, Runner},
 };
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
@@ -24,7 +24,8 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
         target_function == function,
         "{id}: oracle target does not match linked function {function}"
     );
-    if matches!(oracle.runner, Runner::Pytest) {
+    let python = matches!(oracle.runner, Runner::Pytest);
+    if python {
         let file = oracle.target.split("::").next().unwrap_or("");
         let cwd = context.path(&context.config.commands[name].cwd)?;
         ensure!(
@@ -32,7 +33,9 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
             "{id}: oracle target does not match linked source"
         );
     }
-    let mut argv = commands::argv(context, name, &[])?;
+    discover(context, id, name, oracle)
+}
+fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
     match oracle.runner {
         Runner::Pytest => {
             argv.extend(["--collect-only".into(), "-q".into(), oracle.target.clone()]);
@@ -43,12 +46,17 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
                 .position(|arg| arg == "--")
                 .unwrap_or(argv.len());
             argv.insert(separator, oracle.target.clone());
-            if !argv.iter().any(|arg| arg == "--") {
+            let missing_separator = !argv.iter().any(|arg| arg == "--");
+            if missing_separator {
                 argv.push("--".into());
             }
             argv.push("--list".into());
         }
     }
+    argv
+}
+fn discover(context: &Context, id: &str, name: &str, oracle: &Oracle) -> Result<()> {
+    let argv = discovery_arguments(commands::argv(context, name, &[])?, oracle);
     let result = commands::execute(context, name, argv, true)?;
     ensure!(
         result.status.success(),

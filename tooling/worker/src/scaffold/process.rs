@@ -42,26 +42,29 @@ pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> 
     if group {
         command.process_group(0);
     }
-    let mut signals = Signals::new([SIGINT, SIGTERM, SIGHUP])?;
+    let signals = Signals::new([SIGINT, SIGTERM, SIGHUP])?;
     let handle = signals.handle();
     let child = command
         .spawn()
         .with_context(|| format!("cannot execute {}", argv[0]))?;
     let pid = child.id() as i32;
-    let forwarding = std::thread::spawn(move || {
-        for signal in signals.forever() {
-            // The PID belongs to the unreaped child; it cannot be reused while waiting.
-            unsafe {
-                libc::kill(if group { -pid } else { pid }, signal);
-            }
-        }
-    });
+    let forwarding = forward_signals(signals, pid, group);
     let result = child.wait_with_output();
     handle.close();
     forwarding
         .join()
         .map_err(|_| anyhow::anyhow!("signal forwarding thread failed"))?;
     Ok(result?)
+}
+fn forward_signals(mut signals: Signals, pid: i32, group: bool) -> std::thread::JoinHandle<()> {
+    std::thread::spawn(move || {
+        for signal in signals.forever() {
+            // The PID belongs to the unreaped child; it cannot be reused while waiting.
+            unsafe {
+                libc::kill(if group { -pid } else { pid }, signal);
+            }
+        }
+    })
 }
 fn sandbox(root: &Path, argv: &[String]) -> Result<Command> {
     ensure!(

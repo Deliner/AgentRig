@@ -44,20 +44,22 @@ def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
 
 
 @pytest.mark.parametrize(
-    ("lines", "level", "code"),
+    "case",
     [(3, None, 0), (4, "warning", 0), (5, "warning", 0), (6, "error", 1)],
 )
 # INVARIANT: I004
 def test_native_lint_thresholds_and_skills(
-    worker: Path, tmp_path: Path, lines: int, level: str | None, code: int
+    worker: Path, tmp_path: Path, case: tuple[int, str | None, int]
 ) -> None:
+    lines, level, code = case
     prepare(tmp_path)
     for extension in ["rs", "py", "ts"]:
         (tmp_path / f"src/example.{extension}").write_text("line\n\n" * lines, encoding="utf-8")
     (tmp_path / "src/ignored.bin").write_bytes(b"\xff" * 100)
     actual_code, diagnostics = lint(worker, tmp_path)
     assert actual_code == code
-    assert len(diagnostics) == (0 if level is None else 3)
+    within_limit = level is None
+    assert len(diagnostics) == (0 if within_limit else 3)
     for item in diagnostics:
         assert item["level"] == level
         assert item["skill"] == SKILL

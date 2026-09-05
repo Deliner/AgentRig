@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import invoke
+from support import file_contents, invoke
 
 
 def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) -> None:
@@ -41,12 +41,14 @@ def test_init_rejects_invalid_layout_before_writing(
     worker: Path, tmp_path: Path, case: str
 ) -> None:
     args = ["--source", "src/["]
-    if case == "file-parent":
+    existing_file_parent = case == "file-parent"
+    generated_file_parent = case == "generated-parent"
+    if existing_file_parent:
         (tmp_path / ".codex").write_text("user data")
         args = []
-    elif case == "generated-parent":
+    elif generated_file_parent:
         args = ["--skills", ".worker/bin/discipline-worker"]
-    before = {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()}
+    before = file_contents(tmp_path)
     result = invoke(worker, tmp_path, "init", *args)
     assert result.returncode == 2
-    assert {path: path.read_bytes() for path in tmp_path.rglob("*") if path.is_file()} == before
+    assert file_contents(tmp_path) == before

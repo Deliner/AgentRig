@@ -21,7 +21,8 @@ pub fn resolve(path: &Path) -> Result<PathBuf> {
     resolve_limited(path, 0)
 }
 fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
-    if depth > 32 {
+    let cycle = depth > 32;
+    if cycle {
         bail!("symlink cycle");
     }
     let mut result = PathBuf::new();
@@ -33,7 +34,8 @@ fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
             Component::CurDir => {}
             other => result.push(other.as_os_str()),
         }
-        if fs::symlink_metadata(&result).is_ok_and(|meta| meta.file_type().is_symlink()) {
+        let symlink = fs::symlink_metadata(&result).is_ok_and(|meta| meta.file_type().is_symlink());
+        if symlink {
             let target = fs::read_link(&result)?;
             result.pop();
             result = resolve_limited(&result.join(target), depth + 1)?;
@@ -43,7 +45,8 @@ fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
 }
 pub fn git(root: &Path, args: &[&str]) -> Result<String> {
     let output = Command::new("git").args(args).current_dir(root).output()?;
-    if !output.status.success() {
+    let failed = !output.status.success();
+    if failed {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
     }
     Ok(String::from_utf8(output.stdout)?.trim().into())

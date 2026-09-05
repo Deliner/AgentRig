@@ -1,65 +1,29 @@
+// DECISION: D021
 use anyhow::Result;
 use serde_json::json;
 
 pub fn template(skills: &str, source: &str) -> Result<String> {
     let mut rules = Vec::new();
-    for (id, kind, target, skill, warning, error) in [
-        (
-            "file-size",
-            "nonblank-lines",
-            "file",
-            "refactor-large-file",
-            300,
-            Some(500),
-        ),
-        (
-            "directory-size",
-            "directory-entries",
-            "directory",
-            "refactor-large-directory",
-            10,
-            Some(15),
-        ),
-        (
-            "function-size",
-            "function-lines",
-            "file",
-            "refactor-long-function",
-            40,
-            None,
-        ),
-        (
-            "parameters",
-            "parameter-count",
-            "file",
-            "reduce-parameters",
-            4,
-            None,
-        ),
-        (
-            "named-if",
-            "named-if-condition",
-            "file",
-            "name-if-condition",
-            0,
-            None,
-        ),
-    ] {
+    for &(id, kind, target, skill, warning, error) in DEFAULT_RULES {
         let skill = format!("{skills}/{skill}/SKILL.md");
         let mut rule = json!({
             "id": id, "kind": kind, "target": target,
             "include": [format!("{source}/**")],
             "warning_skill": skill, "error_skill": skill,
         });
-        if kind == "named-if-condition" {
-            rule["level"] = json!("warning");
+        let named_condition = kind == "named-if-condition";
+        if named_condition {
+            rule["level"] = json!("error");
         } else {
-            rule["warning"] = json!(warning);
+            if let Some(warning) = warning {
+                rule["warning"] = json!(warning);
+            }
             if let Some(error) = error {
                 rule["error"] = json!(error);
             }
         }
-        if ["named-if-condition", "function-lines", "parameter-count"].contains(&kind) {
+        let syntax_rule = crate::lint::rules::syntax(kind);
+        if syntax_rule {
             rule["extensions"] = json!([".rs", ".py", ".pyi"]);
         }
         rules.push(rule);
@@ -72,3 +36,54 @@ pub fn template(skills: &str, source: &str) -> Result<String> {
     });
     Ok(toml::to_string_pretty(&config)?)
 }
+
+type DefaultRule = (
+    &'static str,
+    &'static str,
+    &'static str,
+    &'static str,
+    Option<u64>,
+    Option<u64>,
+);
+const DEFAULT_RULES: &[DefaultRule] = &[
+    (
+        "file-size",
+        "nonblank-lines",
+        "file",
+        "refactor-large-file",
+        Some(300),
+        Some(500),
+    ),
+    (
+        "directory-size",
+        "directory-entries",
+        "directory",
+        "refactor-large-directory",
+        Some(10),
+        Some(15),
+    ),
+    (
+        "function-size",
+        "function-lines",
+        "file",
+        "refactor-long-function",
+        None,
+        Some(40),
+    ),
+    (
+        "parameters",
+        "parameter-count",
+        "file",
+        "reduce-parameters",
+        None,
+        Some(4),
+    ),
+    (
+        "named-if",
+        "named-if-condition",
+        "file",
+        "name-if-condition",
+        None,
+        None,
+    ),
+];

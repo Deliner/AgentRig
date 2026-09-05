@@ -11,7 +11,7 @@ from support import invoke
 
 
 @pytest.mark.parametrize(
-    ("tool", "payload", "expected"),
+    "edit",
     [
         ("Edit", {"file_path": "Ledger/Plan.md"}, ["edit-plan"]),
         ("Write", {"path": "Ledger/State.md"}, ["edit-state"]),
@@ -57,8 +57,9 @@ from support import invoke
 )
 # INVARIANT: I012
 def test_ledger_edit_guidance(
-    worker: Path, tmp_path: Path, tool: str, payload: Any, expected: list[str]
+    worker: Path, tmp_path: Path, edit: tuple[str, Any, list[str]]
 ) -> None:
+    tool, payload, expected = edit
     assert (
         invoke(worker, tmp_path, "init", "--memory", "Ledger", "--skills", "guides").returncode == 0
     )
@@ -75,7 +76,8 @@ def test_ledger_edit_guidance(
     }
     output = invoke(worker, tmp_path, "hook", input=json.dumps(event))
     result = json.loads(output.stdout) if output.stdout else None
-    if not expected:
+    no_guidance_expected = not expected
+    if no_guidance_expected:
         assert result is None
         return
     assert result is not None

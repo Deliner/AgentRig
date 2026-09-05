@@ -66,3 +66,12 @@ def git(root: Path, *args: str, success: bool = True) -> subprocess.CompletedPro
     if success:
         assert result.returncode == 0, result.stdout + result.stderr
     return result
+
+
+def file_contents(root: Path) -> dict[Path, bytes]:
+    contents = {}
+    for path in root.rglob("*"):
+        file = path.is_file()
+        if file:
+            contents[path] = path.read_bytes()
+    return contents

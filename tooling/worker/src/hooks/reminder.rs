@@ -53,7 +53,8 @@ pub fn start_at(event: &Value, directory: &Path) -> Result<()> {
 }
 pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Option<String>> {
     let transcript = text(event, "transcript_path");
-    if transcript.is_empty() {
+    let missing_transcript = transcript.is_empty();
+    if missing_transcript {
         return Ok(None);
     }
     let attention = config["attention_interval_tokens"]
@@ -68,62 +69,92 @@ pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Opti
         .unwrap_or(ATTENTION);
     let (_lock, path) = state_path(event, directory)?;
     let mut state = object(&path);
-    if text(&state, "transcript_path") != transcript {
+    let changed_transcript = text(&state, "transcript_path") != transcript;
+    if changed_transcript {
         state = json!({"transcript_path": transcript, "scan_offset": 0,
             "baseline_tokens": 0, "allow_next_edit": false, "next_attention_tokens": attention});
     }
-    let mut baseline = state["baseline_tokens"].as_u64().unwrap_or(0);
-    let mut next = state["next_attention_tokens"].as_u64().unwrap_or(attention);
-    if next == 0
-        || !next.is_multiple_of(attention)
-        || next > full.div_ceil(attention).saturating_mul(attention)
-    {
-        next = attention;
-    }
-    let mut allow = state["allow_next_edit"].as_bool().unwrap_or(false);
-    let mut latest = state["latest_tokens"].as_u64();
+    let mut progress = Progress::load(&state, attention, full);
     let (tokens, offset) = transcript::tokens(
         Path::new(transcript),
         state["scan_offset"].as_u64().unwrap_or(0),
     )?;
     for current in tokens {
-        if latest.is_some_and(|prior| current < prior) {
-            baseline = current;
-            allow = false;
-            next = attention;
-        }
-        latest = Some(current);
+        progress.observe(current, attention);
     }
-    let mut reminder = None;
-    if let Some(current) = latest {
-        if baseline > current {
-            baseline = current;
-            next = attention;
-            allow = false;
-        }
-        if allow {
-            allow = false;
-        } else {
-            let delta = current - baseline;
-            if delta >= full {
-                baseline = current;
-                next = attention;
-                allow = true;
-                reminder = Some(FULL.to_owned());
-            } else if delta >= next {
-                next = (delta / attention + 1).saturating_mul(attention);
-                allow = true;
-                reminder = Some(message.into());
-            }
-        }
-        state["latest_tokens"] = json!(current);
-    } else {
-        state.as_object_mut().unwrap().remove("latest_tokens");
-    }
+    let reminder = progress.reminder(attention, full, message);
+    progress.store(&mut state);
     state["scan_offset"] = json!(offset);
-    state["baseline_tokens"] = json!(baseline);
-    state["next_attention_tokens"] = json!(next);
-    state["allow_next_edit"] = json!(allow);
     save(&path, &state)?;
     Ok(reminder)
+}
+struct Progress {
+    baseline: u64,
+    next: u64,
+    allow: bool,
+    latest: Option<u64>,
+}
+impl Progress {
+    fn load(state: &Value, attention: u64, full: u64) -> Self {
+        let mut next = state["next_attention_tokens"].as_u64().unwrap_or(attention);
+        let invalid_schedule = next == 0
+            || !next.is_multiple_of(attention)
+            || next > full.div_ceil(attention).saturating_mul(attention);
+        if invalid_schedule {
+            next = attention;
+        }
+        Self {
+            baseline: state["baseline_tokens"].as_u64().unwrap_or(0),
+            next,
+            allow: state["allow_next_edit"].as_bool().unwrap_or(false),
+            latest: state["latest_tokens"].as_u64(),
+        }
+    }
+    fn observe(&mut self, current: u64, attention: u64) {
+        let context_reset = self.latest.is_some_and(|prior| current < prior);
+        if context_reset {
+            self.reset(current, attention);
+        }
+        self.latest = Some(current);
+    }
+    fn reset(&mut self, current: u64, attention: u64) {
+        self.baseline = current;
+        self.next = attention;
+        self.allow = false;
+    }
+    fn reminder(&mut self, attention: u64, full: u64, message: &str) -> Option<String> {
+        let current = self.latest?;
+        let invalid_baseline = self.baseline > current;
+        if invalid_baseline {
+            self.reset(current, attention);
+        }
+        if self.allow {
+            self.allow = false;
+            return None;
+        }
+        let delta = current - self.baseline;
+        let refresh_due = delta >= full;
+        if refresh_due {
+            self.reset(current, attention);
+            self.allow = true;
+            return Some(FULL.to_owned());
+        }
+        let attention_due = delta >= self.next;
+        if attention_due {
+            self.next = (delta / attention + 1).saturating_mul(attention);
+            self.allow = true;
+            return Some(message.into());
+        }
+        None
+    }
+    fn store(&self, state: &mut Value) {
+        if let Some(current) = self.latest {
+            state["latest_tokens"] = json!(current);
+        } else {
+            state.as_object_mut().unwrap().remove("latest_tokens");
+        }
+        state["baseline_tokens"] = json!(self.baseline);
+        state["next_attention_tokens"] = json!(self.next);
+        state["allow_next_edit"] = json!(self.allow);
+    }
 }

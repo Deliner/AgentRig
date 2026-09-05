@@ -4,7 +4,7 @@
 // DECISION: D004
 use super::{
     commands,
-    config::{self, CheckKind, Context},
+    config::{self, Check, CheckKind, Context},
 };
 use crate::lint::{self, config::globs, inventory};
 use anyhow::{Result, ensure};
@@ -21,24 +21,12 @@ pub fn run(root: &Path, staged: bool) -> Result<i32> {
     for check in &context.config.checks {
         let include = globs(&check.include)?;
         let applies = files.iter().any(|path| include.is_match(path));
-        if !applies {
+        let skipped = !applies;
+        if skipped {
             println!("SKIP [{}]: no selected files", check.id);
             continue;
         }
-        let result = match check.kind {
-            CheckKind::Command => commands::run(
-                &context,
-                check.command.as_deref().expect("validated command"),
-                &[],
-            ),
-            CheckKind::Lint => lint::run(
-                tree,
-                &context.path(&context.config.paths.lint)?,
-                false,
-                false,
-            ),
-            CheckKind::Memory => super::memory::check_with_history(&context, root),
-        };
+        let result = run_check(&context, root, check);
         let code = match result {
             Ok(code) => code,
             Err(error) => {
@@ -49,21 +37,41 @@ pub fn run(root: &Path, staged: bool) -> Result<i32> {
                 return Ok(2);
             }
         };
-        if code == 0 {
+        let passed = code == 0;
+        if passed {
             println!("PASS [{}]", check.id);
             continue;
         }
-        let level = if check.warning { "WARNING" } else { "ERROR" };
-        eprintln!(
-            "{level} [{}]: exited {code}. ACTION: Apply {}",
-            check.id, check.skill
-        );
-        let interrupted = code >= 128;
-        if interrupted || !check.warning {
+        let stop = failed_check(check, code);
+        if stop {
             return Ok(code);
         }
     }
     Ok(0)
+}
+fn run_check(context: &Context, root: &Path, check: &Check) -> Result<i32> {
+    match check.kind {
+        CheckKind::Command => commands::run(
+            context,
+            check.command.as_deref().expect("validated command"),
+            &[],
+        ),
+        CheckKind::Lint => lint::run(
+            &context.root,
+            &context.path(&context.config.paths.lint)?,
+            false,
+            false,
+        ),
+        CheckKind::Memory => super::memory::check_with_history(context, root),
+    }
+}
+fn failed_check(check: &Check, code: i32) -> bool {
+    let level = if check.warning { "WARNING" } else { "ERROR" };
+    eprintln!(
+        "{level} [{}]: exited {code}. ACTION: Apply {}",
+        check.id, check.skill
+    );
+    code >= 128 || !check.warning
 }
 fn export(root: &Path) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
