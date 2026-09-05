@@ -1,6 +1,6 @@
 # Rust worker runtime and structural linter
 
-The worker binary owns session/pre-edit hooks, command validation, complexity reminder state and transcript scanning, Git commit/reference guards, and structural lint. The existing Just command runner, feature integration orchestration, and Ledger checker remain Python; Python hook and size implementations are retained as historical parity references, not registered production handlers.
+The worker binary owns session/pre-edit hooks, command validation, complexity reminder state and transcript scanning, Git commit/reference guards, and structural lint. The existing Just command runner, feature integration orchestration, and Ledger checker remain Python; obsolete Python hook and size implementations are deleted; their prior contents remain in Git history. All hook logic, including Git guards, lives in src/hooks and shares this crate and launcher. Codex JSON registration and the two Git shell adapters only route events into it.
 
 ## Build and execution
 
@@ -94,10 +94,10 @@ The pre-commit hook checks the actual exported Git index, including its Rust sou
 
 gate_skills maps each external stage (repo-policy, command-policy, Ruff, mypy, pytest, typos, Vulture, rustfmt, Clippy) to an existing repair skill. Native gate execution preserves the original tool output and appends the configured skill on failure. Structural findings have their own per-rule skills. No automatic fixer weakens policy or modifies files.
 
-Native integration tests under tooling/tests/native execute the built binary. They compare hook responses and state with the Python reference and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
+Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
 Configuration parsing uses the [TOML serde library](https://docs.rs/toml/latest/toml/); selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
 
 ## Observed hook latency
 
-On this workspace, 50 interleaved warm PreToolUse invocations for Ledger/State.md measured median wall times of 28.019 ms for the Python reference, 8.071 ms for the registered Rust launcher including source validation, and 0.786 ms for the binary alone. The registered path was about 3.5 times faster for this event. This is a local measurement of a simple edit hook, not a claim about every event, first compilation, or the whole quality gate.
+Before deleting the Python reference under D019, 50 interleaved warm PreToolUse invocations for Ledger/State.md measured median wall times of 28.019 ms for the Python reference, 8.071 ms for the registered Rust launcher including source validation, and 0.786 ms for the binary alone. The registered path was about 3.5 times faster for this event. This is a local measurement of a simple edit hook, not a claim about every event, first compilation, or the whole quality gate.

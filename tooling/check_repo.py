@@ -17,6 +17,16 @@ from plan_policy import plan_errors
 # DECISION: D012
 # DECISION: D013
 # DECISION: D016
+# DECISION: D019
+
+# D019 permits only these explicit native application replacements.
+APPLICATION_SUCCESSORS = {
+    "../.codex/hooks/agent_context.py": "../tooling/worker/src/hooks/mod.rs",
+    "../.codex/hooks/complexity_discipline_reminder.py": "../tooling/worker/src/hooks/reminder.rs",
+    "../.codex/hooks/just_command_guard.py": "../tooling/worker/src/hooks/guard.rs",
+    "../.codex/hooks/commit_checkpoint.py": "../tooling/worker/src/hooks/mod.rs",
+    "../tooling/size_policy.py": "../tooling/worker/src/lint/mod.rs",
+}
 
 LEDGER = Path("Ledger")
 DECISIONS = LEDGER / "Decisions.md"
@@ -118,9 +128,13 @@ def committed_decision_findings(
         decision_id, detail, statement, applications = old.groups()
         new = current.get(decision_id)
         stable = new is not None and new.group(2) == detail and new.group(3) == statement
-        delivered = new is not None and set(LINK.findall(applications)) <= set(
-            LINK.findall(new.group(4))
-        )
+        required_applications = {
+            APPLICATION_SUCCESSORS.get(target, target)
+            if not (root / LEDGER / target).exists()
+            else target
+            for target in LINK.findall(applications)
+        }
+        delivered = new is not None and required_applications <= set(LINK.findall(new.group(4)))
         old_detail = history_file(history, LEDGER / detail)
         current_detail = root / LEDGER / detail
         detail_stable = (

@@ -12,7 +12,6 @@ from pathlib import Path
 MASTER = "master"
 FEATURE_PREFIX = "feature/"
 FEATURE_NAME = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
-ZERO = "0" * 40
 
 
 def git(root: Path, *args: str, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -34,38 +33,10 @@ def require_clean(root: Path) -> None:
         raise ValueError("working tree must be clean")
 
 
-def merge_in_progress(root: Path) -> bool:
-    path = git(root, "rev-parse", "--git-path", "MERGE_HEAD").stdout.strip()
-    return (root / path).exists() if not Path(path).is_absolute() else Path(path).exists()
-
-
-def commit_allowed(root: Path) -> bool:
-    branch = current_branch(root)
-    return branch.startswith(FEATURE_PREFIX) or (branch == MASTER and merge_in_progress(root))
-
-
 def is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
     return (
         git(root, "merge-base", "--is-ancestor", ancestor, descendant, check=False).returncode == 0
     )
-
-
-def reference_allowed(root: Path, lines: list[str]) -> bool:
-    for line in lines:
-        fields = line.split()
-        if len(fields) != 3:
-            return False
-        old, new, reference = fields
-        if new == ZERO and reference.startswith(f"refs/heads/{FEATURE_PREFIX}"):
-            tip = old
-            if old == ZERO:
-                result = git(root, "rev-parse", "--verify", f"{reference}^{{commit}}", check=False)
-                if result.returncode != 0:
-                    continue
-                tip = result.stdout.strip()
-            if is_ancestor(root, tip, MASTER):
-                return False
-    return True
 
 
 def start_feature(root: Path, name: str) -> int:
@@ -133,19 +104,6 @@ def main() -> int:
     root = repository_root()
     command, arguments = sys.argv[1], sys.argv[2:]
     try:
-        if command == "guard-commit" and not arguments:
-            if commit_allowed(root):
-                return 0
-            print(
-                "direct commits on master are prohibited; use just feature-start", file=sys.stderr
-            )
-            return 1
-        if command == "guard-reference" and len(arguments) == 1:
-            lines = sys.stdin.read().splitlines()
-            if arguments[0] != "prepared" or reference_allowed(root, lines):
-                return 0
-            print("merged feature branches must be retained", file=sys.stderr)
-            return 1
         if command == "start" and len(arguments) == 1:
             return start_feature(root, arguments[0])
         if command == "merge" and not arguments:

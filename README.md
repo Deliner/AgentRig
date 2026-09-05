@@ -13,7 +13,7 @@ All registered pre-tool checks use the [Rust worker runtime](tooling/worker/READ
 - Invariants: [edit-invariants](.agents/skills/edit-invariants/SKILL.md).
 - State: [edit-state](.agents/skills/edit-state/SKILL.md).
 
-These file-specific reminders add context without denying a tool call or claiming the skill was read. Existing complexity refresh denials and the shell command guard retain their behavior. Arbitrary shell write targets cannot be inferred reliably, so just write receives a conditional reminder to apply only matching skills. The Rust dispatcher owns the native guard and complexity implementations; Python versions remain historical parity references.
+These file-specific reminders add context without denying a tool call or claiming the skill was read. Existing complexity refresh denials and the shell command guard retain their behavior. Arbitrary shell write targets cannot be inferred reliably, so just write receives a conditional reminder to apply only matching skills. The Rust dispatcher owns the native guard and complexity implementations; obsolete Python implementations are deleted. All hooks share tooling/worker/src/hooks and one Cargo build; tests exercise the native protocol directly.
 
 Features describe product outcomes and observable acceptance, including substantial MVP capabilities or optimizations. The agent chooses architecture and delivery steps. [Plan](Ledger/Plan.md) documents the Markdown schema: stable IDs, delivery order, pending/active/paused/complete states, and explicit prerequisites. At most one feature is active; zero is valid. Paused features record blocker and resumption context, while completed features record acceptance verification.
 

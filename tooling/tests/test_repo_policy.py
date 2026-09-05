@@ -4,7 +4,6 @@ import subprocess
 from pathlib import Path
 
 from check_repo import check, decision_findings, invariant_findings, plan_findings
-from size_policy import size_findings
 
 # DECISION: D002
 # DECISION: D007
@@ -108,14 +107,6 @@ def test_committed_decisions_are_append_only(tmp_path: Path) -> None:
     )
 
 
-def test_size_thresholds_warn_then_fail(tmp_path: Path) -> None:
-    source = tmp_path / "module.py"
-    source.write_text("value = 1\n" * 301, encoding="utf-8")
-    assert size_findings(tmp_path, [source])[0][0] == "warning"
-    source.write_text("value = 1\n" * 501, encoding="utf-8")
-    assert size_findings(tmp_path, [source])[0][0] == "error"
-
-
 def test_worker_repository_policy_passes() -> None:
     assert [item for item in check(ROOT, ROOT) if item.level == "error"] == []
 
@@ -132,3 +123,43 @@ def test_worker_layout_and_detail_indexes() -> None:
 
 def test_repository_plan_passes() -> None:
     assert plan_findings(ROOT) == []
+
+
+def test_native_application_link_migration(tmp_path: Path) -> None:
+    old = "../.codex/hooks/agent_context.py"
+    replacement = "../tooling/worker/src/hooks/mod.rs"
+    minimal_ledger(tmp_path, old)
+    legacy = tmp_path / ".codex/hooks/agent_context.py"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text("# DECISION: D001\n")
+    native = tmp_path / "tooling/worker/src/hooks/mod.rs"
+    native.parent.mkdir(parents=True)
+    native.write_text("// DECISION: D001\n")
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    subprocess.run(
+        [
+            "git",
+            "-c",
+            "user.name=Test",
+            "-c",
+            "user.email=test@example.invalid",
+            "commit",
+            "-qm",
+            "base",
+        ],
+        cwd=tmp_path,
+        check=True,
+    )
+    index = tmp_path / "Ledger/Decisions.md"
+    index.write_text(index.read_text().replace(old, replacement))
+    assert any(
+        "committed record changed" in item.message for item in decision_findings(tmp_path, tmp_path)
+    )
+    legacy.unlink()
+    assert decision_findings(tmp_path, tmp_path) == []
+    index.write_text(index.read_text().replace(replacement, "../tooling/worker/src/hooks/other.rs"))
+    native.with_name("other.rs").write_text("// DECISION: D001\n")
+    assert any(
+        "committed record changed" in item.message for item in decision_findings(tmp_path, tmp_path)
+    )

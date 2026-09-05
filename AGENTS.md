@@ -13,7 +13,7 @@
 - Keep State's Focus, Workspace, Progress, Verification, Blockers, and Next action sections factual. Record the task, observed branch/revision, current VAC and pending work, actual check results, blocker, and concrete next step. Distinguish attempted work from verified results.
 - Update State at meaningful VAC/task boundaries, blockers, handoffs, and before a known interruption or context reset, as part of the relevant VAC. Reconcile it when switching branches; avoid extra state commits after every tool call.
 - Before editing Plan or its details, apply edit-plan; for Decisions, edit-decisions; for Invariants, edit-invariants; for State, edit-state. All four skills live under .agents/skills. Read only the matching skills.
-- The shared Rust hook in tooling/worker routes file-specific guidance and existing complexity/command checks. Ledger guidance adds context without blocking edits. For opaque shell writes, apply matching skills yourself; the hook cannot determine arbitrary script targets.
+- The shared Rust hook in tooling/worker/src/hooks routes file-specific guidance and existing complexity/command checks. Ledger guidance adds context without blocking edits. For opaque shell writes, apply matching skills yourself; the hook cannot determine arbitrary script targets.
 
 ## Commands
 
@@ -25,6 +25,7 @@
 
 - A decision records context, chosen and rejected alternatives, rationale, and consequences.
 - An invariant states observable behavior and links an exact marked pytest test.
+- Preserve historical decision identity and detail contents. D019 permits only its five deleted Python application links to migrate to the specified native owners; other application links remain append-only.
 - Add the exact marker # DECISION: DNNN to every linked Python or shell implementation.
 - Put # INVARIANT: INNN immediately before the linked test definition.
 - Plan entries describe user-facing functionality and capability, not implementation.

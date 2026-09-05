@@ -3,12 +3,11 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 from typing import Any
 
 import pytest
-from agent_context import LEDGER_SKILLS, dispatch
+from native_support import dispatch, worker_binary
 
 # DECISION: D013
 # DECISION: D014
@@ -78,7 +77,7 @@ def test_ledger_edit_guidance(tool: str, payload: Any, expected: list[str]) -> N
     output = result["hookSpecificOutput"]
     assert "permissionDecision" not in output
     message = output["additionalContext"]
-    for skill in LEDGER_SKILLS.values():
+    for skill in ("edit-plan", "edit-decisions", "edit-invariants", "edit-state"):
         path = ROOT / ".agents/skills" / skill / "SKILL.md"
         assert path.is_file()
         assert message.count(str(path)) == int(skill in expected)
@@ -167,7 +166,7 @@ def test_shell_guard_and_conditional_write_guidance(tool: str) -> None:
     assert result is not None
     output = result["hookSpecificOutput"]
     assert "permissionDecision" not in output
-    for skill in LEDGER_SKILLS.values():
+    for skill in ("edit-plan", "edit-decisions", "edit-invariants", "edit-state"):
         assert skill in output["additionalContext"]
 
 
@@ -179,7 +178,7 @@ def test_single_registered_entrypoint_and_json_protocol(tmp_path: Path) -> None:
         assert "tooling/worker/run" in hooks[event][0]["hooks"][0]["command"]
     env = {**os.environ, "COMPLEXITY_DISCIPLINE_STATE_DIR": str(tmp_path / "state")}
     result = subprocess.run(
-        [sys.executable, str(ROOT / ".codex/hooks/agent_context.py")],
+        [str(worker_binary()), "hook", "--root", str(ROOT)],
         input=json.dumps(
             {
                 "hook_event_name": "PreToolUse",
