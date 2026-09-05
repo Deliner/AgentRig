@@ -2,28 +2,28 @@
 
 ## Focus
 
-Complete P001: configurable isolated review MCP and shared review-runner, following complexity-discipline and Plan/001.md.
+P001 acceptance is implemented and verified. Finish its normal commit gate and integration, then close the user's review-MCP goal.
 
 ## Workspace
 
 Branch: feature/review-mcp
 
-Revision: ca330e9
+Revision: 9db3287
 
-Execution VAC is committed after its full gate passed. The current VAC adds configured MCP tools, strict arguments, example configs/contracts/prompts, Just access and the project skill adapter.
+The MCP/interface VAC is committed after its complete gate passed. The current final VAC adds late BLOCKED handling, direct concurrency/cleanup-failure verification and the acceptance record.
 
 ## Progress
 
-The stdio MCP exposes configured tools and calls the common runner. Linux bubblewrap isolates each Codex role. Reports retain responses, model/configuration evidence and diagnostics; errors cannot yield PASS. All requirements are rechecked on repeat review, original base is retained, and new unchanged findings require omission explanations. The skill adapter is short and passes skill-creator validation.
+Configured MCP tools, CLI and Just share the isolated Rust runner. Configuration/resources/contracts are validated, exact Git scope is exported, protected Stop validation and attempts bound each role, and deterministic persistent reports survive normal cleanup and reported failure paths. The short project skill adapter is validated. P001 is marked complete on observable acceptance; integration remains pending.
 
 ## Verification
 
-Nineteen focused Rust tests passed before adding bounded CLI event retention. Tests cover configuration, schema, Git scope, isolated parallel execution, timeout/exhaustion, repeat review, MCP discovery/argument rejection and emergency report retention. Just validates the supplied configuration. Official Python MCP SDK 1.29.1 completed real gpt-5.6-luna/high calls in 69 and 96 seconds, and received a BLOCKED timeout report after 120 seconds without losing the connection. The final smoke confirmed fresh CLI configuration, no inherited poison skills/hooks, hidden host home/.git/siblings and successful runtime cleanup. Details are in Project/review-mcp/COMPATIBILITY.md. Full gate for the current VAC and final integration remain pending.
+Twenty-one focused Rust tests pass, including overlapping critic execution, late FAIL/BLOCKED explanation checks, report persistence failure and a real permission-induced cleanup failure. Strict lint has no errors; configured directory/skill warnings remain warnings. Previous execution and MCP VACs passed their full staged gates with all 208 worker tests. Real official MCP-client/Codex runs passed in 69 and 96 seconds; a 120-second timeout produced BLOCKED and completed cleanup. Final production smoke confirmed fresh CLI configuration and no inherited host skills/hooks. See Plan/001.md and Project/review-mcp/COMPATIBILITY.md for acceptance evidence.
 
 ## Blockers
 
-None. Configure client timeouts above the runner deadline; the tested client needs no background job interface.
+None. No background job interface is needed for the tested client with its configured timeout.
 
 ## Next action
 
-Commit the MCP/interface VAC through its full staged gate. Audit every acceptance item, correct any remaining gaps, record verified completion and integrate with feature-merge. Do not mark P001 or the goal complete before integration succeeds.
+Commit this final VAC through the staged gate, then run just feature-merge. Inspect master, retained branch, integration result and workspace cleanliness. Mark the active review-MCP goal complete only after successful integration; no post-merge State-only commit is required.

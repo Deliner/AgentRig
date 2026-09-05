@@ -64,7 +64,7 @@ pub fn validate(report: &mut Report, previous: Option<&Report>) -> Result<()> {
             let unchanged = old.manifest.get(path).map(|entry| &entry.sha256)
                 == current.manifest.get(path).map(|entry| &entry.sha256);
             let known = known(previous, check);
-            let late = check.status == "FAIL" && unchanged && !known;
+            let late = matches!(check.status.as_str(), "FAIL" | "BLOCKED") && unchanged && !known;
             let unexplained =
                 late && (!check.late_finding || check.previous_omission.trim().is_empty());
             if unexplained {
@@ -85,7 +85,7 @@ fn known(previous: &Report, check: &crate::response::Check) -> bool {
         .filter_map(|role| role.response.as_ref())
         .flat_map(|response| &response.checks)
         .any(|old| {
-            old.status == "FAIL"
+            matches!(old.status.as_str(), "FAIL" | "BLOCKED")
                 && old.contract_id == check.contract_id
                 && old.evidence == check.evidence
         })

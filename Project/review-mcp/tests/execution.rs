@@ -3,7 +3,7 @@ use support::Fixture;
 
 #[test]
 fn isolated_parallel_reviews_persist_exact_answers_and_cleanup() {
-    let fixture = Fixture::new("pass");
+    let fixture = Fixture::new("parallel");
     let report = fixture.run(None);
     assert_eq!(report["verdict"], "PASS");
     assert_eq!(report["roles"].as_array().unwrap().len(), 2);
@@ -16,6 +16,23 @@ fn isolated_parallel_reviews_persist_exact_answers_and_cleanup() {
                 .contains("Informational")
         );
     }
+    let times: Vec<Vec<f64>> = report["roles"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|role| {
+            role["cli_events"]
+                .as_str()
+                .unwrap()
+                .lines()
+                .map(|line| line.parse().unwrap())
+                .collect()
+        })
+        .collect();
+    assert!(
+        times[0][0] < times[1][1] && times[1][0] < times[0][1],
+        "reviewers must overlap"
+    );
     let id = report["run_id"].as_str().unwrap();
     assert!(fixture.0.path().join(format!("reports/{id}.md")).is_file());
     assert_ne!(fixture.run(None)["run_id"], id);
@@ -194,4 +211,49 @@ fn failed_report_storage_retains_emergency_evidence() {
     assert_eq!(report["verdict"], "BLOCKED");
     assert!(report["roles"][0]["raw_response"].is_string());
     assert!(!runtime.join("reviewers/first/codex/auth.json").exists());
+}
+
+#[test]
+fn late_blocked_checks_require_the_same_omission_explanation() {
+    let fixture = Fixture::new("pass");
+    let first = fixture.run(None);
+    let previous = fixture.0.path().join(format!(
+        "reports/{}.json",
+        first["run_id"].as_str().unwrap()
+    ));
+    fixture.mode("blocked");
+    let rejected = fixture.run(Some(&previous));
+    assert!(
+        rejected["roles"][0]["technical_error"]
+            .as_str()
+            .unwrap()
+            .contains("late finding")
+    );
+    fixture.mode("late-blocked");
+    let accepted = fixture.run(Some(&previous));
+    assert_eq!(accepted["verdict"], "BLOCKED");
+    assert!(accepted["roles"][0]["technical_error"].is_null());
+}
+
+#[test]
+fn cleanup_failure_is_reported_separately_and_preserves_the_report() {
+    use std::{fs, os::unix::fs::PermissionsExt};
+    let fixture = Fixture::new("cleanup");
+    let output = fixture.invoke(None);
+    assert!(output.status.success());
+    let report: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    let root = fixture.0.path();
+    let id = report["run_id"].as_str().unwrap();
+    let runtime = root.join("runtime").join(id);
+    assert!(report["cleanup_error"].is_string());
+    assert!(runtime.exists());
+    let saved: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join(format!("reports/{id}.json"))).unwrap())
+            .unwrap();
+    assert_eq!(saved["cleanup_error"], report["cleanup_error"]);
+    for role in ["first", "second"] {
+        let work = runtime.join("reviewers").join(role).join("work");
+        fs::set_permissions(work, fs::Permissions::from_mode(0o700)).unwrap();
+    }
+    fs::remove_dir_all(runtime).unwrap();
 }

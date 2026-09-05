@@ -33,6 +33,7 @@ def isolation():
 
 
 def main():
+    print(time.monotonic(), flush=True)
     data = sys.stdin.read().split("Expected identity and contract:\n")[1]
     expected = json.loads(data)
     isolation()
@@ -43,9 +44,24 @@ def main():
     if exhausted:
         assert hook()["decision"] == "block"
         assert hook()["continue"] is False
+    parallel = MODE == "parallel"
+    if parallel:
+        time.sleep(0.3)
+    Path("/work/review.json").write_text(json.dumps(answer(expected)))
+    hook()
+    cleanup_failure = MODE == "cleanup"
+    if cleanup_failure:
+        Path("/work").chmod(0)
+    print(time.monotonic(), flush=True)
+
+
+def answer(expected):
     failure = MODE in ["fail", "late"]
     status = "FAIL" if failure else "PASS"
-    late = MODE == "late"
+    blocked = MODE in ["blocked", "late-blocked"]
+    if blocked:
+        status = "BLOCKED"
+    late = MODE in ["late", "late-blocked"]
     answer = {key: expected[key] for key in ["run_id", "candidate", "contract_digest", "role"]}
     answer.update(
         verdict=status,
@@ -57,13 +73,12 @@ def main():
                 evidence="src/value.py:1",
                 finding="Wrong value" if failure else "",
                 minimal_fix="Set value to one" if failure else "",
-                late_finding=MODE == "late",
+                late_finding=late,
                 previous_omission="Earlier review missed this" if late else "",
             )
         ],
     )
-    Path("/work/review.json").write_text(json.dumps(answer))
-    hook()
+    return answer
 
 
 main()

@@ -105,7 +105,7 @@ A repeated call passes the prior persistent JSON report and retains its original
 base. The runner adds the previous-candidate repair diff and previous findings.
 Every assigned requirement is rechecked, including formerly closed checks;
 no closed result is carried forward. Changed contracts require a new review
-boundary. A new FAIL in unchanged scope needs `late_finding: true` and a
+boundary. A new FAIL or BLOCKED in unchanged scope needs `late_finding: true` and a
 nonempty `previous_omission`. Unresolved prior findings remain ordinary failures.
 
 ## Reports and MCP clients

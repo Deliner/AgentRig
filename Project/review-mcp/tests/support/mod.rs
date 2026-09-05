@@ -41,7 +41,7 @@ impl Fixture {
             include_str!("critic.py").replace(r#"MODE = "pass""#, &format!("MODE = {mode:?}"));
         fs::write(self.0.path().join("codex"), script).unwrap();
     }
-    pub fn run(&self, previous: Option<&Path>) -> Value {
+    pub fn invoke(&self, previous: Option<&Path>) -> std::process::Output {
         let root = self.0.path();
         let request = json!({"root":root.join("repo"),"base":git(&root.join("repo"), &["rev-list", "--max-parents=0", "HEAD"]),"candidate":"HEAD","tool":"review_code","previous_report":previous});
         fs::write(
@@ -49,14 +49,18 @@ impl Fixture {
             serde_json::to_vec(&request).unwrap(),
         )
         .unwrap();
-        let output = Command::new(env!("CARGO_BIN_EXE_review-runner"))
+        Command::new(env!("CARGO_BIN_EXE_review-runner"))
             .args(["run"])
             .arg(root.join("config.toml"))
             .arg(root.join("request.json"))
             .env("REVIEW_CODEX_BIN", root.join("codex"))
             .env("CODEX_HOME", root.join("auth"))
             .output()
-            .unwrap();
+            .unwrap()
+    }
+    pub fn run(&self, previous: Option<&Path>) -> Value {
+        let root = self.0.path();
+        let output = self.invoke(previous);
         assert!(
             output.status.success(),
             "{}",
