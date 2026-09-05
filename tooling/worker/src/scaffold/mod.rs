@@ -138,12 +138,16 @@ fn run_command(context: &config::Context, name: &str, extra: &[String]) -> Resul
     Ok(code)
 }
 fn config_check(context: &config::Context) -> Result<i32> {
-    let code = crate::lint::run(
-        &context.root,
-        &context.path(&context.config.paths.lint)?,
-        true,
-        true,
-    )?;
+    let code = if context.config.capabilities.lint {
+        crate::lint::run(
+            &context.root,
+            &context.path(&context.config.paths.lint)?,
+            true,
+            true,
+        )?
+    } else {
+        0
+    };
     let valid = code == 0;
     if valid {
         println!(

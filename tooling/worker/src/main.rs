@@ -22,7 +22,7 @@ fn run() -> Result<i32> {
     if has_command {
         args.remove(0);
     }
-    if let Some(result) = immediate(&command, &args) {
+    if let Some(result) = immediate(&command) {
         return result;
     }
     let root = project_root(&mut args, &command)?;
@@ -33,6 +33,7 @@ fn run() -> Result<i32> {
     }
     match command.as_str() {
         "hook" => hook(&root),
+        "review" => run_review(&root, args),
         "lint" | "lint-config-check" => run_lint(&root, &mut args, command == "lint-config-check"),
         "lint-rules" => {
             println!("{}", lint::rules::catalog());
@@ -43,9 +44,8 @@ fn run() -> Result<i32> {
         ),
     }
 }
-fn immediate(command: &str, args: &[String]) -> Option<Result<i32>> {
+fn immediate(command: &str) -> Option<Result<i32>> {
     Some(match command {
-        "review" => review_runner::cli::run(args).map(|()| 0),
         "review-hook" => review_runner::execution::broker::hook().map(|()| 0),
         "--version" => {
             println!("discipline-worker {}", scaffold::config::VERSION);
@@ -96,11 +96,30 @@ fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<
         Some(path) => root.join(path),
         None if root.join(scaffold::config::FILE).is_file() => {
             let context = scaffold::config::Context::load(root)?;
+            anyhow::ensure!(
+                context.config.capabilities.lint,
+                "capabilities.lint is disabled"
+            );
             context.path(&context.config.paths.lint)?
         }
         None => root.join("lint.toml"),
     };
     lint::cli::execute(root, &config, args, validate_only)
+}
+fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
+    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
+        || matches!(args.as_slice(), [command, _] if command == "run");
+    if configured {
+        let context = scaffold::config::Context::load(root)?;
+        let review = context.config.capabilities.review.as_ref().ok_or_else(|| {
+            anyhow::anyhow!("review is not enabled; configure capabilities.review.config")
+        })?;
+        args.insert(
+            1,
+            context.path(&review.config)?.to_string_lossy().into_owned(),
+        );
+    }
+    review_runner::cli::run(&args).map(|()| 0)
 }
 fn main() {
     let code = match run() {

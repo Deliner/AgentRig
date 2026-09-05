@@ -4,6 +4,26 @@ The portable entry point is `worker.toml` in the selected project root. Initial 
 
 A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
+Project capabilities are selected in `worker.toml`:
+
+```toml
+[capabilities]
+lint = true
+
+[capabilities.review]
+config = ".worker/review/config/review.toml"
+```
+
+Lint defaults to enabled for existing projects and uses `paths.lint`. Disabling
+it requires removing lint checks from the configured gate. Review is enabled by
+its configuration reference, relative to the project root. `config-check` validates
+every enabled capability, including review resources and contracts; unknown
+capability keys fail the schema check. `review config-check`, `review mcp` and
+`review run REQUEST_JSON` use the project's configured review. Explicit review
+config paths remain available for standalone calls. `--root` selects the consumer
+for configured calls; resource paths inside review configs remain config-relative.
+Resource installation through `setup` is still pending P002 delivery.
+
 New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
 ## Commands

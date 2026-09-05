@@ -35,6 +35,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
         version: 1,
+        capabilities: Default::default(),
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
