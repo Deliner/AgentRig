@@ -27,6 +27,7 @@ pub struct Diagnostic {
     line: Option<usize>,
     #[serde(skip_serializing_if = "Option::is_none")]
     symbol: Option<String>,
+    rerun: String,
 }
 fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
@@ -114,6 +115,7 @@ fn syntax_error(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
         message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
         line: Some(line),
         symbol: None,
+        rerun: String::new(),
     }
 }
 fn finding(
@@ -151,24 +153,62 @@ fn finding(
         message,
         line: None,
         symbol: None,
+        rerun: String::new(),
     }))
 }
+struct Output<'a> {
+    json: bool,
+    validate_only: bool,
+    rerun: Option<&'a str>,
+}
 pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
-    let result = config::load(root, path).and_then(|config| {
-        if validate_only {
-            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
-            for rule in &config.rules {
-                selection::select(rule, &inventory)?;
-            }
-            Ok(Vec::new())
-        } else {
-            evaluate(root, &config)
-        }
-    });
-    let (diagnostics, config_error) = match result {
+    run_output(
+        root,
+        path,
+        Output {
+            json,
+            validate_only,
+            rerun: None,
+        },
+    )
+}
+pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
+    run_output(
+        root,
+        path,
+        Output {
+            json: false,
+            validate_only: false,
+            rerun: Some(rerun),
+        },
+    )
+}
+fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
+    let Output {
+        json,
+        validate_only,
+        rerun,
+    } = output;
+    let result = analyze(root, path, validate_only);
+    let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
+    let command = if validate_only {
+        "lint-config-check"
+    } else {
+        "lint"
+    };
+    let args = vec![
+        command.into(),
+        "--config".into(),
+        path.to_string_lossy().into_owned(),
+    ];
+    for item in &mut diagnostics {
+        item.rerun = rerun
+            .map(str::to_owned)
+            .unwrap_or_else(|| crate::diagnostics::rerun(root, &args));
+    }
     let failed = diagnostics.iter().any(|item| item.level == "error");
     if json {
         println!("{}", serde_json::to_string(&diagnostics)?);
@@ -182,6 +222,19 @@ pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<
         }
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
+}
+fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnostic>> {
+    config::load(root, path).and_then(|config| {
+        if validate_only {
+            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+            for rule in &config.rules {
+                selection::select(rule, &inventory)?;
+            }
+            Ok(Vec::new())
+        } else {
+            evaluate(root, &config)
+        }
+    })
 }
 fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
     // Resolve guidance independently of rule validation, including invalid rules.
@@ -205,18 +258,20 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
         message: format!("{error:#}"),
         line: None,
         symbol: None,
+        rerun: String::new(),
     }
 }
 fn print_diagnostic(item: &Diagnostic) {
-    let advisory = item.level == "warning";
-    let action = if advisory { "Consider" } else { "Apply" };
     println!(
-        "{} [{}] {}: {}. ACTION: {action} {}",
-        item.level.to_uppercase(),
-        item.rule,
-        format_location(item),
-        item.message,
-        item.skill
+        "{}",
+        crate::diagnostics::Guidance {
+            level: &item.level,
+            id: &item.rule,
+            location: &format_location(item),
+            message: &item.message,
+            skill: &item.skill,
+            rerun: &item.rerun,
+        }
     );
 }
 

@@ -1,5 +1,6 @@
 mod commands;
 pub mod config;
+mod evidence;
 mod gate;
 mod git;
 mod memory;
@@ -29,11 +30,8 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
         "check" => {
-            let invalid_arguments = args.iter().any(|arg| arg != "--staged");
-            if invalid_arguments {
-                bail!("check [--staged]");
-            }
-            return gate::run(root, args.iter().any(|arg| arg == "--staged"));
+            let (staged, only) = gate::arguments(args)?;
+            return gate::selected(root, staged, only);
         }
         _ => {}
     }
@@ -95,14 +93,41 @@ fn configured_command(context: &config::Context, command: &str, args: &[String])
             let (name, extra) = args
                 .split_first()
                 .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
-            commands::run(context, name, forwarded(extra))
+            run_command(context, name, forwarded(extra))
         }
         "report" => {
             commands::report(context)?;
+            evidence::report(context)?;
             Ok(0)
         }
         _ => bail!("unknown scaffold command {command}"),
     }
+}
+fn run_command(context: &config::Context, name: &str, extra: &[String]) -> Result<i32> {
+    let code = commands::run(context, name, extra)?;
+    let failed = code != 0;
+    let check = context
+        .config
+        .checks
+        .iter()
+        .find(|check| check.command.as_deref() == Some(name));
+    if let Some(check) = check.filter(|_| failed) {
+        let mut args = vec!["run".into(), name.into(), "--".into()];
+        args.extend_from_slice(extra);
+        let rerun = crate::diagnostics::rerun(&context.root, &args);
+        eprintln!(
+            "{}",
+            crate::diagnostics::Guidance {
+                level: "ERROR",
+                id: &check.id,
+                location: &context.config.commands[name].cwd,
+                message: &format!("exited {code}; see original output above"),
+                skill: &check.skill,
+                rerun: &rerun
+            }
+        );
+    }
+    Ok(code)
 }
 fn config_check(context: &config::Context) -> Result<i32> {
     let code = crate::lint::run(
@@ -141,10 +166,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             );
         }
         "check" => {
-            anyhow::ensure!(
-                argv[2..].iter().all(|arg| arg == "--staged" || arg == "--"),
-                "check [--staged]"
-            );
+            gate::arguments(forwarded(&argv[2..]))?;
         }
         "feature-start" => {
             let extra = forwarded(&argv[2..]);

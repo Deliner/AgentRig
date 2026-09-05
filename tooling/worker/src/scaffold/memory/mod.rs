@@ -8,7 +8,9 @@
 pub(super) mod format;
 mod history;
 mod oracles;
+mod resume;
 mod source;
+pub use resume::run as resume;
 
 use super::config::Context;
 use anyhow::{Result, ensure};
@@ -193,39 +195,5 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
         );
         oracles::validate(context, &row.id, &name, &path)?;
     }
-    Ok(())
-}
-pub fn resume(context: &Context) -> Result<()> {
-    let memory = context.path(&context.config.paths.memory)?;
-    let state = fs::read_to_string(memory.join("State.md"))?;
-    let plan = fs::read_to_string(memory.join("Plan.md"))?;
-    let git = |args: &[&str]| crate::util::git(&context.root, args).unwrap_or_default();
-    let branch = git(&["branch", "--show-current"]);
-    let revision = git(&["rev-parse", "HEAD"]);
-    let status = git(&["status", "--short"]);
-    let claims: Vec<_> = state
-        .lines()
-        .filter_map(|line| {
-            line.strip_prefix("Branch: ")
-                .map(|s| (s.trim_matches('`'), branch.as_str()))
-                .or_else(|| {
-                    line.strip_prefix("Revision: ")
-                        .map(|s| (s.trim_matches('`'), revision.as_str()))
-                })
-        })
-        .collect();
-    let unverified = claims.is_empty();
-    let current = claims.iter().all(|(saved, current)| saved == current);
-    let snapshot = if unverified {
-        "unverified"
-    } else if current {
-        "current"
-    } else {
-        "stale"
-    };
-    println!(
-        "{}",
-        serde_json::json!({"state": state, "plan": plan, "git": {"branch": branch, "revision": revision, "status": status}, "snapshot": snapshot})
-    );
     Ok(())
 }

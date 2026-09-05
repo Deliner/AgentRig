@@ -13,12 +13,61 @@ use std::{
     process::Command,
 };
 
+pub fn arguments(args: &[String]) -> Result<(bool, Option<&str>)> {
+    let mut staged = false;
+    let mut only = None;
+    let mut values = args.iter();
+    while let Some(value) = values.next() {
+        match value.as_str() {
+            "--staged" => {
+                ensure!(!staged, "duplicate --staged");
+                staged = true;
+            }
+            "--only" => {
+                ensure!(only.is_none(), "duplicate --only");
+                only = Some(
+                    values
+                        .next()
+                        .ok_or_else(|| anyhow::anyhow!("--only needs a check ID"))?
+                        .as_str(),
+                );
+            }
+            _ => anyhow::bail!("check [--staged] [--only CHECK_ID]"),
+        }
+    }
+    Ok((staged, only))
+}
 pub fn run(root: &Path, staged: bool) -> Result<i32> {
+    selected(root, staged, None)
+}
+pub fn selected(root: &Path, staged: bool, only: Option<&str>) -> Result<i32> {
+    let index = staged.then(|| super::evidence::index(root)).transpose()?;
     let snapshot = if staged { Some(export(root)?) } else { None };
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let context = Context::load(tree)?;
-    let files = files(&context)?;
-    for check in &context.config.checks {
+    ensure!(
+        only.is_none_or(|id| context.config.checks.iter().any(|check| check.id == id)),
+        "unknown check {}",
+        only.unwrap_or_default()
+    );
+    let mut attempt = super::evidence::Attempt::start(&context, root, index, only)?;
+    let code = execute_checks(&context, root, &mut attempt, only)?;
+    attempt.finish(&context, root, code)?;
+    Ok(code)
+}
+fn execute_checks(
+    context: &Context,
+    root: &Path,
+    attempt: &mut super::evidence::Attempt,
+    only: Option<&str>,
+) -> Result<i32> {
+    let files = files(context)?;
+    for check in context
+        .config
+        .checks
+        .iter()
+        .filter(|check| only.is_none_or(|id| check.id == id))
+    {
         let include = globs(&check.include)?;
         let applies = files.iter().any(|path| include.is_match(path));
         let skipped = !applies;
@@ -26,52 +75,64 @@ pub fn run(root: &Path, staged: bool) -> Result<i32> {
             println!("SKIP [{}]: no selected files", check.id);
             continue;
         }
-        let result = run_check(&context, root, check);
-        let code = match result {
-            Ok(code) => code,
-            Err(error) => {
-                eprintln!(
-                    "ERROR [{}]: {error:#}. ACTION: Apply {}",
-                    check.id, check.skill
-                );
-                return Ok(2);
-            }
-        };
+        let rerun = attempt.rerun(root, &check.id);
+        let (code, broken) = checked(context, root, check, &rerun);
+        attempt.checked(check, code, rerun)?;
         let passed = code == 0;
         if passed {
             println!("PASS [{}]", check.id);
             continue;
         }
-        let stop = failed_check(check, code);
+        let stop = broken || code >= 128 || !check.warning;
         if stop {
             return Ok(code);
         }
     }
     Ok(0)
 }
-fn run_check(context: &Context, root: &Path, check: &Check) -> Result<i32> {
+
+fn run_check(context: &Context, root: &Path, check: &Check, rerun: &str) -> Result<i32> {
     match check.kind {
         CheckKind::Command => commands::run(
             context,
             check.command.as_deref().expect("validated command"),
             &[],
         ),
-        CheckKind::Lint => lint::run(
+        CheckKind::Lint => lint::check(
             &context.root,
             &context.path(&context.config.paths.lint)?,
-            false,
-            false,
+            rerun,
         ),
         CheckKind::Memory => super::memory::check_with_history(context, root),
     }
 }
-fn failed_check(check: &Check, code: i32) -> bool {
-    let level = if check.warning { "WARNING" } else { "ERROR" };
-    eprintln!(
-        "{level} [{}]: exited {code}. ACTION: Apply {}",
-        check.id, check.skill
-    );
-    code >= 128 || !check.warning
+fn checked(context: &Context, root: &Path, check: &Check, rerun: &str) -> (i32, bool) {
+    let result = run_check(context, root, check, rerun);
+    let (code, message, broken) = match result {
+        Ok(code) => (
+            code,
+            format!("exited {code}; see original output above"),
+            false,
+        ),
+        Err(error) => (2, format!("{error:#}"), true),
+    };
+    let failed = code != 0;
+    if failed {
+        let advisory = check.warning && !broken;
+        let level = if advisory { "WARNING" } else { "ERROR" };
+        eprintln!(
+            "{}",
+            crate::diagnostics::Guidance {
+                level,
+                id: &check.id,
+                location: &check.include.join(", "),
+                message: &message,
+                skill: &check.skill,
+                rerun
+            }
+        );
+    }
+    (code, broken)
 }
 fn export(root: &Path) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;

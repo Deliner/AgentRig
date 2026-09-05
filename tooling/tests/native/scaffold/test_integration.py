@@ -232,8 +232,11 @@ class Consumer:
         result = invoke(self.binary, self.root, "hook", input=json.dumps(hook))
         assert result.returncode == 0
         assert "deny" in result.stdout
-        hook["tool_input"] = {"cmd": "just run test"}
-        assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+        for command in ["just run test", "just check --only lint"]:
+            hook["tool_input"] = {"cmd": command}
+            assert (
+                "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+            )
 
     def integrate(self) -> None:
         git(self.root, "add", ".")
@@ -247,7 +250,7 @@ class Consumer:
             ).returncode
             != 0
         )
-        assert invoke(self.binary, self.root, "feature-start", "next").returncode == 0
+        self.just("feature-start", "next")
         assert (
             git(self.root, "branch", "--show-current").stdout.strip()
             == self.layout.git.prefix + "next"
