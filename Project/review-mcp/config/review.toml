@@ -1,0 +1,34 @@
+schema_version = 1
+
+[runner]
+runtime_root = "../runtime"
+report_root = "../reports"
+isolation = "bubblewrap"
+parallelism = 3
+timeout_seconds = 900
+format_attempts = 3
+
+[reviewers.requirements]
+model = "gpt-5.6-luna"
+reasoning_effort = "high"
+prompt = "../prompts/requirements.md"
+
+[reviewers.methodology]
+model = "gpt-5.6-luna"
+reasoning_effort = "high"
+prompt = "../prompts/methodology.md"
+
+[reviewers.correctness]
+model = "gpt-5.6-sol"
+reasoning_effort = "high"
+prompt = "../prompts/correctness.md"
+
+[tools.review_research]
+description = "Review research requirements and methodology"
+reviewers = ["requirements", "methodology"]
+project_config = "projects/research.toml"
+
+[tools.review_code]
+description = "Review code requirements, correctness and tests"
+reviewers = ["requirements", "correctness"]
+project_config = "projects/code.toml"

@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {
+      "id": "C-01",
+      "text": "The candidate satisfies the applicable requirements in docs/requirements.md.",
+      "reviewers": [
+        "requirements"
+      ],
+      "allow_na": false
+    },
+    {
+      "id": "C-02",
+      "text": "The visible research method supports its stated conclusions; evidence, assumptions and limitations are identified.",
+      "reviewers": [
+        "methodology"
+      ],
+      "allow_na": false
+    }
+  ]
+}

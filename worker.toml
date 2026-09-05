@@ -3,7 +3,7 @@ runtime = "0.2.0"
 config_skill = ".agents/skills/repair/SKILL.md"
 
 [paths]
-sources = ["tooling/**"]
+sources = ["tooling/**", "Project/**"]
 memory = "Ledger"
 skills = ".agents/skills"
 lint = "tooling/worker/lint.toml"
@@ -260,3 +260,38 @@ target = "tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_r
 check = "test"
 runner = "pytest"
 target = "tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership"
+
+[commands.review-test]
+argv = ["cargo", "+1.98.1", "test", "--manifest-path", "Project/review-mcp/Cargo.toml", "--locked"]
+
+[commands.review-clippy]
+argv = ["cargo", "+1.98.1", "clippy", "--manifest-path", "Project/review-mcp/Cargo.toml", "--locked", "--all-targets", "--", "-D", "warnings"]
+
+[commands.review-rustfmt]
+argv = ["cargo", "+1.98.1", "fmt", "--manifest-path", "Project/review-mcp/Cargo.toml", "--check"]
+
+[[checks]]
+id = "review-test"
+kind = "command"
+command = "review-test"
+include = ["Project/**"]
+skill = ".agents/skills/repair/SKILL.md"
+
+[[checks]]
+id = "review-clippy"
+kind = "command"
+command = "review-clippy"
+include = ["Project/**"]
+skill = ".agents/skills/repair/SKILL.md"
+
+[[checks]]
+id = "review-rustfmt"
+kind = "command"
+command = "review-rustfmt"
+include = ["Project/**"]
+skill = ".agents/skills/repair/SKILL.md"
+
+[commands.review-runner]
+argv = ["cargo", "+1.98.1", "run", "--quiet", "--manifest-path", "Project/review-mcp/Cargo.toml", "--locked", "--"]
+accepts_args = true
+read_only = false

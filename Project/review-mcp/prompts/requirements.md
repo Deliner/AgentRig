@@ -1,0 +1,1 @@
+Compare assigned requirements with the candidate and normative documents. Identify concrete unmet behavior, omissions and contradictions. Do not invent requirements. Cite repository-relative file paths and line numbers for failures.
