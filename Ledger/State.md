@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver the authorized upgrade MVP: ownership receipts, reviewable plans, explicit conflicts, preserved project settings/memory, resumable apply, rollback and post-update verification. P001 remains paused.
+Implement P001, the user's configurable isolated review MCP and shared review-runner. Follow the detailed acceptance in Plan/001.md and apply complexity-discipline throughout.
 
 ## Workspace
 
-Branch: feature/scaffold-upgrades
+Branch: feature/review-mcp
 
-Revision: e922a06
+Revision: 83f7a01
 
-Receipt, planner and application/recovery VACs are committed. The application commit passed the full staged gate with 206 tests. Final verification adds real Rust consumer migration and rollback alongside existing Python coverage.
+The prior upgrade goal is integrated on master. This dedicated branch starts the resumed product feature. Product implementation belongs under Project/review-mcp.
 
 ## Progress
 
-Apply verifies reviewed paths/bytes/modes and payloads, resolves only explicit keep/replace choices, freezes the plan and preimages, writes atomically and journals progress before running config-check, doctor and full project checks. Rollback restores preimages without overwriting later edits. Reapplication retains the restored journal. Configuration comments/settings and all four memory files remain intact; no memory-format migration is needed. D024 records the concrete ownership/recovery contract. Resume and session hooks expose the operation, recovery navigation tolerates the supported mixed pin, and delivery rejects unfinished operations. Help, Just adapters and the scaffold guide document the interface and recovery.
+Read the current skills and project contracts. Updated P001 with the user's configurable tools/reviewers, machine contract, snapshot scope, isolated Codex, common validator, deterministic report, repeated-review and cleanup requirements. Installed Codex is 0.153.4 and advertises ignore-user-config, ignore-rules, ephemeral mode and explicit hook trust for vetted automation. A real isolated gpt-5.6-luna invocation confirmed blocking Stop continuation: initial final response, hook-requested correction, valid file and successful exit. Both codex and codex-code-mode-host are required mounts.
 
 ## Verification
 
-Twenty-two focused upgrade tests passed against actual pinned 0.1.0 builds, with and without receipts, and the complete staged gate passed 206 tests. Two additional Rust consumer tests now pass with real Cargo test execution and exact preservation of project settings/lint configuration. They cover custom configuration paths, local skill/adapter conflicts, stale plans, preserved memory, apply/rollback, failed checks followed by successful resume, later edit protection, repeated apply after rollback, process interruption and mixed-installation recovery through Just. Strict lint reports no errors. The Rust verification VAC passed its complete staged gate with 208 tests. The first integration gate exposed a race in the interruption test: termination could arrive between checks. The test now waits for the project test to start before terminating; both focused interruption cases pass. Commit this correction and rerun integration.
+Codex 0.153.4 with a fresh auth-only home and ignored user configuration ran inside bubblewrap. The Stop hook rejected a missing response, and the model continued and wrote the requested exact JSON. Earlier timeouts were diagnosed as the missing codex-code-mode-host executable. Copied authentication and temporary smoke directories were removed after recording evidence in Project/review-mcp/COMPATIBILITY.md. Production isolation, validator, protected counter and MCP-client acceptance are still unverified.
 
 ## Blockers
 
-None. Retain the supplied new executable throughout consumer recovery, as documented. No automatic conflict merge or general migration framework is implemented.
+None. Use the supported Stop hook; no runner-only fallback is needed for this installed version. Keep the attempt counter in the parent process and expose only validation requests through a per-reviewer endpoint, since a hook executing inside the sandbox cannot safely own a critic-writable counter file.
 
 ## Next action
 
-Commit the final Rust consumer verification through the staged gate, then run feature-merge and inspect clean integration. The attachment audit is covered by receipt/package tests; reviewable diff/conflict/settings tests; apply/rollback/local adapter tests; interrupted and mixed-installation recovery tests; and real Python/Rust project verification. No functional requirement remains unimplemented. Mark the goal complete only after verified integration.
+Commit the scoped feature resumption and compatibility evidence through the normal gate. Implement configuration/contracts and the shared response validator, then tracked-file snapshots and scope checks, isolated reviewer execution with protected attempts, deterministic persistent reports/cleanup, and configured MCP tools plus CLI/Just/skill. Verify a real client and complete all acceptance before integration.
