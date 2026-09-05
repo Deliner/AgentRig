@@ -6,20 +6,28 @@ import subprocess
 from pathlib import Path
 
 from branch_workflow import (
-    ZERO,
-    commit_allowed,
     current_branch,
     is_ancestor,
     merge_feature,
-    reference_allowed,
     start_feature,
 )
-from native_support import install_runner
+from native_support import install_runner, worker_binary
 from plan_policy import plan_errors
 
 # DECISION: D010
 # DECISION: D012
 # DECISION: D015
+
+
+def commit_allowed(root: Path) -> bool:
+    return (
+        subprocess.run(
+            [str(worker_binary()), "guard-commit", "--root", str(root)],
+            capture_output=True,
+            check=False,
+        ).returncode
+        == 0
+    )
 
 
 def git(root: Path, *args: str) -> str:
@@ -105,8 +113,6 @@ def test_feature_branch_policy(tmp_path: Path) -> None:
     assert (root / "main.txt").is_file()
     assert (root / "master.txt").is_file()
     assert (root / "side.txt").is_file()
-    deletion = f"{feature_tip} {ZERO} refs/heads/feature/example"
-    assert not reference_allowed(root, [deletion])
     result = subprocess.run(
         ["git", "branch", "-d", "feature/example"],
         cwd=root,

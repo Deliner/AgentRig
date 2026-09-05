@@ -2,24 +2,24 @@
 
 ## Focus
 
-Authorized worker task: standalone lint configuration validation, rule enablement and rejection of unsupported language selection. P001 remains unchanged.
+Authorized worker task: remove duplicate Python hooks/size lint and consolidate hook implementation and build ownership in Rust. P001 remains unchanged.
 
 ## Workspace
 
-Observed branch feature/validate-lint-config based on master 5fe6497. This VAC includes shared selection validation, CLI/Just command, capability metadata, tests and D018/I016. No unrelated changes were observed; compare with Git on resume.
+Observed branch feature/remove-legacy-hooks based on master 375f595. This VAC removes legacy code, moves Git guards into native hooks, migrates tests and records explicit D019 historical application-link replacements. No unrelated changes were observed; reconcile with Git on resume.
 
 ## Progress
 
-Applied complexity-discipline and relevant configuration/Ledger skills. Both lint and lint-config-check share target selection and effective overrides. The standalone command does not analyze source. Unsupported selected files no longer disappear silently; explicit unsupported suffixes fail even before files exist. Rule enabled defaults to true; disabled entries still require valid schema. Default syntax scope remains unchanged because it already specifies extensions.
+Codex session/edit hooks and complexity reminders already used Rust. Removed their Python references and retired checkpoint adapter, the Python size checker, and duplicate Git guard commands/functions in branch_workflow.py. Every hook implementation is now under tooling/worker/src/hooks with one crate/launcher; thin registration/Git adapters remain. Python Ledger/Just/feature orchestration retains independent responsibilities. Tests invoke the native binary and assert behavior without Python hook algorithms.
 
 ## Verification
 
-65 native tests passed, including unsupported shell selection through both commands, malformed schema, missing skills, override errors, enablement and parser independence. The default config-check command was run. Full staged gate and integration remain pending; inspect Git and command logs for subsequent progress.
+50 focused hook/command/VAC tests passed, including token thresholds, retry/full refresh, transcript offsets, compaction and storage failures. Nine Ledger/branch tests passed, including the explicit native-link migration and rejection of other substitutions. Full staged gate and merge remain pending; check Git and command logs for later progress.
 
 ## Blockers
 
-None. Broad globs are validated against the current inventory; the checker does not predict future files. Existing structural and syntax warning policies remain active.
+None. D019 explicitly updates historical application links while preserving decision identities, statements and detail history. Source-file deletion does not remove branch/VAC or reminder coverage. Previous implementation content remains in Git history.
 
 ## Next action
 
-Commit the coherent VAC through the staged gate and correct any failures without bypassing hooks. Then run just feature-merge from the clean branch, retaining its reference. If Git shows feature/validate-lint-config already integrated, this task is complete; follow the next authorized instruction.
+Commit the coherent VAC through the normal staged gate and correct any failures without bypassing hooks. Then run just feature-merge from the clean branch, retaining its reference. If Git shows feature/remove-legacy-hooks integrated, this task is complete; follow the next authorized instruction.

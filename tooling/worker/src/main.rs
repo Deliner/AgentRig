@@ -1,4 +1,3 @@
-mod branch;
 mod gate;
 mod hooks;
 mod lint;
@@ -63,9 +62,9 @@ fn run() -> Result<i32> {
             println!("{}", lint::rules::catalog());
             Ok(0)
         }
-        "guard-commit" => branch::guard_commit(&root),
+        "guard-commit" => hooks::git::guard_commit(&root),
         "guard-reference" => {
-            branch::guard_reference(&root, args.first().map(String::as_str).unwrap_or(""))
+            hooks::git::guard_reference(&root, args.first().map(String::as_str).unwrap_or(""))
         }
         _ => bail!(
             "usage: discipline-worker hook|lint|lint-config-check|lint-rules|guard-commit|guard-reference [--root PATH]"

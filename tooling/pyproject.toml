@@ -26,5 +26,5 @@ cache_dir = "../.cache/mypy"
 
 [tool.pytest.ini_options]
 cache_dir = "../.cache/pytest"
-pythonpath = [".", "../.codex/hooks"]
+pythonpath = ["."]
 norecursedirs = [".cache", "runtime"]

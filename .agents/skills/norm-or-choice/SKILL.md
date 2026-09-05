@@ -21,3 +21,5 @@ Revise explicitly. Replace an invariant only through a recorded decision, updati
 Ordinary Plan updates use the existing delivery policy: changing feature status, recording a discovered prerequisite, or adding authorized follow-ups does not itself require a new policy decision. Record a durable decision only when the update makes a genuine contextual choice that needs its own rationale. Feature details still state outcomes and acceptance, with Delivery context for the source of new work, blockers, and verification.
 
 At any scale, use the same test: an invariant can be violated; a decision can be reconsidered. They have different failure modes and must not share one record.
+
+D019 permits only its five deleted Python application links to migrate to the named Rust owners. Decision IDs, statements and detail files remain immutable; this exception does not authorize other link removal.

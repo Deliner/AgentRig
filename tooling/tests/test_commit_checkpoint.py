@@ -3,11 +3,10 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest
-from native_support import install_runner
+from native_support import install_runner, worker_binary
 
 # DECISION: D003
 # DECISION: D011
@@ -82,7 +81,7 @@ def test_retired_checkpoint_does_not_block_or_mutate(tmp_path: Path, event: str)
     checkpoint.write_text("old or malformed state", encoding="utf-8")
     for _ in range(2):
         result = subprocess.run(
-            [sys.executable, str(ROOT / ".codex/hooks/commit_checkpoint.py")],
+            [str(worker_binary()), "hook", "--root", str(ROOT)],
             cwd=tmp_path,
             input=json.dumps({"hook_event_name": event, "cwd": str(tmp_path)}),
             capture_output=True,
