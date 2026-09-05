@@ -1,6 +1,8 @@
 # Discipline Worker
 
-A configurable Rust harness for agent feature delivery through verified atomic changes (VACs), with recovery state, durable decisions, executable invariants and a shared commit/merge gate.
+This repository develops a portable Rust worker for agent-native software development. Other projects consume its configurable environment: verified atomic changes (VACs), recovery state, durable decisions, executable invariants, structural lint and isolated review. Deterministic access boundaries and checks support development quality; model judgments remain probabilistic.
+
+The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through worker.toml and separate lint/review configuration. The integrated capability setup is being delivered under P002.
 
 Start with [repository instructions](AGENTS.md), then `just resume`. [worker.toml](worker.toml) owns paths, commands, checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run catalog commands with `just run NAME -- ARGS`.
 

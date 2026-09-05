@@ -4,7 +4,7 @@
 
 Read Ledger/State.md, Ledger/Plan.md and any relevant feature detail, then inspect Git status and recent commits. Reconcile recorded progress with live evidence; preserve unrelated work. Follow the current decision index and explicit successors rather than superseded historical details. Apply complexity-discipline for non-trivial implementation and norm-or-choice for durable policy changes.
 
-Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product features. Product code belongs under Project; repository memory is Ledger. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by worker.toml.
+Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product features. This repository develops the portable worker itself. Worker capabilities, including lint and review, belong under tooling/worker; Project is reserved for consumer examples, and repository memory is Ledger. D025 supersedes D008 for ownership in this repository. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by worker.toml.
 
 ## Commands and verification
 

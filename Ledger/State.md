@@ -2,28 +2,28 @@
 
 ## Focus
 
-P001 acceptance is implemented and verified. Finish its normal commit gate and integration, then close the user's review-MCP goal.
+Deliver P002 from the current goal attachment: portable worker capabilities, separate configuration, declarative setup and shared updates. Apply complexity-discipline.
 
 ## Workspace
 
-Branch: feature/review-mcp
+Branch: feature/worker-capabilities
 
-Revision: 9db3287
+Revision: 08c8f90
 
-The MCP/interface VAC is committed after its complete gate passed. The current final VAC adds late BLOCKED handling, direct concurrency/cleanup-failure verification and the acceptance record.
+P001 is integrated on master with a clean starting tree. This branch implements the user's corrected product boundary.
 
 ## Progress
 
-Configured MCP tools, CLI and Just share the isolated Rust runner. Configuration/resources/contracts are validated, exact Git scope is exported, protected Stop validation and attempts bound each role, and deterministic persistent reports survive normal cleanup and reported failure paths. The short project skill adapter is validated. P001 is marked complete on observable acceptance; integration remains pending.
+Read the new attachment and current package, configuration, lint, review and upgrade entrypoints. Lint already supports an external root plus explicit config without worker setup. Review is a separate crate under Project and is not included by package init. D025 records the corrected ownership, superseding D008 for this repository. P002 retains all eight requested outcomes.
 
 ## Verification
 
-Twenty-one focused Rust tests pass, including overlapping critic execution, late FAIL/BLOCKED explanation checks, report persistence failure and a real permission-induced cleanup failure. Strict lint has no errors; configured directory/skill warnings remain warnings. Previous execution and MCP VACs passed their full staged gates with all 208 worker tests. Real official MCP-client/Codex runs passed in 69 and 96 seconds; a 120-second timeout produced BLOCKED and completed cleanup. Final production smoke confirmed fresh CLI configuration and no inherited host skills/hooks. See Plan/001.md and Project/review-mcp/COMPATIBILITY.md for acceptance evidence.
+The starting integration passed 208 worker and 21 review tests. This VAC changes scope documentation and delivery memory only; its normal staged gate remains pending. No new setup or packaging behavior is claimed.
 
 ## Blockers
 
-None. No background job interface is needed for the tested client with its configured timeout.
+None. Reuse package manifests, file ownership and upgrade operations; do not create a parallel installer or duplicate engines.
 
 ## Next action
 
-Commit this final VAC through the staged gate, then run just feature-merge. Inspect master, retained branch, integration result and workspace cleanliness. Mark the active review-MCP goal complete only after successful integration; no post-merge State-only commit is required.
+Commit the ownership VAC, then move review under tooling/worker and connect the main worker executable to the same library. Preserve existing review tests and standalone lint behavior. Add capability configuration, setup and consumer upgrade/rollback verification before completing P002.
