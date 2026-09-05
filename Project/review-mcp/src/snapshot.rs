@@ -68,19 +68,7 @@ pub fn prepare(
     fs::create_dir(output).context("snapshot output must be new")?;
     let manifest = export(root, &candidate, &allowed, output)?;
     let contracts = contract_paths(scope, &manifest)?;
-    let diff = String::from_utf8(git(
-        root,
-        &[
-            "diff",
-            "--no-ext-diff",
-            "--no-textconv",
-            "--binary",
-            "--no-renames",
-            &base,
-            &candidate,
-            "--",
-        ],
-    )?)?;
+    let diff = diff(root, &base, &candidate)?;
     Ok(Snapshot {
         base,
         candidate,
@@ -240,4 +228,24 @@ fn contract_paths(scope: &Repository, manifest: &BTreeMap<String, Entry>) -> Res
         paths.extend(selected);
     }
     Ok(paths.into_iter().collect())
+}
+
+pub fn diff(root: &Path, base: &str, candidate: &str) -> Result<String> {
+    Ok(String::from_utf8(git(
+        root,
+        &[
+            "diff",
+            "--no-ext-diff",
+            "--no-textconv",
+            "--binary",
+            "--no-renames",
+            base,
+            candidate,
+            "--",
+        ],
+    )?)?)
+}
+pub fn check_boundary(root: &Path, base: &str, candidate: &str, scope: &Repository) -> Result<()> {
+    let changed = changed_paths(root, base, candidate)?;
+    validate_changes(root, &changed, &globs(&scope.visible_paths)?, base)
 }
