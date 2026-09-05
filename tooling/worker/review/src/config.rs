@@ -27,6 +27,8 @@ pub struct Runner {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Reviewer {
+    #[serde(default = "codex")]
+    pub frontend: String,
     pub model: String,
     pub reasoning_effort: String,
     pub prompt: PathBuf,
@@ -80,15 +82,7 @@ pub fn load(path: &Path) -> Result<Config> {
     validate_runner(&config.runner)?;
     ensure!(!config.tools.is_empty(), "at least one tool is required");
     for (name, reviewer) in &mut config.reviewers {
-        ensure!(
-            identifier(name) && !reviewer.model.trim().is_empty(),
-            "invalid reviewer {name}"
-        );
-        ensure!(
-            ["minimal", "low", "medium", "high", "xhigh"]
-                .contains(&reviewer.reasoning_effort.as_str()),
-            "unsupported reasoning effort for {name}"
-        );
+        validate_reviewer(name, reviewer)?;
         reviewer.prompt = resource(path, &reviewer.prompt)?;
         fs::read_to_string(&reviewer.prompt)?;
     }
@@ -106,6 +100,25 @@ pub fn load(path: &Path) -> Result<Config> {
         "runtime and report roots must differ"
     );
     Ok(config)
+}
+fn codex() -> String {
+    "codex".into()
+}
+fn validate_reviewer(name: &str, reviewer: &Reviewer) -> Result<()> {
+    ensure!(
+        reviewer.frontend == "codex",
+        "unsupported frontend {:?} for reviewer {name}; supported: codex",
+        reviewer.frontend
+    );
+    ensure!(
+        identifier(name) && !reviewer.model.trim().is_empty(),
+        "invalid reviewer {name}"
+    );
+    ensure!(
+        ["minimal", "low", "medium", "high", "xhigh"].contains(&reviewer.reasoning_effort.as_str()),
+        "unsupported reasoning effort for {name}"
+    );
+    Ok(())
 }
 fn validate_runner(runner: &Runner) -> Result<()> {
     ensure!(

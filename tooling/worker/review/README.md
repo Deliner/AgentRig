@@ -63,6 +63,11 @@ shared reviewer definitions; role counts and names are not hardcoded. A role
 specifies its model, reasoning effort and prompt. Each tool selects roles and a
 project configuration. Restart MCP after changing its tool configuration.
 
+Each reviewer declares `frontend = "codex"`, its model, reasoning effort and
+prompt. Codex is the implemented executor; another frontend fails configuration
+validation before any critic starts. Existing configurations without `frontend`
+select Codex. The resolved frontend is retained in the report configuration.
+
 Resource paths are relative to the configuration that declares them. Project
 visibility and normative-document globs are relative to the checkout root.
 The supplied code/research profiles are examples: adapt their visible paths,

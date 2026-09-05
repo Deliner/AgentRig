@@ -9,16 +9,19 @@ timeout_seconds = 900
 format_attempts = 3
 
 [reviewers.requirements]
+frontend = "codex"
 model = "gpt-5.6-luna"
 reasoning_effort = "high"
 prompt = "../prompts/requirements.md"
 
 [reviewers.methodology]
+frontend = "codex"
 model = "gpt-5.6-luna"
 reasoning_effort = "high"
 prompt = "../prompts/methodology.md"
 
 [reviewers.correctness]
+frontend = "codex"
 model = "gpt-5.6-sol"
 reasoning_effort = "high"
 prompt = "../prompts/correctness.md"
