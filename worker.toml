@@ -1,0 +1,242 @@
+version = 1
+runtime = "0.1.0"
+config_skill = ".agents/skills/repair/SKILL.md"
+
+[paths]
+sources = ["tooling/**"]
+memory = "Ledger"
+skills = ".agents/skills"
+lint = "tooling/worker/lint.toml"
+runtime = ".cache/runtime"
+
+[git]
+base = "master"
+prefix = "feature/"
+
+
+[commands.read]
+argv = []
+accepts_args = true
+read_only = true
+
+[commands.write]
+argv = []
+accepts_args = true
+read_only = false
+
+[commands.build]
+argv = ["tooling/worker/run", "--version"]
+accepts_args = false
+read_only = false
+
+[commands.rustfmt]
+argv = ["cargo", "+1.98.1", "fmt", "--manifest-path", "tooling/worker/Cargo.toml", "--check"]
+accepts_args = false
+read_only = false
+
+[commands.clippy]
+argv = ["cargo", "+1.98.1", "clippy", "--manifest-path", "tooling/worker/Cargo.toml", "--locked", "--", "-D", "warnings"]
+accepts_args = false
+read_only = false
+
+[commands.test]
+argv = ["uv", "run", "--locked", "--project", "tooling", "pytest", "-c", "tooling/pyproject.toml", "--rootdir", "."]
+accepts_args = true
+read_only = false
+
+[commands.ruff-format]
+argv = ["uv", "run", "--locked", "--project", "tooling", "ruff", "format", "--check", "--config", "tooling/pyproject.toml"]
+accepts_args = false
+read_only = false
+
+[commands.ruff]
+argv = ["uv", "run", "--locked", "--project", "tooling", "ruff", "check", "--config", "tooling/pyproject.toml"]
+accepts_args = false
+read_only = false
+
+[commands.mypy]
+argv = ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/worker/examples"]
+accepts_args = false
+read_only = false
+
+[commands.typos]
+argv = ["uv", "run", "--locked", "--project", "tooling", "typos", "--config", "tooling/pyproject.toml", "."]
+accepts_args = false
+read_only = false
+
+[commands.vulture]
+argv = ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/worker/examples"]
+accepts_args = false
+read_only = false
+
+[[checks]]
+id = "build"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "build"
+
+[[checks]]
+id = "lint"
+kind = "lint"
+skill = ".agents/skills/repair/SKILL.md"
+
+[[checks]]
+id = "memory"
+kind = "memory"
+skill = ".agents/skills/repair/SKILL.md"
+
+[[checks]]
+id = "rustfmt"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "rustfmt"
+
+[[checks]]
+id = "clippy"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "clippy"
+
+[[checks]]
+id = "ruff-format"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "ruff-format"
+
+[[checks]]
+id = "ruff"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "ruff"
+
+[[checks]]
+id = "mypy"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "mypy"
+
+[[checks]]
+id = "test"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "test"
+
+[[checks]]
+id = "typos"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "typos"
+
+[[checks]]
+id = "vulture"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "vulture"
+
+[hooks]
+reminder = ".agents/skills/complexity-discipline/context-reminder.json"
+discipline_skill = ".agents/skills/complexity-discipline/SKILL.md"
+
+[[hooks.routes]]
+include = [
+    "Ledger/Plan.md",
+    "Ledger/Plan/**/*.md",
+]
+skill = ".agents/skills/edit-plan/SKILL.md"
+
+[[hooks.routes]]
+include = [
+    "Ledger/Decisions.md",
+    "Ledger/Decisions/**/*.md",
+]
+skill = ".agents/skills/edit-decisions/SKILL.md"
+
+[[hooks.routes]]
+include = [
+    "Ledger/Invariants.md",
+    "Ledger/Invariants/**/*.md",
+]
+skill = ".agents/skills/edit-invariants/SKILL.md"
+
+[[hooks.routes]]
+include = [
+    "Ledger/State.md",
+    "Ledger/State/**/*.md",
+]
+skill = ".agents/skills/edit-state/SKILL.md"
+
+
+[oracles.I001]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_memory.py::test_decision_source_markers"
+
+[oracles.I002]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_integration.py::test_independent_project_delivery"
+
+[oracles.I003]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_memory.py::test_committed_decisions_checked_against_staged_memory"
+
+[oracles.I004]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills"
+
+[oracles.I005]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_hooks.py::test_shell_guard_rejects_bypass"
+
+[oracles.I006]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_git.py::test_staged_commit_preserves_unstaged_work"
+
+[oracles.I007]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction"
+
+[oracles.I008]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_memory.py::test_repository_layout_and_detail_contract"
+
+[oracles.I009]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_plan.py::test_plan_delivery_contract"
+
+[oracles.I010]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_git.py::test_divergent_rebase_preserves_merge_history"
+
+[oracles.I011]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_state.py::test_state_recovery_contract"
+
+[oracles.I012]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_hooks.py::test_ledger_edit_guidance"
+
+[oracles.I014]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/test_lint.py::test_invalid_config_is_actionable"
+
+[oracles.I015]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/test_language.py::test_language_conditions"
+
+[oracles.I016]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/test_config_check.py::test_config_rejects_unsupported_language"

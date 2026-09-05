@@ -41,7 +41,7 @@ def test_config_rejects_unsupported_language(worker: Path, tmp_path: Path, selec
         assert code == 2
         assert "Rust" in items[0]["message"] and "Python" in items[0]["message"]
         assert ".sh" in items[0]["message"]
-        assert items[0]["skill"].endswith("configure-linter/SKILL.md")
+        assert items[0]["skill"].endswith("repair/SKILL.md")
 
 
 def test_config_check_does_not_parse_source(worker: Path, tmp_path: Path) -> None:

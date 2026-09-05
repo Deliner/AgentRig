@@ -1,3 +1,5 @@
+# DECISION: D019
+# DECISION: D006
 import json
 from pathlib import Path
 
@@ -5,9 +7,8 @@ import pytest
 from support import invoke, project
 
 
-def test_portable_reminder_schedule_retry_and_compaction(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+# INVARIANT: I007
+def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path: Path) -> None:
     assert (
         invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
     )
@@ -28,8 +29,6 @@ def test_portable_reminder_schedule_retry_and_compaction(
             }
         )
     )
-    global_state = tmp_path / "unused-global-state"
-    monkeypatch.setenv("COMPLEXITY_DISCIPLINE_STATE_DIR", str(global_state))
     transcript = scratch / "transcript.jsonl"
     transcript.touch()
     common = {"cwd": str(tmp_path), "session_id": "portable", "transcript_path": str(transcript)}
@@ -81,7 +80,6 @@ def test_portable_reminder_schedule_retry_and_compaction(
             assert expected in output["permissionDecisionReason"]
         assert "guides/edit-state/SKILL.md" in result.stdout
         assert ".agents/" not in result.stdout
-    assert not global_state.exists()
     saved = next((scratch / "state/reminders").glob("*.json"))
     assert json.loads(saved.read_text())["scan_offset"] == transcript.stat().st_size
     result = invoke(worker, tmp_path, "hook", input=json.dumps({**start, "source": "compact"}))
@@ -125,3 +123,44 @@ def test_reminder_configuration_rejects_malformed_values(
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "hooks.reminder" in result.stderr
+
+
+def test_partial_and_truncated_transcripts_recover(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    settings = tmp_path / ".worker/reminder.json"
+    settings.write_text(
+        json.dumps({"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300})
+    )
+    transcript = tmp_path / "transcript.jsonl"
+    transcript.touch()
+    common = {"session_id": "partial", "transcript_path": str(transcript)}
+    invoke(
+        worker, tmp_path, "hook", input=json.dumps({**common, "hook_event_name": "SessionStart"})
+    )
+    event = {
+        **common,
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Edit",
+        "tool_input": {"path": "memory/State.md"},
+    }
+    record = json.dumps(
+        {
+            "type": "event_msg",
+            "payload": {"type": "token_count", "info": {"last_token_usage": {"input_tokens": 100}}},
+        }
+    )
+    transcript.write_text(record[:-2])
+    assert "deny" not in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
+    saved = next((tmp_path / ".worker/runtime/reminders").glob("*.json"))
+    assert json.loads(saved.read_text())["scan_offset"] == 0
+    transcript.write_text(record + "\n")
+    assert "deny" in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
+    assert "deny" not in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
+    transcript.write_text(record.replace("100", "0") + "\n")
+    assert "deny" not in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
+    state = json.loads(saved.read_text())
+    assert state["scan_offset"] == transcript.stat().st_size
+    assert state["latest_tokens"] == 0
+    with transcript.open("a") as stream:
+        stream.write("invalid complete record\n" + record + "\n")
+    assert "deny" in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout

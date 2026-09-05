@@ -1,4 +1,11 @@
-mod format;
+// DECISION: D019
+// DECISION: D016
+// DECISION: D013
+// DECISION: D012
+// DECISION: D009
+// DECISION: D008
+// DECISION: D002
+pub(super) mod format;
 mod history;
 mod oracles;
 mod source;
@@ -21,18 +28,7 @@ pub fn check_with_history(context: &Context, git_root: &Path) -> Result<i32> {
     plan(context, &memory)?;
     decisions(context, &memory)?;
     invariants(context, &memory)?;
-    sections(
-        &memory.join("State.md"),
-        &[
-            "Focus",
-            "Workspace",
-            "Progress",
-            "Verification",
-            "Blockers",
-            "Next action",
-        ],
-        None,
-    )?;
+    sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }
 fn details(
@@ -80,7 +76,7 @@ fn details(
     Ok(())
 }
 fn plan(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Plan.md"), 'P', 5)?;
+    let rows = table(&memory.join("Plan.md"), 'P')?;
     details(
         context,
         memory,
@@ -145,7 +141,7 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
     Ok(())
 }
 fn decisions(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Decisions.md"), 'D', 3)?;
+    let rows = table(&memory.join("Decisions.md"), 'D')?;
     details(
         context,
         memory,
@@ -159,6 +155,14 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
         ensure!(!links.is_empty(), "{}: application link required", row.id);
         for link in links {
             let path = target(&context.root, memory, &link)?;
+            if path.extension().is_some_and(|ext| {
+                ["md", "toml", "json", "yaml", "yml"]
+                    .iter()
+                    .any(|kind| ext == *kind)
+            }) || path.file_name().is_some_and(|name| name == "justfile")
+            {
+                continue;
+            }
             match source::inspect(&path)? {
                 Some(source) => ensure!(
                     source.marker("DECISION", &row.id),
@@ -177,7 +181,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
     Ok(())
 }
 fn invariants(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Invariants.md"), 'I', 3)?;
+    let rows = table(&memory.join("Invariants.md"), 'I')?;
     details(
         context,
         memory,

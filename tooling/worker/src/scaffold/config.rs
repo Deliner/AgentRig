@@ -1,3 +1,4 @@
+// DECISION: D005
 use crate::lint::config::{globs, skill};
 use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize};

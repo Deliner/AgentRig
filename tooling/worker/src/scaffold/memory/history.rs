@@ -1,3 +1,4 @@
+// DECISION: D020
 use super::super::config::{Config, Context, FILE};
 use super::format;
 use anyhow::{Context as _, Result, ensure};
@@ -21,15 +22,20 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
         return Ok(());
     }
     let listed = crate::util::git(git_root, &["ls-tree", "HEAD", "--", FILE])?;
-    if listed.is_empty() {
+    let prior_memory = if listed.is_empty() {
+        context.config.paths.memory.clone()
+    } else {
+        let prior: Config =
+            toml::from_str(&committed(git_root, FILE)?).context("committed worker.toml schema")?;
+        prior.paths.memory
+    };
+    let index = format!("{}/Decisions.md", prior_memory);
+    if crate::util::git(git_root, &["ls-tree", "HEAD", "--", &index])?.is_empty() {
         return Ok(());
     }
-    let prior: Config =
-        toml::from_str(&committed(git_root, FILE)?).context("committed worker.toml schema")?;
-    let index = format!("{}/Decisions.md", prior.paths.memory);
-    let rows = format::parse_table(&committed(git_root, &index)?, Path::new(&index), 'D', 3)?;
+    let rows = format::parse_table(&committed(git_root, &index)?, Path::new(&index), 'D')?;
     let memory = context.path(&context.config.paths.memory)?;
-    let current = format::table(&memory.join("Decisions.md"), 'D', 3)?;
+    let current = format::table(&memory.join("Decisions.md"), 'D')?;
     for old in rows {
         let row = current
             .iter()
@@ -40,20 +46,12 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
             "{}: committed decision identity cannot change",
             old.id
         );
-        let detail = committed(git_root, &format!("{}/{}", prior.paths.memory, old.detail))?;
+        let detail = committed(git_root, &format!("{}/{}", prior_memory, old.detail))?;
         ensure!(
             fs::read_to_string(memory.join(&row.detail))? == detail,
             "{}: committed decision detail cannot change; supersede with a new decision",
             old.id
         );
-        let applications = format::links(&row.cells[2]);
-        for link in format::links(&old.cells[2]) {
-            ensure!(
-                applications.contains(&link),
-                "{}: committed application links are append-only",
-                old.id
-            );
-        }
     }
     Ok(())
 }

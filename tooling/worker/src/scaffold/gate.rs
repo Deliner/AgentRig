@@ -1,3 +1,7 @@
+// DECISION: D016
+// DECISION: D015
+// DECISION: D005
+// DECISION: D004
 use super::{
     commands,
     config::{self, CheckKind, Context},

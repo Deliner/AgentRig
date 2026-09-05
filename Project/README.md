@@ -1,5 +1,3 @@
 # Project
 
-This directory is the product root. The first active feature is the configurable isolated-review MCP described by Ledger/Plan.md.
-
-Implementation belongs here. Worker policy, durable decisions, invariants, and feature definitions remain in the sibling Ledger directory.
+Product implementation belongs here. [Plan](../Ledger/Plan.md) owns feature priorities and acceptance; [State](../Ledger/State.md) records the current task. Worker runtime code lives in tooling/worker, and durable project memory lives in Ledger.

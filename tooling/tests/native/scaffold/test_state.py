@@ -1,7 +1,8 @@
 from pathlib import Path
 
 import pytest
-from check_repo import check, state_findings
+from support import CONFIG, invoke, project
+from test_memory import memory
 
 # DECISION: D013
 
@@ -46,26 +47,13 @@ Inspect Git and the failed check output, then correct the current VAC.
     ],
 )
 # INVARIANT: I011
-def test_state_recovery_contract(tmp_path: Path, source: str | None, valid: bool) -> None:
+def test_state_recovery_contract(
+    worker: Path, tmp_path: Path, source: str | None, valid: bool
+) -> None:
     ledger = tmp_path / "Ledger"
-    ledger.mkdir()
+    project(tmp_path, CONFIG.replace('memory = "notes"', 'memory = "Ledger"'))
+    memory(tmp_path).rename(ledger)
+    (ledger / "State.md").unlink()
     if source is not None:
         (ledger / "State.md").write_text(source, encoding="utf-8")
-    assert (state_findings(tmp_path) == []) is valid
-
-
-def test_repository_gate_includes_state(tmp_path: Path) -> None:
-    (tmp_path / "Project").mkdir()
-    (tmp_path / "Project/README.md").write_text("Product", encoding="utf-8")
-    ledger = tmp_path / "Ledger"
-    ledger.mkdir()
-    for name in ("Decisions", "Invariants"):
-        (ledger / f"{name}.md").write_text(f"# {name}\n", encoding="utf-8")
-    (ledger / "Plan.md").write_text(
-        "# Plan\n\n| ID | Status | Depends on | Feature | User capability |\n"
-        "| --- | --- | --- | --- | --- |\n",
-        encoding="utf-8",
-    )
-    assert any("Ledger/State.md" in item.message for item in check(tmp_path, tmp_path))
-    (ledger / "State.md").write_text(SNAPSHOT, encoding="utf-8")
-    assert check(tmp_path, tmp_path) == []
+    assert (invoke(worker, tmp_path, "memory-check").returncode == 0) is valid

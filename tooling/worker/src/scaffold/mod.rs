@@ -130,9 +130,31 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             };
             commands::argv(context, name, extra)?;
         }
-        "list" | "check" | "resume" | "config-check" | "report" | "feature-start"
-        | "feature-merge" => {}
-        name => bail!("unknown or bypassing command {name}; use just list or just run NAME"),
+        "list" | "--list" | "resume" | "config-check" | "doctor" | "lint-rules" | "report"
+        | "feature-merge" => {
+            anyhow::ensure!(
+                argv.len() <= 2,
+                "one Just recipe is required; this recipe takes no arguments"
+            );
+        }
+        "check" => {
+            anyhow::ensure!(
+                argv[2..].iter().all(|arg| arg == "--staged" || arg == "--"),
+                "check [--staged]"
+            );
+        }
+        "feature-start" => {
+            let extra = argv[2..]
+                .strip_prefix(&["--".to_owned()])
+                .unwrap_or(&argv[2..]);
+            anyhow::ensure!(extra.len() == 1, "feature-start NAME");
+        }
+        "lint" | "lint-config-check" => {}
+        name => {
+            let extra = &argv[2..];
+            let extra = extra.strip_prefix(&["--".to_owned()]).unwrap_or(extra);
+            commands::argv(context, name, extra)?;
+        }
     }
     Ok(argv)
 }

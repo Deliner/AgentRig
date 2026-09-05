@@ -2,24 +2,28 @@
 
 ## Focus
 
-Implement the standalone portable scaffold plan in .tmp/scaffold-implementation-plan.md. One configurable Rust runtime serves independent Python and Rust projects. Adoption by this worker repository is not required. P001 remains unchanged.
+The user requested removal of duplicated runtimes and stale/conflicting repository context. Consolidation follows D020. P001 is paused for this maintenance priority; its acceptance is unchanged.
 
 ## Workspace
 
-Observed branch feature/portable-scaffold at 2ec5dfb, based on master 3278ea5. The first runtime change is committed. The current VAC completes Git/reminder verification, strengthens exact oracle binding and config validation, and supplies latency measurements. The local input plan remains in .tmp and is excluded through .git/info/exclude; it is not part of product history.
+Branch: feature/consolidate-runtime
+
+Revision: 152a53cc0892872694043800b05f7d438c8a87ae
+
+The revision above is the pre-change baseline; compare live Git before acting. This VAC replaces the Python administration runtime with configured Rust services and updates their consumers. The earlier standalone scaffold was already integrated; its local .tmp plan is reference material, not an active delivery instruction.
 
 ## Progress
 
-All eight implementation areas are present: typed project configuration; a shared command catalog and process executor; worktree/index gates; language-aware memory checks and read-only resume; configured hooks and Git operations; pinned-binary initialization and installation diagnostics; eleven bundled skills and five lint rules; standalone documentation and two independent example projects. Consumer integration tests now copy the shipped example sources and invoke installed Just recipes and real Git hooks. Oracle binding includes class/module scope and rejects ambiguous declarations. Rebase preserves merge history, conflicts remain recoverable, and failed gates preserve branch tips and work.
+worker.toml owns this repository's command catalog, gate, memory paths, hooks and oracles. Python policy implementations, legacy dispatch and the duplicated skill asset are removed. Canonical skills are packaged directly and exposed through .agents/skills. Memory templates and validation share their schema. Historical decision details remain unchanged; current links follow actual owners. Documentation routes to these sources, and Plan records the paused product feature without changing its acceptance.
 
 ## Verification
 
-38 focused scaffold tests passed, covering both language deliveries, unsupported language repair, staged history, exact/missing oracles, command isolation/signals, initialization and doctor failures, Git divergence/conflict/dirty work, configured reminder thresholds, retry and compaction. Installed skills passed quick_validate. The first implementation commit passed the full staged gate with 172 tests. Current VAC final staged gate and integration are pending; consult Git and command logs for subsequent results. The repeatable benchmark in tooling/worker/examples/measure.py produced examples/LATENCY.md: repeated edit hooks about 1.3 ms and small-source lint about 1.8 ms on this Linux machine, with first-process results and measurement limits documented.
+157 native behavioral tests passed, including independent Python/Rust delivery, Git preservation and blocked commits, staged checks, memory history, decorated oracle binding, language rules, hook guidance and partial/truncated transcript recovery. All 13 canonical skills passed quick_validate. Clippy, mypy and typos passed during focused verification. Installed example measurements were refreshed in tooling/worker/examples/LATENCY.md. The full staged and integration gates still run through the normal commit/merge workflow; read their actual results before claiming delivery.
 
 ## Blockers
 
-None. Product scope remains the portable scaffold; no daemon, scheduler, cloud state, dynamic plugin system or mandatory self-adoption was added. Final verification and integration must finish before declaring the active goal complete.
+None observed. Future context changes still require reconciliation with current configuration, decision precedence and Git; no static snapshot guarantees perpetual freshness.
 
 ## Next action
 
-Commit this verified VAC through the full staged gate, correct any failures, then run just feature-merge from the clean retained branch. After integration, verify Git status, merge parents, retained feature reference and final gate evidence against the standalone plan. If those observations confirm integration and all plan requirements remain satisfied, the scaffold task is complete; follow only a new authorized objective.
+If this VAC is uncommitted, inspect and commit the coherent staged change through the configured full gate, correcting failures. If committed on its clean feature branch, run just feature-merge and verify the retained branch and clean base. If Git already confirms that integration, this maintenance task is delivered; follow new authorized instructions rather than rerunning it or starting P001 automatically.

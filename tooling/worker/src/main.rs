@@ -1,4 +1,4 @@
-mod gate;
+// DECISION: D020
 mod hooks;
 mod lint;
 mod scaffold;
@@ -39,10 +39,7 @@ fn run() -> Result<i32> {
         std::fs::create_dir_all(&root)?;
     }
     let root = root.canonicalize()?;
-    if scaffold::owns(&command)
-        || (root.join("worker.toml").is_file()
-            && matches!(command.as_str(), "guard-commit" | "guard-reference"))
-    {
+    if scaffold::owns(&command) || matches!(command.as_str(), "guard-commit" | "guard-reference") {
         return scaffold::run(&root, &command, &args);
     }
     match command.as_str() {
@@ -71,7 +68,7 @@ fn run() -> Result<i32> {
                     let context = scaffold::config::Context::load(&root)?;
                     context.path(&context.config.paths.lint)?
                 }
-                None => root.join("tooling/worker/lint.toml"),
+                None => root.join("lint.toml"),
             };
             let json = args.iter().any(|arg| arg == "--json");
             if args.iter().any(|arg| arg != "--json") {
@@ -79,14 +76,9 @@ fn run() -> Result<i32> {
             }
             lint::run(&root, &config, json, command == "lint-config-check")
         }
-        "gate" => gate::run(&root, &args),
         "lint-rules" => {
             println!("{}", lint::rules::catalog());
             Ok(0)
-        }
-        "guard-commit" => hooks::git::guard_commit(&root),
-        "guard-reference" => {
-            hooks::git::guard_reference(&root, args.first().map(String::as_str).unwrap_or(""))
         }
         _ => bail!(
             "usage: discipline-worker hook|lint|lint-config-check|lint-rules|guard-commit|guard-reference [--root PATH]"

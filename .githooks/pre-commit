@@ -1,14 +1,13 @@
-#!/usr/bin/env bash
-
-# DECISION: D002
-# DECISION: D003
-# DECISION: D004
-# DECISION: D005
-# DECISION: D010
-# DECISION: D011
+#!/bin/sh
 # DECISION: D015
-
-set -euo pipefail
-root="$(git rev-parse --show-toplevel)"
+# DECISION: D011
+# DECISION: D010
+# DECISION: D005
+# DECISION: D004
+# DECISION: D003
+# DECISION: D002
+# DECISION: D020
+set -eu
+root=$(git rev-parse --show-toplevel)
 "$root/tooling/worker/run" guard-commit --root "$root"
-exec "$root/tooling/check.sh" --staged
+exec "$root/tooling/worker/run" check --root "$root" --staged

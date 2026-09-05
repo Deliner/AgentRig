@@ -1,67 +1,57 @@
 set positional-arguments := true
 
-runner := "python3 tooling/command_runner.py"
-
-# What: list agent commands; Why: make the command surface discoverable by default.
-default:
-    @{{runner}} run default
-
-# What: list agent commands; Why: let agents inspect the allowed command surface explicitly.
+# What: invoke list; Why: use the configured native runtime.
 list:
-    @{{runner}} run list
+    @tooling/worker/run commands
 
-# What: run arbitrary argv in a read-only sandbox; Why: permit safe repository inspection.
+# What: invoke run; Why: use the configured native runtime.
+run *args:
+    @tooling/worker/run run "$@"
+
+# What: invoke read; Why: use the configured native runtime.
 read *args:
-    @{{runner}} run read "$@"
+    @tooling/worker/run run read "$@"
 
-# What: run arbitrary argv with normal repository access; Why: make mutations explicit.
+# What: invoke write; Why: use the configured native runtime.
 write *args:
-    @{{runner}} run write "$@"
+    @tooling/worker/run run write "$@"
 
-# What: show concise Git status; Why: reveal pending changes without unrelated detail.
-status:
-    @{{runner}} run status
-
-# What: show a Git diff; Why: support focused review of repository changes.
-diff *args:
-    @{{runner}} run diff "$@"
-
-# What: run the complete repository gate; Why: verify the current working tree.
-check:
-    @{{runner}} run check
-
-# What: run the gate against the staged tree; Why: verify exactly what a commit will contain.
-check-staged:
-    @{{runner}} run check-staged
-
-# What: run pytest; Why: support focused behavioral verification.
+# What: invoke test; Why: use the configured native runtime.
 test *args:
-    @{{runner}} run test "$@"
+    @tooling/worker/run run test "$@"
 
-# What: create a feature branch from master; Why: keep direct development commits off master.
-feature-start *args:
-    @{{runner}} run feature-start "$@"
+# What: invoke check; Why: use the configured native runtime.
+check *args:
+    @tooling/worker/run check "$@"
 
-# What: rebase, verify, and merge the current feature; Why: integrate against current master without deleting feature history.
-feature-merge:
-    @{{runner}} run feature-merge
+# What: invoke config-check; Why: use the configured native runtime.
+config-check:
+    @tooling/worker/run config-check
 
-# What: report command usage; Why: expose evidence for command-surface maintenance.
+# What: invoke resume; Why: use the configured native runtime.
+resume:
+    @tooling/worker/run resume
+
+# What: invoke report; Why: use the configured native runtime.
 report:
-    @{{runner}} run report
+    @tooling/worker/run report
 
-# What: reset the command-review baseline; Why: acknowledge an evidence-based command review.
-review-commands:
-    @{{runner}} run review-commands
-
-# What: run configured structural lint; Why: report actionable rule and skill diagnostics.
+# What: invoke lint; Why: use the configured native runtime.
 lint *args:
-    @{{runner}} run lint "$@"
+    @tooling/worker/run lint "$@"
 
-# What: list structural rule capabilities; Why: configure supported targets and languages.
+# What: invoke lint-rules; Why: use the configured native runtime.
 lint-rules:
-    @{{runner}} run lint-rules
+    @tooling/worker/run lint-rules
 
-# What: validate lint configuration and applicability; Why: reject invalid rules without analyzing source.
+# What: invoke lint-config-check; Why: use the configured native runtime.
 lint-config-check *args:
-    @{{runner}} run lint-config-check "$@"
+    @tooling/worker/run lint-config-check "$@"
+
+# What: invoke feature-start; Why: use the configured native runtime.
+feature-start *args:
+    @tooling/worker/run feature-start "$@"
+
+# What: invoke feature-merge; Why: use the configured native runtime.
+feature-merge:
+    @tooling/worker/run feature-merge

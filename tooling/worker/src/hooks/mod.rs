@@ -1,3 +1,9 @@
+// DECISION: D020
+// DECISION: D015
+// DECISION: D014
+// DECISION: D013
+// DECISION: D011
+// DECISION: D003
 // DECISION: D019
 pub mod git;
 mod guard;
@@ -9,13 +15,6 @@ use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, path::Path};
 
-// DECISION: D015
-const SKILLS: [(&str, &str); 4] = [
-    ("Plan", "edit-plan"),
-    ("Decisions", "edit-decisions"),
-    ("Invariants", "edit-invariants"),
-    ("State", "edit-state"),
-];
 pub fn context(event: &str, message: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
 }
@@ -53,52 +52,14 @@ fn paths(event: &Value) -> Vec<String> {
     }
     paths
 }
-fn guidance(root: &Path, event: &Value, all: bool) -> String {
-    let mut names = BTreeSet::new();
-    let cwd = root.join(text(event, "cwd"));
-    for path in paths(event) {
-        if let Ok(path) = resolve(&cwd.join(path))
-            && let Ok(path) = path.strip_prefix(root)
-        {
-            for (ledger, skill) in SKILLS {
-                if path == Path::new(&format!("Ledger/{ledger}.md"))
-                    || (ledger != "State"
-                        && path.starts_with(format!("Ledger/{ledger}"))
-                        && path.extension().is_some_and(|ext| ext == "md"))
-                {
-                    names.insert(skill);
-                }
-            }
-        }
-    }
-    SKILLS
-        .iter()
-        .filter(|(_, skill)| all || names.contains(skill))
-        .map(|(_, skill)| {
-            format!(
-                "Before editing the corresponding Ledger file, read and apply {}.",
-                root.join(format!(".agents/skills/{skill}/SKILL.md"))
-                    .display()
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n")
-}
 pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     if !event.is_object() {
         bail!("expected a hook event object");
     }
-    let configured = if root.join(crate::scaffold::config::FILE).is_file() {
-        Some(crate::scaffold::config::Context::load(root)?)
-    } else {
-        None
-    };
+    let configured = crate::scaffold::config::Context::load(root)?;
     if text(event, "hook_event_name") == "SessionStart" {
-        let memory = configured
-            .as_ref()
-            .map(|ctx| ctx.config.paths.memory.as_str())
-            .unwrap_or("Ledger");
-        let full = portable_full(configured.as_ref());
+        let memory = &configured.config.paths.memory;
+        let full = full_refresh(&configured);
         let message = format!(
             "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
             root.join(memory).join("State.md").display(),
@@ -106,17 +67,9 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
             full
         );
         let directory = configured
-            .as_ref()
-            .map(|ctx| {
-                ctx.path(&ctx.config.paths.runtime)
-                    .map(|p| p.join("reminders"))
-            })
-            .transpose()?;
-        let started = if configured.is_some() {
-            reminder::start_at(event, directory.as_deref())
-        } else {
-            reminder::start(event)
-        };
+            .path(&configured.config.paths.runtime)?
+            .join("reminders");
+        let started = reminder::start_at(event, &directory);
         if let Err(error) = started {
             eprintln!("session reminder state: {error}");
         }
@@ -127,27 +80,27 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     }
     let tool = text(event, "tool_name");
     if ["Bash", "Shell", "exec_command"].contains(&tool) {
-        let validated = match &configured {
-            Some(context) => guard::arguments(guard::command(event))
-                .and_then(|args| crate::scaffold::hook_commands(context, args)),
-            None => guard::validate(root, guard::command(event)),
-        };
+        let validated = guard::arguments(guard::command(event))
+            .and_then(|args| crate::scaffold::hook_commands(&configured, args));
         let argv = match validated {
             Ok(args) => args,
             Err(error) => return Ok(Some(deny(&error.to_string()))),
         };
-        let opaque = if configured.is_some() {
-            argv.get(1).is_some_and(|arg| arg == "run")
-        } else {
-            argv.get(1).is_some_and(|arg| arg == "write")
-        };
-        let edit_guidance = portable_guidance(root, event, true, configured.as_ref())?;
+        let opaque = argv.get(1).is_some_and(|arg| {
+            arg == "run"
+                || configured
+                    .config
+                    .commands
+                    .get(arg)
+                    .is_some_and(|command| !command.read_only)
+        });
+        let guidance = edit_guidance(root, event, true, &configured)?;
         return Ok(if opaque {
             Some(context(
                 "PreToolUse",
                 &format!(
                     "Shell write targets are opaque. If this command changes project memory, apply only the matching editing skill before the write:\n{}",
-                    edit_guidance
+                    guidance
                 ),
             ))
         } else {
@@ -157,26 +110,20 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     if !["apply_patch", "Edit", "Write"].contains(&tool) {
         return Ok(None);
     }
-    let message = portable_guidance(root, event, false, configured.as_ref())?;
-    let reminder = if let Some(context) = &configured {
-        match &context.config.hooks.reminder {
-            Some(path) => reminder::before_at(
-                event,
-                &crate::util::object(&context.path(path)?),
-                Some(
-                    &context
-                        .path(&context.config.paths.runtime)?
-                        .join("reminders"),
-                ),
-            ),
-            None => Ok(None),
-        }
-    } else {
-        reminder::before(root, event)
+    let message = edit_guidance(root, event, false, &configured)?;
+    let reminder = match &configured.config.hooks.reminder {
+        Some(path) => reminder::before_at(
+            event,
+            &crate::util::object(&configured.path(path)?),
+            &configured
+                .path(&configured.config.paths.runtime)?
+                .join("reminders"),
+        ),
+        None => Ok(None),
     };
     match reminder {
         Ok(Some(mut reason)) => {
-            reason = reason.replace(reminder::FULL, &portable_full(configured.as_ref()));
+            reason = reason.replace(reminder::FULL, &full_refresh(&configured));
             if !message.is_empty() {
                 reason.push_str(&format!("\n\n{message}"));
             }
@@ -192,31 +139,26 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     })
 }
 
-fn portable_full(context: Option<&crate::scaffold::config::Context>) -> String {
-    match context.and_then(|ctx| {
-        ctx.config
-            .hooks
-            .discipline_skill
-            .as_ref()
-            .map(|skill| ctx.root.join(skill))
-    }) {
-        Some(path) => reminder::FULL.replace(
-            ".agents/skills/complexity-discipline/SKILL.md",
-            &path.to_string_lossy(),
-        ),
-        None if context.is_some() => String::new(),
-        None => reminder::FULL.into(),
-    }
+fn full_refresh(context: &crate::scaffold::config::Context) -> String {
+    context
+        .config
+        .hooks
+        .discipline_skill
+        .as_ref()
+        .map(|skill| {
+            reminder::FULL.replace(
+                "{discipline_skill}",
+                &context.root.join(skill).to_string_lossy(),
+            )
+        })
+        .unwrap_or_default()
 }
-fn portable_guidance(
+fn edit_guidance(
     root: &Path,
     event: &Value,
     all: bool,
-    context: Option<&crate::scaffold::config::Context>,
+    context: &crate::scaffold::config::Context,
 ) -> Result<String> {
-    let Some(context) = context else {
-        return Ok(guidance(root, event, all));
-    };
     let cwd = root.join(text(event, "cwd"));
     let paths: Vec<_> = paths(event)
         .iter()

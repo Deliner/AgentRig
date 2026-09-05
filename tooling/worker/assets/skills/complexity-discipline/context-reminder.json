@@ -1,0 +1,4 @@
+{
+  "attention_interval_tokens": 35000,
+  "full_refresh_interval_tokens": 140000
+}

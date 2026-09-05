@@ -6,14 +6,7 @@ import sys
 from pathlib import Path
 
 import pytest
-from support import invoke
-
-
-def git(root: Path, *args: str, success: bool = True) -> subprocess.CompletedProcess[str]:
-    result = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
-    if success:
-        assert result.returncode == 0, result.stdout + result.stderr
-    return result
+from support import git, invoke
 
 
 @pytest.mark.parametrize(
@@ -23,6 +16,7 @@ def git(root: Path, *args: str, success: bool = True) -> subprocess.CompletedPro
         ("rust", "release", "change/", "crates/engine", "knowledge", "policies"),
     ],
 )
+# INVARIANT: I002
 def test_independent_project_delivery(
     worker: Path,
     tmp_path: Path,
@@ -145,6 +139,16 @@ def test_independent_project_delivery(
         result = invoke(binary, tmp_path, "memory-check")
         assert result.returncode == 2
         assert "ambiguous" in result.stderr
+        test_path.write_text(valid_source)
+    if language == "python":
+        decorator = '@pytest.mark.parametrize("unused", [1, 2])'
+        parameterized = "import pytest\n" + valid_source.replace(
+            "def test_doubles()", "def test_doubles(unused)"
+        )
+        for replacement in [marker + "\n" + decorator, decorator + "\n" + marker]:
+            test_path.write_text(parameterized.replace(marker, replacement))
+            result = invoke(binary, tmp_path, "memory-check")
+            assert result.returncode == 0, result.stderr
         test_path.write_text(valid_source)
     valid_config = config.read_text()
     missing_target = oracle.replace("::", "::Missing::", 1)

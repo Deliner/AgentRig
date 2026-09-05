@@ -1,15 +1,19 @@
+# DECISION: D014
+# DECISION: D012
+# DECISION: D011
+# DECISION: D010
+# DECISION: D003
 import json
 import subprocess
 from pathlib import Path
 
 import pytest
+from support import git as git_result
 from support import invoke
 
 
 def git(root: Path, *args: str) -> str:
-    result = subprocess.run(["git", *args], cwd=root, capture_output=True, text=True, check=False)
-    assert result.returncode == 0, result.stdout + result.stderr
-    return result.stdout.strip()
+    return git_result(root, *args).stdout.strip()
 
 
 def commit(root: Path, name: str, text: str) -> None:
@@ -38,8 +42,13 @@ def installed(worker: Path, tmp_path: Path) -> Path:
     return tmp_path
 
 
+# INVARIANT: I010
 def test_divergent_rebase_preserves_merge_history(worker: Path, installed: Path) -> None:
     root = installed
+    base_before = git(root, "rev-parse", "HEAD")
+    denied = git_result(root, "commit", "--allow-empty", "-qm", "direct base commit", success=False)
+    assert denied.returncode != 0
+    assert git(root, "rev-parse", "HEAD") == base_before
     assert invoke(worker, root, "feature-start", "product").returncode == 0
     commit(root, "product.txt", "product")
     git(root, "switch", "-c", "task/product-side")
@@ -110,3 +119,30 @@ def test_gate_failure_and_dirty_workspace_preserve_branches(
     assert "working tree must be clean" in result.stderr
     assert (root / "product.txt").read_text() == "uncommitted"
     assert git(root, "rev-parse", "HEAD") == feature
+
+
+# INVARIANT: I006
+def test_staged_commit_preserves_unstaged_work(
+    worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = installed
+    assert invoke(worker, root, "feature-start", "atomic").returncode == 0
+    before = git(root, "rev-parse", "HEAD")
+    source = root / "product.txt"
+    source.write_text("staged")
+    git(root, "add", "product.txt")
+    source.write_text("later unstaged work")
+    unrelated = root / "unrelated.txt"
+    unrelated.write_text("user work")
+    monkeypatch.setenv("BLOCK_DELIVERY", "1")
+    result = subprocess.run(
+        ["git", "commit", "-qm", "blocked"], cwd=root, capture_output=True, check=False
+    )
+    assert result.returncode != 0
+    assert git(root, "rev-parse", "HEAD") == before
+    monkeypatch.delenv("BLOCK_DELIVERY")
+    git(root, "commit", "-qm", "verified index")
+    assert git(root, "show", "HEAD:product.txt") == "staged"
+    assert source.read_text() == "later unstaged work"
+    assert "unrelated.txt" not in git(root, "ls-tree", "--name-only", "HEAD").splitlines()
+    assert unrelated.read_text() == "user work"

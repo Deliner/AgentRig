@@ -1,6 +1,7 @@
+// DECISION: D005
 use anyhow::{Result, bail};
 use serde_json::Value;
-use std::{fs, path::Path};
+use std::path::Path;
 
 // DECISION: D015
 fn outer_control(command: &str) -> bool {
@@ -44,16 +45,7 @@ pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
         .and_then(|arg| Path::new(arg).file_name())
         .is_none_or(|name| name != "just")
     {
-        bail!("Direct shell commands are disabled; use a recipe from just list.");
-    }
-    Ok(argv)
-}
-pub fn validate(root: &Path, command: Option<&str>) -> Result<Vec<String>> {
-    let argv = arguments(command)?;
-    let catalog: Value =
-        serde_json::from_slice(&fs::read(root.join("tooling/command_catalog.json"))?)?;
-    if argv.len() > 1 && (argv[1].starts_with('-') || catalog.get(&argv[1]).is_none()) {
-        bail!("Unknown or bypassing Just invocation; use just list.");
+        bail!("Direct shell commands are disabled; use a recipe from just --list.");
     }
     Ok(argv)
 }

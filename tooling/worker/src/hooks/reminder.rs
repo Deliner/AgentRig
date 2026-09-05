@@ -1,11 +1,11 @@
+// DECISION: D006
 use super::transcript;
 use crate::util::{object, text};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use fs2::FileExt;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    env,
     fs::{self, File, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
@@ -17,24 +17,9 @@ const ATTENTION: &str = include_str!("attention.txt");
 fn hash(value: &str) -> String {
     format!("{:x}", Sha256::digest(value.as_bytes()))
 }
-fn state_path(event: &Value, directory: Option<&Path>) -> Result<(File, PathBuf)> {
-    let root = if let Some(path) = directory {
-        path.to_owned()
-    } else if let Ok(value) = env::var("COMPLEXITY_DISCIPLINE_STATE_DIR") {
-        PathBuf::from(value)
-    } else {
-        let home = env::var("HOME")?;
-        let base = env::var("XDG_STATE_HOME").unwrap_or(format!("{home}/.local/state"));
-        let cwd = if text(event, "cwd").is_empty() {
-            env::current_dir()?.to_string_lossy().into_owned()
-        } else {
-            text(event, "cwd").into()
-        };
-        PathBuf::from(base)
-            .join("codex/complexity-discipline")
-            .join(hash(&cwd))
-    };
-    fs::create_dir_all(&root)?;
+fn state_path(event: &Value, directory: &Path) -> Result<(File, PathBuf)> {
+    let root = directory;
+    fs::create_dir_all(root)?;
     let session = ["session_id", "transcript_path"]
         .iter()
         .map(|key| text(event, key))
@@ -55,10 +40,7 @@ fn save(path: &Path, state: &Value) -> Result<()> {
     temporary.persist(path)?;
     Ok(())
 }
-pub fn start(event: &Value) -> Result<()> {
-    start_at(event, None)
-}
-pub fn start_at(event: &Value, directory: Option<&Path>) -> Result<()> {
+pub fn start_at(event: &Value, directory: &Path) -> Result<()> {
     let transcript = text(event, "transcript_path");
     let (tokens, offset) = transcript::tokens(Path::new(transcript), 0).unwrap_or_default();
     let baseline = tokens.last().copied().unwrap_or(0);
@@ -69,31 +51,17 @@ pub fn start_at(event: &Value, directory: Option<&Path>) -> Result<()> {
         "baseline_tokens": baseline, "latest_tokens": baseline, "allow_next_edit": false}),
     )
 }
-pub fn before(root: &Path, event: &Value) -> Result<Option<String>> {
-    let config = object(&root.join(".agents/skills/complexity-discipline/context-reminder.json"));
-    before_at(event, &config, None)
-}
-pub fn before_at(
-    event: &Value,
-    config: &Value,
-    directory: Option<&Path>,
-) -> Result<Option<String>> {
+pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Option<String>> {
     let transcript = text(event, "transcript_path");
     if transcript.is_empty() {
         return Ok(None);
     }
-    let mut attention = config["attention_interval_tokens"]
+    let attention = config["attention_interval_tokens"]
         .as_u64()
-        .filter(|n| *n > 0)
-        .unwrap_or(35_000);
-    let mut full = config["full_refresh_interval_tokens"]
+        .context("attention interval missing")?;
+    let full = config["full_refresh_interval_tokens"]
         .as_u64()
-        .filter(|n| *n > attention)
-        .unwrap_or(140_000);
-    if full <= attention {
-        attention = 35_000;
-        full = 140_000;
-    }
+        .context("full refresh interval missing")?;
     let message = config["attention_message"]
         .as_str()
         .filter(|s| !s.trim().is_empty())
