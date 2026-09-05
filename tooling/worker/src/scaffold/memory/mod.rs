@@ -192,8 +192,8 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         ensure!(
-            source.marked_function(&name, &row.id),
-            "{}: marked oracle function {name} missing",
+            source.marked_function(&oracles::function_target(context, &row.id)?, &row.id),
+            "{}: marked oracle function {name} missing or ambiguous",
             row.id
         );
         oracles::validate(context, &row.id, &name, &path)?;

@@ -36,6 +36,10 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
         ("read_only = true", 'read_only = "true"'),
         ("accepts_args = true", "accept_arg = true"),
         ('skills = "guides"', 'skills = "/outside"'),
+        ('base = "trunk"', 'base = "bad branch"'),
+        ('base = "trunk"', 'base = "topic.lock"'),
+        ('prefix = "task/"', 'prefix = "trunk"'),
+        ('prefix = "task/"', 'prefix = "task//"'),
     ],
 )
 def test_configuration_errors(worker: Path, tmp_path: Path, old: str, new: str) -> None:

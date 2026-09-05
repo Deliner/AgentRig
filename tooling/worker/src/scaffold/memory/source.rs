@@ -8,7 +8,7 @@ use tree_sitter::Node;
 
 pub struct Source {
     pub comments: HashSet<String>,
-    pub functions: HashMap<String, HashSet<String>>,
+    pub functions: HashMap<String, Vec<HashSet<String>>>,
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let source = fs::read_to_string(path)?;
@@ -36,9 +36,9 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
                 if let Some(name) = node.child_by_field_name("name") {
                     result
                         .functions
-                        .entry(source[name.byte_range()].to_owned())
+                        .entry(qualified_name(node, &source, name))
                         .or_default()
-                        .extend(preceding_markers(node, &source));
+                        .push(preceding_markers(node, &source));
                 }
             }
             _ => {}
@@ -50,9 +50,10 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
 }
 impl Source {
     pub fn marked_function(&self, name: &str, id: &str) -> bool {
-        self.functions.get(name).is_some_and(|markers| {
-            markers.contains(&format!("# INVARIANT: {id}"))
-                || markers.contains(&format!("// INVARIANT: {id}"))
+        self.functions.get(name).is_some_and(|functions| {
+            functions.len() == 1
+                && (functions[0].contains(&format!("# INVARIANT: {id}"))
+                    || functions[0].contains(&format!("// INVARIANT: {id}")))
         })
     }
     pub fn marker(&self, kind: &str, id: &str) -> bool {
@@ -86,4 +87,21 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
         node = previous;
     }
     markers
+}
+
+fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
+    let mut parts = vec![source[name.byte_range()].to_owned()];
+    let mut parent = node.parent();
+    while let Some(node) = parent {
+        if matches!(
+            node.kind(),
+            "mod_item" | "class_definition" | "function_definition" | "function_item"
+        ) && let Some(name) = node.child_by_field_name("name")
+        {
+            parts.push(source[name.byte_range()].to_owned());
+        }
+        parent = node.parent();
+    }
+    parts.reverse();
+    parts.join("::")
 }

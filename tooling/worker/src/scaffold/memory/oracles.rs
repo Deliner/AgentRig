@@ -71,3 +71,20 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
     );
     Ok(())
 }
+
+pub fn function_target(context: &Context, id: &str) -> Result<String> {
+    let oracle = context
+        .config
+        .oracles
+        .get(id)
+        .with_context(|| format!("{id}: configure a test oracle"))?;
+    let target = oracle.target.split('[').next().unwrap_or("");
+    Ok(match oracle.runner {
+        Runner::Cargo => target.to_owned(),
+        Runner::Pytest => target
+            .split_once("::")
+            .map(|(_, function)| function)
+            .unwrap_or("")
+            .to_owned(),
+    })
+}

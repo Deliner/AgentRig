@@ -179,12 +179,14 @@ impl Config {
         );
         globs(&self.paths.sources).context("paths.sources")?;
         ensure!(
-            !self.git.base.trim().is_empty() && !self.git.base.starts_with('-'),
-            "git.base must name a branch"
+            branch_name(&self.git.base),
+            "git.base must name a valid branch"
         );
         ensure!(
-            !self.git.prefix.is_empty() && !self.git.prefix.starts_with('-'),
-            "git.prefix must be nonempty"
+            !self.git.prefix.is_empty()
+                && branch_name(&format!("{}example", self.git.prefix))
+                && !self.git.base.starts_with(&self.git.prefix),
+            "git.prefix must form valid branches distinct from git.base"
         );
         for (id, command) in &self.commands {
             ensure!(name(id), "commands.{id}: invalid command name");
@@ -248,6 +250,26 @@ impl Config {
             let source = fs::read_to_string(relative(root, path)?).context("hooks.reminder")?;
             let value: serde_json::Value =
                 serde_json::from_str(&source).context("hooks.reminder JSON")?;
+            let fields = value
+                .as_object()
+                .context("hooks.reminder must be an object")?;
+            for field in fields.keys() {
+                ensure!(
+                    [
+                        "attention_interval_tokens",
+                        "full_refresh_interval_tokens",
+                        "attention_message"
+                    ]
+                    .contains(&field.as_str()),
+                    "hooks.reminder: unknown field {field}"
+                );
+            }
+            if let Some(message) = fields.get("attention_message") {
+                ensure!(
+                    message.as_str().is_some_and(|text| !text.trim().is_empty()),
+                    "hooks.reminder.attention_message must be a nonempty string"
+                );
+            }
             let attention = value["attention_interval_tokens"]
                 .as_u64()
                 .context("hooks.reminder.attention_interval_tokens")?;
@@ -278,4 +300,19 @@ impl Config {
             .context("paths.lint")?;
         Ok(())
     }
+}
+
+fn branch_name(value: &str) -> bool {
+    !value.is_empty()
+        && value != "HEAD"
+        && !value.starts_with('-')
+        && !value.ends_with('.')
+        && !value.contains("..")
+        && !value.contains("@{")
+        && !value
+            .bytes()
+            .any(|byte| byte <= 32 || byte == 127 || b"~^:?*[\\".contains(&byte))
+        && value
+            .split('/')
+            .all(|part| !part.is_empty() && !part.starts_with('.') && !part.ends_with(".lock"))
 }

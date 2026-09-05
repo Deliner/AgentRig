@@ -1,5 +1,6 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -62,21 +63,14 @@ def test_independent_project_delivery(
     binary = tmp_path / ".worker/bin/discipline-worker"
     assert binary.read_bytes() == worker.read_bytes()
     source_dir = tmp_path / source
-    source_dir.mkdir(parents=True)
+    example = Path(__file__).parents[3] / "worker/examples" / language / source
+    shutil.copytree(
+        example, source_dir, ignore=shutil.ignore_patterns("target", "__pycache__", ".pytest_cache")
+    )
     if language == "python":
-        (source_dir / "test_sample.py").write_text(
-            "# INVARIANT: I001\ndef test_doubles():\n    assert 2 * 2 == 4\n"
-        )
         oracle = f"{source}/test_sample.py::test_doubles"
         function, link = "test_doubles", f"../{source}/test_sample.py"
     else:
-        (source_dir / "Cargo.toml").write_text(
-            '[package]\nname = "portable-example"\nversion = "0.1.0"\nedition = "2024"\n'
-        )
-        (source_dir / "src").mkdir()
-        (source_dir / "src/lib.rs").write_text(
-            "#[cfg(test)]\nmod tests {\n    #[test]\n    // INVARIANT: I001\n    fn doubles() { assert_eq!(2 * 2, 4); }\n}\n"
-        )
         oracle = "tests::doubles"
         function, link = "doubles", f"../{source}/src/lib.rs"
     config = tmp_path / "worker.toml"
@@ -118,6 +112,11 @@ def test_independent_project_delivery(
     )
     assert invoke(binary, tmp_path, "config-check").returncode == 0
     assert invoke(binary, tmp_path, "run", "test").returncode == 0
+    for args in [["config-check"], ["run", "test"]]:
+        result = subprocess.run(
+            ["just", *args], cwd=tmp_path, text=True, capture_output=True, check=False
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
     test_path = source_dir / ("test_sample.py" if language == "python" else "src/lib.rs")
     valid_source = test_path.read_text()
     marker = "# INVARIANT: I001" if language == "python" else "// INVARIANT: I001"
@@ -130,14 +129,40 @@ def test_independent_project_delivery(
     result = invoke(binary, tmp_path, "memory-check")
     assert result.returncode == 2
     assert "marked oracle function" in result.stderr
+    if language == "python":
+        same_name = (
+            "class Other:\n    # INVARIANT: I001\n    def test_doubles(self):\n        pass\n"
+        )
+    else:
+        same_name = "mod other {\n    // INVARIANT: I001\n    fn doubles() {}\n}\n"
+    test_path.write_text(same_name + valid_source.replace(marker, ""))
+    result = invoke(binary, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert "marked oracle function" in result.stderr
     test_path.write_text(valid_source)
+    if language == "python":
+        test_path.write_text(valid_source + "\ndef test_doubles():\n    pass\n")
+        result = invoke(binary, tmp_path, "memory-check")
+        assert result.returncode == 2
+        assert "ambiguous" in result.stderr
+        test_path.write_text(valid_source)
     valid_config = config.read_text()
     missing_target = oracle.replace("::", "::Missing::", 1)
     config.write_text(valid_config.replace(f'target = "{oracle}"', f'target = "{missing_target}"'))
     result = invoke(binary, tmp_path, "memory-check")
     assert result.returncode == 2
-    assert "test discovery failed" in result.stderr or "was not discovered" in result.stderr
+    assert "marked oracle function" in result.stderr
     config.write_text(valid_config)
+    undiscoverable = (
+        "__test__ = False\n" + valid_source
+        if language == "python"
+        else valid_source.replace("#[test]", "")
+    )
+    test_path.write_text(undiscoverable)
+    result = invoke(binary, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert "test discovery failed" in result.stderr or "was not discovered" in result.stderr
+    test_path.write_text(valid_source)
     records = [
         json.loads(line)
         for line in (tmp_path / ".worker/runtime/commands.jsonl").read_text().splitlines()
@@ -161,10 +186,14 @@ def test_independent_project_delivery(
     hook["tool_input"] = {"cmd": "just run test"}
     assert "deny" not in invoke(binary, tmp_path, "hook", input=json.dumps(hook)).stdout
     git(tmp_path, "add", ".")
-    result = invoke(binary, tmp_path, "check", "--staged")
+    result = subprocess.run(
+        ["just", "check", "--staged"], cwd=tmp_path, text=True, capture_output=True, check=False
+    )
     assert result.returncode == 0, result.stdout + result.stderr
     git(tmp_path, "commit", "-qm", "attach scaffold")
-    result = invoke(binary, tmp_path, "feature-merge")
+    result = subprocess.run(
+        ["just", "feature-merge"], cwd=tmp_path, text=True, capture_output=True, check=False
+    )
     assert result.returncode == 0, result.stdout + result.stderr
     assert git(tmp_path, "branch", "--show-current").stdout.strip() == base
     assert git(tmp_path, "branch", "-D", prefix + "bootstrap", success=False).returncode != 0

@@ -37,7 +37,7 @@ Warnings do not fail lint; blocking findings exit 1 and configuration failures e
 
 Lint keeps its existing TOML schema and compiled Rust/Python handlers; [rule semantics](README.md#rules-and-languages) describe counting, selectors and parser limits. The installed template supplies all five rules and focused repair skills. Unsupported selected languages are configuration errors, not silently ignored files. Numeric warning/error limits and named-condition severity are editable project policy.
 
-Read-only commands require functioning Linux bubblewrap. Worker does not fall back to unrestricted execution when isolation is unavailable. Command records are append-only JSONL in `paths.runtime`; they describe process results, not task lifecycle. Staged checks run in a disposable exported tree, so their transient logs are disposable too.
+Read-only commands require functioning Linux bubblewrap. Worker does not fall back to unrestricted execution when isolation is unavailable. Command records are append-only JSONL in `paths.runtime`; they describe process results, not task lifecycle. Staged checks run in a disposable exported tree, so their transient logs are disposable too. If you relocate `paths.runtime`, add the new directory to the consumer Git ignore rules; initialization supplies an ignore rule for the default location.
 
 ## Memory and recovery
 
@@ -47,7 +47,7 @@ Plan rows contain ID, Status, Depends on, Feature and User capability. Status is
 
 Decision rows contain ID, Decision and Applies in. Details contain Context, Chosen, Rejected, Rationale and Consequences. Supported source application links need a real `DECISION: DNNN` comment. Committed identities, details and existing application links are preserved; superseding a choice adds a new decision. No exceptions from the worker repository's decision history are imported.
 
-Invariant rows contain ID, Invariant and Enforced by. Details contain Predicate and Oracle. The enforcement link names a function in a Rust/Python source file, with its `INVARIANT: INNN` comment before the function (attributes/decorators may intervene). Its configured oracle must name that function and be discoverable by the actual test runner. Unsupported source languages are reported explicitly.
+Invariant rows contain ID, Invariant and Enforced by. Details contain Predicate and Oracle. The enforcement link names a function in a Rust/Python source file, with its `INVARIANT: INNN` comment before the function (attributes/decorators may intervene). Its configured oracle must name that function, including its class/module scope, and be discoverable by the actual test runner. Multiple declarations of that qualified name are ambiguous to syntax-only linking and are reported rather than treated as one marked target. Unsupported source languages are reported explicitly.
 
 `resume` compares explicit `Branch: ` and `Revision: ` claims, optionally wrapped in backticks, with Git. It reports current, stale or unverified snapshot status. It does not infer completed acceptance, select a new feature, or overwrite State. The agent reconciles the snapshot with live evidence and current instructions.
 

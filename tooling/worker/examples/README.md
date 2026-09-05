@@ -74,3 +74,5 @@ target = "tests::doubles"
 Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery alone does not verify the predicate.
 
 The native scaffold integration tests exercise both installations with their own source/memory/skills paths, branch names, severity settings and oracles. They also reject an unsupported shell-language selector, repair it through configuration, exercise real Git hooks, and show that an unrelated source marker or missing test target cannot validate an invariant.
+
+See [observed latency](LATENCY.md) for first-process and repeated-process measurements and the reproducible measurement command.
