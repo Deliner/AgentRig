@@ -21,7 +21,7 @@ pub fn run(context: &Context) -> Result<()> {
         "git": {"branch": branch, "revision": revision, "status": status,
             "merge_in_progress": operation(context, "MERGE_HEAD"),
             "rebase_in_progress": operation(context, "rebase-merge") || operation(context, "rebase-apply")},
-        "snapshot": snapshot, "state_revision": recorded, "checks": evidence::resume(context)})
+        "snapshot": snapshot, "state_revision": recorded, "upgrade": crate::scaffold::upgrade::recovery::journal(&context.root)?, "checks": evidence::resume(context)})
     );
     Ok(())
 }

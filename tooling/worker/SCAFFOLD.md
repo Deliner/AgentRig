@@ -2,7 +2,9 @@
 
 The portable entry point is `worker.toml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
-A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. Updates and automatic migrations are outside this version.
+A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
+
+New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
 ## Commands
 
@@ -58,3 +60,46 @@ The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, i
 `report` shows consecutive failures of a check and its presented skill and retry command. Counts reset on success or when that check is absent from the previous attempt; they describe check attempts, not identical errors or proof of reading guidance. If an applied skill fails to help with the same concrete error, use the repair skill to correct the canonical instruction or diagnostic and verify the actual failed scenario. VAC intent and observed verification belong in context and commit descriptions; there is no manager, scheduler or extra checkpoint.
 
 The four editing skills and one route handler provide pre-edit guidance. Complexity reminders retain session/compaction accounting and retry behavior using the configured schedule. The worker repository uses the same runtime; its worker.toml supplies repository-specific paths, commands and oracles. Canonical skills live in assets/skills, are embedded at build time, and are exposed to this repository through .agents/skills.
+
+
+## Upgrades
+
+The 0.2.0 executable can prepare the explicit 0.1.0 → 0.2.0 transition:
+`/path/to/new/discipline-worker upgrade plan /path/to/new/discipline-worker --root PROJECT`.
+The release argument is a local executable. Its existing `init` exports stock
+content into a temporary directory using the project's memory and skill paths.
+A 0.1.0 installation without a receipt reconstructs its stock baseline using
+its installed executable; the plan identifies that origin.
+
+The command writes `plan.json`, `diff.txt` and checksummed before/after blobs
+under the configured runtime directory's `upgrade/plan-*` directory. It shows
+local conflicts and the required config-check, doctor and project check steps.
+Settings and memory stay intact; the runtime pin changes while TOML comments
+are preserved. Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
+`"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
+plan fields intact. Kept local contents are recorded separately from stock
+checksums in the new receipt. Doctor accepts explicitly kept Git adapter hashes
+while still checking executable permissions and registration; later unreviewed
+adapter changes fail diagnosis.
+
+Apply with `/path/to/new/discipline-worker upgrade apply /path/to/plan.json --root PROJECT`.
+Files must still match their reviewed paths, bytes and modes. Before changing
+them, apply freezes the resolved plan and copies verified preimages into
+`upgrade/operation`. Atomic writes update `journal.json` after each completed
+step. Configuration validation, installation diagnosis and the full configured
+project check must pass before the operation is marked applied. A failed check
+leaves a resumable operation: fix the project and repeat the same apply command.
+
+Use `/path/to/new/discipline-worker upgrade rollback --root PROJECT` to restore
+previous files. Repeating rollback continues an interrupted restoration. It
+refuses to overwrite subsequent user edits; preserve or resolve those edits
+before retrying. A new apply after rollback retains the earlier journal under
+`upgrade/restored-*`. Unrelated project files and memory edits are not reset.
+
+Keep the supplied new executable available throughout recovery. Upgrade
+commands work even when interruption leaves binary and configuration versions
+out of step. The installed `just upgrade` adapter forwards these commands;
+`resume` and session hooks expose the operation and next action. Commit and
+merge reject an unfinished operation. The journal is technical recovery data,
+separate from agent State. This release supports only 0.1.0 → 0.2.0, keeps schema
+version 1, and performs no memory-format migration.

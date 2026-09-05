@@ -32,7 +32,7 @@ git switch -c change/bootstrap
 "$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies --base release --prefix change/
 ```
 
-In the Rust example, set the named-if rule's `level` in `.worker/lint.toml` to `"error"`. Leave Python at `"warning"`. The same binary enforces both policies.
+Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.worker/lint.toml`.
 
 ## Exercise either installation
 

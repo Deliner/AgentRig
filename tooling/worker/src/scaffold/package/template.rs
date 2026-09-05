@@ -155,9 +155,10 @@ pub(super) fn justfile() -> String {
         ("report", "report", false),
         ("feature-start", "feature-start", true),
         ("feature-merge", "feature-merge", false),
+        ("upgrade", "upgrade", true),
     ] {
         source.push_str(&format!(
-            "{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",
+            "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",
             if args { " *args" } else { "" },
             if args { " \"$@\"" } else { "" }
         ));

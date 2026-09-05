@@ -121,17 +121,28 @@ pub struct Context {
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
+        Self::load_for(root, false)
+    }
+    pub fn load_for(root: &Path, recovery: bool) -> Result<Self> {
         let root = root.canonicalize()?;
         let path = root.join(FILE);
         let source =
             fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-        let config: Config = toml::from_str(&source).context("worker.toml schema")?;
+        let mut config: Config = toml::from_str(&source).context("worker.toml schema")?;
+        let pin = config.runtime.clone();
+        let recovering = recovery
+            && pin == super::upgrade::release::FROM
+            && super::upgrade::recovery::active(&root)?;
+        if recovering {
+            config.runtime = VERSION.into();
+        }
         config.validate(&root).with_context(|| {
             format!(
                 "configuration invalid. ACTION: Apply {}",
                 config.config_skill
             )
         })?;
+        config.runtime = pin;
         Ok(Self { root, config })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {

@@ -55,3 +55,7 @@ feature-start *args:
 # What: invoke feature-merge; Why: use the configured native runtime.
 feature-merge:
     @tooling/worker/run feature-merge
+
+# What: invoke upgrade; Why: plan, apply or recover a scaffold update.
+upgrade *args:
+    @tooling/worker/run upgrade "$@"

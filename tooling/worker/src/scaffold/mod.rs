@@ -6,6 +6,7 @@ mod git;
 mod memory;
 mod package;
 mod process;
+pub(crate) mod upgrade;
 
 use anyhow::{Result, bail};
 use std::path::Path;
@@ -24,11 +25,13 @@ pub fn owns(command: &str) -> bool {
             | "feature-merge"
             | "init"
             | "doctor"
+            | "upgrade"
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
+        "upgrade" => return upgrade::run(root, args),
         "check" => {
             let (staged, only) = gate::arguments(args)?;
             return gate::selected(root, staged, only);
@@ -36,7 +39,12 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         _ => {}
     }
     validate_arguments(command, args)?;
-    let context = config::Context::load(root).map_err(|error| {
+    let delivery = matches!(command, "guard-commit" | "feature-merge");
+    if delivery {
+        upgrade::recovery::guard(root)?;
+    }
+    let recovery = matches!(command, "run" | "resume" | "commands");
+    let context = config::Context::load_for(root, recovery).map_err(|error| {
         anyhow::anyhow!(
             "{error:#}. ACTION: Correct worker.toml and its referenced configuration/skills"
         )
@@ -165,6 +173,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
                 "one Just recipe is required; this recipe takes no arguments"
             );
         }
+        "upgrade" => upgrade::arguments(forwarded(&argv[2..]))?,
         "check" => {
             gate::arguments(forwarded(&argv[2..]))?;
         }

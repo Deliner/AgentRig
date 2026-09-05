@@ -1,3 +1,6 @@
+# DECISION: D023
+import hashlib
+import json
 import shlex
 import subprocess
 from pathlib import Path
@@ -15,7 +18,7 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
         (".codex/hooks.json", "SessionStart", "UnknownEvent", "Codex registration"),
         (".worker/hooks/pre-commit", "--staged", "--incorrect", "Git hooks"),
         ("worker.toml", '"python3"', '"missing-tool-xyz"', "MISSING"),
-        ("worker.toml", 'runtime = "0.1.0"', 'runtime = "999.0.0"', "project pins"),
+        ("worker.toml", 'runtime = "0.2.0"', 'runtime = "999.0.0"', "project pins"),
     ]
     for name, before, after, expected in changes:
         path = tmp_path / name
@@ -61,4 +64,44 @@ def test_init_rejects_invalid_layout_before_writing(
     before = file_contents(tmp_path)
     result = invoke(worker, tmp_path, "init", *args)
     assert result.returncode == 2
+    assert file_contents(tmp_path) == before
+
+
+# INVARIANT: I020
+def test_installation_manifest_records_ownership(worker: Path, tmp_path: Path) -> None:
+    result = invoke(worker, tmp_path, "init", "--skills", "guides", "--memory", "notes")
+    assert result.returncode == 0, result.stderr
+    manifest = json.loads((tmp_path / ".worker/manifest.json").read_text())
+    assert manifest["manifest_version"] == 1
+    assert manifest["package_version"] == "0.2.0"
+    assert manifest["config_schema"] == 1
+    entries = manifest["files"]
+    assert ".worker/manifest.json" not in entries
+    assert entries[".worker/bin/discipline-worker"]["ownership"] == "runtime"
+    assert entries[".worker/.gitignore"]["ownership"] == "asset"
+    assert entries["worker.toml"]["ownership"] == "configuration"
+    assert entries[".worker/lint.toml"]["ownership"] == "configuration"
+    assert entries["guides/repair/SKILL.md"]["ownership"] == "editable"
+    assert entries[".worker/hooks/pre-commit"]["ownership"] == "editable"
+    assert entries["notes/State.md"]["ownership"] == "memory"
+    for relative, entry in entries.items():
+        path = tmp_path / relative
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]
+        assert bool(path.stat().st_mode & 0o111) == entry["executable"]
+    skill = tmp_path / "guides/repair/SKILL.md"
+    skill.write_text(skill.read_text() + "\nLocal instruction.\n")
+    assert (
+        hashlib.sha256(skill.read_bytes()).hexdigest()
+        != entries["guides/repair/SKILL.md"]["sha256"]
+    )
+
+
+def test_existing_manifest_is_an_init_collision(worker: Path, tmp_path: Path) -> None:
+    path = tmp_path / ".worker/manifest.json"
+    path.parent.mkdir()
+    path.write_text("existing receipt")
+    before = file_contents(tmp_path)
+    result = invoke(worker, tmp_path, "init")
+    assert result.returncode == 2
+    assert "collision" in result.stderr
     assert file_contents(tmp_path) == before

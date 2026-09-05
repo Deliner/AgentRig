@@ -2,6 +2,7 @@ mod adapters;
 mod assets;
 mod doctor;
 mod lint;
+pub(super) mod manifest;
 mod template;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};
@@ -66,6 +67,7 @@ fn bundle(options: &template::Options<'_>, config: &Config) -> Result<Files> {
             .to_vec(),
     );
     add_runtime(&mut files)?;
+    files.insert(manifest::PATH.into(), manifest::installed(&files, config)?);
     Ok(files)
 }
 fn add_runtime(files: &mut Files) -> Result<()> {
@@ -120,6 +122,7 @@ fn validate_bundle(files: &Files) -> Result<()> {
 }
 fn install(root: &Path, files: &Files) -> Result<()> {
     for (path, contents) in files {
+        let executable = manifest::executable(path);
         let path = config::relative(root, path)?;
         fs::create_dir_all(path.parent().unwrap())?;
         let mut file = OpenOptions::new()
@@ -127,9 +130,6 @@ fn install(root: &Path, files: &Files) -> Result<()> {
             .create_new(true)
             .open(&path)?;
         file.write_all(contents)?;
-        let executable = path
-            .components()
-            .any(|c| c.as_os_str() == "bin" || c.as_os_str() == "hooks");
         if executable {
             use std::os::unix::fs::PermissionsExt;
             fs::set_permissions(&path, fs::Permissions::from_mode(0o755))?;

@@ -101,7 +101,9 @@ fn git_registration(context: &Context) -> bool {
     let registered = hooks == ".worker/hooks"
         && super::adapters::git_hooks().iter().all(|(path, contents)| {
             available(path, &context.root)
-                && fs::read(context.root.join(path)).is_ok_and(|actual| actual == *contents)
+                && fs::read(context.root.join(path)).is_ok_and(|actual| {
+                    actual == *contents || super::manifest::approved(&context.root, path, &actual)
+                })
         });
     println!(
         "Git hooks: {}",

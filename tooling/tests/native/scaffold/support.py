@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 CONFIG = """version = 1
-runtime = "0.1.0"
+runtime = "0.2.0"
 config_skill = "guides/repair/SKILL.md"
 [paths]
 sources = ["src/**"]
