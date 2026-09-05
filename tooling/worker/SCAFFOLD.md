@@ -2,7 +2,7 @@
 
 The portable entry point is `worker.toml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
-A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
+A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` and `discipline-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
 Project capabilities are selected in `worker.toml`:
 
@@ -33,7 +33,7 @@ Authentication is separate: provide Codex authentication through CODEX_HOME;
 REVIEW_CODEX_BIN can select the installed native CLI. These environment variables
 are forwarded to MCP; setup never copies credentials into the project.
 
-Repeated setup preserves configuration, memory, comments and unrelated Codex
+Repeated setup preserves configuration, memory, file permissions, comments and unrelated Codex
 settings. Unchanged stock assets can be refreshed within the pinned release.
 Locally modified skills/adapters, conflicting hook registration or conflicting
 MCP settings stop setup before file installation and identify the preserved

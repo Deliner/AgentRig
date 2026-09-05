@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P002: portable worker capabilities, standalone lint, separate configuration, declarative setup and shared update ownership. Apply complexity-discipline.
+Complete and integrate P002 portable worker delivery. All feature acceptance has evidence; final commit/integration gates remain pending. Apply complexity-discipline.
 
 ## Workspace
 
 Branch: feature/worker-capabilities
 
-Revision: eb4654b
+Revision: fe31ee6
 
-The review installation VAC is committed. The current VAC adds declarative setup using the existing bundle, manifest and atomic writer.
+The setup VAC is committed. The current completion VAC preserves setup file modes and records consumer verification and usage guidance.
 
 ## Progress
 
-Setup reads worker.toml, preserves configuration/memory and checks a temporary installation preview before writing. It detects local asset/adapter and registration conflicts, initializes a missing consumer Git repository, installs components, registers MCP, creates runtime/report directories and runs dependency diagnostics. Codex TOML comments and unrelated settings survive reconciliation. Authentication remains external. Lint defaults now follow all configured source globs and disabled lint does not require a generated policy.
+Worker ships review and lint with separate validated configuration and declarative setup. The standalone linter shares the engine and does not install into assessed projects. An external consumer passed real MCP review, repeat setup, reconfiguration, an adjacent-release update and rollback. The final setup correction reuses upgrade file states to preserve permissions and detect changed inputs; documentation/examples describe configuration, authentication and conflicts.
 
 ## Verification
 
-The review installation VAC passed its full staged gate. Six new setup cases and ten capability/package tests pass: fresh setup and generated MCP tool discovery, byte-identical repeat, preserved edited review/memory, and pre-write rejection of edited assets, hook conflicts and unknown capabilities. The linter identified an overlong registration function; its configuration-reading responsibility was extracted. Full staged verification is pending.
+Real Codex review run-1MQ3Fy passed in 93.5 seconds with reports saved, cleanup complete and temporary authentication removed. Upgrade/rollback restored 47 original consumer files and their modes; report SHA-256 remained a8f0343d0ec272de877acea46863c288f32392dabc2ced0bc23da40f0db08b24. The isolated 0.3.0 build was a verification fixture, not a published release. Six setup tests pass after reproducing and fixing the 0600 permission regression. Strict lint has no errors. Prior VAC full gates passed; the final staged and integration gates are pending.
 
 ## Blockers
 
-None. Real external-consumer model review, consumer upgrade/rollback and final acceptance remain required. Setup and integration refinements remain within P002. Reuse the existing package manifest and ownership rules.
+None. See tooling/worker/examples/PORTABILITY.md for acceptance evidence and its limits. No new feature is authorized by the completed Plan.
 
 ## Next action
 
-Finish the setup VAC and its full gate. Verify real external-consumer MCP review and the complete setup/update/rollback scenario before completing P002.
+Commit the completion VAC through the full staged gate. Run just feature-merge, inspect clean master and the retained feature branch, and close the active goal only after integration passes.

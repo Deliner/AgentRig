@@ -1,11 +1,12 @@
 use super::{Files, config, manifest};
+use crate::scaffold::upgrade::storage::{self, State};
 use anyhow::{Result, ensure};
 use manifest::{Manifest, Ownership};
 use std::{collections::BTreeMap, fs, path::Path};
 
 pub struct Installation {
     pub files: Files,
-    before: BTreeMap<String, Option<Vec<u8>>>,
+    before: BTreeMap<String, State>,
 }
 impl Installation {
     pub fn prepare(root: &Path, mut files: Files) -> Result<Self> {
@@ -29,11 +30,21 @@ impl Installation {
         }
         let mut before = BTreeMap::new();
         for (path, desired) in &mut files {
-            let actual = read(root, path)?;
-            if let Some(actual) = &actual {
-                preserve(path, desired, actual, (&receipt, old.as_ref()))?;
+            let state = storage::state(root, path)?;
+            if let Some(hash) = &state.sha256 {
+                let actual = fs::read(root.join(&state.resolved))?;
+                ensure!(
+                    manifest::checksum(&actual) == *hash,
+                    "setup input changed: {path}"
+                );
+                preserve(
+                    path,
+                    desired,
+                    (&actual, state.mode.unwrap()),
+                    (&receipt, old.as_ref()),
+                )?;
             }
-            before.insert(path.clone(), actual);
+            before.insert(path.clone(), state);
         }
         files.insert(manifest::PATH.into(), serde_json::to_vec_pretty(&receipt)?);
         Ok(Self { files, before })
@@ -41,20 +52,18 @@ impl Installation {
     pub fn apply(&self, root: &Path) -> Result<()> {
         for (path, before) in &self.before {
             ensure!(
-                read(root, path)? == *before,
+                storage::state(root, path)? == *before,
                 "setup input changed: {path}; rerun setup"
             );
         }
         for (path, bytes) in &self.files {
-            let changed = self.before.get(path).and_then(Option::as_ref) != Some(bytes);
+            let before = &self.before[path];
+            let changed = before.sha256.as_deref() != Some(&manifest::checksum(bytes));
             if changed {
                 let executable = manifest::executable(path);
-                let mode = if executable { 0o755 } else { 0o644 };
-                crate::scaffold::upgrade::storage::atomic(
-                    &config::relative(root, path)?,
-                    bytes,
-                    mode,
-                )?;
+                let default_mode = if executable { 0o755 } else { 0o644 };
+                let mode = before.mode.unwrap_or(default_mode);
+                storage::atomic(&config::relative(root, path)?, bytes, mode)?;
             }
         }
         Ok(())
@@ -63,9 +72,10 @@ impl Installation {
 fn preserve(
     path: &str,
     desired: &mut Vec<u8>,
-    actual: &[u8],
+    actual: (&[u8], u32),
     receipts: (&Manifest, Option<&Manifest>),
 ) -> Result<()> {
+    let (actual, mode) = actual;
     let receipt = path == manifest::PATH;
     if receipt {
         return Ok(());
@@ -79,7 +89,9 @@ fn preserve(
     let stock = receipts
         .1
         .and_then(|old| old.files.get(path))
-        .is_some_and(|entry| entry.sha256 == manifest::checksum(actual));
+        .is_some_and(|entry| {
+            entry.sha256 == manifest::checksum(actual) && entry.executable == (mode & 0o111 != 0)
+        });
     ensure!(
         actual == desired || stock,
         "setup conflict: {path}; local contents preserved; reconcile with the shipped adapter/asset before retrying"

@@ -38,7 +38,7 @@ Generated defaults enforce named conditions, function length and parameter limit
 
 ```sh
 .worker/bin/discipline-worker --version
-.worker/bin/discipline-worker doctor
+just setup
 just config-check
 just resume
 just run test
@@ -76,3 +76,31 @@ Run `memory-check` to validate the link and discover the exact test target. Run 
 The native scaffold integration tests exercise both installations with their own source/memory/skills paths, branch names, severity settings and oracles. They also reject an unsupported shell-language selector, repair it through configuration, exercise real Git hooks, and show that an unrelated source marker or missing test target cannot validate an invariant.
 
 See [observed latency](LATENCY.md) for first-process and repeated-process measurements and the reproducible measurement command.
+
+
+## Enable isolated review
+
+Add the review capability to the consumer's worker.toml:
+
+```toml
+[capabilities.review]
+config = ".worker/review/config/review.toml"
+```
+
+Run `just setup`. It installs the stock review resources and review-project skill,
+registers MCP, and checks dependencies. Adapt the installed project visibility
+patterns to `application/**` or `crates/engine/**` for these examples. Edit the
+machine contract, reviewer selection, models and prompts for the desired review;
+then run `just review config-check`. Commit the intended candidate and call the
+configured MCP tool with the consumer root and the base/candidate Git boundary.
+
+Codex authentication stays outside the project. Supply CODEX_HOME and, when
+needed, REVIEW_CODEX_BIN in the environment from which the MCP client starts.
+Restart the MCP connection after changing its tool configuration. Repeated setup
+preserves settings and reports conflicting adapters instead of overwriting them.
+
+The separate `discipline-lint --root OTHER_PROJECT --config POLICY --json` command
+needs no worker installation in OTHER_PROJECT. See the
+[lint guide](../README.md) for external repair-skill resources.
+See [portable delivery verification](PORTABILITY.md) for the observed setup,
+real MCP review, update and rollback scenario.

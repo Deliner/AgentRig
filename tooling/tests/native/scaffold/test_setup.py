@@ -27,10 +27,12 @@ def test_setup_prepares_and_repeats_without_losing_settings(worker: Path, tmp_pa
     (root / ".codex").mkdir()
     settings = "# Keep this comment\nmodel = 'consumer-model'\n[features]\nhooks = true # enabled\n"
     (root / ".codex/config.toml").write_text(settings)
+    (root / ".codex/config.toml").chmod(0o600)
     result = invoke(worker, root, "setup")
     assert result.returncode == 0, result.stdout + result.stderr
     actual = (root / ".codex/config.toml").read_text()
     assert actual.startswith(settings)
+    assert (root / ".codex/config.toml").stat().st_mode & 0o777 == 0o600
     assert (root / "worker.toml").read_text().startswith("# Consumer policy\n")
     config = tomllib.loads(actual)["mcp_servers"]["worker_review"]
     messages = [
