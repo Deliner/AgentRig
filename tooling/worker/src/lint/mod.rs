@@ -34,71 +34,94 @@ fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let mut analyses = HashMap::new();
     for rule in &config.rules {
         for selected in selection::select(rule, &inventory)? {
-            let selection::Selected {
-                path,
-                warning,
-                error,
-            } = selected;
             let syntax_rule = rules::syntax(&rule.kind);
             if syntax_rule {
-                if !analyses.contains_key(path) {
+                let path = selected.path;
+                let uncached = !analyses.contains_key(path);
+                if uncached {
                     let source = fs::read_to_string(root.join(path))?;
                     analyses.insert(path.to_owned(), languages::analyze(path, &source)?);
                 }
-                let analysis = &analyses[path];
-                if let Some(line) = analysis.parse_error {
-                    let reported = output.iter().any(|item: &Diagnostic| {
-                        item.rule == "syntax" && item.path == path.to_string_lossy()
-                    });
-                    if !reported {
-                        output.push(Diagnostic { rule: "syntax".into(), path: path.to_string_lossy().into_owned(),
-                            level: "error".into(), actual: None, limit: None, skill: rule.error_skill.clone(),
-                            message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
-                            line: Some(line), symbol: None });
-                    }
+                syntax_findings(rule, &selected, &analyses[path], &mut output)?;
+            } else {
+                let Some(actual) = structural_measurement(root, rule, &selected, &inventory)?
+                else {
                     continue;
+                };
+                if let Some(item) = finding(rule, &selected, actual)? {
+                    output.push(item);
                 }
-                for measured in analysis
-                    .measurements
-                    .iter()
-                    .filter(|item| item.kind == rule.kind)
-                {
-                    let mut diagnostic = match finding(rule, path, measured.actual, warning, error)?
-                    {
-                        Some(item) => item,
-                        None => continue,
-                    };
-                    diagnostic.line = Some(measured.line);
-                    diagnostic.symbol = Some(measured.symbol.clone());
-                    output.push(diagnostic);
-                }
-                continue;
-            }
-            let actual = match rule.kind.as_str() {
-                "nonblank-lines" => match String::from_utf8(fs::read(root.join(path))?) {
-                    Ok(source) => source
-                        .lines()
-                        .filter(|line| !line.trim().is_empty())
-                        .count() as u64,
-                    Err(_) => continue,
-                },
-                "directory-entries" => inventory.directories[path].len() as u64,
-                _ => unreachable!("validated by rule registry"),
-            };
-            if let Some(item) = finding(rule, path, actual, warning, error)? {
-                output.push(item);
             }
         }
     }
     Ok(output)
 }
+fn structural_measurement(
+    root: &Path,
+    rule: &config::Rule,
+    selected: &selection::Selected<'_>,
+    inventory: &inventory::Inventory,
+) -> Result<Option<u64>> {
+    Ok(match rule.kind.as_str() {
+        "nonblank-lines" => String::from_utf8(fs::read(root.join(selected.path))?)
+            .ok()
+            .map(|source| {
+                source
+                    .lines()
+                    .filter(|line| !line.trim().is_empty())
+                    .count() as u64
+            }),
+        "directory-entries" => Some(inventory.directories[selected.path].len() as u64),
+        _ => unreachable!("validated by rule registry"),
+    })
+}
+fn syntax_findings(
+    rule: &config::Rule,
+    selected: &selection::Selected<'_>,
+    analysis: &languages::Analysis,
+    output: &mut Vec<Diagnostic>,
+) -> Result<()> {
+    if let Some(line) = analysis.parse_error {
+        let unreported = !output
+            .iter()
+            .any(|item| item.rule == "syntax" && item.path == selected.path.to_string_lossy());
+        if unreported {
+            output.push(syntax_error(rule, selected.path, line));
+        }
+        return Ok(());
+    }
+    for measured in analysis
+        .measurements
+        .iter()
+        .filter(|item| item.kind == rule.kind)
+    {
+        if let Some(mut diagnostic) = finding(rule, selected, measured.actual)? {
+            diagnostic.line = Some(measured.line);
+            diagnostic.symbol = Some(measured.symbol.clone());
+            output.push(diagnostic);
+        }
+    }
+    Ok(())
+}
+fn syntax_error(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
+    Diagnostic {
+        rule: "syntax".into(),
+        path: path.to_string_lossy().into_owned(),
+        level: "error".into(),
+        actual: None,
+        limit: None,
+        skill: rule.error_skill.clone(),
+        message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
+        line: Some(line),
+        symbol: None,
+    }
+}
 fn finding(
     rule: &config::Rule,
-    path: &Path,
+    selected: &selection::Selected<'_>,
     actual: u64,
-    warning: Option<u64>,
-    error: Option<u64>,
 ) -> Result<Option<Diagnostic>> {
+    let (warning, error) = (selected.warning, selected.error);
     let (level, limit) = if let Some(level) = rule.level {
         (level.name(), None)
     } else {
@@ -113,13 +136,14 @@ fn finding(
         Some(limit) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
         None => "if condition must be one named value; give the branch reason a name".into(),
     };
+    let blocking = level == "error";
     Ok(Some(Diagnostic {
         rule: rule.id.clone(),
-        path: path.to_string_lossy().into_owned(),
+        path: selected.path.to_string_lossy().into_owned(),
         level: level.into(),
         actual: Some(actual),
         limit,
-        skill: if level == "error" {
+        skill: if blocking {
             rule.error_skill.clone()
         } else {
             rule.warning_skill.clone()
@@ -130,19 +154,7 @@ fn finding(
     }))
 }
 pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
-    let config = config::load(root, path);
-    // Resolve guidance independently of rule validation, including invalid rules.
-    let skill = fs::read_to_string(path)
-        .ok()
-        .and_then(|source| toml::from_str::<toml::Value>(&source).ok())
-        .and_then(|value| {
-            value
-                .get("config_skill")
-                .and_then(toml::Value::as_str)
-                .map(str::to_owned)
-        })
-        .unwrap_or_else(|| CONFIG_SKILL.to_owned());
-    let result = config.and_then(|config| {
+    let result = config::load(root, path).and_then(|config| {
         if validate_only {
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
@@ -155,45 +167,57 @@ pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<
     });
     let (diagnostics, config_error) = match result {
         Ok(items) => (items, false),
-        Err(error) => (
-            vec![Diagnostic {
-                rule: "configuration".into(),
-                path: path.display().to_string(),
-                level: "error".into(),
-                actual: None,
-                limit: None,
-                skill,
-                message: format!("{error:#}"),
-                line: None,
-                symbol: None,
-            }],
-            true,
-        ),
+        Err(error) => (vec![configuration_error(path, error)], true),
     };
     let failed = diagnostics.iter().any(|item| item.level == "error");
     if json {
         println!("{}", serde_json::to_string(&diagnostics)?);
     } else {
-        if validate_only && !config_error {
+        let configuration_valid = validate_only && !config_error;
+        if configuration_valid {
             println!("Lint configuration is valid: {}", path.display());
         }
         for item in &diagnostics {
-            println!(
-                "{} [{}] {}: {}. ACTION: {} {}",
-                item.level.to_uppercase(),
-                item.rule,
-                format_location(item),
-                item.message,
-                if item.level == "warning" {
-                    "Consider"
-                } else {
-                    "Apply"
-                },
-                item.skill
-            );
+            print_diagnostic(item);
         }
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
+}
+fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
+    // Resolve guidance independently of rule validation, including invalid rules.
+    let skill = fs::read_to_string(path)
+        .ok()
+        .and_then(|source| toml::from_str::<toml::Value>(&source).ok())
+        .and_then(|value| {
+            value
+                .get("config_skill")
+                .and_then(toml::Value::as_str)
+                .map(str::to_owned)
+        })
+        .unwrap_or_else(|| CONFIG_SKILL.to_owned());
+    Diagnostic {
+        rule: "configuration".into(),
+        path: path.display().to_string(),
+        level: "error".into(),
+        actual: None,
+        limit: None,
+        skill,
+        message: format!("{error:#}"),
+        line: None,
+        symbol: None,
+    }
+}
+fn print_diagnostic(item: &Diagnostic) {
+    let advisory = item.level == "warning";
+    let action = if advisory { "Consider" } else { "Apply" };
+    println!(
+        "{} [{}] {}: {}. ACTION: {action} {}",
+        item.level.to_uppercase(),
+        item.rule,
+        format_location(item),
+        item.message,
+        item.skill
+    );
 }
 
 fn format_location(item: &Diagnostic) -> String {

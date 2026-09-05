@@ -9,7 +9,8 @@ use std::{
 // DECISION: D015
 pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
     let file = File::open(path)?;
-    if offset > file.metadata()?.len() {
+    let truncated = offset > file.metadata()?.len();
+    if truncated {
         offset = 0;
     }
     let mut reader = BufReader::new(file);
@@ -18,7 +19,8 @@ pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
     loop {
         let mut line = Vec::new();
         let count = reader.read_until(b'\n', &mut line)?;
-        if count == 0 {
+        let end_of_file = count == 0;
+        if end_of_file {
             break;
         }
         let record: Value = match serde_json::from_slice(&line) {
@@ -30,13 +32,12 @@ pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
             }
         };
         offset += count as u64;
-        if record["type"] == "event_msg"
-            && record["payload"]["type"] == "token_count"
-            && let Some(value) =
-                record["payload"]["info"]["last_token_usage"]["input_tokens"].as_u64()
-        {
-            tokens.push(value);
-        }
+        let token_record =
+            record["type"] == "event_msg" && record["payload"]["type"] == "token_count";
+        let token = token_record
+            .then(|| record["payload"]["info"]["last_token_usage"]["input_tokens"].as_u64())
+            .flatten();
+        tokens.extend(token);
     }
     Ok((tokens, offset))
 }

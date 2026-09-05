@@ -88,6 +88,7 @@ def test_signal_reaches_child(worker: Path, tmp_path: Path) -> None:
         with pytest.raises(ProcessLookupError):
             os.kill(child_pid, 0)
     finally:
-        if process.poll() is None:
+        child_running = process.poll() is None
+        if child_running:
             process.kill()
             process.communicate()

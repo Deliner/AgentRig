@@ -31,14 +31,8 @@ pub fn check_with_history(context: &Context, git_root: &Path) -> Result<i32> {
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }
-fn details(
-    context: &Context,
-    memory: &Path,
-    rows: &[Row],
-    directory: &str,
-    headings: &[&str],
-    optional: Option<&str>,
-) -> Result<()> {
+fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> Result<()> {
+    let (headings, optional) = format::detail_sections(directory);
     let mut known = HashSet::new();
     for row in rows {
         ensure!(
@@ -53,8 +47,12 @@ fn details(
             optional,
         )?;
     }
+    reject_unindexed(memory, directory, &known)
+}
+fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> Result<()> {
     let path = memory.join(directory);
-    if path.is_dir() {
+    let directory_exists = path.is_dir();
+    if directory_exists {
         for entry in fs::read_dir(path)? {
             let path = entry?.path();
             let numeric = path
@@ -77,14 +75,7 @@ fn details(
 }
 fn plan(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Plan.md"), 'P')?;
-    details(
-        context,
-        memory,
-        &rows,
-        "Plan",
-        &["Feature", "User capability", "Acceptance"],
-        Some("Delivery"),
-    )?;
+    details(context, memory, &rows, "Plan")?;
     ensure!(
         rows.iter().filter(|row| row.cells[1] == "active").count() <= 1,
         "Plan has multiple active features"
@@ -92,47 +83,61 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
     let index: HashMap<_, _> = rows.iter().map(|row| (row.id.as_str(), row)).collect();
     let mut graph = HashMap::new();
     for row in &rows {
-        let status = row.cells[1].as_str();
-        ensure!(
-            ["pending", "active", "paused", "complete"].contains(&status),
-            "{}: invalid status {status}",
-            row.id
-        );
-        if ["paused", "complete"].contains(&status) {
-            let source = fs::read_to_string(memory.join(&row.detail))?;
-            ensure!(
-                source.lines().any(|line| line == "## Delivery"),
-                "{}: {status} requires Delivery",
-                row.id
-            );
-        }
-        let dependencies: Vec<_> = if row.cells[2] == "-" {
-            Vec::new()
-        } else {
-            row.cells[2].split(',').map(str::trim).collect()
-        };
-        ensure!(
-            dependencies.iter().collect::<HashSet<_>>().len() == dependencies.len(),
-            "{}: duplicate dependencies",
-            row.id
-        );
-        for dependency in &dependencies {
-            let prior = index
-                .get(dependency)
-                .ok_or_else(|| anyhow::anyhow!("{}: unknown dependency {dependency}", row.id))?;
-            ensure!(
-                !["active", "complete"].contains(&status) || prior.cells[1] == "complete",
-                "{}: prerequisite {dependency} is incomplete",
-                row.id
-            );
-        }
-        graph.insert(row.id.as_str(), dependencies);
+        plan_status(row, memory)?;
+        graph.insert(row.id.as_str(), dependencies(row, &index)?);
     }
+    acyclic(&graph)
+}
+fn plan_status(row: &Row, memory: &Path) -> Result<()> {
+    let status = row.cells[1].as_str();
+    ensure!(
+        ["pending", "active", "paused", "complete"].contains(&status),
+        "{}: invalid status {status}",
+        row.id
+    );
+    let delivery_required = ["paused", "complete"].contains(&status);
+    if delivery_required {
+        let source = fs::read_to_string(memory.join(&row.detail))?;
+        ensure!(
+            source.lines().any(|line| line == "## Delivery"),
+            "{}: {status} requires Delivery",
+            row.id
+        );
+    }
+    Ok(())
+}
+fn dependencies<'a>(row: &'a Row, index: &HashMap<&str, &Row>) -> Result<Vec<&'a str>> {
+    let independent = row.cells[2] == "-";
+    let dependencies: Vec<_> = if independent {
+        Vec::new()
+    } else {
+        row.cells[2].split(',').map(str::trim).collect()
+    };
+    ensure!(
+        dependencies.iter().collect::<HashSet<_>>().len() == dependencies.len(),
+        "{}: duplicate dependencies",
+        row.id
+    );
+    let requires_completed = ["active", "complete"].contains(&row.cells[1].as_str());
+    for dependency in &dependencies {
+        let prior = index
+            .get(dependency)
+            .ok_or_else(|| anyhow::anyhow!("{}: unknown dependency {dependency}", row.id))?;
+        ensure!(
+            !requires_completed || prior.cells[1] == "complete",
+            "{}: prerequisite {dependency} is incomplete",
+            row.id
+        );
+    }
+    Ok(dependencies)
+}
+fn acyclic(graph: &HashMap<&str, Vec<&str>>) -> Result<()> {
     let mut done = HashSet::new();
-    while done.len() < rows.len() {
+    while done.len() < graph.len() {
         let before = done.len();
-        for (id, dependencies) in &graph {
-            if dependencies.iter().all(|id| done.contains(id)) {
+        for (id, dependencies) in graph {
+            let ready = dependencies.iter().all(|id| done.contains(id));
+            if ready {
                 done.insert(*id);
             }
         }
@@ -142,25 +147,18 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
 }
 fn decisions(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Decisions.md"), 'D')?;
-    details(
-        context,
-        memory,
-        &rows,
-        "Decisions",
-        &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
-        None,
-    )?;
+    details(context, memory, &rows, "Decisions")?;
     for row in &rows {
         let links = format::links(&row.cells[2]);
         ensure!(!links.is_empty(), "{}: application link required", row.id);
         for link in links {
             let path = target(&context.root, memory, &link)?;
-            if path.extension().is_some_and(|ext| {
+            let non_source = path.extension().is_some_and(|ext| {
                 ["md", "toml", "json", "yaml", "yml"]
                     .iter()
                     .any(|kind| ext == *kind)
-            }) || path.file_name().is_some_and(|name| name == "justfile")
-            {
+            }) || path.file_name().is_some_and(|name| name == "justfile");
+            if non_source {
                 continue;
             }
             match source::inspect(&path)? {
@@ -182,14 +180,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
 }
 fn invariants(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), 'I')?;
-    details(
-        context,
-        memory,
-        &rows,
-        "Invariants",
-        &["Predicate", "Oracle"],
-        None,
-    )?;
+    details(context, memory, &rows, "Invariants")?;
     for row in &rows {
         let (name, link) = format::link(&row.cells[2])?;
         let path = target(&context.root, memory, &link)?;
@@ -223,9 +214,11 @@ pub fn resume(context: &Context) -> Result<()> {
                 })
         })
         .collect();
-    let snapshot = if claims.is_empty() {
+    let unverified = claims.is_empty();
+    let current = claims.iter().all(|(saved, current)| saved == current);
+    let snapshot = if unverified {
         "unverified"
-    } else if claims.iter().all(|(saved, current)| saved == current) {
+    } else if current {
         "current"
     } else {
         "stale"

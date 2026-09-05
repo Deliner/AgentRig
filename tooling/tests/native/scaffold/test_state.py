@@ -54,6 +54,8 @@ def test_state_recovery_contract(
     project(tmp_path, CONFIG.replace('memory = "notes"', 'memory = "Ledger"'))
     memory(tmp_path).rename(ledger)
     (ledger / "State.md").unlink()
-    if source is not None:
+    present = source is not None
+    if present:
+        assert source is not None
         (ledger / "State.md").write_text(source, encoding="utf-8")
     assert (invoke(worker, tmp_path, "memory-check").returncode == 0) is valid

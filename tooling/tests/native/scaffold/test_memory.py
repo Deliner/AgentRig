@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import invoke, project
+from support import file_contents, invoke, project
 
 
 def memory(root: Path) -> Path:
@@ -47,11 +47,11 @@ def test_memory_and_read_only_resume(worker: Path, tmp_path: Path) -> None:
     state.write_text(
         state.read_text().replace("## Workspace\n\nNone.", "## Workspace\n\nBranch: `missing`")
     )
-    before = {file: file.read_bytes() for file in tmp_path.rglob("*") if file.is_file()}
+    before = file_contents(tmp_path)
     output = invoke(worker, tmp_path, "resume")
     assert output.returncode == 0
     assert json.loads(output.stdout)["snapshot"] == "stale"
-    assert {file: file.read_bytes() for file in tmp_path.rglob("*") if file.is_file()} == before
+    assert file_contents(tmp_path) == before
 
 
 def test_rust_decision_markers_are_comments(worker: Path, tmp_path: Path) -> None:
@@ -100,35 +100,9 @@ def test_plan_cycle(worker: Path, tmp_path: Path) -> None:
 
 # INVARIANT: I003
 def test_committed_decisions_checked_against_staged_memory(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path)
-    path = memory(tmp_path)
-    config = tmp_path / "worker.toml"
-    with config.open("a") as stream:
-        stream.write(
-            '\n[[checks]]\nid = "memory"\nkind = "memory"\nskill = "guides/repair/SKILL.md"\n'
-        )
+    path = committed_memory(worker, tmp_path)
     index = path / "Decisions.md"
-    index.write_text(
-        index.read_text() + "| [D001](Decisions/001.md) | Choice | [code](../src/lib.rs) |\n"
-    )
     detail = path / "Decisions/001.md"
-    detail.write_text(
-        "# D001\n\n"
-        + "\n\n".join(
-            f"## {heading}\n\nText."
-            for heading in ["Context", "Chosen", "Rejected", "Rationale", "Consequences"]
-        )
-    )
-    (tmp_path / "src/lib.rs").write_text("// DECISION: D001\nfn example() {}")
-    for args in [
-        ("init", "-q"),
-        ("config", "user.name", "Test"),
-        ("config", "user.email", "test@example.invalid"),
-        ("add", "."),
-        ("commit", "-qm", "baseline"),
-    ]:
-        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
-    assert invoke(worker, tmp_path, "memory-check").returncode == 0
     old_index = index.read_text()
     index.write_text(old_index.replace("| Choice |", "| Changed |"))
     assert (
@@ -160,13 +134,14 @@ def test_committed_decisions_checked_against_staged_memory(worker: Path, tmp_pat
 
 
 @pytest.mark.parametrize(
-    ("suffix", "code", "marker"),
+    "example",
     [("rs", "fn example() {}", "//"), ("py", "value = 1", "#"), ("sh", "echo example", "#")],
 )
 # INVARIANT: I001
 def test_decision_source_markers(
-    worker: Path, tmp_path: Path, suffix: str, code: str, marker: str
+    worker: Path, tmp_path: Path, example: tuple[str, str, str]
 ) -> None:
+    suffix, code, marker = example
     project(tmp_path)
     notes = memory(tmp_path)
     index = notes / "Decisions.md"
@@ -200,3 +175,36 @@ def test_repository_layout_and_detail_contract(worker: Path, tmp_path: Path) -> 
     assert "unindexed detail" in invoke(worker, tmp_path, "memory-check").stderr
     (notes / "Plan/001.md").unlink()
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
+
+
+def committed_memory(worker: Path, tmp_path: Path) -> Path:
+    project(tmp_path)
+    path = memory(tmp_path)
+    config = tmp_path / "worker.toml"
+    with config.open("a") as stream:
+        stream.write(
+            '\n[[checks]]\nid = "memory"\nkind = "memory"\nskill = "guides/repair/SKILL.md"\n'
+        )
+    index = path / "Decisions.md"
+    index.write_text(
+        index.read_text() + "| [D001](Decisions/001.md) | Choice | [code](../src/lib.rs) |\n"
+    )
+    detail = path / "Decisions/001.md"
+    detail.write_text(
+        "# D001\n\n"
+        + "\n\n".join(
+            f"## {heading}\n\nText."
+            for heading in ["Context", "Chosen", "Rejected", "Rationale", "Consequences"]
+        )
+    )
+    (tmp_path / "src/lib.rs").write_text("// DECISION: D001\nfn example() {}")
+    for args in [
+        ("init", "-q"),
+        ("config", "user.name", "Test"),
+        ("config", "user.email", "test@example.invalid"),
+        ("add", "."),
+        ("commit", "-qm", "baseline"),
+    ]:
+        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+    assert invoke(worker, tmp_path, "memory-check").returncode == 0
+    return path

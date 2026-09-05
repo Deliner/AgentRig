@@ -18,7 +18,7 @@ def configure(root: Path, kind: str, thresholds: str = 'level = "error"') -> Non
 
 
 @pytest.mark.parametrize(
-    ("extension", "source", "lines"),
+    "example",
     [
         (
             "rs",
@@ -68,8 +68,9 @@ if factory().ready:
 )
 # INVARIANT: I015
 def test_language_conditions(
-    worker: Path, tmp_path: Path, extension: str, source: str, lines: list[int]
+    worker: Path, tmp_path: Path, example: tuple[str, str, list[int]]
 ) -> None:
+    extension, source, lines = example
     configure(tmp_path, "named-if-condition")
     (tmp_path / f"src/example.{extension}").write_text(source, encoding="utf-8")
     code, items = lint(worker, tmp_path)
@@ -85,7 +86,7 @@ def test_language_conditions(
 
 
 @pytest.mark.parametrize(
-    ("extension", "source", "counts"),
+    "example",
     [
         (
             "rs",
@@ -133,8 +134,9 @@ callback = lambda one, two: one
     ],
 )
 def test_parameters_are_declarations(
-    worker: Path, tmp_path: Path, extension: str, source: str, counts: dict[str, int]
+    worker: Path, tmp_path: Path, example: tuple[str, str, dict[str, int]]
 ) -> None:
+    extension, source, counts = example
     configure(tmp_path, "parameter-count", "warning = 0")
     (tmp_path / f"src/example.{extension}").write_text(source)
     code, items = lint(worker, tmp_path)
@@ -143,7 +145,7 @@ def test_parameters_are_declarations(
 
 
 @pytest.mark.parametrize(
-    ("extension", "source", "count"),
+    "example",
     [
         (
             "rs",
@@ -179,9 +181,8 @@ def short(): pass
         ),
     ],
 )
-def test_function_ranges(
-    worker: Path, tmp_path: Path, extension: str, source: str, count: int
-) -> None:
+def test_function_ranges(worker: Path, tmp_path: Path, example: tuple[str, str, int]) -> None:
+    extension, source, count = example
     configure(tmp_path, "function-lines", f"warning = {count - 1}\nerror = {count}")
     (tmp_path / f"src/example.{extension}").write_text(source)
     code, items = lint(worker, tmp_path)

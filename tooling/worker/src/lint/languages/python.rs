@@ -48,24 +48,27 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             condition(node, test, output);
         }
         "function_definition" | "lambda" => {
-            let count = node
-                .child_by_field_name("parameters")
-                .map(|parameters| {
-                    let mut cursor = parameters.walk();
-                    parameters
-                        .named_children(&mut cursor)
-                        .filter(|parameter| {
-                            !matches!(
-                                parameter.kind(),
-                                "keyword_separator" | "positional_separator" | "comment"
-                            )
-                        })
-                        .count() as u64
-                })
-                .unwrap_or(0);
+            let count = parameter_count(node);
             let receiver = method_receiver(node, source) && count > 0;
             function(node, source, count - u64::from(receiver), output);
         }
         _ => {}
     }
+}
+
+fn parameter_count(node: Node<'_>) -> u64 {
+    node.child_by_field_name("parameters")
+        .map(|parameters| {
+            let mut cursor = parameters.walk();
+            parameters
+                .named_children(&mut cursor)
+                .filter(|parameter| {
+                    !matches!(
+                        parameter.kind(),
+                        "keyword_separator" | "positional_separator" | "comment"
+                    )
+                })
+                .count() as u64
+        })
+        .unwrap_or(0)
 }

@@ -12,7 +12,8 @@ Rows = list[tuple[int, str, str]]
 
 
 def write_plan(root: Path, rows: Rows) -> None:
-    if not (root / "worker.toml").exists():
+    uninitialized = not (root / "worker.toml").exists()
+    if uninitialized:
         project(root, CONFIG.replace('memory = "notes"', 'memory = "Ledger"'))
         memory(root).rename(root / "Ledger")
     details = root / "Ledger/Plan"
@@ -29,12 +30,14 @@ def write_plan(root: Path, rows: Rows) -> None:
             "| Product outcome | Observable capability |"
         )
         delivery = ""
-        if status == "paused":
+        paused = status == "paused"
+        complete = status == "complete"
+        if paused:
             delivery = (
                 "\n## Delivery\n\nBlocked by a missing prior outcome. "
                 "Retained branch: feature/example. Resume after prerequisites are delivered.\n"
             )
-        elif status == "complete":
+        elif complete:
             delivery = "\n## Delivery\n\nAcceptance verified by the feature test; passed.\n"
         (details / f"{identity:03}.md").write_text(
             f"# P{identity:03}\n\n## Feature\n\nProduct result.\n\n"
@@ -74,11 +77,12 @@ def test_plan_delivery_contract(
 ) -> None:
     write_plan(tmp_path, rows)
     result = invoke(worker, tmp_path, "memory-check")
-    if expected is None:
+    valid = expected is None
+    if valid:
         assert result.returncode == 0, result.stderr
     else:
         assert result.returncode == 2
-        assert expected in result.stderr
+        assert expected is not None and expected in result.stderr
 
 
 @pytest.mark.parametrize(
@@ -109,7 +113,7 @@ def test_delivery_context_required(worker: Path, tmp_path: Path, status: str) ->
 
 
 @pytest.mark.parametrize(
-    ("old", "new", "expected"),
+    "mutation",
     [
         ("(Plan/001.md)", "(Plan/002.md)", "detail path"),
         (" | Product outcome |", " |   |", "empty table cell"),
@@ -119,8 +123,9 @@ def test_delivery_context_required(worker: Path, tmp_path: Path, status: str) ->
     ],
 )
 def test_malformed_rows_are_not_silently_skipped(
-    worker: Path, tmp_path: Path, old: str, new: str, expected: str
+    worker: Path, tmp_path: Path, mutation: tuple[str, str, str]
 ) -> None:
+    old, new, expected = mutation
     write_plan(tmp_path, [(1, "pending", "-")])
     path = tmp_path / "Ledger/Plan.md"
     path.write_text(path.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")

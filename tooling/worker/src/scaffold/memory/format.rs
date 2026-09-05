@@ -22,6 +22,21 @@ pub fn columns(prefix: char) -> &'static [&'static str] {
     }
 }
 
+pub fn detail_sections(directory: &str) -> (&'static [&'static str], Option<&'static str>) {
+    match directory {
+        "Plan" => (
+            &["Feature", "User capability", "Acceptance"],
+            Some("Delivery"),
+        ),
+        "Decisions" => (
+            &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
+            None,
+        ),
+        "Invariants" => (&["Predicate", "Oracle"], None),
+        _ => unreachable!("internal memory directory"),
+    }
+}
+
 pub struct Row {
     pub id: String,
     pub detail: String,
@@ -64,18 +79,9 @@ pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> 
         .lines()
         .filter(|line| line.trim_start().starts_with('|'))
     {
-        let cells: Vec<String> = line
-            .trim()
-            .trim_matches('|')
-            .split('|')
-            .map(|cell| cell.trim().to_owned())
-            .collect();
-        ensure!(
-            cells.len() == columns,
-            "{}: expected {columns} columns",
-            path.display()
-        );
-        if cells[0] == "ID" {
+        let cells = table_cells(line, path, columns)?;
+        let header_row = cells[0] == "ID";
+        if header_row {
             ensure!(
                 cells == expected,
                 "{}: invalid table header",
@@ -84,29 +90,51 @@ pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> 
             header = true;
             continue;
         }
-        if cells
+        let separator = cells
             .iter()
-            .all(|cell| !cell.is_empty() && cell.chars().all(|c| matches!(c, '-' | ':' | ' ')))
-        {
+            .all(|cell| !cell.is_empty() && cell.chars().all(|c| matches!(c, '-' | ':' | ' ')));
+        if separator {
             continue;
         }
-        let (id, detail) = link(&cells[0])?;
-        ensure!(
-            id.starts_with(prefix)
-                && id.len() > 1
-                && id[1..].chars().all(|c| c.is_ascii_digit())
-                && ids.insert(id.clone()),
-            "{}: invalid or duplicate ID {id}",
-            path.display()
-        );
-        ensure!(
-            cells.iter().all(|s| !s.trim().is_empty()),
-            "{id}: empty table cell"
-        );
-        rows.push(Row { id, detail, cells });
+        rows.push(parse_row(cells, path, prefix, &mut ids)?);
     }
     ensure!(header, "{}: missing table header", path.display());
     Ok(rows)
+}
+fn table_cells(line: &str, path: &Path, columns: usize) -> Result<Vec<String>> {
+    let cells: Vec<String> = line
+        .trim()
+        .trim_matches('|')
+        .split('|')
+        .map(|cell| cell.trim().to_owned())
+        .collect();
+    ensure!(
+        cells.len() == columns,
+        "{}: expected {columns} columns",
+        path.display()
+    );
+    Ok(cells)
+}
+fn parse_row(
+    cells: Vec<String>,
+    path: &Path,
+    prefix: char,
+    ids: &mut HashSet<String>,
+) -> Result<Row> {
+    let (id, detail) = link(&cells[0])?;
+    ensure!(
+        id.starts_with(prefix)
+            && id.len() > 1
+            && id[1..].chars().all(|c| c.is_ascii_digit())
+            && ids.insert(id.clone()),
+        "{}: invalid or duplicate ID {id}",
+        path.display()
+    );
+    ensure!(
+        cells.iter().all(|s| !s.trim().is_empty()),
+        "{id}: empty table cell"
+    );
+    Ok(Row { id, detail, cells })
 }
 pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Result<String> {
     let source = fs::read_to_string(path)?;
@@ -121,8 +149,11 @@ pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Resul
             );
             headings.push(heading);
             body = false;
-        } else if !headings.is_empty() && !line.trim().is_empty() {
-            body = true;
+        } else {
+            let section_content = !headings.is_empty() && !line.trim().is_empty();
+            if section_content {
+                body = true;
+            }
         }
     }
     let mut extended = required.to_vec();

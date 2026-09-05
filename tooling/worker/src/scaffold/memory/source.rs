@@ -30,29 +30,31 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
     };
     let mut nodes = vec![tree.root_node()];
     while let Some(node) = nodes.pop() {
-        match node.kind() {
-            "comment" | "line_comment" => {
-                result
-                    .comments
-                    .insert(source[node.byte_range()].trim().to_owned());
-            }
-            "function_definition" | "function_item" | "function_signature_item" => {
-                if let Some(name) = node.child_by_field_name("name") {
-                    result
-                        .functions
-                        .entry(qualified_name(node, &source, name))
-                        .or_default()
-                        .push(preceding_markers(node, &source));
-                }
-            }
-            _ => {}
-        }
+        result.visit(node, &source);
         let mut cursor = node.walk();
         nodes.extend(node.named_children(&mut cursor));
     }
     Ok(Some(result))
 }
 impl Source {
+    fn visit(&mut self, node: Node<'_>, source: &str) {
+        match node.kind() {
+            "comment" | "line_comment" => {
+                self.comments
+                    .insert(source[node.byte_range()].trim().to_owned());
+            }
+            "function_definition" | "function_item" | "function_signature_item" => {
+                if let Some(name) = node.child_by_field_name("name") {
+                    self.functions
+                        .entry(qualified_name(node, source, name))
+                        .or_default()
+                        .push(preceding_markers(node, source));
+                }
+            }
+            _ => {}
+        }
+    }
+
     pub fn marked_function(&self, name: &str, id: &str) -> bool {
         self.functions.get(name).is_some_and(|functions| {
             functions.len() == 1
@@ -74,7 +76,8 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
             let adjacent = source[previous.end_byte()..node.start_byte()]
                 .trim()
                 .is_empty();
-            if !adjacent {
+            let separated = !adjacent;
+            if separated {
                 break;
             }
             match previous.kind() {
@@ -101,11 +104,11 @@ fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
     let mut parts = vec![source[name.byte_range()].to_owned()];
     let mut parent = node.parent();
     while let Some(node) = parent {
-        if matches!(
+        let scope = matches!(
             node.kind(),
             "mod_item" | "class_definition" | "function_definition" | "function_item"
-        ) && let Some(name) = node.child_by_field_name("name")
-        {
+        );
+        if let Some(name) = node.child_by_field_name("name").filter(|_| scope) {
             parts.push(source[name.byte_range()].to_owned());
         }
         parent = node.parent();

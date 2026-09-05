@@ -21,6 +21,22 @@ def test_launcher_rebuilds_changed_content_even_with_old_mtime(tmp_path: Path) -
     fake = tmp_path / "bin"
     fake.mkdir()
     compiler = fake / "cargo"
+    fake_cargo(compiler)
+    target = tmp_path / "target"
+    env = {**os.environ, "PATH": f"{fake}:{os.environ['PATH']}", "WORKER_TARGET_DIR": str(target)}
+    for expected in ["ONE", "ONE", "TWO"]:
+        source_changed = expected == "TWO"
+        if source_changed:
+            rust.write_text("TWO", encoding="utf-8")
+            os.utime(rust, ns=(original_time, original_time))
+        result = subprocess.run(
+            [str(source / "run")], env=env, text=True, capture_output=True, check=True
+        )
+        assert result.stdout.strip() == expected
+    assert (target / "builds").read_text(encoding="utf-8").splitlines() == ["build", "build"]
+
+
+def fake_cargo(compiler: Path) -> None:
     compiler.write_text(
         f"#!{sys.executable}\n"
         "import pathlib, sys\n"
@@ -36,14 +52,3 @@ def test_launcher_rebuilds_changed_content_even_with_old_mtime(tmp_path: Path) -
         encoding="utf-8",
     )
     compiler.chmod(0o755)
-    target = tmp_path / "target"
-    env = {**os.environ, "PATH": f"{fake}:{os.environ['PATH']}", "WORKER_TARGET_DIR": str(target)}
-    for expected in ["ONE", "ONE", "TWO"]:
-        if expected == "TWO":
-            rust.write_text("TWO", encoding="utf-8")
-            os.utime(rust, ns=(original_time, original_time))
-        result = subprocess.run(
-            [str(source / "run")], env=env, text=True, capture_output=True, check=True
-        )
-        assert result.stdout.strip() == expected
-    assert (target / "builds").read_text(encoding="utf-8").splitlines() == ["build", "build"]

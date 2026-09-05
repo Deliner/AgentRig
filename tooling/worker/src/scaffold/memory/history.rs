@@ -18,11 +18,13 @@ fn committed(root: &Path, path: &str) -> Result<String> {
 }
 pub fn check(context: &Context, git_root: &Path) -> Result<()> {
     // A standalone tree or an unborn repository has no committed memory baseline.
-    if crate::util::git(git_root, &["rev-parse", "--verify", "HEAD"]).is_err() {
+    let unborn = crate::util::git(git_root, &["rev-parse", "--verify", "HEAD"]).is_err();
+    if unborn {
         return Ok(());
     }
     let listed = crate::util::git(git_root, &["ls-tree", "HEAD", "--", FILE])?;
-    let prior_memory = if listed.is_empty() {
+    let adoption = listed.is_empty();
+    let prior_memory = if adoption {
         context.config.paths.memory.clone()
     } else {
         let prior: Config =
@@ -30,7 +32,9 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
         prior.paths.memory
     };
     let index = format!("{}/Decisions.md", prior_memory);
-    if crate::util::git(git_root, &["ls-tree", "HEAD", "--", &index])?.is_empty() {
+    let no_prior_memory =
+        crate::util::git(git_root, &["ls-tree", "HEAD", "--", &index])?.is_empty();
+    if no_prior_memory {
         return Ok(());
     }
     let rows = format::parse_table(&committed(git_root, &index)?, Path::new(&index), 'D')?;
@@ -41,17 +45,32 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
             .iter()
             .find(|row| row.id == old.id)
             .with_context(|| format!("{}: committed decision cannot be removed", old.id))?;
-        ensure!(
-            row.detail == old.detail && row.cells[1] == old.cells[1],
-            "{}: committed decision identity cannot change",
-            old.id
-        );
         let detail = committed(git_root, &format!("{}/{}", prior_memory, old.detail))?;
-        ensure!(
-            fs::read_to_string(memory.join(&row.detail))? == detail,
-            "{}: committed decision detail cannot change; supersede with a new decision",
-            old.id
-        );
+        preserve(
+            old,
+            row,
+            &detail,
+            &fs::read_to_string(memory.join(&row.detail))?,
+        )?;
     }
+    Ok(())
+}
+
+fn preserve(
+    old: format::Row,
+    row: &format::Row,
+    prior_detail: &str,
+    current_detail: &str,
+) -> Result<()> {
+    ensure!(
+        row.detail == old.detail && row.cells[1] == old.cells[1],
+        "{}: committed decision identity cannot change",
+        old.id
+    );
+    ensure!(
+        current_detail == prior_detail,
+        "{}: committed decision detail cannot change; supersede with a new decision",
+        old.id
+    );
     Ok(())
 }

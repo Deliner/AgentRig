@@ -10,6 +10,7 @@ mod guard;
 mod reminder;
 mod transcript;
 
+use crate::scaffold::config::Context;
 use crate::util::{resolve, text};
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
@@ -53,64 +54,69 @@ fn paths(event: &Value) -> Vec<String> {
     paths
 }
 pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
-    if !event.is_object() {
+    let invalid_event = !event.is_object();
+    if invalid_event {
         bail!("expected a hook event object");
     }
-    let configured = crate::scaffold::config::Context::load(root)?;
-    if text(event, "hook_event_name") == "SessionStart" {
-        let memory = &configured.config.paths.memory;
-        let full = full_refresh(&configured);
-        let message = format!(
-            "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
-            root.join(memory).join("State.md").display(),
-            root.join(memory).join("Plan.md").display(),
-            full
-        );
-        let directory = configured
-            .path(&configured.config.paths.runtime)?
-            .join("reminders");
-        let started = reminder::start_at(event, &directory);
-        if let Err(error) = started {
-            eprintln!("session reminder state: {error}");
-        }
-        return Ok(Some(context("SessionStart", &message)));
+    let configured = Context::load(root)?;
+    match text(event, "hook_event_name") {
+        "SessionStart" => session_start(root, event, &configured),
+        "PreToolUse" => match text(event, "tool_name") {
+            "Bash" | "Shell" | "exec_command" => shell_event(root, event, &configured),
+            "apply_patch" | "Edit" | "Write" => edit_event(root, event, &configured),
+            _ => Ok(None),
+        },
+        _ => Ok(None),
     }
-    if text(event, "hook_event_name") != "PreToolUse" {
-        return Ok(None);
+}
+fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
+    let memory = &configured.config.paths.memory;
+    let full = full_refresh(configured);
+    let message = format!(
+        "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
+        root.join(memory).join("State.md").display(),
+        root.join(memory).join("Plan.md").display(),
+        full
+    );
+    let directory = configured
+        .path(&configured.config.paths.runtime)?
+        .join("reminders");
+    let started = reminder::start_at(event, &directory);
+    if let Err(error) = started {
+        eprintln!("session reminder state: {error}");
     }
-    let tool = text(event, "tool_name");
-    if ["Bash", "Shell", "exec_command"].contains(&tool) {
-        let validated = guard::arguments(guard::command(event))
-            .and_then(|args| crate::scaffold::hook_commands(&configured, args));
-        let argv = match validated {
-            Ok(args) => args,
-            Err(error) => return Ok(Some(deny(&error.to_string()))),
-        };
-        let opaque = argv.get(1).is_some_and(|arg| {
-            arg == "run"
-                || configured
-                    .config
-                    .commands
-                    .get(arg)
-                    .is_some_and(|command| !command.read_only)
-        });
-        let guidance = edit_guidance(root, event, true, &configured)?;
-        return Ok(if opaque {
-            Some(context(
-                "PreToolUse",
-                &format!(
-                    "Shell write targets are opaque. If this command changes project memory, apply only the matching editing skill before the write:\n{}",
-                    guidance
-                ),
-            ))
-        } else {
-            None
-        });
-    }
-    if !["apply_patch", "Edit", "Write"].contains(&tool) {
-        return Ok(None);
-    }
-    let message = edit_guidance(root, event, false, &configured)?;
+    Ok(Some(context("SessionStart", &message)))
+}
+fn shell_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
+    let validated = guard::arguments(guard::command(event))
+        .and_then(|args| crate::scaffold::hook_commands(configured, args));
+    let argv = match validated {
+        Ok(args) => args,
+        Err(error) => return Ok(Some(deny(&error.to_string()))),
+    };
+    let opaque = argv.get(1).is_some_and(|arg| {
+        arg == "run"
+            || configured
+                .config
+                .commands
+                .get(arg)
+                .is_some_and(|command| !command.read_only)
+    });
+    let guidance = edit_guidance(root, event, true, configured)?;
+    Ok(if opaque {
+        Some(context(
+            "PreToolUse",
+            &format!(
+                "Shell write targets are opaque. If this command changes project memory, apply only the matching editing skill before the write:\n{}",
+                guidance
+            ),
+        ))
+    } else {
+        None
+    })
+}
+fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
+    let message = edit_guidance(root, event, false, configured)?;
     let reminder = match &configured.config.hooks.reminder {
         Some(path) => reminder::before_at(
             event,
@@ -123,8 +129,9 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     };
     match reminder {
         Ok(Some(mut reason)) => {
-            reason = reason.replace(reminder::FULL, &full_refresh(&configured));
-            if !message.is_empty() {
+            reason = reason.replace(reminder::FULL, &full_refresh(configured));
+            let has_guidance = !message.is_empty();
+            if has_guidance {
                 reason.push_str(&format!("\n\n{message}"));
             }
             return Ok(Some(deny(&reason)));
@@ -132,7 +139,8 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
         Err(error) => eprintln!("complexity reminder: {error}"),
         _ => {}
     }
-    Ok(if message.is_empty() {
+    let no_guidance = message.is_empty();
+    Ok(if no_guidance {
         None
     } else {
         Some(context("PreToolUse", &message))

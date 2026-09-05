@@ -73,10 +73,13 @@ pub fn thresholds(warning: Option<u64>, error: Option<u64>) -> Result<()> {
 pub fn globs(patterns: &[String]) -> Result<GlobSet> {
     let mut builder = GlobSetBuilder::new();
     for pattern in patterns {
-        if pattern.trim().is_empty() {
+        let empty = pattern.trim().is_empty();
+        if empty {
             bail!("empty glob");
         }
-        if Path::new(pattern).is_absolute() || pattern.split('/').any(|part| part == "..") {
+        let escapes_root =
+            Path::new(pattern).is_absolute() || pattern.split('/').any(|part| part == "..");
+        if escapes_root {
             bail!("globs must stay relative to the repository: {pattern}");
         }
         builder.add(GlobBuilder::new(pattern).literal_separator(true).build()?);
@@ -84,90 +87,120 @@ pub fn globs(patterns: &[String]) -> Result<GlobSet> {
     Ok(builder.build()?)
 }
 pub fn skill(root: &Path, value: &str) -> Result<()> {
-    if Path::new(value).is_absolute() {
+    let absolute = Path::new(value).is_absolute();
+    if absolute {
         bail!("skill paths must be relative to the repository: {value}");
     }
     let path = root.join(value).canonicalize()?;
-    if !path.starts_with(root) || path.file_name().is_none_or(|name| name != "SKILL.md") {
+    let invalid_location =
+        !path.starts_with(root) || path.file_name().is_none_or(|name| name != "SKILL.md");
+    if invalid_location {
         bail!("skill must reference a repository SKILL.md: {value}");
     }
     let source = fs::read_to_string(path)?;
-    if !source.starts_with("---\n")
+    let invalid_frontmatter = !source.starts_with("---\n")
         || !source.contains("\nname: ")
-        || !source.contains("\ndescription: ")
-    {
+        || !source.contains("\ndescription: ");
+    if invalid_frontmatter {
         bail!("invalid skill frontmatter: {value}");
     }
     Ok(())
 }
 pub fn load(root: &Path, path: &Path) -> Result<Config> {
     let config: Config = toml::from_str(&fs::read_to_string(path)?)?;
-    if config.version != 1 {
+    let unsupported_version = config.version != 1;
+    if unsupported_version {
         bail!("unsupported config version {}", config.version);
     }
     skill(root, &config.config_skill)?;
     globs(&config.exclude)?;
-    if config.rules.is_empty() {
+    let missing_rules = config.rules.is_empty();
+    if missing_rules {
         bail!("at least one rule is required");
     }
     let mut ids = HashSet::new();
     for rule in &config.rules {
-        if rule.id.trim().is_empty() || !ids.insert(&rule.id) {
+        let invalid_id = rule.id.trim().is_empty() || !ids.insert(&rule.id);
+        if invalid_id {
             bail!("empty or duplicate rule ID");
         }
-        if rules::target(&rule.kind)? != rule.target {
-            bail!("{}: unsupported target {}", rule.id, rule.target);
-        }
-        if rule.include.is_empty() {
-            bail!("{}: include must select targets", rule.id);
-        }
-        globs(&rule.include)?;
-        globs(&rule.exclude)?;
-        validate_extensions(&rule.extensions, &rule.target)?;
-        rules::validate_extensions(&rule.kind, &rule.extensions)?;
-        rules::validate_includes(&rule.kind, &rule.include)?;
-        if rule.kind == "named-if-condition" {
-            if rule.level.is_none()
-                || rule.warning.is_some()
-                || rule.error.is_some()
-                || !rule.overrides.is_empty()
-            {
-                bail!(
-                    "{}: named-if-condition needs level, no thresholds or overrides",
-                    rule.id
-                );
-            }
-        } else {
-            if rule.level.is_some() {
-                bail!("{}: numeric rules use thresholds, not level", rule.id);
-            }
-            thresholds(rule.warning, rule.error)?;
-        }
-        skill(root, &rule.warning_skill)?;
-        skill(root, &rule.error_skill)?;
-        for entry in &rule.overrides {
-            if entry.include.is_empty() || (entry.warning.is_none() && entry.error.is_none()) {
-                bail!("{}: override needs selectors and a threshold", rule.id);
-            }
-            globs(&entry.include)?;
-            validate_extensions(&entry.extensions, &rule.target)?;
-            rules::validate_extensions(&rule.kind, &entry.extensions)?;
-            rules::validate_includes(&rule.kind, &entry.include)?;
-            if let (Some(warning), Some(error)) = (entry.warning, entry.error)
-                && warning >= error
-            {
-                bail!("{}: invalid override thresholds", rule.id);
-            }
-        }
+        rule.validate(root)?;
     }
     Ok(config)
 }
+impl Rule {
+    fn validate(&self, root: &Path) -> Result<()> {
+        let incompatible_target = rules::target(&self.kind)? != self.target;
+        if incompatible_target {
+            bail!("{}: unsupported target {}", self.id, self.target);
+        }
+        let missing_selection = self.include.is_empty();
+        if missing_selection {
+            bail!("{}: include must select targets", self.id);
+        }
+        globs(&self.include)?;
+        globs(&self.exclude)?;
+        validate_extensions(&self.extensions, &self.target)?;
+        rules::validate_extensions(&self.kind, &self.extensions)?;
+        rules::validate_includes(&self.kind, &self.include)?;
+        self.validate_severity()?;
+        skill(root, &self.warning_skill)?;
+        skill(root, &self.error_skill)?;
+        for entry in &self.overrides {
+            self.validate_override(entry)?;
+        }
+        Ok(())
+    }
+    fn validate_severity(&self) -> Result<()> {
+        let named_condition = self.kind == "named-if-condition";
+        if named_condition {
+            let invalid_level = self.level.is_none()
+                || self.warning.is_some()
+                || self.error.is_some()
+                || !self.overrides.is_empty();
+            if invalid_level {
+                bail!(
+                    "{}: named-if-condition needs level, no thresholds or overrides",
+                    self.id
+                );
+            }
+        } else {
+            let has_level = self.level.is_some();
+            if has_level {
+                bail!("{}: numeric rules use thresholds, not level", self.id);
+            }
+            thresholds(self.warning, self.error)?;
+        }
+        Ok(())
+    }
+    fn validate_override(&self, entry: &Override) -> Result<()> {
+        let incomplete =
+            entry.include.is_empty() || (entry.warning.is_none() && entry.error.is_none());
+        if incomplete {
+            bail!("{}: override needs selectors and a threshold", self.id);
+        }
+        globs(&entry.include)?;
+        validate_extensions(&entry.extensions, &self.target)?;
+        rules::validate_extensions(&self.kind, &entry.extensions)?;
+        rules::validate_includes(&self.kind, &entry.include)?;
+        if let (Some(warning), Some(error)) = (entry.warning, entry.error) {
+            let invalid_order = warning >= error;
+            if invalid_order {
+                bail!("{}: invalid override thresholds", self.id);
+            }
+        }
+        Ok(())
+    }
+}
 fn validate_extensions(extensions: &[String], target: &str) -> Result<()> {
-    if target == "directory" && !extensions.is_empty() {
+    let directory_extensions = target == "directory" && !extensions.is_empty();
+    if directory_extensions {
         bail!("directory rules do not accept extensions");
     }
     for ext in extensions {
-        if !ext.starts_with('.') || ext.len() < 2 || ext[1..].contains(['/', '*', '?', '.']) {
+        let invalid_suffix =
+            !ext.starts_with('.') || ext.len() < 2 || ext[1..].contains(['/', '*', '?', '.']);
+        if invalid_suffix {
             bail!("extensions must be literal suffixes such as .rs: {ext}");
         }
     }

@@ -13,47 +13,57 @@ pub fn guard_commit_with(root: &Path, base: &str, prefix: &str) -> Result<i32> {
     let merge = root
         .join(git(root, &["rev-parse", "--git-path", "MERGE_HEAD"])?)
         .exists();
-    if branch.starts_with(prefix) || (branch == base && merge) {
+    let permitted = branch.starts_with(prefix) || (branch == base && merge);
+    if permitted {
         return Ok(0);
     }
     eprintln!("direct commits on {base} are prohibited; create a {prefix} branch");
     Ok(1)
 }
 pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) -> Result<i32> {
-    if phase != "prepared" {
+    let no_validation_needed = phase != "prepared";
+    if no_validation_needed {
         return Ok(0);
     }
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
     for line in input.lines() {
         let fields: Vec<_> = line.split_whitespace().collect();
-        if fields.len() != 3 {
+        let malformed = fields.len() != 3;
+        if malformed {
             return Ok(1);
         }
-        let [old, new, reference] = [fields[0], fields[1], fields[2]];
-        if new.chars().all(|ch| ch == '0') && reference.starts_with(&format!("refs/heads/{prefix}"))
-        {
-            let tip = if old.chars().all(|ch| ch == '0') {
-                match git(
-                    root,
-                    &["rev-parse", "--verify", &format!("{reference}^{{commit}}")],
-                ) {
-                    Ok(tip) => tip,
-                    Err(_) => continue,
+        if let [old, new, reference] = fields.as_slice() {
+            let deletion = new.chars().all(|ch| ch == '0')
+                && reference.starts_with(&format!("refs/heads/{prefix}"));
+            if deletion {
+                let merged = merged_reference(root, old, reference, base)?;
+                if merged {
+                    eprintln!("merged feature branches must be retained");
+                    return Ok(1);
                 }
-            } else {
-                old.to_owned()
-            };
-            if Command::new("git")
-                .args(["merge-base", "--is-ancestor", &tip, base])
-                .current_dir(root)
-                .status()?
-                .success()
-            {
-                eprintln!("merged feature branches must be retained");
-                return Ok(1);
             }
         }
     }
     Ok(0)
+}
+
+fn merged_reference(root: &Path, old: &str, reference: &str, base: &str) -> Result<bool> {
+    let unknown_tip = old.chars().all(|ch| ch == '0');
+    let tip = if unknown_tip {
+        match git(
+            root,
+            &["rev-parse", "--verify", &format!("{reference}^{{commit}}")],
+        ) {
+            Ok(tip) => tip,
+            Err(_) => return Ok(false),
+        }
+    } else {
+        old.to_owned()
+    };
+    Ok(Command::new("git")
+        .args(["merge-base", "--is-ancestor", &tip, base])
+        .current_dir(root)
+        .status()?
+        .success())
 }

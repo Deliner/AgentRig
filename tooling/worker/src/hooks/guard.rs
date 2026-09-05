@@ -10,19 +10,24 @@ fn outer_control(command: &str) -> bool {
     let mut escaped = false;
     for (index, ch) in chars.iter().copied().enumerate() {
         let substitution = ch == '$' && chars.get(index + 1) == Some(&'(');
+        let escape_start = ch == '\\' && quote != Some('\'');
+        let quote_start = ch == '\'' || ch == '"';
+        let shell_control = ";|&<>\n\u{60}".contains(ch) || substitution;
         if escaped {
             escaped = false;
-        } else if ch == '\\' && quote != Some('\'') {
+        } else if escape_start {
             escaped = true;
         } else if let Some(q) = quote {
-            if ch == q {
+            let quote_end = ch == q;
+            let quoted_substitution = q == '"' && (ch == '\u{60}' || substitution);
+            if quote_end {
                 quote = None;
-            } else if q == '"' && (ch == '\u{60}' || substitution) {
+            } else if quoted_substitution {
                 return true;
             }
-        } else if ch == '\'' || ch == '"' {
+        } else if quote_start {
             quote = Some(ch);
-        } else if ";|&<>\n\u{60}".contains(ch) || substitution {
+        } else if shell_control {
             return true;
         }
     }
@@ -36,15 +41,16 @@ pub fn command(event: &Value) -> Option<&str> {
 pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
     let command =
         command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
-    if outer_control(command) {
+    let has_outer_control = outer_control(command);
+    if has_outer_control {
         bail!("Agent shell commands must be one top-level just invocation.");
     }
     let argv = shell_words::split(command)?;
-    if argv
+    let not_just = argv
         .first()
         .and_then(|arg| Path::new(arg).file_name())
-        .is_none_or(|name| name != "just")
-    {
+        .is_none_or(|name| name != "just");
+    if not_just {
         bail!("Direct shell commands are disabled; use a recipe from just --list.");
     }
     Ok(argv)

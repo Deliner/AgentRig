@@ -26,71 +26,66 @@ pub fn owns(command: &str) -> bool {
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
-    if command == "init" {
-        return package::init(root, args);
-    }
-    if command == "check" {
-        if args.iter().any(|arg| arg != "--staged") {
-            bail!("check [--staged]");
+    match command {
+        "init" => return package::init(root, args),
+        "check" => {
+            let invalid_arguments = args.iter().any(|arg| arg != "--staged");
+            if invalid_arguments {
+                bail!("check [--staged]");
+            }
+            return gate::run(root, args.iter().any(|arg| arg == "--staged"));
         }
-        return gate::run(root, args.iter().any(|arg| arg == "--staged"));
+        _ => {}
     }
-    if matches!(command, "doctor" | "memory-check" | "resume" | "report") && !args.is_empty() {
-        bail!("{command} takes no arguments");
-    }
+    validate_arguments(command, args)?;
     let context = config::Context::load(root).map_err(|error| {
         anyhow::anyhow!(
             "{error:#}. ACTION: Correct worker.toml and its referenced configuration/skills"
         )
     })?;
+    configured_command(&context, command, args)
+}
+fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
+    let unexpected = matches!(
+        command,
+        "doctor"
+            | "memory-check"
+            | "resume"
+            | "report"
+            | "config-check"
+            | "commands"
+            | "feature-merge"
+    ) && !args.is_empty();
+    if unexpected {
+        bail!("{command} takes no arguments");
+    }
+    let invalid_start = command == "feature-start" && args.len() != 1;
+    if invalid_start {
+        bail!("feature-start NAME");
+    }
+    Ok(())
+}
+fn configured_command(context: &config::Context, command: &str, args: &[String]) -> Result<i32> {
+    let root = &context.root;
+    let git = &context.config.git;
     match command {
-        "doctor" => package::doctor(&context),
-        "config-check" => {
-            if !args.is_empty() {
-                bail!("config-check takes no arguments");
-            }
-            let code =
-                crate::lint::run(root, &context.path(&context.config.paths.lint)?, true, true)?;
-            if code == 0 {
-                println!(
-                    "Scaffold configuration is valid (runtime {})",
-                    config::VERSION
-                );
-            }
-            Ok(code)
-        }
-        "guard-commit" => crate::hooks::git::guard_commit_with(
-            root,
-            &context.config.git.base,
-            &context.config.git.prefix,
-        ),
+        "doctor" => package::doctor(context),
+        "config-check" => config_check(context),
+        "guard-commit" => crate::hooks::git::guard_commit_with(root, &git.base, &git.prefix),
         "guard-reference" => crate::hooks::git::guard_reference_with(
             root,
             args.first().map(String::as_str).unwrap_or(""),
-            &context.config.git.base,
-            &context.config.git.prefix,
+            &git.base,
+            &git.prefix,
         ),
-        "feature-start" => {
-            if args.len() != 1 {
-                bail!("feature-start NAME");
-            }
-            git::start(&context, &args[0])
-        }
-        "feature-merge" => {
-            if !args.is_empty() {
-                bail!("feature-merge takes no arguments");
-            }
-            git::merge(&context)
-        }
-        "memory-check" => memory::check(&context),
+        "feature-start" => git::start(context, &args[0]),
+        "feature-merge" => git::merge(context),
+        "memory-check" => memory::check(context),
         "resume" => {
-            memory::resume(&context)?;
+            memory::resume(context)?;
             Ok(0)
         }
         "commands" => {
-            if !args.is_empty() {
-                bail!("commands takes no arguments");
-            }
             for (name, spec) in &context.config.commands {
                 println!("{name}: {}", spec.argv.join(" "));
             }
@@ -100,19 +95,33 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
             let (name, extra) = args
                 .split_first()
                 .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
-            let extra = if extra.first().is_some_and(|s| s == "--") {
-                &extra[1..]
-            } else {
-                extra
-            };
-            commands::run(&context, name, extra)
+            commands::run(context, name, forwarded(extra))
         }
         "report" => {
-            commands::report(&context)?;
+            commands::report(context)?;
             Ok(0)
         }
         _ => bail!("unknown scaffold command {command}"),
     }
+}
+fn config_check(context: &config::Context) -> Result<i32> {
+    let code = crate::lint::run(
+        &context.root,
+        &context.path(&context.config.paths.lint)?,
+        true,
+        true,
+    )?;
+    let valid = code == 0;
+    if valid {
+        println!(
+            "Scaffold configuration is valid (runtime {})",
+            config::VERSION
+        );
+    }
+    Ok(code)
+}
+fn forwarded(args: &[String]) -> &[String] {
+    args.strip_prefix(&["--".to_owned()]).unwrap_or(args)
 }
 
 // The hook and executor validate the same command ID and argument contract.
@@ -122,13 +131,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let name = argv
                 .get(2)
                 .ok_or_else(|| anyhow::anyhow!("just run requires a catalog command"))?;
-            let extra = &argv[3..];
-            let extra = if extra.first().is_some_and(|s| s == "--") {
-                &extra[1..]
-            } else {
-                extra
-            };
-            commands::argv(context, name, extra)?;
+            commands::argv(context, name, forwarded(&argv[3..]))?;
         }
         "list" | "--list" | "resume" | "config-check" | "doctor" | "lint-rules" | "report"
         | "feature-merge" => {
@@ -144,16 +147,12 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             );
         }
         "feature-start" => {
-            let extra = argv[2..]
-                .strip_prefix(&["--".to_owned()])
-                .unwrap_or(&argv[2..]);
+            let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
         "lint" | "lint-config-check" => {}
         name => {
-            let extra = &argv[2..];
-            let extra = extra.strip_prefix(&["--".to_owned()]).unwrap_or(extra);
-            commands::argv(context, name, extra)?;
+            commands::argv(context, name, forwarded(&argv[2..]))?;
         }
     }
     Ok(argv)
