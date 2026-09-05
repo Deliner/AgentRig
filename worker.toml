@@ -255,3 +255,8 @@ target = "tooling/tests/native/scaffold/test_feedback.py::test_evidence_tracks_c
 check = "test"
 runner = "pytest"
 target = "tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_real_conflict"
+
+[oracles.I020]
+check = "test"
+runner = "pytest"
+target = "tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership"

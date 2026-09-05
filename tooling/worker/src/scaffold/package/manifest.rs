@@ -1,0 +1,85 @@
+// DECISION: D023
+use super::{Files, config::Config};
+use anyhow::Result;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
+use std::collections::BTreeMap;
+
+pub const PATH: &str = ".worker/manifest.json";
+#[derive(Debug, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum Ownership {
+    Runtime,
+    Asset,
+    Configuration,
+    Editable,
+    Memory,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Entry {
+    pub sha256: String,
+    pub ownership: Ownership,
+    pub executable: bool,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Manifest {
+    pub manifest_version: u32,
+    pub package_version: String,
+    pub config_schema: u32,
+    pub files: BTreeMap<String, Entry>,
+}
+pub fn installed(files: &Files, config: &Config) -> Result<Vec<u8>> {
+    let files = files
+        .iter()
+        .map(|(path, bytes)| {
+            (
+                path.clone(),
+                Entry {
+                    sha256: checksum(bytes),
+                    ownership: ownership(path, config),
+                    executable: executable(path),
+                },
+            )
+        })
+        .collect();
+    let manifest = Manifest {
+        manifest_version: 1,
+        package_version: config.runtime.clone(),
+        config_schema: config.version,
+        files,
+    };
+    Ok(serde_json::to_vec_pretty(&manifest)?)
+}
+pub fn checksum(bytes: &[u8]) -> String {
+    format!("{:x}", Sha256::digest(bytes))
+}
+pub fn executable(path: &str) -> bool {
+    std::path::Path::new(path)
+        .components()
+        .any(|component| component.as_os_str() == "bin" || component.as_os_str() == "hooks")
+}
+fn ownership(path: &str, config: &Config) -> Ownership {
+    let memory = ["Plan", "State", "Decisions", "Invariants"]
+        .iter()
+        .any(|name| path == format!("{}/{name}.md", config.paths.memory));
+    let settings = ["worker.toml", ".codex/config.toml", &config.paths.lint].contains(&path)
+        || config.hooks.reminder.as_deref() == Some(path);
+    let editable = (path.starts_with(&format!("{}/", config.paths.skills))
+        && path.ends_with("/SKILL.md"))
+        || path.starts_with(".worker/hooks/")
+        || ["justfile", ".codex/hooks.json"].contains(&path);
+    let runtime = path == ".worker/bin/discipline-worker";
+    if memory {
+        Ownership::Memory
+    } else if settings {
+        Ownership::Configuration
+    } else if editable {
+        Ownership::Editable
+    } else if runtime {
+        Ownership::Runtime
+    } else {
+        Ownership::Asset
+    }
+}

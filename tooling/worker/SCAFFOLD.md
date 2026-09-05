@@ -4,6 +4,8 @@ The portable entry point is `worker.toml` in the selected project root. Initial 
 
 A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` executable. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. Updates and automatic migrations are outside this version.
 
+New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
+
 ## Commands
 
 All project commands accept `--root PATH`; otherwise the current directory is the root. `--version` and `--help` do not need a project.

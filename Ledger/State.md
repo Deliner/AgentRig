@@ -2,28 +2,28 @@
 
 ## Focus
 
-Complete the four requested agent-native improvements under D022. The main outcome, diagnostics, recovery and feedback implementation is integrated. Final audit identified doctor as the remaining check without skill/retry guidance; finish that diagnostic coverage. P001 remains paused.
+Implement the user's upgrade MVP from attachment 8f70329c-af70-4315-bcd3-cdc743504bcd: ownership manifest; upgrade plan/apply/rollback; preserved settings and memory; visible conflicts; stale-plan checks; recovery journal and post-update verification. Support one explicit adjacent-version transition. P001 remains paused.
 
 ## Workspace
 
-Branch: feature/actionable-doctor-diagnostics
+Branch: feature/scaffold-upgrades
 
-Revision: 1fa16e6
+Revision: 83a81d9
 
-This is the main feature merge and the current follow-up baseline. The retained feature/agent-native-feedback branch contains the two verified implementation VACs. Compare this snapshot with live Git before acting.
+This is the pre-upgrade baseline. The prior agent-native goal is fully integrated and complete. Current work is a new authorized worker capability, planned in .tmp/scaffold-upgrades-plan.md.
 
 ## Progress
 
-VAC guidance connects intent and verification. Gate and standalone checks provide actionable retries; resume compares HEAD, worktree and index evidence and reports merge/rebase facts. Report identifies repeated check failures without claiming a skill was read. A demonstrated Linux executable-replacement retry failure is fixed. Doctor now uses the same diagnostic format after its original individual results.
+The first VAC adds installation receipts with package/schema versions, ownership, SHA-256 and executable flags. Receipt generation and installation use one executable classification. Init still validates collisions before writing. D023 and I020 record and verify this baseline contract. Upgrade commands and migration/recovery are not implemented yet.
 
 ## Verification
 
-The main feature passed full staged and integration gates, with all 182 tests passing in the final runs. Strict language policy remains blocking and clean. All three edited skill validators passed. All four package tests passed, including emitted doctor retries for broken registration, missing tools and incompatible configuration. Verify the follow-up staged/integration gates before declaring delivery.
+All nine package and independent-consumer tests passed; strict lint reports no errors. The receipt test compares every installed entry and detects a subsequent skill edit. Full staged verification remains part of committing this VAC.
 
 ## Blockers
 
-None observed. Evidence covers repository inputs and observed HEAD, not external environment or dependencies. Automatic version migration is outside the attachment scope.
+None. Release input will be a local new-version executable; reuse its existing init command in an isolated directory to obtain stock files. Existing consumers without manifests need a justified baseline reconstruction, not guessed ownership.
 
 ## Next action
 
-Verify the doctor retry tests, commit this focused VAC through the complete staged gate and run just feature-merge on its clean branch. Retain both feature branches. If Git already confirms integration, audit the four attachment requirements against current code, tests and actual gate results before declaring the goal complete.
+Commit the installation-receipt VAC through the full staged gate, then implement reviewable plans, apply/recovery/rollback and the explicit adjacent-version transition. Preserve current project settings and memory, and keep the upgrade journal outside agent State. Complete independent interrupted/failing upgrade tests and final integration before marking the goal complete.
