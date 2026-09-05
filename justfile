@@ -63,3 +63,7 @@ upgrade *args:
 # What: invoke the shared review runner; Why: use the same review contract from Just and MCP.
 review *args:
     @tooling/worker/run run review -- "$@"
+
+# What: describe a lint rule; Why: inspect supported parameters and valid examples.
+lint-rule *args:
+    @tooling/worker/run lint-rule "$@"

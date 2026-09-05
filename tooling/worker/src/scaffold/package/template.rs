@@ -170,6 +170,7 @@ pub(super) fn justfile() -> String {
         ("setup", "setup", false),
         ("lint", "lint", true),
         ("lint-config-check", "lint-config-check", true),
+        ("lint-rule", "lint-rule", true),
         ("review", "review", true),
     ] {
         source.push_str(&format!(

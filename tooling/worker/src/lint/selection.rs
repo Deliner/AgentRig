@@ -43,13 +43,14 @@ pub fn select<'a>(rule: &Rule, inventory: &'a Inventory) -> Result<Vec<Selected<
     Ok(output)
 }
 fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Result<Selected<'a>> {
-    let incompatible = rules::syntax(&rule.kind) && !rules::supports_path(path);
+    let incompatible = rules::syntax(rule.kind) && !rules::supports_path(rule.kind, path);
     if incompatible {
         bail!(
-            "{} ({}): selected {} has no supported handler; supports Rust (.rs) and Python (.py, .pyi). Narrow extensions/include or exclude this path",
+            "{} ({}): selected {} has no supported handler; supports {}. Narrow extensions/include or exclude this path",
             rule.id,
             rule.kind,
-            path.display()
+            path.display(),
+            rules::support(rule.kind)
         );
     }
     let (mut warning, mut error) = (rule.warning, rule.error);

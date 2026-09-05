@@ -23,11 +23,9 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     if explicit_command {
         args.remove(0);
     }
-    let rules = command == "lint-rules";
+    let rules = matches!(command.as_str(), "lint-rules" | "lint-rule");
     if rules {
-        ensure!(args.is_empty(), "lint-rules takes no arguments");
-        println!("{}", super::rules::catalog());
-        return Ok(0);
+        return discovery(&command, &args);
     }
     ensure!(
         matches!(command.as_str(), "lint" | "lint-config-check"),
@@ -44,4 +42,51 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         &args,
         command == "lint-config-check",
     )
+}
+
+pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
+    let catalog = command == "lint-rules";
+    if catalog {
+        ensure!(args.is_empty(), "lint-rules takes no arguments");
+        println!("{}", super::rules::catalog());
+        return Ok(0);
+    }
+    let kind = args
+        .first()
+        .ok_or_else(|| anyhow::anyhow!("lint-rule requires a rule kind"))?;
+    let kind: super::rules::Kind = serde_json::from_value(serde_json::json!(kind))?;
+    ensure!(
+        args.iter()
+            .skip(1)
+            .all(|arg| matches!(arg.as_str(), "--json" | "--example")),
+        "unknown lint-rule argument"
+    );
+    let example = args.iter().any(|arg| arg == "--example");
+    let json = args.iter().any(|arg| arg == "--json");
+    if example {
+        let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
+            "rules": [super::rules::example(kind, ".agents/skills", &["src/**".into()])]});
+        println!("{}", toml::to_string_pretty(&value)?);
+    } else if json {
+        println!("{}", super::rules::describe(kind));
+    } else {
+        print_rule(kind);
+    }
+    Ok(0)
+}
+
+fn print_rule(kind: super::rules::Kind) {
+    let descriptor = kind.descriptor();
+    println!(
+        "{kind}: {}\nTarget: {}\nRepair skill: {}\nParameters: {}",
+        descriptor.metric,
+        descriptor.target,
+        descriptor.skill,
+        descriptor.parameters.describe()
+    );
+    let syntax = super::rules::syntax(kind);
+    if syntax {
+        println!("Languages: {}", super::rules::support(kind));
+    }
+    println!("Use lint-rule {kind} --example for a complete configuration example.");
 }

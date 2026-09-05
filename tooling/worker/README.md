@@ -16,7 +16,7 @@ The lint file selected by worker.toml (or --config; standalone default lint.toml
 
 Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
-Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
+Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete TOML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
 
 Each rules entry requires:
 
@@ -121,3 +121,24 @@ separate skill bundle. References must still identify valid SKILL.md files insid
 that selected root. Diagnostics provide their resolved paths. The assessment
 writes no project files; worker and standalone findings agree for the same
 configuration apart from their executable-specific retry commands.
+
+
+## Adding rules and language handlers
+
+The typed Kind and its descriptor in src/lint/rules own rule identity, target,
+metric, parameter policy, repair guidance and installed defaults. Catalog and
+configuration validation consume this descriptor; package setup consumes its
+examples. Do not maintain separate capability or default tables.
+
+The registrations in src/lint/languages/registry.rs bind actual parser and
+inspection functions to extensions and implemented kinds. These registrations
+also drive catalog language support and selector validation. Add a language only
+with its implemented measurements and positive/negative behavior tests. Bash
+parsing for shell hooks does not register Bash as a lint language. Shared
+measurements carry Kind, locations and values; the engine owns diagnostics.
+
+For a new rule, add its typed identity, descriptor and measurement, register the
+implemented language pairs when applicable, supply a repair skill and verify
+accepted/rejected source and configuration examples. Numeric rules use warning
+and error thresholds; policy rules use level. Existing configuration syntax and
+strict installed defaults are preserved.

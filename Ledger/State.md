@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 7b831f7
+Revision: 26fe790
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Read the full goal, implementation plan and delivery/edit skills. Reconciled Git and memory. The initial VAC records the complete outcome contract. Existing setup/review registration and lint catalog/validation will be extended; current rule metadata duplicates language and parameter knowledge.
+The outcome contract is committed. The current VAC replaces string rule identities and duplicated defaults with typed kinds and descriptors. Registered language parsers/inspectors now own actual lint support. Catalog, validation and installed templates consume those owners. lint-rule provides readable details, JSON metadata and valid TOML examples through embedded and standalone CLI.
 
 ## Verification
 
-Git status was clean on master and recent commits confirmed P002 integration. New P003 acceptance is unverified. Memory validation and the initial commit gate remain pending.
+The initial contract VAC passed its full gate (223 native tests and 22 review tests). This implementation passes 44 focused discovery/config/language/strict-default/standalone tests and strict lint with existing warnings only. The current commit gate is pending; lint-explain and all process/delegation acceptance remain outstanding.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Validate and commit the outcome-contract VAC. Then implement the unified typed rule registry and CLI explanation with focused behavioral tests before proceeding to process ownership and delegation.
+Commit the registry/discovery VAC through the staged gate. Implement lint-explain using the same selection and effective-threshold logic; then proceed to managed process ownership and delegation in plan order.
