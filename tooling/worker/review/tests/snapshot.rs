@@ -35,6 +35,7 @@ fn setup(root: &Path) -> String {
 }
 fn scope() -> Repository {
     Repository {
+        vcs: Default::default(),
         visible_paths: vec!["src/**".into()],
         contract_paths: vec![],
     }

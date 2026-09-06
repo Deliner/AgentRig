@@ -51,6 +51,8 @@ pub struct Project {
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Repository {
+    #[serde(default)]
+    pub vcs: crate::vcs::Kind,
     pub visible_paths: Vec<String>,
     pub contract_paths: Vec<String>,
 }

@@ -88,7 +88,7 @@ Configuration validation rejects unknown fields, unsupported versions, invalid
 roles/globs/resources, missing prompts and inconsistent contracts before calls.
 
 `parallelism` bounds simultaneous critics. `timeout_seconds` is one shared
-execution deadline including queued roles; Git preparation and report writes
+execution deadline including queued roles; VCS preparation and report writes
 are outside the process timeout loop. `format_attempts` bounds Stop validation
 attempts per role. Exhaustion remains a technical failure even if a later file
 becomes valid. The counter and validator run in the parent process; the mounted
@@ -96,8 +96,13 @@ read-only hook can only request validation through its role's socket.
 
 ## Visibility and results
 
-Only selected tracked regular files are exported from Git objects. The live
-checkout, untracked files and .git are absent. Both sides of changed paths,
+Set `repository.vcs: git` or `repository.vcs: mercurial` in the review project
+YAML; omission retains Git. The selected executable must be on PATH. Mercurial
+reads ignore user and repository configuration, including aliases and hooks.
+References must resolve to one exact revision; multi-revision revsets fail.
+
+Only selected tracked regular files are exported from that revision. The live
+checkout, untracked files and VCS metadata are absent. Both sides of changed paths,
 including deletes and rename endpoints, must fit visibility before model calls.
 Selected symlinks/submodules and known credential/control paths are rejected.
 Private-key markers are also rejected. This is not universal secret detection:

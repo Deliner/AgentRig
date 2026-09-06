@@ -33,14 +33,11 @@ pub fn prepare(
         old.base == current.base,
         "re-review must retain the original base"
     );
-    snapshot::resolve(&request.root, &old.candidate)?;
+    let source = crate::vcs::Repository::new(&request.root, scope.vcs);
+    source.resolve(&old.candidate)?;
     report.previous_report_digest = Some(digest(&bytes));
     snapshot::check_boundary(&request.root, &old.candidate, &current.candidate, scope)?;
-    report.repair_diff = Some(snapshot::diff(
-        &request.root,
-        &old.candidate,
-        &current.candidate,
-    )?);
+    report.repair_diff = Some(source.diff(&old.candidate, &current.candidate)?);
     Ok(Some(previous))
 }
 pub fn validate(report: &mut Report, previous: Option<&Report>) -> Result<()> {

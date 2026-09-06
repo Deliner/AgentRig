@@ -1,6 +1,72 @@
 mod support;
 use support::Fixture;
 
+fn hg(root: &std::path::Path, args: &[&str]) {
+    let output = std::process::Command::new("hg")
+        .current_dir(root)
+        .env("HGPLAIN", "1")
+        .env("HGRCPATH", "")
+        .env("HGRCSKIPREPO", "1")
+        .args(args)
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+}
+
+fn mercurial_fixture() -> Fixture {
+    let fixture = Fixture::new("fail");
+    let root = fixture.0.path();
+    let repo = root.join("repo");
+    std::fs::remove_dir_all(repo.join(".git")).unwrap();
+    hg(&repo, &["init"]);
+    hg(&repo, &["add"]);
+    hg(&repo, &["commit", "-m", "base", "-u", "Test"]);
+    let config = root.join("project.yaml");
+    let yaml = std::fs::read_to_string(&config)
+        .unwrap()
+        .replace("repository:\n", "repository:\n  vcs: mercurial\n");
+    std::fs::write(config, yaml).unwrap();
+    fixture
+}
+
+#[test]
+fn mercurial_review_and_repair_preserve_revision_scope_and_workspace() {
+    let fixture = mercurial_fixture();
+    let root = fixture.0.path();
+    let repo = root.join("repo");
+    let first = fixture.run(None);
+    assert_eq!(first["verdict"], "FAIL");
+    let previous = root.join(format!(
+        "reports/{}.json",
+        first["run_id"].as_str().unwrap()
+    ));
+    std::fs::write(repo.join("src/value.py"), "value = 2\n").unwrap();
+    hg(&repo, &["commit", "-m", "repair", "-u", "Test"]);
+    std::fs::write(repo.join("src/value.py"), "uncommitted\n").unwrap();
+    fixture.mode("pass");
+    let repaired = fixture.run(Some(&previous));
+    assert_eq!(repaired["verdict"], "PASS");
+    assert_eq!(repaired["snapshot"]["base"], first["snapshot"]["base"]);
+    assert_ne!(
+        repaired["snapshot"]["candidate"],
+        first["snapshot"]["candidate"]
+    );
+    assert!(
+        repaired["repair_diff"]
+            .as_str()
+            .unwrap()
+            .contains("+value = 2")
+    );
+    assert_eq!(
+        std::fs::read_to_string(repo.join("src/value.py")).unwrap(),
+        "uncommitted\n"
+    );
+}
+
 #[test]
 fn isolated_parallel_reviews_persist_exact_answers_and_cleanup() {
     let fixture = Fixture::new("parallel");

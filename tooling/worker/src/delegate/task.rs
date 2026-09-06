@@ -137,6 +137,7 @@ fn prepare_project(
     };
     if let Some(revision) = &request.revision {
         let scope = Repository {
+            vcs: Default::default(),
             visible_paths: profile.visible_paths.clone(),
             contract_paths: vec![],
         };
