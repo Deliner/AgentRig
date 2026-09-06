@@ -15,6 +15,7 @@ pub fn owns(command: &str) -> bool {
     matches!(
         command,
         "config-check"
+            | "config-inspect"
             | "run"
             | "commands"
             | "report"
@@ -40,6 +41,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
         "setup" => return package::setup(root, args),
+        "config-inspect" => return package::setup::inspect(root, args),
         "upgrade" => return upgrade::run(root, args),
         "resume" if upgrade::recovery::configuration_pending(root)? => {
             return resume_upgrade(root, args);

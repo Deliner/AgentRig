@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -377,3 +378,56 @@ def test_one_resource_package_installs_project_and_distinct_delegate_environment
     shutil.rmtree(declaration.parent)
     checked = invoke(target / ".agentrig/bin/agentrig", target, "delegate", "config-check")
     assert checked.returncode == 0, checked.stdout + checked.stderr
+
+
+def test_inspection_validates_and_exposes_all_selected_configurations(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    declaration = composed_environment_declaration(worker, tmp_path)
+    resources(declaration.parent)
+    config = yaml.safe_load(declaration.read_text())
+    config["capabilities"]["review"] = {"config": "config.yaml"}
+    declaration.write_text(yaml.safe_dump(config))
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "agentrig.yaml").write_text("unrelated existing configuration")
+    before = file_contents(target)
+    monkeypatch.setenv("PROBE_VALUE", "credential-must-not-appear")
+    result = invoke(worker, target, "config-inspect", str(declaration))
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "credential-must-not-appear" not in result.stdout
+    verify_inspection(json.loads(result.stdout), declaration)
+    assert file_contents(target) == before
+    path = declaration.parent / "delegates.yaml"
+    delegates = yaml.safe_load(path.read_text())
+    delegates["profiles"]["first"]["unsupported"] = True
+    path.write_text(yaml.safe_dump(delegates))
+    failed = invoke(worker, target, "config-inspect", str(declaration))
+    assert failed.returncode == 2
+    assert "unsupported" in failed.stderr
+    assert file_contents(target) == before
+
+
+def verify_inspection(report: dict[str, Any], declaration: Path) -> None:
+    config = report["configuration"]
+    documents = report["configurations"]
+    assert documents[config["paths"]["lint"]]["rules"]
+    profiles = documents[config["capabilities"]["delegation"]["config"]]["profiles"]
+    assert profiles["first"]["model"] == "configured-model"
+    assert profiles["second"]["hooks"]["guide"]["args"] == ["hook", "second instructions"]
+    review_path = config["capabilities"]["review"]["config"]
+    review = documents[review_path]
+    assert review["runner"]["parallelism"] > 0
+    assert review["reviewers"]
+    for tool in review["tools"].values():
+        material = (Path("/") / review_path).parent / tool["project_config"]
+        assert documents[str(material.resolve().relative_to("/"))]["repository"]
+    composition = report["composition"]
+    assert composition["packages"][0]["id"] == "shared-environment"
+    assert composition["provenance"]["/environment/skills"] == str(
+        declaration.parent / "shared.yaml"
+    )
+    delegates = composition["configurations"][str(declaration.parent / "delegates.yaml")]
+    assert delegates["provenance"]["/profiles/second/hooks/guide/args"] == str(
+        declaration.parent / "delegates.yaml"
+    )

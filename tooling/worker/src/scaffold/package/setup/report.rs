@@ -3,6 +3,52 @@ use anyhow::{Context, Result};
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, fs, path::Path};
 
+pub fn configuration(root: &Path, config: &Config, files: &Files) -> Result<Value> {
+    let receipt = super::source(root, files, &config.paths.service_path("composition.json"))?;
+    let mut configurations = serde_json::Map::new();
+    if config.capabilities.lint {
+        document(root, files, &mut configurations, &config.paths.lint)?;
+    }
+    if let Some(delegation) = &config.capabilities.delegation {
+        document(root, files, &mut configurations, &delegation.config)?;
+    }
+    if let Some(review) = &config.capabilities.review {
+        let source = super::source(root, files, &review.config)?;
+        let settings: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
+        document(root, files, &mut configurations, &review.config)?;
+        let location = root.join(&review.config);
+        let parent = location
+            .parent()
+            .context("review configuration directory required")?;
+        for tool in settings.tools.values() {
+            let path = crate::util::resolve(&parent.join(&tool.project_config))?;
+            let relative = path
+                .strip_prefix(root)?
+                .to_str()
+                .context("UTF-8 configuration path required")?;
+            document(root, files, &mut configurations, relative)?;
+        }
+    }
+    Ok(json!({
+        "schema_version": 1,
+        "root": root,
+        "configuration": config,
+        "configurations": configurations,
+        "composition": serde_json::from_str::<Value>(&receipt)?,
+    }))
+}
+
+fn document(
+    root: &Path,
+    files: &Files,
+    configurations: &mut serde_json::Map<String, Value>,
+    path: &str,
+) -> Result<()> {
+    let source = super::source(root, files, path)?;
+    configurations.insert(path.into(), review_runner::config::yaml::decode(&source)?);
+    Ok(())
+}
+
 pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Result<Value> {
     let hooks = config.paths.service_path("hooks");
     let current =

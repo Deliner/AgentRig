@@ -9,6 +9,22 @@ use super::{Config, Files, config, manifest};
 use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 
+pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
+    ensure!(args.len() == 1, "config-inspect CONFIG_YAML [--root PATH]");
+    let prepared = input::external(&root.join(&args[0]))?;
+    preview::validate(root, &prepared.config, &prepared.files)?;
+    prepared.verify()?;
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&report::configuration(
+            root,
+            &prepared.config,
+            &prepared.files,
+        )?)?
+    );
+    Ok(0)
+}
+
 pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
     super::reject_legacy(root)?;
     let mut prepared = input::external(path)?;

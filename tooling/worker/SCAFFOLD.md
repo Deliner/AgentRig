@@ -105,6 +105,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, service directory (`--service`), base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `config-resolve CONFIG_YAML` | Preview local package composition as JSON: values, declaring files and configuration digests. Does not install resources or replace capability validation. |
+| `config-inspect CONFIG_YAML` | Validate the complete prepared environment and print JSON with root settings, selected lint/review/delegate configuration documents, package provenance and resource digests. Accepts `--root PATH` for the consumer; does not install files, execute hooks or resolve credential values. |
 | `doctor` | Diagnose the installed runtime, configured executables, sandbox and hooks. |
 | `commands` / `run NAME -- ARGS` | List or execute the shared catalog. Arguments remain argv elements. |
 | `report` | Summarize command timing, latest check evidence and repeated check failures from the configured runtime directory. |
@@ -134,6 +135,17 @@ Lint uses strict YAML and compiled Rust/Python handlers; [rule semantics](README
 Read-only commands require functioning Linux bubblewrap. Worker does not fall back to unrestricted execution when isolation is unavailable. Command records are append-only JSONL in `paths.runtime`; they describe process results, not task lifecycle. Staged command timing logs remain in the disposable exported tree; the latest gate evidence is saved in the original project runtime directory. If you relocate `paths.runtime`, add the new directory to the consumer Git ignore rules; initialization supplies an ignore rule for the default location.
 
 ## Configuration composition preview
+
+Use `agentrig config-inspect /path/to/agentrig.yaml --root /path/to/project`
+to validate the whole selected environment through the setup preparation path.
+The JSON `configuration` contains prepared root settings; `configurations` maps
+installed relative paths to selected lint, review, review-material and delegate
+settings. `composition` records declaring files, package versions, digests and
+nested configuration provenance. Resource paths show their prepared locations;
+credential references remain references. Inspection accepts a changed declaration
+without modifying or reconciling the current installation. It does not execute
+hooks, model calls or source checks; use setup preview to inspect installation
+conflicts and doctor to check runtime dependencies.
 
 The shared resolver is available through `agentrig config-resolve declaration.yaml`.
 It reads YAML, writes JSON to stdout and does not install or execute anything.

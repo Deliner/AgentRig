@@ -110,6 +110,9 @@ fn print_help() {
         "setup [--config CONFIG_YAML] --preview: inspect prepared file changes, registrations and dependencies without installing"
     );
     println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
+    println!(
+        "config-inspect CONFIG_YAML: validate and inspect the complete prepared AgentRig configuration and its sources without installation"
+    );
     println!("environment-hook NAME | environment-mcp NAME: execute a configured frontend handler");
     println!(
         "upgrade plan --config CONFIG_YAML: review an explicit configuration/resource update using the existing apply and rollback workflow"
