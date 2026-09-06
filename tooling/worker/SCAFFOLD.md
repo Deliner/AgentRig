@@ -170,6 +170,11 @@ package apply once. Different files cannot claim the same package ID. Cycles,
 missing files, unknown envelope fields, invalid YAML and mismatched assertions
 are errors identifying the import chain.
 
+Setup checks package identity across the complete assembly, including the root
+declaration and nested lint, review, material and delegate configurations. The
+same canonical package can contribute to several configurations; a different
+file or digest claiming that ID is rejected before installation writes anything.
+
 Mappings compose recursively. Repeated scalar or ordinary list definitions
 require an explicit override, even when their values agree. Overrides replace
 the addressed value in full; list elements are never appended implicitly.

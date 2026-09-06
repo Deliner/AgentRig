@@ -4,6 +4,24 @@ use serde::de::DeserializeOwned;
 use std::path::{Path, PathBuf};
 
 impl Source {
+    pub(super) fn validate_packages(&self) -> Result<()> {
+        let configurations = std::iter::once(&self.resolved).chain(self.configurations.values());
+        let mut identities =
+            std::collections::BTreeMap::<&str, &agentrig::composition::Package>::new();
+        for package in configurations.flat_map(|resolved| &resolved.packages) {
+            if let Some(existing) = identities.insert(&package.id, package) {
+                ensure!(
+                    existing.path == package.path && existing.digest == package.digest,
+                    "package identity conflict for {} across configurations: {} and {}",
+                    package.id,
+                    existing.path.display(),
+                    package.path.display()
+                );
+            }
+        }
+        Ok(())
+    }
+
     pub(super) fn configuration<T: DeserializeOwned>(&mut self, path: &Path) -> Result<T> {
         let resolved = agentrig::composition::resolve(path)?;
         for (path, digest) in std::iter::once((&resolved.root, &resolved.root_digest)).chain(

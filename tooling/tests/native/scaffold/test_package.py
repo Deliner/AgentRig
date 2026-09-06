@@ -277,6 +277,54 @@ def git_ignored(root: Path, path: Path) -> bool:
     return result.returncode == 0
 
 
+@pytest.mark.parametrize("identity", ["commands", "review-policy"])
+def test_package_identity_conflicts_across_capabilities_preserve_target(
+    worker: Path, tmp_path: Path, identity: str
+) -> None:
+    declaration = nested_packages(worker, tmp_path)
+    package = tmp_path / "shared/agents/package.yaml"
+    content = yaml.safe_load(package.read_text())
+    content["id"] = identity
+    package.write_text(yaml.safe_dump(content))
+    target = tmp_path / "target"
+    target.mkdir()
+    (target / "user.txt").write_text("keep this file")
+    before = file_contents(target)
+    for arguments in [("--preview",), ()]:
+        result = invoke(worker, target, "setup", "--config", str(declaration), *arguments)
+        assert result.returncode == 2, result.stdout + result.stderr
+        assert f"package identity conflict for {identity} across configurations" in result.stderr
+        assert file_contents(target) == before
+
+
+def test_same_package_can_be_shared_across_capabilities(worker: Path, tmp_path: Path) -> None:
+    declaration = nested_packages(worker, tmp_path)
+    common = tmp_path / "common.yaml"
+    common.write_text("schema_version: 1\nid: common\nversion: '1'\nconfiguration: {}\n")
+    root = yaml.safe_load(declaration.read_text())
+    root["packages"].append({"path": "../common.yaml"})
+    declaration.write_text(yaml.safe_dump(root))
+    profiles = tmp_path / "shared/agents/profiles.yaml"
+    content = yaml.safe_load(profiles.read_text())
+    content["packages"].append({"path": "../../common.yaml"})
+    profiles.write_text(yaml.safe_dump(content))
+    target = tmp_path / "target"
+    target.mkdir()
+    result = invoke(worker, target, "setup", "--config", str(declaration))
+    assert result.returncode == 0, result.stdout + result.stderr
+    receipt = json.loads((target / ".agentrig/composition.json").read_text())
+    packages = receipt["packages"] + [
+        package for item in receipt["configurations"].values() for package in item["packages"]
+    ]
+    copies = []
+    for package in packages:
+        common = package["id"] == "common"
+        if common:
+            copies.append(package)
+    assert len(copies) == 2
+    assert copies[0] == copies[1]
+
+
 def packaged_configuration(path: Path, identity: str) -> Path:
     package = path.with_name("package.yaml")
     content = {
