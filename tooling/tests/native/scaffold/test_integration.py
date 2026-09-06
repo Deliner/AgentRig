@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from support import git, invoke, update_config
+import yaml
+from support import file_contents, git, invoke, update_config
 
 
 @dataclass(frozen=True)
@@ -290,3 +291,101 @@ def test_init_collision_preserves_files(worker: Path, tmp_path: Path) -> None:
     assert "collision" in result.stderr
     assert list(tmp_path.iterdir()) == [path]
     assert path.read_text() == "user contents"
+
+
+def composed_consumer(worker: Path, directory: Path, language: str) -> Path:
+    declaration = directory / f"declaration-{language}"
+    service = f"rig-{language}"
+    result = invoke(
+        worker,
+        declaration,
+        "init",
+        "--language",
+        language,
+        "--source",
+        "application",
+        "--service",
+        service,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = declaration / "agentrig.yaml"
+    config = yaml.safe_load(path.read_text())
+    config["packages"] = [{"path": "../shared.yaml", "id": "shared-command", "version": "1"}]
+    config["overrides"] = ["/commands/probe/argv"]
+    config["commands"]["probe"] = {"argv": ["python3", "-c", f"print({language!r})"]}
+    path.write_text(yaml.safe_dump(config))
+    target = directory / language
+    target.mkdir()
+    preview = invoke(worker, target, "setup", "--config", str(path), "--preview")
+    assert preview.returncode == 0, preview.stdout + preview.stderr
+    assert file_contents(target) == {}
+    installed = invoke(worker, target, "setup", "--config", str(path))
+    assert installed.returncode == 0, installed.stdout + installed.stderr
+    example = Path(__file__).parents[3] / "worker/examples" / language
+    example /= {"python": "application", "rust": "crates/engine"}[language]
+    shutil.copytree(
+        example,
+        target / "application",
+        ignore=shutil.ignore_patterns("target", "__pycache__", ".pytest_cache"),
+    )
+    receipt = json.loads((target / service / "composition.json").read_text())
+    assert receipt["packages"][0]["id"] == "shared-command"
+    assert receipt["provenance"]["/commands/probe/argv"] == str(path)
+    shutil.rmtree(declaration)
+    return target
+
+
+def verify_composed_consumer(target: Path, standalone: Path) -> None:
+    language = target.name
+    binary = target / f"rig-{language}/bin/agentrig"
+    assert not (target / "tooling/worker/Cargo.toml").exists()
+    for command in ["config-check", "doctor", "check"]:
+        result = invoke(binary, target, command)
+        assert result.returncode == 0, result.stdout + result.stderr
+    result = invoke(binary, target, "run", "probe")
+    assert result.returncode == 0 and result.stdout.strip() == language
+    before = file_contents(target)
+    result = invoke(binary, target, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert file_contents(target) == before
+    config = yaml.safe_load((target / "agentrig.yaml").read_text())
+    policy = str(target / config["paths"]["lint"])
+    python = language == "python"
+    suffix = "test_sample.py" if python else "src/lib.rs"
+    commands = [
+        ["lint-rules"],
+        ["lint-rule", "function-lines", "--example"],
+        ["lint-explain", f"application/{suffix}", "--config", policy, "--json"],
+        ["--config", policy, "--json"],
+    ]
+    for args in commands:
+        result = subprocess.run(
+            [standalone, *args], cwd=target, capture_output=True, text=True, check=False
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+    assert file_contents(target) == before
+
+
+def test_shared_package_prepares_independent_python_and_rust_consumers(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PATH", str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"])
+    shared = tmp_path / "shared.yaml"
+    shared.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "id": "shared-command",
+                "version": "1",
+                "configuration": {
+                    "commands": {"probe": {"argv": ["python3", "-c", "print('shared')"]}}
+                },
+            }
+        )
+    )
+    consumers = [composed_consumer(worker, tmp_path, language) for language in ["python", "rust"]]
+    shared.unlink()
+    standalone = tmp_path / "agentrig-lint"
+    shutil.copy2(worker.with_name("agentrig-lint"), standalone)
+    for target in consumers:
+        verify_composed_consumer(target, standalone)
