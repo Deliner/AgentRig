@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: obtain lint inventories through the shared Git/Mercurial owner.
+Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: preserve committed decision history in Git and Mercurial memory checks.
 
 ## Workspace
 
 Branch: feature/vcs-backends
 
-Revision: 94490c2
+Revision: d807aa9
 
-P006 is integrated at 0c9cc39. Native VCS reads, selectable review snapshots and delegation are committed on feature/vcs-backends. User remarks and recovery documentation are committed at 94490c2 through the full gate with 435 Python and 107 Rust tests. The current VAC changes lint inventory only, its shared VCS operations, tests and documentation. The installed development pin is unchanged.
+P006 is integrated at 0c9cc39. Native VCS reads, selectable review snapshots, delegation and lint inventories are committed on feature/vcs-backends. The latest commit d807aa9 passed the full gate with 437 Python and 108 Rust tests. User remarks are retained in Ledger/Requests.md. The current VAC changes shared HEAD discovery and historical memory validation, tests and documentation. The installed development pin is unchanged.
 
 ## Progress
 
-P007 is active. Review and delegation select Git/Mercurial for exact source revisions; retained inputs/code reports identify that VCS. Lint now discovers Git/Mercurial at its selected root and obtains tracked plus non-ignored untracked paths from the shared owner. Mercurial uses .hgignore; hgrc-configured extra ignores remain disabled with user/repository configuration. Ambiguous roots and native inventory errors do not fall back to filesystem traversal. Plain directories still work. Shared delivery configuration, setup, private adapters and delivery/recovery operations remain required; the isolated patch builder's internal Git dependency remains explicit. P008 is pending.
+P007 is active. Review/delegation source snapshots and lint inventories use the shared Git/Mercurial boundary. Historical memory checks now use the native checked-out revision and tree instead of treating Mercurial as absent Git history. Published decision identities/details remain protected, including after moving memory directories. Unborn repositories have no baseline; backend failures propagate. Shared delivery configuration, setup, exact revision gates, private adapters and delivery/recovery operations remain required; the isolated patch builder's internal Git dependency remains explicit. P008 is pending.
 
 ## Verification
 
-Five focused Python tests pass for both CLIs on Git, Mercurial and plain directories. Native VCS tests passed except an invalid fixture assumption: Mercurial accepts an empty .hg as an old format. The corrected fixture declares an unsupported format requirement and its focused retry passes, proving inventory errors propagate. The five other native VCS tests passed unchanged. Structural lint has no blocking findings. This VAC's full staged gate is pending; no full P007 acceptance is claimed.
+Thirteen Python memory tests and seven native VCS tests pass. Both real VCS backends reject changed decision identities, details and removed decisions through memory-check and a memory gate; relocating memory retains the committed baseline. Native HEAD discovery distinguishes unborn repositories from committed revisions and propagates backend format errors. The committed-table parsing extraction was rechecked with all four native-history Python scenarios. Structural lint has no blocking findings. This VAC's full staged gate is pending; no full P007 acceptance is claimed.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed. Only Git was initially on PATH; the locked uv environment now pro
 
 ## Next action
 
-Commit native lint inventory through the staged gate. Continue shared project configuration, setup, private adapters and all configured delivery/recovery operations with actual backend capabilities, consolidating remaining VCS-specific code at the shared boundary. Setup still initializes Git and configures Git hooks directly; route that behavior with actual backend hook/gate semantics. Verify full independent Git/Mercurial consumer acceptance and private extension behavior before P007 integration, then deliver P008. Preserve the installed development pin while testing candidates.
+Commit native memory history through the staged gate. Implement exact-revision gates/evidence and backend hook semantics before enabling Mercurial setup; current gates still expose Git --staged and evidence still reads Git HEAD/index. Continue shared delivery configuration, private adapters and delivery/recovery operations, consolidating remaining VCS-specific code at the shared boundary. Verify full independent Git/Mercurial consumer acceptance and private extension behavior before P007 integration, then deliver P008. Preserve the installed development pin while testing candidates.

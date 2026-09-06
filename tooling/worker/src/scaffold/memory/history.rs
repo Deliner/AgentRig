@@ -2,34 +2,31 @@
 use super::super::config::{Config, Context, FILE};
 use super::format;
 use anyhow::{Context as _, Result, ensure};
-use std::{fs, path::Path, process::Command};
+use review_runner::vcs::{Entry, Repository};
+use std::{collections::BTreeMap, fs, path::Path};
 
-fn committed(root: &Path, path: &str) -> Result<String> {
-    let output = Command::new("git")
-        .args(["show", &format!("HEAD:{path}")])
-        .current_dir(root)
-        .output()?;
-    ensure!(
-        output.status.success(),
-        "cannot read committed memory {path}: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    Ok(String::from_utf8(output.stdout)?)
+fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<String> {
+    let bytes = repository
+        .read(revision, path)
+        .with_context(|| format!("cannot read committed memory {path}"))?;
+    Ok(String::from_utf8(bytes)?)
 }
-pub fn check(context: &Context, git_root: &Path) -> Result<()> {
+pub fn check(context: &Context, root: &Path) -> Result<()> {
     // A standalone tree or an unborn repository has no committed memory baseline.
-    let unborn = crate::util::git(git_root, &["rev-parse", "--verify", "HEAD"]).is_err();
-    if unborn {
+    let Some(repository) = Repository::discover(root)? else {
         return Ok(());
-    }
-    let prior_memory = prior_memory(context, git_root)?;
+    };
+    let Some(revision) = repository.head()? else {
+        return Ok(());
+    };
+    let tree = repository.tree(&revision)?;
+    let prior_memory = prior_memory(context, &repository, &revision, &tree)?;
     let index = format!("{}/Decisions.md", prior_memory);
-    let no_prior_memory =
-        crate::util::git(git_root, &["ls-tree", "HEAD", "--", &index])?.is_empty();
+    let no_prior_memory = !tree.contains_key(&index);
     if no_prior_memory {
         return Ok(());
     }
-    let rows = format::parse_table(&committed(git_root, &index)?, Path::new(&index), 'D')?;
+    let rows = committed_table(&repository, &revision, &index)?;
     let memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&memory.join("Decisions.md"), 'D')?;
     for old in rows {
@@ -37,7 +34,11 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
             .iter()
             .find(|row| row.id == old.id)
             .with_context(|| format!("{}: committed decision cannot be removed", old.id))?;
-        let detail = committed(git_root, &format!("{}/{}", prior_memory, old.detail))?;
+        let detail = committed(
+            &repository,
+            &revision,
+            &format!("{}/{}", prior_memory, old.detail),
+        )?;
         preserve(
             old,
             row,
@@ -48,17 +49,37 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
     Ok(())
 }
 
-fn prior_memory(context: &Context, git_root: &Path) -> Result<String> {
-    let current = !crate::util::git(git_root, &["ls-tree", "HEAD", "--", FILE])?.is_empty();
+fn committed_table(
+    repository: &Repository<'_>,
+    revision: &str,
+    path: &str,
+) -> Result<Vec<format::Row>> {
+    format::parse_table(
+        &committed(repository, revision, path)?,
+        Path::new(path),
+        'D',
+    )
+}
+
+fn prior_memory(
+    context: &Context,
+    repository: &Repository<'_>,
+    revision: &str,
+    tree: &BTreeMap<String, Entry>,
+) -> Result<String> {
+    let current = tree.contains_key(FILE);
     if current {
-        let prior: Config = review_runner::config::yaml::decode(&committed(git_root, FILE)?)
-            .context("committed agentrig.yaml schema")?;
+        let prior: Config =
+            review_runner::config::yaml::decode(&committed(repository, revision, FILE)?)
+                .context("committed agentrig.yaml schema")?;
         return Ok(prior.paths.memory);
     }
     let legacy = super::super::upgrade::migration::LEGACY_FILE;
-    let migrated = !crate::util::git(git_root, &["ls-tree", "HEAD", "--", legacy])?.is_empty();
+    let migrated = tree.contains_key(legacy);
     if migrated {
-        return super::super::upgrade::migration::historical_memory(&committed(git_root, legacy)?);
+        return super::super::upgrade::migration::historical_memory(&committed(
+            repository, revision, legacy,
+        )?);
     }
     Ok(context.config.paths.memory.clone())
 }

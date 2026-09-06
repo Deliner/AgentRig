@@ -118,6 +118,13 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 
 Warnings do not fail lint; blocking findings exit 1 and configuration failures exit 2. External checks retain their process exit codes; a check configured with `warning: true` can report a nonzero exit without failing the gate. Interruptions still stop it. External output is preserved. Failure diagnostics identify the check, location or selected scope, cause, configured repair skill and a shell-quoted RERUN command. Lint JSON also includes rerun. In a project requiring catalogued shell operations, execute that command through `just run write --`; `just check --only CHECK_ID` is the shorter gate retry. Commit and integration adapters always run the full gate.
 
+Historical memory validation reads the checked-out Git or Mercurial revision
+through the shared VCS owner. Published decision identities and detail contents
+remain immutable when the memory directory moves. Plain directories and unborn
+repositories have no historical baseline; backend errors are reported rather
+than treated as absent history. This applies to `memory-check` and memory gates;
+Mercurial commit-hook installation and delivery integration are separate work.
+
 ## Configuration ownership
 
 `agentrig.yaml` has schema `version: 1` and an exact `runtime` package version. Unknown fields are errors. Project-relative filesystem paths cannot escape the root. Source and check selectors are globs. The generated file is a complete editable example.

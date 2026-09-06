@@ -207,4 +207,18 @@ fn inventory_discovery_does_not_guess_between_two_repositories() {
     fs::write(root.path().join(".hg/requires"), "unknown-test-format\n").unwrap();
     let repository = Repository::discover(root.path()).unwrap().unwrap();
     assert!(repository.working_files().is_err());
+    assert!(repository.head().is_err());
+}
+
+#[test]
+fn native_heads_distinguish_unborn_repositories_from_committed_revisions() {
+    for kind in [Kind::Git, Kind::Mercurial] {
+        let root = tempfile::tempdir().unwrap();
+        initialize(root.path(), kind);
+        let repository = Repository::new(root.path(), kind);
+        assert_eq!(repository.head().unwrap(), None);
+        fs::write(root.path().join("value"), "committed").unwrap();
+        let revision = commit(root.path(), kind);
+        assert_eq!(repository.head().unwrap(), Some(revision));
+    }
 }

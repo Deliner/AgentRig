@@ -63,13 +63,18 @@ impl<'a> Repository<'a> {
             Kind::Git => git::resolve(self.root, reference)?,
             Kind::Mercurial => mercurial::resolve(self.root, reference)?,
         };
-        let single_revision =
-            matches!(value.len(), 40 | 64) && value.bytes().all(|byte| byte.is_ascii_hexdigit());
-        ensure!(
-            single_revision,
-            "VCS reference must resolve to one full revision ID"
-        );
-        Ok(value)
+        validate_revision(value)
+    }
+
+    pub fn head(&self) -> Result<Option<String>> {
+        let value = match self.kind {
+            Kind::Git => git::head(self.root)?,
+            Kind::Mercurial => Some(mercurial::resolve(self.root, ".")?),
+        };
+        Ok(value
+            .map(validate_revision)
+            .transpose()?
+            .filter(|value| value.bytes().any(|byte| byte != b'0')))
     }
 
     pub fn tree(&self, revision: &str) -> Result<BTreeMap<String, Entry>> {
@@ -130,6 +135,16 @@ impl<'a> Repository<'a> {
         }?;
         Ok(String::from_utf8(bytes)?)
     }
+}
+
+fn validate_revision(value: String) -> Result<String> {
+    let single_revision =
+        matches!(value.len(), 40 | 64) && value.bytes().all(|byte| byte.is_ascii_hexdigit());
+    ensure!(
+        single_revision,
+        "VCS reference must resolve to one full revision ID"
+    );
+    Ok(value)
 }
 
 fn paths(bytes: &[u8]) -> Result<Vec<String>> {

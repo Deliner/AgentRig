@@ -2,21 +2,40 @@ use super::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
-pub fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
-    let output = Command::new("git")
+fn command(root: &Path, args: &[&str]) -> Command {
+    let mut command = Command::new("git");
+    command
         .current_dir(root)
         .env("GIT_OPTIONAL_LOCKS", "0")
         .env("GIT_NO_REPLACE_OBJECTS", "1")
         .env_remove("GIT_DIR")
         .env_remove("GIT_WORK_TREE")
-        .args(args)
-        .output()?;
+        .args(args);
+    command
+}
+
+pub fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
+    let output = command(root, args).output()?;
     ensure!(
         output.status.success(),
         "git failed: {}",
         String::from_utf8_lossy(&output.stderr)
     );
     Ok(output.stdout)
+}
+
+pub(super) fn head(root: &Path) -> Result<Option<String>> {
+    let output = command(root, &["rev-parse", "--verify", "--quiet", "HEAD"]).output()?;
+    let unborn = output.status.code() == Some(1);
+    if unborn {
+        return Ok(None);
+    }
+    ensure!(
+        output.status.success(),
+        "cannot read Git HEAD: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    Ok(Some(String::from_utf8(output.stdout)?.trim().into()))
 }
 
 pub(super) fn resolve(root: &Path, reference: &str) -> Result<String> {
