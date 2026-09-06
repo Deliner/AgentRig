@@ -171,6 +171,24 @@ def test_spawn_failure_is_recorded(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "job-status", "../escape").returncode == 2
 
 
+def test_nested_command_inherits_owner_and_parent(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("WORKER_OWNER", "nested-owner")
+    monkeypatch.setenv("WORKER_PARENT_RUN", "external-parent")
+    nested = [str(worker), "run", "--root", str(tmp_path), "fail"]
+    project(tmp_path, CONFIG + "\n[commands.nested]\nargv = " + json.dumps(nested))
+    result = invoke(worker, tmp_path, "run", "nested")
+    assert result.returncode == 23, result.stderr
+    rows = json.loads(invoke(worker, tmp_path, "jobs").stdout)
+    records = {row["command"]: row for row in rows}
+    parent, child = records["nested"], records["fail"]
+    assert parent["owner"] == child["owner"] == "nested-owner"
+    assert parent["parent_run"] == "external-parent"
+    assert child["parent_run"] == parent["run_id"]
+    assert parent["state"] == child["state"] == "completed"
+
+
 def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -> None:
     code = (
         "import sys; sys.stdout.buffer.write(bytes([255])*131072); sys.stderr.write('error stream')"

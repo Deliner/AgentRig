@@ -165,7 +165,9 @@ for detached descendants. Completion records the exit code and launch errors.
 Set WORKER_OWNER to a stable task/session identity when launching commands outside
 an agent session. Otherwise CODEX_THREAD_ID, then CODEX_SESSION_ID is used; without
 either, the run gets its own owner. WORKER_PARENT_RUN optionally associates a
-child invocation. Branch and project are captured independently of ownership.
+child invocation. Each managed payload receives its owner's WORKER_OWNER and its
+run ID as WORKER_PARENT_RUN, so nested worker commands retain their immediate
+parent. Branch and project are captured independently of ownership.
 An orphaned run has a live child but no live runner; an interrupted run has
 neither. Inspect these states before deciding what to resume or clean up.
 

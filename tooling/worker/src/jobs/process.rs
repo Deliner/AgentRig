@@ -17,6 +17,11 @@ pub fn exit_code(output: &Output) -> i32 {
         .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(1))
 }
 pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> Result<Output> {
+    if let Some(job) = job.as_ref() {
+        command
+            .env("WORKER_OWNER", &job.record().owner)
+            .env("WORKER_PARENT_RUN", &job.record().run_id);
+    }
     let logged = job.is_some();
     let forward = job.as_ref().is_none_or(|job| job.record().scope.is_none());
     let piped = capture || logged;
