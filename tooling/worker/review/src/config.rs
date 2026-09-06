@@ -1,3 +1,4 @@
+pub mod yaml;
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
