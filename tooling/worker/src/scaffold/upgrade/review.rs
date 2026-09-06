@@ -27,16 +27,32 @@ pub fn load(root: &Path, path: &Path) -> Result<Plan> {
     for (name, change) in &mut plan.files {
         verify_state(root, name, change, &mut resolved)?;
         let kept = resolve(name, change)?;
-        if kept {
-            plan.manifest
-                .local
-                .insert(name.clone(), change.before.sha256.clone());
-        }
+        approve(&mut plan.manifest, name, change, kept);
         verify_payload(directory, &change.before)?;
         verify_payload(directory, &change.after)?;
     }
+    super::external::validate_git_hooks(&plan, directory)?;
     receipt(&mut plan, directory)?;
     Ok(plan)
+}
+
+fn approve(
+    manifest: &mut crate::scaffold::package::manifest::Manifest,
+    name: &str,
+    change: &Change,
+    kept: bool,
+) {
+    let customized = change.action == Action::Conflict
+        && manifest
+            .files
+            .get(name)
+            .is_some_and(|entry| change.after.sha256.as_ref() != Some(&entry.sha256));
+    let reviewed = kept || customized;
+    if reviewed {
+        manifest
+            .local
+            .insert(name.into(), change.after.sha256.clone());
+    }
 }
 
 fn installed(root: &Path, plan: &Plan) -> Result<()> {

@@ -359,7 +359,14 @@ restored 0.2.0 installation must run after rollback.
 Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
 `"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
 plan fields intact. Kept local contents are recorded separately from stock
-checksums in the new receipt. Doctor accepts explicitly kept Git adapter hashes
+checksums in the new receipt. For customized Git adapters, the planner recognizes
+the stock `exec "$root/.worker/bin/discipline-worker"` call and proposes changing
+that executable while preserving surrounding custom code and comments. Review the
+diff: `replace` selects this migrated adapter, and `keep` retains the original.
+A kept adapter containing that executable call is rejected before installation;
+update other custom invocation forms explicitly when reviewing their replacement.
+This is a targeted migration, not analysis of arbitrary shell behavior. Doctor
+accepts hashes of explicitly reviewed custom adapters, including migrated replacements,
 while still checking executable permissions and registration; later unreviewed
 adapter changes fail diagnosis.
 

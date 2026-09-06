@@ -249,6 +249,18 @@ impl Draft<'_> {
                 && Some(entry.executable) == change.before.mode.map(|mode| mode & 0o111 != 0)
         });
         let fresh = old.is_none() && change.before.sha256.is_none();
+        let customized = !unchanged;
+        let migrated = if customized {
+            external::git_hook(self.root, path)?
+        } else {
+            None
+        };
+        if let Some(bytes) = migrated {
+            change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
+            change.action = Action::Conflict;
+            change.reason = "migrate the known legacy executable call while preserving custom adapter contents; review the replacement".into();
+            return Ok(());
+        }
         change.action = classify(change, unchanged || fresh);
         change.reason = match change.action {
             Action::Conflict => "local change: set resolution to keep or replace",

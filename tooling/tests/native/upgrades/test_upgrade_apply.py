@@ -119,7 +119,10 @@ def test_kept_adapter_is_explicitly_approved(
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     assert invoke(predecessor, tmp_path, "init").returncode == 0
     adapter = tmp_path / ".worker/hooks/pre-commit"
-    original = adapter.read_text() + "\n# Local adapter note.\n"
+    original = (
+        adapter.read_text().replace(".worker/bin/discipline-worker", ".worker/bin/agentrig")
+        + "\n# Local adapter note.\n"
+    )
     adapter.write_text(original)
     result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
     assert result.returncode == 0, result.stderr
@@ -310,3 +313,51 @@ def test_external_review_materials_are_imported_without_modifying_source(
     assert rolled.returncode == 0, rolled.stdout + rolled.stderr
     assert (tmp_path / ".worker/review/config/review.toml").read_bytes() == original
     assert all(not (tmp_path / name).exists() for name in imported)
+
+
+def test_custom_git_adapter_migrates_without_keeping_a_retired_executable(
+    worker: Path, predecessor: Path, tmp_path: Path
+) -> None:
+    assert invoke(predecessor, tmp_path, "init").returncode == 0
+    assert invoke(predecessor, tmp_path, "setup").returncode == 0
+    adapter = tmp_path / ".worker/hooks/reference-transaction"
+    original = (
+        adapter.read_text() + '\n# Preserve history: exec "$root/.worker/bin/discipline-worker"\n'
+    )
+    adapter.write_text(original)
+    result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    plan = json.loads(path.read_text())
+    change = plan["files"][".worker/hooks/reference-transaction"]
+    assert change["action"] == "conflict"
+    change["resolution"] = "keep"
+    path.write_text(json.dumps(plan))
+    rejected = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert rejected.returncode == 2
+    assert "still references the retired executable" in rejected.stderr
+    assert adapter.read_text() == original
+    assert (tmp_path / ".worker/bin/discipline-worker").is_file()
+    assert not (tmp_path / ".worker/bin/agentrig").exists()
+    change["resolution"] = "replace"
+    path.write_text(json.dumps(plan))
+    applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    assert adapter.read_text() == original.replace(
+        ".worker/bin/discipline-worker", ".worker/bin/agentrig", 1
+    )
+    verify_reference_adapter(adapter, tmp_path)
+    assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
+    assert adapter.read_text() == original
+
+
+def verify_reference_adapter(adapter: Path, root: Path) -> None:
+    probe = subprocess.run(
+        [str(adapter), "committed"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=10,
+    )
+    assert probe.returncode == 0, probe.stdout + probe.stderr
