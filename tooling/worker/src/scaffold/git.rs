@@ -62,7 +62,41 @@ pub fn merge(context: &Context) -> Result<i32> {
         git(root, &["switch", &feature])?;
         anyhow::bail!("base advanced during integration; retry from the feature branch");
     }
-    merge_branch(root, &feature)
+    let code = merge_branch(root, &feature)?;
+    let succeeded = code == 0;
+    if succeeded {
+        return cleanup_merged(context, &feature);
+    }
+    Ok(code)
+}
+fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
+    let identified = discipline_worker::jobs::owner().is_some();
+    let anonymous = !identified;
+    if anonymous {
+        return Ok(0);
+    }
+    let result = discipline_worker::jobs::cleanup::run(
+        &context.path(&context.config.paths.runtime)?,
+        Some(feature),
+    );
+    match result {
+        Ok(report) => {
+            let failed = report["errors"]
+                .as_array()
+                .is_some_and(|errors| !errors.is_empty());
+            println!("post-merge cleanup: {report}");
+            if failed {
+                eprintln!("merge succeeded; cleanup failed. Retry job-cleanup --branch {feature}");
+            }
+            Ok(i32::from(failed))
+        }
+        Err(error) => {
+            eprintln!(
+                "merge succeeded; cleanup failed: {error}. Retry job-cleanup --branch {feature}"
+            );
+            Ok(1)
+        }
+    }
 }
 fn merge_branch(root: &Path, feature: &str) -> Result<i32> {
     let code = super::process::run(

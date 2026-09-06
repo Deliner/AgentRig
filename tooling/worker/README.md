@@ -191,7 +191,17 @@ logs remain available. Lost access to the user manager reports unverified state,
 not successful completion. Ownership is coordination within a user account,
 not an access-control boundary against that same user's own programs.
 
-Foreground commands still use process-group signal forwarding; job-stop refuses
-to claim descendant cleanup for those uncontained runs. Setup capability checks,
-foreground containment, shared-service lifetimes and owner-aware merge cleanup
-remain pending in P003.
+Commands default to `lifetime = "task"`; set `lifetime = "shared"` in a command's
+worker.toml table for a service that must outlive task cleanup. `just job-cleanup`
+cleans the current owner's task scopes; `--branch BRANCH` narrows that selection.
+Successful feature-merge invokes the same cleanup for the merged branch. Shared
+services, other owners, other branches and the active cleanup caller are retained.
+The owner can explicitly stop a shared service with job-stop. Cleanup failures
+are reported after merge as a separate failure with a job-cleanup retry command.
+Without an owner identity, merge does not guess which runs belong to its caller.
+
+Setup/doctor reports whether a real transient user scope can be created, including
+cgroup v2 availability and the backend diagnostic. Background support is optional
+for existing foreground-only projects. Foreground commands still use process-group
+signal forwarding; cleanup reports unfinished uncontained runs for inspection.
+Configurable foreground containment remains pending in P003.

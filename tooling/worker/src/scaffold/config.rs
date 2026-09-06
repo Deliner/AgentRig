@@ -65,6 +65,8 @@ pub struct Command {
     pub accepts_args: bool,
     #[serde(default)]
     pub read_only: bool,
+    #[serde(default)]
+    pub lifetime: discipline_worker::jobs::Lifetime,
 }
 #[derive(Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

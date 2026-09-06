@@ -107,3 +107,27 @@ fn properties(unit: &str) -> Result<BTreeMap<String, String>> {
         .map(|(key, value)| (key.into(), value.into()))
         .collect())
 }
+pub fn capability() -> Value {
+    let cgroup_v2 = Path::new("/sys/fs/cgroup/cgroup.controllers").is_file();
+    let probe = Command::new("systemd-run")
+        .args([
+            "--user",
+            "--scope",
+            "--quiet",
+            "--no-ask-password",
+            "--collect",
+            "--property=TimeoutStopSec=2s",
+            "--",
+            "true",
+        ])
+        .output();
+    match probe {
+        Ok(output) => {
+            json!({"backend": "systemd user scope", "available": cgroup_v2 && output.status.success(),
+            "cgroup_v2": cgroup_v2, "diagnostic": String::from_utf8_lossy(&output.stderr).trim()})
+        }
+        Err(error) => {
+            json!({"backend": "systemd user scope", "available": false, "cgroup_v2": cgroup_v2, "diagnostic": error.to_string()})
+        }
+    }
+}

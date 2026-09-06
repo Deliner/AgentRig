@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 8a5cd19
+Revision: 441b9de
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Shared process/logging delivery is committed. Current VAC adds background job-start in an identified systemd user scope and owner-aware job-stop with graceful/forced cleanup and OS verification. It preserves existing run records and logs, avoids duplicate background output, and reports scope observation failures as unverified. Foreground containment, setup capability checks and shared/merge lifetimes remain required before process-stage acceptance.
+Background scopes and stop are committed. Current VAC adds typed task/shared command lifetime, branch-filtered owner cleanup and post-merge cleanup through the same owner. Shared services and other owners/branches are retained. Setup/doctor probes actual scope creation. Foreground containment remains outstanding before process-stage acceptance.
 
 ## Verification
 
-Shared logging passed its full gate (244 native tests and 22 review tests). Twenty command tests pass, including real user-scope background execution, two owners, detached descendants, forced termination of SIGTERM-ignoring code and retained logs; no integration cases skipped on this host. Strict lint passes. Current staged gate is pending. The earlier worker-scope-probe has no live processes and reached failed state after its default stop timeout; production scopes explicitly use a two-second stop timeout.
+Background delivery passed its full gate (247 native tests and 22 review tests). This VAC passes 27 command/Git tests, including actual merge with a shared service and another owner, plus cleanup preserving another branch; six setup tests passed before the final test additions. Current staged gate is pending. The earlier scope probe's failed unit was reset after verifying no live processes.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit background execution/stop through the staged gate. Complete process-stage setup diagnostics, foreground policy, shared-service and owner-aware merge lifetimes. Then implement delegated read/artifact/code modes and independent consumer acceptance. Do not mark P003 complete until all four stages and integration are verified.
+Commit lifetime/merge cleanup through the staged gate. Add explicit configured foreground containment using the existing scope runner, preserving stdin/output and tracking nested command ownership. Then implement delegated read/artifact/code modes and independent consumer acceptance. P003 remains active until all stages and final integration are verified.

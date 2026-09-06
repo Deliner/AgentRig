@@ -1,9 +1,11 @@
 mod background;
+pub mod cleanup;
 mod identity;
 mod logs;
 pub mod process;
 pub mod report;
 mod scope;
+pub use scope::capability;
 mod stop;
 mod storage;
 mod streams;
@@ -16,6 +18,14 @@ use std::{
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };
+
+#[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum Lifetime {
+    #[default]
+    Task,
+    Shared,
+}
 
 #[derive(Deserialize, Serialize)]
 pub struct Record {
@@ -40,6 +50,8 @@ pub struct Record {
     pub scope: Option<scope::Scope>,
     #[serde(default)]
     pub read_only: bool,
+    #[serde(default)]
+    pub lifetime: Lifetime,
 }
 pub struct Job {
     directory: PathBuf,
@@ -77,6 +89,7 @@ impl Job {
             duration_seconds: None,
             scope: None,
             read_only: false,
+            lifetime: Lifetime::Task,
         };
         let job = Self {
             directory,
@@ -86,9 +99,10 @@ impl Job {
         job.save()?;
         Ok(job)
     }
-    pub fn prepare(&mut self, argv: &[String], read_only: bool) -> Result<()> {
+    pub fn prepare(&mut self, argv: &[String], read_only: bool, lifetime: Lifetime) -> Result<()> {
         self.record.argv = argv.into();
         self.record.read_only = read_only;
+        self.record.lifetime = lifetime;
         self.save()
     }
     pub fn attach(&mut self, pid: u32, group: bool) -> Result<()> {
@@ -136,6 +150,10 @@ pub fn status(runtime: &Path, id: &str) -> Result<Value> {
     observe(runtime, &storage::load(runtime, id)?)
 }
 pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
+    let cleanup = command == "job-cleanup";
+    if cleanup {
+        return cleanup_cli(runtime, args);
+    }
     let value = match command {
         "jobs" => {
             anyhow::ensure!(args.is_empty(), "jobs takes no arguments");
@@ -158,6 +176,19 @@ pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
     };
     println!("{value}");
     Ok(0)
+}
+fn cleanup_cli(runtime: &Path, args: &[String]) -> Result<i32> {
+    let branch = match args {
+        [] => None,
+        [flag, branch] if flag == "--branch" => Some(branch.as_str()),
+        _ => anyhow::bail!("job-cleanup [--branch BRANCH]"),
+    };
+    let result = cleanup::run(runtime, branch)?;
+    let failed = result["errors"]
+        .as_array()
+        .is_some_and(|errors| !errors.is_empty());
+    println!("{result}");
+    Ok(i32::from(failed))
 }
 fn observe(runtime: &Path, record: &Record) -> Result<Value> {
     let child = record.child.as_ref().and_then(Identity::observe);

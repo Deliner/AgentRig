@@ -40,6 +40,7 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
         ('base = "trunk"', 'base = "topic.lock"'),
         ('prefix = "task/"', 'prefix = "trunk"'),
         ('prefix = "task/"', 'prefix = "task//"'),
+        ("read_only = true", 'read_only = true\nlifetime = "forever"'),
     ],
 )
 def test_configuration_errors(worker: Path, tmp_path: Path, old: str, new: str) -> None:
@@ -192,8 +193,8 @@ def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -
     assert (directory / "stderr.log").read_bytes() == result.stderr
 
 
-def background_id(worker: Path, root: Path) -> str:
-    result = invoke(worker, root, "job-start", "wait")
+def background_id(worker: Path, root: Path, command: str = "wait") -> str:
+    result = invoke(worker, root, "job-start", command)
     assert result.returncode == 0, result.stderr
     identifier: str = json.loads(result.stdout)["run_id"]
     return identifier
@@ -284,3 +285,29 @@ def test_background_forced_stop_keeps_logs(
     finally:
         result = invoke(worker, tmp_path, "job-stop", identifier)
         assert result.returncode == 0, result.stderr
+
+
+def test_cleanup_preserves_another_branch(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    project(tmp_path, CONFIG + '\n[commands.wait]\nargv = ["sleep", "60"]\n')
+    subprocess.run(["git", "init", "-q", "-b", "task/first", str(tmp_path)], check=True)
+    monkeypatch.setenv("WORKER_OWNER", "branch-owner")
+    first = background_id(worker, tmp_path)
+    subprocess.run(
+        ["git", "symbolic-ref", "HEAD", "refs/heads/task/second"], cwd=tmp_path, check=True
+    )
+    second = background_id(worker, tmp_path)
+    try:
+        result = invoke(worker, tmp_path, "job-cleanup", "--branch", "task/first")
+        assert result.returncode == 0, result.stderr
+        assert (
+            json.loads(invoke(worker, tmp_path, "job-status", first).stdout)["state"] == "cancelled"
+        )
+        assert (
+            json.loads(invoke(worker, tmp_path, "job-status", second).stdout)["state"] == "running"
+        )
+    finally:
+        for identifier in [first, second]:
+            assert invoke(worker, tmp_path, "job-stop", identifier).returncode == 0

@@ -32,6 +32,7 @@ pub fn owns(command: &str) -> bool {
             | "job-logs"
             | "job-start"
             | "job-stop"
+            | "job-cleanup"
             | "_job-run"
     )
 }
@@ -57,7 +58,10 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
             "{error:#}. ACTION: Correct worker.toml and its referenced configuration/skills"
         )
     })?;
-    let jobs = matches!(command, "jobs" | "job-status" | "job-logs" | "job-stop");
+    let jobs = matches!(
+        command,
+        "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
+    );
     if jobs {
         return discipline_worker::jobs::cli(
             &context.path(&context.config.paths.runtime)?,
@@ -206,7 +210,7 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
         "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "review" | "setup"
-        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" => {}
+        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" | "job-cleanup" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

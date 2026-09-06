@@ -75,6 +75,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
         commands.insert(
             id.into(),
             Command {
+                lifetime: Default::default(),
                 argv: Vec::new(),
                 cwd: ".".into(),
                 accepts_args: true,
@@ -82,8 +83,22 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             },
         );
     }
+    let argv = test_command(options);
+    commands.insert(
+        "test".into(),
+        Command {
+            lifetime: Default::default(),
+            argv,
+            cwd: ".".into(),
+            accepts_args: true,
+            read_only: false,
+        },
+    );
+    commands
+}
+fn test_command(options: &Options<'_>) -> Vec<String> {
     let python = options["language"] == "python";
-    let argv = if python {
+    if python {
         vec![
             "python3".into(),
             "-m".into(),
@@ -97,17 +112,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             "--manifest-path".into(),
             format!("{}/Cargo.toml", options["source"]),
         ]
-    };
-    commands.insert(
-        "test".into(),
-        Command {
-            argv,
-            cwd: ".".into(),
-            accepts_args: true,
-            read_only: false,
-        },
-    );
-    commands
+    }
 }
 fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
     let mut routes = Vec::new();
@@ -177,6 +182,7 @@ pub(super) fn justfile() -> String {
         ("job-logs", "job-logs", true),
         ("job-start", "job-start", true),
         ("job-stop", "job-stop", true),
+        ("job-cleanup", "job-cleanup", true),
         ("review", "review", true),
     ] {
         source.push_str(&format!(

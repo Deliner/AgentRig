@@ -22,6 +22,10 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
+    println!(
+        "background process capability: {}",
+        discipline_worker::jobs::capability()
+    );
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
     failed |= !review_dependencies(context);
