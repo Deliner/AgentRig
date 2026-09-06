@@ -22,6 +22,8 @@ D020 governs consolidation: committed decision IDs, statements and detail conten
 
 ## Runtime changes
 
-Use tooling/worker/run so the pinned release cache follows source changes, including staged sources and embedded assets. All command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters only forward calls. Python dependencies support tests and measurements.
+Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. This build/install recipe is the explicit bootstrap exception to runtime dispatch. Use tooling/worker/run for the installed development runtime; it never builds candidate sources. All command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters only forward calls. Python dependencies support tests and measurements.
+
+Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Change the development pin only after candidate acceptance, then explicitly bootstrap the new pin. Project policy and canonical skill sources remain reviewable repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
 
 Use `just config-check` for project configuration, `just lint-config-check` for lint settings, and `just lint-rules` for actual rule/language capabilities. Apply the reported repair skill. Preserve policy intent; do not weaken thresholds or selectors merely to pass. New rules and language handlers require implemented measurements, capability declarations, behavioral verification and repair guidance. Consult tooling/worker/README.md for counting semantics and parser limits. Rust changes participate in rustfmt, Clippy and native behavioral tests through the configured gate.

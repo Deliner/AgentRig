@@ -1,25 +1,18 @@
 #!/usr/bin/env bash
 # DECISION: D015
+# DECISION: D027
 set -euo pipefail
 source_dir="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$source_dir/../.." && pwd)"
-target="$(printenv WORKER_TARGET_DIR || true)"
-if [[ -z "$target" ]]; then target="$root/.cache/worker"; fi
-binary="$target/release/agentrig"
-export WORKER_TARGET_DIR="$target"
-export CARGO_TARGET_DIR="$target"
-export WORKER_BINARY="$binary"
+read -r revision < "$root/tooling/distribution/stable.txt"
+[[ "$revision" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid stable revision' >&2; exit 2; }
+export WORKER_TARGET_DIR="${WORKER_TARGET_DIR:-$root/.cache/worker}"
+export CARGO_TARGET_DIR="$WORKER_TARGET_DIR"
 export WORKER_SOURCE_ROOT="${WORKER_SOURCE_ROOT:-$root}"
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$root/.cache/venv}"
-signature="$(cd "$source_dir" && find . \( -path './review/runtime' -o -path './review/reports' -o -path './review/target' \) -prune -o -type f \( -path './assets/*' -o -name '*.rs' -o -name '*.txt' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
-saved=""
-if [[ -f "$target/source-signature" ]]; then read -r saved < "$target/source-signature"; fi
-if [[ ! -x "$binary" || "$saved" != "$signature" ]]; then
-    mkdir -p "$target"
-    (
-        flock 9
-        cargo +1.98.1 build --manifest-path "$source_dir/Cargo.toml" --target-dir "$target" --release --locked >&2
-        printf '%s\n' "$signature" > "$target/source-signature"
-    ) 9>"$target/build.lock"
+binary="$WORKER_SOURCE_ROOT/.cache/development/$revision/.agentrig/bin/agentrig"
+if [[ ! -x "$binary" ]]; then
+    echo 'Stable AgentRig is not installed. Run just bootstrap; candidate sources are never built by this launcher.' >&2
+    exit 2
 fi
 exec "$binary" "$@"
