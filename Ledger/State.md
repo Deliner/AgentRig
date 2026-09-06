@@ -2,23 +2,23 @@
 
 ## Focus
 
-Integrate accepted and published P005, applying complexity-discipline.
+Clarify the user's explicit permission for ordinary agent file editing without just write.
 
 ## Workspace
 
-Branch: feature/stable-distribution
+Branch: feature/direct-file-editing
 
-Revision: 5bb4ff4
+Revision: 4d2aba1
 
-Started from clean master after observing the completed P004 merge. No merge/rebase or upgrade is active.
+Started from clean master. Resume reported no merge, rebase or upgrade in progress.
 
 ## Progress
 
-Public MIT repository https://github.com/Deliner/AgentRig and release v0.3.0 are available. The release points exactly to 5bb4ff4 and contains the successful CI artifact. Plan records verified P005 acceptance. Current VAC records delivery evidence; local integration and final master publication remain pending. Active development still uses the explicitly installed 034232d runtime; publishing a release does not automatically replace it.
+Git confirms P005 integration at 4d2aba1; the previous snapshot's local integration action is complete. All Plan features remain complete. This maintenance VAC adds a prominent AGENTS.md reminder permitting direct editing tools and clarifies that Just routing applies to shell operations.
 
 ## Verification
 
-GitHub run 34049505351 passed all 15 checks, 363 Python and 50 Rust tests, packaging and artifact upload. The downloaded archive matched its checksum and embedded Git revision and independently passed init/setup/doctor/config-check and standalone lint with unchanged consumer files. GitHub's published asset digest matches the verified archive. Local staged gates through 5bb4ff4 pass. Release and clean-clone receipts remain in .tmp/publication-tools; Plan/005.md records public evidence. The acceptance commit and integration gates remain pending.
+Inspected current instructions, shell guard and the two-file documentation diff. The reminder was applied directly with apply_patch; git diff --check passed. Commit gate and integration remain pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit acceptance through the staged gate, run just feature-merge, retain the feature branch, push master and the retained branch, and select master as GitHub's default branch. Verify clean Git and remote references. If resumed after integration, reconcile this pre-integration snapshot with live Git rather than repeating completed work. The repository and v0.3.0 already exist; do not recreate or replace the verified release.
+Commit through the staged gate, then run just feature-merge and retain the feature branch. Reconcile this snapshot with Git if integration has already completed when resuming.
