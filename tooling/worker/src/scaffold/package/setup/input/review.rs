@@ -8,20 +8,23 @@ pub(super) fn prepare(source: &mut Source, config: &mut Config) -> Result<()> {
     let Some(path) = source.path("/capabilities/review/config", &capability.config)? else {
         return Ok(());
     };
-    let bytes = source.resources.read(&path)?;
-    let original: review_runner::config::Config =
-        review_runner::config::yaml::decode(std::str::from_utf8(&bytes)?)?;
-    let runtime = original.runner.runtime_root.clone();
-    let reports = original.runner.report_root.clone();
-    let mut review = review_runner::config::resolve(&path, original)?;
-    review.runner.runtime_root = runtime;
-    review.runner.report_root = reports;
-    for reviewer in review.reviewers.values_mut() {
-        let target = source.resources.copy(&reviewer.prompt)?;
+    let mut review: review_runner::config::Config = source.configuration(&path)?;
+    for (name, reviewer) in &mut review.reviewers {
+        let prompt = source.resource(
+            &path,
+            &format!("/reviewers/{name}/prompt"),
+            &reviewer.prompt,
+        )?;
+        let target = source.resources.copy(&prompt)?;
         reviewer.prompt = source.resources.sibling(&target)?;
     }
-    for tool in review.tools.values_mut() {
-        let target = project(source, &tool.project_config)?;
+    for (name, tool) in &mut review.tools {
+        let resource = source.resource(
+            &path,
+            &format!("/tools/{name}/project_config"),
+            &tool.project_config,
+        )?;
+        let target = project(source, &resource)?;
         tool.project_config = source.resources.sibling(&target)?;
     }
     capability.config = source.resources.put(
@@ -33,10 +36,8 @@ pub(super) fn prepare(source: &mut Source, config: &mut Config) -> Result<()> {
 }
 
 fn project(source: &mut Source, path: &std::path::Path) -> Result<String> {
-    let bytes = source.resources.read(path)?;
-    let mut project: review_runner::config::Project =
-        review_runner::config::yaml::decode(std::str::from_utf8(&bytes)?)?;
-    let contract = review_runner::config::resource(path, &project.review.contract)?;
+    let mut project: review_runner::config::Project = source.configuration(path)?;
+    let contract = source.resource(path, "/review/contract", &project.review.contract)?;
     let target = source.resources.copy(&contract)?;
     project.review.contract = source.resources.sibling(&target)?;
     source.resources.put(

@@ -216,6 +216,22 @@ the latest operation. Invalid or stale plans cannot replace that recovery record
 The interactive wizard and shared custom delegate environment assembly remain
 under development in P004.
 
+The external setup/update builder also resolves `packages` and `overrides` in
+lint policies, review runner settings, review material settings and delegate
+profile files. These use the same package schema and conflict rules as the root
+declaration. A delegate declaration can, for example, import a package defining
+`profiles.reader` and explicitly override `/profiles/reader/model`.
+
+Review/delegate resource references follow the configuration or package that
+declares each value. Imported lint repair skills likewise follow their declaring
+package; an explicit `skill_root` supplies the shared base and is itself resolved
+relative to its declaring file. Without `skill_root`, skills in the root lint
+policy retain the existing consumer-relative convention. Source selectors remain
+consumer-relative. Installed capability configs are fully resolved YAML, read by
+the ordinary component validators and runtimes. The `configurations` section of
+`composition.json` records each nested composition's values, provenance and package
+digests; changes to those inputs require an explicit update too.
+
 ## Memory and recovery
 
 The initialized indexes are `Plan.md`, `Decisions.md` and `Invariants.md`; details use stable numeric IDs and matching paths such as `Plan/001.md`. `State.md` is a compact snapshot with Focus, Workspace, Progress, Verification, Blockers and Next action sections.

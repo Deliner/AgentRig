@@ -1,3 +1,4 @@
+mod composed;
 mod delegation;
 mod lint;
 mod review;
@@ -20,6 +21,7 @@ struct Source {
     resolved: composition::Resolved,
     resources: resources::Bundle,
     stock: Files,
+    configurations: std::collections::BTreeMap<PathBuf, composition::Resolved>,
 }
 
 pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
@@ -54,6 +56,7 @@ pub(super) fn external(root: &Path, path: &Path) -> Result<Prepared> {
         resources: resources::Bundle::new(&config.paths.service),
         stock: super::super::bundle(&config)?,
         resolved,
+        configurations: Default::default(),
     };
     source.guidance(&mut config)?;
     lint::prepare(&mut source, &mut config)?;
@@ -177,6 +180,7 @@ impl Source {
             "schema_version": 1, "root": self.resolved.root, "root_digest": self.resolved.root_digest,
             "packages": self.resolved.packages, "provenance": self.resolved.provenance,
             "resources": self.resources.inputs,
+            "configurations": self.configurations,
         });
         files.insert(
             config.paths.service_path("composition.json"),

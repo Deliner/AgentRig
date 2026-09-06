@@ -8,19 +8,21 @@ pub(super) fn prepare(source: &mut Source, config: &mut Config) -> Result<()> {
     let Some(path) = source.path("/capabilities/delegation/config", &capability.config)? else {
         return Ok(());
     };
-    let bytes = source.resources.read(&path)?;
-    let original: agentrig::delegate::config::Config =
-        review_runner::config::yaml::decode(std::str::from_utf8(&bytes)?)?;
-    let mut delegation = agentrig::delegate::config::resolve(&path, original)?;
-    for profile in delegation.profiles.values_mut() {
-        let target = source.resources.copy(&profile.prompt)?;
+    let mut delegation: agentrig::delegate::config::Config = source.configuration(&path)?;
+    for (name, profile) in &mut delegation.profiles {
+        let address = format!("/profiles/{name}");
+        let prompt = source.resource(&path, &format!("{address}/prompt"), &profile.prompt)?;
+        let target = source.resources.copy(&prompt)?;
         profile.prompt = source.resources.sibling(&target)?;
         for skill in &mut profile.skills {
-            let target = source.resources.directory(skill)?;
+            let resource = source.resource(&path, &format!("{address}/skills"), skill)?;
+            let target = source.resources.directory(&resource)?;
             *skill = source.resources.sibling(&target)?;
         }
-        for program in profile.programs.values_mut() {
-            let target = source.resources.copy(program)?;
+        for (name, program) in &mut profile.programs {
+            let resource =
+                source.resource(&path, &format!("{address}/programs/{name}"), program)?;
+            let target = source.resources.copy(&resource)?;
             *program = source.resources.sibling(&target)?;
         }
     }
