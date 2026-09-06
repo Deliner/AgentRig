@@ -97,6 +97,7 @@ fn environment(env: &std::collections::BTreeMap<String, String>) -> Result<()> {
                 "HOME",
                 "CODEX_HOME",
                 "PATH",
+                "SHELL",
                 "LD_PRELOAD",
                 "LD_LIBRARY_PATH"
             ]

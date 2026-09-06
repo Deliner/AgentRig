@@ -82,6 +82,10 @@ pub fn prepare(
         serde_json::to_vec_pretty(request)?,
     )?;
     fs::write(
+        directory.join("schema.json"),
+        serde_json::to_vec_pretty(&request.contract.result_schema)?,
+    )?;
+    fs::write(
         directory.join("manifest.json"),
         serde_json::to_vec_pretty(&inputs)?,
     )?;

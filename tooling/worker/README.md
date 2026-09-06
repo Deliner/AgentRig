@@ -279,3 +279,14 @@ Traversal, symlinks and sensitive development-control paths are rejected.
 Preparation requires a new directory. Result verification uses the shared bounded
 regular-file reader, checks JSON Schema and required artifacts, and records their
 sizes and hashes. A model's declaration of completion does not satisfy this contract.
+
+The delegated sandbox builder mounts prepared inputs at /project, /inputs and
+/delegate-input, plus a writable /work and a private /codex. Only configured
+programs are added under /tools; sh, bash, env and system libraries form the CLI
+runtime. Configured skills are mounted read-only under /codex/skills. Host checkout,
+home and user-manager sockets are not mounted. The environment starts empty and
+receives fixed runtime variables and explicit credential references. Generated
+Codex configuration is read-only, disables hooks and contains only the configured
+MCP servers; their commands resolve inside this sandbox. This builder has a real
+bubblewrap fixture test, but asynchronous execution, limits and real Codex/MCP
+smoke verification remain pending.
