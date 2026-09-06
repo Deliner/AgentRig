@@ -42,6 +42,11 @@ argv = ["cargo", "+1.98.1", "clippy", "--manifest-path", "tooling/worker/Cargo.t
 accepts_args = false
 read_only = false
 
+[commands.rust-test]
+argv = ["cargo", "+1.98.1", "test", "--manifest-path", "tooling/worker/Cargo.toml", "--locked", "--lib"]
+accepts_args = false
+read_only = false
+
 [commands.test]
 argv = ["uv", "run", "--locked", "--project", "tooling", "pytest", "-c", "tooling/pyproject.toml", "--rootdir", "."]
 accepts_args = true
@@ -99,6 +104,12 @@ id = "clippy"
 kind = "command"
 skill = ".agents/skills/repair/SKILL.md"
 command = "clippy"
+
+[[checks]]
+id = "rust-test"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "rust-test"
 
 [[checks]]
 id = "ruff-format"

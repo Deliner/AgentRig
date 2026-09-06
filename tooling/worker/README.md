@@ -264,3 +264,18 @@ alternatively credentials.env.OPENAI_API_KEY names a variable holding the API ke
 Other credential env entries and server env entries use the same mapping.
 Configuration validation checks reference syntax without reading those values.
 HOME, CODEX_HOME, PATH and loader overrides belong to the sandbox.
+
+Task requests separate `profile` and `task` from optional `revision`, explicit
+`inputs` (sandbox input name to project-relative source file), and `contract`.
+The contract contains `result_schema` (JSON Schema) and optional `artifacts`
+(relative output name to positive byte limit). Read mode forbids artifacts.
+`result.json` is reserved for the structured response. Execution is still pending;
+the task preparation and result verification library is covered by `rust-test`.
+
+Preparation resolves revision to a full commit and reuses the review snapshot
+exporter with the profile's visible_paths. Explicit inputs also obey those globs;
+they need no Git repository. Snapshots and copied files have a SHA-256 manifest.
+Traversal, symlinks and sensitive development-control paths are rejected.
+Preparation requires a new directory. Result verification uses the shared bounded
+regular-file reader, checks JSON Schema and required artifacts, and records their
+sizes and hashes. A model's declaration of completion does not satisfy this contract.

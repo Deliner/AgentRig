@@ -1,4 +1,5 @@
 pub mod config;
+pub mod task;
 
 use anyhow::{Result, bail};
 use std::path::Path;
