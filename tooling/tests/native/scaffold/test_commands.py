@@ -190,3 +190,97 @@ def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -
     directory = tmp_path / ".runtime/jobs" / row["run_id"]
     assert (directory / "stdout.log").read_bytes() == result.stdout
     assert (directory / "stderr.log").read_bytes() == result.stderr
+
+
+def background_id(worker: Path, root: Path) -> str:
+    result = invoke(worker, root, "job-start", "wait")
+    assert result.returncode == 0, result.stderr
+    identifier: str = json.loads(result.stdout)["run_id"]
+    return identifier
+
+
+def require_user_systemd() -> None:
+    result = subprocess.run(
+        ["systemctl", "--user", "show", "--property=Version"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    unavailable = result.returncode != 0
+    if unavailable:
+        pytest.skip("background scope integration requires a systemd user manager")
+
+
+def wait_for_background_output(worker: Path, root: Path, identifier: str) -> None:
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        result = invoke(worker, root, "job-logs", identifier)
+        assert result.returncode == 0, result.stderr
+        ready = "ready" in json.loads(result.stdout)["stdout"]["text"]
+        if ready:
+            return
+        time.sleep(0.01)
+    raise AssertionError("background child did not produce readiness output")
+
+
+def test_background_ownership_and_descendant_cleanup(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    code = "import subprocess,time; subprocess.Popen(['sleep','60'], start_new_session=True); print('ready',flush=True); time.sleep(60)"
+    project(tmp_path, CONFIG + "\n[commands.wait]\nargv = " + json.dumps(["python3", "-c", code]))
+    monkeypatch.setenv("WORKER_OWNER", "owner-one")
+    first = background_id(worker, tmp_path)
+    monkeypatch.setenv("WORKER_OWNER", "owner-two")
+    second = background_id(worker, tmp_path)
+    try:
+        wait_for_background_output(worker, tmp_path, first)
+        wait_for_background_output(worker, tmp_path, second)
+        denied = invoke(worker, tmp_path, "job-stop", first)
+        assert denied.returncode == 2 and "another owner" in denied.stderr
+        assert (
+            json.loads(invoke(worker, tmp_path, "job-status", first).stdout)["state"] == "running"
+        )
+        stopped = invoke(worker, tmp_path, "job-stop", second)
+        assert stopped.returncode == 0, stopped.stderr
+        result = json.loads(stopped.stdout)
+        assert result["state"] == "cancelled"
+        assert result["scope_observation"]["populated"] is False
+        assert (
+            json.loads(invoke(worker, tmp_path, "job-status", first).stdout)["state"] == "running"
+        )
+    finally:
+        for owner, identifier in [("owner-one", first), ("owner-two", second)]:
+            monkeypatch.setenv("WORKER_OWNER", owner)
+            stopped = invoke(worker, tmp_path, "job-stop", identifier)
+            assert stopped.returncode == 0, stopped.stderr
+
+
+def test_private_runner_cannot_restart_existing_job(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    assert invoke(worker, tmp_path, "run", "fail").returncode == 23
+    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
+    result = invoke(worker, tmp_path, "_job-run", row["run_id"])
+    assert result.returncode == 2 and "already finished" in result.stderr
+
+
+def test_background_forced_stop_keeps_logs(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    code = "import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print('ready',flush=True); time.sleep(60)"
+    project(tmp_path, CONFIG + "\n[commands.wait]\nargv = " + json.dumps(["python3", "-c", code]))
+    monkeypatch.setenv("WORKER_OWNER", "forced-stop-owner")
+    identifier = background_id(worker, tmp_path)
+    try:
+        wait_for_background_output(worker, tmp_path, identifier)
+        result = invoke(worker, tmp_path, "job-stop", identifier)
+        assert result.returncode == 0, result.stderr
+        state = json.loads(result.stdout)
+        assert state["state"] == "cancelled"
+        assert state["scope_observation"]["populated"] is False
+        logs = json.loads(invoke(worker, tmp_path, "job-logs", identifier).stdout)
+        assert logs["stdout"]["text"] == "ready\n"
+    finally:
+        result = invoke(worker, tmp_path, "job-stop", identifier)
+        assert result.returncode == 0, result.stderr

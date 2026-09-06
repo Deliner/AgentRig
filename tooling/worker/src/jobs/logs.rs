@@ -12,7 +12,7 @@ pub fn read(runtime: &Path, id: &str) -> Result<Value> {
     let directory = runtime.join("jobs").join(id);
     Ok(
         json!({"run_id": id, "stdout": tail(&directory.join("stdout.log"))?,
-        "stderr": tail(&directory.join("stderr.log"))?}),
+        "stderr": tail(&directory.join("stderr.log"))?, "launcher": tail(&directory.join("launcher.log"))?}),
     )
 }
 fn tail(path: &Path) -> Result<Value> {

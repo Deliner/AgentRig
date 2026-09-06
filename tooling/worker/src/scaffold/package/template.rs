@@ -175,6 +175,8 @@ pub(super) fn justfile() -> String {
         ("jobs", "jobs", false),
         ("job-status", "job-status", true),
         ("job-logs", "job-logs", true),
+        ("job-start", "job-start", true),
+        ("job-stop", "job-stop", true),
         ("review", "review", true),
     ] {
         source.push_str(&format!(

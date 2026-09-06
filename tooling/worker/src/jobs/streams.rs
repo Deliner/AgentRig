@@ -9,6 +9,7 @@ pub struct Stream {
     pub log: Option<File>,
     pub capture: bool,
     pub stderr: bool,
+    pub forward: bool,
 }
 pub struct Readers {
     stdout: Option<JoinHandle<Result<Vec<u8>>>>,
@@ -19,6 +20,7 @@ impl Readers {
         child: &mut std::process::Child,
         capture: bool,
         logs: Option<(File, File)>,
+        forward: bool,
     ) -> Self {
         let (stdout_log, stderr_log) = match logs {
             Some((out, err)) => (Some(out), Some(err)),
@@ -32,6 +34,7 @@ impl Readers {
                         log: stdout_log,
                         capture,
                         stderr: false,
+                        forward,
                     },
                 )
             }),
@@ -42,6 +45,7 @@ impl Readers {
                         log: stderr_log,
                         capture,
                         stderr: true,
+                        forward,
                     },
                 )
             }),
@@ -78,16 +82,22 @@ fn copy(mut input: impl Read, mut stream: Stream) -> Result<Vec<u8>> {
         }
         if stream.capture {
             captured.extend_from_slice(bytes);
-        } else if stream.stderr {
-            std::io::stderr().write_all(bytes)?;
-        } else {
-            std::io::stdout().write_all(bytes)?;
+        } else if stream.forward {
+            forward(bytes, stream.stderr)?;
         }
     }
     if let Some(log) = stream.log {
         log.sync_all()?;
     }
     Ok(captured)
+}
+fn forward(bytes: &[u8], stderr: bool) -> Result<()> {
+    if stderr {
+        std::io::stderr().write_all(bytes)?;
+    } else {
+        std::io::stdout().write_all(bytes)?;
+    }
+    Ok(())
 }
 pub fn join(thread: Option<JoinHandle<Result<Vec<u8>>>>) -> Result<Vec<u8>> {
     match thread {

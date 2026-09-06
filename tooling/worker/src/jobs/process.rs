@@ -18,6 +18,7 @@ pub fn exit_code(output: &Output) -> i32 {
 }
 pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> Result<Output> {
     let logged = job.is_some();
+    let forward = job.as_ref().is_none_or(|job| job.record().scope.is_none());
     let piped = capture || logged;
     if capture {
         command.stdin(Stdio::null());
@@ -38,7 +39,7 @@ pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> R
     let pid = child.id() as i32;
     attach(&mut child, job, group)?;
     let forwarding = forward_signals(signals, pid, group);
-    let readers = Readers::start(&mut child, capture, logs);
+    let readers = Readers::start(&mut child, capture, logs, forward);
     let status = child.wait();
     handle.close();
     forwarding

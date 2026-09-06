@@ -83,3 +83,11 @@ job-status *args:
 # What: read command output; Why: recover logs after a session disconnects.
 job-logs *args:
     @tooling/worker/run job-logs "$@"
+
+# What: start a background command; Why: preserve a managed run across sessions.
+job-start *args:
+    @tooling/worker/run job-start "$@"
+
+# What: stop an owned run; Why: clean its contained descendants without affecting other owners.
+job-stop *args:
+    @tooling/worker/run job-stop "$@"

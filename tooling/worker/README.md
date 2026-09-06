@@ -176,6 +176,22 @@ stderr.log beside the run record. Display replaces invalid UTF-8, stored logs do
 not. `report` aggregates these lifecycle records; commands.jsonl is no longer
 written or read. Old completion-only logs remain untouched as historical files.
 
-The runner preserves process-group signal forwarding. Detached descendants are
-not yet contained; explicit background execution, cancellation, shared-service
-lifetimes and owner-aware merge cleanup are pending in P003.
+`just job-start COMMAND -- ARGS` starts a configured command in a distinct
+systemd user scope and returns its run_id. It requires Linux cgroup v2 and a
+working systemd user manager. The process inherits the calling environment,
+freezes the selected argv/cwd/read-only policy, and retains output in the same
+run directory after the caller exits. Launcher errors appear separately in
+job-logs. A delayed launch response does not authorize starting a duplicate.
+
+`just job-stop RUN_ID` requires the recorded owner identity. It checks the scope
+invocation ID, requests graceful stop, then forces remaining processes and
+verifies the recursive cgroup populated state. This includes descendants that
+created a new process session. Cancellation intent survives runner termination;
+logs remain available. Lost access to the user manager reports unverified state,
+not successful completion. Ownership is coordination within a user account,
+not an access-control boundary against that same user's own programs.
+
+Foreground commands still use process-group signal forwarding; job-stop refuses
+to claim descendant cleanup for those uncontained runs. Setup capability checks,
+foreground containment, shared-service lifetimes and owner-aware merge cleanup
+remain pending in P003.

@@ -32,7 +32,7 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
     let cwd = context.path(&spec.cwd)?;
     let runtime = context.path(&context.config.paths.runtime)?;
     let mut job = discipline_worker::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
-    job.prepare(&argv)?;
+    job.prepare(&argv, spec.read_only)?;
     let result = process::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
     let code = result.as_ref().map(process::exit_code).unwrap_or(127);
     job.finish(
@@ -43,4 +43,37 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
 }
 pub fn report(context: &Context) -> Result<()> {
     discipline_worker::jobs::report::print(&context.path(&context.config.paths.runtime)?)
+}
+pub fn background(context: &Context, args: &[String]) -> Result<i32> {
+    let (name, extra) = args
+        .split_first()
+        .ok_or_else(|| anyhow::anyhow!("job-start COMMAND [-- ARGS]"))?;
+    let extra = extra.strip_prefix(&["--".into()]).unwrap_or(extra);
+    let argv = argv(context, name, extra)?;
+    let spec = &context.config.commands[name];
+    let runtime = context.path(&context.config.paths.runtime)?;
+    let mut job = discipline_worker::jobs::Job::create(
+        &runtime,
+        &context.root,
+        name,
+        &context.path(&spec.cwd)?,
+    )?;
+    job.prepare(&argv, spec.read_only)?;
+    let id = job.launch(&std::env::current_exe()?)?;
+    println!("{}", serde_json::json!({"run_id": id}));
+    Ok(0)
+}
+pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
+    ensure!(args.len() == 1, "_job-run RUN_ID");
+    let runtime = context.path(&context.config.paths.runtime)?;
+    let mut job = discipline_worker::jobs::Job::adopt(&runtime, &args[0])?;
+    let record = job.record();
+    let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);
+    let result = process::tracked(&cwd, &argv, (read_only, false), Some(&mut job));
+    let code = result.as_ref().map(process::exit_code).unwrap_or(127);
+    job.finish(
+        code,
+        result.as_ref().err().map(|error| format!("{error:#}")),
+    )?;
+    result.map(|_| code)
 }

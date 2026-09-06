@@ -1,7 +1,10 @@
+mod background;
 mod identity;
 mod logs;
 pub mod process;
 pub mod report;
+mod scope;
+mod stop;
 mod storage;
 mod streams;
 
@@ -33,6 +36,10 @@ pub struct Record {
     pub process_group: bool,
     #[serde(default)]
     pub duration_seconds: Option<f64>,
+    #[serde(default)]
+    pub scope: Option<scope::Scope>,
+    #[serde(default)]
+    pub read_only: bool,
 }
 pub struct Job {
     directory: PathBuf,
@@ -68,6 +75,8 @@ impl Job {
             child: None,
             process_group: false,
             duration_seconds: None,
+            scope: None,
+            read_only: false,
         };
         let job = Self {
             directory,
@@ -77,8 +86,9 @@ impl Job {
         job.save()?;
         Ok(job)
     }
-    pub fn prepare(&mut self, argv: &[String]) -> Result<()> {
+    pub fn prepare(&mut self, argv: &[String], read_only: bool) -> Result<()> {
         self.record.argv = argv.into();
+        self.record.read_only = read_only;
         self.save()
     }
     pub fn attach(&mut self, pid: u32, group: bool) -> Result<()> {
@@ -117,10 +127,13 @@ pub fn owner() -> Option<String> {
         })
 }
 pub fn list(runtime: &Path) -> Result<Vec<Value>> {
-    storage::list(runtime)?.iter().map(observe).collect()
+    storage::list(runtime)?
+        .iter()
+        .map(|record| observe(runtime, record))
+        .collect()
 }
 pub fn status(runtime: &Path, id: &str) -> Result<Value> {
-    observe(&storage::load(runtime, id)?)
+    observe(runtime, &storage::load(runtime, id)?)
 }
 pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
     let value = match command {
@@ -136,12 +149,17 @@ pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
             anyhow::ensure!(args.len() == 1, "job-logs RUN_ID");
             logs::read(runtime, &args[0])?
         }
+        "job-stop" => {
+            anyhow::ensure!(args.len() == 1, "job-stop RUN_ID");
+            stop::run(runtime, &args[0])?;
+            status(runtime, &args[0])?
+        }
         _ => anyhow::bail!("unknown jobs command {command}"),
     };
     println!("{value}");
     Ok(0)
 }
-fn observe(record: &Record) -> Result<Value> {
+fn observe(runtime: &Path, record: &Record) -> Result<Value> {
     let child = record.child.as_ref().and_then(Identity::observe);
     let supervisor = record.supervisor.observe().is_some();
     let state = match (record.finished, child.is_some(), supervisor) {
@@ -161,6 +179,34 @@ fn observe(record: &Record) -> Result<Value> {
     );
     value["leader_resources"] = json!(child);
     value["containment"] = json!("process-group; detached descendants are not contained");
+    scoped(runtime, record, value)
+}
+fn scoped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
+    if let Some(scope) = &record.scope {
+        let observed = match scope.observe() {
+            Ok(observed) => observed,
+            Err(error) => {
+                value["state"] = json!("unverified");
+                value["observation_error"] = json!(error.to_string());
+                return Ok(value);
+            }
+        };
+        let populated = observed["populated"] == true;
+        let stopped = runtime
+            .join("jobs")
+            .join(&record.run_id)
+            .join("stop-requested")
+            .exists();
+        value["state"] = json!(match (populated, stopped, record.finished) {
+            (true, true, _) => "stopping",
+            (true, false, _) => "running",
+            (false, true, _) => "cancelled",
+            (false, false, Some(_)) => "completed",
+            _ => "interrupted",
+        });
+        value["containment"] = json!("systemd user scope");
+        value["scope_observation"] = observed;
+    }
     Ok(value)
 }
 fn now() -> Result<u64> {
