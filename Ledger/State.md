@@ -2,28 +2,28 @@
 
 ## Focus
 
-Persist all confirmed P006–P008 scope clarifications and prepare a short development-start prompt. Product implementation is not yet authorized to start.
+Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: record P006 acceptance and integrate its retained feature branch.
 
 ## Workspace
 
-Branch: feature/confirmed-delivery-scope
+Branch: feature/directory-architecture
 
-Revision: 20cec8f
+Revision: 7440f8c
 
-Started from clean master, four commits ahead of origin/master. Git confirms the preceding planning VAC is integrated at 20cec8f. No unrelated changes were present.
+The extractor repair is committed at 7440f8c through its full gate: 410 Python and 101 Rust tests passed. Only the final acceptance matrix and completion memory are now changed. No unrelated work is present; the installed development pin remains unchanged.
 
 ## Progress
 
-The user confirmed all six scope answers. Plan/006.md requires AgentRig's own linter, Rust/Python/JavaScript/TypeScript, and descriptions in every scoped source directory with configurable exclusions. Plan/007.md delegates the simplest available additional VCS choice to the agent; Arc is a possible future private extension, not a current implementation. Plan/008.md names Codex and Claude Code. Confirmed order is P006, P007, P008. All remain pending; no product implementation has begun. The current instruction authorizes saving these answers and returning a short start prompt only.
+P006 acceptance is verified and recorded as complete in Plan; integration is still pending. The final matrix exercises each required architecture scenario through both binaries for all four languages. Directory contracts, graph checks, source resolution, CLI integration, exact capability limits and canonical repair guidance are implemented. P007/P008 remain pending and authorized in that order.
 
 ## Verification
 
-Live Git confirms integrated baseline 20cec8f. Inspected the five-file diff and checked updated acceptance against the six confirmed answers. git diff --check passed. Commit gate and integration remain pending.
+All 78 lint CLI tests and 51 architecture component tests pass. The matrix covers five scenarios across four languages and two binaries, with additional configuration, scope, incomplete-analysis and behavior-preservation tests. Real repairs preserve program result 7 and unchanged permissions. The implementation gate passed with 410 Python and 101 Rust tests; completion-commit and integration gates are next, not yet observed.
 
 ## Blockers
 
-No unresolved scope questions. Await the user's separate command before starting product implementation.
+None observed. Documented compiler/runtime resolution limits remain explicit product capabilities, with recognized unsupported forms diagnosed. P006 acceptance evidence and the supported first-delivery forms are recorded in its detail.
 
 ## Next action
 
-Verify and commit this clarification-only VAC, integrate with just feature-merge and retain the branch, then return a short prompt authorizing delivery of P006–P008 in order. After the user issues that command, resume from current Git and Plan, begin P006, and deliver each outcome through its acceptance and required gates. Do not repeat clarification or integration already resolved in current evidence.
+Commit P006 completion through the staged gate, then run just feature-merge and verify integration in Git. Start P007 on its own feature branch after integration and choose the simplest available real second VCS as authorized. Deliver P008 afterward. Preserve the installed development pin while testing candidates.

@@ -41,6 +41,8 @@ pub struct Rule {
     pub error_skill: String,
     #[serde(default)]
     pub overrides: Vec<Override>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub architecture: Option<super::architecture::Settings>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -170,7 +172,10 @@ impl Rule {
         }
         globs(&self.include)?;
         globs(&self.exclude)?;
-        validate_extensions(&self.extensions, &self.target)?;
+        let architecture = self.kind == rules::Kind::DirectoryArchitecture;
+        let extension_target = if architecture { "file" } else { &self.target };
+        validate_extensions(&self.extensions, extension_target)?;
+        self.validate_architecture()?;
         rules::validate_extensions(self.kind, &self.extensions)?;
         rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
@@ -190,8 +195,9 @@ impl Rule {
                 || !self.overrides.is_empty();
             if invalid_level {
                 bail!(
-                    "{}: named-if-condition needs level, no thresholds or overrides",
-                    self.id
+                    "{}: {} needs level, no thresholds or overrides",
+                    self.id,
+                    self.kind
                 );
             }
         } else {
@@ -200,6 +206,30 @@ impl Rule {
                 bail!("{}: numeric rules use thresholds, not level", self.id);
             }
             thresholds(self.warning, self.error)?;
+        }
+        Ok(())
+    }
+    fn validate_architecture(&self) -> Result<()> {
+        let architecture = self.kind == rules::Kind::DirectoryArchitecture;
+        if architecture {
+            let settings = self.architecture.as_ref().ok_or_else(|| {
+                anyhow::anyhow!(
+                    "{}: directory-architecture needs architecture settings",
+                    self.id
+                )
+            })?;
+            anyhow::ensure!(
+                !self.extensions.is_empty(),
+                "{}: architecture needs explicit source extensions",
+                self.id
+            );
+            settings.validate()?;
+        } else {
+            anyhow::ensure!(
+                self.architecture.is_none(),
+                "{}: architecture settings require directory-architecture",
+                self.id
+            );
         }
         Ok(())
     }

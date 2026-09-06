@@ -8,6 +8,7 @@ pub fn template(settings: &super::Config) -> Result<String> {
     let sources = &settings.paths.sources;
     let rules: Vec<_> = rules::ALL
         .iter()
+        .filter(|kind| **kind != rules::Kind::DirectoryArchitecture)
         .map(|kind| rules::example(*kind, skills, sources))
         .collect();
     let config = json!({

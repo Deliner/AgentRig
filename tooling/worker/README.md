@@ -1,5 +1,9 @@
 # Rust worker runtime and structural linter
 
+The opt-in [directory architecture rule](ARCHITECTURE.md) checks directory
+contracts and resolved Rust, Python, JavaScript and TypeScript dependencies.
+Its guide lists configuration, boundary semantics and current analysis limits.
+
 The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project agentrig.yaml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
 
 ## Build and execution

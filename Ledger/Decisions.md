@@ -31,6 +31,7 @@ Current precedence: [D022](Decisions/022.md) adds actionable verification eviden
 | [D025](Decisions/025.md) | Develop lint and review as portable worker capabilities while consumer projects own their configuration and source. | [instructions](../AGENTS.md), [overview](../README.md), [consumer scope](../Project/README.md), [delivery](Plan/002.md) |
 | [D026](Decisions/026.md) | Use strict YAML for AgentRig configuration without runtime format fallback; migrate legacy settings explicitly. | [codec](../tooling/worker/review/src/config/yaml.rs), [delivery](Plan/004.md) |
 | [D027](Decisions/027.md) | Develop AgentRig using an explicitly pinned installed runtime while testing candidate source independently. | [launcher](../tooling/worker/run), [bootstrap](../tooling/distribution/bootstrap.sh), [instructions](../AGENTS.md) |
+| [D028](Decisions/028.md) | Constrain measured source dependencies with directory-owned YAML contracts and enforce each crossed architectural boundary. | [contracts](../tooling/worker/src/lint/architecture/policy.rs), [feature](Plan/006.md) |
 
 D025 supersedes D008 for this worker repository; the historical D008 statement and detail remain unchanged.
 

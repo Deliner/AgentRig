@@ -9,7 +9,7 @@ pub struct Handler {
     pub extensions: &'static [&'static str],
     pub rules: &'static [Kind],
     pub grammar: fn() -> tree_sitter::Language,
-    pub inspect: fn(Node<'_>, &str, &mut Vec<Measurement>),
+    pub inspect: Option<fn(Node<'_>, &str, &mut Vec<Measurement>)>,
 }
 pub const HANDLERS: &[Handler] = &[
     Handler {
@@ -20,9 +20,10 @@ pub const HANDLERS: &[Handler] = &[
             Kind::NamedIfCondition,
             Kind::FunctionLines,
             Kind::ParameterCount,
+            Kind::DirectoryArchitecture,
         ],
         grammar: || tree_sitter_rust::LANGUAGE.into(),
-        inspect: rust::inspect,
+        inspect: Some(rust::inspect),
     },
     Handler {
         name: "python",
@@ -32,9 +33,34 @@ pub const HANDLERS: &[Handler] = &[
             Kind::NamedIfCondition,
             Kind::FunctionLines,
             Kind::ParameterCount,
+            Kind::DirectoryArchitecture,
         ],
         grammar: || tree_sitter_python::LANGUAGE.into(),
-        inspect: python::inspect,
+        inspect: Some(python::inspect),
+    },
+    Handler {
+        name: "javascript",
+        title: "JavaScript",
+        extensions: &[".js", ".jsx", ".mjs", ".cjs"],
+        rules: &[Kind::DirectoryArchitecture],
+        grammar: || tree_sitter_javascript::LANGUAGE.into(),
+        inspect: None,
+    },
+    Handler {
+        name: "typescript",
+        title: "TypeScript",
+        extensions: &[".ts", ".mts", ".cts"],
+        rules: &[Kind::DirectoryArchitecture],
+        grammar: || tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
+        inspect: None,
+    },
+    Handler {
+        name: "tsx",
+        title: "TSX",
+        extensions: &[".tsx"],
+        rules: &[Kind::DirectoryArchitecture],
+        grammar: || tree_sitter_typescript::LANGUAGE_TSX.into(),
+        inspect: None,
     },
 ];
 pub fn handler(path: &Path) -> Option<&'static Handler> {

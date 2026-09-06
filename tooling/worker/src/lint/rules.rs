@@ -17,6 +17,7 @@ pub enum Kind {
     NamedIfCondition,
     FunctionLines,
     ParameterCount,
+    DirectoryArchitecture,
 }
 impl fmt::Display for Kind {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -30,6 +31,7 @@ pub const ALL: &[Kind] = &[
     Kind::FunctionLines,
     Kind::ParameterCount,
     Kind::NamedIfCondition,
+    Kind::DirectoryArchitecture,
 ];
 pub fn syntax(kind: Kind) -> bool {
     languages::HANDLERS
@@ -55,7 +57,7 @@ pub fn support(kind: Kind) -> String {
         .join(" and ")
 }
 pub fn validate_includes(kind: Kind, patterns: &[String]) -> Result<()> {
-    let structural = !syntax(kind);
+    let structural = !syntax(kind) || kind.descriptor().target == "directory";
     if structural {
         return Ok(());
     }
@@ -108,6 +110,10 @@ pub fn describe(kind: Kind) -> Value {
         value["handlers"] = json!(handlers);
         value["extensions"] = json!(extensions(kind));
     }
+    let architecture = kind == Kind::DirectoryArchitecture;
+    if architecture {
+        value["architecture"] = super::architecture::Settings::describe();
+    }
     value
 }
 pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
@@ -120,6 +126,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     let language_rule = syntax(kind);
     if language_rule {
         value["extensions"] = json!(extensions(kind));
+    }
+    let architecture = kind == Kind::DirectoryArchitecture;
+    if architecture {
+        value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
     }
     value
 }
