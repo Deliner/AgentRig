@@ -29,6 +29,7 @@ impl Config {
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {
         for (label, value) in [
+            ("service", &self.paths.service),
             ("memory", &self.paths.memory),
             ("skills", &self.paths.skills),
             ("lint", &self.paths.lint),
@@ -36,6 +37,10 @@ impl Config {
         ] {
             relative(root, value).with_context(|| format!("paths.{label}"))?;
         }
+        ensure!(
+            !self.paths.service.contains(['\n', '\r']) && !self.paths.service.contains("{{"),
+            "paths.service cannot contain newlines or Just interpolation syntax"
+        );
         ensure!(
             !self.paths.sources.is_empty(),
             "paths.sources cannot be empty"

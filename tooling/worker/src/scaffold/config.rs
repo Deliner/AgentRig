@@ -36,11 +36,21 @@ pub struct Config {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Paths {
+    #[serde(default = "service")]
+    pub service: String,
     pub sources: Vec<String>,
     pub memory: String,
     pub skills: String,
     pub lint: String,
     pub runtime: String,
+}
+impl Paths {
+    pub fn service_path(&self, path: &str) -> String {
+        format!("{}/{path}", self.service)
+    }
+}
+fn service() -> String {
+    ".agentrig".into()
 }
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

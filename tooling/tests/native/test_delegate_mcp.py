@@ -80,7 +80,7 @@ def test_mcp_catalog_and_argument_validation(
         request["profile"] = "unknown"
         invalid = rpc(process, "tools/call", {"name": "delegate_start", "arguments": request})
         assert invalid["error"]["code"] == -32602
-        assert not (tmp_path / ".worker/runtime/jobs").exists()
+        assert not (tmp_path / ".agentrig/runtime/jobs").exists()
 
 
 def test_mcp_reconnect_keeps_run_and_artifact_result(
@@ -109,7 +109,7 @@ def test_mcp_reconnect_keeps_run_and_artifact_result(
         assert (
             value["structuredContent"]["report"]["result"]["artifacts"]["asset.txt"]["bytes"] == 8
         )
-    assert len(list((tmp_path / ".worker/runtime/jobs").iterdir())) == 1
+    assert len(list((tmp_path / ".agentrig/runtime/jobs").iterdir())) == 1
 
 
 def test_mcp_cancel_reports_failure_and_cleans_task(
@@ -126,4 +126,4 @@ def test_mcp_cancel_reports_failure_and_cleans_task(
         assert result["isError"] is True
         assert result["structuredContent"]["outcome"] == "CANCELLED", result
         assert result["structuredContent"]["report"]["cleanup_errors"] == []
-    assert not (tmp_path / ".worker/runtime/jobs" / identifier / "private").exists()
+    assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "private").exists()

@@ -1,4 +1,4 @@
-mod adapters;
+pub(super) mod adapters;
 mod assets;
 mod doctor;
 mod lint;
@@ -35,7 +35,14 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
     validate_bundle(&files)?;
     install(root, &files)?;
     if git {
-        crate::util::git(root, &["config", "core.hooksPath", ".worker/hooks"])?;
+        crate::util::git(
+            root,
+            &[
+                "config",
+                "core.hooksPath",
+                &config.paths.service_path("hooks"),
+            ],
+        )?;
     }
     println!(
         "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
@@ -61,20 +68,23 @@ fn bundle(config: &Config) -> Result<Files> {
         );
     }
     add_policy(&mut files, config)?;
-    add_runtime(&mut files)?;
+    add_runtime(&mut files, config)?;
     review::bundle(&mut files, config);
     files.insert(
         "AGENTS.md".into(),
         assets::instructions(config).into_bytes(),
     );
-    files.insert(manifest::PATH.into(), manifest::installed(&files, config)?);
+    files.insert(
+        config.paths.service_path("manifest.json"),
+        manifest::installed(&files, config)?,
+    );
     Ok(files)
 }
 fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     if config.capabilities.lint {
         files.insert(
             config.paths.lint.clone(),
-            lint::template(&config.paths.skills, &config.paths.sources)?.into_bytes(),
+            lint::template(config)?.into_bytes(),
         );
     }
     if let Some(path) = &config.hooks.reminder {
@@ -86,20 +96,23 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     }
     Ok(())
 }
-fn add_runtime(files: &mut Files) -> Result<()> {
-    files.insert(".worker/.gitignore".into(), b"runtime/\n".to_vec());
+fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     files.insert(
-        ".worker/bin/agentrig".into(),
+        config.paths.service_path(".gitignore"),
+        b"runtime/\n".to_vec(),
+    );
+    files.insert(
+        config.paths.service_path("bin/agentrig"),
         fs::read(std::env::current_exe()?)?,
     );
-    files.insert("justfile".into(), template::justfile().into_bytes());
+    files.insert("justfile".into(), template::justfile(config).into_bytes());
     files.insert(
         ".codex/config.toml".into(),
         adapters::CODEX_CONFIG.as_bytes().to_vec(),
     );
-    files.insert(".codex/hooks.json".into(), adapters::registration()?);
-    for (path, contents) in adapters::git_hooks() {
-        files.insert(path.into(), contents.to_vec());
+    files.insert(".codex/hooks.json".into(), adapters::registration(config)?);
+    for (path, contents) in adapters::git_hooks(config) {
+        files.insert(path, contents);
     }
     Ok(())
 }

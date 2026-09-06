@@ -24,7 +24,10 @@ pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Re
     table(server, "mcp_servers.worker_delegation")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/agentrig\" delegate mcp --root \"$root\"");
+    args.push(super::super::adapters::mcp_command(
+        &config.paths.service,
+        "delegate",
+    ));
     for (key, desired) in [
         ("enabled", value(true)),
         ("command", value("sh")),

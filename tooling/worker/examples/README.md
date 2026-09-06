@@ -32,12 +32,12 @@ git switch -c change/bootstrap
 "$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies --base release --prefix change/
 ```
 
-Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.worker/lint.yaml`.
+Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.agentrig/lint.yaml`.
 
 ## Exercise either installation
 
 ```sh
-.worker/bin/agentrig --version
+.agentrig/bin/agentrig --version
 just setup
 just config-check
 just resume
@@ -45,7 +45,7 @@ just run test
 just check
 git add .
 just check --staged
-printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .worker/bin/agentrig hook
+printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook
 git commit -m "Attach portable scaffold"
 just feature-merge
 just feature-start next
@@ -87,7 +87,7 @@ Add the review capability to the consumer's agentrig.yaml:
 ```yaml
 capabilities:
   review:
-    config: .worker/review/config/review.yaml
+    config: .agentrig/review/config/review.yaml
 ```
 
 Run `just setup`. It installs the stock review resources and review-project skill,

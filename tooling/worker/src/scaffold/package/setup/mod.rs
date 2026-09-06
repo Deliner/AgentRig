@@ -18,7 +18,8 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     );
     crate::scaffold::upgrade::recovery::guard(root)?;
     let files = super::bundle(&config)?;
-    let mut installation = reconcile::Installation::prepare(root, files)?;
+    let mut installation =
+        reconcile::Installation::prepare(root, files, &config.paths.service_path("manifest.json"))?;
     preview::validate(root, &config, &installation.files)?;
     registration::configure(root, &config, &mut installation.files)?;
     let fresh_git = !root.join(".git").exists();
@@ -32,7 +33,14 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
         fs::create_dir_all(review.runner.runtime_root)?;
         fs::create_dir_all(review.runner.report_root)?;
     }
-    crate::util::git(root, &["config", "core.hooksPath", ".worker/hooks"])?;
+    crate::util::git(
+        root,
+        &[
+            "config",
+            "core.hooksPath",
+            &config.paths.service_path("hooks"),
+        ],
+    )?;
     println!("Setup installed the configured worker environment. Authentication remains separate.");
     super::doctor(&config::Context::load(root)?)
 }

@@ -3,13 +3,14 @@ use anyhow::{Context as _, Result};
 use std::{collections::BTreeMap, fs, path::Path};
 
 pub const LEGACY_FILE: &str = "worker.toml";
+pub const MANIFEST: &str = ".worker/manifest.json";
 
 // Legacy parsing belongs to explicit conversion and historical/recovery metadata,
 // never to the runtime configuration loader.
 pub fn configuration(root: &Path) -> Result<Config> {
-    Ok(toml::from_str(&fs::read_to_string(
-        root.join(LEGACY_FILE),
-    )?)?)
+    let mut config: Config = toml::from_str(&fs::read_to_string(root.join(LEGACY_FILE))?)?;
+    config.paths.service = ".worker".into();
+    Ok(config)
 }
 
 pub fn recovery_runtime(root: &Path) -> Result<String> {

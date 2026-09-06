@@ -1,5 +1,4 @@
 use super::{Config, Files};
-pub const CONFIG: &str = ".worker/review/config/review.yaml";
 const RESOURCES: &[(&str, &[u8])] = &[
     (
         "config/contracts/code.json",
@@ -38,10 +37,13 @@ pub fn bundle(files: &mut Files, config: &Config) {
     let enabled = config.capabilities.review.is_some();
     if enabled {
         for (path, bytes) in RESOURCES {
-            files.insert(format!(".worker/review/{path}"), bytes.to_vec());
+            files.insert(
+                config.paths.service_path(&format!("review/{path}")),
+                bytes.to_vec(),
+            );
         }
         files.insert(
-            ".worker/review/.gitignore".into(),
+            config.paths.service_path("review/.gitignore"),
             b"runtime/\nreports/\n".to_vec(),
         );
     }

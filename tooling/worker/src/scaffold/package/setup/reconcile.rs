@@ -9,28 +9,22 @@ pub struct Installation {
     before: BTreeMap<String, State>,
 }
 impl Installation {
-    pub fn prepare(root: &Path, mut files: Files) -> Result<Self> {
-        let old = read(root, manifest::PATH)?
+    pub fn prepare(root: &Path, mut files: Files, receipt_path: &str) -> Result<Self> {
+        let old = read(root, receipt_path)?
             .map(|bytes| serde_json::from_slice::<Manifest>(&bytes))
             .transpose()?;
-        let mut receipt: Manifest = serde_json::from_slice(&files[manifest::PATH])?;
+        let mut receipt: Manifest = serde_json::from_slice(&files[receipt_path])?;
         if let Some(old) = &old {
-            ensure!(
-                old.manifest_version == 1 && old.config_schema == 1,
-                "unsupported installation manifest schema"
-            );
-            ensure!(
-                old.package_version == receipt.package_version,
-                "setup manifest version differs; use upgrade"
-            );
-            for (path, entry) in &old.files {
-                receipt.files.entry(path.clone()).or_insert(entry.clone());
-            }
-            receipt.local = old.local.clone();
+            retain_receipt(&mut receipt, old)?;
         }
         let mut before = BTreeMap::new();
         for (path, desired) in &mut files {
             let state = storage::state(root, path)?;
+            let is_receipt = path == receipt_path;
+            if is_receipt {
+                before.insert(path.clone(), state);
+                continue;
+            }
             if let Some(hash) = &state.sha256 {
                 let actual = fs::read(root.join(&state.resolved))?;
                 ensure!(
@@ -46,7 +40,7 @@ impl Installation {
             }
             before.insert(path.clone(), state);
         }
-        files.insert(manifest::PATH.into(), serde_json::to_vec_pretty(&receipt)?);
+        files.insert(receipt_path.into(), serde_json::to_vec_pretty(&receipt)?);
         Ok(Self { files, before })
     }
     pub fn apply(&self, root: &Path) -> Result<()> {
@@ -69,6 +63,21 @@ impl Installation {
         Ok(())
     }
 }
+fn retain_receipt(receipt: &mut Manifest, old: &Manifest) -> Result<()> {
+    ensure!(
+        old.manifest_version == 1 && old.config_schema == 1,
+        "unsupported installation manifest schema"
+    );
+    ensure!(
+        old.package_version == receipt.package_version,
+        "setup manifest version differs; use upgrade"
+    );
+    for (path, entry) in &old.files {
+        receipt.files.entry(path.clone()).or_insert(entry.clone());
+    }
+    receipt.local = old.local.clone();
+    Ok(())
+}
 fn preserve(
     path: &str,
     desired: &mut Vec<u8>,
@@ -76,10 +85,6 @@ fn preserve(
     receipts: (&Manifest, Option<&Manifest>),
 ) -> Result<()> {
     let (actual, mode) = actual;
-    let receipt = path == manifest::PATH;
-    if receipt {
-        return Ok(());
-    }
     let ownership = &receipts.0.files[path].ownership;
     let settings = matches!(ownership, Ownership::Configuration | Ownership::Memory);
     if settings {

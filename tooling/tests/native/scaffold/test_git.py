@@ -40,7 +40,7 @@ def installed(worker: Path, tmp_path: Path) -> Path:
                 "id": "probe",
                 "kind": "command",
                 "command": "probe",
-                "skill": ".worker/skills/repair/SKILL.md",
+                "skill": ".agentrig/skills/repair/SKILL.md",
             }
         ],
     )

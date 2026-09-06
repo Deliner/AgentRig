@@ -99,6 +99,7 @@ def converted_lint(path: Path, plan: dict[str, Any], name: str) -> Any:
 def migrated_config(source: bytes) -> dict[str, Any]:
     config = tomllib.loads(source.decode())
     config["runtime"] = "0.3.0"
+    config["paths"]["service"] = ".worker"
     config["paths"]["lint"] = str(Path(config["paths"]["lint"]).with_suffix(".yaml"))
     return config
 

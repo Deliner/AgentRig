@@ -68,7 +68,7 @@ def test_code_mcp_returns_checked_patch_without_changing_checkout(
     assert result["code"]["verified"] is True
     assert result["code"]["checks"]["value"]["exit_code"] == 0
     assert (tmp_path / "src/value.txt").read_text() == "before\n"
-    directory = tmp_path / ".worker/runtime/jobs" / identifier
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
     applied = subprocess.run(
         ["git", "apply", "--check", str(directory / "change.patch")],
         cwd=tmp_path,
@@ -101,7 +101,7 @@ def test_failed_code_check_retains_patch_and_protects_checkout(
     assert result["outcome"] == "ERROR", result
     assert result["code"]["verified"] is False
     assert result["code"]["checks"]["value"]["exit_code"] == expected
-    assert (tmp_path / ".worker/runtime/jobs" / identifier / "change.patch").is_file()
+    assert (tmp_path / ".agentrig/runtime/jobs" / identifier / "change.patch").is_file()
     assert (tmp_path / "src/value.txt").read_text() == "before\n"
 
 
@@ -138,4 +138,4 @@ def test_concurrent_code_runs_preserve_each_other(
     assert terminal(worker, tmp_path, second)["outcome"] == "PASS"
     assert (tmp_path / "src/value.txt").read_text() == "before\n"
     for identifier in (first, second):
-        assert not (tmp_path / ".worker/runtime/jobs" / identifier / "private").exists()
+        assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "private").exists()

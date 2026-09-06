@@ -57,7 +57,7 @@ class Consumer:
 
     @property
     def binary(self) -> Path:
-        return self.root / ".worker/bin/agentrig"
+        return self.root / ".agentrig/bin/agentrig"
 
     @property
     def source(self) -> Path:
@@ -129,7 +129,7 @@ class Consumer:
             assert result.returncode == 0, (command, result.stdout, result.stderr)
 
     def language_selection(self) -> None:
-        config = self.root / ".worker/lint.yaml"
+        config = self.root / ".agentrig/lint.yaml"
         before = config.read_text()
         assert invoke(self.binary, self.root, "lint").returncode == 0
         (self.source / "tool.sh").write_text("if true; then echo example; fi\n")

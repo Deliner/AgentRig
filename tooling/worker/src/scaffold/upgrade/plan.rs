@@ -5,7 +5,7 @@ use super::{
 };
 use crate::scaffold::{
     config,
-    package::manifest::{self, Manifest, Ownership},
+    package::manifest::{Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
 use std::{
@@ -84,7 +84,7 @@ fn new_plan(root: &Path, exported: &Path, baseline: String) -> Result<Plan> {
     })
 }
 fn baseline(root: &Path, configuration: &config::Config) -> Result<(Manifest, String)> {
-    let installed = root.join(manifest::PATH).is_file();
+    let installed = root.join(super::migration::MANIFEST).is_file();
     if installed {
         return Ok((release::manifest(root)?, "manifest".into()));
     }
@@ -114,10 +114,10 @@ impl Draft<'_> {
             let change = self.change(&path)?;
             self.plan.files.insert(path, change);
         }
-        let receipt = storage::state(self.root, manifest::PATH)?;
+        let receipt = storage::state(self.root, super::migration::MANIFEST)?;
         self.save_before(&receipt)?;
         self.plan.files.insert(
-            manifest::PATH.into(),
+            super::migration::MANIFEST.into(),
             Change {
                 before: receipt.clone(),
                 after: receipt,

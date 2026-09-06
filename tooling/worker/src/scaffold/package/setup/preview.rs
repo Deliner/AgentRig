@@ -99,7 +99,11 @@ fn review_config(root: &Path, preview: &Path, path: &str) -> Result<()> {
                 .unwrap()
                 .join(&project.review.contract),
         )?;
-        tool.project_config = preview.join(format!(".worker/setup-{index}.yaml"));
+        tool.project_config = preview
+            .join(path)
+            .parent()
+            .unwrap()
+            .join(format!("setup-{index}.yaml"));
         fs::write(
             &tool.project_config,
             review_runner::config::yaml::encode(&project)?,

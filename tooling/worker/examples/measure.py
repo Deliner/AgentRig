@@ -59,7 +59,7 @@ def main() -> None:
                 capture_output=True,
                 check=True,
             )
-            binary = root / ".worker/bin/agentrig"
+            binary = root / ".agentrig/bin/agentrig"
             events = operations()
             for label, command, event in events:
                 first, median, p95 = measure(binary, root, (command, event), args.samples)

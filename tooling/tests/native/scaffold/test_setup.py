@@ -8,10 +8,10 @@ import pytest
 from support import file_contents, invoke, update_config
 
 
-def declaration(worker: Path, root: Path) -> Path:
+def declaration(worker: Path, root: Path, service: str = ".agentrig") -> Path:
     seed = root / "seed"
     seed.mkdir()
-    result = invoke(worker, seed, "init", "--review", "true")
+    result = invoke(worker, seed, "init", "--review", "true", "--service", service)
     assert result.returncode == 0, result.stderr
     consumer = root / "consumer"
     consumer.mkdir()
@@ -23,8 +23,11 @@ def declaration(worker: Path, root: Path) -> Path:
     return consumer
 
 
-def test_setup_prepares_and_repeats_without_losing_settings(worker: Path, tmp_path: Path) -> None:
-    root = declaration(worker, tmp_path)
+@pytest.mark.parametrize("service", [".agentrig", "rig space's $cash"])
+def test_setup_prepares_and_repeats_without_losing_settings(
+    worker: Path, tmp_path: Path, service: str
+) -> None:
+    root = declaration(worker, tmp_path, service)
     (root / ".codex").mkdir()
     settings = "# Keep this comment\nmodel = 'consumer-model'\n[features]\nhooks = true # enabled\n"
     (root / ".codex/config.toml").write_text(settings)
@@ -59,7 +62,7 @@ def test_setup_prepares_and_repeats_without_losing_settings(worker: Path, tmp_pa
 def test_setup_preserves_changed_review_and_memory(worker: Path, tmp_path: Path) -> None:
     root = declaration(worker, tmp_path)
     assert invoke(worker, root, "setup").returncode == 0
-    review = root / ".worker/review/config/review.yaml"
+    review = root / ".agentrig/review/config/review.yaml"
     review.write_text(review.read_text().replace("model: gpt-5.6-luna", "model: consumer-model"))
     state = root / "memory/State.md"
     state.write_text(state.read_text().replace("Not recorded.", "Consumer-owned state."))
@@ -72,7 +75,7 @@ def test_setup_preserves_changed_review_and_memory(worker: Path, tmp_path: Path)
 def test_setup_rejects_conflicting_assets_without_writing(worker: Path, tmp_path: Path) -> None:
     root = declaration(worker, tmp_path)
     assert invoke(worker, root, "setup").returncode == 0
-    skill = root / ".worker/skills/repair/SKILL.md"
+    skill = root / ".agentrig/skills/repair/SKILL.md"
     skill.write_text(skill.read_text() + "\nConsumer instruction.\n")
     before = file_contents(root)
     result = invoke(worker, root, "setup")
@@ -126,8 +129,8 @@ def test_setup_reports_required_scope_backend_failure(
     assert "process scope capability" in result.stdout
 
 
-def delegated_project(worker: Path, root: Path) -> Path:
-    consumer = declaration(worker, root)
+def delegated_project(worker: Path, root: Path, service: str = ".agentrig") -> Path:
+    consumer = declaration(worker, root, service)
     config = consumer / "agentrig.yaml"
     update_config(config, capabilities={"delegation": {"config": "agents/profiles.yaml"}})
     agents = consumer / "agents"
@@ -142,10 +145,11 @@ def delegated_project(worker: Path, root: Path) -> Path:
     return consumer
 
 
+@pytest.mark.parametrize("service", [".agentrig", "rig space's $cash"])
 def test_setup_registers_configured_delegation_and_preserves_resources(
-    worker: Path, tmp_path: Path
+    worker: Path, tmp_path: Path, service: str
 ) -> None:
-    root = delegated_project(worker, tmp_path)
+    root = delegated_project(worker, tmp_path, service)
     result = invoke(worker, root, "setup")
     assert result.returncode == 0, result.stdout + result.stderr
     settings = tomllib.loads((root / ".codex/config.toml").read_text())
@@ -173,7 +177,7 @@ def test_setup_registers_configured_delegation_and_preserves_resources(
     assert connected.returncode == 0, connected.stderr
     tools = json.loads(connected.stdout.splitlines()[1])["result"]["tools"]
     assert tools[0]["inputSchema"]["properties"]["profile"]["enum"] == ["reader"]
-    installed = root / ".worker/bin/agentrig"
+    installed = root / service / "bin/agentrig"
     assert invoke(installed, root, "delegate", "config-check").returncode == 0
     before = file_contents(root)
     result = invoke(worker, root, "setup")
@@ -203,10 +207,10 @@ def test_setup_preserves_conflicting_delegate_registration(worker: Path, tmp_pat
 
 def test_setup_installs_selected_delegation_skill(worker: Path, tmp_path: Path) -> None:
     root = delegated_project(worker, tmp_path)
-    assert not (tmp_path / "seed/.worker/skills/delegate-task").exists()
+    assert not (tmp_path / "seed/.agentrig/skills/delegate-task").exists()
     result = invoke(worker, root, "setup")
     assert result.returncode == 0, result.stdout + result.stderr
-    path = ".worker/skills/delegate-task/SKILL.md"
+    path = ".agentrig/skills/delegate-task/SKILL.md"
     assert (root / path).is_file()
-    receipt = json.loads((root / ".worker/manifest.json").read_text())
+    receipt = json.loads((root / ".agentrig/manifest.json").read_text())
     assert receipt["files"][path]["ownership"] == "editable"

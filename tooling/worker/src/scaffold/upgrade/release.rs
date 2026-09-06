@@ -34,6 +34,10 @@ pub fn export(binary: &Path, config: &Config) -> Result<tempfile::TempDir> {
     } else {
         command.arg("init");
     }
+    let target = version(binary)? == TO;
+    if target {
+        command.args(["--service", &config.paths.service]);
+    }
     let output = command
         .arg("--root")
         .arg(directory.path())
@@ -56,7 +60,7 @@ pub fn export(binary: &Path, config: &Config) -> Result<tempfile::TempDir> {
     Ok(directory)
 }
 pub fn manifest(root: &Path) -> Result<Manifest> {
-    let path = root.join(manifest::PATH);
+    let path = root.join(super::migration::MANIFEST);
     let present = path.is_file();
     if present {
         let result: Manifest = serde_json::from_slice(&fs::read(path)?)?;
@@ -103,6 +107,10 @@ pub fn migrated(source: &str) -> Result<Vec<u8>> {
     let target = lint_path(lint);
     config["runtime"] = toml::Value::String(TO.into());
     config["paths"]["lint"] = toml::Value::String(target);
+    config["paths"]
+        .as_table_mut()
+        .context("paths table required")?
+        .insert("service".into(), toml::Value::String(".worker".into()));
     for capability in ["review", "delegation"] {
         let reference = config
             .get_mut("capabilities")

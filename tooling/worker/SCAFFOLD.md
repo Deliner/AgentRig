@@ -4,13 +4,22 @@ The portable entry point is `agentrig.yaml` in the selected project root. Initia
 
 A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `agentrig` and `agentrig-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
+`paths.service` selects the service directory and defaults to `.agentrig`.
+For example, `agentrig init --root CONSUMER --service 'team rig'` places the
+binary, Git hooks and installation receipt there. Generated defaults also place
+skills, lint settings, reminders and runtime data under that directory; their
+individual paths remain configurable. Adapters quote the selected path, including
+spaces and shell metacharacters. Newlines and Just interpolation syntax (`{{`)
+are rejected. Changing this field in an existing installation does not relocate
+its files: setup reports conflicting adapters before writing.
+
 Project capabilities are selected in `agentrig.yaml`:
 
 ```yaml
 capabilities:
   lint: true
   review:
-    config: .worker/review/config/review.yaml
+    config: .agentrig/review/config/review.yaml
   delegation:
     config: agents/profiles.yaml
 ```
@@ -63,7 +72,7 @@ The generated MCP entry sets the documented
 Its timeout exceeds the review deadline by 60 seconds; the launcher resolves the
 consumer Git root, so the command does not contain the worker repository path.
 
-New installations write `.worker/manifest.json` with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
+New installations write `<paths.service>/manifest.json` (default `.agentrig/manifest.json`) with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
 ## Commands
 
@@ -72,7 +81,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | Command | Result |
 | --- | --- |
 | `setup` | Install or reconcile the existing declaration, register adapters/MCP and diagnose dependencies; preserve settings and report conflicts. |
-| `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
+| `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, service directory (`--service`), base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `doctor` | Diagnose the installed runtime, configured executables, sandbox and hooks. |
 | `commands` / `run NAME -- ARGS` | List or execute the shared catalog. Arguments remain argv elements. |
@@ -135,8 +144,10 @@ The command writes `plan.json`, `diff.txt` and checksummed before/after blobs
 under the configured runtime directory's `upgrade/plan-*` directory. It shows
 local conflicts and the required config-check, doctor and project check steps.
 Project settings move from worker.toml to agentrig.yaml, with an updated runtime
-pin and YAML resource references. Lint, review/project and delegate configurations
-are explicitly converted. Values and memory are preserved; original formatting
+pin and YAML resource references. The transition retains the original service
+placement through explicit `paths.service: .worker`, so process data and recovery
+journals stay at their existing locations. Lint, review/project and delegate
+configurations are explicitly converted. Values and memory are preserved; original formatting
 and comments remain in reviewed preimages for rollback, rather than in the YAML
 output. An existing YAML destination is a conflict. Review project configuration
 files must currently reside inside the installation for this migration.
@@ -173,5 +184,5 @@ and SessionStart expose technical recovery guidance without loading legacy task
 settings. Historical memory checks still read the committed legacy memory location
 so a format change cannot remove the prior decisions baseline.
 
-P004 remains in development: configurable AgentRig service-directory paths,
-composed environments and complete delegate migration acceptance are outstanding.
+P004 remains in development: composed environments, the interactive master and
+complete delegate migration acceptance are outstanding.

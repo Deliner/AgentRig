@@ -95,7 +95,7 @@ def test_async_artifact_result_survives_reconnect_and_cleanup(
     assert result["report"]["status"] == "PASS", result
     assert result["report"]["cleanup_errors"] == []
     assert call(worker, tmp_path, "result", identifier)["report"] == result["report"]
-    directory = tmp_path / ".worker/runtime/jobs" / identifier
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
     assert (directory / "artifacts/asset.txt").read_text() == "artifact"
     assert not (directory / "input").exists()
     assert not (directory / "private").exists()
@@ -123,7 +123,7 @@ def test_cancel_recovers_report_and_cleans_private_files(
     assert result["outcome"] == "CANCELLED", result
     assert result["report"]["status"] == "ERROR", result
     assert result["report"]["cleanup_errors"] == []
-    assert not (tmp_path / ".worker/runtime/jobs" / identifier / "private").exists()
+    assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "private").exists()
 
 
 def test_profile_limits_reach_kernel_cgroup(
@@ -179,7 +179,7 @@ def test_cleanup_failure_cannot_be_overall_pass_and_can_be_retried(
         config.read_text().replace("    programs:", '    programs:\n      chmod: "/usr/bin/chmod"')
     )
     identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
-    directory = tmp_path / ".worker/runtime/jobs" / identifier
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
     try:
         result = terminal(worker, tmp_path, identifier)
         assert result["outcome"] == "ERROR", result
@@ -209,11 +209,11 @@ def test_slow_launcher_survives_start_disconnect(
     identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = call(worker, tmp_path, "result", identifier)
     assert result["outcome"] == "RUNNING", result
-    assert (tmp_path / ".worker/runtime/jobs" / identifier / "input").exists()
+    assert (tmp_path / ".agentrig/runtime/jobs" / identifier / "input").exists()
     if cancel:
         result = call(worker, tmp_path, "cancel", identifier)
         assert result["job"]["state"] == "stopping", result
         assert terminal(worker, tmp_path, identifier)["outcome"] == "CANCELLED"
-        assert not (tmp_path / ".worker/runtime/jobs" / identifier / "artifacts").exists()
+        assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "artifacts").exists()
     else:
         assert terminal(worker, tmp_path, identifier)["outcome"] == "PASS"

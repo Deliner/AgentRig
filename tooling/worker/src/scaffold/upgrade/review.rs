@@ -2,7 +2,6 @@ use super::{
     model::{Action, Change, Plan, Resolution, State},
     release, storage,
 };
-use crate::scaffold::package::manifest;
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeSet, fs, path::Path};
 
@@ -93,7 +92,7 @@ fn receipt(plan: &mut Plan, directory: &Path) -> Result<()> {
     let bytes = serde_json::to_vec_pretty(&plan.manifest)?;
     let change = plan
         .files
-        .get_mut(manifest::PATH)
+        .get_mut(super::migration::MANIFEST)
         .context("plan must include installation receipt")?;
     change.after.sha256 = Some(storage::blob(directory, &bytes)?);
     change.after.mode = Some(0o644);
