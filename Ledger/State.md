@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: ab73dfd
+Revision: 4d63aca
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Background scopes, task/shared lifetimes, owner cleanup and nested ownership are committed. Current VAC adds configured foreground systemd scopes using the same runner, with preserved stdin/output and scope cancellation. Setup/doctor treats an unavailable selected foreground backend as failure. Process-group remains the explicit default with limited containment.
+Configured foreground scopes are committed. Current VAC enables them in this repository and verifies nested scopes through the same owner cleanup used after merge. Single-scope stop retains its documented cgroup boundary; owner cleanup handles separately registered nested scopes. Delegation and final independent consumer acceptance remain outstanding.
 
 ## Verification
 
-Nested ownership passed the full gate (251 native tests and 22 review tests). Current command/setup run passed 33 checks and exposed an ineffective unavailable-bus test setup; replacing that fault injection with a failing launcher passed the focused setup check. Real systemd tests verify foreground stdin/streams and cancellation of a detached descendant. Current staged gate is pending.
+Foreground scope delivery passed the full gate (256 native tests and 22 review tests). The current nested-scope test passes while the repository itself runs commands in systemd scopes: parent/child identities differ, single-scope stop preserves the separate child, and owner cleanup proves it empty. Current staged gate is pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit foreground scopes through the staged gate. Verify nested-scope cancellation semantics and process-stage acceptance, then implement delegated read/artifact/code modes and independent consumer acceptance. Single-scope stop currently covers its cgroup; owner cleanup covers separately registered nested scopes. P003 remains active until all stages and final integration are verified.
+Commit repository process configuration and nested-scope acceptance through the staged gate. Implement delegated read/artifact modes using shared jobs and existing setup/review mechanisms, then isolated code mode and independent consumer acceptance. P003 remains active until all stages and final integration are verified.

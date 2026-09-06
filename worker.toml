@@ -2,6 +2,9 @@ version = 1
 runtime = "0.2.0"
 config_skill = ".agents/skills/repair/SKILL.md"
 
+[processes]
+foreground = "systemd"
+
 [paths]
 sources = ["tooling/**", "Project/**"]
 memory = "Ledger"

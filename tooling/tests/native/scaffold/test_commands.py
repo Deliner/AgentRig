@@ -252,6 +252,41 @@ def test_scope_launcher_exit_does_not_claim_payload_success(
     assert "failed before adoption" in row["error"]
 
 
+def test_owner_cleanup_covers_nested_scopes(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    monkeypatch.setenv("WORKER_OWNER", "nested-scope-owner")
+    nested = [str(worker), "job-start", "--root", str(tmp_path), "wait"]
+    config = CONFIG + '\n[processes]\nforeground = "systemd"\n'
+    config += '[commands.wait]\nargv = ["sleep", "60"]\n[commands.nested]\nargv = '
+    project(tmp_path, config + json.dumps(nested))
+    result = invoke(worker, tmp_path, "run", "nested")
+    assert result.returncode == 0, result.stderr
+    identifier = json.loads(result.stdout)["run_id"]
+    try:
+        rows = json.loads(invoke(worker, tmp_path, "jobs").stdout)
+        records = {row["command"]: row for row in rows}
+        parent, child = records["nested"], records["wait"]
+        assert child["parent_run"] == parent["run_id"]
+        assert parent["owner"] == child["owner"] == "nested-scope-owner"
+        assert parent["scope"]["unit"] != child["scope"]["unit"]
+        stopped = invoke(worker, tmp_path, "job-stop", parent["run_id"])
+        assert stopped.returncode == 0, stopped.stderr
+        assert (
+            json.loads(invoke(worker, tmp_path, "job-status", identifier).stdout)["state"]
+            == "running"
+        )
+        cleanup = invoke(worker, tmp_path, "job-cleanup")
+        assert cleanup.returncode == 0, cleanup.stderr
+        assert identifier in json.loads(cleanup.stdout)["stopped"]
+        status = json.loads(invoke(worker, tmp_path, "job-status", identifier).stdout)
+        assert status["state"] == "cancelled"
+        assert status["scope_observation"]["populated"] is False
+    finally:
+        assert invoke(worker, tmp_path, "job-stop", identifier).returncode == 0
+
+
 def test_foreground_scope_cancels_detached_descendant(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
