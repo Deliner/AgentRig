@@ -34,6 +34,16 @@ jobs:
           python3 -m venv "$RUNNER_TEMP/uv"
           "$RUNNER_TEMP/uv/bin/pip" install uv==0.10.10
           echo "$RUNNER_TEMP/uv/bin" >> "$GITHUB_PATH"
+      - name: Install the native Codex package used by setup tests
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/codex"
+          curl --fail --location --output "$RUNNER_TEMP/codex.tar.gz" https://github.com/openai/codex/releases/download/rust-v0.153.4/codex-package-x86_64-unknown-linux-musl.tar.gz
+          echo "a822187e1a2420c61c5926721bfbd878701ed95547c9bb0d4de4498a16ba1821  $RUNNER_TEMP/codex.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/codex.tar.gz" -C "$RUNNER_TEMP/codex"
+          "$RUNNER_TEMP/codex/bin/codex" --version
+          test -x "$RUNNER_TEMP/codex/bin/codex-code-mode-host"
+          echo "$RUNNER_TEMP/codex/bin" >> "$GITHUB_PATH"
       - name: Bootstrap the pinned development runtime
         run: just bootstrap
       - name: Verify the complete candidate gate
