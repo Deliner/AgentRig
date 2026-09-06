@@ -253,3 +253,60 @@ def test_disabled_lint_migration_does_not_require_removed_policy(
     applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
     assert applied.returncode == 0, applied.stdout + applied.stderr
     assert not (tmp_path / ".worker/lint.yaml").exists()
+
+
+def external_review_materials(root: Path) -> tuple[Path, bytes]:
+    runner = root / ".worker/review/config/review.toml"
+    settings = tomllib.loads(runner.read_text())
+    reference = settings["tools"]["review_code"]["project_config"]
+    project = runner.parent / reference
+    source = project.read_text()
+    contract = tomllib.loads(source)["review"]["contract"]
+    external = root.parent / f"{root.name}-materials"
+    external.mkdir()
+    (external / "contract.json").write_bytes((project.parent / contract).read_bytes())
+    (external / "project.toml").write_text(
+        source.replace(f'contract = "{contract}"', 'contract = "contract.json"')
+    )
+    runner.write_text(
+        runner.read_text().replace(
+            f'project_config = "{reference}"',
+            f"project_config = {json.dumps(str(external / 'project.toml'))}",
+        )
+    )
+    return external, runner.read_bytes()
+
+
+def test_external_review_materials_are_imported_without_modifying_source(
+    worker: Path, predecessor: Path, tmp_path: Path
+) -> None:
+    assert invoke(predecessor, tmp_path, "init", "--review", "true").returncode == 0
+    assert invoke(predecessor, tmp_path, "setup").returncode == 0
+    external, original = external_review_materials(tmp_path)
+    (external / "contract.json").chmod(0o755)
+    source = snapshot(external, ["project.toml", "contract.json"])
+    assert invoke(predecessor, tmp_path, "review", "config-check").returncode == 0
+    result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    plan = json.loads(path.read_text())
+    imported = []
+    for name in plan["files"]:
+        selected = name.startswith(".worker/inputs/")
+        if selected:
+            imported.append(name)
+    assert len(imported) == 2
+    assert all(name in plan["manifest"]["files"] for name in imported)
+    applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    assert snapshot(external, list(source)) == source
+    for name in imported:
+        executable = bool((tmp_path / name).stat().st_mode & 0o111)
+        assert executable == plan["manifest"]["files"][name]["executable"]
+    shutil.rmtree(external)
+    checked = invoke(worker, tmp_path, "review", "config-check")
+    assert checked.returncode == 0, checked.stdout + checked.stderr
+    rolled = invoke(worker, tmp_path, "upgrade", "rollback")
+    assert rolled.returncode == 0, rolled.stdout + rolled.stderr
+    assert (tmp_path / ".worker/review/config/review.toml").read_bytes() == original
+    assert all(not (tmp_path / name).exists() for name in imported)

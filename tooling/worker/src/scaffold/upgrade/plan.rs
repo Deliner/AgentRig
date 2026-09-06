@@ -8,12 +8,7 @@ use crate::scaffold::{
     package::manifest::{Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    fs,
-    path::Path,
-    process::Command,
-};
+use std::{collections::BTreeSet, fs, path::Path, process::Command};
 
 struct Draft<'a> {
     root: &'a Path,
@@ -21,7 +16,7 @@ struct Draft<'a> {
     directory: &'a Path,
     exported: &'a Path,
     old: Manifest,
-    resources: BTreeMap<String, Vec<u8>>,
+    resources: migration::Resources,
     plan: Plan,
 }
 
@@ -37,17 +32,20 @@ pub fn create(root: &Path, binary: &Path) -> Result<i32> {
     let pending = tempfile::Builder::new()
         .prefix("plan-")
         .tempdir_in(directory)?;
-    let plan = new_plan(root, exported.path(), baseline)?;
+    let mut plan = new_plan(root, exported.path(), baseline)?;
+    let resources = migration::resources(root, &configuration)?;
+    resources.register(&mut plan.manifest);
     let mut draft = Draft {
         root,
         configuration: &configuration,
         directory: pending.path(),
         exported: exported.path(),
         old,
-        resources: migration::resources(root, &configuration)?,
+        resources,
         plan,
     };
     draft.collect()?;
+    draft.resources.imported.verify()?;
     report(draft.directory, &draft.plan)?;
     storage::json(&pending.path().join("plan.json"), &draft.plan)?;
     let directory = pending.keep();
@@ -108,8 +106,13 @@ impl Draft<'_> {
             .collect();
         paths.insert(self.configuration.paths.lint.clone());
         paths.insert(release::lint_path(&self.configuration.paths.lint));
-        paths.extend(self.resources.keys().cloned());
-        paths.extend(self.resources.keys().map(|path| release::lint_path(path)));
+        paths.extend(self.resources.converted.keys().cloned());
+        paths.extend(
+            self.resources
+                .converted
+                .keys()
+                .map(|path| release::lint_path(path)),
+        );
         paths.extend(self.configuration.hooks.reminder.iter().cloned());
         for path in paths {
             let change = self.change(&path)?;
@@ -152,7 +155,7 @@ impl Draft<'_> {
             Some(bytes) => bytes,
             None if path == lint
                 || path == migration::LEGACY_FILE
-                || self.resources.contains_key(path) =>
+                || self.resources.converted.contains_key(path) =>
             {
                 change.after.sha256 = None;
                 change.after.mode = None;
@@ -163,28 +166,43 @@ impl Draft<'_> {
             None => return Ok(false),
         };
         change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
-        change.after.mode = Some(change.before.mode.unwrap_or(0o644));
+        let imported_mode = self
+            .resources
+            .imported
+            .files
+            .get(path)
+            .map(|file| if file.executable { 0o755 } else { 0o644 });
+        change.after.mode = imported_mode.or(change.before.mode).or(Some(0o644));
         let collision = path != external::CODEX
             && path != lint
-            && !self.resources.contains_key(path)
+            && !self.resources.converted.contains_key(path)
             && change.before.sha256.is_some();
         change.action = if collision {
             Action::Conflict
         } else {
             Action::Replace
         };
+        change.reason = self.migration_reason(path).into();
+        Ok(true)
+    }
+    fn migration_reason(&self, path: &str) -> &str {
+        let imported = self.resources.imported.files.contains_key(path);
         let project = path == config::FILE;
         let codex = path == external::CODEX;
-        change.reason = if codex {
+        if imported {
+            "import selected external review material; preserve its source outside the installation"
+        } else if codex {
             "migrate managed executable references; preserve other Codex settings and comments"
         } else if project {
             "convert project settings and runtime pin to YAML; original formatting/comments retained in reviewed preimage"
         } else {
             "convert configured resource to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
-        }.into();
-        Ok(true)
+        }
     }
     fn migration_bytes(&self, path: &str) -> Result<Option<Vec<u8>>> {
+        if let Some(file) = self.resources.imported.files.get(path) {
+            return Ok(Some(file.bytes.clone()));
+        }
         let codex = path == external::CODEX;
         if codex {
             return external::codex(self.root);
@@ -203,6 +221,7 @@ impl Draft<'_> {
         }
         Ok(self
             .resources
+            .converted
             .iter()
             .find(|(source, _)| release::lint_path(source) == path)
             .map(|(_, bytes)| bytes.clone()))

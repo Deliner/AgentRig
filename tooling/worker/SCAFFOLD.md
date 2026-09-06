@@ -348,8 +348,14 @@ placement through explicit `paths.service: .worker`, so process data and recover
 journals stay at their existing locations. Lint, review/project and delegate
 configurations are explicitly converted. Values and memory are preserved; original formatting
 and comments remain in reviewed preimages for rollback, rather than in the YAML
-output. An existing YAML destination is a conflict. Review project configuration
-files must currently reside inside the installation for this migration.
+output. An existing YAML destination is a conflict. External review material
+configurations and their selected contracts are copied through the shared resource
+bundle into `.worker/inputs`; configuration-relative contract references are
+rewritten for the installed copy. External source files are never modified or
+deleted. The plan contains the imported payloads and includes their hashes and
+ownership in the installation manifest. Rollback removes those installed copies
+and restores the original references. Keep external sources available if the
+restored 0.2.0 installation must run after rollback.
 Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
 `"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
 plan fields intact. Kept local contents are recorded separately from stock
