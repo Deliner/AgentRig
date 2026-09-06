@@ -1,5 +1,6 @@
 import json
 import subprocess
+from itertools import product
 from pathlib import Path
 
 import pytest
@@ -57,11 +58,12 @@ def consumer(root: Path, language: str) -> tuple[Path, Path]:
     return source, target
 
 
-@pytest.mark.parametrize("language", ["rs", "py", "js", "ts"])
+@pytest.mark.parametrize("client", product(["rs", "py", "js", "ts"], [False, True]))
 @pytest.mark.parametrize("violation", ["valid", "missing", "forbidden", "private", "cycle"])
 def test_architecture_cli_contracts(
-    worker: Path, tmp_path: Path, language: str, violation: str
+    worker: Path, tmp_path: Path, client: tuple[str, bool], violation: str
 ) -> None:
+    language, standalone = client
     _, target = consumer(tmp_path, language)
     missing, forbidden, private, cycle = [
         violation == name for name in ["missing", "forbidden", "private", "cycle"]
@@ -81,7 +83,8 @@ def test_architecture_cli_contracts(
             "ts": 'import { run } from "../a/api.js";\n',
         }
         target.write_text(target.read_text() + back[language])
-    code, findings = lint(worker, tmp_path)
+    binary = worker.with_name("agentrig-lint") if standalone else worker
+    code, findings = lint(binary, tmp_path)
     valid = violation == "valid"
     assert code == (0 if valid else 1), findings
     if valid:

@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: diagnose confirmed unsupported loader bindings and Rust attribute expansion.
+Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: record P006 acceptance and integrate its retained feature branch.
 
 ## Workspace
 
 Branch: feature/directory-architecture
 
-Revision: 9eab1e1
+Revision: 7440f8c
 
-Resumed the clean P006 feature branch at 9eab1e1. Git and resume confirm the executable consumer VAC committed through its full gate: 400 Python and 101 Rust tests passed. State had still described that commit as pending. No unrelated work is present; the installed development pin remains unchanged.
+The extractor repair is committed at 7440f8c through its full gate: 410 Python and 101 Rust tests passed. Only the final acceptance matrix and completion memory are now changed. No unrelated work is present; the installed development pin remains unchanged.
 
 ## Progress
 
-P006 remains active. Temporary consumer probes confirmed false success for Python loader aliases, JavaScript require aliases and createRequire, and unqualified Rust macro attributes. The extractors now diagnose recognized loader aliases/values, Node module factory APIs and Rust expanding/conditional/unknown attributes. Known nonexpanding Rust metadata and existing static imports remain supported. Discovery and the architecture guide state these exact limits. P007/P008 remain pending.
+P006 acceptance is verified and recorded as complete in Plan; integration is still pending. The final matrix exercises each required architecture scenario through both binaries for all four languages. Directory contracts, graph checks, source resolution, CLI integration, exact capability limits and canonical repair guidance are implemented. P007/P008 remain pending and authorized in that order.
 
 ## Verification
 
-All 58 lint CLI tests and 51 architecture component tests pass. Ten new cases verify the observed loader/attribute gaps, inner conditional attributes and supported Rust metadata. Four compiling/interpreted behavior-preserving repairs still pass. Structural lint has no blocking findings; diff whitespace is clean. The current VAC's full staged gate remains pending. No complete P006 acceptance is claimed.
+All 78 lint CLI tests and 51 architecture component tests pass. The matrix covers five scenarios across four languages and two binaries, with additional configuration, scope, incomplete-analysis and behavior-preservation tests. Real repairs preserve program result 7 and unchanged permissions. The implementation gate passed with 410 Python and 101 Rust tests; completion-commit and integration gates are next, not yet observed.
 
 ## Blockers
 
-No external blocker. The contract permits explicit resolution limits and does not require a full compiler. The four confirmed false-success probes are now covered by passing negative tests. Final feature acceptance must use the documented supported forms and actual consumer evidence, preserving incomplete-analysis diagnostics.
+None observed. Documented compiler/runtime resolution limits remain explicit product capabilities, with recognized unsupported forms diagnosed. P006 acceptance evidence and the supported first-delivery forms are recorded in its detail.
 
 ## Next action
 
-Commit the extractor repair through the staged gate. Audit all P006 acceptance against current contracts, CLI tests, component tests and executable consumer repairs; correct any concrete remaining failures, record acceptance and integrate through feature-merge. Then deliver P007 and P008. Preserve the installed development pin while testing candidates.
+Commit P006 completion through the staged gate, then run just feature-merge and verify integration in Git. Start P007 on its own feature branch after integration and choose the simplest available real second VCS as authorized. Deliver P008 afterward. Preserve the installed development pin while testing candidates.
