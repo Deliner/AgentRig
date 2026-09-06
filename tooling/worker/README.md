@@ -59,7 +59,13 @@ Do not add exceptions merely to turn the gate green. Preserve a current requirem
 
 nonblank-lines supports UTF-8 text files of any language. It counts nonempty lines, including comments, and skips non-UTF-8 files. Default suffixes include Python, shell, Rust, JavaScript/TypeScript, Go, C/C++, C#, Java, and common documentation/configuration formats. Selectors can narrow or extend these suffixes without Rust changes; an empty extension list selects all files supported by the rule.
 
-directory-entries counts immediate child names, including child directories, from the selected file inventory. It is independent of language and rejects extension selectors. Git inventories include tracked and non-ignored untracked files; exported staged trees use their physical files. Deleted files and symlinks are excluded. Empty directories are not represented in Git and are not counted.
+directory-entries counts immediate child names, including child directories, from the selected file inventory. It is independent of language and rejects extension selectors. Git and Mercurial inventories include tracked and non-ignored untracked files; exported trees and plain directories use their physical files. Deleted files and symlinks are excluded. Empty directories are not represented in the file inventory and are not counted.
+
+Lint discovers `.git` or `.hg` at the selected root through the shared VCS owner;
+having both is an actionable ambiguity. Git uses its standard ignore rules;
+Mercurial uses `.hgignore` while user/repository configuration is disabled as for
+snapshot reads. Additional ignores configured through Mercurial hgrc are not
+loaded. VCS inventory failures are reported, not replaced with a filesystem walk.
 
 Current defaults retain warnings above 300 nonblank lines and errors above 500; directory warnings above 10 and errors above 15. Ledger/Decisions and Ledger/Invariants remain excluded from directory-size checks. All structural diagnostics include rule ID, path, measurement, limit, severity, repair skill, and a shell-quoted rerun command. Use just lint --json for structured output.
 

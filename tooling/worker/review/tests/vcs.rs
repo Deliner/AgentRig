@@ -194,3 +194,17 @@ fn repository_yaml_selects_backend_and_rejects_unknown_systems() {
     let invalid = yaml.replace("mercurial", "unknown");
     assert!(config::yaml::decode::<config::Repository>(&invalid).is_err());
 }
+
+#[test]
+fn inventory_discovery_does_not_guess_between_two_repositories() {
+    let root = tempfile::tempdir().unwrap();
+    assert!(Repository::discover(root.path()).unwrap().is_none());
+    fs::create_dir(root.path().join(".git")).unwrap();
+    assert!(Repository::discover(root.path()).unwrap().is_some());
+    fs::create_dir(root.path().join(".hg")).unwrap();
+    assert!(Repository::discover(root.path()).is_err());
+    fs::remove_dir(root.path().join(".git")).unwrap();
+    fs::write(root.path().join(".hg/requires"), "unknown-test-format\n").unwrap();
+    let repository = Repository::discover(root.path()).unwrap().unwrap();
+    assert!(repository.working_files().is_err());
+}

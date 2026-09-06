@@ -32,6 +32,19 @@ pub(super) fn resolve(root: &Path, reference: &str) -> Result<String> {
     Ok(String::from_utf8(bytes)?.trim().into())
 }
 
+pub(super) fn working_files(root: &Path) -> Result<Vec<u8>> {
+    run(
+        root,
+        &[
+            "ls-files",
+            "--cached",
+            "--others",
+            "--exclude-standard",
+            "-z",
+        ],
+    )
+}
+
 pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8>> {
     run(
         root,

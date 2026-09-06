@@ -45,6 +45,15 @@ pub struct Repository<'a> {
 }
 
 impl<'a> Repository<'a> {
+    pub fn discover(root: &'a Path) -> Result<Option<Self>> {
+        match (root.join(".git").exists(), root.join(".hg").exists()) {
+            (true, false) => Ok(Some(Self::new(root, Kind::Git))),
+            (false, true) => Ok(Some(Self::new(root, Kind::Mercurial))),
+            (false, false) => Ok(None),
+            (true, true) => anyhow::bail!("ambiguous VCS root: both .git and .hg exist"),
+        }
+    }
+
     pub fn new(root: &'a Path, kind: Kind) -> Self {
         Self { root, kind }
     }
@@ -88,14 +97,15 @@ impl<'a> Repository<'a> {
             Kind::Git => git::changes(self.root, base, candidate),
             Kind::Mercurial => mercurial::changes(self.root, base, candidate),
         }?;
-        let mut paths = bytes
-            .split(|byte| *byte == 0)
-            .filter(|name| !name.is_empty())
-            .map(|name| Ok(String::from_utf8(name.to_vec())?))
-            .collect::<Result<Vec<_>>>()?;
-        paths.sort();
-        paths.dedup();
-        Ok(paths)
+        paths(&bytes)
+    }
+
+    pub fn working_files(&self) -> Result<Vec<String>> {
+        let bytes = match self.kind {
+            Kind::Git => git::working_files(self.root),
+            Kind::Mercurial => mercurial::working_files(self.root),
+        }?;
+        paths(&bytes)
     }
 
     pub fn diff(&self, base: &str, candidate: &str) -> Result<String> {
@@ -120,6 +130,17 @@ impl<'a> Repository<'a> {
         }?;
         Ok(String::from_utf8(bytes)?)
     }
+}
+
+fn paths(bytes: &[u8]) -> Result<Vec<String>> {
+    let mut paths = bytes
+        .split(|byte| *byte == 0)
+        .filter(|name| !name.is_empty())
+        .map(|name| Ok(String::from_utf8(name.to_vec())?))
+        .collect::<Result<Vec<_>>>()?;
+    paths.sort();
+    paths.dedup();
+    Ok(paths)
 }
 
 pub use git::run as git_command;
