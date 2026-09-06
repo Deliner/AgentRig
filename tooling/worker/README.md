@@ -215,39 +215,38 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 
 ## Delegation profiles
 
-`just delegate config-check CONFIG` validates a separate TOML profile file.
+`just delegate config-check CONFIG` validates a separate strict YAML profile file.
+Duplicate keys, unknown fields, incorrect types and YAML composition constructs
+are errors. Legacy TOML requires explicit migration; no fallback is used.
 Profile validation, asynchronous CLI execution and the MCP adapter are implemented.
 Select `capabilities.delegation.config` in worker.toml and run setup to register
 the configured MCP service. A successful configuration check does not run
 an executor or prove model/service availability.
 
-```toml
-schema_version = 1
-
-[profiles.reader]
-frontend = "codex"
-model = "your-configured-model"
-reasoning_effort = "high"
-mode = "read"
-prompt = "prompts/reader.md"
-visible_paths = ["src/**", "docs/**"]
-timeout_seconds = 900
-memory_bytes = 1073741824
-max_processes = 64
-skills = ["skills/project-guide"]
-
-[profiles.reader.programs]
-python = "/usr/bin/python3"
-
-[profiles.reader.credentials]
-codex_auth_file_env = "PROJECT_CODEX_AUTH_FILE"
-
-[profiles.reader.mcp_servers.helper]
-program = "python"
-args = ["-m", "your_server"]
-
-[profiles.reader.mcp_servers.helper.env]
-SERVICE_TOKEN = "PROJECT_SERVICE_TOKEN"
+```yaml
+schema_version: 1
+profiles:
+  reader:
+    frontend: codex
+    model: your-configured-model
+    reasoning_effort: high
+    mode: read
+    prompt: prompts/reader.md
+    visible_paths: ["src/**", "docs/**"]
+    timeout_seconds: 900
+    memory_bytes: 1073741824
+    max_processes: 64
+    skills: ["skills/project-guide"]
+    programs:
+      python: /usr/bin/python3
+    credentials:
+      codex_auth_file_env: PROJECT_CODEX_AUTH_FILE
+    mcp_servers:
+      helper:
+        program: python
+        args: ["-m", "your_server"]
+        env:
+          SERVICE_TOKEN: PROJECT_SERVICE_TOKEN
 ```
 
 Frontend currently accepts `codex`; modes accept `read`, `artifacts` and `code`.

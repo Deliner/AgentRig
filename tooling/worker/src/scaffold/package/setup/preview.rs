@@ -31,7 +31,7 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
         put(
             preview.path(),
             &delegation.config,
-            toml::to_string(&resolved)?.as_bytes(),
+            review_runner::config::yaml::encode(&resolved)?.as_bytes(),
         )?;
     }
     config::Context::load(preview.path())?;

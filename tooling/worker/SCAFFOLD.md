@@ -14,7 +14,7 @@ lint = true
 config = ".worker/review/config/review.yaml"
 
 [capabilities.delegation]
-config = "agents/profiles.toml"
+config = "agents/profiles.yaml"
 ```
 
 Lint defaults to enabled for existing projects and uses `paths.lint`. Disabling

@@ -130,16 +130,16 @@ def delegated_project(worker: Path, root: Path) -> Path:
     consumer = declaration(worker, root)
     config = consumer / "worker.toml"
     config.write_text(
-        config.read_text() + '\n[capabilities.delegation]\nconfig="agents/profiles.toml"\n'
+        config.read_text() + '\n[capabilities.delegation]\nconfig="agents/profiles.yaml"\n'
     )
     agents = consumer / "agents"
     agents.mkdir()
     (agents / "prompt.md").write_text("Read the task and return its required JSON result.\n")
-    (agents / "profiles.toml").write_text(
-        'schema_version=1\n[profiles.reader]\nfrontend="codex"\nmodel="consumer-model"\n'
-        'reasoning_effort="high"\nmode="read"\nprompt="prompt.md"\n'
-        'visible_paths=["src/**"]\ntimeout_seconds=30\n'
-        '[profiles.reader.credentials.env]\nOPENAI_API_KEY="CONSUMER_KEY"\n'
+    (agents / "profiles.yaml").write_text(
+        "schema_version: 1\nprofiles:\n  reader:\n    frontend: codex\n    model: consumer-model\n"
+        "    reasoning_effort: high\n    mode: read\n    prompt: prompt.md\n"
+        "    visible_paths: ['src/**']\n    timeout_seconds: 30\n"
+        "    credentials:\n      env:\n        OPENAI_API_KEY: CONSUMER_KEY\n"
     )
     return consumer
 

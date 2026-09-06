@@ -13,7 +13,7 @@ from test_delegate_run import consumer
 @contextmanager
 def client(worker: Path, root: Path) -> Iterator[subprocess.Popen[str]]:
     process = subprocess.Popen(
-        [str(worker), "delegate", "--root", str(root), "mcp", "delegate.toml"],
+        [str(worker), "delegate", "--root", str(root), "mcp", "delegate.yaml"],
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

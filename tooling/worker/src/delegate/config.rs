@@ -4,7 +4,6 @@ use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fs,
     path::{Path, PathBuf},
 };
 
@@ -69,8 +68,7 @@ pub struct Credentials {
 }
 
 pub fn load(path: &Path) -> Result<Config> {
-    let source = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let mut config: Config = toml::from_str(&source).context("delegation configuration schema")?;
+    let mut config: Config = review_runner::config::yaml::read(path)?;
     ensure!(
         config.schema_version == 1,
         "unsupported delegation schema_version"

@@ -19,14 +19,12 @@ def code_consumer(worker: Path, root: Path, monkeypatch: pytest.MonkeyPatch, scr
     for args in commands:
         subprocess.run(["git", *args], cwd=root, check=True, capture_output=True)
     base = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True).strip()
-    config = root / "delegate.toml"
+    config = root / "delegate.yaml"
     config.write_text(
         config.read_text()
-        .replace('mode = "artifacts"', 'mode = "code"')
-        .replace("timeout_seconds = 2", "timeout_seconds = 60")
-        .replace(
-            "[profiles.fixture.programs]", '[profiles.fixture.programs]\npython3="/usr/bin/python3"'
-        )
+        .replace('mode: "artifacts"', 'mode: "code"')
+        .replace("timeout_seconds: 2", "timeout_seconds: 60")
+        .replace("    programs:", '    programs:\n      python3: "/usr/bin/python3"')
     )
     code_request(root, base)
     return base
@@ -98,7 +96,7 @@ def test_failed_code_check_retains_patch_and_protects_checkout(
     source, expected = check
     request["contract"]["changes"]["checks"]["value"] = ["python3", "-c", source]
     path.write_text(json.dumps(request))
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = terminal(worker, tmp_path, identifier)
     assert result["outcome"] == "ERROR", result
     assert result["code"]["verified"] is False
@@ -116,7 +114,7 @@ def test_code_request_requires_revision(
     del request["revision"]
     path.write_text(json.dumps(request))
     result = subprocess.run(
-        [worker, "delegate", "--root", tmp_path, "start", "delegate.toml", "request.json"],
+        [worker, "delegate", "--root", tmp_path, "start", "delegate.yaml", "request.json"],
         capture_output=True,
         text=True,
         check=False,
@@ -130,8 +128,8 @@ def test_concurrent_code_runs_preserve_each_other(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cancel_first: bool
 ) -> None:
     code_consumer(worker, tmp_path, monkeypatch, "/tools/sleep 1\n" + SCRIPT)
-    first = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
-    second = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    first = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    second = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     assert first != second
     if cancel_first:
         assert call(worker, tmp_path, "cancel", first)["outcome"] == "CANCELLED"
