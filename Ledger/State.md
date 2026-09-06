@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P003 under the user's active goal, applying complexity-discipline and the implementation plan in .tmp/worker-lint-delegation-processes-plan.md.
+Complete integration of verified P003 under the user's active goal and complexity-discipline.
 
 ## Workspace
 
 Branch: feature/worker-execution
 
-Revision: aabb661
+Revision: 49c61b4
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Code workspace library is committed. Current VAC exposes code profiles through existing CLI/MCP with required revision/write/check contracts, an isolated writable project, read-only check mounts, retained patch/check reports and a shared execution/check deadline. Schema, skill and guide match this workflow. Real code-model smoke and full independent consumer acceptance/integration remain outstanding.
+All four implementation stages and consumer acceptance are verified. Current VAC records completion in Plan with actual acceptance evidence. The worker feature still needs its completion commit and integration; no additional feature is authorized or active.
 
 ## Verification
 
-Previous gate passed: 288 native, 22 review and eight Rust tests. Six focused code tests pass: MCP success with applicable patch, failed check retention, physically read-only checks, required revision and concurrent success/cancellation with unchanged checkout. Existing delegate run/MCP/config checks also passed during this VAC. Tests use real Git/systemd/bubblewrap and a deterministic executor. Real read evidence remains under /tmp/worker-delegate-live-ynd7u0i3/.worker/runtime/jobs/run-7yl7ZO; artifact/MCP evidence is under /tmp/worker-delegate-live-wn_id599/.worker/runtime/jobs/run-XVhSf6. Current code-runner staged gate is pending.
+Gate at 49c61b4 passed: 295 native, 22 review and eight worker Rust tests, plus configured static checks. Real read and artifact/MCP runs passed; Plan/003.md records their locations. Real code run-Ef57if in /tmp/worker-code-live-1v1yid5j returned a verified patch without changing the original checkout. Explicit application passed consumer commit and merge gates, reaching clean main at 8d277ce9cc7e9a60ab014a06346893277eb81e9c with its feature branch retained. Installed lint catalog/details/explain/config checks passed there. Current completion-memory gate and worker integration are pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit code-runner integration through the staged gate. Run a real code delegate in an independent consumer, verify its patch through the consumer's gates, audit all four stages and perform feature integration. P003 remains active until all stages are verified.
+Commit this completion VAC through the staged gate, run just feature-merge, and verify clean master with the feature branch retained. Reconcile this pre-integration snapshot against Git on resume. Mark the goal complete only after successful worker integration.
