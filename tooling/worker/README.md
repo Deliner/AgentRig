@@ -216,8 +216,9 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 ## Delegation profiles
 
 `just delegate config-check CONFIG` validates a separate TOML profile file.
-Profile validation, asynchronous CLI execution and the MCP adapter are implemented;
-setup integration remains under development in P003. A successful configuration check does not run
+Profile validation, asynchronous CLI execution and the MCP adapter are implemented.
+Select `capabilities.delegation.config` in worker.toml and run setup to register
+the configured MCP service. A successful configuration check does not run
 an executor or prove model/service availability.
 
 ```toml

@@ -43,7 +43,8 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         processes: Default::default(),
         capabilities: config::Capabilities {
             lint: true,
-            review: (options["review"] == "true").then(|| config::Review {
+            delegation: None,
+            review: (options["review"] == "true").then(|| config::Resource {
                 config: super::review::CONFIG.into(),
             }),
         },

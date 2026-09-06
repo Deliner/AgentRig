@@ -26,6 +26,14 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
     if let Some(review) = &config.capabilities.review {
         review_config(root, preview.path(), &review.config)?;
     }
+    if let Some(delegation) = &config.capabilities.delegation {
+        let resolved = discipline_worker::delegate::config::load(&root.join(&delegation.config))?;
+        put(
+            preview.path(),
+            &delegation.config,
+            toml::to_string(&resolved)?.as_bytes(),
+        )?;
+    }
     config::Context::load(preview.path())?;
     Ok(())
 }

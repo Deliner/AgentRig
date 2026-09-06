@@ -34,7 +34,7 @@ fn run() -> Result<i32> {
     match command.as_str() {
         "hook" => hook(&root),
         "review" => run_review(&root, args),
-        "delegate" => run_delegate(&root, &args),
+        "delegate" => run_delegate(&root, args),
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
@@ -129,15 +129,41 @@ fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
     }
     review_runner::cli::run(&args).map(|()| 0)
 }
-fn run_delegate(root: &Path, args: &[String]) -> Result<i32> {
+fn run_delegate(root: &Path, mut args: Vec<String>) -> Result<i32> {
+    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
+        || matches!(args.as_slice(), [command, _] if command == "start");
+    if configured {
+        let context = scaffold::config::Context::load(root)?;
+        let delegation = context
+            .config
+            .capabilities
+            .delegation
+            .as_ref()
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "delegation is not enabled; configure capabilities.delegation.config"
+                )
+            })?;
+        args.insert(
+            1,
+            context
+                .path(&delegation.config)?
+                .to_string_lossy()
+                .into_owned(),
+        );
+    }
     let direct = args
         .first()
         .is_some_and(|command| matches!(command.as_str(), "config-check" | "_execute"));
     if direct {
-        return discipline_worker::delegate::cli(root, args);
+        return discipline_worker::delegate::cli(root, &args);
     }
     let context = scaffold::config::Context::load(root)?;
-    discipline_worker::delegate::run::cli(root, &context.path(&context.config.paths.runtime)?, args)
+    discipline_worker::delegate::run::cli(
+        root,
+        &context.path(&context.config.paths.runtime)?,
+        &args,
+    )
 }
 fn main() {
     let code = match run() {

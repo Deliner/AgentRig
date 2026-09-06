@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 4bdf8ed
+Revision: 59d9100
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Asynchronous CLI delegation is committed. Current VAC exposes start/status/result/cancel through MCP using the shared review protocol and existing jobs runner. A demonstrated job-observation race is corrected by rereading the record before declaring interruption. Setup integration, real Codex/service smoke and isolated code mode remain outstanding.
+MCP delegation is committed. Current VAC connects capabilities.delegation.config to configured CLI calls, setup preview/registration and doctor. Consumer-owned profile resources remain in place; MCP receives environment references and job identity without secret values in settings. Real Codex/service smoke, delayed-launch recovery and isolated code mode remain outstanding.
 
 ## Verification
 
-CLI delivery passed the full gate: 279 native, 22 review and five Rust tests. Current focused run-CS2Y9z completed with 37 passing MCP, delegate and command tests. Actual stdio connections verify catalog/arguments, reconnect without a duplicate run, and cancellation; execution uses real systemd/bubblewrap with a deterministic executor. Current staged gate is pending; no real model or sandboxed external MCP-service execution is claimed.
+MCP delivery passed the full gate: 282 native, 22 review and five Rust tests. Current focused setup/capability/config/MCP checks passed 33 tests, including an independent consumer's generated MCP launch, repeat setup and conflict preservation. All ten setup tests also passed after the owner-variable forwarding adjustment. Current staged gate is pending; no real model or sandboxed external MCP-service execution is claimed.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the MCP adapter through the staged gate. Integrate setup, verify actual Codex/service behavior and delayed-launch recovery, then add isolated code mode and independent consumer acceptance. P003 remains active until all stages and final integration are verified.
+Verify and commit setup integration through the staged gate. Finish delegate skill guidance, verify actual Codex/service behavior and delayed-launch recovery, then add isolated code mode and complete independent consumer acceptance. P003 remains active until all stages and final integration are verified.

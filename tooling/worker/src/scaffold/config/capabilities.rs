@@ -8,11 +8,12 @@ use std::path::Path;
 pub struct Capabilities {
     #[serde(default = "enabled")]
     pub lint: bool,
-    pub review: Option<Review>,
+    pub review: Option<Resource>,
+    pub delegation: Option<Resource>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct Review {
+pub struct Resource {
     pub config: String,
 }
 fn enabled() -> bool {
@@ -23,6 +24,7 @@ impl Default for Capabilities {
         Self {
             lint: true,
             review: None,
+            delegation: None,
         }
     }
 }
@@ -35,6 +37,12 @@ impl Capabilities {
         if let Some(review) = &self.review {
             let path = relative(root, &review.config).context("capabilities.review.config")?;
             review_runner::config::load(&path).context("capabilities.review.config")?;
+        }
+        if let Some(delegation) = &self.delegation {
+            let path =
+                relative(root, &delegation.config).context("capabilities.delegation.config")?;
+            discipline_worker::delegate::config::load(&path)
+                .context("capabilities.delegation.config")?;
         }
         Ok(())
     }
