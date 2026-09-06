@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: record P006 acceptance and integrate its retained feature branch.
+Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: share native Git/Mercurial revision and file reads.
 
 ## Workspace
 
-Branch: feature/directory-architecture
+Branch: feature/vcs-backends
 
-Revision: 7440f8c
+Revision: 0c9cc39
 
-The extractor repair is committed at 7440f8c through its full gate: 410 Python and 101 Rust tests passed. Only the final acceptance matrix and completion memory are now changed. No unrelated work is present; the installed development pin remains unchanged.
+Git confirms P006 merged into master at 0c9cc39 after completion and integration gates passed with 430 Python and 101 Rust tests. The old feature branch is retained. P007 starts from that clean base on feature/vcs-backends. No unrelated work is present; the installed development pin remains unchanged.
 
 ## Progress
 
-P006 acceptance is verified and recorded as complete in Plan; integration is still pending. The final matrix exercises each required architecture scenario through both binaries for all four languages. Directory contracts, graph checks, source resolution, CLI integration, exact capability limits and canonical repair guidance are implemented. P007/P008 remain pending and authorized in that order.
+P007 is active. Mercurial 7.2.4 is selected and installed as a locked uv test dependency. A shared vcs owner in the existing native library implements Git/Mercurial revision resolution, tree entries, raw file reads, changed paths and diffs. Existing Git snapshot helpers now use that owner. Mercurial reads ignore user/repository configuration and require a single resolved revision. YAML backend selection, private adapters, workflow routing and delivery/recovery operations remain required. P008 is pending.
 
 ## Verification
 
-All 78 lint CLI tests and 51 architecture component tests pass. The matrix covers five scenarios across four languages and two binaries, with additional configuration, scope, incomplete-analysis and behavior-preservation tests. Real repairs preserve program result 7 and unchanged permissions. The implementation gate passed with 410 Python and 101 Rust tests; completion-commit and integration gates are next, not yet observed.
+Five focused Rust tests pass: two real-backend tests and three existing snapshot tests. They verify exact committed bytes despite dirty worktrees, binary files, executable/symlink kinds, changed/deleted paths and diffs, ambiguous Mercurial revsets and disabled repository aliases/hooks. Structural lint has no blocking findings. The first P007 VAC's full staged gate remains pending. No complete P007 acceptance is claimed.
 
 ## Blockers
 
-None observed. Documented compiler/runtime resolution limits remain explicit product capabilities, with recognized unsupported forms diagnosed. P006 acceptance evidence and the supported first-delivery forms are recorded in its detail.
+None observed. Only Git was initially on PATH; the locked uv environment now provides hg and the review-test catalog command uses it. No corporate VCS access is needed for the authorized private extension example.
 
 ## Next action
 
-Commit P006 completion through the staged gate, then run just feature-merge and verify integration in Git. Start P007 on its own feature branch after integration and choose the simplest available real second VCS as authorized. Deliver P008 afterward. Preserve the installed development pin while testing candidates.
+Commit shared native VCS reads through the staged gate. Add explicit backend selection and route snapshots/review/delegation through it; implement the private adapter contract and all configured delivery/recovery operations with actual backend capabilities. Verify independent Git/Mercurial consumers and private extension behavior before P007 acceptance/integration, then deliver P008. Preserve the installed development pin while testing candidates.
