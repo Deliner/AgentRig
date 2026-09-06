@@ -1,6 +1,6 @@
 # AgentRig
 
-This repository develops a portable Rust worker for agent-native software development. Other projects consume its configurable environment: verified atomic changes (VACs), recovery state, durable decisions, executable invariants, structural lint and isolated review. Deterministic access boundaries and checks support development quality; model judgments remain probabilistic.
+AgentRig assembles reusable YAML configuration, skills, hooks and MCP services into portable environments for agent-native software development. The Rust worker supplies verified atomic changes (VACs), recovery state, durable decisions, executable invariants, structural lint, isolated review and configured delegates. Deterministic access boundaries and checks support development quality; model judgments remain probabilistic.
 
 The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through agentrig.yaml and separate lint/review configuration. Use `agentrig setup` to prepare a consumer from its declaration; `agentrig-lint` also runs independently against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
 

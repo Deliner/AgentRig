@@ -16,7 +16,7 @@ wheels = [
 ]
 
 [[package]]
-name = "discipline-worker-tooling"
+name = "agentrig-tooling"
 version = "0.1.0"
 source = { virtual = "." }
 

@@ -13,4 +13,4 @@ Each language uses a new consumer installation of its independent source example
 | rust | PreToolUse edit | 1.338 | 1.334 | 1.462 |
 | rust | small source lint | 2.050 | 1.882 | 2.043 |
 
-These local observations describe this workload, not a latency guarantee. No additional cache, daemon or parallel scheduler was introduced for this measurement. Reproduce with `python3 tooling/worker/examples/measure.py --worker /absolute/path/discipline-worker --output /path/to/report.md`.
+These historical observations describe this workload, not a latency guarantee. No additional cache, daemon or parallel scheduler was introduced for this measurement. Measure the current worker with `python3 tooling/worker/examples/measure.py --worker /absolute/path/agentrig --output /path/to/report.md`; a new version produces its own observations.

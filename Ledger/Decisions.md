@@ -33,4 +33,4 @@ Current precedence: [D022](Decisions/022.md) adds actionable verification eviden
 
 D025 supersedes D008 for this worker repository; the historical D008 statement and detail remain unchanged.
 
-D026 supersedes D016's TOML format choice for AgentRig configuration; the strict YAML transition is being delivered under P004. External tool formats remain externally owned.
+D026 supersedes D016's TOML format choice for AgentRig configuration; P004 delivers the strict YAML transition. External tool formats remain externally owned.

@@ -25,8 +25,8 @@ and `review mcp CONFIG`. The package also retains a `review-runner` CLI over the
 same library. Build from the worker workspace:
 
 ```sh
-cargo build --release --locked --manifest-path tooling/worker/Cargo.toml
-cargo build --release --locked --manifest-path tooling/worker/review/Cargo.toml
+cargo +1.98.1 build --release --locked --manifest-path tooling/worker/Cargo.toml
+cargo +1.98.1 build --release --locked --manifest-path tooling/worker/review/Cargo.toml
 ```
 
 Run `agentrig init --root CONSUMER --review true` to install review
@@ -137,8 +137,10 @@ storage fails, the runner attempts an emergency report inside the retained
 runtime and reports its path; it does not silently discard the only evidence.
 A cleanup failure may leave runtime files and is explicitly reported.
 
-MCP uses newline-delimited JSON-RPC over stdio, protocol 2025-11-25. Register the
-binary with arguments `mcp` and the absolute configuration path. Each configured
+MCP uses newline-delimited JSON-RPC over stdio, protocol 2025-11-25. AgentRig setup
+registers the worker connection automatically. For explicit registration, use
+`agentrig review mcp CONFIG --root PROJECT`; the standalone library CLI uses
+`review-runner mcp CONFIG`. CONFIG is the absolute review configuration path. Each configured
 tool accepts `root`, `base`, `candidate`, optional `previous_report`; the selected
 tool supplies its own name. Results contain both text JSON and structuredContent.
 Set the client's tool timeout above the runner timeout plus preparation/report
