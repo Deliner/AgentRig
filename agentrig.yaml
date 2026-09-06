@@ -25,9 +25,19 @@ commands:
     read_only: false
   build:
     argv:
-    - tooling/worker/run
+    - tooling/worker/build
     - --version
     accepts_args: false
+    read_only: false
+  candidate:
+    argv:
+    - tooling/worker/build
+    accepts_args: true
+    read_only: false
+  release:
+    argv:
+    - bash
+    - tooling/distribution/release.sh
     read_only: false
   rustfmt:
     argv:

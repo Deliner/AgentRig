@@ -15,5 +15,6 @@ def worker() -> Path:
     configured = os.environ.get("WORKER_BINARY")
     if configured:
         return Path(configured)
-    subprocess.run([str(ROOT / "tooling/worker/run"), "lint-rules"], cwd=ROOT, check=True)
-    return ROOT / ".cache/worker/release/agentrig"
+    subprocess.run([str(ROOT / "tooling/worker/build"), "lint-rules"], cwd=ROOT, check=True)
+    target = Path(os.environ.get("WORKER_TARGET_DIR", ROOT / ".cache/worker"))
+    return target / "release/agentrig"

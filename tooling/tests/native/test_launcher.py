@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import os
 import shutil
 import subprocess
@@ -21,7 +22,7 @@ def test_launcher_rebuilds_changed_content_even_with_old_mtime(
     source = tmp_path / "repo/tooling/worker"
     payload = source / resource
     payload.parent.mkdir(parents=True)
-    shutil.copy(ROOT / "tooling/worker/run", source / "run")
+    shutil.copy(ROOT / "tooling/worker/build", source / "build")
     (source / "Cargo.toml").write_text("manifest", encoding="utf-8")
     payload.write_text("ONE", encoding="utf-8")
     original_time = payload.stat().st_mtime_ns
@@ -37,7 +38,7 @@ def test_launcher_rebuilds_changed_content_even_with_old_mtime(
             payload.write_text("TWO", encoding="utf-8")
             os.utime(payload, ns=(original_time, original_time))
         result = subprocess.run(
-            [str(source / "run")], env=env, text=True, capture_output=True, check=True
+            [str(source / "build")], env=env, text=True, capture_output=True, check=True
         )
         assert result.stdout.strip() == expected
     assert (target / "builds").read_text(encoding="utf-8").splitlines() == ["build", "build"]
@@ -59,3 +60,57 @@ def fake_cargo(compiler: Path, resource: str) -> None:
         encoding="utf-8",
     )
     compiler.chmod(0o755)
+
+
+def development_tree(root: Path) -> tuple[Path, dict[str, str]]:
+    source = root / "tooling/worker"
+    source.mkdir(parents=True)
+    for name in ["run", "build"]:
+        shutil.copy2(ROOT / "tooling/worker" / name, source / name)
+    pin = root / "tooling/distribution/stable.txt"
+    pin.parent.mkdir()
+    pin.write_text("a" * 40 + "\n")
+    (source / "Cargo.toml").write_text("deliberately invalid manifest\n")
+    env = dict(os.environ)
+    for key in ["WORKER_BINARY", "WORKER_SOURCE_ROOT", "WORKER_TARGET_DIR", "CARGO_TARGET_DIR"]:
+        env.pop(key, None)
+    return source, env
+
+
+def test_stable_runtime_survives_candidate_build_failure(worker: Path, tmp_path: Path) -> None:
+    source, env = development_tree(tmp_path)
+    installed = tmp_path / ".cache/development" / ("a" * 40)
+    subprocess.run([str(worker), "init", "--root", str(installed)], check=True)
+    binary = installed / ".agentrig/bin/agentrig"
+    before = hashlib.sha256(binary.read_bytes()).hexdigest()
+    candidate = subprocess.run(
+        [str(source / "build"), "--version"], env=env, capture_output=True, text=True
+    )
+    assert candidate.returncode != 0
+    assert "Cargo.toml" in candidate.stderr
+    for args in [["--version"], ["config-check", "--root", str(installed)]]:
+        result = subprocess.run(
+            [str(source / "run"), *args], env=env, capture_output=True, text=True
+        )
+        assert result.returncode == 0, result.stderr
+    event = '{"hook_event_name":"SessionStart"}'
+    hook = subprocess.run(
+        [str(source / "run"), "hook", "--root", str(installed)],
+        env=env,
+        input=event,
+        capture_output=True,
+        text=True,
+    )
+    assert hook.returncode == 0, hook.stderr
+    assert "complexity-discipline" in hook.stdout
+    assert hashlib.sha256(binary.read_bytes()).hexdigest() == before
+
+
+def test_missing_stable_runtime_never_builds_candidate(tmp_path: Path) -> None:
+    source, env = development_tree(tmp_path)
+    result = subprocess.run(
+        [str(source / "run"), "--version"], env=env, capture_output=True, text=True
+    )
+    assert result.returncode == 2
+    assert "just bootstrap" in result.stderr
+    assert not (tmp_path / ".cache/worker").exists()

@@ -16,3 +16,4 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P002](Plan/002.md) | complete | P001 | Portable worker capabilities and setup | Configure and prepare a consuming project with shipped lint/review, safely repeat setup and update or roll back the environment. |
 | [P003](Plan/003.md) | complete | P002 | Discoverable lint and managed delegation | Configure rules and specialized workers, inspect owned processes, and obtain isolated verified reports, artifacts and code changes. |
 | [P004](Plan/004.md) | complete | P003 | Composable AgentRig environments | Assemble, install and migrate YAML-configured project and delegate environments from reusable packages, with custom skills and hooks. |
+| [P005](Plan/005.md) | complete | P004 | Stable development and public distribution | Develop AgentRig with an independently installed verified runtime and obtain the portable worker from GitHub under MIT. |

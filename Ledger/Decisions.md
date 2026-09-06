@@ -30,7 +30,10 @@ Current precedence: [D022](Decisions/022.md) adds actionable verification eviden
 | [D024](Decisions/024.md) | Apply one explicit release transition with reviewed conflicts and a recoverable technical journal. | [upgrade](../tooling/worker/src/scaffold/upgrade/mod.rs), [receipt](../tooling/worker/src/scaffold/package/manifest.rs), [guide](../tooling/worker/SCAFFOLD.md), [verification](../tooling/tests/native/upgrades/test_recovery.py) |
 | [D025](Decisions/025.md) | Develop lint and review as portable worker capabilities while consumer projects own their configuration and source. | [instructions](../AGENTS.md), [overview](../README.md), [consumer scope](../Project/README.md), [delivery](Plan/002.md) |
 | [D026](Decisions/026.md) | Use strict YAML for AgentRig configuration without runtime format fallback; migrate legacy settings explicitly. | [codec](../tooling/worker/review/src/config/yaml.rs), [delivery](Plan/004.md) |
+| [D027](Decisions/027.md) | Develop AgentRig using an explicitly pinned installed runtime while testing candidate source independently. | [launcher](../tooling/worker/run), [bootstrap](../tooling/distribution/bootstrap.sh), [instructions](../AGENTS.md) |
 
 D025 supersedes D008 for this worker repository; the historical D008 statement and detail remain unchanged.
 
 D026 supersedes D016's TOML format choice for AgentRig configuration; P004 delivers the strict YAML transition. External tool formats remain externally owned.
+
+D027 supersedes automatic candidate rebuilding for active development commands and hooks. D015's native runtime ownership remains in force.

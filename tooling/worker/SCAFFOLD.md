@@ -416,5 +416,5 @@ and SessionStart expose technical recovery guidance without loading legacy task
 settings. Historical memory checks still read the committed legacy memory location
 so a format change cannot remove the prior decisions baseline.
 
-P004 remains in development: complete migration and independent consumer acceptance
-are outstanding; implemented setup and composition alone do not complete it.
+P004 migration and independent consumer acceptance are complete. See
+[the acceptance map](examples/PORTABILITY.md) for tests and real MCP evidence.
