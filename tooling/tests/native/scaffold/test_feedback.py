@@ -12,19 +12,29 @@ from test_gate import GATE
 from test_memory import memory
 
 
-def repository(root: Path) -> None:
+def repository(root: Path, vcs: str = "git") -> None:
     project(root, CONFIG + GATE.replace("warning: true", "warning: false"))
     memory(root)
     (root / ".gitignore").write_text(".runtime/\n")
     (root / "src/value.py").write_text("value = 1\n")
-    for args in [
+    git_commands = [
         ("init", "-qb", "trunk"),
         ("config", "user.name", "Test"),
         ("config", "user.email", "test@example.invalid"),
         ("add", "."),
         ("commit", "-qm", "baseline"),
-    ]:
-        git(root, *args)
+    ]
+    using_git = vcs == "git"
+    commands = (
+        git_commands
+        if using_git
+        else [("init",), ("add", "."), ("commit", "-m", "baseline", "-u", "Test")]
+    )
+    needs_mercurial_ignore = not using_git
+    if needs_mercurial_ignore:
+        (root / ".hgignore").write_text("syntax: glob\n.runtime/**\nsrc/ignored.py\n")
+    for args in commands:
+        subprocess.run([vcs, *args], cwd=root, capture_output=True, check=True)
 
 
 def resumed(worker: Path, root: Path) -> dict[str, Any]:
@@ -34,9 +44,10 @@ def resumed(worker: Path, root: Path) -> dict[str, Any]:
     return value
 
 
+@pytest.mark.parametrize("vcs", ["git", "hg"])
 # INVARIANT: I018
-def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path) -> None:
-    repository(tmp_path)
+def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path, vcs: str) -> None:
+    repository(tmp_path, vcs)
     assert resumed(worker, tmp_path)["checks"]["status"] == "absent"
     assert invoke(worker, tmp_path, "check", "--only", "lint").returncode == 0
     checks = resumed(worker, tmp_path)["checks"]
@@ -50,6 +61,36 @@ def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path
     assert resumed(worker, tmp_path)["checks"]["current"]
     source.chmod(0o755)
     assert not resumed(worker, tmp_path)["checks"]["current"]
+
+
+def test_mercurial_evidence_tracks_revision_and_excludes_metadata(
+    worker: Path, tmp_path: Path
+) -> None:
+    repository(tmp_path, "hg")
+    assert invoke(worker, tmp_path, "check", "--only", "lint").returncode == 0
+    expected = subprocess.check_output(
+        ["hg", "log", "-r", ".", "-T", "{node}"], cwd=tmp_path, text=True
+    )
+    assert resumed(worker, tmp_path)["checks"]["last_run"]["revision"] == expected
+    (tmp_path / ".hg/extra-metadata").write_text("not source")
+    (tmp_path / "src/ignored.py").write_text("ignored\n")
+    assert resumed(worker, tmp_path)["checks"]["current"]
+    source = tmp_path / "src/value.py"
+    source.write_text("value = 2\n")
+    subprocess.run(
+        ["hg", "commit", "-m", "advance", "-u", "Test"],
+        cwd=tmp_path,
+        capture_output=True,
+        check=True,
+    )
+    source.write_text("value = 1\n")
+    checks = resumed(worker, tmp_path)["checks"]
+    assert checks["worktree_matches"]
+    assert not checks["revision_matches"]
+    assert not checks["current"]
+    result = invoke(worker, tmp_path, "check", "--staged")
+    assert result.returncode == 2
+    assert "Mercurial has no staging index" in result.stderr
 
 
 def test_staged_evidence_does_not_verify_unstaged_source(worker: Path, tmp_path: Path) -> None:

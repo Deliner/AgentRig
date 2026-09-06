@@ -49,7 +49,7 @@ impl Attempt {
         let path = directory.join("checks.json");
         let record = Record {
             timestamp: SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(),
-            revision: crate::util::git(origin, &["rev-parse", "HEAD"]).ok(),
+            revision: content::head(origin)?,
             fingerprint: content::fingerprint(
                 &context.root,
                 origin,
@@ -105,7 +105,7 @@ impl Attempt {
             &context.config.paths.runtime,
             self.record.staged,
         )?;
-        let revision = crate::util::git(origin, &["rev-parse", "HEAD"]).ok();
+        let revision = content::head(origin)?;
         let index_matches = self
             .record
             .index_fingerprint
@@ -154,7 +154,7 @@ fn observed(context: &Context) -> Result<Value> {
     let Some(record) = read(&path)? else {
         return Ok(json!({"status": "absent"}));
     };
-    let revision = crate::util::git(&context.root, &["rev-parse", "HEAD"]).ok();
+    let revision = content::head(&context.root)?;
     let worktree = content::fingerprint(
         &context.root,
         &context.root,

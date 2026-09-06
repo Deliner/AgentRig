@@ -64,6 +64,14 @@ pub(super) fn working_files(root: &Path) -> Result<Vec<u8>> {
     )
 }
 
+pub(super) fn staged_files(root: &Path) -> Result<Vec<u8>> {
+    run(root, &["ls-files", "--cached", "-z"])
+}
+
+pub(super) fn index_entries(root: &Path) -> Result<Vec<u8>> {
+    run(root, &["ls-files", "--stage", "-z"])
+}
+
 pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8>> {
     run(
         root,
