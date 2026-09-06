@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, path::PathBuf};
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Hook {
     pub event: Event,
@@ -14,7 +14,7 @@ pub struct Hook {
     pub timeout_seconds: u64,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Deserialize, Serialize)]
 pub enum Event {
     SessionStart,
     PreToolUse,
@@ -54,11 +54,13 @@ pub fn validate(
     Ok(())
 }
 
-pub fn configuration(hooks: &BTreeMap<String, Hook>) -> Value {
+pub fn configuration(
+    hooks: &BTreeMap<String, Hook>,
+    command: impl Fn(&str, &Hook) -> String,
+) -> Value {
     let mut events = serde_json::Map::new();
-    for hook in hooks.values() {
-        let argv = std::iter::once(format!("/tools/{}", hook.program)).chain(hook.args.clone());
-        let handler = json!({"type":"command", "command":shell_words::join(argv), "timeout":hook.timeout_seconds});
+    for (name, hook) in hooks {
+        let handler = json!({"type":"command", "command":command(name, hook), "timeout":hook.timeout_seconds});
         let mut group = json!({"hooks":[handler]});
         if let Some(matcher) = &hook.matcher {
             group["matcher"] = json!(matcher);

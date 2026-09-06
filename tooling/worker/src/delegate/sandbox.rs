@@ -97,7 +97,7 @@ fn executor(command: &mut Command, profile: &Profile) {
         "--output-last-message",
         "/work/result.json",
     ]);
-    let configured_hooks = !profile.hooks.is_empty();
+    let configured_hooks = !profile.environment.hooks.is_empty();
     if configured_hooks {
         command.arg("--dangerously-bypass-hook-trust");
     }
@@ -106,6 +106,7 @@ fn executor(command: &mut Command, profile: &Profile) {
 
 fn instructions(profile: &Profile) -> String {
     let programs = profile
+        .environment
         .programs
         .keys()
         .map(|name| format!("/tools/{name}"))
@@ -156,13 +157,13 @@ fn tools(command: &mut Command, layout: &Layout, profile: &Profile) {
             .arg(format!("/usr/bin/{name}"))
             .arg(format!("/bin/{name}"));
     }
-    for name in profile.programs.keys() {
+    for name in profile.environment.programs.keys() {
         command
             .arg("--ro-bind")
             .arg(layout.private.join(format!("environment/programs/{name}")))
             .arg(format!("/tools/{name}"));
     }
-    for source in &profile.skills {
+    for source in &profile.environment.skills {
         let name = source.file_name().unwrap().to_string_lossy();
         command
             .arg("--ro-bind")
@@ -173,7 +174,7 @@ fn tools(command: &mut Command, layout: &Layout, profile: &Profile) {
 
 pub fn write_prompt(input: &Path, profile: &Profile) -> Result<()> {
     let mut prompt = fs::read_to_string(&profile.prompt)?;
-    for skill in &profile.skills {
+    for skill in &profile.environment.skills {
         let name = skill.file_name().unwrap().to_string_lossy();
         prompt.push_str(&format!(
             "\nApply the configured skill /codex/skills/{name}/SKILL.md.\n"

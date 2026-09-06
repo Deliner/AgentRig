@@ -17,6 +17,14 @@ pub fn mcp_command(service: &str, command: &str) -> String {
     )
 }
 
+pub fn environment_command(service: &str, command: &str, name: &str) -> String {
+    format!(
+        "root=$(git rev-parse --show-toplevel) && exec {} environment-{command} {} --root \"$root\"",
+        binary(service),
+        shell_words::quote(name)
+    )
+}
+
 pub fn git_hooks(config: &Config) -> [(String, Vec<u8>); 2] {
     let binary = binary(&config.paths.service);
     let prefix = "#!/bin/sh\nset -eu\nroot=$(git rev-parse --show-toplevel)\n";
@@ -32,8 +40,23 @@ pub fn registration(config: &Config) -> Result<Vec<u8>> {
         binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
-    Ok(serde_json::to_vec_pretty(&serde_json::json!({"hooks": {
+    let mut value = serde_json::json!({"hooks": {
         "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [handler.clone()]}],
         "PreToolUse": [{"matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write", "hooks": [handler]}]
-    }}))?)
+    }});
+    let custom =
+        agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
+            environment_command(&config.paths.service, "hook", name)
+        });
+    for (event, groups) in custom.as_object().unwrap() {
+        value["hooks"]
+            .as_object_mut()
+            .unwrap()
+            .entry(event.clone())
+            .or_insert_with(|| serde_json::json!([]))
+            .as_array_mut()
+            .unwrap()
+            .extend(groups.as_array().unwrap().iter().cloned());
+    }
+    Ok(serde_json::to_vec_pretty(&value)?)
 }

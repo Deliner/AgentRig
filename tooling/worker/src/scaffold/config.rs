@@ -22,6 +22,11 @@ pub struct Config {
     pub processes: Processes,
     #[serde(default)]
     pub capabilities: Capabilities,
+    #[serde(
+        default,
+        skip_serializing_if = "agentrig::environment::Environment::is_empty"
+    )]
+    pub environment: agentrig::environment::Environment,
     #[serde(default)]
     pub git: Git,
     #[serde(default)]

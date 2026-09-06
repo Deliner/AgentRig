@@ -167,28 +167,56 @@ fn merge_codex(root: &Path, files: &mut BTreeMap<String, Vec<u8>>) -> Result<()>
             .is_none_or(toml_edit::Item::is_table_like),
         "mcp_servers must be a table; existing settings preserved"
     );
-    for name in ["worker_review", "worker_delegation"] {
-        ensure!(
-            existing
-                .get("mcp_servers")
-                .and_then(|servers| servers.get(name))
-                .is_none_or(toml_edit::Item::is_table_like),
-            "mcp_servers.{name} must be a table; existing settings preserved"
-        );
-        let server = desired
-            .get("mcp_servers")
-            .and_then(|servers| servers.get(name));
-        if let Some(server) = server {
-            for field in ["enabled", "command", "args", "tool_timeout_sec", "env_vars"] {
-                existing["mcp_servers"][name][field] = server[field].clone();
-            }
-        } else if let Some(server) = existing
-            .get_mut("mcp_servers")
-            .and_then(|servers| servers.get_mut(name))
-        {
-            server["enabled"] = toml_edit::value(false);
-        }
+    for name in managed_servers(root, files)? {
+        merge_server(&mut existing, &desired, &name)?;
     }
     files.insert(path.into(), existing.to_string().into_bytes());
+    Ok(())
+}
+
+fn managed_servers(root: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<BTreeSet<String>> {
+    let current = config::read(root)?;
+    let desired: config::Config =
+        review_runner::config::yaml::decode(std::str::from_utf8(&files[config::FILE])?)?;
+    Ok(["worker_review".into(), "worker_delegation".into()]
+        .into_iter()
+        .chain(current.environment.mcp_servers.into_keys())
+        .chain(desired.environment.mcp_servers.into_keys())
+        .collect())
+}
+
+fn merge_server(
+    existing: &mut toml_edit::DocumentMut,
+    desired: &toml_edit::DocumentMut,
+    name: &str,
+) -> Result<()> {
+    ensure!(
+        existing
+            .get("mcp_servers")
+            .and_then(|servers| servers.get(name))
+            .is_none_or(toml_edit::Item::is_table_like),
+        "mcp_servers.{name} must be a table; existing settings preserved"
+    );
+    let server = desired
+        .get("mcp_servers")
+        .and_then(|servers| servers.get(name));
+    if let Some(server) = server {
+        for field in ["enabled", "command", "args", "tool_timeout_sec", "env_vars"] {
+            if let Some(value) = server.get(field) {
+                existing["mcp_servers"][name][field] = value.clone();
+            } else if let Some(table) = existing
+                .get_mut("mcp_servers")
+                .and_then(|servers| servers.get_mut(name))
+                .and_then(toml_edit::Item::as_table_like_mut)
+            {
+                table.remove(field);
+            }
+        }
+    } else if let Some(server) = existing
+        .get_mut("mcp_servers")
+        .and_then(|servers| servers.get_mut(name))
+    {
+        server["enabled"] = toml_edit::value(false);
+    }
     Ok(())
 }

@@ -17,6 +17,7 @@ fn sandbox_restricts_filesystem_and_environment_with_real_bubblewrap() {
     let layout = fixture(root.path());
     let mut profile = profile();
     profile
+        .environment
         .programs
         .insert("printf".into(), "/usr/bin/printf".into());
     prepare(&layout, &profile).unwrap();
@@ -63,8 +64,8 @@ fn sandbox_uses_frozen_programs_and_skill_trees() {
     let layout = fixture(root.path());
     let profile = resources(root.path());
     let receipt = prepare(&layout, &profile).unwrap();
-    fs::write(&profile.programs["helper"], "changed").unwrap();
-    fs::remove_dir_all(&profile.skills[0]).unwrap();
+    fs::write(&profile.environment.programs["helper"], "changed").unwrap();
+    fs::remove_dir_all(&profile.environment.skills[0]).unwrap();
     fs::write(&layout.codex, resource_probe()).unwrap();
     let output = command(&layout, &profile).unwrap().output().unwrap();
     assert!(
@@ -96,8 +97,11 @@ fn resources(root: &Path) -> Profile {
     fs::create_dir_all(skill.join("support")).unwrap();
     fs::write(skill.join("SKILL.md"), "original guide\n").unwrap();
     fs::copy(&program, skill.join("support/run")).unwrap();
-    profile.programs.insert("helper".into(), program);
-    profile.skills.push(skill);
+    profile
+        .environment
+        .programs
+        .insert("helper".into(), program);
+    profile.environment.skills.push(skill);
     profile
 }
 
@@ -158,8 +162,8 @@ fn hook_profile(root: &Path, argument: &str) -> Profile {
     )
     .unwrap();
     fs::set_permissions(&script, fs::Permissions::from_mode(0o755)).unwrap();
-    profile.programs.insert("hook".into(), script);
-    profile.hooks.insert(
+    profile.environment.programs.insert("hook".into(), script);
+    profile.environment.hooks.insert(
         "observe".into(),
         serde_json::from_value(json!({
             "event":"SessionStart", "program":"hook", "args":[argument], "timeout_seconds":10

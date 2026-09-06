@@ -143,17 +143,7 @@ fn codex_registration(context: &Context) -> Result<bool> {
     let configured = fs::read(context.root.join(".codex/hooks.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
-    let expected: serde_json::Value =
-        serde_json::from_slice(&super::adapters::registration(&context.config)?)?;
-    let codex = enabled
-        && configured.as_ref().is_some_and(|value| {
-            ["SessionStart", "PreToolUse"].iter().all(|event| {
-                let desired = &expected["hooks"][event][0];
-                value["hooks"][event]
-                    .as_array()
-                    .is_some_and(|routes| routes.contains(desired))
-            })
-        });
+    let codex = enabled && hooks_registered(context, configured.as_ref())?;
     println!(
         "Codex registration: {}",
         if codex {
@@ -163,6 +153,26 @@ fn codex_registration(context: &Context) -> Result<bool> {
         }
     );
     Ok(codex)
+}
+
+fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -> Result<bool> {
+    let expected: serde_json::Value =
+        serde_json::from_slice(&super::adapters::registration(&context.config)?)?;
+    Ok(configured.is_some_and(|value| {
+        expected["hooks"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .all(|(event, desired)| {
+                value["hooks"][event].as_array().is_some_and(|routes| {
+                    desired
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|route| routes.contains(route))
+                })
+            })
+    }))
 }
 
 fn executor_dependencies(context: &Context) -> bool {

@@ -35,8 +35,30 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
             )?;
         }
     }
+    environment(root, preview.path())?;
     config::Context::load(preview.path())?;
     Ok(())
+}
+
+fn environment(root: &Path, preview: &Path) -> Result<()> {
+    let mut configuration = config::read(preview)?;
+    let environment = &mut configuration.environment;
+    for path in environment
+        .skills
+        .iter_mut()
+        .chain(environment.programs.values_mut())
+    {
+        let prepared = preview.join(&*path).exists();
+        if prepared {
+            continue;
+        }
+        *path = root.join(&*path).canonicalize()?;
+    }
+    put(
+        preview,
+        config::FILE,
+        review_runner::config::yaml::encode(&configuration)?.as_bytes(),
+    )
 }
 
 fn bundle(root: &Path, config: &Config, files: &Files) -> Result<()> {

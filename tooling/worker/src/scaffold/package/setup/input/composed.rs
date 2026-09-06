@@ -1,9 +1,31 @@
-use super::Source;
+use super::{Config, Source};
 use anyhow::{Context, Result, ensure};
 use serde::de::DeserializeOwned;
 use std::path::{Path, PathBuf};
 
 impl Source {
+    pub(super) fn environment(&mut self, config: &mut Config) -> Result<()> {
+        for skill in &mut config.environment.skills {
+            let declaring = self.resolved.origin("/environment/skills");
+            let source = review_runner::config::resource(declaring, skill)?;
+            let name = source
+                .file_name()
+                .and_then(|name| name.to_str())
+                .context("skill name")?;
+            let target = format!(".agents/skills/{name}");
+            self.resources.directory_at(&source, &target)?;
+            *skill = target.into();
+        }
+        for (name, program) in &mut config.environment.programs {
+            let declaring = self
+                .resolved
+                .origin(&format!("/environment/programs/{name}"));
+            let source = review_runner::config::resource(declaring, program)?;
+            *program = self.resources.copy(&source)?.into();
+        }
+        Ok(())
+    }
+
     pub(super) fn validate_packages(&self) -> Result<()> {
         let configurations = std::iter::once(&self.resolved).chain(self.configurations.values());
         let mut identities =

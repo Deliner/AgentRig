@@ -1,4 +1,3 @@
-pub mod hooks;
 mod validation;
 
 use anyhow::{Context, Result, ensure};
@@ -27,14 +26,8 @@ pub struct Profile {
     pub timeout_seconds: u64,
     pub memory_bytes: Option<u64>,
     pub max_processes: Option<u64>,
-    #[serde(default)]
-    pub skills: Vec<PathBuf>,
-    #[serde(default)]
-    pub programs: BTreeMap<String, PathBuf>,
-    #[serde(default)]
-    pub mcp_servers: BTreeMap<String, McpServer>,
-    #[serde(default)]
-    pub hooks: BTreeMap<String, hooks::Hook>,
+    #[serde(flatten, deserialize_with = "crate::environment::deserialize")]
+    pub environment: crate::environment::Environment,
     pub credentials: Credentials,
 }
 
@@ -50,16 +43,6 @@ pub enum Mode {
     Read,
     Artifacts,
     Code,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct McpServer {
-    pub program: String,
-    #[serde(default)]
-    pub args: Vec<String>,
-    #[serde(default)]
-    pub env: BTreeMap<String, String>,
 }
 
 #[derive(Deserialize, Serialize)]

@@ -6,10 +6,10 @@ use std::{collections::BTreeMap, fs, os::unix::fs::PermissionsExt};
 
 pub(super) fn prepare(layout: &Layout, profile: &Profile) -> Result<Value> {
     let mut bundle = Bundle::new("environment");
-    for (name, source) in &profile.programs {
+    for (name, source) in &profile.environment.programs {
         bundle.copy_at(source, &format!("programs/{name}"))?;
     }
-    for source in &profile.skills {
+    for source in &profile.environment.skills {
         let name = source.file_name().unwrap().to_string_lossy();
         bundle.directory_at(source, &format!("skills/{name}"))?;
     }

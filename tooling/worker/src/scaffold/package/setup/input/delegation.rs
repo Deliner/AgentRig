@@ -14,12 +14,12 @@ pub(super) fn prepare(source: &mut Source, config: &mut Config) -> Result<()> {
         let prompt = source.resource(&path, &format!("{address}/prompt"), &profile.prompt)?;
         let target = source.resources.copy(&prompt)?;
         profile.prompt = source.resources.sibling(&target)?;
-        for skill in &mut profile.skills {
+        for skill in &mut profile.environment.skills {
             let resource = source.resource(&path, &format!("{address}/skills"), skill)?;
             let target = source.resources.directory(&resource)?;
             *skill = source.resources.sibling(&target)?;
         }
-        for (name, program) in &mut profile.programs {
+        for (name, program) in &mut profile.environment.programs {
             let resource =
                 source.resource(&path, &format!("{address}/programs/{name}"), program)?;
             let target = source.resources.copy(&resource)?;

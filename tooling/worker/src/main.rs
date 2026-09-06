@@ -33,6 +33,7 @@ fn run() -> Result<i32> {
     }
     match command.as_str() {
         "config-resolve" => agentrig::composition::cli(&root, &args),
+        "environment-hook" | "environment-mcp" => run_environment(&root, &args, &command),
         "hook" => hook(&root),
         "review" => run_review(&root, args),
         "delegate" => run_delegate(&root, args),
@@ -42,6 +43,36 @@ fn run() -> Result<i32> {
             "usage: agentrig hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
         ),
     }
+}
+fn run_environment(root: &Path, args: &[String], kind: &str) -> Result<i32> {
+    use anyhow::Context as _;
+    use std::{os::unix::process::CommandExt, process::Command};
+    anyhow::ensure!(args.len() == 1, "{kind} NAME");
+    let context = scaffold::config::Context::load(root)?;
+    let mut environment = context.config.environment;
+    environment.resolve(&root.join(scaffold::config::FILE))?;
+    let hook = kind == "environment-hook";
+    let (program, argv, variables) = if hook {
+        let handler = environment
+            .hooks
+            .get(&args[0])
+            .context("unknown environment hook")?;
+        (&handler.program, &handler.args, Default::default())
+    } else {
+        let server = environment
+            .mcp_servers
+            .get(&args[0])
+            .context("unknown environment MCP server")?;
+        (
+            &server.program,
+            &server.args,
+            agentrig::environment::resolve_references(&server.env)?,
+        )
+    };
+    let mut command = Command::new(&environment.programs[program]);
+    command.args(argv).envs(variables).current_dir(root);
+    // The frontend owns this hook/MCP process and its stdio; preserve that lifetime.
+    Err(command.exec().into())
 }
 fn immediate(command: &str) -> Option<Result<i32>> {
     Some(match command {
@@ -79,6 +110,7 @@ fn print_help() {
         "setup [--config CONFIG_YAML] --preview: inspect prepared file changes, registrations and dependencies without installing"
     );
     println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
+    println!("environment-hook NAME | environment-mcp NAME: execute a configured frontend handler");
     println!(
         "upgrade plan --config CONFIG_YAML: review an explicit configuration/resource update using the existing apply and rollback workflow"
     );

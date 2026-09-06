@@ -17,6 +17,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         "features.hooks",
     )?;
     super::delegation::configure(root, config, files, &mut document)?;
+    super::environment::configure(config, &mut document)?;
     if let Some(review) = &config.capabilities.review {
         let timeout = review_timeout(root, files, &review.config)?;
         table(&mut document["mcp_servers"], "mcp_servers")?;

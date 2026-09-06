@@ -126,6 +126,7 @@ Warnings do not fail lint; blocking findings exit 1 and configuration failures e
 - `commands.NAME`: `argv`, `cwd` (default `.`), `accepts_args` and `read_only`. An empty argv requires forwarded arguments. Shell evaluation happens only if the catalog explicitly invokes a shell.
 - `checks`: ordered IDs, `kind` (`command`, `lint`, `memory`), optional command reference, `include`, repair `skill`, and `warning`. A check with no matching files is skipped.
 - `hooks`: file-to-skill routes, optional reminder JSON and the corresponding discipline skill. The hook and runner use the same command catalog.
+- `environment`: selected custom skills, programs, frontend hooks and MCP servers; uses the shared resource declarations described below.
 - `oracles.ID`: command check, runner (`pytest` or `cargo`) and exact test target. Discovery uses that command's cwd, sandbox and shared process execution. Pytest targets are relative to the command cwd; keep its collection root aligned (for example, configure --rootdir . when a nested pytest config changes that root).
 
 Lint uses strict YAML and compiled Rust/Python handlers; [rule semantics](README.md#rules-and-languages) describe counting, selectors and parser limits. The installed template supplies all five rules and focused repair skills. Language rules block unnamed conditions, functions above 40 nonblank lines and signatures above 4 counted inputs. Unsupported selected languages are configuration errors, not silently ignored files. Numeric warning/error limits and named-condition severity are editable project policy.
@@ -229,7 +230,8 @@ Configuration updates retain the runtime version, service directory and recovery
 runtime location. Use a release upgrade for a runtime version change. A subsequent
 configuration update archives the completed recovery operation; rollback targets
 the latest operation. Invalid or stale plans cannot replace that recovery record.
-Shared custom delegate environment assembly remains under development in P004.
+Project and delegate resources share the same typed environment declarations and
+resource builder, with different placement and execution permissions.
 
 The external setup/update builder also resolves `packages` and `overrides` in
 lint policies, review runner settings, review material settings and delegate
@@ -246,6 +248,51 @@ consumer-relative. Installed capability configs are fully resolved YAML, read by
 the ordinary component validators and runtimes. The `configurations` section of
 `composition.json` records each nested composition's values, provenance and package
 digests; changes to those inputs require an explicit update too.
+
+## Custom project environments
+
+The optional root `environment` contains `skills`, `programs`, `hooks` and
+`mcp_servers`. These fields have the same schema as the corresponding fields in
+[delegate profiles](README.md#delegation-profiles). For example:
+
+```yaml
+environment:
+  skills: [skills/project-guide]
+  programs:
+    helper: tools/helper
+  hooks:
+    guide:
+      event: SessionStart
+      program: helper
+      args: [context]
+      timeout_seconds: 10
+  mcp_servers:
+    project_tools:
+      program: helper
+      args: [mcp]
+      env:
+        API_KEY: PROJECT_TOOLS_TOKEN
+```
+
+External setup resolves resources relative to their declaring YAML file, including
+package origins. It installs custom skill directories under `.agents/skills` for
+native frontend discovery; `paths.skills` still selects the shipped worker guidance.
+Skill support files remain editable. Programs are copied with executable modes into
+the shared input bundle. Installed operation does not need the original package tree.
+Duplicate skill names, missing programs, unknown fields and unsupported hook events
+are configuration errors. MCP names `worker_review` and `worker_delegation` are
+reserved for the worker capabilities.
+
+Setup appends the chosen hooks to the mandatory worker routes and generates MCP
+registrations. The native `environment-hook NAME` and `environment-mcp NAME`
+adapters resolve the selected binding and replace themselves with its program;
+the frontend owns their stdio, process lifetime and hook timeout. Project hooks
+run with the project frontend's permissions. Delegate hooks instead run inside
+the delegate sandbox. Both use the same event contract and argv rendering.
+MCP credentials resolve from the named environment variables only when launched;
+setup and preview store references, never their values. Updating selections uses
+`upgrade plan --config`: removed managed MCP services are disabled and unrelated
+Codex settings are preserved. Custom hooks do not replace mandatory runner gates.
 
 ## Memory and recovery
 
@@ -321,5 +368,5 @@ and SessionStart expose technical recovery guidance without loading legacy task
 settings. Historical memory checks still read the committed legacy memory location
 so a format change cannot remove the prior decisions baseline.
 
-P004 remains in development: composed environments, the interactive master and
-complete delegate migration acceptance are outstanding.
+P004 remains in development: complete migration and independent consumer acceptance
+are outstanding; implemented setup and composition alone do not complete it.

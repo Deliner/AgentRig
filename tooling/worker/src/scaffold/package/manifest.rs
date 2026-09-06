@@ -72,6 +72,11 @@ fn ownership(path: &str, config: &Config) -> Ownership {
         || path.starts_with(&config.paths.service_path("review/config/"));
     let editable = (path.starts_with(&format!("{}/", config.paths.skills))
         && path.ends_with("/SKILL.md"))
+        || config
+            .environment
+            .skills
+            .iter()
+            .any(|skill| std::path::Path::new(path).starts_with(skill))
         || path.starts_with(&config.paths.service_path("hooks/"))
         || path.starts_with(&config.paths.service_path("review/prompts/"))
         || ["AGENTS.md", "justfile", ".codex/hooks.json"].contains(&path);

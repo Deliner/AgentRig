@@ -64,7 +64,7 @@ fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array 
     for profile in config.profiles.values() {
         names.extend(profile.credentials.codex_auth_file_env.as_deref());
         names.extend(profile.credentials.env.values().map(String::as_str));
-        for server in profile.mcp_servers.values() {
+        for server in profile.environment.mcp_servers.values() {
             names.extend(server.env.values().map(String::as_str));
         }
     }

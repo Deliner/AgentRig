@@ -1,8 +1,12 @@
 import json
+import shutil
+import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
-from support import CONFIG, invoke, project
+import yaml
+from support import CONFIG, file_contents, invoke, project
 from test_review import resources
 
 
@@ -104,3 +108,197 @@ def test_legacy_root_requires_explicit_migration(worker: Path, tmp_path: Path) -
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "explicit upgrade" in result.stderr and "no format fallback" in result.stderr
+
+
+ENVIRONMENT_PROGRAM = """#!/usr/bin/python3
+import json
+import os
+import sys
+mode = sys.argv[1]
+if mode == 'hook':
+    event = json.load(sys.stdin)
+    print(json.dumps({'hookSpecificOutput': {'hookEventName': event['hook_event_name'], 'additionalContext': sys.argv[2]}}))
+else:
+    for line in sys.stdin:
+        request = json.loads(line)
+        result = {'tools': [{'name': 'probe', 'inputSchema': {'type': 'object'}}], 'credential_received': os.environ.get('TOKEN') == 'fixture-value'}
+        print(json.dumps({'jsonrpc': '2.0', 'id': request['id'], 'result': result}), flush=True)
+"""
+
+
+def environment_declaration(worker: Path, root: Path) -> Path:
+    source = root / "declaration"
+    result = invoke(worker, source, "init")
+    assert result.returncode == 0, result.stderr
+    skill = source / "guide"
+    skill.mkdir()
+    (skill / "SKILL.md").write_text(
+        "---\nname: guide\ndescription: Guide for the configured environment probe.\n---\n"
+        "Use the configured probe service for this task.\n"
+    )
+    (skill / "support.txt").write_text("portable support")
+    program = source / "handler"
+    program.write_text(ENVIRONMENT_PROGRAM)
+    program.chmod(0o755)
+    path = source / "agentrig.yaml"
+    config = yaml.safe_load(path.read_text())
+    config["environment"] = {
+        "skills": ["guide"],
+        "programs": {"handler": "handler"},
+        "hooks": {
+            "guide": {
+                "event": "SessionStart",
+                "program": "handler",
+                "args": ["hook", "literal 'quotes' $(echo injection)"],
+                "timeout_seconds": 10,
+            }
+        },
+        "mcp_servers": {
+            "probe": {"program": "handler", "args": ["mcp"], "env": {"TOKEN": "PROBE_VALUE"}}
+        },
+    }
+    path.write_text(yaml.safe_dump(config))
+    return path
+
+
+def test_project_environment_installs_portable_skills_hooks_and_mcp(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    declaration = environment_declaration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    preview = invoke(worker, target, "setup", "--config", str(declaration), "--preview")
+    assert preview.returncode == 0, preview.stderr
+    registration = json.loads(preview.stdout)["registrations"]["codex"]["mcp_servers"]
+    assert registration["probe"]["env_vars"] == ["PROBE_VALUE"]
+    assert file_contents(target) == {}
+    applied = invoke(worker, target, "setup", "--config", str(declaration))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    assert (target / ".agents/skills/guide/support.txt").read_text() == "portable support"
+    shutil.rmtree(declaration.parent)
+    monkeypatch.setenv("PROBE_VALUE", "fixture-value")
+    verify_project_environment(target)
+    receipt = json.loads((target / ".agentrig/manifest.json").read_text())["files"]
+    assert receipt[".agents/skills/guide/support.txt"]["ownership"] == "editable"
+    (target / ".agents/skills/guide/support.txt").write_text("local support")
+    before = file_contents(target)
+    installed = target / ".agentrig/bin/agentrig"
+    repeated = invoke(installed, target, "setup")
+    assert repeated.returncode == 0, repeated.stdout + repeated.stderr
+    assert file_contents(target) == before
+    hook_file = target / ".codex/hooks.json"
+    hooks = json.loads(hook_file.read_text())
+    hooks["hooks"]["SessionStart"].pop()
+    hook_file.write_text(json.dumps(hooks))
+    assert invoke(installed, target, "doctor").returncode == 1
+
+
+def verify_project_environment(root: Path) -> None:
+    hooks = json.loads((root / ".codex/hooks.json").read_text())["hooks"]
+    assert len(hooks["SessionStart"]) == 2
+    assert hooks["PreToolUse"][0]["matcher"].startswith("Bash|")
+    command = hooks["SessionStart"][1]["hooks"][0]["command"]
+    result = subprocess.run(
+        ["sh", "-c", command],
+        cwd=root,
+        input=json.dumps({"hook_event_name": "SessionStart"}),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert (
+        json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
+        == "literal 'quotes' $(echo injection)"
+    )
+    config = tomllib.loads((root / ".codex/config.toml").read_text())
+    server = config["mcp_servers"]["probe"]
+    assert server["env_vars"] == ["PROBE_VALUE"]
+    result = subprocess.run(
+        [server["command"], *server["args"]],
+        cwd=root,
+        input=json.dumps({"id": 1, "method": "tools/list"}) + "\n",
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    response = json.loads(result.stdout)["result"]
+    assert response["tools"][0]["name"] == "probe"
+    assert response["credential_received"]
+
+
+@pytest.mark.parametrize("case", ["unknown-field", "reserved-server", "missing-program"])
+def test_invalid_project_environment_preserves_target(
+    worker: Path, tmp_path: Path, case: str
+) -> None:
+    declaration = environment_declaration(worker, tmp_path)
+    config = yaml.safe_load(declaration.read_text())
+    environment = config["environment"]
+    match case:
+        case "unknown-field":
+            environment["unknown"] = True
+        case "reserved-server":
+            environment["mcp_servers"]["worker_review"] = environment["mcp_servers"].pop("probe")
+        case "missing-program":
+            environment["hooks"]["guide"]["program"] = "missing"
+    declaration.write_text(yaml.safe_dump(config))
+    target = tmp_path / "target"
+    target.mkdir()
+    result = invoke(worker, target, "setup", "--config", str(declaration), "--preview")
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert file_contents(target) == {}
+
+
+@pytest.mark.parametrize("server_name", ["probe", "replacement"])
+def test_project_environment_update_and_rollback(
+    worker: Path, tmp_path: Path, server_name: str
+) -> None:
+    declaration = environment_declaration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    installed = invoke(worker, target, "setup", "--config", str(declaration))
+    assert installed.returncode == 0, installed.stdout + installed.stderr
+    settings = target / ".codex/config.toml"
+    settings.write_text(settings.read_text() + '\n[mcp_servers.unrelated]\ncommand = "external"\n')
+    paths = [
+        ".codex/config.toml",
+        ".codex/hooks.json",
+        "agentrig.yaml",
+        ".agents/skills/guide/support.txt",
+    ]
+    original = {path: (target / path).read_bytes() for path in paths}
+    config = yaml.safe_load(declaration.read_text())
+    environment = config["environment"]
+    environment["mcp_servers"] = {
+        server_name: {"program": "handler", "env": {"TOKEN": "NEW_TOKEN"}}
+    }
+    environment["hooks"]["guide"]["args"] = ["hook", "updated instruction"]
+    declaration.write_text(yaml.safe_dump(config))
+    (declaration.parent / "guide/support.txt").write_text("updated support")
+    plan = environment_update(worker, target, declaration)
+    shutil.rmtree(declaration.parent)
+    applied = invoke(worker, target, "upgrade", "apply", str(plan))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    servers = tomllib.loads(settings.read_text())["mcp_servers"]
+    assert servers["unrelated"] == {"command": "external"}
+    assert servers[server_name]["enabled"]
+    assert servers[server_name]["env_vars"] == ["NEW_TOKEN"]
+    renamed = server_name != "probe"
+    if renamed:
+        assert not servers["probe"]["enabled"]
+    assert (target / ".agents/skills/guide/support.txt").read_text() == "updated support"
+    rolled_back = invoke(worker, target, "upgrade", "rollback")
+    assert rolled_back.returncode == 0, rolled_back.stdout + rolled_back.stderr
+    assert {path: (target / path).read_bytes() for path in paths} == original
+
+
+def environment_update(worker: Path, target: Path, declaration: Path) -> Path:
+    result = invoke(worker, target, "upgrade", "plan", "--config", str(declaration))
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    plan = json.loads(path.read_text())
+    assert plan["files"][".codex/config.toml"]["action"] == "conflict"
+    plan["files"][".codex/config.toml"]["resolution"] = "replace"
+    path.write_text(json.dumps(plan))
+    return path

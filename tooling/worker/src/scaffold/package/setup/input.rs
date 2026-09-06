@@ -58,6 +58,7 @@ pub(super) fn external(path: &Path) -> Result<Prepared> {
     lint::prepare(&mut source, &mut config)?;
     review::prepare(&mut source, &mut config)?;
     delegation::prepare(&mut source, &mut config)?;
+    source.environment(&mut config)?;
     source.validate_packages()?;
     let files = source.files(&config)?;
     Ok(Prepared {

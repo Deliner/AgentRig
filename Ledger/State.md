@@ -8,17 +8,17 @@ Deliver all of P004 under the AgentRig goal in .tmp/agentrig-yaml-environments-p
 
 Branch: feature/agentrig-environments
 
-Revision: 8357b73
+Revision: e2aa532
 
 Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-Configured delegate hooks are committed. Current VAC checks package identities across the complete external assembly, including root and nested capability configurations. Different files or digests claiming one ID fail before installation; the same canonical package can be reused by multiple capability configurations. Project/delegate environment selection and complete migration/consumer acceptance remain required in P004.
+Assembly-wide package identity validation is committed. Current VAC shares the environment schema, resource validation and hook renderer between project setup and delegates. Project setup imports selected custom skills into .agents/skills and programs into its resource bundle, registers configured hooks/MCP, and preserves resources on repeat setup. Configuration updates include custom MCP additions/removals and preserve unrelated settings; rollback restores the previous environment. Complete migration and independent consumer acceptance remain required in P004.
 
 ## Verification
 
-Previous full gate passed 346 native and 46 Rust tests. All 23 package tests now pass, including root/nested and nested/nested identity conflicts preserving the consumer in preview and install, and reuse of the same package across configurations. Full staged gate remains pending. The real CLI hook smoke remains .tmp/agentrig-hooks-m77sxd4l (run-Qu33Mi, Codex 0.153.4, gpt-5.6-sol), with four events, blocking Stop repair, PASS and cleanup. Real 0.2.0 baseline remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
+All 66 focused project-environment and delegate config/run/code/MCP tests pass, and the hard lint check passes. Tests execute installed project hook/MCP adapters after deleting the declaration source, preserve edited skill support files on repeat setup, diagnose a removed custom hook, and verify configuration update/rollback. These adapter tests use fixture programs, not a real model. Full staged gate remains pending. Earlier real delegate hook smoke remains .tmp/agentrig-hooks-m77sxd4l (run-Qu33Mi); the current shared-renderer change still needs real frontend acceptance. Real 0.2.0 baseline remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit assembly-wide package identity checks through the staged full gate and correct failures. Complete reusable project/delegate environment selection and project custom hooks/skills/MCP. Finish migration acceptance including external resources and selected delegate ownership. Audit whole-configuration inspection against P004; verify independent Python/Rust consumers and real MCP/custom environment acceptance for all delegate modes before integration. Package identity consistency alone does not complete the goal.
+Commit the shared project/delegate environment VAC through the staged full gate and correct failures. Verify common-package reuse across project and delegate selections and real frontend discovery/execution of custom skills/hooks/MCP. Finish migration acceptance including external resources and selected delegate ownership. Audit whole-configuration inspection against P004; verify independent Python/Rust consumers and all delegate modes before integration. The environment VAC alone does not complete the goal.

@@ -35,7 +35,15 @@ fn codex(files: &Files, config: &Config) -> Result<Value> {
             config.capabilities.delegation.is_some(),
             "worker_delegation",
         ),
-    ] {
+    ]
+    .into_iter()
+    .chain(
+        config
+            .environment
+            .mcp_servers
+            .keys()
+            .map(|name| (true, name.as_str())),
+    ) {
         let server = settings
             .get("mcp_servers")
             .and_then(|servers| servers.get(name));

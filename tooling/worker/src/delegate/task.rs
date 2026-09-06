@@ -78,7 +78,7 @@ fn code_contract(request: &Request, profile: &Profile) -> Result<()> {
             );
             ensure!(
                 argv.first()
-                    .is_some_and(|program| profile.programs.contains_key(program)),
+                    .is_some_and(|program| profile.environment.programs.contains_key(program)),
                 "code check {name} must start with a configured program name"
             );
         }

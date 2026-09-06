@@ -24,6 +24,16 @@ impl Config {
         self.validate_commands(root)?;
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
+        self.environment
+            .clone()
+            .resolve(&root.join(FILE))
+            .context("environment")?;
+        for name in self.environment.mcp_servers.keys() {
+            ensure!(
+                !matches!(name.as_str(), "worker_review" | "worker_delegation"),
+                "environment.mcp_servers.{name} is reserved by AgentRig"
+            );
+        }
         self.validate_oracles()?;
         Ok(())
     }

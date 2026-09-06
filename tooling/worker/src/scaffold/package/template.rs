@@ -56,6 +56,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
+        environment: Default::default(),
         version: 1,
         processes: Default::default(),
         capabilities: config::Capabilities {
