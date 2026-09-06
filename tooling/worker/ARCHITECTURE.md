@@ -85,18 +85,25 @@ proof; remaining coverage is part of P006 delivery.
   modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
   paths and public item facades. Missing/ambiguous module files and alias cycles
   fail. Macro invocations/definitions, `#[path]`, block-local modules and unresolved
-  lexical/wildcard bindings require further analysis. Compiler/procedural expansion
-  is not implemented; conditional syntax is not evaluated for a selected build.
+  lexical/wildcard bindings require further analysis. Derive, conditional and
+  unknown attributes report incomplete expansion, including inner attributes.
+  Known nonexpanding metadata (`allow`, `warn`, `deny`, `forbid`, `doc`, `inline`,
+  `cold`, `must_use`, `deprecated`, `repr`, `non_exhaustive`, `test`, `ignore`,
+  `should_panic`, `track_caller`) remains supported. Compiler expansion and build
+  condition evaluation are not implemented.
 - **Python**: one import root, absolute/relative imports, regular package initializer
   chains and concrete namespace submodules, literal runtime imports. Package member
   ambiguity, package wildcard exports and namespace-only imports fail explicitly.
-  Runtime import alias tracking, initializer export analysis and runtime search-path
-  modification are not implemented. `.pyi` can be parsed but is not a runtime target
-  fallback.
+  Recognized loader import aliases and loader functions used as values report
+  incomplete binding/data-flow analysis. Initializer export analysis and runtime
+  search-path modification are not implemented. `.pyi` can be parsed but is not a
+  runtime target fallback.
 - **JavaScript** (`.js`, `.jsx`, `.mjs`, `.cjs`): static import/export and literal
   `import()`, `require()` and `require.resolve()`. Node imports require exact files;
   require searches Node extensions and relative package main/index. Dynamic strings,
-  encoded paths and unsupported package resolution fail.
+  encoded paths and unsupported package resolution fail. Loader values and the
+  `module`/`node:module` factory API report incomplete analysis; their alias and
+  factory bindings are not inferred.
 - **TypeScript** (`.ts`, `.tsx`, `.mts`, `.cts`): the same extraction plus type imports,
   exports and import-equals. Resolution uses the implemented bundler substitutions
   and relative package types/typings/main. NodeNext, tsconfig path aliases, module

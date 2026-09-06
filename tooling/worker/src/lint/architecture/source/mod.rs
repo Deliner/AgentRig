@@ -111,6 +111,18 @@ fn first_error(root: Node<'_>) -> Node<'_> {
 }
 
 impl Source<'_> {
+    fn loader_reference(&mut self, node: Node<'_>) {
+        let indirect = !node
+            .parent()
+            .is_some_and(|parent| parent.child_by_field_name("function") == Some(node));
+        if indirect {
+            self.unsupported(
+                node,
+                "module loader used as a value needs alias/data-flow analysis",
+            );
+        }
+    }
+
     fn text(&self, node: Node<'_>) -> &str {
         languages::text(node, self.text)
     }

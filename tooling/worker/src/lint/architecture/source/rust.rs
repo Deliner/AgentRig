@@ -18,7 +18,10 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
         "mod_item" => module(source, node),
         "function_item" | "struct_item" | "enum_item" | "union_item" | "type_item"
         | "trait_item" | "const_item" | "static_item" => item(source, node),
-        "attribute_item" => attribute(source, node),
+        "attribute_item" | "inner_attribute_item" => {
+            attribute(source, node);
+            return false;
+        }
         "macro_definition" => source.unsupported(
             node,
             "Rust macro definitions may generate dependencies; expansion is not analyzed",
@@ -205,12 +208,43 @@ fn item(source: &mut Source<'_>, node: Node<'_>) {
 }
 
 fn attribute(source: &mut Source<'_>, node: Node<'_>) {
-    let path_override = compact(source.text(node)).contains("path=");
+    let name = node
+        .named_children(&mut node.walk())
+        .find(|child| child.kind() == "attribute")
+        .and_then(|attribute| attribute.named_child(0))
+        .map(|name| source.text(name))
+        .unwrap_or("");
+    let path_override = name == "path";
     if path_override {
         source.unsupported(
             node,
             "Rust path attributes require explicit module resolution",
         );
+    } else {
+        let needs_expansion = !matches!(
+            name,
+            "allow"
+                | "warn"
+                | "deny"
+                | "forbid"
+                | "doc"
+                | "inline"
+                | "cold"
+                | "must_use"
+                | "deprecated"
+                | "repr"
+                | "non_exhaustive"
+                | "test"
+                | "ignore"
+                | "should_panic"
+                | "track_caller"
+        );
+        if needs_expansion {
+            source.unsupported(
+                node,
+                "Rust attribute or conditional expansion is not analyzed",
+            );
+        }
     }
 }
 

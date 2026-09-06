@@ -4,6 +4,7 @@ use tree_sitter::Node;
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
     match node.kind() {
         "import_statement" => {
+            loader_aliases(source, node, "");
             for name in names(source, node) {
                 source.record(node, Target::PythonModule(name));
             }
@@ -16,13 +17,42 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
                 .unwrap_or("")
                 .to_owned();
             let names = names(source, node);
+            loader_aliases(source, node, &module);
             source.record(node, Target::PythonFrom { module, names });
             return false;
         }
         "call" => dynamic(source, node),
+        "identifier" | "attribute" => {
+            let loader = matches!(
+                source.text(node),
+                "__import__" | "import_module" | "importlib.import_module"
+            );
+            if loader {
+                source.loader_reference(node);
+                return false;
+            }
+        }
         _ => {}
     }
     true
+}
+
+fn loader_aliases(source: &mut Source<'_>, node: Node<'_>, module: &str) {
+    let loader_module =
+        module == "importlib" || module.starts_with("importlib.") || module == "builtins";
+    for name in node.children_by_field_name("name", &mut node.walk()) {
+        let Some(original) = name.child_by_field_name("name") else {
+            continue;
+        };
+        let imported = source.text(original);
+        let loader = imported == "importlib"
+            || imported.starts_with("importlib.")
+            || imported == "builtins"
+            || (loader_module && matches!(imported, "import_module" | "__import__"));
+        if loader {
+            source.unsupported(name, "aliased Python module loader needs binding analysis");
+        }
+    }
 }
 
 fn names(source: &Source<'_>, node: Node<'_>) -> Vec<String> {

@@ -13,6 +13,13 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
             }
         }
         "call_expression" => call(source, node),
+        "identifier" | "member_expression" => {
+            let loader = matches!(source.text(node), "require" | "require.resolve");
+            if loader {
+                source.loader_reference(node);
+                return false;
+            }
+        }
         _ => {}
     }
     true
@@ -20,6 +27,13 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
 
 fn record(source: &mut Source<'_>, value: Node<'_>, loader: Loader) {
     if let Some(path) = source.literal(value) {
+        let factory_api = matches!(path.as_str(), "module" | "node:module");
+        if factory_api {
+            source.unsupported(
+                value,
+                "Node module API can create loaders; factory bindings are not analyzed",
+            );
+        }
         source.record(value, Target::JavaScriptModule { path, loader });
     }
 }
