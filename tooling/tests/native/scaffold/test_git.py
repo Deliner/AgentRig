@@ -4,6 +4,7 @@
 # DECISION: D010
 # DECISION: D003
 import json
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -11,6 +12,8 @@ import pytest
 from support import git as git_result
 from support import invoke, update_config
 from test_commands import background_id, require_user_systemd, wait_for_background_output
+from test_feedback import commit as revision_commit
+from test_feedback import evidence, repository, revision
 
 
 def git(root: Path, *args: str) -> str:
@@ -201,3 +204,72 @@ def background_commands(root: Path) -> None:
         config,
         commands={"wait": {"argv": argv}, "service": {"argv": argv.copy(), "lifetime": "shared"}},
     )
+
+
+def mercurial_gate(worker: Path, root: Path, command: str = "exit 0") -> None:
+    repository(root, "hg")
+    config = root / "agentrig.yaml"
+    config.write_text(config.read_text().replace("exit 23", command))
+    (root / "src/other.py").write_text("other = 1\n")
+    subprocess.run(["hg", "add", "src/other.py"], cwd=root, check=True, capture_output=True)
+    revision_commit(root, "hg")
+    (root / ".hg/hgrc").write_text(
+        "[hooks]\npretxncommit.agentrig = "
+        + shlex.quote(str(worker))
+        + " check --root "
+        + shlex.quote(str(root))
+        + ' --revision "$HG_NODE"\n'
+    )
+
+
+def hg_commit(root: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        ["hg", "commit", "-m", "candidate", "-u", "Test", "src/value.py"],
+        cwd=root,
+        text=True,
+        capture_output=True,
+        check=False,
+        timeout=30,
+    )
+
+
+def test_mercurial_transaction_gate_rolls_back_failures_and_preserves_unselected_work(
+    worker: Path, tmp_path: Path
+) -> None:
+    mercurial_gate(worker, tmp_path)
+    base = revision(tmp_path, "hg")
+    source = tmp_path / "src/value.py"
+    source.write_text("line\n" * 61)
+    unrelated = tmp_path / "src/other.py"
+    unrelated.write_text("unselected\n" * 61)
+    failed = hg_commit(tmp_path)
+    assert failed.returncode != 0, failed.stdout + failed.stderr
+    assert "exceeds 60" in failed.stdout
+    assert revision(tmp_path, "hg") == base
+    assert evidence(tmp_path)["code"] == 1
+    assert source.read_text() == "line\n" * 61
+    source.write_text("value = 2\n")
+    passed = hg_commit(tmp_path)
+    assert passed.returncode == 0, passed.stdout + passed.stderr
+    committed = revision(tmp_path, "hg")
+    assert committed != base
+    record = evidence(tmp_path)
+    assert record["revision"] == committed and record["status"] == "completed"
+    assert record["code"] == 0 and record["only"] is None
+    assert unrelated.read_text() == "unselected\n" * 61
+    selected = subprocess.check_output(["hg", "cat", "-r", committed, "src/other.py"], cwd=tmp_path)
+    assert selected == b"other = 1\n"
+
+
+def test_mercurial_transaction_rejects_a_check_that_mutates_its_export(
+    worker: Path, tmp_path: Path
+) -> None:
+    mercurial_gate(worker, tmp_path, "echo changed > src/value.py")
+    base = revision(tmp_path, "hg")
+    source = tmp_path / "src/value.py"
+    source.write_text("value = 2\n")
+    result = hg_commit(tmp_path)
+    assert result.returncode != 0, result.stdout + result.stderr
+    assert revision(tmp_path, "hg") == base
+    assert evidence(tmp_path)["status"] == "inputs-changed"
+    assert source.read_text() == "value = 2\n"

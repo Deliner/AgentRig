@@ -132,7 +132,7 @@ impl Attempt {
         });
         self.save()
     }
-    pub fn finish(&mut self, context: &Context, origin: &Path, code: i32) -> Result<()> {
+    pub fn finish(&mut self, context: &Context, origin: &Path, code: i32) -> Result<bool> {
         let fingerprint = self.record.fingerprint(context, origin)?;
         let revision = match self.exported_revision() {
             Some(revision) => Some(revision.to_owned()),
@@ -154,7 +154,8 @@ impl Attempt {
         }
         .into();
         self.record.code = Some(code);
-        self.save()
+        self.save()?;
+        Ok(stable)
     }
     fn save(&self) -> Result<()> {
         let directory = self.path.parent().expect("runtime file parent");

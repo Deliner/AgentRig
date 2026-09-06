@@ -69,7 +69,11 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
     );
     let mut attempt = super::evidence::Attempt::start(&context, root, input, only)?;
     let code = execute_checks(&context, root, &mut attempt, only)?;
-    attempt.finish(&context, root, code)?;
+    let stable = attempt.finish(&context, root, code)?;
+    ensure!(
+        stable || options.revision.is_none(),
+        "checked revision inputs changed; repair the check so it preserves its source inputs"
+    );
     Ok(code)
 }
 

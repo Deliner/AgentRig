@@ -286,7 +286,9 @@ def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_expor
     assert resumed(worker, tmp_path)["checks"]["full_gate_passed"]
     config.write_text(config.read_text().replace("exit 0", "echo changed > src/value.py"))
     changing = commit(tmp_path, vcs)
-    assert invoke(worker, tmp_path, "check", "--revision", changing).returncode == 0
+    result = invoke(worker, tmp_path, "check", "--revision", changing)
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "checked revision inputs changed" in result.stderr
     assert evidence(tmp_path)["status"] == "inputs-changed"
     assert not resumed(worker, tmp_path)["checks"]["full_gate_passed"]
     assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
