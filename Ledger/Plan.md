@@ -17,3 +17,6 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P003](Plan/003.md) | complete | P002 | Discoverable lint and managed delegation | Configure rules and specialized workers, inspect owned processes, and obtain isolated verified reports, artifacts and code changes. |
 | [P004](Plan/004.md) | complete | P003 | Composable AgentRig environments | Assemble, install and migrate YAML-configured project and delegate environments from reusable packages, with custom skills and hooks. |
 | [P005](Plan/005.md) | complete | P004 | Stable development and public distribution | Develop AgentRig with an independently installed verified runtime and obtain the portable worker from GitHub under MIT. |
+| [P006](Plan/006.md) | pending | P005 | Directory architecture contracts and lint | Describe directory responsibilities and boundaries, detect forbidden dependencies and cycles across languages, and receive architectural repair guidance. |
+| [P007](Plan/007.md) | pending | P005 | Extensible version control support | Use AgentRig with Git and another VCS, and connect a private implementation without publishing its code. |
+| [P008](Plan/008.md) | pending | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and a second client from shared environment declarations. |
