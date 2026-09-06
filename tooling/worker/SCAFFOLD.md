@@ -46,6 +46,17 @@ override and existing job owner/parent identifiers. Use the same WORKER_OWNER af
 reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
 asynchronously and their own timeouts remain profile settings. Doctor requires
 working systemd scopes, bubblewrap and native Codex when delegation is enabled.
+`agentrig init --interactive --root CONSUMER` starts the setup wizard. It asks for
+the project directory, language, service/source/memory/skills paths, Git naming,
+review, an optional existing delegate-profile YAML path relative to the project,
+and selected checks. Enter accepts defaults. `cancel`, EOF or declining the final
+confirmation leaves the target untouched, including when its directory is absent.
+The wizard shows ordinary `agentrig.yaml` and the shared setup preview before
+writing. It uses the same templates, validators, reconciliation and installation
+as declarative setup; no separate settings database is created. Existing projects
+with `agentrig.yaml` use setup or upgrade instead. Bare `init` and setup remain
+fully noninteractive. Dependency diagnostics still run after installation.
+
 `agentrig setup --root CONSUMER` reads the existing declaration and
 prepares the environment. To obtain a starting declaration and assets, use
 `init --root CONSUMER --review true`, edit the generated settings, then run setup.
@@ -213,8 +224,7 @@ Configuration updates retain the runtime version, service directory and recovery
 runtime location. Use a release upgrade for a runtime version change. A subsequent
 configuration update archives the completed recovery operation; rollback targets
 the latest operation. Invalid or stale plans cannot replace that recovery record.
-The interactive wizard and shared custom delegate environment assembly remain
-under development in P004.
+Shared custom delegate environment assembly remains under development in P004.
 
 The external setup/update builder also resolves `packages` and `overrides` in
 lint policies, review runner settings, review material settings and delegate

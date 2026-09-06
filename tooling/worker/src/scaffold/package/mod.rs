@@ -7,6 +7,7 @@ mod review;
 pub(super) mod setup;
 pub use setup::run as setup;
 mod template;
+mod wizard;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};
 pub use doctor::run as doctor;
@@ -18,6 +19,11 @@ use std::{
 };
 type Files = BTreeMap<String, Vec<u8>>;
 pub fn init(root: &Path, args: &[String]) -> Result<i32> {
+    let interactive = args == ["--interactive"];
+    if interactive {
+        return wizard::run(root);
+    }
+    reject_legacy(root)?;
     let options = template::options(root, args)?;
     let config = template::config(&options);
     let files = bundle(&config)?;
@@ -50,6 +56,13 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
         config::VERSION
     );
     Ok(0)
+}
+fn reject_legacy(root: &Path) -> Result<()> {
+    ensure!(
+        !root.join(super::upgrade::migration::LEGACY_FILE).exists(),
+        "legacy installation requires explicit upgrade; existing configuration preserved"
+    );
+    Ok(())
 }
 fn bundle(config: &Config) -> Result<Files> {
     let skill_root = &config.paths.skills;

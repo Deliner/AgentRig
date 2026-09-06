@@ -27,7 +27,7 @@ struct Source {
 pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
     match path {
         Some(path) => {
-            let prepared = external(root, path)?;
+            let prepared = external(path)?;
             unchanged(root, &prepared.config, &prepared.files)?;
             Ok(prepared)
         }
@@ -43,11 +43,7 @@ pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
     }
 }
 
-pub(super) fn external(root: &Path, path: &Path) -> Result<Prepared> {
-    ensure!(
-        !root.join("worker.toml").exists(),
-        "legacy installation requires explicit upgrade before external setup"
-    );
+pub(super) fn external(path: &Path) -> Result<Prepared> {
     let resolved = composition::resolve(path)?;
     let mut config: Config = review_runner::config::yaml::decode(
         &review_runner::config::yaml::encode(&resolved.configuration)?,

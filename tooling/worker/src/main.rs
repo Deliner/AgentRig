@@ -62,12 +62,19 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
         .map(PathBuf::from)
         .unwrap_or(env::current_dir()?);
     let initializing = command == "init";
+    let interactive = initializing && args.iter().any(|arg| arg == "--interactive");
+    if interactive {
+        return util::resolve(&env::current_dir()?.join(root));
+    }
     if initializing {
         std::fs::create_dir_all(&root)?;
     }
     root.canonicalize().map_err(Into::into)
 }
 fn print_help() {
+    println!(
+        "init --interactive [--root PATH]: choose settings, inspect YAML and setup preview, then confirm installation"
+    );
     println!(
         "setup [--config CONFIG_YAML] --preview: inspect prepared file changes, registrations and dependencies without installing"
     );

@@ -9,7 +9,8 @@ use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 
 pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
-    let mut prepared = input::external(root, path)?;
+    super::reject_legacy(root)?;
+    let mut prepared = input::external(path)?;
     let current = config::read(root)?;
     ensure!(
         prepared.config.runtime == current.runtime,
@@ -36,6 +37,21 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     );
     let prepared = input::prepare(root, external.as_deref())?;
     let config = &prepared.config;
+    let installation = prepare(root, config, prepared.files.clone())?;
+    prepared.verify()?;
+    if preview {
+        print_preview(root, config, &installation)?;
+        return Ok(0);
+    }
+    install(root, config, &installation)
+}
+
+pub(super) fn prepare(
+    root: &Path,
+    config: &Config,
+    files: Files,
+) -> Result<reconcile::Installation> {
+    super::reject_legacy(root)?;
     ensure!(
         config.runtime == config::VERSION,
         "setup needs the pinned runtime; use upgrade for a release change"
@@ -44,20 +60,23 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     if installed {
         crate::scaffold::upgrade::recovery::guard(root)?;
     }
-    let files = prepared.files.clone();
     let mut installation =
         reconcile::Installation::prepare(root, files, &config.paths.service_path("manifest.json"))?;
     preview::validate(root, config, &installation.files)?;
     registration::configure(root, config, &mut installation.files)?;
-    prepared.verify()?;
-    if preview {
-        println!(
-            "{}",
-            serde_json::to_string_pretty(&report::prepared(root, config, &installation)?)?
-        );
-        return Ok(0);
-    }
-    install(root, config, &installation)
+    Ok(installation)
+}
+
+pub(super) fn print_preview(
+    root: &Path,
+    config: &Config,
+    installation: &reconcile::Installation,
+) -> Result<()> {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&report::prepared(root, config, installation)?)?
+    );
+    Ok(())
 }
 
 fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
@@ -67,12 +86,16 @@ fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
     }
 }
 
-fn install(root: &Path, config: &Config, installation: &reconcile::Installation) -> Result<i32> {
+pub(super) fn install(
+    root: &Path,
+    config: &Config,
+    installation: &reconcile::Installation,
+) -> Result<i32> {
+    installation.apply(root)?;
     let fresh_git = !root.join(".git").exists();
     if fresh_git {
         crate::util::git(root, &["init", "-q", "-b", &config.git.base])?;
     }
-    installation.apply(root)?;
     fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
     if let Some(review) = &config.capabilities.review {
         let review = review_runner::config::load(&config::relative(root, &review.config)?)?;
