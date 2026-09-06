@@ -1,11 +1,15 @@
-use super::{Source, Target};
+use super::{Loader, Source, Target};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
     match node.kind() {
         "import_statement" | "export_statement" | "import_require_clause" => {
             if let Some(value) = node.child_by_field_name("source") {
-                record(source, value);
+                let loader = match node.kind() {
+                    "import_require_clause" => Loader::Require,
+                    _ => Loader::Import,
+                };
+                record(source, value, loader);
             }
         }
         "call_expression" => call(source, node),
@@ -14,9 +18,9 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
     true
 }
 
-fn record(source: &mut Source<'_>, value: Node<'_>) {
+fn record(source: &mut Source<'_>, value: Node<'_>, loader: Loader) {
     if let Some(path) = source.literal(value) {
-        source.record(value, Target::JavaScriptModule(path));
+        source.record(value, Target::JavaScriptModule { path, loader });
     }
 }
 
@@ -24,16 +28,17 @@ fn call(source: &mut Source<'_>, node: Node<'_>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
-    let loader = matches!(
-        source.text(function),
-        "import" | "require" | "require.resolve"
-    );
-    if loader {
+    let loader = match source.text(function) {
+        "import" => Some(Loader::Import),
+        "require" | "require.resolve" => Some(Loader::Require),
+        _ => None,
+    };
+    if let Some(loader) = loader {
         let argument = node
             .child_by_field_name("arguments")
             .and_then(|args| args.named_child(0));
         match argument {
-            Some(value) => record(source, value),
+            Some(value) => record(source, value, loader),
             None => source.unsupported(node, "module loading call has no static argument"),
         }
     }

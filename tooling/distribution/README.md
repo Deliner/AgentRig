@@ -2,7 +2,7 @@
 
 The repository uses the verified revision in [stable.txt](stable.txt) for development commands, Git hooks and agent hooks. `just bootstrap` builds that exact Git tree and installs it through the existing `init` command under `.cache/development/<revision>`. It never builds the current checkout as a fallback. Generated installations are local and excluded from publication.
 
-After cloning the full Git history, install the prerequisites listed in the scaffold guide, Rust 1.98.1 and uv. Run `just bootstrap`, then `just resume`. Bootstrap is the explicit shell entrypoint available before the worker exists. It registers the repository's .githooks and rejects a different existing hooksPath. Repeating it retains the same installation.
+After cloning the full Git history, install the prerequisites listed in the scaffold guide, Rust 1.98.1, uv and Node.js (module-resolution tests verified with 22.22.3). Node is a test dependency; the distributed linter runs natively. Run `just bootstrap`, then `just resume`. Bootstrap is the explicit shell entrypoint available before the worker exists. It registers the repository's .githooks and rejects a different existing hooksPath. Repeating it retains the same installation.
 
 `just candidate --version` builds the current product through tooling/worker/build. Its cache is `.cache/worker`; native tests always select the candidate. `just run test -- PATH` performs focused tests. Commits run the complete exported-index gate, and `just feature-merge` verifies integration. `tooling/worker/run` performs no compilation. Repository configuration, memory and canonical skill sources remain versioned project policy.
 

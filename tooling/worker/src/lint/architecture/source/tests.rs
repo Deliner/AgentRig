@@ -1,4 +1,4 @@
-use super::{Reference, References, Target, extract};
+use super::{Loader, Reference, References, Target, extract};
 use std::path::Path;
 
 fn parse(path: &str, text: &str) -> References {
@@ -18,6 +18,13 @@ fn rust_path(path: &str) -> Target {
     Target::RustPath {
         path: path.into(),
         scope: Vec::new(),
+    }
+}
+
+fn javascript(path: &str, loader: Loader) -> Target {
+    Target::JavaScriptModule {
+        path: path.into(),
+        loader,
     }
 }
 
@@ -159,8 +166,12 @@ fn javascript_static_import_export_require_and_import_call() {
     let result = parse("app.mjs", source);
     assert_eq!(
         targets(&result),
-        ["./domain.js", "./api.js", "./store.cjs", "./lazy.js"]
-            .map(|path| Target::JavaScriptModule(path.into()))
+        [
+            javascript("./domain.js", Loader::Import),
+            javascript("./api.js", Loader::Import),
+            javascript("./store.cjs", Loader::Require),
+            javascript("./lazy.js", Loader::Import),
+        ]
     );
     assert_eq!(
         result.items.iter().map(|r| r.line).collect::<Vec<_>>(),
@@ -174,8 +185,12 @@ fn typescript_type_imports_exports_and_import_equals() {
     let result = parse("app.ts", source);
     assert_eq!(
         targets(&result),
-        ["./model", "./other", "./store", "./types"]
-            .map(|path| Target::JavaScriptModule(path.into()))
+        [
+            javascript("./model", Loader::Import),
+            javascript("./other", Loader::Import),
+            javascript("./store", Loader::Require),
+            javascript("./types", Loader::Import),
+        ]
     );
 }
 
@@ -185,12 +200,12 @@ fn jsx_tsx_and_declaration_files_use_their_actual_grammar() {
         let source = "import Widget from './widget'; const view = <Widget/>;";
         assert_eq!(
             targets(&parse(&format!("view.{extension}"), source)),
-            [Target::JavaScriptModule("./widget".into())]
+            [javascript("./widget", Loader::Import)]
         );
     }
     assert_eq!(
         targets(&parse("types.d.ts", "export {T} from './domain';")),
-        [Target::JavaScriptModule("./domain".into())]
+        [javascript("./domain", Loader::Import)]
     );
 }
 

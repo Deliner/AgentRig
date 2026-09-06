@@ -17,7 +17,13 @@ pub enum Target {
     RustModule { path: Vec<String>, inline: bool },
     PythonModule(String),
     PythonFrom { module: String, names: Vec<String> },
-    JavaScriptModule(String),
+    JavaScriptModule { path: String, loader: Loader },
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Loader {
+    Import,
+    Require,
 }
 
 #[derive(Debug, PartialEq, Eq)]

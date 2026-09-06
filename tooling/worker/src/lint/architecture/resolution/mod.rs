@@ -1,4 +1,5 @@
 //! Resolve references against the source inventory without executing project code.
+pub mod javascript;
 pub mod python;
 
 use std::{collections::BTreeSet, path::PathBuf};
