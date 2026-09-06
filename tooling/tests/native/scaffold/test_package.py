@@ -244,6 +244,34 @@ def verify_external_resources(target: Path) -> None:
     assert (profiles.parent / reader["skills"][0] / "SKILL.md").is_file()
 
 
+def test_imported_review_outputs_are_ignored_but_inputs_remain_visible(
+    worker: Path, tmp_path: Path
+) -> None:
+    declaration = external_configuration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    installed = invoke(worker, target, "setup", "--config", str(declaration))
+    assert installed.returncode == 0, installed.stdout + installed.stderr
+    config = yaml.safe_load((target / "agentrig.yaml").read_text())
+    path = target / config["capabilities"]["review"]["config"]
+    review = yaml.safe_load(path.read_text())
+    for name in ["runtime_root", "report_root"]:
+        output = (path.parent / review["runner"][name]).resolve()
+        assert output.is_dir()
+        artifact = output / "review-evidence.json"
+        artifact.write_text("{}\n")
+        assert git_ignored(target, artifact)
+    assert not git_ignored(target, path)
+    for reviewer in review["reviewers"].values():
+        assert not git_ignored(target, (path.parent / reviewer["prompt"]).resolve())
+
+
+def git_ignored(root: Path, path: Path) -> bool:
+    result = subprocess.run(["git", "check-ignore", "--quiet", str(path)], cwd=root, check=False)
+    assert result.returncode in [0, 1]
+    return result.returncode == 0
+
+
 @pytest.mark.parametrize("case", ["missing-prompt", "linked-skill", "changed-package"])
 def test_external_setup_rejects_invalid_inputs_without_writing(
     worker: Path, tmp_path: Path, case: str

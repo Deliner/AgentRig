@@ -194,6 +194,11 @@ missing custom resources are errors. Secrets remain environment references.
 The installed root declaration contains resolved portable resource references.
 `composition.json` records configuration provenance and source/resource digests;
 runtime operation and ordinary repeated setup do not require the source tree.
+Relative review output paths remain relative to the installed review configuration.
+The shipped `../runtime` and `../reports` defaults therefore use `inputs/runtime`
+and `inputs/reports` after import; the service's `.gitignore` excludes these outputs
+while retaining configuration and prompt inputs. Projects choosing other output
+paths manage their Git exclusions as part of their own repository settings.
 Repeating external setup accepts identical inputs. Changed external inputs require
 `agentrig upgrade plan --config /path/to/agentrig.yaml --root CONSUMER`.
 It uses the same resource builder and writes a reviewed `plan.json` and `diff.txt`

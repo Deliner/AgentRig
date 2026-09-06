@@ -99,7 +99,7 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
 fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     files.insert(
         config.paths.service_path(".gitignore"),
-        b"runtime/\n".to_vec(),
+        b"runtime/\n/inputs/runtime/\n/inputs/reports/\n".to_vec(),
     );
     files.insert(
         config.paths.service_path("bin/agentrig"),
