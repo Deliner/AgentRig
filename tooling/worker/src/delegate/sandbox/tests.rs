@@ -112,3 +112,59 @@ test \"$guide\" = 'original guide'
 test ! -x /codex/skills/guide/SKILL.md
 "
 }
+
+#[test]
+fn configured_hooks_use_read_only_programs_and_literal_arguments() {
+    let root = tempfile::tempdir().unwrap();
+    let layout = fixture(root.path());
+    let argument = "spaces 'quotes' $(echo expansion) ; exit 1";
+    let profile = hook_profile(root.path(), argument);
+    prepare(&layout, &profile).unwrap();
+    let value: toml::Value =
+        toml::from_str(&fs::read_to_string(layout.private.join("codex/config.toml")).unwrap())
+            .unwrap();
+    assert_eq!(value["features"]["hooks"].as_bool(), Some(true));
+    let hook = value["hooks"]["SessionStart"][0]["hooks"][0]["command"]
+        .as_str()
+        .unwrap();
+    let output = base(&layout, &profile)
+        .unwrap()
+        .args(["/bin/sh", "-c", hook])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(layout.private.join("work/hook-output")).unwrap(),
+        argument
+    );
+    assert!(
+        command(&layout, &profile)
+            .unwrap()
+            .get_args()
+            .any(|arg| arg == "--dangerously-bypass-hook-trust")
+    );
+}
+
+fn hook_profile(root: &Path, argument: &str) -> Profile {
+    let mut profile = profile();
+    let script = root.join("hook");
+    fs::write(
+        &script,
+        "#!/bin/sh\nprintf '%s' \"$1\" > /work/hook-output\n",
+    )
+    .unwrap();
+    fs::set_permissions(&script, fs::Permissions::from_mode(0o755)).unwrap();
+    profile.programs.insert("hook".into(), script);
+    profile.hooks.insert(
+        "observe".into(),
+        serde_json::from_value(json!({
+            "event":"SessionStart", "program":"hook", "args":[argument], "timeout_seconds":10
+        }))
+        .unwrap(),
+    );
+    profile
+}

@@ -1,3 +1,4 @@
+pub mod hooks;
 mod validation;
 
 use anyhow::{Context, Result, ensure};
@@ -32,6 +33,8 @@ pub struct Profile {
     pub programs: BTreeMap<String, PathBuf>,
     #[serde(default)]
     pub mcp_servers: BTreeMap<String, McpServer>,
+    #[serde(default)]
+    pub hooks: BTreeMap<String, hooks::Hook>,
     pub credentials: Credentials,
 }
 

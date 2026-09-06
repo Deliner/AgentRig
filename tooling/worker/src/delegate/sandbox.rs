@@ -84,21 +84,24 @@ fn base(layout: &Layout, profile: &Profile) -> Result<Command> {
 }
 
 fn executor(command: &mut Command, profile: &Profile) {
-    command
-        .args([
-            "/codex-cli",
-            "exec",
-            "--ignore-rules",
-            "--ephemeral",
-            "--skip-git-repo-check",
-            "--dangerously-bypass-approvals-and-sandbox",
-            "--json",
-            "--output-schema",
-            "/delegate-input/schema.json",
-            "--output-last-message",
-            "/work/result.json",
-        ])
-        .arg(instructions(profile));
+    command.args([
+        "/codex-cli",
+        "exec",
+        "--ignore-rules",
+        "--ephemeral",
+        "--skip-git-repo-check",
+        "--dangerously-bypass-approvals-and-sandbox",
+        "--json",
+        "--output-schema",
+        "/delegate-input/schema.json",
+        "--output-last-message",
+        "/work/result.json",
+    ]);
+    let configured_hooks = !profile.hooks.is_empty();
+    if configured_hooks {
+        command.arg("--dangerously-bypass-hook-trust");
+    }
+    command.arg(instructions(profile));
 }
 
 fn instructions(profile: &Profile) -> String {

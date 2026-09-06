@@ -27,6 +27,7 @@ pub(super) fn profile(config: &Path, name: &str, profile: &mut Profile) -> Resul
     );
     skills(config, &mut profile.skills)?;
     programs(config, profile)?;
+    super::hooks::validate(&profile.hooks, &profile.programs)?;
     credentials(&profile.credentials)?;
     for (name, server) in &profile.mcp_servers {
         ensure!(identifier(name), "invalid MCP server name {name}");

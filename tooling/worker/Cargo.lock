@@ -161,6 +161,7 @@ dependencies = [
  "globset",
  "jsonschema",
  "libc",
+ "regex",
  "review-runner",
  "serde",
  "serde_json",

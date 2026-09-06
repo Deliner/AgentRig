@@ -188,7 +188,11 @@ def external_configuration(worker: Path, root: Path) -> Path:
     program.chmod(0o755)
     profiles = agents / "profiles.yaml"
     config = yaml.safe_load(profiles.read_text())
-    config["profiles"]["reader"].update(skills=["special"], programs={"asset": "tool.sh"})
+    config["profiles"]["reader"].update(
+        skills=["special"],
+        programs={"asset": "tool.sh"},
+        hooks={"notify": {"event": "SessionStart", "program": "asset", "timeout_seconds": 10}},
+    )
     profiles.write_text(yaml.safe_dump(config))
     package = root / "package.yaml"
     package.write_text(
@@ -242,6 +246,7 @@ def verify_external_resources(target: Path) -> None:
     reader = yaml.safe_load(profiles.read_text())["profiles"]["reader"]
     assert (profiles.parent / reader["programs"]["asset"]).stat().st_mode & 0o111
     assert (profiles.parent / reader["skills"][0] / "SKILL.md").is_file()
+    assert reader["hooks"]["notify"]["program"] == "asset"
 
 
 def test_imported_review_outputs_are_ignored_but_inputs_remain_visible(
@@ -332,6 +337,7 @@ def test_capability_packages_preserve_resource_origins(worker: Path, tmp_path: P
     delegate = target / root["capabilities"]["delegation"]["config"]
     profile = yaml.safe_load(delegate.read_text())["profiles"]["reader"]
     assert profile["model"] == "project-model"
+    assert profile["hooks"]["notify"]["event"] == "SessionStart"
     assert (delegate.parent / profile["prompt"]).is_file()
     policy = yaml.safe_load((target / root["paths"]["lint"]).read_text())
     assert "selected package rule" in (target / policy["rules"][0]["error_skill"]).read_text()

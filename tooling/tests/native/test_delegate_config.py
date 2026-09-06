@@ -106,3 +106,56 @@ def test_invalid_profile_configuration(
     result = check(worker, tmp_path, CONFIG.replace(old, new))
     assert result.returncode != 0
     assert message in result.stderr
+
+
+HOOK = """    hooks:
+      reminder:
+        event: SessionStart
+        program: python
+        args: ["--version"]
+        timeout_seconds: 10
+"""
+
+
+@pytest.mark.parametrize("event", ["SessionStart", "PreToolUse", "PostToolUse", "Stop"])
+def test_supported_command_hooks_validate(worker: Path, tmp_path: Path, event: str) -> None:
+    result = check(worker, tmp_path, CONFIG + HOOK.replace("SessionStart", event))
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        ("SessionStart", "UnsupportedEvent", "unknown variant"),
+        ("program: python", "program: missing", "hook reminder references unknown program"),
+        (
+            "event: SessionStart",
+            'event: SessionStart\n        matcher: "["',
+            "hook reminder matcher",
+        ),
+        (
+            "event: SessionStart",
+            'event: Stop\n        matcher: "*"',
+            "Stop does not support matcher",
+        ),
+        ("timeout_seconds: 10", "timeout_seconds: 0", "hook reminder timeout_seconds"),
+        ("timeout_seconds: 10", "timeout_seconds: '10'", "hooks.reminder.timeout_seconds"),
+        ("event: SessionStart", "event: SessionStart\n        async: true", "unknown field"),
+    ],
+)
+def test_hook_errors_are_actionable(
+    worker: Path, tmp_path: Path, case: tuple[str, str, str]
+) -> None:
+    old, new, message = case
+    result = check(worker, tmp_path, CONFIG + HOOK.replace(old, new))
+    assert result.returncode != 0
+    assert message in result.stderr
+
+
+@pytest.mark.parametrize("matcher", ["*", "", "^startup$", "Bash|apply_patch"])
+def test_hook_matchers_validate(worker: Path, tmp_path: Path, matcher: str) -> None:
+    config = CONFIG + HOOK.replace(
+        "event: SessionStart", f'event: SessionStart\n        matcher: "{matcher}"'
+    )
+    result = check(worker, tmp_path, config)
+    assert result.returncode == 0, result.stderr

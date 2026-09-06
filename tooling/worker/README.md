@@ -237,6 +237,13 @@ profiles:
     skills: ["skills/project-guide"]
     programs:
       python: /usr/bin/python3
+    hooks:
+      inspect_shell:
+        event: PreToolUse
+        program: python
+        args: ["-c", "print('{}')"]
+        matcher: "^Bash$"
+        timeout_seconds: 10
     credentials:
       codex_auth_file_env: PROJECT_CODEX_AUTH_FILE
     mcp_servers:
@@ -256,6 +263,25 @@ Visible-path globs describe project inputs, not configuration resource paths.
 Timeout is required and positive; memory_bytes and max_processes are optional
 positive limits. Memory and process limits apply to the entire systemd scope;
 the Linux process limit counts threads too. Program, skill and server maps can be omitted when unused.
+
+`hooks` is an optional map of stable handler IDs. AgentRig currently supports
+synchronous command hooks for `SessionStart`, `PreToolUse`, `PostToolUse` and `Stop`.
+Each handler references a declared program, accepts literal argv through `args`
+and requires a positive `timeout_seconds`. Unsupported events and handler fields,
+unknown programs and invalid matcher regexes are configuration errors. Omit
+`matcher`, or use an empty string or `*`, to match all occurrences. Stop does not
+support filtering, so a Stop matcher is rejected. Hooks and their program bytes
+can be shared through the same profile configuration packages.
+
+Codex supplies JSON on stdin and interprets hook stdout using its
+[event-specific hook contract](https://learn.chatgpt.com/docs/hooks).
+The runner enables and trusts only the selected inline hook configuration in the
+isolated Codex home. Programs run inside the delegate sandbox and share its
+deadline and process limits. Frontend hook failures are not mandatory delivery
+gates: contracted results and code checks remain independently verified by the
+runner. Profiles with no hooks keep the frontend hook feature disabled.
+The four events and a blocking Stop repair were exercised with real Codex CLI
+0.153.4 and gpt-5.6-sol on Linux; temporary files were removed after verification.
 
 Credential values are environment-variable references, never secret values.
 codex_auth_file_env names a variable containing the auth.json path at execution;
@@ -291,7 +317,7 @@ installed file hashes and executable flags, and status/result includes it as
 `environment` after temporary files have been cleaned. Host checkout,
 home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
-Codex configuration is read-only, disables hooks and contains only the configured
+Codex configuration is read-only and contains only the configured hooks and
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
 fixtures verify execution and limits. A real Codex read task has passed through
 the configured MCP in an independent consumer, including input reading, result

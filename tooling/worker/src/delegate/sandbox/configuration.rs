@@ -14,7 +14,8 @@ pub(super) fn write(layout: &Layout, profile: &Profile) -> Result<()> {
         );
     }
     let config = json!({"model":profile.model,"model_reasoning_effort":profile.reasoning_effort,
-        "features":{"hooks":false},"mcp_servers":servers});
+        "features":{"hooks":!profile.hooks.is_empty()},"mcp_servers":servers,
+        "hooks":super::super::config::hooks::configuration(&profile.hooks)});
     fs::write(
         layout.private.join("codex/config.toml"),
         toml::to_string(&config)?,
