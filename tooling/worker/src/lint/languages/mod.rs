@@ -1,5 +1,8 @@
 mod python;
+mod registry;
 mod rust;
+use super::rules::Kind;
+pub use registry::{HANDLERS, handler};
 
 use anyhow::{Context, Result};
 use std::path::Path;
@@ -7,7 +10,7 @@ use tree_sitter::{Node, Parser};
 
 // DECISION: D017
 pub struct Measurement {
-    pub kind: &'static str,
+    pub kind: Kind,
     pub line: usize,
     pub symbol: String,
     pub actual: u64,
@@ -17,14 +20,15 @@ pub struct Analysis {
     pub parse_error: Option<usize>,
 }
 pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
-    let language = match path.extension().and_then(|ext| ext.to_str()) {
-        Some("rs") => tree_sitter_rust::LANGUAGE,
-        Some("py" | "pyi") => tree_sitter_python::LANGUAGE,
-        Some("sh") => tree_sitter_bash::LANGUAGE,
-        _ => return Ok(None),
+    let language = match handler(path) {
+        Some(handler) => (handler.grammar)(),
+        None if path.extension().is_some_and(|extension| extension == "sh") => {
+            tree_sitter_bash::LANGUAGE.into()
+        }
+        None => return Ok(None),
     };
     let mut parser = Parser::new();
-    parser.set_language(&language.into())?;
+    parser.set_language(&language)?;
     Ok(Some(
         parser
             .parse(source, None)
@@ -32,7 +36,7 @@ pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
     ))
 }
 pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
-    let is_rust = path.extension().is_some_and(|ext| ext == "rs");
+    let handler = handler(path).context("unsupported source language")?;
     let tree = parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
         measurements: Vec::new(),
@@ -49,11 +53,7 @@ pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
         }
         let inspect = valid && node.is_named();
         if inspect {
-            if is_rust {
-                rust::inspect(node, source, &mut analysis.measurements);
-            } else {
-                python::inspect(node, source, &mut analysis.measurements);
-            }
+            (handler.inspect)(node, source, &mut analysis.measurements);
         }
         let mut cursor = node.walk();
         pending.extend(
@@ -93,7 +93,7 @@ pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measureme
     let invalid = !named_value(condition);
     if invalid {
         output.push(Measurement {
-            kind: "named-if-condition",
+            kind: Kind::NamedIfCondition,
             line: node.start_position().row + 1,
             symbol: "if".into(),
             actual: 1,
@@ -106,7 +106,7 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
         .map(|name| text(name, source))
         .unwrap_or("<anonymous>");
     output.push(Measurement {
-        kind: "parameter-count",
+        kind: Kind::ParameterCount,
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: count,
@@ -114,7 +114,7 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
     let has_body = node.child_by_field_name("body").is_some();
     if has_body {
         output.push(Measurement {
-            kind: "function-lines",
+            kind: Kind::FunctionLines,
             line: node.start_position().row + 1,
             symbol: symbol.into(),
             actual: text(node, source)

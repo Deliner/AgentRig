@@ -2,6 +2,9 @@ version = 1
 runtime = "0.2.0"
 config_skill = ".agents/skills/repair/SKILL.md"
 
+[processes]
+foreground = "systemd"
+
 [paths]
 sources = ["tooling/**", "Project/**"]
 memory = "Ledger"
@@ -36,6 +39,11 @@ read_only = false
 
 [commands.clippy]
 argv = ["cargo", "+1.98.1", "clippy", "--manifest-path", "tooling/worker/Cargo.toml", "--locked", "--", "-D", "warnings"]
+accepts_args = false
+read_only = false
+
+[commands.rust-test]
+argv = ["cargo", "+1.98.1", "test", "--manifest-path", "tooling/worker/Cargo.toml", "--locked", "--lib"]
 accepts_args = false
 read_only = false
 
@@ -96,6 +104,12 @@ id = "clippy"
 kind = "command"
 skill = ".agents/skills/repair/SKILL.md"
 command = "clippy"
+
+[[checks]]
+id = "rust-test"
+kind = "command"
+skill = ".agents/skills/repair/SKILL.md"
+command = "rust-test"
 
 [[checks]]
 id = "ruff-format"

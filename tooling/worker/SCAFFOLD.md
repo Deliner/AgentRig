@@ -12,6 +12,9 @@ lint = true
 
 [capabilities.review]
 config = ".worker/review/config/review.toml"
+
+[capabilities.delegation]
+config = "agents/profiles.toml"
 ```
 
 Lint defaults to enabled for existing projects and uses `paths.lint`. Disabling
@@ -22,6 +25,20 @@ capability keys fail the schema check. `review config-check`, `review mcp` and
 `review run REQUEST_JSON` use the project's configured review. Explicit review
 config paths remain available for standalone calls. `--root` selects the consumer
 for configured calls; resource paths inside review configs remain config-relative.
+Delegation is enabled by its own configuration reference. Create that profile file
+and its referenced prompts/programs/skills using the [delegation format](README.md#delegation-profiles).
+`delegate config-check`, `delegate mcp` and `delegate start REQUEST_JSON` then use
+the selected file; explicit config arguments remain supported. Profile resources
+resolve relative to the profile file. Setup validates these consumer-owned resources
+and registers `worker_delegation`; it does not rewrite the profiles or copy secrets.
+It installs delegate-task under `paths.skills` and routes the generated project
+instructions to that skill. Capability-specific skills use the same installation
+ownership and conflict handling as the other shipped guidance.
+Its environment forwards the declared credential/MCP variable references, executor
+override and existing job owner/parent identifiers. Use the same WORKER_OWNER after
+reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
+asynchronously and their own timeouts remain profile settings. Doctor requires
+working systemd scopes, bubblewrap and native Codex when delegation is enabled.
 `discipline-worker setup --root CONSUMER` reads the existing declaration and
 prepares the environment. To obtain a starting declaration and assets, use
 `init --root CONSUMER --review true`, edit the generated settings, then run setup.
@@ -37,8 +54,8 @@ Repeated setup preserves configuration, memory, file permissions, comments and u
 settings. Unchanged stock assets can be refreshed within the pinned release.
 Locally modified skills/adapters, conflicting hook registration or conflicting
 MCP settings stop setup before file installation and identify the preserved
-conflict. Reconcile that named file/setting and retry. Disabling review requires
-disabling or removing an existing worker_review MCP entry; setup reports the
+conflict. Reconcile that named file/setting and retry. Disabling a capability requires
+disabling or removing its existing worker_review/worker_delegation MCP entry; setup reports the
 conflict instead of silently replacing it. Missing dependencies are reported by
 doctor after installation; fix them and repeat setup. Release changes use upgrade.
 Setup uses the installation manifest and the same atomic writer as upgrade.

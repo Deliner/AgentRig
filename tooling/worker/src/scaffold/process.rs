@@ -1,25 +1,23 @@
-use anyhow::{Context, Result, ensure};
-use signal_hook::{
-    consts::{SIGHUP, SIGINT, SIGTERM},
-    iterator::Signals,
-};
+use anyhow::{Result, ensure};
+pub use discipline_worker::jobs::process::exit_code;
 use std::{
-    io::IsTerminal,
-    os::unix::process::{CommandExt, ExitStatusExt},
     path::Path,
-    process::{Command, Output, Stdio},
+    process::{Command, Output},
 };
 
 pub fn run(root: &Path, argv: &[String], read_only: bool) -> Result<i32> {
     Ok(exit_code(&execute(root, argv, read_only, false)?))
 }
-pub fn exit_code(output: &Output) -> i32 {
-    output
-        .status
-        .code()
-        .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(1))
-}
 pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> Result<Output> {
+    tracked(root, argv, (read_only, capture), None)
+}
+pub fn tracked(
+    root: &Path,
+    argv: &[String],
+    options: (bool, bool),
+    job: Option<&mut discipline_worker::jobs::Job>,
+) -> Result<Output> {
+    let (read_only, capture) = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let mut command = if read_only {
         sandbox(root, argv)?
@@ -29,42 +27,7 @@ pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> 
         command
     };
     command.current_dir(root);
-    if capture {
-        command
-            .stdin(Stdio::null())
-            .stdout(Stdio::piped())
-            .stderr(Stdio::piped());
-    }
-    // Pipes have no foreground-terminal ownership; isolate the process group so
-    // a signal sent only to worker also reaches descendants. Interactive children
-    // remain in the terminal's foreground group and retain stdin access.
-    let group = !std::io::stdin().is_terminal();
-    if group {
-        command.process_group(0);
-    }
-    let signals = Signals::new([SIGINT, SIGTERM, SIGHUP])?;
-    let handle = signals.handle();
-    let child = command
-        .spawn()
-        .with_context(|| format!("cannot execute {}", argv[0]))?;
-    let pid = child.id() as i32;
-    let forwarding = forward_signals(signals, pid, group);
-    let result = child.wait_with_output();
-    handle.close();
-    forwarding
-        .join()
-        .map_err(|_| anyhow::anyhow!("signal forwarding thread failed"))?;
-    Ok(result?)
-}
-fn forward_signals(mut signals: Signals, pid: i32, group: bool) -> std::thread::JoinHandle<()> {
-    std::thread::spawn(move || {
-        for signal in signals.forever() {
-            // The PID belongs to the unreaped child; it cannot be reused while waiting.
-            unsafe {
-                libc::kill(if group { -pid } else { pid }, signal);
-            }
-        }
-    })
+    discipline_worker::jobs::process::execute(&mut command, capture, job)
 }
 fn sandbox(root: &Path, argv: &[String]) -> Result<Command> {
     ensure!(

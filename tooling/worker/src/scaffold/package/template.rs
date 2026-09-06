@@ -40,9 +40,11 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
         version: 1,
+        processes: Default::default(),
         capabilities: config::Capabilities {
             lint: true,
-            review: (options["review"] == "true").then(|| config::Review {
+            delegation: None,
+            review: (options["review"] == "true").then(|| config::Resource {
                 config: super::review::CONFIG.into(),
             }),
         },
@@ -75,6 +77,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
         commands.insert(
             id.into(),
             Command {
+                lifetime: Default::default(),
                 argv: Vec::new(),
                 cwd: ".".into(),
                 accepts_args: true,
@@ -82,8 +85,22 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             },
         );
     }
+    let argv = test_command(options);
+    commands.insert(
+        "test".into(),
+        Command {
+            lifetime: Default::default(),
+            argv,
+            cwd: ".".into(),
+            accepts_args: true,
+            read_only: false,
+        },
+    );
+    commands
+}
+fn test_command(options: &Options<'_>) -> Vec<String> {
     let python = options["language"] == "python";
-    let argv = if python {
+    if python {
         vec![
             "python3".into(),
             "-m".into(),
@@ -97,17 +114,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             "--manifest-path".into(),
             format!("{}/Cargo.toml", options["source"]),
         ]
-    };
-    commands.insert(
-        "test".into(),
-        Command {
-            argv,
-            cwd: ".".into(),
-            accepts_args: true,
-            read_only: false,
-        },
-    );
-    commands
+    }
 }
 fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
     let mut routes = Vec::new();
@@ -170,7 +177,16 @@ pub(super) fn justfile() -> String {
         ("setup", "setup", false),
         ("lint", "lint", true),
         ("lint-config-check", "lint-config-check", true),
+        ("lint-rule", "lint-rule", true),
+        ("lint-explain", "lint-explain", true),
+        ("jobs", "jobs", false),
+        ("job-status", "job-status", true),
+        ("job-logs", "job-logs", true),
+        ("job-start", "job-start", true),
+        ("job-stop", "job-stop", true),
+        ("job-cleanup", "job-cleanup", true),
         ("review", "review", true),
+        ("delegate", "delegate", true),
     ] {
         source.push_str(&format!(
             "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",

@@ -150,6 +150,8 @@ def test_shell_catalog_and_recipe_listing(worker: Path, tmp_path: Path) -> None:
     for command in [
         "just --list",
         "just list",
+        "just lint-rule function-lines --example",
+        "just lint-explain src/example.py --json",
         "just run read -- git status",
         "just run write -- echo ok",
     ]:

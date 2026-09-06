@@ -1,6 +1,7 @@
 pub mod cli;
 // DECISION: D007
 pub mod config;
+pub mod explain;
 pub mod inventory;
 pub mod languages;
 pub mod rules;
@@ -36,7 +37,7 @@ fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let mut analyses = HashMap::new();
     for rule in &config.rules {
         for selected in selection::select(rule, &inventory)? {
-            let syntax_rule = rules::syntax(&rule.kind);
+            let syntax_rule = rules::syntax(rule.kind);
             if syntax_rule {
                 let path = selected.path;
                 let uncached = !analyses.contains_key(path);
@@ -64,8 +65,8 @@ fn structural_measurement(
     selected: &selection::Selected<'_>,
     inventory: &inventory::Inventory,
 ) -> Result<Option<u64>> {
-    Ok(match rule.kind.as_str() {
-        "nonblank-lines" => String::from_utf8(fs::read(root.join(selected.path))?)
+    Ok(match rule.kind {
+        rules::Kind::NonblankLines => String::from_utf8(fs::read(root.join(selected.path))?)
             .ok()
             .map(|source| {
                 source
@@ -73,7 +74,7 @@ fn structural_measurement(
                     .filter(|line| !line.trim().is_empty())
                     .count() as u64
             }),
-        "directory-entries" => Some(inventory.directories[selected.path].len() as u64),
+        rules::Kind::DirectoryEntries => Some(inventory.directories[selected.path].len() as u64),
         _ => unreachable!("validated by rule registry"),
     })
 }

@@ -16,6 +16,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         value(true),
         "features.hooks",
     )?;
+    super::delegation::configure(root, config, &mut document)?;
     if let Some(review) = &config.capabilities.review {
         let timeout = review_timeout(root, files, &review.config)?;
         table(&mut document["mcp_servers"], "mcp_servers")?;
@@ -73,7 +74,7 @@ fn mcp(server: &mut Item, timeout: u64) -> Result<()> {
     )?;
     Ok(())
 }
-fn table(item: &mut Item, name: &str) -> Result<()> {
+pub(super) fn table(item: &mut Item, name: &str) -> Result<()> {
     ensure!(
         item.is_none() || item.is_table_like(),
         "setup conflict: {name} must be a table; original preserved"
@@ -86,7 +87,7 @@ fn table(item: &mut Item, name: &str) -> Result<()> {
     }
     Ok(())
 }
-fn setting(current: &mut Item, desired: Item, name: &str) -> Result<()> {
+pub(super) fn setting(current: &mut Item, desired: Item, name: &str) -> Result<()> {
     let absent = current.is_none();
     if absent {
         *current = desired;

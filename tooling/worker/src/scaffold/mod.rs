@@ -27,6 +27,13 @@ pub fn owns(command: &str) -> bool {
             | "setup"
             | "doctor"
             | "upgrade"
+            | "jobs"
+            | "job-status"
+            | "job-logs"
+            | "job-start"
+            | "job-stop"
+            | "job-cleanup"
+            | "_job-run"
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
@@ -51,7 +58,22 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
             "{error:#}. ACTION: Correct worker.toml and its referenced configuration/skills"
         )
     })?;
-    configured_command(&context, command, args)
+    let jobs = matches!(
+        command,
+        "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
+    );
+    if jobs {
+        return discipline_worker::jobs::cli(
+            &context.path(&context.config.paths.runtime)?,
+            command,
+            args,
+        );
+    }
+    match command {
+        "job-start" => commands::background(&context, args),
+        "_job-run" => commands::background_run(&context, args),
+        _ => configured_command(&context, command, args),
+    }
 }
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
     let unexpected = matches!(
@@ -187,7 +209,9 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "lint" | "lint-config-check" | "review" | "setup" => {}
+        "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "review" | "setup"
+        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" | "job-cleanup"
+        | "delegate" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

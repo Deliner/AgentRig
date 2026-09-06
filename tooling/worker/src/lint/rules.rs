@@ -1,20 +1,60 @@
+mod descriptor;
+use super::languages;
 use anyhow::{Result, bail};
+pub use descriptor::{Descriptor, Parameters};
+use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
-use std::path::Path;
+use std::{fmt, path::Path};
 
+// DECISION: D016
+// DECISION: D017
 // DECISION: D018
-const HANDLERS: &[(&str, &[&str])] = &[("rust", &[".rs"]), ("python", &[".py", ".pyi"])];
-pub fn supports_path(path: &Path) -> bool {
-    path.extension()
-        .and_then(|ext| ext.to_str())
-        .is_some_and(|ext| supported_extension(&format!(".{ext}")))
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum Kind {
+    NonblankLines,
+    DirectoryEntries,
+    NamedIfCondition,
+    FunctionLines,
+    ParameterCount,
 }
-fn supported_extension(ext: &str) -> bool {
-    HANDLERS
+impl fmt::Display for Kind {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let value = serde_json::to_value(self).map_err(|_| fmt::Error)?;
+        formatter.write_str(value.as_str().ok_or(fmt::Error)?)
+    }
+}
+pub const ALL: &[Kind] = &[
+    Kind::NonblankLines,
+    Kind::DirectoryEntries,
+    Kind::FunctionLines,
+    Kind::ParameterCount,
+    Kind::NamedIfCondition,
+];
+pub fn syntax(kind: Kind) -> bool {
+    languages::HANDLERS
         .iter()
-        .any(|(_, extensions)| extensions.contains(&ext))
+        .any(|handler| handler.rules.contains(&kind))
 }
-pub fn validate_includes(kind: &str, patterns: &[String]) -> Result<()> {
+pub fn supports_path(kind: Kind, path: &Path) -> bool {
+    languages::handler(path).is_some_and(|handler| handler.rules.contains(&kind))
+}
+pub fn extensions(kind: Kind) -> Vec<&'static str> {
+    languages::HANDLERS
+        .iter()
+        .filter(|handler| handler.rules.contains(&kind))
+        .flat_map(|handler| handler.extensions.iter().copied())
+        .collect()
+}
+pub fn support(kind: Kind) -> String {
+    languages::HANDLERS
+        .iter()
+        .filter(|handler| handler.rules.contains(&kind))
+        .map(|handler| format!("{} ({})", handler.title, handler.extensions.join(", ")))
+        .collect::<Vec<_>>()
+        .join(" and ")
+}
+pub fn validate_includes(kind: Kind, patterns: &[String]) -> Result<()> {
     let structural = !syntax(kind);
     if structural {
         return Ok(());
@@ -29,58 +69,57 @@ pub fn validate_includes(kind: &str, patterns: &[String]) -> Result<()> {
     }
     Ok(())
 }
-
-// DECISION: D016
-// DECISION: D017
-pub fn syntax(kind: &str) -> bool {
-    matches!(
-        kind,
-        "named-if-condition" | "function-lines" | "parameter-count"
-    )
-}
-pub fn target(kind: &str) -> Result<&'static str> {
-    match kind {
-        "nonblank-lines" | "named-if-condition" | "function-lines" | "parameter-count" => {
-            Ok("file")
-        }
-        "directory-entries" => Ok("directory"),
-        _ => bail!("unsupported rule kind {kind}"),
-    }
-}
-pub fn validate_extensions(kind: &str, extensions: &[String]) -> Result<()> {
-    let unsupported = syntax(kind) && extensions.iter().any(|ext| !supported_extension(ext));
+pub fn validate_extensions(kind: Kind, selected: &[String]) -> Result<()> {
+    let supported = extensions(kind);
+    let unsupported = syntax(kind)
+        && selected
+            .iter()
+            .any(|ext| !supported.contains(&ext.as_str()));
     if unsupported {
         bail!(
-            "{kind}: requested extensions {extensions:?} are incompatible; handlers support Rust (.rs) and Python (.py, .pyi)"
+            "{kind}: requested extensions {selected:?} are incompatible; handlers support {}",
+            support(kind)
         );
     }
     Ok(())
 }
 pub fn catalog() -> Value {
-    let mut entries = vec![
-        json!({"kind": "nonblank-lines", "target": "file", "languages": "any UTF-8 text",
-         "extensions": "configurable", "metric": "nonempty lines, including comments"}),
-        json!({"kind": "directory-entries", "target": "directory", "languages": "any",
-         "extensions": "not applicable", "metric": "immediate child names in the selected inventory"}),
-    ];
-    for (kind, metric) in [
-        (
-            "named-if-condition",
-            "one named value per boolean if condition",
-        ),
-        (
-            "function-lines",
-            "nonblank lines from signature through body, including comments",
-        ),
-        (
-            "parameter-count",
-            "declared input parameters, excluding method receivers",
-        ),
-    ] {
-        entries.push(
-            json!({"kind": kind, "target": "file", "languages": ["rust", "python"],
-            "handlers": HANDLERS.iter().map(|(name, extensions)| (*name, *extensions)).collect::<std::collections::BTreeMap<_, _>>(), "extensions": HANDLERS.iter().flat_map(|(_, extensions)| extensions.iter()).collect::<Vec<_>>(), "metric": metric}),
-        );
+    Value::Array(ALL.iter().map(|kind| describe(*kind)).collect())
+}
+pub fn describe(kind: Kind) -> Value {
+    let descriptor = kind.descriptor();
+    let mut value = json!({"kind": kind, "target": descriptor.target,
+        "metric": descriptor.metric, "skill": descriptor.skill,
+        "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agents/skills", &["src/**".into()]),
+        "languages": "any UTF-8 text", "extensions": "configurable"});
+    let directory = descriptor.target == "directory";
+    if directory {
+        value["languages"] = json!("any");
+        value["extensions"] = json!("not applicable");
     }
-    Value::Array(entries)
+    let language_rule = syntax(kind);
+    if language_rule {
+        let handlers: std::collections::BTreeMap<_, _> = languages::HANDLERS
+            .iter()
+            .filter(|handler| handler.rules.contains(&kind))
+            .map(|handler| (handler.name, handler.extensions))
+            .collect();
+        value["languages"] = json!(handlers.keys().collect::<Vec<_>>());
+        value["handlers"] = json!(handlers);
+        value["extensions"] = json!(extensions(kind));
+    }
+    value
+}
+pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
+    let descriptor = kind.descriptor();
+    let skill = format!("{skills}/{}/SKILL.md", descriptor.skill);
+    let mut value = json!({"id": descriptor.default_id, "kind": kind,
+        "target": descriptor.target, "include": sources,
+        "warning_skill": skill, "error_skill": skill});
+    descriptor.parameters.apply(&mut value);
+    let language_rule = syntax(kind);
+    if language_rule {
+        value["extensions"] = json!(extensions(kind));
+    }
+    value
 }

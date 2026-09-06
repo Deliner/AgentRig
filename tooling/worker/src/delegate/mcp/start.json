@@ -1,0 +1,28 @@
+{
+  "type": "object",
+  "required": ["profile", "task", "contract"],
+  "additionalProperties": false,
+  "properties": {
+    "profile": {"type": "string"},
+    "task": {"type": "string", "minLength": 1},
+    "revision": {"type": ["string", "null"]},
+    "inputs": {"type": "object", "additionalProperties": {"type": "string"}},
+    "contract": {
+      "type": "object",
+      "required": ["result_schema"],
+      "additionalProperties": false,
+      "properties": {
+        "result_schema": {"type": ["object", "boolean"]},
+        "artifacts": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 1}},
+        "changes": {
+          "type": ["object", "null"], "required": ["write_paths", "checks"], "additionalProperties": false,
+          "properties": {
+            "write_paths": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+            "checks": {"type": "object", "minProperties": 1,
+              "additionalProperties": {"type": "array", "minItems": 1, "items": {"type": "string"}}}
+          }
+        }
+      }
+    }
+  }
+}

@@ -41,10 +41,6 @@ pub fn bundle(files: &mut Files, config: &Config) {
             files.insert(format!(".worker/review/{path}"), bytes.to_vec());
         }
         files.insert(
-            format!("{}/review-project/SKILL.md", config.paths.skills),
-            include_bytes!("../../../assets/skills/review-project/SKILL.md").to_vec(),
-        );
-        files.insert(
             ".worker/review/.gitignore".into(),
             b"runtime/\nreports/\n".to_vec(),
         );

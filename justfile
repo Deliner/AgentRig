@@ -63,3 +63,39 @@ upgrade *args:
 # What: invoke the shared review runner; Why: use the same review contract from Just and MCP.
 review *args:
     @tooling/worker/run run review -- "$@"
+
+# What: describe a lint rule; Why: inspect supported parameters and valid examples.
+lint-rule *args:
+    @tooling/worker/run lint-rule "$@"
+
+# What: explain lint selection; Why: inspect exclusion reasons and effective thresholds.
+lint-explain *args:
+    @tooling/worker/run lint-explain "$@"
+
+# What: list managed runs; Why: inspect ongoing commands and recovered state.
+jobs:
+    @tooling/worker/run jobs
+
+# What: inspect a managed run; Why: verify process liveness from its OS identity.
+job-status *args:
+    @tooling/worker/run job-status "$@"
+
+# What: read command output; Why: recover logs after a session disconnects.
+job-logs *args:
+    @tooling/worker/run job-logs "$@"
+
+# What: start a background command; Why: preserve a managed run across sessions.
+job-start *args:
+    @tooling/worker/run job-start "$@"
+
+# What: stop an owned run; Why: clean its contained descendants without affecting other owners.
+job-stop *args:
+    @tooling/worker/run job-stop "$@"
+
+# What: clean completed work's runs; Why: retain other owners and shared services.
+job-cleanup *args:
+    @tooling/worker/run job-cleanup "$@"
+
+# What: configure delegated workers; Why: validate executor profiles before execution.
+delegate *args:
+    @tooling/worker/run delegate "$@"

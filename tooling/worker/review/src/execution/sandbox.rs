@@ -29,14 +29,17 @@ pub fn prepare(role: &Path) -> Result<()> {
     Ok(())
 }
 pub fn native_codex() -> Result<PathBuf> {
-    if let Some(path) = env::var_os("REVIEW_CODEX_BIN") {
+    native_codex_from("REVIEW_CODEX_BIN")
+}
+pub fn native_codex_from(variable: &str) -> Result<PathBuf> {
+    if let Some(path) = env::var_os(variable) {
         return Ok(PathBuf::from(path).canonicalize()?);
     }
     let path = env::var_os("PATH").context("PATH is required to find codex")?;
     let executable = env::split_paths(&path)
         .map(|directory| directory.join("codex"))
         .find(|path| path.is_file())
-        .context("codex is not installed; set REVIEW_CODEX_BIN")?
+        .with_context(|| format!("codex is not installed; set {variable}"))?
         .canonicalize()?;
     let wrapper = executable
         .extension()
@@ -60,7 +63,7 @@ pub fn native_codex() -> Result<PathBuf> {
                 }
             }
         }
-        anyhow::bail!("native codex binary not found; set REVIEW_CODEX_BIN");
+        anyhow::bail!("native codex binary not found; set {variable}");
     }
     Ok(executable)
 }
@@ -128,8 +131,24 @@ fn review_mounts(command: &mut Command, layout: &Layout) {
     }
 }
 fn runtime_mounts(command: &mut Command) {
+    command.args(["--ro-bind", "/usr/bin", "/usr/bin"]);
+    system_libraries(command);
+    command.args([
+        "--symlink",
+        "usr/bin",
+        "/bin",
+        "--proc",
+        "/proc",
+        "--dev",
+        "/dev",
+        "--tmpfs",
+        "/tmp",
+        "--dir",
+        "/home/critic",
+    ]);
+}
+pub fn system_libraries(command: &mut Command) {
     for path in [
-        "/usr/bin",
         "/usr/lib",
         "/usr/lib64",
         "/lib",
@@ -144,19 +163,6 @@ fn runtime_mounts(command: &mut Command) {
             command.args(["--ro-bind", path, path]);
         }
     }
-    command.args([
-        "--symlink",
-        "usr/bin",
-        "/bin",
-        "--proc",
-        "/proc",
-        "--dev",
-        "/dev",
-        "--tmpfs",
-        "/tmp",
-        "--dir",
-        "/home/critic",
-    ]);
 }
 fn cli(command: &mut Command, reviewer: &Reviewer) {
     command.args(["--ignore-user-config", "--ignore-rules", "--ephemeral", "--skip-git-repo-check", "--dangerously-bypass-approvals-and-sandbox", "--dangerously-bypass-hook-trust", "--json", "-m", &reviewer.model, "-c"])

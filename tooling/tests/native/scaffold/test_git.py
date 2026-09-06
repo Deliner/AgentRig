@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 from support import git as git_result
 from support import invoke
+from test_commands import background_id, require_user_systemd, wait_for_background_output
 
 
 def git(root: Path, *args: str) -> str:
@@ -146,3 +147,50 @@ def test_staged_commit_preserves_unstaged_work(
     assert source.read_text() == "later unstaged work"
     assert "unrelated.txt" not in git(root, "ls-tree", "--name-only", "HEAD").splitlines()
     assert unrelated.read_text() == "user work"
+
+
+def test_merge_cleans_only_owned_task_runs(
+    worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    root = installed
+    assert invoke(worker, root, "feature-start", "jobs").returncode == 0
+    background_commands(root)
+    commit(root, "work.txt", "feature")
+    monkeypatch.setenv("WORKER_OWNER", "merge-owner")
+    owned = background_id(worker, root)
+    shared = background_id(worker, root, "service")
+    monkeypatch.setenv("WORKER_OWNER", "other-owner")
+    other = background_id(worker, root)
+    try:
+        for identifier in [owned, shared, other]:
+            wait_for_background_output(worker, root, identifier)
+        monkeypatch.setenv("WORKER_OWNER", "merge-owner")
+        result = invoke(worker, root, "feature-merge")
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert git(root, "branch", "--show-current") == "trunk"
+        assert json.loads(invoke(worker, root, "job-status", owned).stdout)["state"] == "cancelled"
+        for identifier in [shared, other]:
+            assert (
+                json.loads(invoke(worker, root, "job-status", identifier).stdout)["state"]
+                == "running"
+            )
+        assert "shared service" in result.stdout
+    finally:
+        for owner, identifier in [
+            ("merge-owner", owned),
+            ("merge-owner", shared),
+            ("other-owner", other),
+        ]:
+            monkeypatch.setenv("WORKER_OWNER", owner)
+            result = invoke(worker, root, "job-stop", identifier)
+            assert result.returncode == 0, result.stderr
+
+
+def background_commands(root: Path) -> None:
+    argv = json.dumps(["python3", "-c", "import time; print('ready',flush=True); time.sleep(60)"])
+    config = root / "worker.toml"
+    config.write_text(
+        config.read_text()
+        + f'\n[commands.wait]\nargv = {argv}\n[commands.service]\nargv = {argv}\nlifetime = "shared"\n'
+    )

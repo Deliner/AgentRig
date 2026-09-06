@@ -16,7 +16,7 @@ The lint file selected by worker.toml (or --config; standalone default lint.toml
 
 Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
-Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
+Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete TOML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
 
 Each rules entry requires:
 
@@ -121,3 +121,227 @@ separate skill bundle. References must still identify valid SKILL.md files insid
 that selected root. Diagnostics provide their resolved paths. The assessment
 writes no project files; worker and standalone findings agree for the same
 configuration apart from their executable-specific retry commands.
+
+
+## Adding rules and language handlers
+
+The typed Kind and its descriptor in src/lint/rules own rule identity, target,
+metric, parameter policy, repair guidance and installed defaults. Catalog and
+configuration validation consume this descriptor; package setup consumes its
+examples. Do not maintain separate capability or default tables.
+
+The registrations in src/lint/languages/registry.rs bind actual parser and
+inspection functions to extensions and implemented kinds. These registrations
+also drive catalog language support and selector validation. Add a language only
+with its implemented measurements and positive/negative behavior tests. Bash
+parsing for shell hooks does not register Bash as a lint language. Shared
+measurements carry Kind, locations and values; the engine owns diagnostics.
+
+For a new rule, add its typed identity, descriptor and measurement, register the
+implemented language pairs when applicable, supply a repair skill and verify
+accepted/rejected source and configuration examples. Numeric rules use warning
+and error thresholds; policy rules use level. Existing configuration syntax and
+strict installed defaults are preserved.
+
+
+Use just lint-explain src/example.rs (or discipline-lint lint-explain with
+--root and --config) to see every configured rule's selection reason. --json
+returns the same information for automation. Selected entries include effective
+warning/error or level and zero-based matched override indexes, in application
+order. Disabled, excluded, extension-mismatched, wrong-target and absent inventory
+entries explain why no check runs. It reads configuration and inventory, without
+parsing source or running rule measurements. Invalid effective configuration
+still fails. Relative paths are resolved from the selected project root.
+
+## Managed command visibility
+
+Catalog commands create a unique run record before execution under the configured
+runtime/jobs directory. `just jobs`, `just job-status RUN_ID` and `just resume`
+show the saved command and current OS observations. Identity combines PID, boot
+ID and process start ticks; a saved PID alone never establishes liveness.
+Leader CPU ticks and resident bytes are point-in-time measurements, not totals
+for detached descendants. Completion records the exit code and launch errors.
+
+Set WORKER_OWNER to a stable task/session identity when launching commands outside
+an agent session. Otherwise CODEX_THREAD_ID, then CODEX_SESSION_ID is used; without
+either, the run gets its own owner. WORKER_PARENT_RUN optionally associates a
+child invocation. Each managed payload receives its owner's WORKER_OWNER and its
+run ID as WORKER_PARENT_RUN, so nested worker commands retain their immediate
+parent. Branch and project are captured independently of ownership.
+An orphaned run has a live child but no live runner; an interrupted run has
+neither. Inspect these states before deciding what to resume or clean up.
+
+The shared process runner records raw stdout/stderr while forwarding output to
+the caller. `just job-logs RUN_ID` returns the last 64 KiB of each stream as JSON,
+with byte counts and truncation flags; complete bytes remain in stdout.log and
+stderr.log beside the run record. Display replaces invalid UTF-8, stored logs do
+not. `report` aggregates these lifecycle records; commands.jsonl is no longer
+written or read. Old completion-only logs remain untouched as historical files.
+
+`just job-start COMMAND -- ARGS` starts a configured command in a distinct
+systemd user scope and returns its run_id. It requires Linux cgroup v2 and a
+working systemd user manager. The process inherits the calling environment,
+freezes the selected argv/cwd/read-only policy, and retains output in the same
+run directory after the caller exits. Launcher errors appear separately in
+job-logs. A delayed launch response does not authorize starting a duplicate.
+
+`just job-stop RUN_ID` requires the recorded owner identity. It checks the scope
+invocation ID, requests graceful stop, then forces remaining processes and
+verifies the recursive cgroup populated state. This includes descendants that
+created a new process session. Cancellation intent survives runner termination;
+logs remain available. Lost access to the user manager reports unverified state,
+not successful completion. Ownership is coordination within a user account,
+not an access-control boundary against that same user's own programs.
+
+Commands default to `lifetime = "task"`; set `lifetime = "shared"` in a command's
+worker.toml table for a service that must outlive task cleanup. `just job-cleanup`
+cleans the current owner's task scopes; `--branch BRANCH` narrows that selection.
+Successful feature-merge invokes the same cleanup for the merged branch. Shared
+services, other owners, other branches and the active cleanup caller are retained.
+The owner can explicitly stop a shared service with job-stop. Cleanup failures
+are reported after merge as a separate failure with a job-cleanup retry command.
+Without an owner identity, merge does not guess which runs belong to its caller.
+
+Setup/doctor reports whether a real transient user scope can be created, including
+cgroup v2 availability and the backend diagnostic. Background support is optional
+for projects using `[processes] foreground = "process-group"` (the default).
+Select `foreground = "systemd"` to run ordinary commands through the same scope
+runner as background commands, preserving stdin, stdout, stderr and exit status.
+Setup/doctor fails when this selected backend cannot create a scope; execution
+does not silently fall back. The default process-group mode provides
+signal forwarding; cleanup reports unfinished uncontained runs for inspection.
+Nested scope launches remain separately registered under their inherited owner;
+owner cleanup covers them. A single scope stop only covers that scope's cgroup.
+
+## Delegation profiles
+
+`just delegate config-check CONFIG` validates a separate TOML profile file.
+Profile validation, asynchronous CLI execution and the MCP adapter are implemented.
+Select `capabilities.delegation.config` in worker.toml and run setup to register
+the configured MCP service. A successful configuration check does not run
+an executor or prove model/service availability.
+
+```toml
+schema_version = 1
+
+[profiles.reader]
+frontend = "codex"
+model = "your-configured-model"
+reasoning_effort = "high"
+mode = "read"
+prompt = "prompts/reader.md"
+visible_paths = ["src/**", "docs/**"]
+timeout_seconds = 900
+memory_bytes = 1073741824
+max_processes = 64
+skills = ["skills/project-guide"]
+
+[profiles.reader.programs]
+python = "/usr/bin/python3"
+
+[profiles.reader.credentials]
+codex_auth_file_env = "PROJECT_CODEX_AUTH_FILE"
+
+[profiles.reader.mcp_servers.helper]
+program = "python"
+args = ["-m", "your_server"]
+
+[profiles.reader.mcp_servers.helper.env]
+SERVICE_TOKEN = "PROJECT_SERVICE_TOKEN"
+```
+
+Frontend currently accepts `codex`; modes accept `read`, `artifacts` and `code`.
+Prompts, skill directories and executable program paths resolve relative to the
+configuration file (absolute resource paths are also accepted). Each skill
+directory must contain SKILL.md and have a distinct name. MCP servers reference
+a declared program; remote host-side MCP connections are not part of this contract.
+Visible-path globs describe project inputs, not configuration resource paths.
+Timeout is required and positive; memory_bytes and max_processes are optional
+positive limits. Memory and process limits apply to the entire systemd scope;
+the Linux process limit counts threads too. Program, skill and server maps can be omitted when unused.
+
+Credential values are environment-variable references, never secret values.
+codex_auth_file_env names a variable containing the auth.json path at execution;
+alternatively credentials.env.OPENAI_API_KEY names a variable holding the API key.
+Other credential env entries and server env entries use the same mapping.
+Configuration validation checks reference syntax without reading those values.
+HOME, CODEX_HOME, PATH, SHELL and loader overrides belong to the sandbox.
+
+Task requests separate `profile` and `task` from optional `revision`, explicit
+`inputs` (sandbox input name to project-relative source file), and `contract`.
+The contract contains `result_schema` (JSON Schema) and optional `artifacts`
+(relative output name to positive byte limit). Read mode forbids artifacts.
+`result.json` is reserved for the structured response. The task preparation and
+result verification library is covered by `rust-test`.
+
+Preparation resolves revision to a full commit and reuses the review snapshot
+exporter with the profile's visible_paths. Explicit inputs also obey those globs;
+they need no Git repository. Snapshots and copied files have a SHA-256 manifest.
+Traversal, symlinks and sensitive development-control paths are rejected.
+Preparation requires a new directory. Result verification uses the shared bounded
+regular-file reader, checks JSON Schema and required artifacts, and records their
+sizes and hashes. A model's declaration of completion does not satisfy this contract.
+
+The delegated sandbox builder mounts prepared inputs at /project, /inputs and
+/delegate-input, plus a writable /work and a private /codex. Only configured
+programs are added under /tools; sh, bash, env and system libraries form the CLI
+runtime. Configured skills are mounted read-only under /codex/skills. Host checkout,
+home and user-manager sockets are not mounted. The environment starts empty and
+receives fixed runtime variables and explicit credential references. Generated
+Codex configuration is read-only, disables hooks and contains only the configured
+MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
+fixtures verify execution and limits. A real Codex read task has passed through
+the configured MCP in an independent consumer, including input reading, result
+validation and cleanup. A real Codex artifact task also invoked a configured
+stdio MCP service inside the sandbox: its verified output confirmed allowed input
+reading, explicit environment forwarding and an invisible host checkout. The
+initial task message lists the profile's programs by sandbox
+path; generic host utilities are not implicitly available.
+
+`just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
+registry. `just delegate status RUN_ID` and `result RUN_ID` return OS state and the
+retained report; `just delegate cancel RUN_ID` uses owner-checked scope cancellation.
+The top-level outcome is authoritative: PASS requires a completed successful job,
+a valid result and successful cleanup. RUNNING and UNKNOWN are not success.
+Reports, input hashes, the request, profile, logs and verified artifacts remain
+under the configured runtime/jobs/RUN_ID. Temporary input/private directories are
+removed after saving the report. Result/status recover an interrupted report and
+retry incomplete cleanup only after the job is terminal; cleanup errors remain
+separate from validation findings. A failed job does not become PASS after cleanup.
+While a background launcher is waiting for scope adoption, its PID/start/boot
+identity keeps the run observable after the start caller exits. Cancellation in
+this interval records a stop request; status remains stopping until the launcher
+exits, and adoption refuses to execute the task. Temporary inputs are retained
+until OS observations establish termination.
+
+`worker delegate --root PROJECT mcp CONFIG` serves the same runner over stdio MCP.
+Its tools are delegate_start, delegate_status, delegate_result and delegate_cancel.
+The start schema lists configured profile names and accepts the same task contract
+as the CLI request. Retain the returned run_id; disconnecting the MCP client leaves
+the managed task running, and another connection can retrieve or cancel it.
+Status/result can recover terminal reports and cleanup, so they are not read-only
+operations. Tool errors and unsuccessful outcomes are returned with isError.
+
+Code mode requires a committed revision and `contract.changes`, for example:
+
+```json
+{"write_paths":["src/**"],"checks":{"tests":["python3","-B","/project/tests/check.py"]}}
+```
+
+Check argv starts with a profile program name; remaining arguments are passed
+literally. Include the check files in visible_paths. The runner copies the allowed
+fixed-revision snapshot into a separate Git workspace. Only its /project files
+are writable by the delegate; original snapshot and runner-owned Git metadata
+remain outside that write area. All changed paths must satisfy both visible_paths
+and write_paths, and symlinks/control paths are rejected.
+
+Checks run in the same containment with /project read-only; use /work or /tmp for
+build outputs. Model execution and checks share timeout_seconds. The retained
+change.patch contains binary-safe changes; code-report.json records the original
+commit, snapshot/candidate tree IDs, patch digest, changed paths and exact check
+commands, output and exit codes. Status/result expose this report as `code`.
+Failed checks retain the patch for inspection and yield overall ERROR. Code
+`verified` refers to patch/check verification; the top-level outcome additionally
+requires a valid model response and cleanup. Cancellation before patch generation
+retains job/report evidence but does not promise a partial patch. Applying changes
+and running the consumer's integration gates remain the caller's responsibility.

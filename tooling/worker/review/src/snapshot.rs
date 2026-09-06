@@ -188,7 +188,7 @@ fn inspect(root: &Path, path: &str, mode: &str, object: &str) -> Result<Vec<u8>>
     );
     Ok(bytes)
 }
-fn safe_path(path: &str) -> Result<()> {
+pub fn safe_path(path: &str) -> Result<()> {
     for component in Path::new(path).components() {
         let Component::Normal(name) = component else {
             anyhow::bail!("unsafe project path: {path}");

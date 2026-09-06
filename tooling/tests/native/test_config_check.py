@@ -107,3 +107,49 @@ def test_catalog_reports_handler_extensions(worker: Path) -> None:
         assert rules[kind]["target"] == "file"
         assert rules[kind]["handlers"] == {"rust": [".rs"], "python": [".py", ".pyi"]}
         assert set(rules[kind]["extensions"]) == {".rs", ".py", ".pyi"}
+
+
+@pytest.mark.parametrize(
+    "kind",
+    [
+        "nonblank-lines",
+        "directory-entries",
+        "named-if-condition",
+        "function-lines",
+        "parameter-count",
+    ],
+)
+def test_catalog_examples_validate(worker: Path, tmp_path: Path, kind: str) -> None:
+    example = subprocess.run(
+        [str(worker), "lint-rule", kind, "--example"], capture_output=True, text=True, check=True
+    ).stdout
+    prepare(tmp_path, example)
+    assert check(worker, tmp_path) == (0, [])
+    details = subprocess.run(
+        [str(worker), "lint-rule", kind, "--json"], capture_output=True, text=True, check=True
+    )
+    item = json.loads(details.stdout)
+    assert item["kind"] == kind
+    assert (tmp_path / ".agents/skills" / item["skill"] / "SKILL.md").is_file()
+    policy = kind == "named-if-condition"
+    assert item["parameters"]["type"] == ("policy" if policy else "thresholds")
+    human = subprocess.run(
+        [str(worker), "lint-rule", kind], capture_output=True, text=True, check=True
+    ).stdout
+    assert item["metric"] in human
+    assert "--example" in human
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ["lint-rule"],
+        ["lint-rule", "unknown"],
+        ["lint-rule", "function-lines", "--typo"],
+        ["lint-rules", "extra"],
+    ],
+)
+def test_discovery_rejects_invalid_arguments(worker: Path, args: list[str]) -> None:
+    result = subprocess.run([str(worker), *args], capture_output=True, text=True, check=False)
+    assert result.returncode == 2
+    assert result.stderr

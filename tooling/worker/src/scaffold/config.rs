@@ -1,6 +1,6 @@
 mod capabilities;
 mod validation;
-pub use capabilities::{Capabilities, Review};
+pub use capabilities::{Capabilities, Resource};
 // DECISION: D005
 use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -19,6 +19,8 @@ pub struct Config {
     pub runtime: String,
     pub config_skill: String,
     pub paths: Paths,
+    #[serde(default)]
+    pub processes: Processes,
     #[serde(default)]
     pub capabilities: Capabilities,
     #[serde(default)]
@@ -40,6 +42,19 @@ pub struct Paths {
     pub skills: String,
     pub lint: String,
     pub runtime: String,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Processes {
+    #[serde(default)]
+    pub foreground: Containment,
+}
+#[derive(Default, Deserialize, Serialize, PartialEq)]
+#[serde(rename_all = "kebab-case")]
+pub enum Containment {
+    #[default]
+    ProcessGroup,
+    Systemd,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -65,6 +80,8 @@ pub struct Command {
     pub accepts_args: bool,
     #[serde(default)]
     pub read_only: bool,
+    #[serde(default)]
+    pub lifetime: discipline_worker::jobs::Lifetime,
 }
 #[derive(Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

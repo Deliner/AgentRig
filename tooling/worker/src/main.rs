@@ -34,13 +34,11 @@ fn run() -> Result<i32> {
     match command.as_str() {
         "hook" => hook(&root),
         "review" => run_review(&root, args),
-        "lint" | "lint-config-check" => run_lint(&root, &mut args, command == "lint-config-check"),
-        "lint-rules" => {
-            println!("{}", lint::rules::catalog());
-            Ok(0)
-        }
+        "delegate" => run_delegate(&root, args),
+        "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
+        "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
-            "usage: discipline-worker hook|lint|lint-config-check|lint-rules|guard-commit|guard-reference [--root PATH]"
+            "usage: discipline-worker hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
         ),
     }
 }
@@ -70,7 +68,10 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
+        "delegate config-check CONFIG | mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
+    );
+    println!(
+        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -90,7 +91,7 @@ fn hook(root: &Path) -> Result<i32> {
     }
     Ok(0)
 }
-fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<i32> {
+fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let explicit = take_option(args, "--config")?;
     let config = match explicit {
         Some(path) => root.join(path),
@@ -104,7 +105,11 @@ fn run_lint(root: &Path, args: &mut Vec<String>, validate_only: bool) -> Result<
         }
         None => root.join("lint.toml"),
     };
-    lint::cli::execute(root, &config, args, validate_only)
+    let explain = command == "lint-explain";
+    if explain {
+        return lint::explain::run(root, &config, args);
+    }
+    lint::cli::execute(root, &config, args, command == "lint-config-check")
 }
 fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
     let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
@@ -123,6 +128,42 @@ fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
         *argument = root.join(&*argument).to_string_lossy().into_owned();
     }
     review_runner::cli::run(&args).map(|()| 0)
+}
+fn run_delegate(root: &Path, mut args: Vec<String>) -> Result<i32> {
+    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
+        || matches!(args.as_slice(), [command, _] if command == "start");
+    if configured {
+        let context = scaffold::config::Context::load(root)?;
+        let delegation = context
+            .config
+            .capabilities
+            .delegation
+            .as_ref()
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "delegation is not enabled; configure capabilities.delegation.config"
+                )
+            })?;
+        args.insert(
+            1,
+            context
+                .path(&delegation.config)?
+                .to_string_lossy()
+                .into_owned(),
+        );
+    }
+    let direct = args
+        .first()
+        .is_some_and(|command| matches!(command.as_str(), "config-check" | "_execute"));
+    if direct {
+        return discipline_worker::delegate::cli(root, &args);
+    }
+    let context = scaffold::config::Context::load(root)?;
+    discipline_worker::delegate::run::cli(
+        root,
+        &context.path(&context.config.paths.runtime)?,
+        &args,
+    )
 }
 fn main() {
     let code = match run() {

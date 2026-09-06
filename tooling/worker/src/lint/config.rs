@@ -27,7 +27,7 @@ pub struct Rule {
     #[serde(default = "enabled_by_default")]
     pub enabled: bool,
     pub id: String,
-    pub kind: String,
+    pub kind: rules::Kind,
     pub target: String,
     pub include: Vec<String>,
     #[serde(default)]
@@ -160,7 +160,7 @@ fn resolve_guidance(config: &mut Config, resources: &Path) {
 }
 impl Rule {
     fn validate(&self, root: &Path) -> Result<()> {
-        let incompatible_target = rules::target(&self.kind)? != self.target;
+        let incompatible_target = self.kind.descriptor().target != self.target;
         if incompatible_target {
             bail!("{}: unsupported target {}", self.id, self.target);
         }
@@ -171,8 +171,8 @@ impl Rule {
         globs(&self.include)?;
         globs(&self.exclude)?;
         validate_extensions(&self.extensions, &self.target)?;
-        rules::validate_extensions(&self.kind, &self.extensions)?;
-        rules::validate_includes(&self.kind, &self.include)?;
+        rules::validate_extensions(self.kind, &self.extensions)?;
+        rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
         skill(root, &self.warning_skill)?;
         skill(root, &self.error_skill)?;
@@ -182,7 +182,7 @@ impl Rule {
         Ok(())
     }
     fn validate_severity(&self) -> Result<()> {
-        let named_condition = self.kind == "named-if-condition";
+        let named_condition = matches!(self.kind.descriptor().parameters, rules::Parameters::Level);
         if named_condition {
             let invalid_level = self.level.is_none()
                 || self.warning.is_some()
@@ -211,8 +211,8 @@ impl Rule {
         }
         globs(&entry.include)?;
         validate_extensions(&entry.extensions, &self.target)?;
-        rules::validate_extensions(&self.kind, &entry.extensions)?;
-        rules::validate_includes(&self.kind, &entry.include)?;
+        rules::validate_extensions(self.kind, &entry.extensions)?;
+        rules::validate_includes(self.kind, &entry.include)?;
         if let (Some(warning), Some(error)) = (entry.warning, entry.error) {
             let invalid_order = warning >= error;
             if invalid_order {

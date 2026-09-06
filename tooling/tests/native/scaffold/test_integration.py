@@ -210,10 +210,7 @@ class Consumer:
         assert result.returncode == 2
         assert "test discovery failed" in result.stderr or "was not discovered" in result.stderr
         self.test_path.write_text(valid)
-        records = [
-            json.loads(line)
-            for line in (self.root / ".worker/runtime/commands.jsonl").read_text().splitlines()
-        ]
+        records = json.loads(invoke(self.binary, self.root, "jobs").stdout)
         assert any("--collect-only" in row["argv"] or "--list" in row["argv"] for row in records)
 
     def hooks(self) -> None:
