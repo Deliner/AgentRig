@@ -8,6 +8,10 @@ bootstrap:
 candidate *args:
     @tooling/worker/run run candidate -- "$@"
 
+# What: package candidate binaries and licenses; Why: produce the Linux release through the command catalog.
+release:
+    @tooling/worker/run run release
+
 # What: invoke list; Why: use the configured native runtime.
 list:
     @tooling/worker/run commands

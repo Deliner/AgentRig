@@ -34,6 +34,11 @@ commands:
     - tooling/worker/build
     accepts_args: true
     read_only: false
+  release:
+    argv:
+    - bash
+    - tooling/distribution/release.sh
+    read_only: false
   rustfmt:
     argv:
     - cargo

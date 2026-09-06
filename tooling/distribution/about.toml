@@ -1,0 +1,3 @@
+# External cargo-about configuration; AgentRig project configuration remains YAML.
+accepted = ["MIT", "Apache-2.0", "Unicode-3.0", "Zlib", "MIT-0", "BSL-1.0"]
+ignore-dev-dependencies = true

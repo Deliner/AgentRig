@@ -8,17 +8,17 @@ Deliver P005: independent stable development environment and public GitHub/MIT d
 
 Branch: feature/stable-distribution
 
-Revision: 034232d
+Revision: e986ec2
 
 Started from clean master after observing the completed P004 merge. No merge/rebase or upgrade is active.
 
 ## Progress
 
-Current VAC separates the installed development runtime from candidate builds and native tests. Explicit bootstrap installed revision 034232d through the existing initializer. Commands and hooks use that installation; the build launcher owns candidate cache invalidation. GitHub authentication works for Deliner and Deliner/AgentRig does not yet exist. Public publication is explicitly authorized by the current user instruction, superseding the previous task's no-publication handoff.
+Stable-runtime separation is committed. Current VAC prepares MIT metadata, public quickstart and release notes, CI and Linux packaging with dependency attribution. Bootstrap now registers the repository hooks for a fresh clone while preserving foreign registrations. GitHub authentication works for Deliner; publication is explicitly authorized and Deliner/AgentRig is still absent.
 
 ## Verification
 
-Five launcher tests pass, including a real candidate Cargo failure while the installed runtime's configuration check and SessionStart hook remain usable. Focused lint and memory checks pass. Current commit gate is pending. P004's prior full gate passed 361 Python and 50 Rust tests; its integration is observed at 034232d. Prior real MCP evidence remains linked from the portability guide.
+Full staged gate at e986ec2 passed 363 Python and 50 Rust tests and all other checks. The proposed release packaging produced both binaries and license attribution for 132 crates with a valid archive checksum. An independent consumer outside this repository passed init/setup/doctor/config-check; standalone lint preserved every consumer file. Receipt: .tmp/publication-tools/release-acceptance.json. actionlint validates the workflow. Gitleaks scanned all 93 then-reachable commits; its sole finding is a false positive on private-key detection string literals in historical snapshot.rs, not a key. Current commit gate, clean-clone bootstrap and actual remote CI/publication remain pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the stable-runtime VAC through the staged gate, then prepare MIT, consumer quickstart, CI and Linux release packaging. Audit publication contents, publish Deliner/AgentRig with the verified result, and observe remote CI and release artifacts before recording acceptance and integrating P005.
+Commit distribution through the full staged gate. Verify bootstrap from a clean clone, create public Deliner/AgentRig, push the feature branch and observe actual CI. Correct remote failures without weakening checks, publish the versioned release, then record acceptance and integrate P005 on master. Retain the feature branch and push the final integration.

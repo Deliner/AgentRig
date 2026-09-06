@@ -1,0 +1,72 @@
+name: Quality and release
+
+on:
+  push:
+    branches: [master, 'feature/**']
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+        with:
+          fetch-depth: 0
+      - name: Install build and sandbox prerequisites
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y bubblewrap dbus-user-session build-essential pkg-config
+          sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
+          sudo loginctl enable-linger "$USER"
+          sudo systemctl start "user@$(id -u).service"
+          echo "XDG_RUNTIME_DIR=/run/user/$(id -u)" >> "$GITHUB_ENV"
+          echo "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus" >> "$GITHUB_ENV"
+          rustup toolchain install 1.98.1 --profile minimal --component rustfmt,clippy
+          cargo +1.98.1 install --locked just --version 1.58.0
+          cargo +1.98.1 install --locked cargo-about --version 0.9.2
+          python3 -m venv "$RUNNER_TEMP/uv"
+          "$RUNNER_TEMP/uv/bin/pip" install uv==0.10.10
+          echo "$RUNNER_TEMP/uv/bin" >> "$GITHUB_PATH"
+      - name: Bootstrap the pinned development runtime
+        run: just bootstrap
+      - name: Verify the complete candidate gate
+        run: just check
+      - name: Package binaries and license attribution
+        run: just release
+      - name: Check tag version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          test "$RELEASE_TAG" = "v$(.cache/worker/release/agentrig --version | cut -d ' ' -f 2)"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x86_64
+          path: .cache/distribution/*
+          if-no-files-found: error
+          include-hidden-files: true
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: quality
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v5
+        with:
+          name: linux-x86_64
+          path: release
+      - name: Publish verified release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          gh release create "$RELEASE_TAG" release/*.tar.gz release/*.sha256 --verify-tag --title "AgentRig $RELEASE_TAG" --notes-file release/RELEASE.md

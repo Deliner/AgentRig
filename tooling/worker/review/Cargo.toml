@@ -2,6 +2,9 @@
 name = "review-runner"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+repository = "https://github.com/Deliner/AgentRig"
+description = "Isolated configurable review runner shipped with AgentRig"
 
 [dependencies]
 anyhow = "1"
