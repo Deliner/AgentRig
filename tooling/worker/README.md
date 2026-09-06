@@ -216,8 +216,8 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 ## Delegation profiles
 
 `just delegate config-check CONFIG` validates a separate TOML profile file.
-The profile contract is implemented; execution, MCP and setup integration are
-still under development in P003. A successful configuration check does not run
+Profile validation and asynchronous CLI execution are implemented; MCP and setup
+integration remain under development in P003. A successful configuration check does not run
 an executor or prove model/service availability.
 
 ```toml
@@ -256,21 +256,22 @@ directory must contain SKILL.md and have a distinct name. MCP servers reference
 a declared program; remote host-side MCP connections are not part of this contract.
 Visible-path globs describe project inputs, not configuration resource paths.
 Timeout is required and positive; memory_bytes and max_processes are optional
-positive limits. Program, skill and server maps can be omitted when unused.
+positive limits. Memory and process limits apply to the entire systemd scope;
+the Linux process limit counts threads too. Program, skill and server maps can be omitted when unused.
 
 Credential values are environment-variable references, never secret values.
 codex_auth_file_env names a variable containing the auth.json path at execution;
 alternatively credentials.env.OPENAI_API_KEY names a variable holding the API key.
 Other credential env entries and server env entries use the same mapping.
 Configuration validation checks reference syntax without reading those values.
-HOME, CODEX_HOME, PATH and loader overrides belong to the sandbox.
+HOME, CODEX_HOME, PATH, SHELL and loader overrides belong to the sandbox.
 
 Task requests separate `profile` and `task` from optional `revision`, explicit
 `inputs` (sandbox input name to project-relative source file), and `contract`.
 The contract contains `result_schema` (JSON Schema) and optional `artifacts`
 (relative output name to positive byte limit). Read mode forbids artifacts.
-`result.json` is reserved for the structured response. Execution is still pending;
-the task preparation and result verification library is covered by `rust-test`.
+`result.json` is reserved for the structured response. The task preparation and
+result verification library is covered by `rust-test`.
 
 Preparation resolves revision to a full commit and reuses the review snapshot
 exporter with the profile's visible_paths. Explicit inputs also obey those globs;
@@ -287,6 +288,16 @@ runtime. Configured skills are mounted read-only under /codex/skills. Host check
 home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
 Codex configuration is read-only, disables hooks and contains only the configured
-MCP servers; their commands resolve inside this sandbox. This builder has a real
-bubblewrap fixture test, but asynchronous execution, limits and real Codex/MCP
-smoke verification remain pending.
+MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
+fixtures verify execution and limits. Real Codex/MCP smoke verification remains pending.
+
+`just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
+registry. `just delegate status RUN_ID` and `result RUN_ID` return OS state and the
+retained report; `just delegate cancel RUN_ID` uses owner-checked scope cancellation.
+The top-level outcome is authoritative: PASS requires a completed successful job,
+a valid result and successful cleanup. RUNNING and UNKNOWN are not success.
+Reports, input hashes, the request, profile, logs and verified artifacts remain
+under the configured runtime/jobs/RUN_ID. Temporary input/private directories are
+removed after saving the report. Result/status recover an interrupted report and
+retry incomplete cleanup only after the job is terminal; cleanup errors remain
+separate from validation findings. A failed job does not become PASS after cleanup.

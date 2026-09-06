@@ -14,11 +14,7 @@ pub fn create(runtime: &Path) -> Result<PathBuf> {
         .keep())
 }
 pub fn save(directory: &Path, record: &Record) -> Result<()> {
-    let mut temporary = tempfile::NamedTempFile::new_in(directory)?;
-    serde_json::to_writer(temporary.as_file_mut(), record)?;
-    temporary.as_file().sync_all()?;
-    temporary.persist(directory.join("record.json"))?;
-    Ok(())
+    crate::util::save_json(&directory.join("record.json"), record)
 }
 pub fn load(runtime: &Path, id: &str) -> Result<Record> {
     ensure!(

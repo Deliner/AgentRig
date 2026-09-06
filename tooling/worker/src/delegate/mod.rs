@@ -1,4 +1,5 @@
 pub mod config;
+pub mod run;
 pub mod sandbox;
 pub mod task;
 
@@ -7,6 +8,7 @@ use std::path::Path;
 
 pub fn cli(root: &Path, args: &[String]) -> Result<i32> {
     match args {
+        [command, runtime, id] if command == "_execute" => run::execute(Path::new(runtime), id),
         [command, path] if command == "config-check" => {
             let config = config::load(&root.join(path))?;
             println!(

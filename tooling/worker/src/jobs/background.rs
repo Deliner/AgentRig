@@ -24,16 +24,15 @@ impl Job {
         };
         let deadline = Instant::now() + Duration::from_secs(5);
         while Instant::now() < deadline {
-            let record: Record =
-                serde_json::from_slice(&fs::read(self.directory.join("record.json"))?)?;
-            let adopted = record
-                .scope
-                .as_ref()
-                .is_some_and(|scope| scope.invocation.is_some());
+            let adopted = self.was_adopted()?;
             if adopted {
                 return Ok(self.record.run_id);
             }
             if let Some(status) = child.try_wait()? {
+                let adopted = self.was_adopted()?;
+                if adopted {
+                    return Ok(self.record.run_id);
+                }
                 self.finish(
                     status.code().unwrap_or(127),
                     Some("background launcher exited before adoption; see launcher.log".into()),
@@ -47,6 +46,14 @@ impl Job {
         }
         // A slow observation does not authorize starting a second process.
         Ok(self.record.run_id)
+    }
+    fn was_adopted(&self) -> Result<bool> {
+        let record: Record =
+            serde_json::from_slice(&fs::read(self.directory.join("record.json"))?)?;
+        Ok(record
+            .scope
+            .as_ref()
+            .is_some_and(|scope| scope.invocation.is_some()))
     }
     pub fn adopt(runtime: &Path, id: &str) -> Result<Self> {
         let mut record = storage::load(runtime, id)?;
@@ -107,13 +114,27 @@ impl Job {
                 "--property=TimeoutStopSec=2s",
                 "--unit",
             ])
-            .arg(&scope.unit)
+            .arg(&scope.unit);
+        self.limit_arguments(&mut command);
+        command
             .arg("--")
             .arg(executable)
             .arg("_job-run")
             .arg("--root")
             .arg(&self.record.project)
             .arg(&self.record.run_id);
+        self.background_output(&mut command)?;
+        Ok(command)
+    }
+    fn limit_arguments(&self, command: &mut Command) {
+        if let Some(bytes) = self.record.limits.memory_bytes {
+            command.arg(format!("--property=MemoryMax={bytes}"));
+        }
+        if let Some(processes) = self.record.limits.max_processes {
+            command.arg(format!("--property=TasksMax={processes}"));
+        }
+    }
+    fn background_output(&self, command: &mut Command) -> Result<()> {
         if self.record.background {
             let log = OpenOptions::new()
                 .create_new(true)
@@ -125,6 +146,6 @@ impl Job {
                 .stderr(log)
                 .process_group(0);
         }
-        Ok(command)
+        Ok(())
     }
 }

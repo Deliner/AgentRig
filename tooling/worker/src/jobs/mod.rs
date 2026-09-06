@@ -7,6 +7,7 @@ pub mod report;
 mod scope;
 pub use scope::capability;
 mod stop;
+pub use stop::run as cancel;
 mod storage;
 mod streams;
 
@@ -25,6 +26,11 @@ pub enum Lifetime {
     #[default]
     Task,
     Shared,
+}
+#[derive(Default, Deserialize, Serialize)]
+pub struct Limits {
+    pub memory_bytes: Option<u64>,
+    pub max_processes: Option<u64>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -54,6 +60,8 @@ pub struct Record {
     pub lifetime: Lifetime,
     #[serde(default)]
     pub background: bool,
+    #[serde(default)]
+    pub limits: Limits,
 }
 pub struct Job {
     directory: PathBuf,
@@ -93,6 +101,7 @@ impl Job {
             read_only: false,
             lifetime: Lifetime::Task,
             background: false,
+            limits: Limits::default(),
         };
         Self::registered(directory, record)
     }
@@ -110,6 +119,13 @@ impl Job {
         self.record.read_only = read_only;
         self.record.lifetime = lifetime;
         self.save()
+    }
+    pub fn limits(&mut self, limits: Limits) -> Result<()> {
+        self.record.limits = limits;
+        self.save()
+    }
+    pub fn directory(&self) -> &Path {
+        &self.directory
     }
     pub fn attach(&mut self, pid: u32, group: bool) -> Result<()> {
         self.record.child = Identity::read(pid).ok();
@@ -154,6 +170,10 @@ pub fn list(runtime: &Path) -> Result<Vec<Value>> {
 }
 pub fn status(runtime: &Path, id: &str) -> Result<Value> {
     observe(runtime, &storage::load(runtime, id)?)
+}
+pub fn directory(runtime: &Path, id: &str) -> Result<PathBuf> {
+    storage::load(runtime, id)?;
+    Ok(runtime.join("jobs").join(id))
 }
 pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
     let cleanup = command == "job-cleanup";
@@ -239,6 +259,8 @@ fn scoped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
             (true, false, _) => "running",
             (false, true, _) => "cancelled",
             (false, false, Some(_)) => "completed",
+            (false, false, None) if record.supervisor.observe().is_some() =>
+                "starting-or-finishing",
             _ => "interrupted",
         });
         value["containment"] = json!("systemd user scope");

@@ -34,7 +34,7 @@ fn run() -> Result<i32> {
     match command.as_str() {
         "hook" => hook(&root),
         "review" => run_review(&root, args),
-        "delegate" => discipline_worker::delegate::cli(&root, &args),
+        "delegate" => run_delegate(&root, &args),
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
@@ -68,7 +68,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "delegate config-check CONFIG\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
+        "delegate config-check CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
     );
     println!(
         "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
@@ -128,6 +128,16 @@ fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
         *argument = root.join(&*argument).to_string_lossy().into_owned();
     }
     review_runner::cli::run(&args).map(|()| 0)
+}
+fn run_delegate(root: &Path, args: &[String]) -> Result<i32> {
+    let direct = args
+        .first()
+        .is_some_and(|command| matches!(command.as_str(), "config-check" | "_execute"));
+    if direct {
+        return discipline_worker::delegate::cli(root, args);
+    }
+    let context = scaffold::config::Context::load(root)?;
+    discipline_worker::delegate::run::cli(root, &context.path(&context.config.paths.runtime)?, args)
 }
 fn main() {
     let code = match run() {
