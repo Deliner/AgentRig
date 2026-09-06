@@ -2,28 +2,28 @@
 
 ## Focus
 
-Persist all confirmed P006–P008 scope clarifications and prepare a short development-start prompt. Product implementation is not yet authorized to start.
+Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: directory architecture contracts and dependency graph checks.
 
 ## Workspace
 
-Branch: feature/confirmed-delivery-scope
+Branch: feature/directory-architecture
 
-Revision: 20cec8f
+Revision: b34a45a
 
-Started from clean master, four commits ahead of origin/master. Git confirms the preceding planning VAC is integrated at 20cec8f. No unrelated changes were present.
+Started from clean master, six commits ahead of origin/master. Resume confirmed no merge, rebase or upgrade in progress. The saved scope clarification is integrated at b34a45a.
 
 ## Progress
 
-The user confirmed all six scope answers. Plan/006.md requires AgentRig's own linter, Rust/Python/JavaScript/TypeScript, and descriptions in every scoped source directory with configurable exclusions. Plan/007.md delegates the simplest available additional VCS choice to the agent; Arc is a possible future private extension, not a current implementation. Plan/008.md names Codex and Claude Code. Confirmed order is P006, P007, P008. All remain pending; no product implementation has begun. The current instruction authorizes saving these answers and returning a short start prompt only.
+The user authorized complete sequential delivery; P006 is active. The first implementation adds a shared architecture module under lint with strict architecture.yaml loading, purpose/allow/deny/public declarations, checks at each crossed parent/child boundary, and measured dependency cycles including sibling subsystem boundaries. D028 records the ownership choice. This is a tested library component; source extraction and CLI wiring are not implemented yet. P007 and P008 remain pending under their confirmed contracts.
 
 ## Verification
 
-Live Git confirms integrated baseline 20cec8f. Inspected the five-file diff and checked updated acceptance against the six confirmed answers. git diff --check passed. Commit gate and integration remain pending.
+Nine focused native architecture tests pass: valid/public/denied/private edges, parent-boundary enforcement, actual cycles versus permission declarations, nested subsystem cycles, diamond graphs, malformed/missing YAML and escaping/symlink contracts. just check --only lint and git diff --check pass after repairing two unnamed conditions and extracting root normalization from the oversized graph function. Commit gate remains pending; full P006 acceptance has not been claimed.
 
 ## Blockers
 
-No unresolved scope questions. Await the user's separate command before starting product implementation.
+None observed. The user's start command supersedes the previous waiting state.
 
 ## Next action
 
-Verify and commit this clarification-only VAC, integrate with just feature-merge and retain the branch, then return a short prompt authorizing delivery of P006–P008 in order. After the user issues that command, resume from current Git and Plan, begin P006, and deliver each outcome through its acceptance and required gates. Do not repeat clarification or integration already resolved in current evidence.
+Commit the current graph/contract VAC through the staged gate. Continue P006 with actual dependency extraction for Rust, Python, JavaScript and TypeScript, then integrate rule discovery/configuration/diagnostics, strengthen the existing refactoring skill and verify independent consumers before feature acceptance and feature-merge. After P006 integration deliver P007 and P008 in order. Preserve the installed development pin while testing candidate sources.
