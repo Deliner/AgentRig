@@ -45,7 +45,7 @@ fn review_timeout(root: &Path, files: &Files, path: &str) -> Result<u64> {
         }
         Err(error) => return Err(error.into()),
     };
-    let review: review_runner::config::Config = toml::from_str(&source)?;
+    let review: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
     Ok(review.runner.timeout_seconds)
 }
 fn mcp(server: &mut Item, timeout: u64) -> Result<()> {

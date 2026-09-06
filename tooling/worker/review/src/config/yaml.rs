@@ -5,6 +5,14 @@ use std::{fs, path::Path};
 use yaml_rust2::scanner::{Scanner, Token, TokenType};
 
 pub fn read<T: DeserializeOwned>(path: &Path) -> Result<T> {
+    let legacy = path
+        .extension()
+        .is_some_and(|extension| extension == "toml");
+    ensure!(
+        !legacy,
+        "YAML configuration required: explicitly migrate legacy TOML {} to YAML; no format fallback is supported",
+        path.display()
+    );
     let source = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
     decode(&source).with_context(|| format!("YAML configuration {}", path.display()))
 }

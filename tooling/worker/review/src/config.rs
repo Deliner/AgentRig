@@ -75,7 +75,7 @@ pub fn resource(config: &Path, resource: &Path) -> Result<PathBuf> {
         })
 }
 pub fn load(path: &Path) -> Result<Config> {
-    let mut config: Config = toml::from_str(&fs::read_to_string(path)?)?;
+    let mut config: Config = yaml::read(path)?;
     ensure!(
         config.schema_version == 1,
         "unsupported configuration schema"
@@ -156,7 +156,7 @@ fn validate_tool(name: &str, tool: &Tool, reviewers: &BTreeMap<String, Reviewer>
     Ok(())
 }
 pub fn project(path: &Path) -> Result<Project> {
-    let mut project: Project = toml::from_str(&fs::read_to_string(path)?)?;
+    let mut project: Project = yaml::read(path)?;
     ensure!(project.schema_version == 1, "unsupported project schema");
     ensure!(
         !project.repository.visible_paths.is_empty(),

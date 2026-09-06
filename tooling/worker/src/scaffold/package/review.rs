@@ -1,5 +1,5 @@
 use super::{Config, Files};
-pub const CONFIG: &str = ".worker/review/config/review.toml";
+pub const CONFIG: &str = ".worker/review/config/review.yaml";
 const RESOURCES: &[(&str, &[u8])] = &[
     (
         "config/contracts/code.json",
@@ -10,16 +10,16 @@ const RESOURCES: &[(&str, &[u8])] = &[
         include_bytes!("../../../review/config/contracts/research.json"),
     ),
     (
-        "config/projects/code.toml",
-        include_bytes!("../../../review/config/projects/code.toml"),
+        "config/projects/code.yaml",
+        include_bytes!("../../../review/config/projects/code.yaml"),
     ),
     (
-        "config/projects/research.toml",
-        include_bytes!("../../../review/config/projects/research.toml"),
+        "config/projects/research.yaml",
+        include_bytes!("../../../review/config/projects/research.yaml"),
     ),
     (
-        "config/review.toml",
-        include_bytes!("../../../review/config/review.toml"),
+        "config/review.yaml",
+        include_bytes!("../../../review/config/review.yaml"),
     ),
     (
         "prompts/correctness.md",

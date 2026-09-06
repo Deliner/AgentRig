@@ -51,7 +51,7 @@ impl Fixture {
         .unwrap();
         Command::new(env!("CARGO_BIN_EXE_review-runner"))
             .args(["run"])
-            .arg(root.join("config.toml"))
+            .arg(root.join("config.yaml"))
             .arg(root.join("request.json"))
             .env("REVIEW_CODEX_BIN", root.join("codex"))
             .env("CODEX_HOME", root.join("auth"))
@@ -92,31 +92,35 @@ pub fn git(root: &Path, args: &[&str]) -> String {
 }
 fn resources(root: &Path) {
     fs::write(
-        root.join("config.toml"),
-        r#"schema_version=1
-[runner]
-runtime_root="runtime"
-report_root="reports"
-isolation="bubblewrap"
-parallelism=2
-timeout_seconds=3
-format_attempts=2
-[reviewers.first]
-model="test"
-reasoning_effort="high"
-prompt="prompt.md"
-[reviewers.second]
-model="test"
-reasoning_effort="high"
-prompt="prompt.md"
-[tools.review_code]
-description="Test review"
-reviewers=["first","second"]
-project_config="project.toml"
+        root.join("config.yaml"),
+        r#"schema_version: 1
+runner:
+  runtime_root: runtime
+  report_root: reports
+  isolation: bubblewrap
+  parallelism: 2
+  timeout_seconds: 3
+  format_attempts: 2
+reviewers:
+  first:
+    model: test
+    reasoning_effort: high
+    prompt: prompt.md
+  second:
+    model: test
+    reasoning_effort: high
+    prompt: prompt.md
+tools:
+  review_code:
+    description: Test review
+    reviewers:
+    - first
+    - second
+    project_config: project.yaml
 "#,
     )
     .unwrap();
-    fs::write(root.join("project.toml"), "schema_version=1\n[repository]\nvisible_paths=['src/**']\ncontract_paths=[]\n[review]\ncontract='contract.json'\n").unwrap();
+    fs::write(root.join("project.yaml"), "schema_version: 1\nrepository:\n  visible_paths:\n  - src/**\n  contract_paths: []\nreview:\n  contract: contract.json\n").unwrap();
     fs::write(root.join("prompt.md"), "Check C-1.").unwrap();
     fs::write(root.join("contract.json"), serde_json::to_vec(&json!({"schema_version":1,"requirements":[{"id":"C-1","text":"Value is one","reviewers":["first","second"],"allow_na":false}]})).unwrap()).unwrap();
 }

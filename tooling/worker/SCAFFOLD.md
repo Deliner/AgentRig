@@ -11,7 +11,7 @@ Project capabilities are selected in `worker.toml`:
 lint = true
 
 [capabilities.review]
-config = ".worker/review/config/review.toml"
+config = ".worker/review/config/review.yaml"
 
 [capabilities.delegation]
 config = "agents/profiles.toml"

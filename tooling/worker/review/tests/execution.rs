@@ -158,7 +158,7 @@ fn mcp_lists_configured_tools_and_validates_arguments() {
     use review_runner::mcp::Server;
     use serde_json::json;
     let fixture = Fixture::new("pass");
-    let mut server = Server::new(&fixture.0.path().join("config.toml")).unwrap();
+    let mut server = Server::new(&fixture.0.path().join("config.yaml")).unwrap();
     let init = server.message(json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}})).unwrap();
     assert_eq!(
         init["result"]["capabilities"]["tools"]["listChanged"],
@@ -191,7 +191,7 @@ fn failed_report_storage_retains_emergency_evidence() {
     fs::write(root.join("reports"), "storage unavailable").unwrap();
     let output = Command::new(env!("CARGO_BIN_EXE_review-runner"))
         .arg("run")
-        .arg(root.join("config.toml"))
+        .arg(root.join("config.yaml"))
         .arg(root.join("request.json"))
         .env("REVIEW_CODEX_BIN", root.join("codex"))
         .env("CODEX_HOME", root.join("auth"))

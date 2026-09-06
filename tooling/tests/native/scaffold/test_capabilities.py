@@ -6,7 +6,7 @@ from test_review import resources
 
 
 def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path, CONFIG + '\n[capabilities.review]\nconfig="config.toml"\n')
+    project(tmp_path, CONFIG + '\n[capabilities.review]\nconfig="config.yaml"\n')
     resources(tmp_path)
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 0, result.stderr
@@ -81,6 +81,6 @@ def test_installation_ships_review_resources(worker: Path, tmp_path: Path) -> No
     assert {tool["name"] for tool in tools} == {"review_code", "review_research"}
     receipt = json.loads((tmp_path / ".worker/manifest.json").read_text())["files"]
     assert receipt["guides/review-project/SKILL.md"]["ownership"] == "editable"
-    assert receipt[".worker/review/config/review.toml"]["ownership"] == "configuration"
+    assert receipt[".worker/review/config/review.yaml"]["ownership"] == "configuration"
     assert receipt[".worker/review/prompts/correctness.md"]["ownership"] == "editable"
     assert receipt["AGENTS.md"]["ownership"] == "editable"

@@ -818,7 +818,6 @@ dependencies = [
  "serde_yaml_ng",
  "sha2",
  "tempfile",
- "toml",
  "yaml-rust2",
 ]
 

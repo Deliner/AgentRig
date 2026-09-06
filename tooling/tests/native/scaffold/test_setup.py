@@ -59,10 +59,8 @@ def test_setup_prepares_and_repeats_without_losing_settings(worker: Path, tmp_pa
 def test_setup_preserves_changed_review_and_memory(worker: Path, tmp_path: Path) -> None:
     root = declaration(worker, tmp_path)
     assert invoke(worker, root, "setup").returncode == 0
-    review = root / ".worker/review/config/review.toml"
-    review.write_text(
-        review.read_text().replace('model = "gpt-5.6-luna"', 'model = "consumer-model"')
-    )
+    review = root / ".worker/review/config/review.yaml"
+    review.write_text(review.read_text().replace("model: gpt-5.6-luna", "model: consumer-model"))
     state = root / "memory/State.md"
     state.write_text(state.read_text().replace("Not recorded.", "Consumer-owned state."))
     before = file_contents(root)

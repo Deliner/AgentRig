@@ -15,8 +15,8 @@ libraries, resolver files and TLS certificates are mounted read-only.
 From this repository:
 
 ```sh
-just review config-check tooling/worker/review/config/review.toml
-just review run tooling/worker/review/config/review.toml /absolute/request.json
+just review config-check tooling/worker/review/config/review.yaml
+just review run tooling/worker/review/config/review.yaml /absolute/request.json
 ```
 
 The review engine is a worker library. The main `discipline-worker` executable
@@ -59,7 +59,11 @@ Codex may create fresh service configuration in its private home.
 
 ## Configuration and contracts
 
-Start with [config/review.toml](config/review.toml). It defines named tools and
+Review settings use strict YAML exclusively. Duplicate keys, unknown fields,
+incorrect scalar types, anchors, aliases, tags and merge keys are rejected.
+TOML review settings must be explicitly migrated; there is no format fallback.
+
+Start with [config/review.yaml](config/review.yaml). It defines named tools and
 shared reviewer definitions; role counts and names are not hardcoded. A role
 specifies its model, reasoning effort and prompt. Each tool selects roles and a
 project configuration. Restart MCP after changing its tool configuration.

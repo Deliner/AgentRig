@@ -80,14 +80,14 @@ fn review_config(root: &Path, preview: &Path, path: &str) -> Result<()> {
     copy(root, preview, path)?;
     let parent = root.join(path).parent().unwrap().to_owned();
     let mut review: review_runner::config::Config =
-        toml::from_str(&fs::read_to_string(preview.join(path))?)?;
+        review_runner::config::yaml::read(&preview.join(path))?;
     for critic in review.reviewers.values_mut() {
         critic.prompt = resource(root, preview, &parent.join(&critic.prompt))?;
     }
     for (index, tool) in review.tools.values_mut().enumerate() {
         let project_path = resource(root, preview, &parent.join(&tool.project_config))?;
         let mut project: review_runner::config::Project =
-            toml::from_str(&fs::read_to_string(&project_path)?)?;
+            review_runner::config::yaml::read(&project_path)?;
         project.review.contract = resource(
             root,
             preview,
@@ -96,8 +96,15 @@ fn review_config(root: &Path, preview: &Path, path: &str) -> Result<()> {
                 .unwrap()
                 .join(&project.review.contract),
         )?;
-        tool.project_config = preview.join(format!(".worker/setup-{index}.toml"));
-        fs::write(&tool.project_config, toml::to_string(&project)?)?;
+        tool.project_config = preview.join(format!(".worker/setup-{index}.yaml"));
+        fs::write(
+            &tool.project_config,
+            review_runner::config::yaml::encode(&project)?,
+        )?;
     }
-    put(preview, path, toml::to_string(&review)?.as_bytes())
+    put(
+        preview,
+        path,
+        review_runner::config::yaml::encode(&review)?.as_bytes(),
+    )
 }

@@ -5,16 +5,16 @@ from pathlib import Path
 
 
 def resources(root: Path) -> None:
-    (root / "config.toml").write_text(
-        'schema_version=1\n[runner]\nruntime_root="runtime"\nreport_root="reports"\n'
-        'isolation="bubblewrap"\nparallelism=1\ntimeout_seconds=5\nformat_attempts=2\n'
-        '[reviewers.critic]\nmodel="test"\nreasoning_effort="high"\nprompt="prompt.md"\n'
-        '[tools.review_code]\ndescription="Review"\nreviewers=["critic"]\n'
-        'project_config="project.toml"\n'
+    (root / "config.yaml").write_text(
+        "schema_version: 1\nrunner:\n  runtime_root: runtime\n  report_root: reports\n"
+        "  isolation: bubblewrap\n  parallelism: 1\n  timeout_seconds: 5\n  format_attempts: 2\n"
+        "reviewers:\n  critic:\n    model: test\n    reasoning_effort: high\n    prompt: prompt.md\n"
+        "tools:\n  review_code:\n    description: Review\n    reviewers: [critic]\n"
+        "    project_config: project.yaml\n"
     )
-    (root / "project.toml").write_text(
-        'schema_version=1\n[repository]\nvisible_paths=["src/**"]\ncontract_paths=[]\n'
-        '[review]\ncontract="contract.json"\n'
+    (root / "project.yaml").write_text(
+        "schema_version: 1\nrepository:\n  visible_paths: ['src/**']\n  contract_paths: []\n"
+        "review:\n  contract: contract.json\n"
     )
     requirement = dict(id="C-1", text="Value is one", reviewers=["critic"], allow_na=False)
     (root / "contract.json").write_text(
@@ -47,7 +47,7 @@ def test_worker_embeds_review_runner_and_stop_hook(worker: Path, tmp_path: Path)
             str(worker),
             "review",
             "run",
-            str(tmp_path / "config.toml"),
+            str(tmp_path / "config.yaml"),
             str(tmp_path / "request.json"),
         ],
         env=dict(
@@ -72,7 +72,7 @@ def test_worker_exposes_configured_mcp_tools(worker: Path, tmp_path: Path) -> No
         dict(jsonrpc="2.0", id=2, method="tools/list"),
     ]
     result = subprocess.run(
-        [str(worker), "review", "mcp", str(tmp_path / "config.toml")],
+        [str(worker), "review", "mcp", str(tmp_path / "config.yaml")],
         input="".join(json.dumps(message) + "\n" for message in messages),
         capture_output=True,
         text=True,

@@ -84,7 +84,7 @@ Add the review capability to the consumer's worker.toml:
 
 ```toml
 [capabilities.review]
-config = ".worker/review/config/review.toml"
+config = ".worker/review/config/review.yaml"
 ```
 
 Run `just setup`. It installs the stock review resources and review-project skill,
