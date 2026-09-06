@@ -1,3 +1,4 @@
+pub mod code;
 pub mod config;
 pub mod mcp;
 pub mod run;
