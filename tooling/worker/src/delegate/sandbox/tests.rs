@@ -172,3 +172,55 @@ fn hook_profile(root: &Path, argument: &str) -> Profile {
     );
     profile
 }
+
+#[test]
+fn unselected_profile_does_not_inherit_another_environment() {
+    let root = tempfile::tempdir().unwrap();
+    let first = root.path().join("first");
+    let second = root.path().join("second");
+    fs::create_dir(&first).unwrap();
+    fs::create_dir(&second).unwrap();
+    let selected_layout = fixture(&first);
+    let empty_layout = fixture(&second);
+    let selected = complete_environment(&first);
+    prepare(&selected_layout, &selected).unwrap();
+    let empty = profile();
+    let receipt = prepare(&empty_layout, &empty).unwrap();
+    assert_eq!(receipt["files"], json!({}));
+    let settings: toml::Value = toml::from_str(
+        &fs::read_to_string(empty_layout.private.join("codex/config.toml")).unwrap(),
+    )
+    .unwrap();
+    assert_eq!(settings["features"]["hooks"].as_bool(), Some(false));
+    assert!(settings["mcp_servers"].as_table().unwrap().is_empty());
+    assert!(settings["hooks"].as_table().unwrap().is_empty());
+    fs::write(&empty_layout.codex,
+        "#!/bin/sh\nset -eu\ntest ! -e /tools/helper\ntest ! -e /tools/hook\ntest ! -e /codex/skills/guide\ntest ! -e /work/hook-output\n",
+    ).unwrap();
+    let output = command(&empty_layout, &empty).unwrap().output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        selected_layout
+            .private
+            .join("environment/skills/guide/SKILL.md")
+            .exists()
+    );
+}
+
+fn complete_environment(root: &Path) -> Profile {
+    let mut selected = resources(root);
+    selected.environment.mcp_servers.insert(
+        "probe".into(),
+        serde_json::from_value(json!({"program":"helper"})).unwrap(),
+    );
+    selected.environment.hooks = hook_profile(root, "instruction").environment.hooks;
+    selected
+        .environment
+        .programs
+        .insert("hook".into(), root.join("hook"));
+    selected
+}

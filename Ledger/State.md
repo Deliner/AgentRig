@@ -8,17 +8,17 @@ Deliver all of P004 under the AgentRig goal in .tmp/agentrig-yaml-environments-p
 
 Branch: feature/agentrig-environments
 
-Revision: 0652cf3
+Revision: ac43767
 
 Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-Whole-configuration inspection is committed. Current VAC verifies independent Python/Rust consumers sharing one package with distinct overrides and service paths; installed gates and a copied standalone linter work after source declarations are removed. Real installed shared-environment acceptance has now passed for all three delegate modes. Final requirement audit and integration remain required in P004.
+Independent Python/Rust consumer acceptance is committed. Current VAC explicitly verifies that an unselected profile inherits no programs, skills, hooks or MCP services from a sibling environment. Real frontend cancellation and the bare-profile probe have passed in the installed consumer. Final requirement audit, documentation reconciliation and integration remain required in P004.
 
 ## Verification
 
-Previous complete gate passed 360 Python and 49 Rust tests. The new shared-package consumer test passes, covering external preview/setup, installed checks, repeated setup preservation, package overrides and copied lint discovery/example/explain/execution. Current full gate remains pending. Real Codex/gpt-5.6-sol evidence and exact run IDs are in .tmp/agentrig-environment-kwjhy7x1/acceptance.json: read, artifacts and code modes passed through stdio MCP after reconnect, with source declarations removed, custom skill/hook/service values verified, actual service tools/call retained, applicable checked patch, unchanged checkout and private cleanup. All three runs are terminal. Earlier blocking Stop smoke is .tmp/agentrig-hooks-yrxoi0oz, run-QrDoij; skill discovery is .tmp/agentrig-installed-discovery-x3yq3jb2/result.json. Real migration baseline remains .tmp/agentrig-baseline-0.2.0 at a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
+Previous full gate passed 361 Python and 49 Rust tests; resume confirms matching committed content. The new bubblewrap profile-isolation check passed before a helper extraction; full staged gate remains pending. Real Codex/gpt-5.6-sol evidence and exact run IDs are in .tmp/agentrig-environment-kwjhy7x1/acceptance.json for all three modes, and cancellation-acceptance.json beside it for cancellation after observing an actual sleep command, a passing bare profile with an empty environment receipt, unchanged prior reports/checkout and private cleanup. All smoke runs are terminal. Earlier blocking Stop smoke is .tmp/agentrig-hooks-yrxoi0oz, run-QrDoij; skill discovery is .tmp/agentrig-installed-discovery-x3yq3jb2/result.json. Real migration baseline remains .tmp/agentrig-baseline-0.2.0 at a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit independent consumer acceptance through the full staged gate. Audit every P004 acceptance item against code and real evidence, including profile non-inheritance, cancellation, interactive equivalence, migration recovery and current documentation. Resolve any remaining gaps, then record feature acceptance and integrate through the configured workflow. Do not substitute these passing scenarios for the full audit.
+Commit explicit profile isolation through the full staged gate. Finish the P004 requirement audit, reconcile current documentation and record concrete acceptance evidence in Delivery before integration. Known documentation fixes: the root hook description still uses the former product name, and review MCP registration prose should distinguish agentrig review mcp from the standalone review-runner mcp interface. Preserve historical decisions and external tool formats.
