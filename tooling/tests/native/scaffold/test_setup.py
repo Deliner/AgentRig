@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import tomllib
 from pathlib import Path
@@ -107,3 +108,21 @@ def test_setup_rejects_unknown_capability_before_writing(worker: Path, tmp_path:
     assert result.returncode == 2
     assert "unknown field" in result.stderr
     assert file_contents(root) == before
+
+
+def test_setup_reports_required_scope_backend_failure(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = declaration(worker, tmp_path)
+    config = root / "worker.toml"
+    config.write_text(
+        config.read_text().replace('foreground = "process-group"', 'foreground = "systemd"')
+    )
+    launcher = tmp_path / "systemd-run"
+    launcher.write_text("#!/bin/sh\necho 'scope unavailable' >&2\nexit 1\n")
+    launcher.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+    result = invoke(worker, root, "setup")
+    assert result.returncode != 0
+    assert '"available":false' in result.stdout
+    assert "process scope capability" in result.stdout

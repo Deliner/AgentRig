@@ -23,7 +23,7 @@ pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> R
             .env("WORKER_PARENT_RUN", &job.record().run_id);
     }
     let logged = job.is_some();
-    let forward = job.as_ref().is_none_or(|job| job.record().scope.is_none());
+    let forward = job.as_ref().is_none_or(|job| !job.record().background);
     let piped = capture || logged;
     if capture {
         command.stdin(Stdio::null());

@@ -204,6 +204,11 @@ Without an owner identity, merge does not guess which runs belong to its caller.
 
 Setup/doctor reports whether a real transient user scope can be created, including
 cgroup v2 availability and the backend diagnostic. Background support is optional
-for existing foreground-only projects. Foreground commands still use process-group
+for projects using `[processes] foreground = "process-group"` (the default).
+Select `foreground = "systemd"` to run ordinary commands through the same scope
+runner as background commands, preserving stdin, stdout, stderr and exit status.
+Setup/doctor fails when this selected backend cannot create a scope; execution
+does not silently fall back. The default process-group mode provides
 signal forwarding; cleanup reports unfinished uncontained runs for inspection.
-Configurable foreground containment remains pending in P003.
+Nested scope launches remain separately registered under their inherited owner;
+owner cleanup covers them. A single scope stop only covers that scope's cgroup.

@@ -33,6 +33,10 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
     let runtime = context.path(&context.config.paths.runtime)?;
     let mut job = discipline_worker::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
     job.prepare(&argv, spec.read_only, spec.lifetime)?;
+    let scoped = context.config.processes.foreground == super::config::Containment::Systemd;
+    if scoped {
+        return job.foreground(&std::env::current_exe()?, capture);
+    }
     let result = process::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
     let code = result.as_ref().map(process::exit_code).unwrap_or(127);
     job.finish(

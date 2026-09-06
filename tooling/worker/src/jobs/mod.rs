@@ -52,6 +52,8 @@ pub struct Record {
     pub read_only: bool,
     #[serde(default)]
     pub lifetime: Lifetime,
+    #[serde(default)]
+    pub background: bool,
 }
 pub struct Job {
     directory: PathBuf,
@@ -90,7 +92,11 @@ impl Job {
             scope: None,
             read_only: false,
             lifetime: Lifetime::Task,
+            background: false,
         };
+        Self::registered(directory, record)
+    }
+    fn registered(directory: PathBuf, record: Record) -> Result<Self> {
         let job = Self {
             directory,
             record,

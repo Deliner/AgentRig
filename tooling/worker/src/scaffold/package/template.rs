@@ -40,6 +40,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
         version: 1,
+        processes: Default::default(),
         capabilities: config::Capabilities {
             lint: true,
             review: (options["review"] == "true").then(|| config::Review {

@@ -22,10 +22,11 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
-    println!(
-        "background process capability: {}",
-        discipline_worker::jobs::capability()
-    );
+    let capability = discipline_worker::jobs::capability();
+    println!("process scope capability: {capability}");
+    let required =
+        context.config.processes.foreground == super::super::config::Containment::Systemd;
+    failed |= required && capability["available"] != true;
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
     failed |= !review_dependencies(context);

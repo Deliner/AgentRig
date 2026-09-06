@@ -32,6 +32,7 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
     [
         ('runtime = "0.2.0"', 'runtime = "9.0.0"'),
         ("version = 1", "version = 7"),
+        ("[paths]", '[processes]\nforeground = "unknown"\n[paths]'),
         ('memory = "notes"', 'memory = "../outside"'),
         ("read_only = true", 'read_only = "true"'),
         ("accepts_args = true", "accept_arg = true"),
@@ -216,6 +217,66 @@ def background_id(worker: Path, root: Path, command: str = "wait") -> str:
     assert result.returncode == 0, result.stderr
     identifier: str = json.loads(result.stdout)["run_id"]
     return identifier
+
+
+def test_foreground_scope_preserves_input_and_streams(worker: Path, tmp_path: Path) -> None:
+    require_user_systemd()
+    project(tmp_path, CONFIG + '\n[processes]\nforeground = "systemd"\n')
+    result = invoke(worker, tmp_path, "run", "echo", "argument", input="input bytes")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "['argument']\ninput bytes\n"
+    assert result.stderr == "stderr\n"
+    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
+    assert row["state"] == "completed"
+    assert row["containment"] == "systemd user scope"
+    assert row["scope"]["invocation"]
+    assert row["background"] is False
+    logs = json.loads(invoke(worker, tmp_path, "job-logs", row["run_id"]).stdout)
+    assert logs["stdout"]["text"] == result.stdout
+    assert logs["stderr"]["text"] == result.stderr
+
+
+def test_scope_launcher_exit_does_not_claim_payload_success(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    project(tmp_path, CONFIG + '\n[processes]\nforeground = "systemd"\n')
+    launcher = tmp_path / "systemd-run"
+    launcher.write_text("#!/bin/sh\nexit 0\n")
+    launcher.chmod(0o755)
+    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
+    result = invoke(worker, tmp_path, "run", "echo")
+    assert result.returncode == 127
+    assert "failed before adoption" in result.stderr
+    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
+    assert row["exit_code"] == 127 and row["child"] is None
+    assert "failed before adoption" in row["error"]
+
+
+def test_foreground_scope_cancels_detached_descendant(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    require_user_systemd()
+    monkeypatch.setenv("WORKER_OWNER", "foreground-owner")
+    code = "import subprocess,time; subprocess.Popen(['sleep','60'],start_new_session=True); print('ready',flush=True); time.sleep(60)"
+    config = CONFIG + '\n[processes]\nforeground = "systemd"\n[commands.wait]\nargv = '
+    project(tmp_path, config + json.dumps(["python3", "-c", code]))
+    process = subprocess.Popen(
+        [str(worker), "run", "--root", str(tmp_path), "wait"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+    try:
+        row = wait_for_job(worker, tmp_path)
+        wait_for_background_output(worker, tmp_path, row["run_id"])
+        stopped = invoke(worker, tmp_path, "job-stop", row["run_id"])
+        assert stopped.returncode == 0, stopped.stderr
+        assert json.loads(stopped.stdout)["scope_observation"]["populated"] is False
+        assert process.wait(timeout=5) != 0
+    finally:
+        cleanup = invoke(worker, tmp_path, "job-cleanup")
+        assert cleanup.returncode == 0, cleanup.stderr
+        process.wait(timeout=5)
 
 
 def require_user_systemd() -> None:

@@ -10,6 +10,7 @@ use std::{
 
 impl Job {
     pub fn launch(mut self, executable: &Path) -> Result<String> {
+        self.record.background = true;
         let scope = Scope::new(&self.record.run_id);
         self.record.scope = Some(scope.clone());
         self.save()?;
@@ -53,7 +54,7 @@ impl Job {
         let scope = record
             .scope
             .as_mut()
-            .ok_or_else(|| anyhow::anyhow!("run is not a background launch"))?;
+            .ok_or_else(|| anyhow::anyhow!("run is not a scoped launch"))?;
         ensure!(scope.invocation.is_none(), "run already adopted");
         let actual = fs::read_to_string("/proc/self/cgroup")?;
         ensure!(
@@ -73,11 +74,28 @@ impl Job {
     pub fn record(&self) -> &Record {
         &self.record
     }
+    pub fn foreground(mut self, executable: &Path, capture: bool) -> Result<std::process::Output> {
+        let scope = Scope::new(&self.record.run_id);
+        self.record.scope = Some(scope.clone());
+        self.save()?;
+        let mut command = self.launcher(executable, &scope)?;
+        let result = super::process::execute(&mut command, capture, None);
+        let saved: Record = serde_json::from_slice(&fs::read(self.directory.join("record.json"))?)?;
+        let adopted = saved
+            .scope
+            .as_ref()
+            .is_some_and(|scope| scope.invocation.is_some());
+        let missing_runner = !adopted;
+        if missing_runner {
+            self.finish(127, Some("scope launcher failed before adoption".into()))?;
+            anyhow::bail!(
+                "scope launcher failed before adoption for run {}",
+                self.record.run_id
+            );
+        }
+        result
+    }
     fn launcher(&self, executable: &Path, scope: &Scope) -> Result<Command> {
-        let log = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(self.directory.join("launcher.log"))?;
         let mut command = Command::new("systemd-run");
         command
             .args([
@@ -95,11 +113,18 @@ impl Job {
             .arg("_job-run")
             .arg("--root")
             .arg(&self.record.project)
-            .arg(&self.record.run_id)
-            .stdin(Stdio::null())
-            .stdout(log.try_clone()?)
-            .stderr(log)
-            .process_group(0);
+            .arg(&self.record.run_id);
+        if self.record.background {
+            let log = OpenOptions::new()
+                .create_new(true)
+                .write(true)
+                .open(self.directory.join("launcher.log"))?;
+            command
+                .stdin(Stdio::null())
+                .stdout(log.try_clone()?)
+                .stderr(log)
+                .process_group(0);
+        }
         Ok(command)
     }
 }
