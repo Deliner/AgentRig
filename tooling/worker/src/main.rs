@@ -34,6 +34,7 @@ fn run() -> Result<i32> {
     match command.as_str() {
         "hook" => hook(&root),
         "review" => run_review(&root, args),
+        "delegate" => discipline_worker::delegate::cli(&root, &args),
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
@@ -66,6 +67,9 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     root.canonicalize().map_err(Into::into)
 }
 fn print_help() {
+    println!(
+        "delegate config-check CONFIG\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
+    );
     println!(
         "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
     );

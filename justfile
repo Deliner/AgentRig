@@ -95,3 +95,7 @@ job-stop *args:
 # What: clean completed work's runs; Why: retain other owners and shared services.
 job-cleanup *args:
     @tooling/worker/run job-cleanup "$@"
+
+# What: configure delegated workers; Why: validate executor profiles before execution.
+delegate *args:
+    @tooling/worker/run delegate "$@"

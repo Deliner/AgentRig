@@ -210,7 +210,8 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
         "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "review" | "setup"
-        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" | "job-cleanup" => {}
+        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" | "job-cleanup"
+        | "delegate" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

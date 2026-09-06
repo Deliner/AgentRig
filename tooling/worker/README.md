@@ -212,3 +212,55 @@ does not silently fall back. The default process-group mode provides
 signal forwarding; cleanup reports unfinished uncontained runs for inspection.
 Nested scope launches remain separately registered under their inherited owner;
 owner cleanup covers them. A single scope stop only covers that scope's cgroup.
+
+## Delegation profiles
+
+`just delegate config-check CONFIG` validates a separate TOML profile file.
+The profile contract is implemented; execution, MCP and setup integration are
+still under development in P003. A successful configuration check does not run
+an executor or prove model/service availability.
+
+```toml
+schema_version = 1
+
+[profiles.reader]
+frontend = "codex"
+model = "your-configured-model"
+reasoning_effort = "high"
+mode = "read"
+prompt = "prompts/reader.md"
+visible_paths = ["src/**", "docs/**"]
+timeout_seconds = 900
+memory_bytes = 1073741824
+max_processes = 64
+skills = ["skills/project-guide"]
+
+[profiles.reader.programs]
+python = "/usr/bin/python3"
+
+[profiles.reader.credentials]
+codex_auth_file_env = "PROJECT_CODEX_AUTH_FILE"
+
+[profiles.reader.mcp_servers.helper]
+program = "python"
+args = ["-m", "your_server"]
+
+[profiles.reader.mcp_servers.helper.env]
+SERVICE_TOKEN = "PROJECT_SERVICE_TOKEN"
+```
+
+Frontend currently accepts `codex`; modes accept `read` and `artifacts`.
+Prompts, skill directories and executable program paths resolve relative to the
+configuration file (absolute resource paths are also accepted). Each skill
+directory must contain SKILL.md and have a distinct name. MCP servers reference
+a declared program; remote host-side MCP connections are not part of this contract.
+Visible-path globs describe project inputs, not configuration resource paths.
+Timeout is required and positive; memory_bytes and max_processes are optional
+positive limits. Program, skill and server maps can be omitted when unused.
+
+Credential values are environment-variable references, never secret values.
+codex_auth_file_env names a variable containing the auth.json path at execution;
+alternatively credentials.env.OPENAI_API_KEY names a variable holding the API key.
+Other credential env entries and server env entries use the same mapping.
+Configuration validation checks reference syntax without reading those values.
+HOME, CODEX_HOME, PATH and loader overrides belong to the sandbox.

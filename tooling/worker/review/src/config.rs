@@ -114,9 +114,13 @@ fn validate_reviewer(name: &str, reviewer: &Reviewer) -> Result<()> {
         identifier(name) && !reviewer.model.trim().is_empty(),
         "invalid reviewer {name}"
     );
+    reasoning_effort(&reviewer.reasoning_effort)?;
+    Ok(())
+}
+pub fn reasoning_effort(value: &str) -> Result<()> {
     ensure!(
-        ["minimal", "low", "medium", "high", "xhigh"].contains(&reviewer.reasoning_effort.as_str()),
-        "unsupported reasoning effort for {name}"
+        ["minimal", "low", "medium", "high", "xhigh"].contains(&value),
+        "unsupported reasoning effort {value}"
     );
     Ok(())
 }

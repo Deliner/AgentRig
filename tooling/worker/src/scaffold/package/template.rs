@@ -185,6 +185,7 @@ pub(super) fn justfile() -> String {
         ("job-stop", "job-stop", true),
         ("job-cleanup", "job-cleanup", true),
         ("review", "review", true),
+        ("delegate", "delegate", true),
     ] {
         source.push_str(&format!(
             "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",
