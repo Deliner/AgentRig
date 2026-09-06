@@ -78,6 +78,20 @@ impl<'a> Repository<'a> {
             .filter(|value| value.bytes().any(|byte| byte != b'0')))
     }
 
+    pub fn parents(&self, revision: &str) -> Result<Vec<String>> {
+        let values = match self.kind {
+            Kind::Git => git::parents(self.root, revision)?,
+            Kind::Mercurial => mercurial::parents(self.root, revision)?,
+        };
+        Ok(values
+            .into_iter()
+            .map(validate_revision)
+            .collect::<Result<Vec<_>>>()?
+            .into_iter()
+            .filter(|value| value.bytes().any(|byte| byte != b'0'))
+            .collect())
+    }
+
     pub fn tree(&self, revision: &str) -> Result<BTreeMap<String, Entry>> {
         match self.kind {
             Kind::Git => git::tree(self.root, revision),

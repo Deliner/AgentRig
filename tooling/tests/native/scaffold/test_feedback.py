@@ -1,5 +1,6 @@
 import json
 import os
+import shlex
 import signal
 import subprocess
 import time
@@ -9,7 +10,7 @@ from typing import Any
 import pytest
 from support import CONFIG, file_contents, git, invoke, project
 from test_gate import GATE
-from test_memory import memory
+from test_memory import committed_memory, memory
 
 
 def repository(root: Path, vcs: str = "git") -> None:
@@ -213,3 +214,150 @@ def test_resume_observes_real_conflict(worker: Path, tmp_path: Path, operation: 
     value = resumed(worker, tmp_path)
     assert value["git"][f"{operation}_in_progress"]
     assert file_contents(tmp_path) == before
+
+
+def revision(root: Path, vcs: str) -> str:
+    using_git = vcs == "git"
+    args = ["rev-parse", "HEAD"] if using_git else ["log", "-r", ".", "-T", "{node}"]
+    return subprocess.check_output([vcs, *args], cwd=root, text=True).strip()
+
+
+def commit(root: Path, vcs: str) -> str:
+    using_git = vcs == "git"
+    commands = (
+        [("add", "-u"), ("commit", "-qm", "candidate")]
+        if using_git
+        else [("commit", "-m", "candidate", "-u", "Test")]
+    )
+    for args in commands:
+        subprocess.run([vcs, *args], cwd=root, capture_output=True, check=True)
+    return revision(root, vcs)
+
+
+def evidence(root: Path) -> dict[str, Any]:
+    value: dict[str, Any] = json.loads((root / ".runtime/checks.json").read_text())
+    return value
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    repository(tmp_path, vcs)
+    base = revision(tmp_path, vcs)
+    source = tmp_path / "src/value.py"
+    source.write_text("line\n" * 61)
+    candidate = commit(tmp_path, vcs)
+    source.write_text("value = 1\n")
+    lint = tmp_path / "lint.yaml"
+    lint.write_text(lint.read_text().replace("error: 60", "error: 100"))
+    result = invoke(worker, tmp_path, "check", "--revision", candidate, "--only", "lint")
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "exceeds 60" in result.stdout
+    rerun = result.stderr.split("RERUN: ", 1)[1].splitlines()[0]
+    assert f"--revision {candidate}" in rerun
+    repeated = subprocess.run(shlex.split(rerun), capture_output=True, text=True, check=False)
+    assert repeated.returncode == 1, repeated.stderr
+    record = evidence(tmp_path)
+    assert record["revision"] == candidate and record["revision_export"]
+    assert record["status"] == "completed" and record["code"] == 1
+    assert not record["staged"] and record["index_fingerprint"] is None
+    assert source.read_text() == "value = 1\n"
+    assert "error: 100" in lint.read_text()
+    assert invoke(worker, tmp_path, "check", "--revision", base, "--only", "lint").returncode == 0
+    checks = resumed(worker, tmp_path)["checks"]
+    assert checks["last_run"]["revision"] == base
+    assert not checks["revision_matches"] and not checks["full_gate_passed"]
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_exports(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    repository(tmp_path, vcs)
+    base = revision(tmp_path, vcs)
+    assert invoke(worker, tmp_path, "check", "--revision", base).returncode == 23
+    assert evidence(tmp_path)["code"] == 23
+    config = tmp_path / "agentrig.yaml"
+    config.write_text(config.read_text().replace("exit 23", "exit 0"))
+    passing = commit(tmp_path, vcs)
+    result = invoke(worker, tmp_path, "check", "--revision", passing)
+    assert result.returncode == 0, result.stderr
+    assert resumed(worker, tmp_path)["checks"]["full_gate_passed"]
+    config.write_text(config.read_text().replace("exit 0", "echo changed > src/value.py"))
+    changing = commit(tmp_path, vcs)
+    assert invoke(worker, tmp_path, "check", "--revision", changing).returncode == 0
+    assert evidence(tmp_path)["status"] == "inputs-changed"
+    assert not resumed(worker, tmp_path)["checks"]["full_gate_passed"]
+    assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+@pytest.mark.parametrize("damage", ["identity", "detail", "removal"])
+def test_revision_memory_checks_parent_history_instead_of_candidate_or_checkout(
+    worker: Path, tmp_path: Path, vcs: str, damage: str
+) -> None:
+    notes = committed_memory(worker, tmp_path, vcs)
+    base = revision(tmp_path, vcs)
+    result = invoke(worker, tmp_path, "check", "--revision", base)
+    assert result.returncode == 0, result.stderr
+    index = notes / "Decisions.md"
+    detail = notes / "Decisions/001.md"
+    changes = {
+        "identity": (index, index.read_text().replace("| Choice |", "| Changed |")),
+        "detail": (detail, detail.read_text().replace("Text.", "Changed.")),
+        "removal": (index, "# Decisions\n\n| ID | Decision | Applies in |\n"),
+    }
+    target, content = changes[damage]
+    original = target.read_text()
+    target.write_text(content)
+    candidate = commit(tmp_path, vcs)
+    target.write_text(original)
+    result = invoke(worker, tmp_path, "check", "--revision", candidate)
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "committed decision" in result.stderr
+    assert target.read_text() == original
+    result = invoke(worker, tmp_path, "check", "--revision", base)
+    assert result.returncode == 0, result.stderr
+
+
+@pytest.mark.parametrize(
+    "args",
+    [
+        ("--revision",),
+        ("--revision", "missing"),
+        ("--revision", "HEAD", "--revision", "HEAD"),
+        ("--staged", "--revision", "HEAD"),
+    ],
+)
+def test_revision_selection_rejects_invalid_or_conflicting_inputs(
+    worker: Path, tmp_path: Path, args: tuple[str, ...]
+) -> None:
+    repository(tmp_path)
+    result = invoke(worker, tmp_path, "check", *args)
+    assert result.returncode == 2
+    assert "PASS [" not in result.stdout
+    assert not (tmp_path / ".runtime/checks.json").exists()
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_revision_memory_checks_the_second_merge_parent(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    notes = committed_memory(worker, tmp_path, vcs)
+    base = revision(tmp_path, vcs)
+    source = tmp_path / "src/lib.rs"
+    source.write_text(source.read_text() + "\n// left branch\n")
+    left = commit(tmp_path, vcs)
+    using_git = vcs == "git"
+    switch = ["checkout", "-q", base] if using_git else ["update", "--clean", "--rev", base]
+    subprocess.run([vcs, *switch], cwd=tmp_path, capture_output=True, check=True)
+    index = notes / "Decisions.md"
+    index.write_text(index.read_text().replace("| Choice |", "| Changed |"))
+    commit(tmp_path, vcs)
+    merge = ["merge", "--no-commit", left] if using_git else ["merge", "--rev", left]
+    subprocess.run([vcs, *merge], cwd=tmp_path, capture_output=True, check=True)
+    candidate = commit(tmp_path, vcs)
+    result = invoke(worker, tmp_path, "check", "--revision", candidate)
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "committed decision identity cannot change" in result.stderr

@@ -64,6 +64,15 @@ pub(super) fn working_files(root: &Path) -> Result<Vec<u8>> {
     )
 }
 
+pub(super) fn parents(root: &Path, revision: &str) -> Result<Vec<String>> {
+    let bytes = run(root, &["rev-list", "--parents", "-n", "1", revision, "--"])?;
+    Ok(String::from_utf8(bytes)?
+        .split_whitespace()
+        .skip(1)
+        .map(str::to_owned)
+        .collect())
+}
+
 pub(super) fn staged_files(root: &Path) -> Result<Vec<u8>> {
     run(root, &["ls-files", "--cached", "-z"])
 }

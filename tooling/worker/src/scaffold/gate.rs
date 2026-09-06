@@ -10,36 +10,56 @@ use crate::lint::{self, config::globs, inventory};
 use anyhow::{Result, ensure};
 use std::path::{Path, PathBuf};
 
-pub fn arguments(args: &[String]) -> Result<(bool, Option<&str>)> {
-    let mut staged = false;
-    let mut only = None;
+#[derive(Default)]
+pub struct Options<'a> {
+    staged: bool,
+    only: Option<&'a str>,
+    revision: Option<&'a str>,
+}
+
+pub fn arguments(args: &[String]) -> Result<Options<'_>> {
+    let mut options = Options::default();
     let mut values = args.iter();
     while let Some(value) = values.next() {
         match value.as_str() {
             "--staged" => {
-                ensure!(!staged, "duplicate --staged");
-                staged = true;
+                ensure!(!options.staged, "duplicate --staged");
+                options.staged = true;
             }
-            "--only" => {
-                ensure!(only.is_none(), "duplicate --only");
-                only = Some(
+            "--only" | "--revision" => {
+                let target = match value.as_str() {
+                    "--only" => &mut options.only,
+                    _ => &mut options.revision,
+                };
+                ensure!(target.is_none(), "duplicate {value}");
+                *target = Some(
                     values
                         .next()
-                        .ok_or_else(|| anyhow::anyhow!("--only needs a check ID"))?
+                        .ok_or_else(|| anyhow::anyhow!("{value} needs a value"))?
                         .as_str(),
                 );
             }
-            _ => anyhow::bail!("check [--staged] [--only CHECK_ID]"),
+            _ => anyhow::bail!("check [--staged | --revision REV] [--only CHECK_ID]"),
         }
     }
-    Ok((staged, only))
+    ensure!(
+        !options.staged || options.revision.is_none(),
+        "--staged and --revision cannot be combined"
+    );
+    Ok(options)
 }
 pub fn run(root: &Path, staged: bool) -> Result<i32> {
-    selected(root, staged, None)
+    selected(
+        root,
+        Options {
+            staged,
+            ..Options::default()
+        },
+    )
 }
-pub fn selected(root: &Path, staged: bool, only: Option<&str>) -> Result<i32> {
-    let index = staged.then(|| super::evidence::index(root)).transpose()?;
-    let snapshot = if staged { Some(export(root)?) } else { None };
+pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
+    let (snapshot, input) = prepare(root, &options)?;
+    let only = options.only;
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let context = Context::load(tree)?;
     ensure!(
@@ -47,10 +67,29 @@ pub fn selected(root: &Path, staged: bool, only: Option<&str>) -> Result<i32> {
         "unknown check {}",
         only.unwrap_or_default()
     );
-    let mut attempt = super::evidence::Attempt::start(&context, root, index, only)?;
+    let mut attempt = super::evidence::Attempt::start(&context, root, input, only)?;
     let code = execute_checks(&context, root, &mut attempt, only)?;
     attempt.finish(&context, root, code)?;
     Ok(code)
+}
+
+fn prepare(
+    root: &Path,
+    options: &Options<'_>,
+) -> Result<(Option<tempfile::TempDir>, super::evidence::Input)> {
+    use super::evidence::{Input, index};
+    if options.staged {
+        let index = index(root)?;
+        return Ok((Some(export(root)?), Input::Index(index)));
+    }
+    if let Some(reference) = options.revision {
+        let repository = review_runner::vcs::Repository::discover(root)?
+            .ok_or_else(|| anyhow::anyhow!("revision checking requires a VCS repository"))?;
+        let revision = repository.resolve(reference)?;
+        let snapshot = repository.export_revision(&revision)?;
+        return Ok((Some(snapshot), Input::Revision(revision)));
+    }
+    Ok((None, Input::Worktree))
 }
 fn execute_checks(
     context: &Context,
@@ -73,7 +112,7 @@ fn execute_checks(
             continue;
         }
         let rerun = attempt.rerun(root, &check.id);
-        let (code, broken) = checked(context, root, check, &rerun);
+        let (code, broken) = checked(context, (root, attempt.exported_revision()), check, &rerun);
         attempt.checked(check, code, rerun)?;
         let passed = code == 0;
         if passed {
@@ -88,7 +127,12 @@ fn execute_checks(
     Ok(0)
 }
 
-fn run_check(context: &Context, root: &Path, check: &Check, rerun: &str) -> Result<i32> {
+fn run_check(
+    context: &Context,
+    source: (&Path, Option<&str>),
+    check: &Check,
+    rerun: &str,
+) -> Result<i32> {
     match check.kind {
         CheckKind::Command => commands::run(
             context,
@@ -100,11 +144,16 @@ fn run_check(context: &Context, root: &Path, check: &Check, rerun: &str) -> Resu
             &context.path(&context.config.paths.lint)?,
             rerun,
         ),
-        CheckKind::Memory => super::memory::check_with_history(context, root),
+        CheckKind::Memory => super::memory::check_with_history(context, source.0, source.1),
     }
 }
-fn checked(context: &Context, root: &Path, check: &Check, rerun: &str) -> (i32, bool) {
-    let result = run_check(context, root, check, rerun);
+fn checked(
+    context: &Context,
+    source: (&Path, Option<&str>),
+    check: &Check,
+    rerun: &str,
+) -> (i32, bool) {
+    let result = run_check(context, source, check, rerun);
     let (code, message, broken) = match result {
         Ok(code) => (
             code,

@@ -8,7 +8,26 @@ use std::{
 };
 
 pub fn fingerprint(tree: &Path, origin: &Path, runtime: &str, staged: bool) -> Result<String> {
-    let mut paths = paths(origin, staged)?;
+    fingerprint_paths(tree, runtime, paths(origin, staged)?)
+}
+
+pub fn revision_fingerprint(
+    tree: &Path,
+    origin: &Path,
+    runtime: &str,
+    revision: &str,
+) -> Result<String> {
+    let repository =
+        Repository::discover(origin)?.context("revision checking requires a VCS repository")?;
+    let paths = repository
+        .tree(revision)?
+        .into_keys()
+        .map(PathBuf::from)
+        .collect();
+    fingerprint_paths(tree, runtime, paths)
+}
+
+fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Result<String> {
     paths.sort();
     paths.dedup();
     let mut digest = Sha256::new();

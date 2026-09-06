@@ -335,3 +335,30 @@ fn full_revision_export_rejects_control_metadata_and_submodules() {
             .contains("unsafe VCS export path: .hg/hgrc")
     );
 }
+
+#[test]
+fn native_revision_parents_include_both_merge_sides_and_omit_null_roots() {
+    for kind in [Kind::Git, Kind::Mercurial] {
+        let root = tempfile::tempdir().unwrap();
+        initialize(root.path(), kind);
+        fs::write(root.path().join("base"), "base").unwrap();
+        let base = commit(root.path(), kind);
+        fs::write(root.path().join("left"), "left").unwrap();
+        let left = commit(root.path(), kind);
+        match kind {
+            Kind::Git => command(root.path(), "git", &["checkout", "-q", &base]),
+            Kind::Mercurial => command(root.path(), "hg", &["update", "--clean", "--rev", &base]),
+        }
+        fs::write(root.path().join("right"), "right").unwrap();
+        let right = commit(root.path(), kind);
+        match kind {
+            Kind::Git => command(root.path(), "git", &["merge", "--no-commit", &left]),
+            Kind::Mercurial => command(root.path(), "hg", &["merge", "--rev", &left]),
+        }
+        let merged = commit(root.path(), kind);
+        let repository = Repository::new(root.path(), kind);
+        assert!(repository.parents(&base).unwrap().is_empty());
+        assert_eq!(repository.parents(&left).unwrap(), [base]);
+        assert_eq!(repository.parents(&merged).unwrap(), [right, left]);
+    }
+}

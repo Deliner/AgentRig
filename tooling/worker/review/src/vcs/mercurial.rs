@@ -40,6 +40,23 @@ pub(super) fn working_files(root: &Path) -> Result<Vec<u8>> {
     )
 }
 
+pub(super) fn parents(root: &Path, revision: &str) -> Result<Vec<String>> {
+    let bytes = run(
+        root,
+        &[
+            "log",
+            "--rev",
+            revision,
+            "--template",
+            "{p1node}\n{p2node}\n",
+        ],
+    )?;
+    Ok(String::from_utf8(bytes)?
+        .split_whitespace()
+        .map(str::to_owned)
+        .collect())
+}
+
 pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8>> {
     run(
         root,

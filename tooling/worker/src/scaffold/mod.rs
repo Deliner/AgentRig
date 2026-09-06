@@ -47,8 +47,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
             return resume_upgrade(root, args);
         }
         "check" => {
-            let (staged, only) = gate::arguments(args)?;
-            return gate::selected(root, staged, only);
+            return gate::selected(root, gate::arguments(args)?);
         }
         _ => {}
     }
