@@ -277,7 +277,30 @@ def external_review_materials(root: Path) -> tuple[Path, bytes]:
             f"project_config = {json.dumps(str(external / 'project.toml'))}",
         )
     )
+    external_review_resources(root, external)
     return external, runner.read_bytes()
+
+
+def external_review_resources(root: Path, external: Path) -> None:
+    runner = root / ".worker/review/config/review.toml"
+    settings = tomllib.loads(runner.read_text())
+    prompt = settings["reviewers"]["requirements"]["prompt"]
+    (external / "prompt.md").write_bytes((runner.parent / prompt).read_bytes())
+    runner.write_text(
+        runner.read_text().replace(
+            f'prompt = "{prompt}"',
+            f"prompt = {json.dumps(str(external / 'prompt.md'))}",
+        )
+    )
+    project = runner.parent / settings["tools"]["review_research"]["project_config"]
+    reference = tomllib.loads(project.read_text())["review"]["contract"]
+    (external / "research.json").write_bytes((project.parent / reference).read_bytes())
+    project.write_text(
+        project.read_text().replace(
+            f'contract = "{reference}"',
+            f"contract = {json.dumps(str(external / 'research.json'))}",
+        )
+    )
 
 
 def test_external_review_materials_are_imported_without_modifying_source(
@@ -286,8 +309,10 @@ def test_external_review_materials_are_imported_without_modifying_source(
     assert invoke(predecessor, tmp_path, "init", "--review", "true").returncode == 0
     assert invoke(predecessor, tmp_path, "setup").returncode == 0
     external, original = external_review_materials(tmp_path)
+    material_path = ".worker/review/config/projects/research.toml"
+    material_before = (tmp_path / material_path).read_bytes()
     (external / "contract.json").chmod(0o755)
-    source = snapshot(external, ["project.toml", "contract.json"])
+    source = snapshot(external, ["project.toml", "contract.json", "prompt.md", "research.json"])
     assert invoke(predecessor, tmp_path, "review", "config-check").returncode == 0
     result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
     assert result.returncode == 0, result.stdout + result.stderr
@@ -298,7 +323,7 @@ def test_external_review_materials_are_imported_without_modifying_source(
         selected = name.startswith(".worker/inputs/")
         if selected:
             imported.append(name)
-    assert len(imported) == 2
+    assert len(imported) == 4
     assert all(name in plan["manifest"]["files"] for name in imported)
     applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
     assert applied.returncode == 0, applied.stdout + applied.stderr
@@ -312,6 +337,7 @@ def test_external_review_materials_are_imported_without_modifying_source(
     rolled = invoke(worker, tmp_path, "upgrade", "rollback")
     assert rolled.returncode == 0, rolled.stdout + rolled.stderr
     assert (tmp_path / ".worker/review/config/review.toml").read_bytes() == original
+    assert (tmp_path / material_path).read_bytes() == material_before
     assert all(not (tmp_path / name).exists() for name in imported)
 
 

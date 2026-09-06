@@ -111,6 +111,7 @@ fn review_resources(
     imported: &mut agentrig::resources::Bundle,
 ) -> Result<()> {
     let mut value: toml::Value = toml::from_str(&fs::read_to_string(root.join(path))?)?;
+    review_prompts(root, path, &mut value, imported)?;
     let tools = value
         .get_mut("tools")
         .and_then(toml::Value::as_table_mut)
@@ -128,7 +129,7 @@ fn review_resources(
                 let name = relative
                     .to_str()
                     .context("project config path must be UTF-8")?;
-                files.insert(name.into(), super::release::lint_yaml(root, name)?);
+                files.insert(name.into(), project_yaml(root, name, imported)?);
                 super::release::lint_path(project)
             }
             Err(_) => {
@@ -138,10 +139,62 @@ fn review_resources(
         };
         *reference = toml::Value::String(target);
     }
-    files.insert(
-        path.into(),
-        review_runner::config::yaml::encode(&value)?.into_bytes(),
-    );
+    let encoded = review_runner::config::yaml::encode(&value)?;
+    files.insert(path.into(), encoded.into_bytes());
+    Ok(())
+}
+
+fn review_prompts(
+    root: &Path,
+    path: &str,
+    value: &mut toml::Value,
+    imported: &mut agentrig::resources::Bundle,
+) -> Result<()> {
+    let reviewers = value
+        .get_mut("reviewers")
+        .and_then(toml::Value::as_table_mut)
+        .context("legacy reviewers required")?;
+    for (_, reviewer) in reviewers.iter_mut() {
+        portable_reference(
+            root,
+            path,
+            reviewer
+                .get_mut("prompt")
+                .context("reviewer prompt required")?,
+            imported,
+        )?;
+    }
+    Ok(())
+}
+
+fn project_yaml(
+    root: &Path,
+    path: &str,
+    imported: &mut agentrig::resources::Bundle,
+) -> Result<Vec<u8>> {
+    let mut value: toml::Value = toml::from_str(&fs::read_to_string(root.join(path))?)?;
+    let contract = value
+        .get_mut("review")
+        .and_then(|review| review.get_mut("contract"))
+        .context("review.contract required")?;
+    portable_reference(root, path, contract, imported)?;
+    Ok(review_runner::config::yaml::encode(&value)?.into_bytes())
+}
+
+fn portable_reference(
+    root: &Path,
+    config: &str,
+    value: &mut toml::Value,
+    imported: &mut agentrig::resources::Bundle,
+) -> Result<()> {
+    let resource = review_runner::config::resource(
+        &root.join(config),
+        Path::new(value.as_str().context("resource path required")?),
+    )?;
+    let external = !resource.starts_with(root);
+    if external {
+        *value = toml::Value::String(relocate(root, config, &resource, imported)?);
+    }
     Ok(())
 }
 
