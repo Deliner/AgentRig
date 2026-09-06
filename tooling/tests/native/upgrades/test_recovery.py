@@ -33,7 +33,7 @@ def test_mixed_installation_is_recoverable(worker: Path, predecessor: Path, tmp_
     (tmp_path / "agentrig.yaml").unlink()
     journal = json.loads((operation / "journal.json").read_text())
     journal["phase"] = "applying"
-    journal["completed"] = [".worker/bin/discipline-worker"]
+    journal["completed"] = [".worker/bin/agentrig"]
     (operation / "journal.json").write_text(json.dumps(journal))
     resumed = invoke(worker, tmp_path, "resume")
     assert resumed.returncode == 0, resumed.stderr

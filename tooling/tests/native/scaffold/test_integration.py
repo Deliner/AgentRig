@@ -57,7 +57,7 @@ class Consumer:
 
     @property
     def binary(self) -> Path:
-        return self.root / ".worker/bin/discipline-worker"
+        return self.root / ".worker/bin/agentrig"
 
     @property
     def source(self) -> Path:

@@ -42,6 +42,8 @@ def test_apply_and_rollback_preserve_local_content(
     result = invoke(worker, tmp_path, "upgrade", "apply", str(path))
     assert result.returncode == 0, result.stdout + result.stderr
     assert invoke(worker, tmp_path, "doctor").returncode == 0
+    assert (tmp_path / ".worker/bin/agentrig").is_file()
+    assert not (tmp_path / ".worker/bin/discipline-worker").exists()
     skill = "guides/repair/SKILL.md"
     receipt = json.loads((tmp_path / ".worker/manifest.json").read_text())
     assert receipt["package_version"] == "0.3.0"
@@ -56,6 +58,7 @@ def test_apply_and_rollback_preserve_local_content(
     for name, content in original.items():
         assert (tmp_path / name).read_bytes() == content
     assert invoke(predecessor, tmp_path, "config-check").returncode == 0
+    assert not (tmp_path / ".worker/bin/agentrig").exists()
 
 
 def snapshot(root: Path, names: list[str]) -> dict[str, bytes]:
@@ -177,6 +180,12 @@ def test_review_configuration_migrates_with_its_projects(
 ) -> None:
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     assert invoke(predecessor, tmp_path, "init", "--review", "true").returncode == 0
+    assert invoke(predecessor, tmp_path, "setup").returncode == 0
+    settings = tmp_path / ".codex/config.toml"
+    settings.write_text(
+        'model = "keep-consumer-model"\n# Consumer preferences\n' + settings.read_text()
+    )
+    original_settings = settings.read_bytes()
     config = tmp_path / ".worker/review/config/review.toml"
     config.write_text(config.read_text().replace("gpt-5.6-luna", "migration-test-model"))
     before = config.read_bytes()
@@ -194,9 +203,36 @@ def test_review_configuration_migrates_with_its_projects(
     assert yaml.safe_load(config.with_suffix(".yaml").read_text()) == expected
     assert not config.exists()
     assert invoke(worker, tmp_path, "review", "config-check").returncode == 0
+    assert registered_tools(tmp_path) == {"review_code", "review_research"}
+    assert tomllib.loads(settings.read_text())["model"] == "keep-consumer-model"
     assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
     assert config.read_bytes() == before
     assert not config.with_suffix(".yaml").exists()
+    assert settings.read_bytes() == original_settings
+
+
+def registered_tools(root: Path) -> set[str]:
+    settings = tomllib.loads((root / ".codex/config.toml").read_text())
+    server = settings["mcp_servers"]["worker_review"]
+    messages = [
+        {
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {"protocolVersion": "2025-11-25"},
+        },
+        {"jsonrpc": "2.0", "id": 2, "method": "tools/list"},
+    ]
+    result = subprocess.run(
+        [server["command"], *server["args"]],
+        cwd=root,
+        input="".join(json.dumps(message) + "\n" for message in messages),
+        text=True,
+        capture_output=True,
+        timeout=10,
+        check=True,
+    )
+    return {tool["name"] for tool in json.loads(result.stdout.splitlines()[1])["result"]["tools"]}
 
 
 def test_disabled_lint_migration_does_not_require_removed_policy(

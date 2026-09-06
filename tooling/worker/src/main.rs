@@ -2,8 +2,8 @@
 mod hooks;
 mod scaffold;
 
+use agentrig::{diagnostics, lint, util};
 use anyhow::{Result, bail};
-use discipline_worker::{diagnostics, lint, util};
 use serde_json::Value;
 use std::{
     env,
@@ -38,7 +38,7 @@ fn run() -> Result<i32> {
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
-            "usage: discipline-worker hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
+            "usage: agentrig hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
         ),
     }
 }
@@ -46,7 +46,7 @@ fn immediate(command: &str) -> Option<Result<i32>> {
     Some(match command {
         "review-hook" => review_runner::execution::broker::hook().map(|()| 0),
         "--version" => {
-            println!("discipline-worker {}", scaffold::config::VERSION);
+            println!("agentrig {}", scaffold::config::VERSION);
             Ok(0)
         }
         "--help" => {
@@ -71,7 +71,7 @@ fn print_help() {
         "delegate config-check CONFIG | mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
     );
     println!(
-        "discipline-worker (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
+        "agentrig (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --source, --memory, --skills, --base, --prefix and --review true|false."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -156,14 +156,10 @@ fn run_delegate(root: &Path, mut args: Vec<String>) -> Result<i32> {
         .first()
         .is_some_and(|command| matches!(command.as_str(), "config-check" | "_execute"));
     if direct {
-        return discipline_worker::delegate::cli(root, &args);
+        return agentrig::delegate::cli(root, &args);
     }
     let context = scaffold::config::Context::load(root)?;
-    discipline_worker::delegate::run::cli(
-        root,
-        &context.path(&context.config.paths.runtime)?,
-        &args,
-    )
+    agentrig::delegate::run::cli(root, &context.path(&context.config.paths.runtime)?, &args)
 }
 fn main() {
     let code = match run() {

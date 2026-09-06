@@ -76,7 +76,7 @@ fn ownership(path: &str, config: &Config) -> Ownership {
         || path.starts_with(".worker/hooks/")
         || path.starts_with(".worker/review/prompts/")
         || ["AGENTS.md", "justfile", ".codex/hooks.json"].contains(&path);
-    let runtime = path == ".worker/bin/discipline-worker";
+    let runtime = path == ".worker/bin/agentrig";
     if memory {
         Ownership::Memory
     } else if settings {

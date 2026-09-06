@@ -18,13 +18,13 @@ pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Re
         );
         return Ok(());
     };
-    let profiles = discipline_worker::delegate::config::load(&root.join(&capability.config))?;
+    let profiles = agentrig::delegate::config::load(&root.join(&capability.config))?;
     table(&mut document["mcp_servers"], "mcp_servers")?;
     let server = &mut document["mcp_servers"]["worker_delegation"];
     table(server, "mcp_servers.worker_delegation")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/discipline-worker\" delegate mcp --root \"$root\"");
+    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/agentrig\" delegate mcp --root \"$root\"");
     for (key, desired) in [
         ("enabled", value(true)),
         ("command", value("sh")),
@@ -41,7 +41,7 @@ pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Re
     Ok(())
 }
 
-fn environment(config: &discipline_worker::delegate::config::Config) -> toml_edit::Array {
+fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array {
     let mut names = BTreeSet::from([
         "DELEGATE_CODEX_BIN",
         "WORKER_OWNER",

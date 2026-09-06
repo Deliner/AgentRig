@@ -41,7 +41,7 @@ fn ordered(operation: &Operation) -> Vec<String> {
         .map(|(name, _)| name.clone())
         .collect();
     names.sort_by_key(|name| match name.as_str() {
-        ".worker/bin/discipline-worker" => 0,
+        ".worker/bin/agentrig" => 0,
         config::FILE => 2,
         super::migration::LEGACY_FILE => 3,
         ".worker/manifest.json" => 4,
@@ -53,7 +53,7 @@ fn verify(root: &Path, operation: &mut Operation) -> Result<i32> {
     operation.phase("validating")?;
     for command in operation.plan.checks.clone() {
         let argv = vec![
-            root.join(".worker/bin/discipline-worker")
+            root.join(".worker/bin/agentrig")
                 .to_string_lossy()
                 .into_owned(),
             command.clone(),

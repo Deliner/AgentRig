@@ -1,5 +1,5 @@
 use super::{
-    migration,
+    external, migration,
     model::{Action, Change, Plan, State},
     release, storage,
 };
@@ -163,15 +163,20 @@ impl Draft<'_> {
         };
         change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
         change.after.mode = Some(change.before.mode.unwrap_or(0o644));
-        let collision =
-            path != lint && !self.resources.contains_key(path) && change.before.sha256.is_some();
+        let collision = path != external::CODEX
+            && path != lint
+            && !self.resources.contains_key(path)
+            && change.before.sha256.is_some();
         change.action = if collision {
             Action::Conflict
         } else {
             Action::Replace
         };
         let project = path == config::FILE;
-        change.reason = if project {
+        let codex = path == external::CODEX;
+        change.reason = if codex {
+            "migrate managed executable references; preserve other Codex settings and comments"
+        } else if project {
             "convert project settings and runtime pin to YAML; original formatting/comments retained in reviewed preimage"
         } else {
             "convert configured resource to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
@@ -179,6 +184,10 @@ impl Draft<'_> {
         Ok(true)
     }
     fn migration_bytes(&self, path: &str) -> Result<Option<Vec<u8>>> {
+        let codex = path == external::CODEX;
+        if codex {
+            return external::codex(self.root);
+        }
         let root_config = path == config::FILE;
         if root_config {
             return Ok(Some(release::migrated(&fs::read_to_string(

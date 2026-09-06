@@ -1,8 +1,8 @@
-# Discipline Worker
+# AgentRig
 
 This repository develops a portable Rust worker for agent-native software development. Other projects consume its configurable environment: verified atomic changes (VACs), recovery state, durable decisions, executable invariants, structural lint and isolated review. Deterministic access boundaries and checks support development quality; model judgments remain probabilistic.
 
-The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through agentrig.yaml and separate lint/review configuration. Use worker setup to prepare a consumer from its declaration; the linter also runs independently against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
+The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through agentrig.yaml and separate lint/review configuration. Use `agentrig setup` to prepare a consumer from its declaration; `agentrig-lint` also runs independently against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
 
 Start with [repository instructions](AGENTS.md), then `just resume`. [agentrig.yaml](agentrig.yaml) owns paths, commands, checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run catalog commands with `just run NAME -- ARGS`.
 

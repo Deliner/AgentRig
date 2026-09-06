@@ -31,8 +31,8 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
     hook.chmod(0o644)
     assert invoke(worker, tmp_path, "doctor").returncode == 1
     hook.chmod(0o755)
-    binary = tmp_path / ".worker/bin/discipline-worker"
-    binary.write_text("#!/bin/sh\necho discipline-worker 999.0.0\n")
+    binary = tmp_path / ".worker/bin/agentrig"
+    binary.write_text("#!/bin/sh\necho agentrig 999.0.0\n")
     result = invoke(worker, tmp_path, "doctor")
     assert result.returncode == 1
     assert "installed binary: MISSING OR INCOMPATIBLE" in result.stdout
@@ -60,7 +60,7 @@ def test_init_rejects_invalid_layout_before_writing(
         (tmp_path / ".codex").write_text("user data")
         args = []
     elif generated_file_parent:
-        args = ["--skills", ".worker/bin/discipline-worker"]
+        args = ["--skills", ".worker/bin/agentrig"]
     before = file_contents(tmp_path)
     result = invoke(worker, tmp_path, "init", *args)
     assert result.returncode == 2
@@ -77,7 +77,7 @@ def test_installation_manifest_records_ownership(worker: Path, tmp_path: Path) -
     assert manifest["config_schema"] == 1
     entries = manifest["files"]
     assert ".worker/manifest.json" not in entries
-    assert entries[".worker/bin/discipline-worker"]["ownership"] == "runtime"
+    assert entries[".worker/bin/agentrig"]["ownership"] == "runtime"
     assert entries[".worker/.gitignore"]["ownership"] == "asset"
     assert entries["agentrig.yaml"]["ownership"] == "configuration"
     assert entries[".worker/lint.yaml"]["ownership"] == "configuration"

@@ -102,14 +102,14 @@ See [repeatable measurements](examples/LATENCY.md) and [their runner](examples/m
 
 ## Standalone assessment
 
-The release build also produces `discipline-lint`, a native CLI over the same
+The release build also produces `agentrig-lint`, a native CLI over the same
 engine used by worker checks. Copy that executable outside the project to be
 assessed; no worker setup, memory, hooks or MCP are required there:
 
 ```sh
-discipline-lint --root /projects/consumer --config /policies/lint.yaml --json
-discipline-lint lint-config-check --root /projects/consumer --config /policies/lint.yaml
-discipline-lint lint-rules
+agentrig-lint --root /projects/consumer --config /policies/lint.yaml --json
+agentrig-lint lint-config-check --root /projects/consumer --config /policies/lint.yaml
+agentrig-lint lint-rules
 ```
 
 Source selectors always apply to the assessed root. By default, skill references
@@ -142,7 +142,7 @@ and error thresholds; policy rules use level. Existing configuration syntax and
 strict installed defaults are preserved.
 
 
-Use just lint-explain src/example.rs (or discipline-lint lint-explain with
+Use just lint-explain src/example.rs (or agentrig-lint lint-explain with
 --root and --config) to see every configured rule's selection reason. --json
 returns the same information for automation. Selected entries include effective
 warning/error or level and zero-based matched override indexes, in application

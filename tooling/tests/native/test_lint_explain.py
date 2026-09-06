@@ -20,7 +20,7 @@ def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
 
 @pytest.mark.parametrize("standalone", [False, True])
 def test_explain_effective_overrides(worker: Path, tmp_path: Path, standalone: bool) -> None:
-    binary = worker.with_name("discipline-lint") if standalone else worker
+    binary = worker.with_name("agentrig-lint") if standalone else worker
     policy = (
         CONFIG
         + '\n    overrides:\n      - include: ["src/**"]\n        warning: 7\n        error: 9\n'

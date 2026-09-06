@@ -27,7 +27,7 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
         review_config(root, preview.path(), &review.config)?;
     }
     if let Some(delegation) = &config.capabilities.delegation {
-        let resolved = discipline_worker::delegate::config::load(&root.join(&delegation.config))?;
+        let resolved = agentrig::delegate::config::load(&root.join(&delegation.config))?;
         put(
             preview.path(),
             &delegation.config,

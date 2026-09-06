@@ -22,7 +22,7 @@ def test_standalone_matches_worker_without_installing_files(
     before = sorted(str(path.relative_to(project)) for path in project.rglob("*"))
     args = ["--root", str(project), "--config", str(policy / "lint.yaml"), "--json"]
     results = []
-    for binary in [worker, worker.with_name("discipline-lint")]:
+    for binary in [worker, worker.with_name("agentrig-lint")]:
         using_worker = binary == worker
         prefix = ["lint"] if using_worker else []
         result = subprocess.run(
@@ -48,7 +48,7 @@ def test_standalone_config_check_rejects_unsupported_language(worker: Path, tmp_
     project.mkdir()
     result = subprocess.run(
         [
-            str(worker.with_name("discipline-lint")),
+            str(worker.with_name("agentrig-lint")),
             "lint-config-check",
             "--root",
             str(project),

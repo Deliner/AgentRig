@@ -80,7 +80,7 @@ pub struct Command {
     #[serde(default)]
     pub read_only: bool,
     #[serde(default)]
-    pub lifetime: discipline_worker::jobs::Lifetime,
+    pub lifetime: agentrig::jobs::Lifetime,
 }
 #[derive(Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

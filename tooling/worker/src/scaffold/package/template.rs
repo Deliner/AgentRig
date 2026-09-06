@@ -189,7 +189,7 @@ pub(super) fn justfile() -> String {
         ("delegate", "delegate", true),
     ] {
         source.push_str(&format!(
-            "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",
+            "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/agentrig {command} --root .{}\n\n",
             if args { " *args" } else { "" },
             if args { " \"$@\"" } else { "" }
         ));

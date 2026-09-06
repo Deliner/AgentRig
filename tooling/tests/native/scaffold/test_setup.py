@@ -173,7 +173,7 @@ def test_setup_registers_configured_delegation_and_preserves_resources(
     assert connected.returncode == 0, connected.stderr
     tools = json.loads(connected.stdout.splitlines()[1])["result"]["tools"]
     assert tools[0]["inputSchema"]["properties"]["profile"]["enum"] == ["reader"]
-    installed = root / ".worker/bin/discipline-worker"
+    installed = root / ".worker/bin/agentrig"
     assert invoke(installed, root, "delegate", "config-check").returncode == 0
     before = file_contents(root)
     result = invoke(worker, root, "setup")

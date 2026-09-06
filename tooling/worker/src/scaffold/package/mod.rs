@@ -89,7 +89,7 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
 fn add_runtime(files: &mut Files) -> Result<()> {
     files.insert(".worker/.gitignore".into(), b"runtime/\n".to_vec());
     files.insert(
-        ".worker/bin/discipline-worker".into(),
+        ".worker/bin/agentrig".into(),
         fs::read(std::env::current_exe()?)?,
     );
     files.insert("justfile".into(), template::justfile().into_bytes());

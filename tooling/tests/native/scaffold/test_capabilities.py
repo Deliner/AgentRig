@@ -63,7 +63,7 @@ def test_unknown_and_absent_capabilities_are_actionable(worker: Path, tmp_path: 
 def test_installation_ships_review_resources(worker: Path, tmp_path: Path) -> None:
     result = invoke(worker, tmp_path, "init", "--review", "true", "--skills", "guides")
     assert result.returncode == 0, result.stderr
-    installed = tmp_path / ".worker/bin/discipline-worker"
+    installed = tmp_path / ".worker/bin/agentrig"
     result = invoke(installed, tmp_path, "review", "config-check")
     assert result.returncode == 0, result.stderr
     messages = [

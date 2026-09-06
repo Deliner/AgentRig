@@ -16,7 +16,12 @@ pub fn version(binary: &Path) -> Result<String> {
     let text = String::from_utf8(output.stdout)?;
     Ok(text
         .trim()
-        .strip_prefix("discipline-worker ")
+        .strip_prefix("agentrig ")
+        .or_else(|| {
+            text.trim()
+                .strip_prefix("discipline-worker ")
+                .filter(|version| *version == FROM)
+        })
         .context("not a worker release")?
         .into())
 }

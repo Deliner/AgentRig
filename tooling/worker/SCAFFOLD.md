@@ -2,7 +2,7 @@
 
 The portable entry point is `agentrig.yaml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
-A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` and `discipline-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
+A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `agentrig` and `agentrig-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
 Project capabilities are selected in `agentrig.yaml`:
 
@@ -37,7 +37,7 @@ override and existing job owner/parent identifiers. Use the same WORKER_OWNER af
 reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
 asynchronously and their own timeouts remain profile settings. Doctor requires
 working systemd scopes, bubblewrap and native Codex when delegation is enabled.
-`discipline-worker setup --root CONSUMER` reads the existing declaration and
+`agentrig setup --root CONSUMER` reads the existing declaration and
 prepares the environment. To obtain a starting declaration and assets, use
 `init --root CONSUMER --review true`, edit the generated settings, then run setup.
 Setup can also start from only agentrig.yaml and any custom referenced resources.
@@ -125,7 +125,7 @@ The four editing skills and one route handler provide pre-edit guidance. Complex
 ## Upgrades
 
 The development 0.3.0 executable prepares the explicit 0.2.0 → 0.3.0 transition:
-`/path/to/new/discipline-worker upgrade plan /path/to/new/discipline-worker --root PROJECT`.
+`/path/to/new/agentrig upgrade plan /path/to/new/agentrig --root PROJECT`.
 The release argument is a local executable. Its existing `init` exports stock
 content into a temporary directory using the project's memory and skill paths.
 A 0.2.0 installation without a receipt reconstructs its stock baseline using
@@ -147,7 +147,7 @@ checksums in the new receipt. Doctor accepts explicitly kept Git adapter hashes
 while still checking executable permissions and registration; later unreviewed
 adapter changes fail diagnosis.
 
-Apply with `/path/to/new/discipline-worker upgrade apply /path/to/plan.json --root PROJECT`.
+Apply with `/path/to/new/agentrig upgrade apply /path/to/plan.json --root PROJECT`.
 Files must still match their reviewed paths, bytes and modes. Before changing
 them, apply freezes the resolved plan and copies verified preimages into
 `upgrade/operation`. Atomic writes update `journal.json` after each completed
@@ -155,7 +155,7 @@ step. Configuration validation, installation diagnosis and the full configured
 project check must pass before the operation is marked applied. A failed check
 leaves a resumable operation: fix the project and repeat the same apply command.
 
-Use `/path/to/new/discipline-worker upgrade rollback --root PROJECT` to restore
+Use `/path/to/new/agentrig upgrade rollback --root PROJECT` to restore
 previous files. Repeating rollback continues an interrupted restoration. It
 refuses to overwrite subsequent user edits; preserve or resolve those edits
 before retrying. A new apply after rollback retains the earlier journal under
@@ -173,5 +173,5 @@ and SessionStart expose technical recovery guidance without loading legacy task
 settings. Historical memory checks still read the committed legacy memory location
 so a format change cannot remove the prior decisions baseline.
 
-P004 remains in development: final AgentRig binary/service-directory naming,
+P004 remains in development: configurable AgentRig service-directory paths,
 composed environments and complete delegate migration acceptance are outstanding.

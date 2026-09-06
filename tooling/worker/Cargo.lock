@@ -153,7 +153,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "discipline-worker"
+name = "agentrig"
 version = "0.3.0"
 dependencies = [
  "anyhow",

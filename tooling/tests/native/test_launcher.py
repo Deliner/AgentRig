@@ -50,7 +50,7 @@ def fake_cargo(compiler: Path, resource: str) -> None:
         "args = sys.argv\n"
         "manifest = pathlib.Path(args[args.index('--manifest-path') + 1])\n"
         "target = pathlib.Path(args[args.index('--target-dir') + 1])\n"
-        "binary = target / 'release/discipline-worker'\n"
+        "binary = target / 'release/agentrig'\n"
         "binary.parent.mkdir(parents=True, exist_ok=True)\n"
         f"value = (manifest.parent / {resource!r}).read_text()\n"
         "binary.write_text('#!/bin/sh\\necho ' + value + '\\n')\n"

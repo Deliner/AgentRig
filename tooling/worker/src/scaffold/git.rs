@@ -70,15 +70,13 @@ pub fn merge(context: &Context) -> Result<i32> {
     Ok(code)
 }
 fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
-    let identified = discipline_worker::jobs::owner().is_some();
+    let identified = agentrig::jobs::owner().is_some();
     let anonymous = !identified;
     if anonymous {
         return Ok(0);
     }
-    let result = discipline_worker::jobs::cleanup::run(
-        &context.path(&context.config.paths.runtime)?,
-        Some(feature),
-    );
+    let result =
+        agentrig::jobs::cleanup::run(&context.path(&context.config.paths.runtime)?, Some(feature));
     match result {
         Ok(report) => {
             let failed = report["errors"]

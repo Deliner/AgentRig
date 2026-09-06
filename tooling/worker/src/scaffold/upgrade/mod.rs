@@ -1,5 +1,6 @@
 // DECISION: D024
 mod apply;
+mod external;
 pub(super) mod migration;
 mod model;
 mod operation;

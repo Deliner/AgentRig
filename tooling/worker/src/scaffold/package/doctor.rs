@@ -22,7 +22,7 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
-    let capability = discipline_worker::jobs::capability();
+    let capability = agentrig::jobs::capability();
     println!("process scope capability: {capability}");
     let required = context.config.processes.foreground
         == super::super::config::Containment::Systemd
@@ -50,13 +50,13 @@ pub fn run(context: &Context) -> Result<i32> {
     Ok(i32::from(failed))
 }
 fn installed_binary(context: &Context) -> bool {
-    let installed = Command::new(context.root.join(".worker/bin/discipline-worker"))
+    let installed = Command::new(context.root.join(".worker/bin/agentrig"))
         .arg("--version")
         .output();
     let matches = installed.is_ok_and(|output| {
         output.status.success()
             && String::from_utf8_lossy(&output.stdout).trim()
-                == format!("discipline-worker {}", super::super::config::VERSION)
+                == format!("agentrig {}", super::super::config::VERSION)
     });
     println!(
         "installed binary: {}",

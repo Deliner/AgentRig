@@ -1,8 +1,8 @@
 [package]
-name = "discipline-worker"
+name = "agentrig"
 version = "0.3.0"
 edition = "2024"
-default-run = "discipline-worker"
+default-run = "agentrig"
 
 [workspace]
 members = ["review"]

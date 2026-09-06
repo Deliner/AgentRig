@@ -54,7 +54,7 @@ fn mcp(server: &mut Item, timeout: u64) -> Result<()> {
     setting(&mut server["command"], value("sh"), "worker_review.command")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/discipline-worker\" review mcp --root \"$root\"");
+    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/agentrig\" review mcp --root \"$root\"");
     setting(&mut server["args"], value(args), "worker_review.args")?;
     let timeout = i64::try_from(timeout)?
         .checked_add(60)

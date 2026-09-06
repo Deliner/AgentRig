@@ -41,8 +41,7 @@ impl Capabilities {
         if let Some(delegation) = &self.delegation {
             let path =
                 relative(root, &delegation.config).context("capabilities.delegation.config")?;
-            discipline_worker::delegate::config::load(&path)
-                .context("capabilities.delegation.config")?;
+            agentrig::delegate::config::load(&path).context("capabilities.delegation.config")?;
         }
         Ok(())
     }

@@ -99,7 +99,7 @@ fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a
 }
 
 fn executable() -> std::path::PathBuf {
-    let observed = std::env::current_exe().unwrap_or_else(|_| "discipline-worker".into());
+    let observed = std::env::current_exe().unwrap_or_else(|_| "agentrig".into());
     let available = observed.is_file();
     if available {
         return observed;
