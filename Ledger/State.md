@@ -2,28 +2,28 @@
 
 ## Focus
 
-Split the user's requested architecture lint, VCS support and agent harness work into outcome-based Plan entries.
+Persist all confirmed P006–P008 scope clarifications and prepare a short development-start prompt. Product implementation is not yet authorized to start.
 
 ## Workspace
 
-Branch: feature/architecture-vcs-harness-plan
+Branch: feature/confirmed-delivery-scope
 
-Revision: 98aa3e1
+Revision: 20cec8f
 
-Started from clean master, two commits ahead of origin/master. The preceding reminder VAC is integrated at 98aa3e1. No unrelated changes were present.
+Started from clean master, four commits ahead of origin/master. Git confirms the preceding planning VAC is integrated at 20cec8f. No unrelated changes were present.
 
 ## Progress
 
-P006–P008 describe architecture lint, extensible VCS support and selectable agent harnesses, in that priority order. Each depends on delivered P005; they do not require each other. All new entries are pending. Inspected the existing lint registry, Rust/Python handlers, directory-refactoring skill, Git snapshot/delivery owners and Codex-specific setup/delegation. No product implementation has begun.
+The user confirmed all six scope answers. Plan/006.md requires AgentRig's own linter, Rust/Python/JavaScript/TypeScript, and descriptions in every scoped source directory with configurable exclusions. Plan/007.md delegates the simplest available additional VCS choice to the agent; Arc is a possible future private extension, not a current implementation. Plan/008.md names Codex and Claude Code. Confirmed order is P006, P007, P008. All remain pending; no product implementation has begun. The current instruction authorizes saving these answers and returning a short start prompt only.
 
 ## Verification
 
-Live Git confirms integrated baseline 98aa3e1 and the retained previous commit. Reviewed the three contracts against the request and current owners. just check --only memory and git diff --check passed. Commit gate and integration remain pending.
+Live Git confirms integrated baseline 20cec8f. Inspected the five-file diff and checked updated acceptance against the six confirmed answers. git diff --check passed. Commit gate and integration remain pending.
 
 ## Blockers
 
-No blocker to recording the requested outcomes. Async clarifications are pending for Claude Code naming, agentrig-lint versus ESLint, the second VCS, and whether this turn should proceed beyond planning. Do not treat unsubmitted suggested answers as user choices.
+No unresolved scope questions. Await the user's separate command before starting product implementation.
 
 ## Next action
 
-Commit the Plan-only VAC through the staged gate, then integrate with just feature-merge. Incorporate user clarifications into the pending contracts. If implementation is requested, begin P006 under its reconciled contract. Otherwise leave P006–P008 pending and report the plan. Reconcile Git before repeating integration.
+Verify and commit this clarification-only VAC, integrate with just feature-merge and retain the branch, then return a short prompt authorizing delivery of P006–P008 in order. After the user issues that command, resume from current Git and Plan, begin P006, and deliver each outcome through its acceptance and required gates. Do not repeat clarification or integration already resolved in current evidence.
