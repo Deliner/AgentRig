@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 30c1743
+Revision: 8c29a4f
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Setup integration is committed. Current VAC preserves the identity of a background launcher before scope adoption, so caller exit does not trigger premature delegate cleanup. Pending cancellation records a stop request and prevents task execution during adoption. Real Codex/service smoke, delegate skill guidance and isolated code mode remain outstanding.
+Slow-launch recovery is committed. Current VAC ships the compact delegate-task skill when delegation is enabled and routes generated consumer instructions to it. Review and delegation skills use the existing asset installer and ownership manifest. Real Codex/service smoke and isolated code mode remain outstanding.
 
 ## Verification
 
-Setup delivery passed the full gate: 285 native, 22 review and five Rust tests. A seven-second launch delay reproduced false interruption and deleted inputs. The fix passed 36 delegate/command tests, including slow-launch success and cancellation before execution. Lint passes after extracting the launch function's process-creation responsibility. Current staged gate is pending; no real model or sandboxed external MCP-service execution is claimed.
+Slow-launch recovery passed the full gate: 287 native, 22 review and five Rust tests. The new skill passes quick_validate; 15 setup/capability tests pass, including conditional installation and editable ownership. Current staged gate is pending. No real model or sandboxed external MCP-service execution is claimed.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Verify and commit delayed-launch recovery through the staged gate. Finish delegate skill guidance, verify actual Codex/service behavior, then add isolated code mode and complete independent consumer acceptance. P003 remains active until all stages and final integration are verified.
+Validate and commit delegate skill guidance. Verify actual Codex/service behavior, then add isolated code mode and complete independent consumer acceptance. P003 remains active until all stages and final integration are verified.

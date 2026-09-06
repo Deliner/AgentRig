@@ -203,3 +203,14 @@ def test_setup_preserves_conflicting_delegate_registration(worker: Path, tmp_pat
     assert result.returncode == 2
     assert "worker_delegation.command" in result.stderr
     assert file_contents(root) == before
+
+
+def test_setup_installs_selected_delegation_skill(worker: Path, tmp_path: Path) -> None:
+    root = delegated_project(worker, tmp_path)
+    assert not (tmp_path / "seed/.worker/skills/delegate-task").exists()
+    result = invoke(worker, root, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = ".worker/skills/delegate-task/SKILL.md"
+    assert (root / path).is_file()
+    receipt = json.loads((root / ".worker/manifest.json").read_text())
+    assert receipt["files"][path]["ownership"] == "editable"

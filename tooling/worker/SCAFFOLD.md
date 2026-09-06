@@ -31,6 +31,9 @@ and its referenced prompts/programs/skills using the [delegation format](README.
 the selected file; explicit config arguments remain supported. Profile resources
 resolve relative to the profile file. Setup validates these consumer-owned resources
 and registers `worker_delegation`; it does not rewrite the profiles or copy secrets.
+It installs delegate-task under `paths.skills` and routes the generated project
+instructions to that skill. Capability-specific skills use the same installation
+ownership and conflict handling as the other shipped guidance.
 Its environment forwards the declared credential/MCP variable references, executor
 override and existing job owner/parent identifiers. Use the same WORKER_OWNER after
 reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
