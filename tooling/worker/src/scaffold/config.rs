@@ -157,7 +157,12 @@ impl Context {
         if recovering {
             config.runtime = VERSION.into();
         }
-        config.validate(&root).with_context(|| {
+        let validation = if recovering {
+            config.validate_structure(&root)
+        } else {
+            config.validate(&root)
+        };
+        validation.with_context(|| {
             format!(
                 "configuration invalid. ACTION: Apply {}",
                 config.config_skill

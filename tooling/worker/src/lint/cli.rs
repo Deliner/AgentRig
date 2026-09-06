@@ -38,7 +38,7 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         .map(PathBuf::from)
         .unwrap_or(env::current_dir()?)
         .canonicalize()?;
-    let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.toml".into());
+    let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
     let explain = command == "lint-explain";
     if explain {
         return super::explain::run(&root, &root.join(config), &args);
@@ -73,7 +73,7 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
             "rules": [super::rules::example(kind, ".agents/skills", &["src/**".into()])]});
-        println!("{}", toml::to_string_pretty(&value)?);
+        println!("{}", review_runner::config::yaml::encode(&value)?);
     } else if json {
         println!("{}", super::rules::describe(kind));
     } else {

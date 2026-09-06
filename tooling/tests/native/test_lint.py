@@ -11,31 +11,31 @@ import pytest
 # DECISION: D016
 ROOT = Path(__file__).parents[3]
 SKILL = ".agents/skills/refactor-large-file/SKILL.md"
-CONFIG = f"""version = 1
-config_skill = ".agents/skills/repair/SKILL.md"
+CONFIG = f"""version: 1
+config_skill: ".agents/skills/repair/SKILL.md"
 
-[[rules]]
-id = "source"
-kind = "nonblank-lines"
-target = "file"
-include = ["src/**"]
-extensions = [".rs", ".py", ".ts"]
-warning = 3
-error = 5
-warning_skill = "{SKILL}"
-error_skill = "{SKILL}"
+rules:
+  - id: "source"
+    kind: "nonblank-lines"
+    target: "file"
+    include: ["src/**"]
+    extensions: [".rs", ".py", ".ts"]
+    warning: 3
+    error: 5
+    warning_skill: "{SKILL}"
+    error_skill: "{SKILL}"
 """
 
 
 def prepare(root: Path, config: str = CONFIG) -> None:
     shutil.copytree(ROOT / ".agents/skills", root / ".agents/skills")
     (root / "src").mkdir()
-    (root / "lint.toml").write_text(config, encoding="utf-8")
+    (root / "lint.yaml").write_text(config, encoding="utf-8")
 
 
 def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     output = subprocess.run(
-        [str(worker), "lint", "--root", str(root), "--config", "lint.toml", "--json"],
+        [str(worker), "lint", "--root", str(root), "--config", "lint.yaml", "--json"],
         text=True,
         capture_output=True,
         check=False,
@@ -69,19 +69,18 @@ def test_native_lint_thresholds_and_skills(
 
 def test_overrides_and_exclusions(worker: Path, tmp_path: Path) -> None:
     config = CONFIG.replace(
-        'extensions = [".rs", ".py", ".ts"]',
-        'extensions = [".rs", ".py", ".ts"]\nexclude = ["src/excluded.rs"]',
+        'extensions: [".rs", ".py", ".ts"]',
+        'extensions: [".rs", ".py", ".ts"]\n    exclude: ["src/excluded.rs"]',
     )
     config += """
-[[rules.overrides]]
-include = ["src/**"]
-extensions = [".rs"]
-warning = 7
-error = 9
-[[rules.overrides]]
-include = ["src/special.rs"]
-warning = 10
-error = 12
+    overrides:
+      - include: ["src/**"]
+        extensions: [".rs"]
+        warning: 7
+        error: 9
+      - include: ["src/special.rs"]
+        warning: 10
+        error: 12
 """
     prepare(tmp_path, config)
     for name in ["ordinary.rs", "ordinary.py", "special.rs", "excluded.rs"]:
@@ -97,16 +96,16 @@ error = 12
 @pytest.mark.parametrize(
     ("old", "new"),
     [
-        ('kind = "nonblank-lines"', 'kind = "unknown"'),
-        ('target = "file"', 'target = "directory"'),
-        ("warning = 3", "warning = 5"),
-        ("warning = 3", "warning = -1"),
-        ("warning = 3", "warn = 3"),
-        ('include = ["src/**"]', 'include = ["["]'),
-        ('include = ["src/**"]', "include = []"),
-        ("version = 1", "version = 99"),
-        (f'error_skill = "{SKILL}"', 'error_skill = "missing/SKILL.md"'),
-        (f'warning_skill = "{SKILL}"', ""),
+        ('kind: "nonblank-lines"', 'kind: "unknown"'),
+        ('target: "file"', 'target: "directory"'),
+        ("warning: 3", "warning: 5"),
+        ("warning: 3", "warning: -1"),
+        ("warning: 3", "warn: 3"),
+        ('include: ["src/**"]', 'include: ["["]'),
+        ('include: ["src/**"]', "include: []"),
+        ("version: 1", "version: 99"),
+        (f'error_skill: "{SKILL}"', 'error_skill: "missing/SKILL.md"'),
+        (f'warning_skill: "{SKILL}"', ""),
     ],
 )
 # INVARIANT: I014
@@ -120,10 +119,10 @@ def test_invalid_config_is_actionable(worker: Path, tmp_path: Path, old: str, ne
 
 def test_directory_counts_immediate_children(worker: Path, tmp_path: Path) -> None:
     config = CONFIG.replace("nonblank-lines", "directory-entries").replace(
-        'target = "file"', 'target = "directory"'
+        'target: "file"', 'target: "directory"'
     )
-    config = config.replace('include = ["src/**"]', 'include = ["src"]').replace(
-        'extensions = [".rs", ".py", ".ts"]', ""
+    config = config.replace('include: ["src/**"]', 'include: ["src"]').replace(
+        'extensions: [".rs", ".py", ".ts"]', ""
     )
     prepare(tmp_path, config)
     (tmp_path / "src/group").mkdir()
@@ -147,7 +146,7 @@ def test_staged_files_and_config_are_isolated(worker: Path, tmp_path: Path) -> N
     subprocess.run(["git", "add", "."], cwd=root, check=True)
     # Make the worktree pass; the staged snapshot must still fail.
     source.write_text("line\n", encoding="utf-8")
-    (root / "lint.toml").write_text(CONFIG.replace("error = 5", "error = 50"), encoding="utf-8")
+    (root / "lint.yaml").write_text(CONFIG.replace("error: 5", "error: 50"), encoding="utf-8")
     assert lint(worker, root)[0] == 0
     snapshot = tmp_path / "staged"
     snapshot.mkdir()
@@ -161,7 +160,9 @@ def test_staged_files_and_config_are_isolated(worker: Path, tmp_path: Path) -> N
 
 
 def test_effective_override_thresholds_must_be_valid(worker: Path, tmp_path: Path) -> None:
-    prepare(tmp_path, CONFIG + '\n[[rules.overrides]]\ninclude = ["src/**"]\nwarning = 9\n')
+    prepare(
+        tmp_path, CONFIG + '\n    overrides:\n      - include: ["src/**"]\n        warning: 9\n'
+    )
     (tmp_path / "src/example.rs").write_text("line", encoding="utf-8")
     assert lint(worker, tmp_path)[0] == 2
 
@@ -170,7 +171,7 @@ def test_directory_rule_rejects_extension_filter(worker: Path, tmp_path: Path) -
     prepare(
         tmp_path,
         CONFIG.replace("nonblank-lines", "directory-entries").replace(
-            'target = "file"', 'target = "directory"'
+            'target: "file"', 'target: "directory"'
         ),
     )
     assert lint(worker, tmp_path)[0] == 2

@@ -99,7 +99,7 @@ Warnings do not fail lint; blocking findings exit 1 and configuration failures e
 - `hooks`: file-to-skill routes, optional reminder JSON and the corresponding discipline skill. The hook and runner use the same command catalog.
 - `oracles.ID`: command check, runner (`pytest` or `cargo`) and exact test target. Discovery uses that command's cwd, sandbox and shared process execution. Pytest targets are relative to the command cwd; keep its collection root aligned (for example, configure --rootdir . when a nested pytest config changes that root).
 
-Lint keeps its existing TOML schema and compiled Rust/Python handlers; [rule semantics](README.md#rules-and-languages) describe counting, selectors and parser limits. The installed template supplies all five rules and focused repair skills. Language rules block unnamed conditions, functions above 40 nonblank lines and signatures above 4 counted inputs. Unsupported selected languages are configuration errors, not silently ignored files. Numeric warning/error limits and named-condition severity are editable project policy.
+Lint uses strict YAML and compiled Rust/Python handlers; [rule semantics](README.md#rules-and-languages) describe counting, selectors and parser limits. The installed template supplies all five rules and focused repair skills. Language rules block unnamed conditions, functions above 40 nonblank lines and signatures above 4 counted inputs. Unsupported selected languages are configuration errors, not silently ignored files. Numeric warning/error limits and named-condition severity are editable project policy.
 
 Read-only commands require functioning Linux bubblewrap. Worker does not fall back to unrestricted execution when isolation is unavailable. Command records are append-only JSONL in `paths.runtime`; they describe process results, not task lifecycle. Staged command timing logs remain in the disposable exported tree; the latest gate evidence is saved in the original project runtime directory. If you relocate `paths.runtime`, add the new directory to the consumer Git ignore rules; initialization supplies an ignore rule for the default location.
 
@@ -136,8 +136,11 @@ its installed executable; the plan identifies that origin.
 The command writes `plan.json`, `diff.txt` and checksummed before/after blobs
 under the configured runtime directory's `upgrade/plan-*` directory. It shows
 local conflicts and the required config-check, doctor and project check steps.
-Settings and memory stay intact; the runtime pin changes while TOML comments
-are preserved. Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
+Settings and memory stay intact; the runtime pin and lint path change while root
+TOML comments are preserved. The legacy lint policy is explicitly converted to
+YAML with its values preserved; its original formatting and comments remain in
+the reviewed preimage for rollback. An existing YAML destination is a conflict.
+Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
 `"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
 plan fields intact. Kept local contents are recorded separately from stock
 checksums in the new receipt. Doctor accepts explicitly kept Git adapter hashes

@@ -14,5 +14,5 @@ pub fn template(skills: &str, sources: &[String]) -> Result<String> {
         "exclude": [".git/**", ".worker/bin/**", ".worker/runtime/**", "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
         "rules": rules,
     });
-    Ok(toml::to_string_pretty(&config)?)
+    review_runner::config::yaml::encode(&config)
 }

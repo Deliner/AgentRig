@@ -93,6 +93,11 @@ pub fn migrated(source: &str) -> Result<Vec<u8>> {
     #[derive(serde::Deserialize)]
     struct Pin {
         runtime: toml::Spanned<String>,
+        paths: Policy,
+    }
+    #[derive(serde::Deserialize)]
+    struct Policy {
+        lint: toml::Spanned<String>,
     }
     let pin: Pin = toml::from_str(source)?;
     ensure!(
@@ -100,6 +105,29 @@ pub fn migrated(source: &str) -> Result<Vec<u8>> {
         "only {FROM} -> {TO} is implemented"
     );
     let mut updated = source.to_owned();
-    updated.replace_range(pin.runtime.span(), &format!("\"{TO}\""));
+    let mut replacements = vec![
+        (pin.runtime.span(), format!("\"{TO}\"")),
+        (
+            pin.paths.lint.span(),
+            serde_json::to_string(&lint_path(pin.paths.lint.get_ref()))?,
+        ),
+    ];
+    replacements.sort_by_key(|(span, _)| std::cmp::Reverse(span.start));
+    for (span, value) in replacements {
+        updated.replace_range(span, &value);
+    }
     Ok(updated.into_bytes())
+}
+
+pub fn lint_path(path: &str) -> String {
+    Path::new(path)
+        .with_extension("yaml")
+        .to_string_lossy()
+        .into_owned()
+}
+
+pub fn lint_yaml(root: &Path, path: &str) -> Result<Vec<u8>> {
+    let source = fs::read_to_string(root.join(path))?;
+    let value: toml::Value = toml::from_str(&source)?;
+    Ok(review_runner::config::yaml::encode(&value)?.into_bytes())
 }

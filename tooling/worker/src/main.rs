@@ -103,7 +103,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
             );
             context.path(&context.config.paths.lint)?
         }
-        None => root.join("lint.toml"),
+        None => root.join("lint.yaml"),
     };
     let explain = command == "lint-explain";
     if explain {

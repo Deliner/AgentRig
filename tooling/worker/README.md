@@ -12,11 +12,11 @@ The hook registration invokes run hook with an explicit repository root. Ledger 
 
 ## Configuration
 
-The lint file selected by worker.toml (or --config; standalone default lint.toml) uses TOML version 1 of the worker schema. Unknown fields, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
+The lint file selected by worker.toml (or --config; standalone default lint.yaml) uses strict YAML version 1 of the worker schema. Unknown fields, duplicate keys, wrong types, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. Anchors, aliases, tags and merge keys are rejected. Legacy TOML requires explicit migration; there is no runtime fallback. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
 
-Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
+Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.yaml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks YAML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
-Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete TOML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
+Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete YAML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
 
 Each rules entry requires:
 
@@ -28,7 +28,7 @@ Each rules entry requires:
 - exclude: optional rule-local glob list.
 - extensions: optional literal suffixes, such as .rs or .ts; only file rules accept them.
 - Numeric rules require warning, error, or both: nonnegative thresholds; warning must be strictly below error when both exist. Equality passes; a greater value triggers that level. Omit error for warnings only, or warning for blocking only.
-- named-if-condition instead requires level = "warning" or "error", with no numeric thresholds or threshold overrides.
+- named-if-condition instead requires level: warning or error, with no numeric thresholds or threshold overrides.
 - warning_skill and error_skill: existing repository SKILL.md paths with name/description frontmatter.
 - overrides: optional ordered selector/threshold overrides.
 
@@ -36,19 +36,17 @@ Global exclude removes paths from the inventory before directory counts. Rule-lo
 
 An override inherits the rule's target and repair skills. It supplies include, optional extensions, and at least one of warning/error. All matching overrides apply in declaration order; later supplied thresholds replace earlier values. Effective warning must remain below error when both exist. An omitted override threshold inherits its prior value; overrides cannot remove thresholds. Different rules are independent and can both report on a file.
 
-Example, placed inside the file-size rule before the next rules entry:
+Example overrides field, indented to match the other fields of its file-size rule:
 
-~~~toml
-[[rules.overrides]]
-include = ["Project/Runtime/**"]
-extensions = [".rs", ".ts"]
-warning = 220
-error = 400
-
-[[rules.overrides]]
-include = ["Project/Runtime/parser.rs"]
-warning = 280
-error = 450
+~~~yaml
+overrides:
+  - include: ["Project/Runtime/**"]
+    extensions: [".rs", ".ts"]
+    warning: 220
+    error: 400
+  - include: ["Project/Runtime/parser.rs"]
+    warning: 280
+    error: 450
 ~~~
 
 Do not add exceptions merely to turn the gate green. Preserve a current requirement or record a justified policy change.
@@ -63,14 +61,14 @@ Current defaults retain warnings above 300 nonblank lines and errors above 500; 
 
 Example syntax rule selection (inside its rules entry):
 
-~~~toml
-enabled = true
-include = ["Project/**"]
-exclude = ["Project/generated/**"]
-extensions = [".rs", ".py"]
+~~~yaml
+enabled: true
+include: ["Project/**"]
+exclude: ["Project/generated/**"]
+extensions: [".rs", ".py"]
 ~~~
 
-Setting extensions = [".sh"] on function-lines fails with an error naming supported Rust/Python handlers. The same applies to numeric override selectors. File-size remains language independent, so it can select shell scripts.
+Setting extensions: [".sh"] on function-lines fails with an error naming supported Rust/Python handlers. The same applies to numeric override selectors. File-size remains language independent, so it can select shell scripts.
 
 ### Syntax-aware rules
 
@@ -80,7 +78,7 @@ The Rust engine parses each selected source once per run using Tree-sitter. Comp
 - function-lines counts nonblank lines from the function signature through the end of its body, including comments, docstrings and nested definitions. Decorators and preceding attributes are excluded. Methods, async functions, constructors, nested functions and anonymous closures/lambdas are included; declarations without bodies have no size finding. Nested functions are also measured independently.
 - parameter-count counts declared inputs, including optional and variadic parameters as one each. Generic type parameters, commas inside types/defaults, and separators do not count. Rust self receivers (including typed self) and the first bound Python method receiver are excluded. For literal @staticmethod decorators, inputs all count; bound method/classmethod receivers do not. Decorator aliases are not resolved. Python constructors are checked through explicit __init__/__new__ declarations; Rust associated constructor functions such as new are ordinary functions. Calls, class inheritance arguments, generated constructors (such as dataclass) and macro-expanded code are not inferred.
 
-Repository policy and newly installed defaults block all three language rules: named-if-condition uses level = "error", function-lines uses error = 40, and parameter-count uses error = 4. Equality passes. Production code, tests and the benchmark follow these limits without new exclusions. D021 supersedes the initial advisory rollout; existing consumer configurations require an explicit policy update. File/directory thresholds and configurable warning capabilities remain unchanged.
+Repository policy and newly installed defaults block all three language rules: named-if-condition uses level: error, function-lines uses error: 40, and parameter-count uses error: 4. Equality passes. Production code, tests and the benchmark follow these limits without new exclusions. D021 supersedes the initial advisory rollout; existing consumer configurations require an explicit policy update. File/directory thresholds and configurable warning capabilities remain unchanged.
 
 Syntax diagnostics add a 1-based line and symbol to the existing JSON fields; text output renders file:line (symbol). Each finding points to name-if-condition, refactor-long-function or reduce-parameters. No automatic code transformation is performed.
 
@@ -96,7 +94,7 @@ Each checks entry in worker.toml names its repair skill. The shared gate preserv
 
 Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
-Configuration parsing uses the [TOML serde library](https://docs.rs/toml/latest/toml/); selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
+Lint, review and delegate configuration share the strict YAML codec in review/src/config/yaml.rs. Selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
 
 ## Measured latency
 
@@ -109,14 +107,14 @@ engine used by worker checks. Copy that executable outside the project to be
 assessed; no worker setup, memory, hooks or MCP are required there:
 
 ```sh
-discipline-lint --root /projects/consumer --config /policies/lint.toml --json
-discipline-lint lint-config-check --root /projects/consumer --config /policies/lint.toml
+discipline-lint --root /projects/consumer --config /policies/lint.yaml --json
+discipline-lint lint-config-check --root /projects/consumer --config /policies/lint.yaml
 discipline-lint lint-rules
 ```
 
 Source selectors always apply to the assessed root. By default, skill references
 retain their existing project-relative semantics. An external policy can set
-`skill_root = "skills"`, resolved relative to its configuration file, to use a
+`skill_root: skills`, resolved relative to its configuration file, to use a
 separate skill bundle. References must still identify valid SKILL.md files inside
 that selected root. Diagnostics provide their resolved paths. The assessment
 writes no project files; worker and standalone findings agree for the same

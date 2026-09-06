@@ -32,7 +32,7 @@ git switch -c change/bootstrap
 "$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies --base release --prefix change/
 ```
 
-Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.worker/lint.toml`.
+Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.worker/lint.yaml`.
 
 ## Exercise either installation
 

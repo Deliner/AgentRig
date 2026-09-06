@@ -54,7 +54,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             sources: vec![format!("{}/**", options["source"])],
             memory: options["memory"].into(),
             skills: skill_root.into(),
-            lint: ".worker/lint.toml".into(),
+            lint: ".worker/lint.yaml".into(),
             runtime: ".worker/runtime".into(),
         },
         git: Git {

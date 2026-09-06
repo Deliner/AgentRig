@@ -1,3 +1,4 @@
+// DECISION: D026
 use anyhow::{Context, Result, ensure};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_yaml_ng::Value;

@@ -34,7 +34,7 @@ def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Pa
 def test_disabled_lint_requires_consistent_gate(worker: Path, tmp_path: Path) -> None:
     source = CONFIG + "\n[capabilities]\nlint=false\n"
     project(tmp_path, source)
-    (tmp_path / "lint.toml").unlink()
+    (tmp_path / "lint.yaml").unlink()
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 0, result.stderr
     result = invoke(worker, tmp_path, "lint")

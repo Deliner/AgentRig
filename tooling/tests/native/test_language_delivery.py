@@ -16,8 +16,8 @@ def test_staged_language_source_and_policy(worker: Path, tmp_path: Path) -> None
     source.write_text("if ready and enabled: pass")
     subprocess.run(["git", "add", "."], cwd=root, check=True)
     source.write_text("if ready: pass")
-    config = root / "lint.toml"
-    config.write_text(config.read_text().replace('level = "error"', 'level = "warning"'))
+    config = root / "lint.yaml"
+    config.write_text(config.read_text().replace('level: "error"', 'level: "warning"'))
     assert lint(worker, root) == (0, [])
     snapshot = tmp_path / "staged"
     snapshot.mkdir()
@@ -32,15 +32,15 @@ def test_staged_language_source_and_policy(worker: Path, tmp_path: Path) -> None
 
 def test_shared_parse_error_and_extension_defaults(worker: Path, tmp_path: Path) -> None:
     configure(tmp_path, "named-if-condition")
-    config = tmp_path / "lint.toml"
-    original = config.read_text().replace('extensions = [".rs", ".py", ".pyi"]', "")
-    numeric = original[original.index("[[rules]]") :].replace('id = "source"', 'id = "parameters"')
-    numeric = numeric.replace('kind = "named-if-condition"', 'kind = "parameter-count"').replace(
-        'level = "error"', "error = 1"
+    config = tmp_path / "lint.yaml"
+    original = config.read_text().replace('extensions: [".rs", ".py", ".pyi"]', "")
+    numeric = original[original.index("  - id:") :].replace('id: "source"', 'id: "parameters"')
+    numeric = numeric.replace('kind: "named-if-condition"', 'kind: "parameter-count"').replace(
+        'level: "error"', "error: 1"
     )
     config.write_text(
         (original + numeric).replace(
-            'include = ["src/**"]', 'include = ["src/**"]\nexclude = ["src/other.js"]'
+            'include: ["src/**"]', 'include: ["src/**"]\n    exclude: ["src/other.js"]'
         )
     )
     (tmp_path / "src/example.pyi").write_text("def example(one, two): ...")

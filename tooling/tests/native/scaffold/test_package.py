@@ -80,7 +80,7 @@ def test_installation_manifest_records_ownership(worker: Path, tmp_path: Path) -
     assert entries[".worker/bin/discipline-worker"]["ownership"] == "runtime"
     assert entries[".worker/.gitignore"]["ownership"] == "asset"
     assert entries["worker.toml"]["ownership"] == "configuration"
-    assert entries[".worker/lint.toml"]["ownership"] == "configuration"
+    assert entries[".worker/lint.yaml"]["ownership"] == "configuration"
     assert entries["guides/repair/SKILL.md"]["ownership"] == "editable"
     assert entries[".worker/hooks/pre-commit"]["ownership"] == "editable"
     assert entries["notes/State.md"]["ownership"] == "memory"

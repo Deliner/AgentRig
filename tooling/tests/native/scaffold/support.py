@@ -8,7 +8,7 @@ config_skill = "guides/repair/SKILL.md"
 sources = ["src/**"]
 memory = "notes"
 skills = "guides"
-lint = "lint.toml"
+lint = "lint.yaml"
 runtime = ".runtime"
 [git]
 base = "trunk"
@@ -23,18 +23,21 @@ argv = []
 accepts_args = true
 read_only = true
 """
-LINT = """version = 1
-config_skill = "guides/repair/SKILL.md"
-exclude = [".git/**", ".runtime/**"]
-[[rules]]
-id = "lines"
-kind = "nonblank-lines"
-target = "file"
-include = ["src/**"]
-warning = 30
-error = 60
-warning_skill = "guides/repair/SKILL.md"
-error_skill = "guides/repair/SKILL.md"
+LINT = """version: 1
+config_skill: guides/repair/SKILL.md
+exclude:
+- .git/**
+- .runtime/**
+rules:
+- id: lines
+  kind: nonblank-lines
+  target: file
+  include:
+  - src/**
+  warning: 30
+  error: 60
+  warning_skill: guides/repair/SKILL.md
+  error_skill: guides/repair/SKILL.md
 """
 
 
@@ -45,7 +48,7 @@ def project(root: Path, config: str = CONFIG) -> Path:
     skill.write_text("---\nname: repair\ndescription: Fix the reported failing check.\n---\n")
     (root / "src").mkdir()
     (root / "worker.toml").write_text(config)
-    (root / "lint.toml").write_text(LINT)
+    (root / "lint.yaml").write_text(LINT)
     return root
 
 

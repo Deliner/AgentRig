@@ -256,9 +256,9 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
 }
 fn configuration_skill(path: &Path) -> Option<String> {
     let source = fs::read_to_string(path).ok()?;
-    let value: toml::Value = toml::from_str(&source).ok()?;
+    let value: serde_json::Value = review_runner::config::yaml::decode(&source).ok()?;
     let skill = value.get("config_skill")?.as_str()?;
-    match value.get("skill_root").and_then(toml::Value::as_str) {
+    match value.get("skill_root").and_then(serde_json::Value::as_str) {
         Some(root) => {
             let candidate = path.parent()?.join(root).join(skill);
             Some(

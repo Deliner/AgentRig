@@ -129,19 +129,19 @@ class Consumer:
             assert result.returncode == 0, (command, result.stdout, result.stderr)
 
     def language_selection(self) -> None:
-        config = self.root / ".worker/lint.toml"
+        config = self.root / ".worker/lint.yaml"
         before = config.read_text()
         assert invoke(self.binary, self.root, "lint").returncode == 0
         (self.source / "tool.sh").write_text("if true; then echo example; fi\n")
         config.write_text(
             before
-            + f'\n[[rules]]\nid = "unsupported"\nkind = "function-lines"\ntarget = "file"\ninclude = ["{self.layout.paths.source}/**"]\nextensions = [".sh"]\nwarning = 40\nwarning_skill = "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\nerror_skill = "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n'
+            + f'\n- id: unsupported\n  kind: function-lines\n  target: file\n  include: ["{self.layout.paths.source}/**"]\n  extensions: [".sh"]\n  warning: 40\n  warning_skill: "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n  error_skill: "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n'
         )
         result = invoke(self.binary, self.root, "config-check")
         assert result.returncode == 2
         assert ".sh" in result.stderr and "handlers support" in result.stderr
         config.write_text(
-            config.read_text().replace('extensions = [".sh"]', 'extensions = [".rs", ".py"]')
+            config.read_text().replace('extensions: [".sh"]', 'extensions: [".rs", ".py"]')
         )
         assert invoke(self.binary, self.root, "config-check").returncode == 0
         assert invoke(self.binary, self.root, "run", "test").returncode == 0

@@ -53,20 +53,23 @@ fn copy(root: &Path, preview: &Path, path: &str) -> Result<()> {
 }
 fn lint(root: &Path, preview: &Path, path: &str) -> Result<()> {
     copy(root, preview, path)?;
-    let source = fs::read_to_string(preview.join(path))?;
-    let policy: crate::lint::config::Config = toml::from_str(&source)?;
-    let mut document: toml_edit::DocumentMut = source.parse()?;
-    if let Some(skill_root) = policy.skill_root {
+    let mut policy: crate::lint::config::Config =
+        review_runner::config::yaml::read(&preview.join(path))?;
+    if let Some(skill_root) = &policy.skill_root {
         let absolute = root.join(path).parent().unwrap().join(skill_root);
-        document["skill_root"] = toml_edit::value(absolute.to_string_lossy().as_ref());
+        policy.skill_root = Some(absolute);
     } else {
         copy(root, preview, &policy.config_skill)?;
-        for rule in policy.rules {
+        for rule in &policy.rules {
             copy(root, preview, &rule.warning_skill)?;
             copy(root, preview, &rule.error_skill)?;
         }
     }
-    put(preview, path, document.to_string().as_bytes())
+    put(
+        preview,
+        path,
+        review_runner::config::yaml::encode(&policy)?.as_bytes(),
+    )
 }
 fn resource(root: &Path, preview: &Path, path: &Path) -> Result<PathBuf> {
     let resolved = crate::util::resolve(path)?;

@@ -2,7 +2,10 @@ import hashlib
 import json
 import shutil
 import subprocess
+import tomllib
 from pathlib import Path
+
+import yaml
 
 from .test_upgrade_plan import invoke, prepare
 
@@ -156,7 +159,12 @@ def test_rust_consumer_upgrade(worker: Path, predecessor: Path, tmp_path: Path) 
     applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
     assert applied.returncode == 0, applied.stdout + applied.stderr
     assert "test result: ok" in applied.stdout
-    assert (tmp_path / ".worker/lint.toml").read_bytes() == lint
-    assert (tmp_path / "worker.toml").read_bytes() == config.replace(b'"0.1.0"', b'"0.2.0"', 1)
+    assert yaml.safe_load((tmp_path / ".worker/lint.yaml").read_text()) == tomllib.loads(
+        lint.decode()
+    )
+    expected = config.replace(b'"0.1.0"', b'"0.2.0"', 1).replace(b"lint.toml", b"lint.yaml")
+    assert (tmp_path / "worker.toml").read_bytes() == expected
     assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
     assert (tmp_path / "worker.toml").read_bytes() == config
+    assert (tmp_path / ".worker/lint.toml").read_bytes() == lint
+    assert not (tmp_path / ".worker/lint.yaml").exists()

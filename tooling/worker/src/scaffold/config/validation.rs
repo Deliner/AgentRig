@@ -4,6 +4,15 @@ use std::collections::HashSet;
 
 impl Config {
     pub(super) fn validate(&self, root: &Path) -> Result<()> {
+        self.validate_structure(root)?;
+        self.capabilities.validate(root, &self.checks)?;
+        if self.capabilities.lint {
+            crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
+                .context("paths.lint")?;
+        }
+        Ok(())
+    }
+    pub(super) fn validate_structure(&self, root: &Path) -> Result<()> {
         ensure!(self.version == 1, "version: supported schema is 1");
         ensure!(
             self.runtime == VERSION,
@@ -16,11 +25,6 @@ impl Config {
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
         self.validate_oracles()?;
-        self.capabilities.validate(root, &self.checks)?;
-        if self.capabilities.lint {
-            crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
-                .context("paths.lint")?;
-        }
         Ok(())
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {

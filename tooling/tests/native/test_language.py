@@ -8,11 +8,11 @@ from test_lint import CONFIG, lint, prepare
 # DECISION: D017
 
 
-def configure(root: Path, kind: str, thresholds: str = 'level = "error"') -> None:
+def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
     config = (
         CONFIG.replace("nonblank-lines", kind)
-        .replace('extensions = [".rs", ".py", ".ts"]', 'extensions = [".rs", ".py", ".pyi"]')
-        .replace("warning = 3\nerror = 5", thresholds)
+        .replace('extensions: [".rs", ".py", ".ts"]', 'extensions: [".rs", ".py", ".pyi"]')
+        .replace("warning: 3\n    error: 5", thresholds.replace("\n", "\n    "))
     )
     prepare(root, config)
 
@@ -78,8 +78,8 @@ def test_language_conditions(
     assert [item["line"] for item in items] == lines
     assert all(item["rule"] == "source" and item["level"] == "error" for item in items)
     assert all(item["skill"].endswith("SKILL.md") for item in items)
-    path = tmp_path / "lint.toml"
-    path.write_text(path.read_text().replace('level = "error"', 'level = "warning"'))
+    path = tmp_path / "lint.yaml"
+    path.write_text(path.read_text().replace('level: "error"', 'level: "warning"'))
     code, items = lint(worker, tmp_path)
     assert code == 0
     assert all(item["level"] == "warning" for item in items)
@@ -137,7 +137,7 @@ def test_parameters_are_declarations(
     worker: Path, tmp_path: Path, example: tuple[str, str, dict[str, int]]
 ) -> None:
     extension, source, counts = example
-    configure(tmp_path, "parameter-count", "warning = 0")
+    configure(tmp_path, "parameter-count", "warning: 0")
     (tmp_path / f"src/example.{extension}").write_text(source)
     code, items = lint(worker, tmp_path)
     assert code == 0
@@ -183,16 +183,16 @@ def short(): pass
 )
 def test_function_ranges(worker: Path, tmp_path: Path, example: tuple[str, str, int]) -> None:
     extension, source, count = example
-    configure(tmp_path, "function-lines", f"warning = {count - 1}\nerror = {count}")
+    configure(tmp_path, "function-lines", f"warning: {count - 1}\nerror: {count}")
     (tmp_path / f"src/example.{extension}").write_text(source)
     code, items = lint(worker, tmp_path)
     assert code == 0
     assert [(item["symbol"], item["actual"], item["level"]) for item in items] == [
         ("long", count, "warning")
     ]
-    path = tmp_path / "lint.toml"
+    path = tmp_path / "lint.yaml"
     path.write_text(
-        path.read_text().replace(f"warning = {count - 1}\nerror = {count}", f"error = {count - 1}")
+        path.read_text().replace(f"warning: {count - 1}\n    error: {count}", f"error: {count - 1}")
     )
     assert lint(worker, tmp_path)[0] == 1
 
@@ -201,7 +201,7 @@ def test_function_ranges(worker: Path, tmp_path: Path, example: tuple[str, str, 
     ("extension", "source"), [("rs", "fn broken( { if }"), ("py", "def broken(:\n pass")]
 )
 def test_malformed_source_blocks(worker: Path, tmp_path: Path, extension: str, source: str) -> None:
-    configure(tmp_path, "named-if-condition", 'level = "warning"')
+    configure(tmp_path, "named-if-condition", 'level: "warning"')
     (tmp_path / f"src/broken.{extension}").write_text(source)
     code, items = lint(worker, tmp_path)
     assert code == 1
@@ -211,12 +211,12 @@ def test_malformed_source_blocks(worker: Path, tmp_path: Path, extension: str, s
 
 
 def test_language_selection_and_overrides(worker: Path, tmp_path: Path) -> None:
-    configure(tmp_path, "parameter-count", "warning = 1\nerror = 3")
+    configure(tmp_path, "parameter-count", "warning: 1\nerror: 3")
     (tmp_path / "src/example.py").write_text("def example(one, two, three): pass")
     (tmp_path / "src/example.js").write_text("not valid Python or Rust")
-    config = tmp_path / "lint.toml"
+    config = tmp_path / "lint.yaml"
     config.write_text(
-        config.read_text() + '\n[[rules.overrides]]\ninclude = ["src/*.py"]\nerror = 2\n'
+        config.read_text() + '\n    overrides:\n      - include: ["src/*.py"]\n        error: 2\n'
     )
     code, items = lint(worker, tmp_path)
     assert code == 1
@@ -226,9 +226,7 @@ def test_language_selection_and_overrides(worker: Path, tmp_path: Path) -> None:
     assert lint(worker, tmp_path)[0] == 2
 
 
-@pytest.mark.parametrize(
-    "policy", ["warning = 1", 'level = "fatal"', 'level = "error"\nwarning = 1']
-)
+@pytest.mark.parametrize("policy", ["warning: 1", 'level: "fatal"', 'level: "error"\nwarning: 1'])
 def test_condition_configuration_is_not_numeric(worker: Path, tmp_path: Path, policy: str) -> None:
     configure(tmp_path, "named-if-condition", policy)
     assert lint(worker, tmp_path)[0] == 2

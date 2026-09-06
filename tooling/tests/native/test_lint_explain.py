@@ -9,7 +9,7 @@ from test_lint import CONFIG, lint, prepare
 
 def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
     result = subprocess.run(
-        [str(worker), "lint-explain", path, "--root", str(root), "--config", "lint.toml", "--json"],
+        [str(worker), "lint-explain", path, "--root", str(root), "--config", "lint.yaml", "--json"],
         capture_output=True,
         text=True,
         check=True,
@@ -21,8 +21,11 @@ def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
 @pytest.mark.parametrize("standalone", [False, True])
 def test_explain_effective_overrides(worker: Path, tmp_path: Path, standalone: bool) -> None:
     binary = worker.with_name("discipline-lint") if standalone else worker
-    policy = CONFIG + '\n[[rules.overrides]]\ninclude = ["src/**"]\nwarning = 7\nerror = 9\n'
-    policy += '\n[[rules.overrides]]\ninclude = ["src/special.py"]\nerror = 12\n'
+    policy = (
+        CONFIG
+        + '\n    overrides:\n      - include: ["src/**"]\n        warning: 7\n        error: 9\n'
+    )
+    policy += '      - include: ["src/special.py"]\n        error: 12\n'
     prepare(tmp_path, policy)
     (tmp_path / "src/special.py").write_text("line\n" * 13)
     row = explain(binary, tmp_path, "./src/special.py")["rules"][0]
@@ -36,22 +39,22 @@ def test_explain_effective_overrides(worker: Path, tmp_path: Path, standalone: b
 @pytest.mark.parametrize(
     "case",
     [
-        ("enabled = false\n", "disabled"),
-        ('exclude = ["src/example.py"]\n', "rule exclude matches"),
-        ('extensions = [".rs"]\n', "extension does not match"),
-        ('include = ["other/**"]\n', "include does not match"),
+        ("enabled: false\n", "disabled"),
+        ('exclude: ["src/example.py"]\n', "rule exclude matches"),
+        ('extensions: [".rs"]\n', "extension does not match"),
+        ('include: ["other/**"]\n', "include does not match"),
     ],
 )
 def test_explain_selection_reasons(worker: Path, tmp_path: Path, case: tuple[str, str]) -> None:
     setting, reason = case
-    key = setting.split(" =")[0]
+    key = setting.split(":")[0]
     retained = []
     for line in CONFIG.splitlines():
-        keep_line = not line.startswith(key + " =")
+        keep_line = not line.strip().startswith(key + ":")
         if keep_line:
             retained.append(line)
     policy = "\n".join(retained)
-    prepare(tmp_path, policy + "\n" + setting)
+    prepare(tmp_path, policy + "\n    " + setting)
     (tmp_path / "src/example.py").write_text("line\n" * 8)
     row = explain(worker, tmp_path, "src/example.py")["rules"][0]
     assert not row["selected"] and row["reason"] == reason
@@ -59,7 +62,7 @@ def test_explain_selection_reasons(worker: Path, tmp_path: Path, case: tuple[str
 
 
 def test_explain_inventory_and_global_exclusions(worker: Path, tmp_path: Path) -> None:
-    prepare(tmp_path, 'exclude = ["src/hidden.py"]\n' + CONFIG)
+    prepare(tmp_path, 'exclude: ["src/hidden.py"]\n' + CONFIG)
     (tmp_path / "src/hidden.py").write_text("line\n" * 8)
     assert (
         explain(worker, tmp_path, "src/hidden.py")["rules"][0]["reason"] == "global exclude matches"
@@ -70,7 +73,9 @@ def test_explain_inventory_and_global_exclusions(worker: Path, tmp_path: Path) -
 
 
 def test_explain_rejects_invalid_effective_policy(worker: Path, tmp_path: Path) -> None:
-    prepare(tmp_path, CONFIG + '\n[[rules.overrides]]\ninclude = ["src/**"]\nwarning = 9\n')
+    prepare(
+        tmp_path, CONFIG + '\n    overrides:\n      - include: ["src/**"]\n        warning: 9\n'
+    )
     (tmp_path / "src/example.py").touch()
     result = subprocess.run(
         [str(worker), "lint-explain", "src/example.py", "--root", str(tmp_path)],

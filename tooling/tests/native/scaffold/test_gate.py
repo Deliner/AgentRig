@@ -39,8 +39,8 @@ def test_staged_gate_uses_staged_configuration(worker: Path, tmp_path: Path) -> 
     (tmp_path / "src/large.py").write_text("line\n" * 61)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
     (tmp_path / "src/large.py").write_text("line\n")
-    (tmp_path / "lint.toml").write_text(
-        (tmp_path / "lint.toml").read_text().replace("error = 60", "error = 100")
+    (tmp_path / "lint.yaml").write_text(
+        (tmp_path / "lint.yaml").read_text().replace("error: 60", "error: 100")
     )
     assert invoke(worker, tmp_path, "check").returncode == 0
     result = invoke(worker, tmp_path, "check", "--staged")

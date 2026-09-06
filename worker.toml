@@ -9,7 +9,7 @@ foreground = "systemd"
 sources = ["tooling/**", "Project/**"]
 memory = "Ledger"
 skills = ".agents/skills"
-lint = "tooling/worker/lint.toml"
+lint = "tooling/worker/lint.yaml"
 runtime = ".cache/runtime"
 
 [git]

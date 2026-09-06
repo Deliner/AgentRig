@@ -98,6 +98,7 @@ impl Draft<'_> {
             .cloned()
             .collect();
         paths.insert(self.configuration.paths.lint.clone());
+        paths.insert(release::lint_path(&self.configuration.paths.lint));
         paths.extend(self.configuration.hooks.reminder.iter().cloned());
         for path in paths {
             let change = self.change(&path)?;
@@ -127,17 +128,43 @@ impl Draft<'_> {
             reason: "preserve project content".into(),
             resolution: None,
         };
-        let migrate = path == config::FILE;
-        let replace_stock = !self.preserve(path);
-        if migrate {
-            let bytes = release::migrated(&fs::read_to_string(self.root.join(path))?)?;
-            change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
-            change.action = Action::Replace;
-            change.reason = "migrate runtime pin; preserve settings and comments".into();
-        } else if replace_stock {
+        let migrated = self.migrate(path, &mut change)?;
+        let replace_stock = !migrated && !self.preserve(path);
+        if replace_stock {
             self.stock_change(path, &mut change)?;
         }
         Ok(change)
+    }
+    fn migrate(&self, path: &str, change: &mut Change) -> Result<bool> {
+        let lint = &self.configuration.paths.lint;
+        let target = release::lint_path(lint);
+        let bytes = match path {
+            config::FILE => release::migrated(&fs::read_to_string(self.root.join(path))?)?,
+            path if path == target => release::lint_yaml(self.root, lint)?,
+            path if path == lint => {
+                change.after.sha256 = None;
+                change.after.mode = None;
+                change.action = Action::Remove;
+                change.reason = "replace legacy lint path with its YAML configuration".into();
+                return Ok(true);
+            }
+            _ => return Ok(false),
+        };
+        change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
+        change.after.mode = Some(change.before.mode.unwrap_or(0o644));
+        let collision = path == target && path != lint && change.before.sha256.is_some();
+        change.action = if collision {
+            Action::Conflict
+        } else {
+            Action::Replace
+        };
+        let project = path == config::FILE;
+        change.reason = if project {
+            "migrate runtime pin and lint reference; preserve project settings and comments"
+        } else {
+            "convert configured lint to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
+        }.into();
+        Ok(true)
     }
     fn preserve(&self, path: &str) -> bool {
         let ownership = self

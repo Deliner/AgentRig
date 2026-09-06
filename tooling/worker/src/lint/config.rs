@@ -1,7 +1,7 @@
 use super::rules;
 use anyhow::{Result, bail};
 use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{
     collections::HashSet,
     fs,
@@ -11,7 +11,7 @@ use std::{
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub version: u32,
@@ -21,7 +21,7 @@ pub struct Config {
     pub exclude: Vec<String>,
     pub rules: Vec<Rule>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rule {
     #[serde(default = "enabled_by_default")]
@@ -42,7 +42,7 @@ pub struct Rule {
     #[serde(default)]
     pub overrides: Vec<Override>,
 }
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Override {
     pub include: Vec<String>,
@@ -51,7 +51,7 @@ pub struct Override {
     pub warning: Option<u64>,
     pub error: Option<u64>,
 }
-#[derive(Clone, Copy, Deserialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Level {
     Warning,
@@ -112,7 +112,7 @@ pub fn skill(root: &Path, value: &str) -> Result<()> {
     Ok(())
 }
 pub fn load(root: &Path, path: &Path) -> Result<Config> {
-    let mut config: Config = toml::from_str(&fs::read_to_string(path)?)?;
+    let mut config: Config = review_runner::config::yaml::read(path)?;
     let external = config
         .skill_root
         .as_ref()
