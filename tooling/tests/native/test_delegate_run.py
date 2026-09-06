@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import time
 from pathlib import Path
@@ -189,3 +190,30 @@ def test_cleanup_failure_cannot_be_overall_pass_and_can_be_retried(
         result = call(worker, tmp_path, "result", identifier)
         assert result["report"]["cleanup_errors"] == [], result
         assert not (directory / "private").exists()
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+def test_slow_launcher_survives_start_disconnect(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cancel: bool
+) -> None:
+    consumer(
+        worker,
+        tmp_path,
+        monkeypatch,
+        "printf artifact > /work/asset.txt\nprintf '{\"ok\":true}' > /work/result.json\n",
+    )
+    launcher = tmp_path / "fixture/systemd-run"
+    launcher.write_text('#!/bin/sh\n/bin/sleep 7\nexec /usr/bin/systemd-run "$@"\n')
+    launcher.chmod(0o755)
+    monkeypatch.setenv("PATH", str(launcher.parent) + os.pathsep + os.environ["PATH"])
+    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    result = call(worker, tmp_path, "result", identifier)
+    assert result["outcome"] == "RUNNING", result
+    assert (tmp_path / ".worker/runtime/jobs" / identifier / "input").exists()
+    if cancel:
+        result = call(worker, tmp_path, "cancel", identifier)
+        assert result["job"]["state"] == "stopping", result
+        assert terminal(worker, tmp_path, identifier)["outcome"] == "CANCELLED"
+        assert not (tmp_path / ".worker/runtime/jobs" / identifier / "artifacts").exists()
+    else:
+        assert terminal(worker, tmp_path, identifier)["outcome"] == "PASS"

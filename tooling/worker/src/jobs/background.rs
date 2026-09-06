@@ -14,14 +14,7 @@ impl Job {
         let scope = Scope::new(&self.record.run_id);
         self.record.scope = Some(scope.clone());
         self.save()?;
-        let mut launcher = self.launcher(executable, &scope)?;
-        let mut child = match launcher.spawn() {
-            Ok(child) => child,
-            Err(error) => {
-                self.finish(127, Some(error.to_string()))?;
-                return Err(error.into());
-            }
-        };
+        let mut child = self.spawn_launcher(executable, &scope)?;
         let deadline = Instant::now() + Duration::from_secs(5);
         while Instant::now() < deadline {
             let adopted = self.was_adopted()?;
@@ -46,6 +39,21 @@ impl Job {
         }
         // A slow observation does not authorize starting a second process.
         Ok(self.record.run_id)
+    }
+    fn spawn_launcher(&mut self, executable: &Path, scope: &Scope) -> Result<std::process::Child> {
+        let mut launcher = self.launcher(executable, scope)?;
+        let child = match launcher.spawn() {
+            Ok(child) => child,
+            Err(error) => {
+                self.finish(127, Some(error.to_string()))?;
+                return Err(error.into());
+            }
+        };
+        crate::util::save_json(
+            &self.directory.join("launcher.json"),
+            &Identity::read(child.id()).ok(),
+        )?;
+        Ok(child)
     }
     fn was_adopted(&self) -> Result<bool> {
         let record: Record =
@@ -76,6 +84,10 @@ impl Job {
             started: Instant::now(),
         };
         job.save()?;
+        ensure!(
+            !job.directory.join("stop-requested").exists(),
+            "run cancelled before execution"
+        );
         Ok(job)
     }
     pub fn record(&self) -> &Record {
@@ -148,4 +160,14 @@ impl Job {
         }
         Ok(())
     }
+}
+
+pub(super) fn launcher_live(directory: &Path) -> Result<bool> {
+    let bytes = match fs::read(directory.join("launcher.json")) {
+        Ok(bytes) => bytes,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) => return Err(error.into()),
+    };
+    let identity: Option<Identity> = serde_json::from_slice(&bytes)?;
+    Ok(identity.is_some_and(|identity| identity.observe().is_some()))
 }

@@ -303,6 +303,11 @@ under the configured runtime/jobs/RUN_ID. Temporary input/private directories ar
 removed after saving the report. Result/status recover an interrupted report and
 retry incomplete cleanup only after the job is terminal; cleanup errors remain
 separate from validation findings. A failed job does not become PASS after cleanup.
+While a background launcher is waiting for scope adoption, its PID/start/boot
+identity keeps the run observable after the start caller exits. Cancellation in
+this interval records a stop request; status remains stopping until the launcher
+exits, and adoption refuses to execute the task. Temporary inputs are retained
+until OS observations establish termination.
 
 `worker delegate --root PROJECT mcp CONFIG` serves the same runner over stdio MCP.
 Its tools are delegate_start, delegate_status, delegate_result and delegate_cancel.

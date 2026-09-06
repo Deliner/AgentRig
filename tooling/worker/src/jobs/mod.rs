@@ -258,12 +258,16 @@ fn scoped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
             }
         };
         let populated = observed["populated"] == true;
+        let launching = scope.invocation.is_none()
+            && background::launcher_live(&runtime.join("jobs").join(&record.run_id))?;
         let stopped = runtime
             .join("jobs")
             .join(&record.run_id)
             .join("stop-requested")
             .exists();
         value["state"] = json!(match (populated, stopped, record.finished) {
+            (false, true, None) if launching => "stopping",
+            (false, false, None) if launching => "starting-or-finishing",
             (true, true, _) => "stopping",
             (true, false, _) => "running",
             (false, true, _) => "cancelled",
