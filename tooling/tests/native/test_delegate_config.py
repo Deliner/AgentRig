@@ -47,7 +47,7 @@ def check(worker: Path, root: Path, config: str) -> subprocess.CompletedProcess[
     )
 
 
-@pytest.mark.parametrize("mode", ["read", "artifacts"])
+@pytest.mark.parametrize("mode", ["read", "artifacts", "code"])
 def test_profile_resources_resolve_from_config_without_loading_secrets(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str
 ) -> None:

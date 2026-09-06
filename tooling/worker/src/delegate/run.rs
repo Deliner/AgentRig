@@ -1,3 +1,4 @@
+mod execution;
 mod report;
 
 use super::{
@@ -11,7 +12,7 @@ use crate::{
 };
 use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
-use std::{env, fs, path::Path, process::Command};
+use std::{env, fs, path::Path};
 
 pub fn cli(root: &Path, runtime: &Path, args: &[String]) -> Result<i32> {
     let value = match args {
@@ -120,40 +121,9 @@ pub fn execute(runtime: &Path, id: &str) -> Result<i32> {
         !directory.join("delegate-result.json").exists(),
         "delegate already has a result"
     );
-    let result = execute_inner(&directory);
+    let result = execution::run(&directory);
     let success = report::finish(&directory, result)?;
     Ok(i32::from(!success))
-}
-
-fn execute_inner(directory: &Path) -> Result<Value> {
-    let profile: config::Profile =
-        serde_json::from_slice(&fs::read(directory.join("profile.json"))?)?;
-    let request: Request = serde_json::from_slice(&fs::read(directory.join("request.json"))?)?;
-    let layout = Layout {
-        input: directory.join("input"),
-        private: directory.join("private"),
-        codex: serde_json::from_slice(&fs::read(directory.join("codex.json"))?)?,
-    };
-    let sandbox = sandbox::command(&layout, &profile)?;
-    let mut command = Command::new("timeout");
-    command
-        .args(["--kill-after=2s", &profile.timeout_seconds.to_string()])
-        .arg(sandbox.get_program())
-        .args(sandbox.get_args());
-    command.env_clear().envs(
-        sandbox
-            .get_envs()
-            .filter_map(|(key, value)| value.map(|value| (key, value))),
-    );
-    let output = jobs::process::execute(&mut command, false, None)?;
-    ensure!(
-        output.status.success(),
-        "executor exited {} (124 indicates timeout)",
-        jobs::process::exit_code(&output)
-    );
-    let verified = task::verify(&layout.private.join("work"), &request.contract)?;
-    report::artifacts(directory, &request.contract)?;
-    Ok(verified)
 }
 
 pub fn result(runtime: &Path, id: &str) -> Result<Value> {
@@ -177,7 +147,11 @@ pub fn result(runtime: &Path, id: &str) -> Result<Value> {
         .map(|bytes| serde_json::from_slice::<Value>(&bytes))
         .transpose()?;
     let outcome = outcome(&status, report.as_ref());
-    Ok(json!({"run_id":id,"outcome":outcome,"job":status,"report":report}))
+    let code = fs::read(directory.join("code-report.json"))
+        .ok()
+        .map(|bytes| serde_json::from_slice::<Value>(&bytes))
+        .transpose()?;
+    Ok(json!({"run_id":id,"outcome":outcome,"job":status,"report":report,"code":code}))
 }
 fn outcome(status: &Value, report: Option<&Value>) -> &'static str {
     let passed = status["exit_code"] == 0

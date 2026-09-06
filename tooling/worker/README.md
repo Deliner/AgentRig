@@ -250,7 +250,7 @@ args = ["-m", "your_server"]
 SERVICE_TOKEN = "PROJECT_SERVICE_TOKEN"
 ```
 
-Frontend currently accepts `codex`; modes accept `read` and `artifacts`.
+Frontend currently accepts `codex`; modes accept `read`, `artifacts` and `code`.
 Prompts, skill directories and executable program paths resolve relative to the
 configuration file (absolute resource paths are also accepted). Each skill
 directory must contain SKILL.md and have a distinct name. MCP servers reference
@@ -321,3 +321,27 @@ as the CLI request. Retain the returned run_id; disconnecting the MCP client lea
 the managed task running, and another connection can retrieve or cancel it.
 Status/result can recover terminal reports and cleanup, so they are not read-only
 operations. Tool errors and unsuccessful outcomes are returned with isError.
+
+Code mode requires a committed revision and `contract.changes`, for example:
+
+```json
+{"write_paths":["src/**"],"checks":{"tests":["python3","-B","/project/tests/check.py"]}}
+```
+
+Check argv starts with a profile program name; remaining arguments are passed
+literally. Include the check files in visible_paths. The runner copies the allowed
+fixed-revision snapshot into a separate Git workspace. Only its /project files
+are writable by the delegate; original snapshot and runner-owned Git metadata
+remain outside that write area. All changed paths must satisfy both visible_paths
+and write_paths, and symlinks/control paths are rejected.
+
+Checks run in the same containment with /project read-only; use /work or /tmp for
+build outputs. Model execution and checks share timeout_seconds. The retained
+change.patch contains binary-safe changes; code-report.json records the original
+commit, snapshot/candidate tree IDs, patch digest, changed paths and exact check
+commands, output and exit codes. Status/result expose this report as `code`.
+Failed checks retain the patch for inspection and yield overall ERROR. Code
+`verified` refers to patch/check verification; the top-level outcome additionally
+requires a valid model response and cleanup. Cancellation before patch generation
+retains job/report evidence but does not promise a partial patch. Applying changes
+and running the consumer's integration gates remain the caller's responsibility.

@@ -31,6 +31,13 @@ pub struct Contract {
     pub result_schema: Value,
     #[serde(default)]
     pub artifacts: BTreeMap<String, u64>,
+    pub changes: Option<Changes>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Changes {
+    pub write_paths: Vec<String>,
+    pub checks: BTreeMap<String, Vec<String>>,
 }
 #[derive(Deserialize, Serialize)]
 pub struct Inputs {
@@ -41,6 +48,7 @@ pub struct Inputs {
 pub fn validate(request: &Request, profile: &Profile) -> Result<()> {
     ensure!(!request.task.trim().is_empty(), "task must not be empty");
     validator(&request.contract)?;
+    code_contract(request, profile)?;
     let reading = matches!(profile.mode, Mode::Read);
     ensure!(
         !reading || request.contract.artifacts.is_empty(),
@@ -49,6 +57,31 @@ pub fn validate(request: &Request, profile: &Profile) -> Result<()> {
     for (name, source) in &request.inputs {
         files::relative(name)?;
         files::relative(source)?;
+    }
+    Ok(())
+}
+
+fn code_contract(request: &Request, profile: &Profile) -> Result<()> {
+    let coding = matches!(profile.mode, Mode::Code);
+    ensure!(
+        coding == request.contract.changes.is_some(),
+        "code mode requires changes; other modes forbid changes"
+    );
+    if let Some(changes) = &request.contract.changes {
+        ensure!(request.revision.is_some(), "code mode requires revision");
+        review_runner::config::globs(&changes.write_paths)?;
+        ensure!(!changes.checks.is_empty(), "code mode requires checks");
+        for (name, argv) in &changes.checks {
+            ensure!(
+                review_runner::config::identifier(name),
+                "invalid code check name"
+            );
+            ensure!(
+                argv.first()
+                    .is_some_and(|program| profile.programs.contains_key(program)),
+                "code check {name} must start with a configured program name"
+            );
+        }
     }
     Ok(())
 }

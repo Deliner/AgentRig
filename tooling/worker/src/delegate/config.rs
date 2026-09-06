@@ -47,6 +47,7 @@ pub enum Frontend {
 pub enum Mode {
     Read,
     Artifacts,
+    Code,
 }
 
 #[derive(Deserialize, Serialize)]

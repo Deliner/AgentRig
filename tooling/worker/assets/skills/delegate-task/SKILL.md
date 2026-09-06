@@ -29,6 +29,13 @@ resuming from another session. A pending launch may remain stopping until its
 launcher exits; keep the run_id and observe that run until termination. Result
 queries recover terminal reports and retry incomplete cleanup.
 
-The service currently supports read and artifacts modes. Project edits and their
-integration remain the calling workflow's responsibility; a delegate result does
-not itself authorize publication, merge or acceptance of a feature.
+For code mode, supply a committed `revision` and `contract.changes` with
+`write_paths` globs and a nonempty `checks` map. Each check maps a name to argv,
+starting with a program name declared by the profile. The delegate edits an
+isolated /project; checks see it read-only and must put build outputs in /work or
+/tmp. Execution and checks share the profile timeout. Inspect the returned code
+report, check results and retained change.patch; failed checks cannot yield PASS.
+
+Apply a successful patch only through the calling workflow's existing Git
+boundary and gates. The service does not modify the caller's checkout. A delegate
+result does not itself authorize publication, merge or acceptance of a feature.

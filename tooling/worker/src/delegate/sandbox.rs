@@ -2,7 +2,7 @@ mod configuration;
 #[cfg(test)]
 mod tests;
 
-use super::config::Profile;
+use super::config::{Mode, Profile};
 use anyhow::{Result, ensure};
 use std::{
     fs,
@@ -21,10 +21,36 @@ pub fn prepare(layout: &Layout, profile: &Profile) -> Result<()> {
     for name in ["work", "codex"] {
         fs::create_dir(layout.private.join(name))?;
     }
-    configuration::write(layout, profile)
+    configuration::write(layout, profile)?;
+    let coding = matches!(profile.mode, Mode::Code);
+    if coding {
+        super::code::Workspace::prepare(
+            &layout.input.join("project"),
+            &layout.private.join("code"),
+        )?;
+    }
+    Ok(())
 }
 
 pub fn command(layout: &Layout, profile: &Profile) -> Result<Command> {
+    let mut command = base(layout, profile)?;
+    executor(&mut command, profile);
+    Ok(command)
+}
+
+pub fn check(layout: &Layout, profile: &Profile, argv: &[String]) -> Result<Command> {
+    let mut command = base(layout, profile)?;
+    command
+        .arg("--ro-bind")
+        .arg(layout.private.join("code/project"))
+        .arg("/project")
+        .args(["--chdir", "/project"])
+        .arg(format!("/tools/{}", argv[0]))
+        .args(&argv[1..]);
+    Ok(command)
+}
+
+fn base(layout: &Layout, profile: &Profile) -> Result<Command> {
     let host = layout.codex.with_file_name("codex-code-mode-host");
     ensure!(host.is_file(), "codex-code-mode-host must be next to Codex");
     let mut command = Command::new("/usr/bin/bwrap");
@@ -53,7 +79,6 @@ pub fn command(layout: &Layout, profile: &Profile) -> Result<Command> {
         .arg(&host)
         .arg("/codex-code-mode-host");
     configuration::environment(&mut command, profile)?;
-    executor(&mut command, profile);
     Ok(command)
 }
 
@@ -82,15 +107,27 @@ fn instructions(profile: &Profile) -> String {
         .map(|name| format!("/tools/{name}"))
         .collect::<Vec<_>>()
         .join(", ");
+    let coding = matches!(profile.mode, Mode::Code);
+    let editing = if coding {
+        " Edit code under /project within contract.changes.write_paths. Git metadata is runner-owned; use file edits. Checks run later with /project read-only; put build outputs under /work or /tmp."
+    } else {
+        " /project is read-only."
+    };
     format!(
-        "This is a minimal sandbox. Available programs: /bin/bash, /bin/sh, /bin/env, {programs}. Use these absolute paths or shell builtins; other host utilities are unavailable. Read /delegate-input/prompt.md and /delegate-input/request.json. Complete the task within its contract. Inputs are in /project and /inputs. Write required artifacts under /work and return the contracted JSON response."
+        "This is a minimal sandbox. Available programs: /bin/bash, /bin/sh, /bin/env, {programs}. Use these absolute paths or shell builtins; other host utilities are unavailable. Read /delegate-input/prompt.md and /delegate-input/request.json. Complete the task within its contract. Inputs are in /project and /inputs. Write required artifacts under /work and return the contracted JSON response.{editing}"
     )
 }
 
 fn mounts(command: &mut Command, layout: &Layout, profile: &Profile) {
+    let coding = matches!(profile.mode, Mode::Code);
+    let project = if coding {
+        layout.private.join("code/project")
+    } else {
+        layout.input.join("project")
+    };
     for (source, target, writable) in [
         (layout.input.clone(), "/delegate-input", false),
-        (layout.input.join("project"), "/project", false),
+        (project, "/project", coding),
         (layout.input.join("inputs"), "/inputs", false),
         (layout.private.join("work"), "/work", true),
         (layout.private.join("codex"), "/codex", true),
