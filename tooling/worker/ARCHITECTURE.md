@@ -1,0 +1,109 @@
+# Directory architecture lint
+
+`directory-architecture` is an opt-in rule in both `agentrig lint` and
+`agentrig-lint`. It checks measured source dependencies, not dependencies inferred
+from permission declarations. Existing installations do not enable it automatically.
+
+## Configuration
+
+Add a rule to the existing lint YAML; skill paths use the normal `skill_root`:
+
+```yaml
+- id: architecture
+  kind: directory-architecture
+  target: directory
+  include: [src, 'src/**']
+  exclude: ['src/generated', 'src/generated/**']
+  extensions: [.rs, .py, .js, .ts, .tsx]
+  level: error
+  architecture:
+    python_root: src
+    rust_roots: [src/lib.rs]
+    external:
+      rust: [std, core, alloc]
+      python: [json]
+      javascript: ['node:fs', react]
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+```
+
+The target is a directory; `extensions` selects its immediate source files.
+Include both a parent and its descendants when both are in scope. Every selected
+directory containing selected sources, directly or below it, requires a contract.
+Directories with no selected source are skipped. Use `.` to select the project
+root. Exclusions use the existing glob semantics; exclude a subtree with both its
+directory and descendant pattern. Selected-source exclusions do not remove files
+from dependency resolution. Resolution uses Git tracked/unignored files, or regular
+non-symlink files in a non-Git project. Git-ignored targets cannot be resolved.
+
+`architecture` and explicit source extensions are required. `python_root` defaults
+to the project root. `rust_roots` lists the actual crate roots and is required when
+Rust sources are selected; use `[]` for other languages. No Cargo or tsconfig
+discovery is implied. External names are explicit module/package prefixes, not
+permission globs. Rust defaults to `std`, `core`, `alloc`; the other lists default
+to empty. Locally resolved Python and anchored Rust paths cannot be hidden by an
+external declaration. JavaScript bare package names require an external declaration;
+local package aliases are not yet resolved.
+
+`level: warning` reports findings without a failing exit status; `error` exits 1.
+Thresholds and overrides are not applicable. Configuration errors exit 2.
+`lint-rules`, `lint-config-check` and `lint-explain DIRECTORY` use the shared rule
+registry and selection. Diagnostics retain the originating path/line, repair skill
+and rerun command. Contract failures point to the contract path.
+
+## Directory contracts
+
+Each required `architecture.yaml` is strict YAML:
+
+```yaml
+purpose: Orders application service
+allow: ['src/catalog/api.py', 'src/storage/**']
+deny: ['src/storage/private/**']
+public: [api.py]
+```
+
+`purpose` must be nonempty. All other fields default to empty lists; unknown fields
+are errors. `allow` and `deny` match project-relative target file paths for outbound
+dependencies. Deny takes precedence. `public` matches paths relative to this
+directory for inbound dependencies. Dependencies inside the same boundary need no
+permission. Every crossed enclosing contract applies; a child cannot open its
+parent's private boundary. Patterns cannot escape the project. Contracts must be
+regular files inside the project.
+
+Cycles use actual resolved edges and report source evidence. Checks include sibling
+subsystem boundaries even when opposite edges connect different nested directories.
+An allowed edge still participates in cycle detection.
+
+## Current source analysis
+
+Tree-sitter extracts references without executing project code. Malformed syntax,
+unresolved references and recognized unsupported forms produce incomplete-analysis
+findings at the configured severity. This is not a compiler or a full static-analysis
+proof; remaining coverage is part of P006 delivery.
+
+- **Rust 2018+**: explicit crate roots, declared `name.rs`/`name/mod.rs` and inline
+  modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
+  paths and public item facades. Missing/ambiguous module files and alias cycles
+  fail. Macro invocations/definitions, `#[path]`, block-local modules and unresolved
+  lexical/wildcard bindings require further analysis. Compiler/procedural expansion
+  is not implemented; conditional syntax is not evaluated for a selected build.
+- **Python**: one import root, absolute/relative imports, regular package initializer
+  chains and concrete namespace submodules, literal runtime imports. Package member
+  ambiguity, package wildcard exports and namespace-only imports fail explicitly.
+  Runtime import alias tracking, initializer export analysis and runtime search-path
+  modification are not implemented. `.pyi` can be parsed but is not a runtime target
+  fallback.
+- **JavaScript** (`.js`, `.jsx`, `.mjs`, `.cjs`): static import/export and literal
+  `import()`, `require()` and `require.resolve()`. Node imports require exact files;
+  require searches Node extensions and relative package main/index. Dynamic strings,
+  encoded paths and unsupported package resolution fail.
+- **TypeScript** (`.ts`, `.tsx`, `.mts`, `.cts`): the same extraction plus type imports,
+  exports and import-equals. Resolution uses the implemented bundler substitutions
+  and relative package types/typings/main. NodeNext, tsconfig path aliases, module
+  suffixes and package typesVersions are not implemented; typesVersions and ambiguous
+  package fallback report errors. Do not treat this mode as validation of a different
+  TypeScript resolution configuration.
+
+Use the linked `refactor-large-directory` skill to repair responsibility, dependency
+direction or public access. Moving files into arbitrary buckets or widening
+permissions to silence findings does not establish the intended architecture.

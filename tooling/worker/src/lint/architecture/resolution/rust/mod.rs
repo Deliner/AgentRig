@@ -39,6 +39,10 @@ pub struct Rust<'a> {
 }
 
 impl<'a> Rust<'a> {
+    pub fn contains_source(&self, path: &Path) -> bool {
+        self.files.contains_key(path)
+    }
+
     pub fn new(
         root: &Path,
         sources: &'a BTreeMap<PathBuf, References>,

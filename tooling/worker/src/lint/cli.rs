@@ -95,5 +95,12 @@ fn print_rule(kind: super::rules::Kind) {
     if syntax {
         println!("Languages: {}", super::rules::support(kind));
     }
+    let architecture = kind == super::rules::Kind::DirectoryArchitecture;
+    if architecture {
+        println!(
+            "Architecture settings and limits: {}",
+            super::architecture::Settings::describe()
+        );
+    }
     println!("Use lint-rule {kind} --example for a complete configuration example.");
 }

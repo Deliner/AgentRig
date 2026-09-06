@@ -36,7 +36,8 @@ pub fn select<'a>(rule: &Rule, inventory: &'a Inventory) -> Result<Vec<Selected<
     Ok(output)
 }
 pub fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Result<Selected<'a>> {
-    let incompatible = rules::syntax(rule.kind) && !rules::supports_path(rule.kind, path);
+    let incompatible =
+        rule.target == "file" && rules::syntax(rule.kind) && !rules::supports_path(rule.kind, path);
     if incompatible {
         bail!(
             "{} ({}): selected {} has no supported handler; supports {}. Narrow extensions/include or exclude this path",
@@ -95,7 +96,7 @@ impl Selector {
         let disabled = !rule.enabled;
         let outside = !self.include.is_match(path);
         let excluded = self.exclude.is_match(path);
-        let extension = !extension_matches(path, &rule.extensions);
+        let extension = rule.target == "file" && !extension_matches(path, &rule.extensions);
         if disabled {
             return Some("disabled");
         }

@@ -43,6 +43,7 @@ impl Kind {
             Self::NamedIfCondition => &NAMEDIFCONDITION,
             Self::FunctionLines => &FUNCTIONLINES,
             Self::ParameterCount => &PARAMETERCOUNT,
+            Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
     }
 }
@@ -55,6 +56,13 @@ const NONBLANKLINES: Descriptor = Descriptor {
         warning: Some(300),
         error: 500,
     },
+};
+const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
+    default_id: "architecture",
+    target: "directory",
+    metric: "architecture.yaml contracts against resolved source dependencies: allow/deny, public boundaries and cycles; incomplete analysis is a finding",
+    skill: "refactor-large-directory",
+    parameters: Parameters::Level,
 };
 
 const DIRECTORYENTRIES: Descriptor = Descriptor {

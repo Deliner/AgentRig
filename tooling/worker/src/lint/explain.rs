@@ -50,14 +50,27 @@ fn explain(
     global: bool,
 ) -> Result<Value> {
     let selector = selection::Selector::new(rule)?;
-    let reason = match (rule.enabled, global) {
+    let mut reason = match (rule.enabled, global) {
         (false, _) => Some("disabled"),
         (_, true) => Some("global exclude matches"),
         _ => inventory_reason(rule, path, inventory).or_else(|| selector.reason(rule, path)),
     };
+    let architecture = rule.kind == super::rules::Kind::DirectoryArchitecture;
+    let selected_architecture = architecture && reason.is_none();
+    if selected_architecture {
+        let lacks_sources =
+            !super::architecture::runner::contains_directory(rule, path, inventory)?;
+        if lacks_sources {
+            reason = Some("directory has no selected source files");
+        }
+    }
     let mut row = json!({"id": rule.id, "kind": rule.kind, "target": rule.target,
         "selected": reason.is_none(), "reason": reason.unwrap_or("selected"),
         "warning_skill": rule.warning_skill, "error_skill": rule.error_skill});
+    if architecture {
+        row["architecture"] = serde_json::to_value(&rule.architecture)?;
+        row["extensions"] = json!(rule.extensions);
+    }
     let selected = reason.is_none();
     if selected {
         let effective = selection::effective(rule, path, &selector.overrides)?;

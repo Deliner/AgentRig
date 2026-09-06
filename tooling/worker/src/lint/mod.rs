@@ -32,33 +32,53 @@ pub struct Diagnostic {
     symbol: Option<String>,
     rerun: String,
 }
+#[derive(Default)]
+struct Evaluation {
+    analyses: HashMap<std::path::PathBuf, languages::Analysis>,
+    output: Vec<Diagnostic>,
+}
 fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
-    let mut output = Vec::new();
-    let mut analyses = HashMap::new();
+    let mut evaluation = Evaluation::default();
     for rule in &config.rules {
-        for selected in selection::select(rule, &inventory)? {
-            let syntax_rule = rules::syntax(rule.kind);
-            if syntax_rule {
-                let path = selected.path;
-                let uncached = !analyses.contains_key(path);
-                if uncached {
-                    let source = fs::read_to_string(root.join(path))?;
-                    analyses.insert(path.to_owned(), languages::analyze(path, &source)?);
-                }
-                syntax_findings(rule, &selected, &analyses[path], &mut output)?;
-            } else {
-                let Some(actual) = structural_measurement(root, rule, &selected, &inventory)?
-                else {
-                    continue;
-                };
-                if let Some(item) = finding(rule, &selected, actual)? {
-                    output.push(item);
-                }
+        let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
+        if architecture {
+            evaluation
+                .output
+                .extend(architecture::runner::run(root, rule, &inventory)?);
+        } else {
+            scalar_findings(root, rule, &inventory, &mut evaluation)?;
+        }
+    }
+    Ok(evaluation.output)
+}
+fn scalar_findings(
+    root: &Path,
+    rule: &config::Rule,
+    inventory: &inventory::Inventory,
+    evaluation: &mut Evaluation,
+) -> Result<()> {
+    let Evaluation { analyses, output } = evaluation;
+    for selected in selection::select(rule, inventory)? {
+        let syntax_rule = rules::syntax(rule.kind);
+        if syntax_rule {
+            let path = selected.path;
+            let uncached = !analyses.contains_key(path);
+            if uncached {
+                let source = fs::read_to_string(root.join(path))?;
+                analyses.insert(path.to_owned(), languages::analyze(path, &source)?);
+            }
+            syntax_findings(rule, &selected, &analyses[path], output)?;
+        } else {
+            let Some(actual) = structural_measurement(root, rule, &selected, inventory)? else {
+                continue;
+            };
+            if let Some(item) = finding(rule, &selected, actual)? {
+                output.push(item);
             }
         }
     }
-    Ok(output)
+    Ok(())
 }
 fn structural_measurement(
     root: &Path,
@@ -232,6 +252,10 @@ fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnost
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
                 selection::select(rule, &inventory)?;
+                let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
+                if architecture {
+                    architecture::runner::validate(rule, &inventory)?;
+                }
             }
             Ok(Vec::new())
         } else {
