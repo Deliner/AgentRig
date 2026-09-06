@@ -36,6 +36,21 @@ pub struct Reference {
 pub struct References {
     pub items: Vec<Reference>,
     pub issues: Vec<Issue>,
+    pub rust_items: Vec<RustItem>,
+    pub rust_imports: Vec<RustImport>,
+}
+
+#[derive(Debug)]
+pub struct RustItem {
+    pub name: String,
+    pub scope: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct RustImport {
+    pub name: String,
+    pub path: String,
+    pub scope: Vec<String>,
 }
 
 pub(super) struct Source<'a> {
@@ -105,7 +120,8 @@ impl Source<'_> {
             line: node.start_position().row + 1,
             target,
         };
-        let new = !self.output.items.contains(&reference);
+        let declaration = matches!(&reference.target, Target::RustModule { .. });
+        let new = declaration || !self.output.items.contains(&reference);
         if new {
             self.output.items.push(reference);
         }

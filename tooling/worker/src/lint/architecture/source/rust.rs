@@ -1,4 +1,4 @@
-use super::{Source, Target};
+use super::{RustImport, RustItem, Source, Target};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
@@ -16,12 +16,14 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
                 .is_some_and(|n| matches!(n.kind(), "generic_type" | "bracketed_type"));
         }
         "mod_item" => module(source, node),
+        "function_item" | "struct_item" | "enum_item" | "union_item" | "type_item"
+        | "trait_item" | "const_item" | "static_item" => item(source, node),
         "attribute_item" => attribute(source, node),
         "macro_definition" => source.unsupported(
             node,
             "Rust macro definitions may generate dependencies; expansion is not analyzed",
         ),
-        "macro_invocation" => include(source, node),
+        "macro_invocation" => macro_call(source, node),
         _ => {}
     }
     true
@@ -71,18 +73,48 @@ fn use_tree(source: &mut Source<'_>, node: Node<'_>, prefix: &str) {
             }
         }
         "use_as_clause" => {
+            let alias = node
+                .child_by_field_name("alias")
+                .map(|n| compact(source.text(n)));
             if let Some(path) = node.child_by_field_name("path") {
-                use_tree(source, path, prefix);
+                import_leaf(source, path, prefix, alias);
             }
         }
-        _ => use_leaf(source, node, prefix),
+        _ => import_leaf(source, node, prefix, None),
     }
 }
 
-fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) {
+fn import_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str, alias: Option<String>) {
+    let Some(path) = use_leaf(source, node, prefix) else {
+        return;
+    };
+    let wildcard = node.kind() == "use_wildcard";
+    let name = alias.unwrap_or_else(|| match wildcard {
+        true => "*".into(),
+        false => path.rsplit("::").next().unwrap_or("").into(),
+    });
+    let mut declaration = node;
+    while let Some(parent) = declaration.parent() {
+        let use_item = declaration.kind() == "use_declaration";
+        if use_item {
+            break;
+        }
+        declaration = parent;
+    }
+    let module_binding = module_item(declaration);
+    if module_binding {
+        source.output.rust_imports.push(RustImport {
+            name,
+            path,
+            scope: scope(source, node),
+        });
+    }
+}
+
+fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<String> {
     let Some(value) = path_text(source, node) else {
         source.unsupported(node, "Rust qualified path requires type resolution");
-        return;
+        return None;
     };
     let grouped_self = matches!(value.as_str(), "self" | "*") && !prefix.is_empty();
     let path = if grouped_self {
@@ -93,10 +125,11 @@ fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) {
     source.record(
         node,
         Target::RustPath {
-            path,
+            path: path.clone(),
             scope: scope(source, node),
         },
     );
+    Some(path)
 }
 
 fn path_text(source: &Source<'_>, node: Node<'_>) -> Option<String> {
@@ -130,6 +163,11 @@ fn joined(prefix: &str, path: &str) -> String {
 }
 
 fn module(source: &mut Source<'_>, node: Node<'_>) {
+    let local = !module_item(node);
+    if local {
+        source.unsupported(node, "block-local modules require lexical scope resolution");
+        return;
+    }
     if let Some(name) = node.child_by_field_name("name") {
         let mut path = scope(source, node);
         path.push(compact(source.text(name)));
@@ -143,6 +181,29 @@ fn module(source: &mut Source<'_>, node: Node<'_>) {
     }
 }
 
+fn module_item(node: Node<'_>) -> bool {
+    node.parent().is_some_and(|parent| {
+        parent.kind() == "source_file"
+            || (parent.kind() == "declaration_list"
+                && parent
+                    .parent()
+                    .is_some_and(|owner| owner.kind() == "mod_item"))
+    })
+}
+
+fn item(source: &mut Source<'_>, node: Node<'_>) {
+    let module_binding = module_item(node);
+    let name = module_binding
+        .then(|| node.child_by_field_name("name"))
+        .flatten();
+    if let Some(name) = name {
+        source.output.rust_items.push(RustItem {
+            name: compact(source.text(name)),
+            scope: scope(source, node),
+        });
+    }
+}
+
 fn attribute(source: &mut Source<'_>, node: Node<'_>) {
     let path_override = compact(source.text(node)).contains("path=");
     if path_override {
@@ -153,11 +214,9 @@ fn attribute(source: &mut Source<'_>, node: Node<'_>) {
     }
 }
 
-fn include(source: &mut Source<'_>, node: Node<'_>) {
-    let inclusion = node
-        .child_by_field_name("macro")
-        .is_some_and(|name| source.text(name) == "include");
-    if inclusion {
-        source.unsupported(node, "Rust include! source expansion is not analyzed");
-    }
+fn macro_call(source: &mut Source<'_>, node: Node<'_>) {
+    source.unsupported(
+        node,
+        "Rust macro expansion and dependencies inside macro tokens are not analyzed",
+    );
 }
