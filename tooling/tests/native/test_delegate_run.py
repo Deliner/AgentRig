@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -99,6 +100,13 @@ def test_async_artifact_result_survives_reconnect_and_cleanup(
     assert (directory / "artifacts/asset.txt").read_text() == "artifact"
     assert not (directory / "input").exists()
     assert not (directory / "private").exists()
+    receipt = json.loads((directory / "environment.json").read_text())
+    assert result["environment"] == receipt
+    assert receipt["files"]["programs/sleep"] == {
+        "sha256": hashlib.sha256(Path("/usr/bin/sleep").read_bytes()).hexdigest(),
+        "executable": True,
+    }
+    assert call(worker, tmp_path, "result", identifier)["environment"] == receipt
 
 
 def test_timeout_is_a_persisted_error(

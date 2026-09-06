@@ -66,6 +66,23 @@ impl Bundle {
         self.put(name(path)?, bytes, executable)
     }
 
+    pub fn copy_at(&mut self, path: &Path, target: &str) -> Result<()> {
+        let bytes = self.read(path)?;
+        let executable = self.inputs[&path.canonicalize()?].executable;
+        self.insert(target.into(), File { bytes, executable })
+    }
+
+    fn insert(&mut self, name: String, file: File) -> Result<()> {
+        if let Some(existing) = self.files.get(&name) {
+            ensure!(
+                existing.bytes == file.bytes && existing.executable == file.executable,
+                "resource destination conflict: {name}"
+            );
+        }
+        self.files.insert(name, file);
+        Ok(())
+    }
+
     pub fn put(&mut self, name: &str, bytes: Vec<u8>, executable: bool) -> Result<String> {
         ensure!(
             Path::new(name).file_name().and_then(|name| name.to_str()) == Some(name),
@@ -99,13 +116,7 @@ impl Bundle {
         self.collect(path, Path::new(""), &mut files)?;
         for (relative, file) in files {
             let name = format!("{target}/{relative}");
-            if let Some(existing) = self.files.get(&name) {
-                ensure!(
-                    existing.bytes == file.bytes && existing.executable == file.executable,
-                    "resource destination conflict: {name}"
-                );
-            }
-            self.files.insert(name, file);
+            self.insert(name, file)?;
         }
         Ok(())
     }

@@ -56,3 +56,59 @@ fn fixture(root: &Path) -> Layout {
     fs::set_permissions(&layout.codex, fs::Permissions::from_mode(0o755)).unwrap();
     layout
 }
+
+#[test]
+fn sandbox_uses_frozen_programs_and_skill_trees() {
+    let root = tempfile::tempdir().unwrap();
+    let layout = fixture(root.path());
+    let profile = resources(root.path());
+    let receipt = prepare(&layout, &profile).unwrap();
+    fs::write(&profile.programs["helper"], "changed").unwrap();
+    fs::remove_dir_all(&profile.skills[0]).unwrap();
+    fs::write(&layout.codex, resource_probe()).unwrap();
+    let output = command(&layout, &profile).unwrap().output().unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        receipt["files"]["skills/guide/SKILL.md"]["sha256"],
+        crate::resources::digest(b"original guide\n")
+    );
+    assert_eq!(
+        receipt["files"]["skills/guide/support/run"]["executable"],
+        true
+    );
+    assert_eq!(
+        receipt["files"]["skills/guide/SKILL.md"]["executable"],
+        false
+    );
+    assert_eq!(receipt["files"]["programs/helper"]["executable"], true);
+}
+
+fn resources(root: &Path) -> Profile {
+    let mut profile = profile();
+    let program = root.join("helper");
+    fs::write(&program, "#!/bin/sh\nprintf original\n").unwrap();
+    fs::set_permissions(&program, fs::Permissions::from_mode(0o755)).unwrap();
+    let skill = root.join("guide");
+    fs::create_dir_all(skill.join("support")).unwrap();
+    fs::write(skill.join("SKILL.md"), "original guide\n").unwrap();
+    fs::copy(&program, skill.join("support/run")).unwrap();
+    profile.programs.insert("helper".into(), program);
+    profile.skills.push(skill);
+    profile
+}
+
+fn resource_probe() -> &'static str {
+    "#!/bin/sh\nset -eu
+test \"$(/tools/helper)\" = original
+test \"$(/codex/skills/guide/support/run)\" = original
+read -r guide < /codex/skills/guide/SKILL.md
+test \"$guide\" = 'original guide'
+! echo changed > /tools/helper
+! echo changed > /codex/skills/guide/SKILL.md
+test ! -x /codex/skills/guide/SKILL.md
+"
+}

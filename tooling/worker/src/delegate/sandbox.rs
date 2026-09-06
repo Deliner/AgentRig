@@ -1,4 +1,5 @@
 mod configuration;
+mod resources;
 #[cfg(test)]
 mod tests;
 
@@ -16,7 +17,7 @@ pub struct Layout {
     pub codex: PathBuf,
 }
 
-pub fn prepare(layout: &Layout, profile: &Profile) -> Result<()> {
+pub fn prepare(layout: &Layout, profile: &Profile) -> Result<serde_json::Value> {
     fs::create_dir(&layout.private)?;
     for name in ["work", "codex"] {
         fs::create_dir(layout.private.join(name))?;
@@ -29,7 +30,7 @@ pub fn prepare(layout: &Layout, profile: &Profile) -> Result<()> {
             &layout.private.join("code"),
         )?;
     }
-    Ok(())
+    resources::prepare(layout, profile)
 }
 
 pub fn command(layout: &Layout, profile: &Profile) -> Result<Command> {
@@ -142,27 +143,27 @@ fn mounts(command: &mut Command, layout: &Layout, profile: &Profile) {
         .arg("--ro-bind")
         .arg(layout.private.join("codex/config.toml"))
         .arg("/codex/config.toml");
-    tools(command, profile);
+    tools(command, layout, profile);
 }
 
-fn tools(command: &mut Command, profile: &Profile) {
+fn tools(command: &mut Command, layout: &Layout, profile: &Profile) {
     for name in ["sh", "bash", "env"] {
         command
             .args(["--ro-bind"])
             .arg(format!("/usr/bin/{name}"))
             .arg(format!("/bin/{name}"));
     }
-    for (name, source) in &profile.programs {
+    for name in profile.programs.keys() {
         command
             .arg("--ro-bind")
-            .arg(source)
+            .arg(layout.private.join(format!("environment/programs/{name}")))
             .arg(format!("/tools/{name}"));
     }
     for source in &profile.skills {
         let name = source.file_name().unwrap().to_string_lossy();
         command
             .arg("--ro-bind")
-            .arg(source)
+            .arg(layout.private.join(format!("environment/skills/{name}")))
             .arg(format!("/codex/skills/{name}"));
     }
 }

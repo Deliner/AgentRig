@@ -282,7 +282,13 @@ sizes and hashes. A model's declaration of completion does not satisfy this cont
 The delegated sandbox builder mounts prepared inputs at /project, /inputs and
 /delegate-input, plus a writable /work and a private /codex. Only configured
 programs are added under /tools; sh, bash, env and system libraries form the CLI
-runtime. Configured skills are mounted read-only under /codex/skills. Host checkout,
+runtime. Configured skills are mounted read-only under /codex/skills. Configured
+programs and skill trees are captured by the shared resource builder before launch;
+mounts use these private copies, so later edits to their sources cannot change a
+running delegate. Skill support files and executable flags are preserved; nested
+symlinks are rejected. The retained environment.json receipt records source and
+installed file hashes and executable flags, and status/result includes it as
+`environment` after temporary files have been cleaned. Host checkout,
 home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
 Codex configuration is read-only, disables hooks and contains only the configured
