@@ -2,12 +2,14 @@
 mod export;
 mod git;
 mod mercurial;
+mod registration;
+pub use registration::Settings;
 
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::Path};
 
-#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Default, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum Kind {
     #[default]
@@ -57,6 +59,30 @@ impl<'a> Repository<'a> {
 
     pub fn new(root: &'a Path, kind: Kind) -> Self {
         Self { root, kind }
+    }
+
+    pub fn commit_context(&self, revision: Option<&str>) -> Result<(String, bool)> {
+        match self.kind {
+            Kind::Git => {
+                ensure!(
+                    revision.is_none(),
+                    "Git commit guard uses the current index; omit --revision"
+                );
+                git::commit_context(self.root)
+            }
+            Kind::Mercurial => {
+                let revision = self.resolve(revision.ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "Mercurial commit guard requires --revision with the pending changeset"
+                    )
+                })?)?;
+                let branch = String::from_utf8(mercurial::run(
+                    self.root,
+                    &["log", "--rev", &revision, "--template", "{branch}"],
+                )?)?;
+                Ok((branch, self.parents(&revision)?.len() > 1))
+            }
+        }
     }
 
     pub fn resolve(&self, reference: &str) -> Result<String> {

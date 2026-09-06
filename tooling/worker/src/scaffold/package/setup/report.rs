@@ -51,18 +51,26 @@ fn document(
 
 pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Result<Value> {
     let hooks = config.paths.service_path("hooks");
-    let current =
-        crate::util::git(root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
+    let repository = config.vcs.backend.repository(root)?;
+    let registered = match &repository {
+        Some(repository) => repository.hooks_registered(&hooks)?,
+        None => false,
+    };
+    let registration =
+        review_runner::vcs::Repository::new(root, config.vcs.backend).expected_registration(&hooks);
     Ok(json!({
         "preview": true,
         "root": root,
         "files": installation.changes(),
         "registrations": {
-            "git": {
-                "initialize": !root.join(".git").exists(),
-                "initial_branch": config.git.base,
+            "vcs": {
+                "backend": config.vcs.backend,
+                "initialize": repository.is_none(),
+                "initial_branch": config.vcs.base,
                 "hooks_path": hooks,
-                "update_hooks_path": current != hooks,
+                "registration": registration,
+                "update_registration": !registered,
+                "runtime_ignore": (config.vcs.backend == review_runner::vcs::Kind::Mercurial).then(|| format!("{hooks}.hgignore")),
             },
             "codex": codex(&installation.files, config)?,
         },
@@ -130,7 +138,12 @@ fn directories(root: &Path, config: &Config, files: &Files) -> Result<Value> {
 }
 
 fn dependencies(config: &Config) -> Value {
-    let mut executables = BTreeSet::from(["git"]);
+    let mut executables = BTreeSet::from([config.vcs.backend.executable()]);
+    // Delegated code results currently use Git internally to produce binary patches.
+    let code_delegation = config.capabilities.delegation.is_some();
+    if code_delegation {
+        executables.insert("git");
+    }
     executables.extend(
         config
             .commands

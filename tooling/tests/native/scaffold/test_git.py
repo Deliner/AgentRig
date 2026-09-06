@@ -273,3 +273,105 @@ def test_mercurial_transaction_rejects_a_check_that_mutates_its_export(
     assert revision(tmp_path, "hg") == base
     assert evidence(tmp_path)["status"] == "inputs-changed"
     assert source.read_text() == "value = 2\n"
+
+
+def hg(root: Path, *args: str) -> str:
+    return subprocess.check_output(["hg", *args], cwd=root, text=True).strip()
+
+
+def test_mercurial_setup_registers_native_hooks_and_checks_commits(
+    worker: Path, tmp_path: Path
+) -> None:
+    initialize_mercurial(worker, tmp_path)
+    preview = invoke(worker, tmp_path, "setup", "--preview")
+    assert preview.returncode == 0, preview.stderr
+    assert json.loads(preview.stdout)["registrations"]["vcs"]["backend"] == "mercurial"
+    assert not (tmp_path / ".hg").exists() and not (tmp_path / ".git").exists()
+    result = invoke(worker, tmp_path, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert hg(tmp_path, "branch") == "trunk"
+    assert "pretxncommit.agentrig" in (tmp_path / ".hg/hgrc").read_text()
+    assert "hg root" in (tmp_path / ".codex/hooks.json").read_text()
+    assert not (tmp_path / ".git").exists()
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src/test_sample.py").write_text("def test_value():\n    assert 1 == 1\n")
+    hg(tmp_path, "add")
+    denied = subprocess.run(
+        ["hg", "commit", "-m", "base", "-u", "Test"], cwd=tmp_path, capture_output=True, text=True
+    )
+    assert denied.returncode != 0 and "direct commits" in denied.stderr
+    hg(tmp_path, "branch", "task/bootstrap")
+    hg(tmp_path, "commit", "-m", "bootstrap", "-u", "Test")
+    assert invoke(worker, tmp_path, "doctor").returncode == 0
+    assert "runtime" not in hg(tmp_path, "status", "--unknown")
+    before = (tmp_path / ".hg/hgrc").read_bytes()
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    assert (tmp_path / ".hg/hgrc").read_bytes() == before
+
+
+def initialize_mercurial(worker: Path, root: Path) -> None:
+    result = invoke(
+        worker,
+        root,
+        "init",
+        "--vcs",
+        "mercurial",
+        "--base",
+        "trunk",
+        "--prefix",
+        "task/",
+        "--service",
+        "rig space",
+    )
+    assert result.returncode == 0, result.stderr
+
+
+def test_mercurial_setup_preserves_custom_hook_registration(worker: Path, tmp_path: Path) -> None:
+    hg(tmp_path, "init")
+    hgrc = tmp_path / ".hg/hgrc"
+    existing = "[ui]\nusername = Test\n[hooks]\npretxncommit.custom = true\n"
+    hgrc.write_text(existing)
+    ignore = tmp_path / ".hgignore"
+    ignore.write_text("syntax: glob\nuser-generated/**\n")
+    assert invoke(worker, tmp_path, "init", "--vcs", "mercurial").returncode == 0
+    assert hgrc.read_text().startswith(existing)
+    assert ignore.read_text() == "syntax: glob\nuser-generated/**\n"
+    assert hg(tmp_path, "config", "hooks.pretxncommit.custom") == "true"
+    with hgrc.open("a") as stream:
+        stream.write("\n[hooks]\npretxncommit.agentrig = false\n")
+    before = hgrc.read_bytes()
+    result = invoke(worker, tmp_path, "setup", "--preview")
+    assert result.returncode == 2 and "existing registration preserved" in result.stderr
+    assert hgrc.read_bytes() == before
+
+
+def test_mercurial_review_defaults_select_the_native_repository(
+    worker: Path, tmp_path: Path
+) -> None:
+    result = invoke(worker, tmp_path, "init", "--vcs", "mercurial", "--review", "true")
+    assert result.returncode == 0, result.stderr
+    for name in ["code", "research"]:
+        source = (tmp_path / f".agentrig/review/config/projects/{name}.yaml").read_text()
+        assert "vcs: mercurial" in source
+    result = invoke(worker, tmp_path, "review", "config-check")
+    assert result.returncode == 0, result.stderr
+
+
+def test_vcs_selection_preserves_legacy_git_and_rejects_conflicts(
+    worker: Path, tmp_path: Path
+) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    path = tmp_path / "agentrig.yaml"
+    canonical = path.read_text()
+    assert "vcs:" in canonical
+    path.write_text(canonical.replace("vcs:", "git:").replace("  backend: git\n", ""))
+    assert invoke(worker, tmp_path, "config-check").returncode == 0
+    path.write_text(canonical + "\ngit:\n  base: other\n  prefix: task/\n")
+    assert invoke(worker, tmp_path, "config-check").returncode == 2
+    path.write_text(canonical.replace("backend: git", "backend: unknown"))
+    assert invoke(worker, tmp_path, "config-check").returncode == 2
+    path.write_text(canonical)
+    hg(tmp_path, "init")
+    result = invoke(worker, tmp_path, "setup")
+    assert result.returncode == 2 and "does not match" in result.stderr
+    assert not (tmp_path / ".git").exists()

@@ -25,6 +25,7 @@ pub fn configure(
     args.push(super::super::adapters::mcp_command(
         &config.paths.service,
         "delegate",
+        config.vcs.backend,
     ));
     for (key, desired) in [
         ("enabled", value(true)),

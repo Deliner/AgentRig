@@ -1,4 +1,4 @@
-use super::super::config::{self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route};
+use super::super::config::{self, Check, CheckKind, Command, Config, Hooks, Paths, Route, Vcs};
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
@@ -12,13 +12,14 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
         ("service", ".agentrig"),
         ("base", "main"),
         ("prefix", "feature/"),
+        ("vcs", "git"),
     ]
     .into_iter()
     .map(|(key, value)| (key, value.into()))
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
+        "init [--language python|rust] [--vcs git|mercurial] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -37,6 +38,10 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     Ok(options)
 }
 fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
+    ensure!(
+        ["git", "mercurial"].contains(&options["vcs"].as_str()),
+        "init --vcs expects git or mercurial"
+    );
     let language = options["language"].as_str();
     ensure!(
         ["python", "rust"].contains(&language),
@@ -76,10 +81,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             lint: format!("{service}/lint.yaml"),
             runtime: format!("{service}/runtime"),
         },
-        git: Git {
-            base: options["base"].clone(),
-            prefix: options["prefix"].clone(),
-        },
+        vcs: vcs(options),
         commands: commands(options),
         checks: checks(&options["source"], &repair),
         hooks: Hooks {
@@ -90,6 +92,17 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         oracles: BTreeMap::new(),
     }
 }
+fn vcs(options: &Options<'_>) -> Vcs {
+    Vcs {
+        backend: match options["vcs"].as_str() {
+            "mercurial" => review_runner::vcs::Kind::Mercurial,
+            _ => review_runner::vcs::Kind::Git,
+        },
+        base: options["base"].clone(),
+        prefix: options["prefix"].clone(),
+    }
+}
+
 fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
     let mut commands = BTreeMap::new();
     for (id, read_only) in [("read", true), ("write", false)] {

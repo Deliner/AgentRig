@@ -10,33 +10,43 @@ fn binary(service: &str) -> String {
     )
 }
 
-pub fn mcp_command(service: &str, command: &str) -> String {
+pub fn mcp_command(service: &str, command: &str, backend: review_runner::vcs::Kind) -> String {
     format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} {command} mcp --root \"$root\"",
+        "root=$({}) && exec {} {command} mcp --root \"$root\"",
+        backend.root_command(),
         binary(service)
     )
 }
 
-pub fn environment_command(service: &str, command: &str, name: &str) -> String {
+pub fn environment_command(config: &Config, command: &str, name: &str) -> String {
     format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} environment-{command} {} --root \"$root\"",
-        binary(service),
+        "root=$({}) && exec {} environment-{command} {} --root \"$root\"",
+        config.vcs.backend.root_command(),
+        binary(&config.paths.service),
         shell_words::quote(name)
     )
 }
 
-pub fn git_hooks(config: &Config) -> [(String, Vec<u8>); 2] {
+pub fn vcs_hooks(config: &Config) -> Vec<(String, Vec<u8>)> {
     let binary = binary(&config.paths.service);
-    let prefix = "#!/bin/sh\nset -eu\nroot=$(git rev-parse --show-toplevel)\n";
-    [
-        (config.paths.service_path("hooks/pre-commit"), format!("{prefix}{binary} guard-commit --root \"$root\"\nexec {binary} check --root \"$root\" --staged\n").into_bytes()),
-        (config.paths.service_path("hooks/reference-transaction"), format!("{prefix}exec {binary} guard-reference --root \"$root\" \"$1\"\n").into_bytes()),
-    ]
+    config
+        .vcs
+        .backend
+        .hooks(&binary)
+        .into_iter()
+        .map(|(name, contents)| {
+            (
+                config.paths.service_path(&format!("hooks/{name}")),
+                contents.into_bytes(),
+            )
+        })
+        .collect()
 }
 
 pub fn registration(config: &Config) -> Result<Vec<u8>> {
     let command = format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} hook --root \"$root\"",
+        "root=$({}) && exec {} hook --root \"$root\"",
+        config.vcs.backend.root_command(),
         binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
@@ -46,7 +56,7 @@ pub fn registration(config: &Config) -> Result<Vec<u8>> {
     }});
     let custom =
         agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
-            environment_command(&config.paths.service, "hook", name)
+            environment_command(config, "hook", name)
         });
     for (event, groups) in custom.as_object().unwrap() {
         value["hooks"]

@@ -19,8 +19,12 @@ fn ancestor(root: &Path, older: &str, newer: &str) -> Result<bool> {
         .success())
 }
 pub fn start(context: &Context, name: &str) -> Result<i32> {
+    ensure!(
+        context.config.vcs.backend == review_runner::vcs::Kind::Git,
+        "feature-start for this VCS is not implemented yet; use its native branch command"
+    );
     let root = &context.root;
-    let settings = &context.config.git;
+    let settings = &context.config.vcs;
     let branch = format!("{}{name}", settings.prefix);
     ensure!(
         !name.is_empty() && !name.starts_with('-'),
@@ -38,8 +42,12 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     Ok(0)
 }
 pub fn merge(context: &Context) -> Result<i32> {
+    ensure!(
+        context.config.vcs.backend == review_runner::vcs::Kind::Git,
+        "feature-merge for this VCS is not implemented yet; preserve the branch until native integration support is available"
+    );
     let root = &context.root;
-    let settings = &context.config.git;
+    let settings = &context.config.vcs;
     let feature = git(root, &["branch", "--show-current"])?;
     ensure!(
         feature.starts_with(&settings.prefix),
@@ -117,7 +125,7 @@ fn merge_branch(root: &Path, feature: &str) -> Result<i32> {
 
 fn prepare_integration(context: &Context, feature: &str) -> Result<i32> {
     let root = &context.root;
-    let base = &context.config.git.base;
+    let base = &context.config.vcs.base;
     let divergent = !ancestor(root, base, feature)?;
     if divergent {
         let code = super::process::run(

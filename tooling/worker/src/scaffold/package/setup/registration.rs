@@ -4,11 +4,9 @@ use std::path::Path;
 use toml_edit::{DocumentMut, Item, value};
 
 pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> {
-    let hooks = crate::util::git(root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
-    ensure!(
-        hooks.is_empty() || hooks == config.paths.service_path("hooks"),
-        "setup conflict: core.hooksPath={hooks}; existing registration preserved"
-    );
+    if let Some(repository) = config.vcs.backend.repository(root)? {
+        repository.validate_registration(&config.paths.service_path("hooks"))?;
+    }
     let mut document: DocumentMut = std::str::from_utf8(&files[".codex/config.toml"])?.parse()?;
     table(&mut document["features"], "features")?;
     setting(
@@ -25,6 +23,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
             &mut document["mcp_servers"]["worker_review"],
             timeout,
             &config.paths.service,
+            config.vcs.backend,
         )?;
     } else {
         let server = document
@@ -47,13 +46,20 @@ fn review_timeout(root: &Path, files: &Files, path: &str) -> Result<u64> {
     let review: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
     Ok(review.runner.timeout_seconds)
 }
-fn mcp(server: &mut Item, timeout: u64, service: &str) -> Result<()> {
+fn mcp(
+    server: &mut Item,
+    timeout: u64,
+    service: &str,
+    backend: review_runner::vcs::Kind,
+) -> Result<()> {
     table(server, "mcp_servers.worker_review")?;
     setting(&mut server["enabled"], value(true), "worker_review.enabled")?;
     setting(&mut server["command"], value("sh"), "worker_review.command")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push(super::super::adapters::mcp_command(service, "review"));
+    args.push(super::super::adapters::mcp_command(
+        service, "review", backend,
+    ));
     setting(&mut server["args"], value(args), "worker_review.args")?;
     let timeout = i64::try_from(timeout)?
         .checked_add(60)

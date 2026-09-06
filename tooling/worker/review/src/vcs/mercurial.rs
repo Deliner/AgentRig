@@ -25,6 +25,23 @@ pub(super) fn resolve(root: &Path, reference: &str) -> Result<String> {
     Ok(String::from_utf8(bytes)?.trim().into())
 }
 
+// Setup inspects the trusted local configuration, unlike immutable source reads.
+pub(super) fn configuration(root: &Path, key: &str) -> Result<String> {
+    let output = Command::new("hg")
+        .current_dir(root)
+        .env("HGPLAIN", "1")
+        .env("HGRCPATH", "")
+        .env_remove("HGRCSKIPREPO")
+        .args(["config", key])
+        .output()?;
+    ensure!(
+        output.status.success() || output.status.code() == Some(1),
+        "cannot inspect Mercurial hook registration: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    Ok(String::from_utf8(output.stdout)?.trim().into())
+}
+
 pub(super) fn working_files(root: &Path) -> Result<Vec<u8>> {
     run(
         root,

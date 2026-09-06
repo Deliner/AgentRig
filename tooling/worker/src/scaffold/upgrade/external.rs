@@ -94,7 +94,11 @@ fn migrate_command(entry: &mut Item, command: &str) -> Result<bool> {
         "custom {command} MCP command references the retired executable; update that command explicitly before migration"
     );
     if managed {
-        let replacement = crate::scaffold::package::adapters::mcp_command(".worker", command);
+        let replacement = crate::scaffold::package::adapters::mcp_command(
+            ".worker",
+            command,
+            review_runner::vcs::Kind::Git,
+        );
         *args.get_mut(1).context("managed MCP argument required")? = Value::from(replacement);
     }
     Ok(managed)

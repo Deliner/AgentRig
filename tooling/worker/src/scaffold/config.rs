@@ -3,6 +3,7 @@ mod validation;
 pub use capabilities::{Capabilities, Resource};
 // DECISION: D005
 use anyhow::{Context as _, Result, ensure};
+pub use review_runner::vcs::Settings as Vcs;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
@@ -27,8 +28,8 @@ pub struct Config {
         skip_serializing_if = "agentrig::environment::Environment::is_empty"
     )]
     pub environment: agentrig::environment::Environment,
-    #[serde(default)]
-    pub git: Git,
+    #[serde(default, alias = "git")]
+    pub vcs: Vcs,
     #[serde(default)]
     pub commands: BTreeMap<String, Command>,
     #[serde(default)]
@@ -69,20 +70,6 @@ pub enum Containment {
     #[default]
     ProcessGroup,
     Systemd,
-}
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Git {
-    pub base: String,
-    pub prefix: String,
-}
-impl Default for Git {
-    fn default() -> Self {
-        Self {
-            base: "main".into(),
-            prefix: "feature/".into(),
-        }
-    }
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

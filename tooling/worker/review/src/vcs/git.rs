@@ -73,6 +73,12 @@ pub(super) fn parents(root: &Path, revision: &str) -> Result<Vec<String>> {
         .collect())
 }
 
+pub(super) fn commit_context(root: &Path) -> Result<(String, bool)> {
+    let branch = String::from_utf8(run(root, &["branch", "--show-current"])?)?;
+    let merge = String::from_utf8(run(root, &["rev-parse", "--git-path", "MERGE_HEAD"])?)?;
+    Ok((branch.trim().into(), root.join(merge.trim()).exists()))
+}
+
 pub(super) fn staged_files(root: &Path) -> Result<Vec<u8>> {
     run(root, &["ls-files", "--cached", "-z"])
 }

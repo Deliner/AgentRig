@@ -43,6 +43,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         "setup" => return package::setup(root, args),
         "config-inspect" => return package::setup::inspect(root, args),
         "upgrade" => return upgrade::run(root, args),
+        "guard-commit" => return guard_commit(root, args),
         "resume" if upgrade::recovery::configuration_pending(root)? => {
             return resume_upgrade(root, args);
         }
@@ -83,6 +84,29 @@ fn resume_upgrade(root: &Path, args: &[String]) -> Result<i32> {
     );
     Ok(0)
 }
+fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
+    upgrade::recovery::guard(root)?;
+    let reference = match args {
+        [] => None,
+        [flag, revision] if flag == "--revision" => Some(revision.as_str()),
+        _ => bail!("guard-commit [--revision REV]"),
+    };
+    let snapshot = match reference {
+        Some(revision) => Some(
+            review_runner::vcs::Repository::discover(root)?
+                .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?
+                .export_revision(revision)?,
+        ),
+        None => None,
+    };
+    let tree = snapshot
+        .as_ref()
+        .map(|snapshot| snapshot.path())
+        .unwrap_or(root);
+    let context = config::Context::load(tree)?;
+    crate::hooks::git::guard_commit_with(root, &context.config.vcs, reference)
+}
+
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
     let unexpected = matches!(
         command,
@@ -105,11 +129,10 @@ fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
 }
 fn configured_command(context: &config::Context, command: &str, args: &[String]) -> Result<i32> {
     let root = &context.root;
-    let git = &context.config.git;
+    let git = &context.config.vcs;
     match command {
         "doctor" => package::doctor(context),
         "config-check" => config_check(context),
-        "guard-commit" => crate::hooks::git::guard_commit_with(root, &git.base, &git.prefix),
         "guard-reference" => crate::hooks::git::guard_reference_with(
             root,
             args.first().map(String::as_str).unwrap_or(""),

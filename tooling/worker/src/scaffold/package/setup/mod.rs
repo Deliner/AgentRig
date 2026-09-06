@@ -109,24 +109,15 @@ pub(super) fn install(
     installation: &reconcile::Installation,
 ) -> Result<i32> {
     installation.apply(root)?;
-    let fresh_git = !root.join(".git").exists();
-    if fresh_git {
-        crate::util::git(root, &["init", "-q", "-b", &config.git.base])?;
-    }
+    config.vcs.backend.initialize(root, &config.vcs.base)?;
     fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
     if let Some(review) = &config.capabilities.review {
         let review = review_runner::config::load(&config::relative(root, &review.config)?)?;
         fs::create_dir_all(review.runner.runtime_root)?;
         fs::create_dir_all(review.runner.report_root)?;
     }
-    crate::util::git(
-        root,
-        &[
-            "config",
-            "core.hooksPath",
-            &config.paths.service_path("hooks"),
-        ],
-    )?;
+    review_runner::vcs::Repository::new(root, config.vcs.backend)
+        .register_hooks(&config.paths.service_path("hooks"))?;
     println!("Setup installed the configured worker environment. Authentication remains separate.");
     super::doctor(&config::Context::load(root)?)
 }

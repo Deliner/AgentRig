@@ -57,14 +57,14 @@ impl Config {
         );
         globs(&self.paths.sources).context("paths.sources")?;
         ensure!(
-            branch_name(&self.git.base),
-            "git.base must name a valid branch"
+            branch_name(&self.vcs.base),
+            "vcs.base must name a valid branch"
         );
         ensure!(
-            !self.git.prefix.is_empty()
-                && branch_name(&format!("{}example", self.git.prefix))
-                && !self.git.base.starts_with(&self.git.prefix),
-            "git.prefix must form valid branches distinct from git.base"
+            !self.vcs.prefix.is_empty()
+                && branch_name(&format!("{}example", self.vcs.prefix))
+                && !self.vcs.base.starts_with(&self.vcs.prefix),
+            "vcs.prefix must form valid branches distinct from vcs.base"
         );
         Ok(())
     }

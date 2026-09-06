@@ -28,27 +28,20 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
     let config = template::config(&options);
     let files = bundle(&config)?;
     check_collisions(root, &files)?;
-    // Check existing Git hook ownership before creating any files.
-    let git = root.join(".git").exists();
-    if git {
-        let existing =
-            crate::util::git(root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
+    // Check native hook ownership before creating any files.
+    let repository = config.vcs.backend.repository(root)?;
+    if let Some(repository) = &repository {
+        repository.validate_registration(&config.paths.service_path("hooks"))?;
+        let existing = repository.hook_registration()?;
         ensure!(
             existing.is_empty(),
-            "existing core.hooksPath={existing}; init will not replace it"
+            "existing VCS hook registration={existing}; init will not replace it"
         );
     }
     validate_bundle(&files)?;
     install(root, &files)?;
-    if git {
-        crate::util::git(
-            root,
-            &[
-                "config",
-                "core.hooksPath",
-                &config.paths.service_path("hooks"),
-            ],
-        )?;
+    if let Some(repository) = repository {
+        repository.register_hooks(&config.paths.service_path("hooks"))?;
     }
     println!(
         "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
@@ -78,7 +71,7 @@ fn bundle(config: &Config) -> Result<Files> {
     }
     add_policy(&mut files, config)?;
     add_runtime(&mut files, config)?;
-    review::bundle(&mut files, config);
+    review::bundle(&mut files, config)?;
     files.insert(
         config.paths.service_path("manifest.json"),
         manifest::installed(&files, config)?,
@@ -119,6 +112,17 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     Ok(())
 }
 fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
+    let mercurial = config.vcs.backend == review_runner::vcs::Kind::Mercurial;
+    if mercurial {
+        files.insert(
+            config.paths.service_path("hooks.hgignore"),
+            format!(
+                "syntax: glob\n{}/**\n{}/review/runtime/**\n{}/review/reports/**\n",
+                config.paths.runtime, config.paths.service, config.paths.service
+            )
+            .into_bytes(),
+        );
+    }
     files.insert(
         config.paths.service_path(".gitignore"),
         b"runtime/\n/inputs/runtime/\n/inputs/reports/\n".to_vec(),
@@ -133,7 +137,7 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         adapters::CODEX_CONFIG.as_bytes().to_vec(),
     );
     files.insert(".codex/hooks.json".into(), adapters::registration(config)?);
-    for (path, contents) in adapters::git_hooks(config) {
+    for (path, contents) in adapters::vcs_hooks(config) {
         files.insert(path, contents);
     }
     Ok(())

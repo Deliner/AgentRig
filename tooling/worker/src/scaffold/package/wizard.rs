@@ -74,9 +74,10 @@ fn project_config(root: &Path) -> Result<Option<Config>> {
         ("source", "Source directory"),
         ("memory", "Memory directory"),
         ("skills", "Skills directory"),
-        ("base", "Git base branch"),
+        ("base", "Base branch"),
         ("prefix", "Feature branch prefix"),
         ("review", "Enable review: true/false"),
+        ("vcs", "Version control: git/mercurial"),
     ] {
         let default = match key {
             "skills" => format!("{}/skills", options["service"]),

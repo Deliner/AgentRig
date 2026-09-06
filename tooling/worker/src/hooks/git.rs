@@ -8,11 +8,18 @@ use std::{
 };
 
 // DECISION: D015
-pub fn guard_commit_with(root: &Path, base: &str, prefix: &str) -> Result<i32> {
-    let branch = git(root, &["branch", "--show-current"])?;
-    let merge = root
-        .join(git(root, &["rev-parse", "--git-path", "MERGE_HEAD"])?)
-        .exists();
+pub fn guard_commit_with(
+    root: &Path,
+    settings: &review_runner::vcs::Settings,
+    revision: Option<&str>,
+) -> Result<i32> {
+    let repository = settings
+        .backend
+        .repository(root)?
+        .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
+    let (branch, merge) = repository.commit_context(revision)?;
+    let base = settings.base.as_str();
+    let prefix = settings.prefix.as_str();
     let permitted = branch.starts_with(prefix) || (branch == base && merge);
     if permitted {
         return Ok(0);

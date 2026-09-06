@@ -31,7 +31,7 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
     failed |= !executor_dependencies(context);
-    failed |= !git_registration(context);
+    failed |= !vcs_registration(context)?;
     failed |= !codex_registration(context)?;
     if failed {
         let rerun = crate::diagnostics::rerun(&context.root, &["doctor".into()]);
@@ -108,11 +108,16 @@ fn sandbox_availability(context: &Context) -> bool {
     }
     !failed
 }
-fn git_registration(context: &Context) -> bool {
-    let hooks =
-        crate::util::git(&context.root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
-    let registered = hooks == context.config.paths.service_path("hooks")
-        && super::adapters::git_hooks(&context.config)
+fn vcs_registration(context: &Context) -> Result<bool> {
+    let repository = context.config.vcs.backend.repository(&context.root)?;
+    let registered = match repository {
+        Some(repository) => {
+            repository.hooks_registered(&context.config.paths.service_path("hooks"))?
+        }
+        None => false,
+    };
+    let registered = registered
+        && super::adapters::vcs_hooks(&context.config)
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)
@@ -121,14 +126,15 @@ fn git_registration(context: &Context) -> bool {
                     })
             });
     println!(
-        "Git hooks: {}",
+        "{} hooks: {}",
+        context.config.vcs.backend.executable(),
         if registered {
             "registered"
         } else {
-            "NOT REGISTERED OR CHANGED; verify core.hooksPath, adapter contents and executable permissions"
+            "NOT REGISTERED OR CHANGED; verify VCS registration, adapter contents and executable permissions"
         }
     );
-    registered
+    Ok(registered)
 }
 fn codex_registration(context: &Context) -> Result<bool> {
     let settings = fs::read_to_string(context.root.join(".codex/config.toml"))
