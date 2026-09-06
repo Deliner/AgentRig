@@ -1,27 +1,31 @@
 import subprocess
 from pathlib import Path
+from typing import Any
 
-CONFIG = """version = 1
-runtime = "0.2.0"
-config_skill = "guides/repair/SKILL.md"
-[paths]
-sources = ["src/**"]
-memory = "notes"
-skills = "guides"
-lint = "lint.yaml"
-runtime = ".runtime"
-[git]
-base = "trunk"
-prefix = "task/"
-[commands.echo]
-argv = ["python3", "-c", "import sys; print(repr(sys.argv[1:])); print(sys.stdin.read()); print('stderr', file=sys.stderr)"]
-accepts_args = true
-[commands.fail]
-argv = ["sh", "-c", "exit 23"]
-[commands.read]
-argv = []
-accepts_args = true
-read_only = true
+import yaml
+
+CONFIG = """version: 1
+runtime: "0.3.0"
+config_skill: "guides/repair/SKILL.md"
+paths:
+  sources: ["src/**"]
+  memory: "notes"
+  skills: "guides"
+  lint: "lint.yaml"
+  runtime: ".runtime"
+git:
+  base: "trunk"
+  prefix: "task/"
+commands:
+  echo:
+    argv: ["python3", "-c", "import sys; print(repr(sys.argv[1:])); print(sys.stdin.read()); print('stderr', file=sys.stderr)"]
+    accepts_args: true
+  fail:
+    argv: ["sh", "-c", "exit 23"]
+  read:
+    argv: []
+    accepts_args: true
+    read_only: true
 """
 LINT = """version: 1
 config_skill: guides/repair/SKILL.md
@@ -47,9 +51,26 @@ def project(root: Path, config: str = CONFIG) -> Path:
     skill.parent.mkdir(parents=True)
     skill.write_text("---\nname: repair\ndescription: Fix the reported failing check.\n---\n")
     (root / "src").mkdir()
-    (root / "worker.toml").write_text(config)
+    (root / "agentrig.yaml").write_text(config)
     (root / "lint.yaml").write_text(LINT)
     return root
+
+
+def update_config(path: Path, **changes: Any) -> None:
+    source = path.read_text()
+    config = yaml.safe_load(source)
+    for key, value in changes.items():
+        current = config.get(key)
+        mapping = isinstance(current, dict) and isinstance(value, dict)
+        sequence = isinstance(current, list) and isinstance(value, list)
+        if mapping:
+            current.update(value)
+        elif sequence:
+            current.extend(value)
+        else:
+            config[key] = value
+    comments = "\n".join(filter(lambda line: line.startswith("#"), source.splitlines()))
+    path.write_text(comments + "\n" + yaml.safe_dump(config, sort_keys=False))
 
 
 def invoke(

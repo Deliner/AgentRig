@@ -1,6 +1,6 @@
 use super::*;
 use crate::lint::config::{globs, skill};
-use std::collections::HashSet;
+use std::{collections::HashSet, fs};
 
 impl Config {
     pub(super) fn validate(&self, root: &Path) -> Result<()> {

@@ -1,5 +1,6 @@
 // DECISION: D024
 mod apply;
+pub(super) mod migration;
 mod model;
 mod operation;
 mod plan;

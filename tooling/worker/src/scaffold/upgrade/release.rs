@@ -1,15 +1,12 @@
 use super::super::{
-    config::{Config, FILE},
+    config::Config,
     package::manifest::{self, Manifest},
 };
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, fs, path::Path, process::Command};
 
-pub const FROM: &str = "0.1.0";
-pub const TO: &str = "0.2.0";
-pub fn configuration(root: &Path) -> Result<Config> {
-    Ok(toml::from_str(&fs::read_to_string(root.join(FILE))?)?)
-}
+pub const FROM: &str = "0.2.0";
+pub const TO: &str = "0.3.0";
 pub fn version(binary: &Path) -> Result<String> {
     let output = Command::new(binary)
         .arg("--version")
@@ -68,7 +65,7 @@ pub fn manifest(root: &Path) -> Result<Manifest> {
     collect(root, Path::new(""), &mut files)?;
     Ok(serde_json::from_slice(&manifest::installed(
         &files,
-        &configuration(root)?,
+        &super::migration::configuration(root)?,
     )?)?)
 }
 fn collect(root: &Path, relative: &Path, files: &mut BTreeMap<String, Vec<u8>>) -> Result<()> {
@@ -90,33 +87,29 @@ fn collect(root: &Path, relative: &Path, files: &mut BTreeMap<String, Vec<u8>>) 
     Ok(())
 }
 pub fn migrated(source: &str) -> Result<Vec<u8>> {
-    #[derive(serde::Deserialize)]
-    struct Pin {
-        runtime: toml::Spanned<String>,
-        paths: Policy,
-    }
-    #[derive(serde::Deserialize)]
-    struct Policy {
-        lint: toml::Spanned<String>,
-    }
-    let pin: Pin = toml::from_str(source)?;
+    let mut config: toml::Value = toml::from_str(source)?;
     ensure!(
-        pin.runtime.get_ref() == FROM,
+        config.get("runtime").and_then(toml::Value::as_str) == Some(FROM),
         "only {FROM} -> {TO} is implemented"
     );
-    let mut updated = source.to_owned();
-    let mut replacements = vec![
-        (pin.runtime.span(), format!("\"{TO}\"")),
-        (
-            pin.paths.lint.span(),
-            serde_json::to_string(&lint_path(pin.paths.lint.get_ref()))?,
-        ),
-    ];
-    replacements.sort_by_key(|(span, _)| std::cmp::Reverse(span.start));
-    for (span, value) in replacements {
-        updated.replace_range(span, &value);
+    let lint = config["paths"]["lint"]
+        .as_str()
+        .context("paths.lint required")?;
+    let target = lint_path(lint);
+    config["runtime"] = toml::Value::String(TO.into());
+    config["paths"]["lint"] = toml::Value::String(target);
+    for capability in ["review", "delegation"] {
+        let reference = config
+            .get_mut("capabilities")
+            .and_then(|caps| caps.get_mut(capability))
+            .and_then(|entry| entry.get_mut("config"));
+        if let Some(path) = reference {
+            *path = toml::Value::String(lint_path(
+                path.as_str().context("capability config path required")?,
+            ));
+        }
     }
-    Ok(updated.into_bytes())
+    Ok(review_runner::config::yaml::encode(&config)?.into_bytes())
 }
 
 pub fn lint_path(path: &str) -> String {

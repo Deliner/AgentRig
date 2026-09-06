@@ -43,7 +43,8 @@ fn ordered(operation: &Operation) -> Vec<String> {
     names.sort_by_key(|name| match name.as_str() {
         ".worker/bin/discipline-worker" => 0,
         config::FILE => 2,
-        ".worker/manifest.json" => 3,
+        super::migration::LEGACY_FILE => 3,
+        ".worker/manifest.json" => 4,
         _ => 1,
     });
     names

@@ -1,12 +1,13 @@
 import json
 from pathlib import Path
 
+import pytest
 from support import CONFIG, invoke, project
 from test_review import resources
 
 
 def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path, CONFIG + '\n[capabilities.review]\nconfig="config.yaml"\n')
+    project(tmp_path, CONFIG + '\ncapabilities:\n  review:\n    config: "config.yaml"\n')
     resources(tmp_path)
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 0, result.stderr
@@ -32,7 +33,7 @@ def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Pa
 
 
 def test_disabled_lint_requires_consistent_gate(worker: Path, tmp_path: Path) -> None:
-    source = CONFIG + "\n[capabilities]\nlint=false\n"
+    source = CONFIG + "\ncapabilities:\n  lint: false\n"
     project(tmp_path, source)
     (tmp_path / "lint.yaml").unlink()
     result = invoke(worker, tmp_path, "config-check")
@@ -40,8 +41,8 @@ def test_disabled_lint_requires_consistent_gate(worker: Path, tmp_path: Path) ->
     result = invoke(worker, tmp_path, "lint")
     assert result.returncode == 2
     assert "capabilities.lint is disabled" in result.stderr
-    (tmp_path / "worker.toml").write_text(
-        source + '\n[[checks]]\nid="lint"\nkind="lint"\nskill="guides/repair/SKILL.md"\n'
+    (tmp_path / "agentrig.yaml").write_text(
+        source + '\nchecks:\n- id: "lint"\n  kind: "lint"\n  skill: "guides/repair/SKILL.md"\n'
     )
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
@@ -53,7 +54,7 @@ def test_unknown_and_absent_capabilities_are_actionable(worker: Path, tmp_path: 
     result = invoke(worker, tmp_path, "review", "config-check")
     assert result.returncode == 2
     assert "review is not enabled" in result.stderr
-    (tmp_path / "worker.toml").write_text(CONFIG + "\n[capabilities]\nunknown=true\n")
+    (tmp_path / "agentrig.yaml").write_text(CONFIG + "\ncapabilities:\n  unknown: true\n")
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "unknown field `unknown`" in result.stderr
@@ -84,3 +85,22 @@ def test_installation_ships_review_resources(worker: Path, tmp_path: Path) -> No
     assert receipt[".worker/review/config/review.yaml"]["ownership"] == "configuration"
     assert receipt[".worker/review/prompts/correctness.md"]["ownership"] == "editable"
     assert receipt["AGENTS.md"]["ownership"] == "editable"
+
+
+@pytest.mark.parametrize(
+    "replacement", ['version: "1"', "version: 1\nversion: 1", "version: &schema 1"]
+)
+def test_root_yaml_is_strict(worker: Path, tmp_path: Path, replacement: str) -> None:
+    project(tmp_path, CONFIG.replace("version: 1", replacement, 1))
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2
+    assert "agentrig.yaml" in result.stderr and "ACTION:" in result.stderr
+
+
+def test_legacy_root_requires_explicit_migration(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    (tmp_path / "agentrig.yaml").unlink()
+    (tmp_path / "worker.toml").write_text('version = 1\nruntime = "0.2.0"\n')
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2
+    assert "explicit upgrade" in result.stderr and "no format fallback" in result.stderr

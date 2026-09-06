@@ -68,7 +68,7 @@ fn ownership(path: &str, config: &Config) -> Ownership {
     let memory = ["Plan", "State", "Decisions", "Invariants"]
         .iter()
         .any(|name| path == format!("{}/{name}.md", config.paths.memory));
-    let settings = ["worker.toml", ".codex/config.toml", &config.paths.lint].contains(&path)
+    let settings = ["agentrig.yaml", ".codex/config.toml", &config.paths.lint].contains(&path)
         || config.hooks.reminder.as_deref() == Some(path)
         || path.starts_with(".worker/review/config/");
     let editable = (path.starts_with(&format!("{}/", config.paths.skills))

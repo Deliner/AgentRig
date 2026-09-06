@@ -51,7 +51,7 @@ def test_state_recovery_contract(
     worker: Path, tmp_path: Path, source: str | None, valid: bool
 ) -> None:
     ledger = tmp_path / "Ledger"
-    project(tmp_path, CONFIG.replace('memory = "notes"', 'memory = "Ledger"'))
+    project(tmp_path, CONFIG.replace('memory: "notes"', 'memory: "Ledger"'))
     memory(tmp_path).rename(ledger)
     (ledger / "State.md").unlink()
     present = source is not None

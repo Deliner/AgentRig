@@ -8,17 +8,17 @@ Deliver all of P004 under the AgentRig goal in .tmp/agentrig-yaml-environments-p
 
 Branch: feature/agentrig-environments
 
-Revision: ffc51c5
+Revision: ad12dc1
 
 Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-Review, delegate and lint YAML conversion are committed, including explicit legacy lint conversion and mixed-installation recovery. Current VAC makes the source launcher include YAML resources in its content signature so changed embedded presets rebuild the cached executable. Root project settings still await conversion. AgentRig 0.3.0, composition and the rest of P004 remain outstanding.
+Review, delegate and lint YAML conversion and launcher resource signatures are committed. Current VAC switches root loading, installation, diagnostics, history and fixtures to agentrig.yaml and pins development runtime 0.3.0. Explicit upgrade now uses the real 0.2.0 baseline, converts root/lint/review/project/profile resources, preserves preimages and exposes recovery guidance when the new declaration is absent. Current skills and guides follow the new root. Binary/service-directory naming, composition, setup/master, custom delegate environments and complete migration acceptance remain outstanding in P004.
 
 ## Verification
 
-Lint conversion full staged gate passed 300 native, 27 review/YAML and eight worker Rust tests, plus all configured checks. Launcher regression reproduced stale YAML/yml output before the fix; all three Rust/YAML/yml cases now pass, including unchanged-content reuse and changed content with its old timestamp restored. Current staged gate remains pending. Preserved real 0.2.0 migration baseline is .tmp/agentrig-baseline-0.2.0 with digest/revision receipt; current upgrade tests still exercise the earlier 0.1.0 transition.
+Last committed full gate passed 302 native, 27 review/YAML and eight worker Rust tests. Current root YAML config-check passes. Focused runs passed scaffold behavior (175/176 before fixing a test-generated YAML alias, then all five Git cases), 37 command/history cases, 31 config/history/upgrade cases and disabled-lint migration. Real 0.2.0 review migration preserves customized models and supports rollback; mixed-installation recovery and committed legacy memory protection pass. Four edited skills validate; lint has no blockers and mypy passes. Current full staged gate remains pending. Baseline binary/digest is .tmp/agentrig-baseline-0.2.0; upgrade fixtures now pin its actual revision a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the launcher resource-signature fix through the staged gate. Convert root project configuration with fixtures/templates and guidance; retain TOML only for external formats and explicit migration. Continue AgentRig naming, composition, setup, interactive init, custom delegate hooks, real 0.2.0 migration and all P004 acceptance before integration.
+Finish formatting and inspect/commit the root YAML VAC through the full staged gate. Continue AgentRig naming and configurable service paths, composition, setup/master and custom delegate environments. Complete delegate migration acceptance (including selected skill/MCP installation ownership), external configuration resources and all P004 acceptance before integration. No feature integration or full-goal completion is established by the YAML conversion alone.

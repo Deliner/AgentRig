@@ -17,8 +17,8 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
         (".codex/config.toml", "hooks = true", "hooks = false", "Codex registration"),
         (".codex/hooks.json", "SessionStart", "UnknownEvent", "Codex registration"),
         (".worker/hooks/pre-commit", "--staged", "--incorrect", "Git hooks"),
-        ("worker.toml", '"python3"', '"missing-tool-xyz"', "MISSING"),
-        ("worker.toml", 'runtime = "0.2.0"', 'runtime = "999.0.0"', "project pins"),
+        ("agentrig.yaml", "python3", "missing-tool-xyz", "MISSING"),
+        ("agentrig.yaml", "runtime: 0.3.0", "runtime: 999.0.0", "project pins"),
     ]
     for name, before, after, expected in changes:
         path = tmp_path / name
@@ -73,13 +73,13 @@ def test_installation_manifest_records_ownership(worker: Path, tmp_path: Path) -
     assert result.returncode == 0, result.stderr
     manifest = json.loads((tmp_path / ".worker/manifest.json").read_text())
     assert manifest["manifest_version"] == 1
-    assert manifest["package_version"] == "0.2.0"
+    assert manifest["package_version"] == "0.3.0"
     assert manifest["config_schema"] == 1
     entries = manifest["files"]
     assert ".worker/manifest.json" not in entries
     assert entries[".worker/bin/discipline-worker"]["ownership"] == "runtime"
     assert entries[".worker/.gitignore"]["ownership"] == "asset"
-    assert entries["worker.toml"]["ownership"] == "configuration"
+    assert entries["agentrig.yaml"]["ownership"] == "configuration"
     assert entries[".worker/lint.yaml"]["ownership"] == "configuration"
     assert entries["guides/repair/SKILL.md"]["ownership"] == "editable"
     assert entries[".worker/hooks/pre-commit"]["ownership"] == "editable"

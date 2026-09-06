@@ -5,7 +5,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
-from support import file_contents, invoke
+from support import file_contents, invoke, update_config
 
 
 def declaration(worker: Path, root: Path) -> Path:
@@ -15,8 +15,8 @@ def declaration(worker: Path, root: Path) -> Path:
     assert result.returncode == 0, result.stderr
     consumer = root / "consumer"
     consumer.mkdir()
-    (consumer / "worker.toml").write_text(
-        "# Consumer policy\n" + (seed / "worker.toml").read_text()
+    (consumer / "agentrig.yaml").write_text(
+        "# Consumer policy\n" + (seed / "agentrig.yaml").read_text()
     )
     (consumer / "src").mkdir()
     (consumer / "src/value.py").write_text("value = 1\n")
@@ -34,7 +34,7 @@ def test_setup_prepares_and_repeats_without_losing_settings(worker: Path, tmp_pa
     actual = (root / ".codex/config.toml").read_text()
     assert actual.startswith(settings)
     assert (root / ".codex/config.toml").stat().st_mode & 0o777 == 0o600
-    assert (root / "worker.toml").read_text().startswith("# Consumer policy\n")
+    assert (root / "agentrig.yaml").read_text().startswith("# Consumer policy\n")
     config = tomllib.loads(actual)["mcp_servers"]["worker_review"]
     messages = [
         dict(jsonrpc="2.0", id=1, method="initialize", params=dict(protocolVersion="2025-11-25")),
@@ -97,9 +97,9 @@ def test_setup_rejects_hook_conflicts_before_writing(
 
 def test_setup_rejects_unknown_capability_before_writing(worker: Path, tmp_path: Path) -> None:
     root = declaration(worker, tmp_path)
-    config = root / "worker.toml"
+    config = root / "agentrig.yaml"
     config.write_text(
-        config.read_text().replace("[capabilities]", "[capabilities]\nunknown = true")
+        config.read_text().replace("\ncapabilities:\n", "\ncapabilities:\n  unknown: true\n")
     )
     before = file_contents(root)
     result = invoke(worker, root, "setup")
@@ -112,9 +112,9 @@ def test_setup_reports_required_scope_backend_failure(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     root = declaration(worker, tmp_path)
-    config = root / "worker.toml"
+    config = root / "agentrig.yaml"
     config.write_text(
-        config.read_text().replace('foreground = "process-group"', 'foreground = "systemd"')
+        config.read_text().replace("foreground: process-group", "foreground: systemd")
     )
     launcher = tmp_path / "systemd-run"
     launcher.write_text("#!/bin/sh\necho 'scope unavailable' >&2\nexit 1\n")
@@ -128,10 +128,8 @@ def test_setup_reports_required_scope_backend_failure(
 
 def delegated_project(worker: Path, root: Path) -> Path:
     consumer = declaration(worker, root)
-    config = consumer / "worker.toml"
-    config.write_text(
-        config.read_text() + '\n[capabilities.delegation]\nconfig="agents/profiles.yaml"\n'
-    )
+    config = consumer / "agentrig.yaml"
+    update_config(config, capabilities={"delegation": {"config": "agents/profiles.yaml"}})
     agents = consumer / "agents"
     agents.mkdir()
     (agents / "prompt.md").write_text("Read the task and return its required JSON result.\n")

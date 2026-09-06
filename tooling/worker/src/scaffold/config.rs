@@ -6,11 +6,10 @@ use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fs,
     path::{Component, Path, PathBuf},
 };
 
-pub const FILE: &str = "worker.toml";
+pub const FILE: &str = "agentrig.yaml";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -146,14 +145,10 @@ impl Context {
     }
     pub fn load_for(root: &Path, recovery: bool) -> Result<Self> {
         let root = root.canonicalize()?;
-        let path = root.join(FILE);
-        let source =
-            fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-        let mut config: Config = toml::from_str(&source).context("worker.toml schema")?;
+        let mut config = read(&root)?;
         let pin = config.runtime.clone();
-        let recovering = recovery
-            && pin == super::upgrade::release::FROM
-            && super::upgrade::recovery::active(&root)?;
+        let supported_pin = pin == VERSION || pin == super::upgrade::release::FROM;
+        let recovering = recovery && supported_pin && super::upgrade::recovery::active(&root)?;
         if recovering {
             config.runtime = VERSION.into();
         }
@@ -174,6 +169,11 @@ impl Context {
     pub fn path(&self, value: &str) -> Result<PathBuf> {
         relative(&self.root, value)
     }
+}
+pub fn read(root: &Path) -> Result<Config> {
+    review_runner::config::yaml::read(&root.join(FILE)).with_context(|| {
+        format!("{FILE} required; use explicit upgrade for legacy worker.toml, no format fallback")
+    })
 }
 // Resolve existing ancestors too: symlinks must not escape the selected project tree.
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {

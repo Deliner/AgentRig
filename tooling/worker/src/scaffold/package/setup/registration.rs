@@ -28,7 +28,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         ensure!(
             server
                 .is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
-            "setup conflict: review is disabled in worker.toml; disable or remove mcp_servers.worker_review; existing settings preserved"
+            "setup conflict: review is disabled in agentrig.yaml; disable or remove mcp_servers.worker_review; existing settings preserved"
         );
     }
     files.insert(

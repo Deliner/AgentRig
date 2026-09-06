@@ -58,6 +58,14 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     if invalid_event {
         bail!("expected a hook event object");
     }
+    let recovering = text(event, "hook_event_name") == "SessionStart"
+        && crate::scaffold::upgrade::recovery::configuration_pending(root)?;
+    if recovering {
+        return Ok(Some(context(
+            "SessionStart",
+            &crate::scaffold::upgrade::recovery::guidance(root)?,
+        )));
+    }
     let configured = Context::load_for(root, true)?;
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),

@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from support import git, invoke
+from support import git, invoke, update_config
 
 
 @dataclass(frozen=True)
@@ -108,10 +108,10 @@ class Consumer:
         runner = "pytest" if self.python else "cargo"
         function = "test_doubles" if self.python else "doubles"
         link = "../" + self.test_path.relative_to(self.root).as_posix()
-        with (self.root / "worker.toml").open("a") as stream:
-            stream.write(
-                f'\n[oracles.I001]\ncheck = "tests"\nrunner = "{runner}"\ntarget = "{self.oracle}"\n'
-            )
+        update_config(
+            self.root / "agentrig.yaml",
+            oracles={"I001": {"check": "tests", "runner": runner, "target": self.oracle}},
+        )
         memory = self.root / self.layout.paths.memory
         (memory / "Invariants").mkdir()
         index = memory / "Invariants.md"
@@ -191,12 +191,10 @@ class Consumer:
         self.test_path.write_text(valid)
 
     def oracle_discovery(self) -> None:
-        config = self.root / "worker.toml"
+        config = self.root / "agentrig.yaml"
         valid_config = config.read_text()
         missing = self.oracle.replace("::", "::Missing::", 1)
-        config.write_text(
-            valid_config.replace(f'target = "{self.oracle}"', f'target = "{missing}"')
-        )
+        config.write_text(valid_config.replace(self.oracle, missing))
         result = invoke(self.binary, self.root, "memory-check")
         assert result.returncode == 2
         assert "marked oracle function" in result.stderr

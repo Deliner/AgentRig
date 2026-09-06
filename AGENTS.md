@@ -4,13 +4,13 @@
 
 Read Ledger/State.md, Ledger/Plan.md and any relevant feature detail, then inspect Git status and recent commits. Reconcile recorded progress with live evidence; preserve unrelated work. Follow the current decision index and explicit successors rather than superseded historical details. Apply complexity-discipline for non-trivial implementation and norm-or-choice for durable policy changes.
 
-Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product features. This repository develops the portable worker itself. Worker capabilities, including lint and review, belong under tooling/worker; Project is reserved for consumer examples, and repository memory is Ledger. D025 supersedes D008 for ownership in this repository. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by worker.toml.
+Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product features. This repository develops the portable worker itself. Worker capabilities, including lint and review, belong under tooling/worker; Project is reserved for consumer examples, and repository memory is Ledger. D025 supersedes D008 for ownership in this repository. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by agentrig.yaml.
 
 ## Commands and verification
 
 Invoke shell operations through the justfile recipes (`just --list`). `just list` lists the configured command catalog. Use `just read -- ...` for sandboxed inspection, `just write -- ...` for authorized mutations, and `just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately preceding What/Why comment.
 
-Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that change. Commit through .githooks/pre-commit, which runs the full exported-index gate. Never bypass it. Avoid repeating the full gate immediately before the same commit unless needed for diagnosis. Finish on a clean feature branch with `just feature-merge`; retain the branch after integration. Branch policy comes from worker.toml; never commit directly to its configured base.
+Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that change. Commit through .githooks/pre-commit, which runs the full exported-index gate. Never bypass it. Avoid repeating the full gate immediately before the same commit unless needed for diagnosis. Finish on a clean feature branch with `just feature-merge`; retain the branch after integration. Branch policy comes from agentrig.yaml; never commit directly to its configured base.
 
 ## Memory and skills
 

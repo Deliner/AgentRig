@@ -37,9 +37,8 @@ pub fn rerun(root: &Path, args: &[String]) -> String {
 pub fn failure(error: &anyhow::Error) -> String {
     let (root, args) = invocation();
     let command = args.first().map(String::as_str).unwrap_or("worker");
-    let config = std::fs::read_to_string(root.join("worker.toml"))
-        .ok()
-        .and_then(|source| toml::from_str::<toml::Value>(&source).ok());
+    let config =
+        review_runner::config::yaml::read::<serde_json::Value>(&root.join("agentrig.yaml")).ok();
     let skill = repair_skill(config.as_ref(), command);
     let binary = executable();
     let rerun = shell_words::join(
@@ -82,21 +81,21 @@ fn invocation() -> (std::path::PathBuf, Vec<String>) {
     }
     (root, args)
 }
-fn repair_skill<'a>(config: Option<&'a toml::Value>, command: &str) -> &'a str {
+fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a str {
     let memory = command == "memory-check";
     let check_skill = config
         .and_then(|config| config.get("checks"))
-        .and_then(toml::Value::as_array)
+        .and_then(serde_json::Value::as_array)
         .and_then(|checks| {
             checks.iter().find(|check| {
-                memory && check.get("kind").and_then(toml::Value::as_str) == Some("memory")
+                memory && check.get("kind").and_then(serde_json::Value::as_str) == Some("memory")
             })
         })
         .and_then(|check| check.get("skill"));
     check_skill
         .or_else(|| config.and_then(|config| config.get("config_skill")))
-        .and_then(toml::Value::as_str)
-        .unwrap_or("config_skill in worker.toml (repair configuration syntax first)")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("config_skill in agentrig.yaml (repair configuration syntax first)")
 }
 
 fn executable() -> std::path::PathBuf {

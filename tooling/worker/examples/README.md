@@ -53,22 +53,24 @@ just feature-start next
 
 `git commit` invokes the staged gate. `feature-merge` checks the integration candidate and retains the bootstrap branch. The initial commit is made before hook installation so bootstrap does not require bypassing an installed guard. Later development uses the configured branch prefix.
 
-The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with nonempty `Predicate` and `Oracle` sections. Add to `worker.toml`:
+The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with nonempty `Predicate` and `Oracle` sections. Add to `agentrig.yaml`:
 
-```toml
-[oracles.I001]
-check = "tests"
-runner = "pytest"
-target = "application/test_sample.py::test_doubles"
+```yaml
+oracles:
+  I001:
+    check: tests
+    runner: pytest
+    target: application/test_sample.py::test_doubles
 ```
 
 For Rust use `knowledge/Invariants/001.md`, `[doubles](../crates/engine/src/lib.rs)` and:
 
-```toml
-[oracles.I001]
-check = "tests"
-runner = "cargo"
-target = "tests::doubles"
+```yaml
+oracles:
+  I001:
+    check: tests
+    runner: cargo
+    target: tests::doubles
 ```
 
 Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery alone does not verify the predicate.
@@ -80,11 +82,12 @@ See [observed latency](LATENCY.md) for first-process and repeated-process measur
 
 ## Enable isolated review
 
-Add the review capability to the consumer's worker.toml:
+Add the review capability to the consumer's agentrig.yaml:
 
-```toml
-[capabilities.review]
-config = ".worker/review/config/review.yaml"
+```yaml
+capabilities:
+  review:
+    config: .worker/review/config/review.yaml
 ```
 
 Run `just setup`. It installs the stock review resources and review-project skill,

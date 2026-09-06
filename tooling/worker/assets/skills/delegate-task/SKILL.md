@@ -3,7 +3,7 @@ name: delegate-task
 description: Delegate an authorized bounded task to a configured worker profile and recover its validated result through MCP.
 ---
 
-Read `capabilities.delegation.config` in worker.toml and the selected profile before
+Read `capabilities.delegation.config` in agentrig.yaml and the selected profile before
 choosing an executor. Profiles define modes, allowed files, programs, skills, MCP
 services and credential references. Use `just delegate config-check` to diagnose
 configuration. Setup registers worker_delegation from these settings; authentication

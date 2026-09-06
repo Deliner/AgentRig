@@ -1,5 +1,6 @@
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import tomllib
@@ -7,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from .test_upgrade_plan import invoke, prepare
+from .test_upgrade_plan import invoke, migrated_config, prepare
 
 
 def test_apply_rejects_unresolved_and_stale_plans(
@@ -43,7 +44,7 @@ def test_apply_and_rollback_preserve_local_content(
     assert invoke(worker, tmp_path, "doctor").returncode == 0
     skill = "guides/repair/SKILL.md"
     receipt = json.loads((tmp_path / ".worker/manifest.json").read_text())
-    assert receipt["package_version"] == "0.2.0"
+    assert receipt["package_version"] == "0.3.0"
     assert receipt["local"][skill] == hashlib.sha256(original[skill]).hexdigest()
     assert (tmp_path / skill).read_bytes() == original[skill]
     for name in ["Plan", "State", "Decisions", "Invariants"]:
@@ -162,9 +163,57 @@ def test_rust_consumer_upgrade(worker: Path, predecessor: Path, tmp_path: Path) 
     assert yaml.safe_load((tmp_path / ".worker/lint.yaml").read_text()) == tomllib.loads(
         lint.decode()
     )
-    expected = config.replace(b'"0.1.0"', b'"0.2.0"', 1).replace(b"lint.toml", b"lint.yaml")
-    assert (tmp_path / "worker.toml").read_bytes() == expected
+    assert yaml.safe_load((tmp_path / "agentrig.yaml").read_text()) == migrated_config(config)
+    assert not (tmp_path / "worker.toml").exists()
     assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
     assert (tmp_path / "worker.toml").read_bytes() == config
     assert (tmp_path / ".worker/lint.toml").read_bytes() == lint
+    assert not (tmp_path / ".worker/lint.yaml").exists()
+    assert not (tmp_path / "agentrig.yaml").exists()
+
+
+def test_review_configuration_migrates_with_its_projects(
+    worker: Path, predecessor: Path, tmp_path: Path
+) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    assert invoke(predecessor, tmp_path, "init", "--review", "true").returncode == 0
+    config = tmp_path / ".worker/review/config/review.toml"
+    config.write_text(config.read_text().replace("gpt-5.6-luna", "migration-test-model"))
+    before = config.read_bytes()
+    expected = tomllib.loads(before.decode())
+    result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
+    assert result.returncode == 0, result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    for tool in expected["tools"].values():
+        old = config.parent / tool["project_config"]
+        tool["project_config"] = str(Path(tool["project_config"]).with_suffix(".yaml"))
+        assert not old.exists()
+        assert (config.parent / tool["project_config"]).is_file()
+    assert yaml.safe_load(config.with_suffix(".yaml").read_text()) == expected
+    assert not config.exists()
+    assert invoke(worker, tmp_path, "review", "config-check").returncode == 0
+    assert invoke(worker, tmp_path, "upgrade", "rollback").returncode == 0
+    assert config.read_bytes() == before
+    assert not config.with_suffix(".yaml").exists()
+
+
+def test_disabled_lint_migration_does_not_require_removed_policy(
+    worker: Path, predecessor: Path, tmp_path: Path
+) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    assert invoke(predecessor, tmp_path, "init").returncode == 0
+    config = tmp_path / "worker.toml"
+    source = config.read_text().replace("lint = true", "lint = false")
+    source, count = re.subn(r'\[\[checks\]\]\nid = "lint"\n.*?(?=\n\[|\Z)', "", source, flags=re.S)
+    assert count == 1
+    config.write_text(source)
+    (tmp_path / ".worker/lint.toml").unlink()
+    assert invoke(predecessor, tmp_path, "config-check").returncode == 0
+    result = invoke(worker, tmp_path, "upgrade", "plan", str(worker))
+    assert result.returncode == 0, result.stderr
+    path = Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
+    applied = invoke(worker, tmp_path, "upgrade", "apply", str(path))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
     assert not (tmp_path / ".worker/lint.yaml").exists()

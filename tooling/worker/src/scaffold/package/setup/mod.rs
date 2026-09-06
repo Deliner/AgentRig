@@ -11,7 +11,7 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
         args.is_empty(),
         "setup takes no arguments except --root PATH"
     );
-    let config = crate::scaffold::upgrade::release::configuration(root)?;
+    let config = config::read(root)?;
     ensure!(
         config.runtime == config::VERSION,
         "setup needs the pinned runtime; use upgrade for a release change"

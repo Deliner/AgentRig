@@ -7,16 +7,15 @@ import pytest
 from support import CONFIG, invoke, project
 
 GATE = """
-[[checks]]
-id = "lint"
-kind = "lint"
-skill = "guides/repair/SKILL.md"
-[[checks]]
-id = "tests"
-kind = "command"
-command = "fail"
-skill = "guides/repair/SKILL.md"
-warning = true
+checks:
+- id: "lint"
+  kind: "lint"
+  skill: "guides/repair/SKILL.md"
+- id: "tests"
+  kind: "command"
+  command: "fail"
+  skill: "guides/repair/SKILL.md"
+  warning: true
 """
 
 
@@ -52,7 +51,7 @@ def test_missing_stage_command_is_actionable(worker: Path, tmp_path: Path) -> No
     project(
         tmp_path,
         (CONFIG + GATE).replace(
-            'argv = ["sh", "-c", "exit 23"]', 'argv = ["missing-worker-test-executable"]'
+            'argv: ["sh", "-c", "exit 23"]', 'argv: ["missing-worker-test-executable"]'
         ),
     )
     result = invoke(worker, tmp_path, "check")
@@ -62,7 +61,7 @@ def test_missing_stage_command_is_actionable(worker: Path, tmp_path: Path) -> No
 
 
 def test_unknown_stage_command_rejected(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path, (CONFIG + GATE).replace('command = "fail"', 'command = "unknown"'))
+    project(tmp_path, (CONFIG + GATE).replace('command: "fail"', 'command: "unknown"'))
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "checks.tests: unknown command unknown" in result.stderr
@@ -121,8 +120,8 @@ def test_standalone_failure_has_executable_guidance(
     config_check = command == "config-check"
     catalog_command = command == "run"
     if config_check:
-        config = tmp_path / "worker.toml"
-        config.write_text(config.read_text().replace('command = "fail"', 'command = "unknown"'))
+        config = tmp_path / "agentrig.yaml"
+        config.write_text(config.read_text().replace('command: "fail"', 'command: "unknown"'))
     args = ("run", "fail") if catalog_command else (command,)
     result = subprocess.run(
         [str(worker), *args], cwd=tmp_path, capture_output=True, text=True, check=False

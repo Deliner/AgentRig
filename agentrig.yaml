@@ -1,0 +1,343 @@
+version: 1
+runtime: 0.3.0
+config_skill: .agents/skills/repair/SKILL.md
+processes:
+  foreground: systemd
+paths:
+  sources:
+  - tooling/**
+  - Project/**
+  memory: Ledger
+  skills: .agents/skills
+  lint: tooling/worker/lint.yaml
+  runtime: .cache/runtime
+git:
+  base: master
+  prefix: feature/
+commands:
+  read:
+    argv: []
+    accepts_args: true
+    read_only: true
+  write:
+    argv: []
+    accepts_args: true
+    read_only: false
+  build:
+    argv:
+    - tooling/worker/run
+    - --version
+    accepts_args: false
+    read_only: false
+  rustfmt:
+    argv:
+    - cargo
+    - +1.98.1
+    - fmt
+    - --manifest-path
+    - tooling/worker/Cargo.toml
+    - --check
+    accepts_args: false
+    read_only: false
+  clippy:
+    argv:
+    - cargo
+    - +1.98.1
+    - clippy
+    - --manifest-path
+    - tooling/worker/Cargo.toml
+    - --locked
+    - --
+    - -D
+    - warnings
+    accepts_args: false
+    read_only: false
+  rust-test:
+    argv:
+    - cargo
+    - +1.98.1
+    - test
+    - --manifest-path
+    - tooling/worker/Cargo.toml
+    - --locked
+    - --lib
+    accepts_args: false
+    read_only: false
+  test:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - pytest
+    - -c
+    - tooling/pyproject.toml
+    - --rootdir
+    - .
+    accepts_args: true
+    read_only: false
+  ruff-format:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - ruff
+    - format
+    - --check
+    - --config
+    - tooling/pyproject.toml
+    accepts_args: false
+    read_only: false
+  ruff:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - ruff
+    - check
+    - --config
+    - tooling/pyproject.toml
+    accepts_args: false
+    read_only: false
+  mypy:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - mypy
+    - --config-file
+    - tooling/pyproject.toml
+    - tooling/tests
+    - tooling/worker/examples
+    accepts_args: false
+    read_only: false
+  typos:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - typos
+    - --config
+    - tooling/pyproject.toml
+    - .
+    accepts_args: false
+    read_only: false
+  vulture:
+    argv:
+    - uv
+    - run
+    - --locked
+    - --project
+    - tooling
+    - vulture
+    - --min-confidence
+    - '100'
+    - tooling/tests
+    - tooling/worker/examples
+    accepts_args: false
+    read_only: false
+  review-test:
+    argv:
+    - cargo
+    - +1.98.1
+    - test
+    - --manifest-path
+    - tooling/worker/review/Cargo.toml
+    - --locked
+  review-clippy:
+    argv:
+    - cargo
+    - +1.98.1
+    - clippy
+    - --manifest-path
+    - tooling/worker/review/Cargo.toml
+    - --locked
+    - --all-targets
+    - --
+    - -D
+    - warnings
+  review-rustfmt:
+    argv:
+    - cargo
+    - +1.98.1
+    - fmt
+    - --manifest-path
+    - tooling/worker/review/Cargo.toml
+    - --check
+  review:
+    argv:
+    - tooling/worker/run
+    - review
+    accepts_args: true
+    read_only: false
+checks:
+- id: build
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: build
+- id: lint
+  kind: lint
+  skill: .agents/skills/repair/SKILL.md
+- id: memory
+  kind: memory
+  skill: .agents/skills/repair/SKILL.md
+- id: rustfmt
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rustfmt
+- id: clippy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: clippy
+- id: rust-test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rust-test
+- id: ruff-format
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff-format
+- id: ruff
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff
+- id: mypy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: mypy
+- id: test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: test
+- id: typos
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: typos
+- id: vulture
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: vulture
+- id: review-test
+  kind: command
+  command: review-test
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-clippy
+  kind: command
+  command: review-clippy
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-rustfmt
+  kind: command
+  command: review-rustfmt
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+hooks:
+  reminder: .agents/skills/complexity-discipline/context-reminder.json
+  discipline_skill: .agents/skills/complexity-discipline/SKILL.md
+  routes:
+  - include:
+    - Ledger/Plan.md
+    - Ledger/Plan/**/*.md
+    skill: .agents/skills/edit-plan/SKILL.md
+  - include:
+    - Ledger/Decisions.md
+    - Ledger/Decisions/**/*.md
+    skill: .agents/skills/edit-decisions/SKILL.md
+  - include:
+    - Ledger/Invariants.md
+    - Ledger/Invariants/**/*.md
+    skill: .agents/skills/edit-invariants/SKILL.md
+  - include:
+    - Ledger/State.md
+    - Ledger/State/**/*.md
+    skill: .agents/skills/edit-state/SKILL.md
+oracles:
+  I001:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_memory.py::test_decision_source_markers
+  I002:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_integration.py::test_independent_project_delivery
+  I003:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_memory.py::test_committed_decisions_checked_against_staged_memory
+  I004:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills
+  I005:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_hooks.py::test_shell_guard_rejects_bypass
+  I006:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_git.py::test_staged_commit_preserves_unstaged_work
+  I007:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
+  I008:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_memory.py::test_repository_layout_and_detail_contract
+  I009:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_plan.py::test_plan_delivery_contract
+  I010:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_git.py::test_divergent_rebase_preserves_merge_history
+  I011:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_state.py::test_state_recovery_contract
+  I012:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_hooks.py::test_ledger_edit_guidance
+  I014:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/test_lint.py::test_invalid_config_is_actionable
+  I015:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/test_language.py::test_language_conditions
+  I016:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/test_config_check.py::test_config_rejects_unsupported_language
+  I017:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_strict.py::test_strict_defaults_block_delivery
+  I018:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_feedback.py::test_evidence_tracks_content_and_partial_checks
+  I019:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_real_conflict
+  I020:
+    check: test
+    runner: pytest
+    target: tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership

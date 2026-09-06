@@ -30,21 +30,22 @@ def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
 @pytest.mark.parametrize(
     ("old", "new"),
     [
-        ('runtime = "0.2.0"', 'runtime = "9.0.0"'),
-        ("version = 1", "version = 7"),
-        ("[paths]", '[processes]\nforeground = "unknown"\n[paths]'),
-        ('memory = "notes"', 'memory = "../outside"'),
-        ("read_only = true", 'read_only = "true"'),
-        ("accepts_args = true", "accept_arg = true"),
-        ('skills = "guides"', 'skills = "/outside"'),
-        ('base = "trunk"', 'base = "bad branch"'),
-        ('base = "trunk"', 'base = "topic.lock"'),
-        ('prefix = "task/"', 'prefix = "trunk"'),
-        ('prefix = "task/"', 'prefix = "task//"'),
-        ("read_only = true", 'read_only = true\nlifetime = "forever"'),
+        ('runtime: "0.3.0"', 'runtime: "9.0.0"'),
+        ("version: 1", "version: 7"),
+        ("paths:", '\nprocesses:\n  foreground: "unknown"\npaths:\n\n'),
+        ('memory: "notes"', 'memory: "../outside"'),
+        ("read_only: true", 'read_only: "true"'),
+        ("accepts_args: true", "accept_arg: true"),
+        ('skills: "guides"', 'skills: "/outside"'),
+        ('base: "trunk"', 'base: "bad branch"'),
+        ('base: "trunk"', 'base: "topic.lock"'),
+        ('prefix: "task/"', 'prefix: "trunk"'),
+        ('prefix: "task/"', 'prefix: "task//"'),
+        ("read_only: true", 'read_only: true\nlifetime: "forever"'),
     ],
 )
 def test_configuration_errors(worker: Path, tmp_path: Path, old: str, new: str) -> None:
+    assert old in CONFIG
     project(tmp_path, CONFIG.replace(old, new))
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
@@ -69,7 +70,7 @@ def test_signal_reaches_child(worker: Path, tmp_path: Path) -> None:
     project(
         tmp_path,
         CONFIG
-        + "\n[commands.wait]\nargv = ['python3', '-c', 'import os,time; open(\"child.pid\",\"w\").write(str(os.getpid())); time.sleep(60)']\n",
+        + '\n  wait:\n    argv: ["python3", "-c", "import os,time; open(\\"child.pid\\",\\"w\\").write(str(os.getpid())); time.sleep(60)"]\n',
     )
     process = subprocess.Popen(
         [str(worker), "run", "--root", str(tmp_path), "wait"],
@@ -111,7 +112,7 @@ def wait_for_job(worker: Path, root: Path) -> dict[str, Any]:
 
 
 def start(worker: Path, root: Path) -> subprocess.Popen[bytes]:
-    project(root, CONFIG + '\n[commands.wait]\nargv = ["sleep", "60"]\n')
+    project(root, CONFIG + '\n  wait:\n    argv: ["sleep", "60"]\n')
     return subprocess.Popen(
         [str(worker), "run", "--root", str(root), "wait"],
         stdin=subprocess.DEVNULL,
@@ -164,7 +165,7 @@ def test_recovery_does_not_trust_saved_pid(worker: Path, tmp_path: Path) -> None
 
 
 def test_spawn_failure_is_recorded(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path, CONFIG + '\n[commands.missing]\nargv = ["/missing-worker-test-binary"]\n')
+    project(tmp_path, CONFIG + '\n  missing:\n    argv: ["/missing-worker-test-binary"]\n')
     assert invoke(worker, tmp_path, "run", "missing").returncode == 127
     row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
     assert row["state"] == "completed" and row["exit_code"] == 127
@@ -178,7 +179,7 @@ def test_nested_command_inherits_owner_and_parent(
     monkeypatch.setenv("WORKER_OWNER", "nested-owner")
     monkeypatch.setenv("WORKER_PARENT_RUN", "external-parent")
     nested = [str(worker), "run", "--root", str(tmp_path), "fail"]
-    project(tmp_path, CONFIG + "\n[commands.nested]\nargv = " + json.dumps(nested))
+    project(tmp_path, CONFIG + "\n  nested:\n    argv: " + json.dumps(nested))
     result = invoke(worker, tmp_path, "run", "nested")
     assert result.returncode == 23, result.stderr
     rows = json.loads(invoke(worker, tmp_path, "jobs").stdout)
@@ -194,7 +195,7 @@ def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -
     code = (
         "import sys; sys.stdout.buffer.write(bytes([255])*131072); sys.stderr.write('error stream')"
     )
-    project(tmp_path, CONFIG + "\n[commands.output]\nargv = " + json.dumps(["python3", "-c", code]))
+    project(tmp_path, CONFIG + "\n  output:\n    argv: " + json.dumps(["python3", "-c", code]))
     result = subprocess.run(
         [str(worker), "run", "--root", str(tmp_path), "output"], capture_output=True, check=False
     )
@@ -221,7 +222,7 @@ def background_id(worker: Path, root: Path, command: str = "wait") -> str:
 
 def test_foreground_scope_preserves_input_and_streams(worker: Path, tmp_path: Path) -> None:
     require_user_systemd()
-    project(tmp_path, CONFIG + '\n[processes]\nforeground = "systemd"\n')
+    project(tmp_path, CONFIG + '\nprocesses:\n  foreground: "systemd"\n')
     result = invoke(worker, tmp_path, "run", "echo", "argument", input="input bytes")
     assert result.returncode == 0, result.stderr
     assert result.stdout == "['argument']\ninput bytes\n"
@@ -239,7 +240,7 @@ def test_foreground_scope_preserves_input_and_streams(worker: Path, tmp_path: Pa
 def test_scope_launcher_exit_does_not_claim_payload_success(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    project(tmp_path, CONFIG + '\n[processes]\nforeground = "systemd"\n')
+    project(tmp_path, CONFIG + '\nprocesses:\n  foreground: "systemd"\n')
     launcher = tmp_path / "systemd-run"
     launcher.write_text("#!/bin/sh\nexit 0\n")
     launcher.chmod(0o755)
@@ -258,8 +259,8 @@ def test_owner_cleanup_covers_nested_scopes(
     require_user_systemd()
     monkeypatch.setenv("WORKER_OWNER", "nested-scope-owner")
     nested = [str(worker), "job-start", "--root", str(tmp_path), "wait"]
-    config = CONFIG + '\n[processes]\nforeground = "systemd"\n'
-    config += '[commands.wait]\nargv = ["sleep", "60"]\n[commands.nested]\nargv = '
+    config = 'processes:\n  foreground: "systemd"\n' + CONFIG
+    config += '  wait:\n    argv: ["sleep", "60"]\n  nested:\n    argv: '
     project(tmp_path, config + json.dumps(nested))
     result = invoke(worker, tmp_path, "run", "nested")
     assert result.returncode == 0, result.stderr
@@ -293,7 +294,7 @@ def test_foreground_scope_cancels_detached_descendant(
     require_user_systemd()
     monkeypatch.setenv("WORKER_OWNER", "foreground-owner")
     code = "import subprocess,time; subprocess.Popen(['sleep','60'],start_new_session=True); print('ready',flush=True); time.sleep(60)"
-    config = CONFIG + '\n[processes]\nforeground = "systemd"\n[commands.wait]\nargv = '
+    config = 'processes:\n  foreground: "systemd"\n' + CONFIG + "\n  wait:\n    argv: "
     project(tmp_path, config + json.dumps(["python3", "-c", code]))
     process = subprocess.Popen(
         [str(worker), "run", "--root", str(tmp_path), "wait"],
@@ -343,7 +344,7 @@ def test_background_ownership_and_descendant_cleanup(
 ) -> None:
     require_user_systemd()
     code = "import subprocess,time; subprocess.Popen(['sleep','60'], start_new_session=True); print('ready',flush=True); time.sleep(60)"
-    project(tmp_path, CONFIG + "\n[commands.wait]\nargv = " + json.dumps(["python3", "-c", code]))
+    project(tmp_path, CONFIG + "\n  wait:\n    argv: " + json.dumps(["python3", "-c", code]))
     monkeypatch.setenv("WORKER_OWNER", "owner-one")
     first = background_id(worker, tmp_path)
     monkeypatch.setenv("WORKER_OWNER", "owner-two")
@@ -384,7 +385,7 @@ def test_background_forced_stop_keeps_logs(
 ) -> None:
     require_user_systemd()
     code = "import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print('ready',flush=True); time.sleep(60)"
-    project(tmp_path, CONFIG + "\n[commands.wait]\nargv = " + json.dumps(["python3", "-c", code]))
+    project(tmp_path, CONFIG + "\n  wait:\n    argv: " + json.dumps(["python3", "-c", code]))
     monkeypatch.setenv("WORKER_OWNER", "forced-stop-owner")
     identifier = background_id(worker, tmp_path)
     try:
@@ -405,7 +406,7 @@ def test_cleanup_preserves_another_branch(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     require_user_systemd()
-    project(tmp_path, CONFIG + '\n[commands.wait]\nargv = ["sleep", "60"]\n')
+    project(tmp_path, CONFIG + '\n  wait:\n    argv: ["sleep", "60"]\n')
     subprocess.run(["git", "init", "-q", "-b", "task/first", str(tmp_path)], check=True)
     monkeypatch.setenv("WORKER_OWNER", "branch-owner")
     first = background_id(worker, tmp_path)

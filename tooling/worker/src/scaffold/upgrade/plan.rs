@@ -1,4 +1,5 @@
 use super::{
+    migration,
     model::{Action, Change, Plan, State},
     release, storage,
 };
@@ -7,7 +8,12 @@ use crate::scaffold::{
     package::manifest::{self, Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
-use std::{collections::BTreeSet, fs, path::Path, process::Command};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs,
+    path::Path,
+    process::Command,
+};
 
 struct Draft<'a> {
     root: &'a Path,
@@ -15,6 +21,7 @@ struct Draft<'a> {
     directory: &'a Path,
     exported: &'a Path,
     old: Manifest,
+    resources: BTreeMap<String, Vec<u8>>,
     plan: Plan,
 }
 
@@ -37,6 +44,7 @@ pub fn create(root: &Path, binary: &Path) -> Result<i32> {
         directory: pending.path(),
         exported: exported.path(),
         old,
+        resources: migration::resources(root, &configuration)?,
         plan,
     };
     draft.collect()?;
@@ -47,7 +55,7 @@ pub fn create(root: &Path, binary: &Path) -> Result<i32> {
     Ok(0)
 }
 fn prepare_release(root: &Path, binary: &Path) -> Result<(config::Config, tempfile::TempDir)> {
-    let configuration = release::configuration(root)?;
+    let configuration = migration::configuration(root)?;
     ensure!(
         configuration.runtime == release::FROM,
         "only {} -> {} is implemented",
@@ -99,6 +107,8 @@ impl Draft<'_> {
             .collect();
         paths.insert(self.configuration.paths.lint.clone());
         paths.insert(release::lint_path(&self.configuration.paths.lint));
+        paths.extend(self.resources.keys().cloned());
+        paths.extend(self.resources.keys().map(|path| release::lint_path(path)));
         paths.extend(self.configuration.hooks.reminder.iter().cloned());
         for path in paths {
             let change = self.change(&path)?;
@@ -137,22 +147,24 @@ impl Draft<'_> {
     }
     fn migrate(&self, path: &str, change: &mut Change) -> Result<bool> {
         let lint = &self.configuration.paths.lint;
-        let target = release::lint_path(lint);
-        let bytes = match path {
-            config::FILE => release::migrated(&fs::read_to_string(self.root.join(path))?)?,
-            path if path == target => release::lint_yaml(self.root, lint)?,
-            path if path == lint => {
+        let bytes = match self.migration_bytes(path)? {
+            Some(bytes) => bytes,
+            None if path == lint
+                || path == migration::LEGACY_FILE
+                || self.resources.contains_key(path) =>
+            {
                 change.after.sha256 = None;
                 change.after.mode = None;
                 change.action = Action::Remove;
-                change.reason = "replace legacy lint path with its YAML configuration".into();
+                change.reason = "replace legacy path with its YAML configuration".into();
                 return Ok(true);
             }
-            _ => return Ok(false),
+            None => return Ok(false),
         };
         change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
         change.after.mode = Some(change.before.mode.unwrap_or(0o644));
-        let collision = path == target && path != lint && change.before.sha256.is_some();
+        let collision =
+            path != lint && !self.resources.contains_key(path) && change.before.sha256.is_some();
         change.action = if collision {
             Action::Conflict
         } else {
@@ -160,11 +172,30 @@ impl Draft<'_> {
         };
         let project = path == config::FILE;
         change.reason = if project {
-            "migrate runtime pin and lint reference; preserve project settings and comments"
+            "convert project settings and runtime pin to YAML; original formatting/comments retained in reviewed preimage"
         } else {
-            "convert configured lint to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
+            "convert configured resource to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
         }.into();
         Ok(true)
+    }
+    fn migration_bytes(&self, path: &str) -> Result<Option<Vec<u8>>> {
+        let root_config = path == config::FILE;
+        if root_config {
+            return Ok(Some(release::migrated(&fs::read_to_string(
+                self.root.join(migration::LEGACY_FILE),
+            )?)?));
+        }
+        let lint = &self.configuration.paths.lint;
+        let lint_target = path == release::lint_path(lint)
+            && (self.configuration.capabilities.lint || self.root.join(lint).is_file());
+        if lint_target {
+            return Ok(Some(release::lint_yaml(self.root, lint)?));
+        }
+        Ok(self
+            .resources
+            .iter()
+            .find(|(source, _)| release::lint_path(source) == path)
+            .map(|(_, bytes)| bytes.clone()))
     }
     fn preserve(&self, path: &str) -> bool {
         let ownership = self

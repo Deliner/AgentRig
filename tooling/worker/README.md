@@ -1,6 +1,6 @@
 # Rust worker runtime and structural linter
 
-The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project worker.toml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
+The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project agentrig.yaml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
 
 ## Build and execution
 
@@ -12,7 +12,7 @@ The hook registration invokes run hook with an explicit repository root. Ledger 
 
 ## Configuration
 
-The lint file selected by worker.toml (or --config; standalone default lint.yaml) uses strict YAML version 1 of the worker schema. Unknown fields, duplicate keys, wrong types, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. Anchors, aliases, tags and merge keys are rejected. Legacy TOML requires explicit migration; there is no runtime fallback. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
+The lint file selected by agentrig.yaml (or --config; standalone default lint.yaml) uses strict YAML version 1 of the worker schema. Unknown fields, duplicate keys, wrong types, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. Anchors, aliases, tags and merge keys are rejected. Legacy TOML requires explicit migration; there is no runtime fallback. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
 
 Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.yaml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks YAML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
@@ -90,7 +90,7 @@ Parser APIs and grammars: [Tree-sitter](https://docs.rs/tree-sitter/0.26.13/tree
 
 The pre-commit hook checks the actual exported Git index, including its Rust sources, lint config, and skill files. Structural lint runs before the other checks. The same gate runs on the integration candidate before merge and after a required rebase; errors stop the operation, warnings do not.
 
-Each checks entry in worker.toml names its repair skill. The shared gate preserves original tool output and reports that skill, the selected scope and an executable retry command on failure; structural findings use their rule-specific skills. `just check --only CHECK_ID` retries one stage without replacing the full commit/merge gates. See [recovery and check evidence](SCAFFOLD.md#memory-and-recovery) for resume freshness and repeated-failure feedback.
+Each checks entry in agentrig.yaml names its repair skill. The shared gate preserves original tool output and reports that skill, the selected scope and an executable retry command on failure; structural findings use their rule-specific skills. `just check --only CHECK_ID` retries one stage without replacing the full commit/merge gates. See [recovery and check evidence](SCAFFOLD.md#memory-and-recovery) for resume freshness and repeated-failure feedback.
 
 Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
@@ -192,7 +192,7 @@ not successful completion. Ownership is coordination within a user account,
 not an access-control boundary against that same user's own programs.
 
 Commands default to `lifetime = "task"`; set `lifetime = "shared"` in a command's
-worker.toml table for a service that must outlive task cleanup. `just job-cleanup`
+agentrig.yaml table for a service that must outlive task cleanup. `just job-cleanup`
 cleans the current owner's task scopes; `--branch BRANCH` narrows that selection.
 Successful feature-merge invokes the same cleanup for the merged branch. Shared
 services, other owners, other branches and the active cleanup caller are retained.
@@ -217,7 +217,7 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 Duplicate keys, unknown fields, incorrect types and YAML composition constructs
 are errors. Legacy TOML requires explicit migration; no fallback is used.
 Profile validation, asynchronous CLI execution and the MCP adapter are implemented.
-Select `capabilities.delegation.config` in worker.toml and run setup to register
+Select `capabilities.delegation.config` in agentrig.yaml and run setup to register
 the configured MCP service. A successful configuration check does not run
 an executor or prove model/service availability.
 

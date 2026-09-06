@@ -148,7 +148,7 @@ fn export(root: &Path) -> Result<tempfile::TempDir> {
     );
     ensure!(
         directory.path().join(config::FILE).is_file(),
-        "stage worker.toml before checking the index"
+        "stage agentrig.yaml before checking the index"
     );
     Ok(directory)
 }

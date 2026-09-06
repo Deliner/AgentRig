@@ -12,9 +12,9 @@ Rows = list[tuple[int, str, str]]
 
 
 def write_plan(root: Path, rows: Rows) -> None:
-    uninitialized = not (root / "worker.toml").exists()
+    uninitialized = not (root / "agentrig.yaml").exists()
     if uninitialized:
-        project(root, CONFIG.replace('memory = "notes"', 'memory = "Ledger"'))
+        project(root, CONFIG.replace('memory: "notes"', 'memory: "Ledger"'))
         memory(root).rename(root / "Ledger")
     details = root / "Ledger/Plan"
     details.mkdir(parents=True, exist_ok=True)

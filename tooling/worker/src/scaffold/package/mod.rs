@@ -49,7 +49,7 @@ fn bundle(config: &Config) -> Result<Files> {
     let mut files = BTreeMap::<String, Vec<u8>>::new();
     files.insert(
         config::FILE.into(),
-        toml::to_string_pretty(config)?.into_bytes(),
+        review_runner::config::yaml::encode(config)?.into_bytes(),
     );
     for (name, source) in assets::skills(config) {
         files.insert(format!("{skill_root}/{name}/SKILL.md"), source.into_bytes());

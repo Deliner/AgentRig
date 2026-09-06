@@ -135,11 +135,11 @@ def configured_session(worker: Path, tmp_path: Path) -> dict[str, Any]:
     assert (
         invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
     )
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     config.write_text(
         config.read_text()
-        .replace('runtime = ".worker/runtime"', 'runtime = ".scratch/state"')
-        .replace('reminder = ".worker/reminder.json"', 'reminder = ".scratch/reminder.json"')
+        .replace("runtime: .worker/runtime", "runtime: .scratch/state")
+        .replace("reminder: .worker/reminder.json", "reminder: .scratch/reminder.json")
     )
     scratch = tmp_path / ".scratch"
     scratch.mkdir()

@@ -1,20 +1,18 @@
 # Portable scaffold runtime
 
-The portable entry point is `worker.toml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
+The portable entry point is `agentrig.yaml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
 A distributor builds the pinned crate with `cargo build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `discipline-worker` and `discipline-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
-Project capabilities are selected in `worker.toml`:
+Project capabilities are selected in `agentrig.yaml`:
 
-```toml
-[capabilities]
-lint = true
-
-[capabilities.review]
-config = ".worker/review/config/review.yaml"
-
-[capabilities.delegation]
-config = "agents/profiles.yaml"
+```yaml
+capabilities:
+  lint: true
+  review:
+    config: .worker/review/config/review.yaml
+  delegation:
+    config: agents/profiles.yaml
 ```
 
 Lint defaults to enabled for existing projects and uses `paths.lint`. Disabling
@@ -42,7 +40,7 @@ working systemd scopes, bubblewrap and native Codex when delegation is enabled.
 `discipline-worker setup --root CONSUMER` reads the existing declaration and
 prepares the environment. To obtain a starting declaration and assets, use
 `init --root CONSUMER --review true`, edit the generated settings, then run setup.
-Setup can also start from only worker.toml and any custom referenced resources.
+Setup can also start from only agentrig.yaml and any custom referenced resources.
 It installs missing stock assets, validates a temporary preview, registers Git
 hooks and the `worker_review` MCP server, creates runtime/report directories and
 runs doctor. A new consumer receives a Git repository on the configured base.
@@ -86,11 +84,11 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | `feature-start NAME` / `feature-merge` | Create or integrate a branch according to configured base/prefix. Integration runs the gate and retains the branch. |
 | `hook` | Read an agent event as JSON from stdin and emit guidance or denial. |
 
-Warnings do not fail lint; blocking findings exit 1 and configuration failures exit 2. External checks retain their process exit codes; a check configured with `warning = true` can report a nonzero exit without failing the gate. Interruptions still stop it. External output is preserved. Failure diagnostics identify the check, location or selected scope, cause, configured repair skill and a shell-quoted RERUN command. Lint JSON also includes rerun. In a project requiring catalogued shell operations, execute that command through `just run write --`; `just check --only CHECK_ID` is the shorter gate retry. Commit and integration adapters always run the full gate.
+Warnings do not fail lint; blocking findings exit 1 and configuration failures exit 2. External checks retain their process exit codes; a check configured with `warning: true` can report a nonzero exit without failing the gate. Interruptions still stop it. External output is preserved. Failure diagnostics identify the check, location or selected scope, cause, configured repair skill and a shell-quoted RERUN command. Lint JSON also includes rerun. In a project requiring catalogued shell operations, execute that command through `just run write --`; `just check --only CHECK_ID` is the shorter gate retry. Commit and integration adapters always run the full gate.
 
 ## Configuration ownership
 
-`worker.toml` has schema `version = 1` and an exact `runtime` package version. Unknown fields are errors. Project-relative filesystem paths cannot escape the root. Source and check selectors are globs. The generated file is a complete editable example.
+`agentrig.yaml` has schema `version: 1` and an exact `runtime` package version. Unknown fields are errors. Project-relative filesystem paths cannot escape the root. Source and check selectors are globs. The generated file is a complete editable example.
 
 - `paths`: source selectors and locations of memory, skills, lint configuration and transient runtime data.
 - `git`: base branch and working-branch prefix.
@@ -121,25 +119,27 @@ The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, i
 
 `report` shows consecutive failures of a check and its presented skill and retry command. Counts reset on success or when that check is absent from the previous attempt; they describe check attempts, not identical errors or proof of reading guidance. If an applied skill fails to help with the same concrete error, use the repair skill to correct the canonical instruction or diagnostic and verify the actual failed scenario. VAC intent and observed verification belong in context and commit descriptions; there is no manager, scheduler or extra checkpoint.
 
-The four editing skills and one route handler provide pre-edit guidance. Complexity reminders retain session/compaction accounting and retry behavior using the configured schedule. The worker repository uses the same runtime; its worker.toml supplies repository-specific paths, commands and oracles. Canonical skills live in assets/skills, are embedded at build time, and are exposed to this repository through .agents/skills.
+The four editing skills and one route handler provide pre-edit guidance. Complexity reminders retain session/compaction accounting and retry behavior using the configured schedule. The worker repository uses the same runtime; its agentrig.yaml supplies repository-specific paths, commands and oracles. Canonical skills live in assets/skills, are embedded at build time, and are exposed to this repository through .agents/skills.
 
 
 ## Upgrades
 
-The 0.2.0 executable can prepare the explicit 0.1.0 → 0.2.0 transition:
+The development 0.3.0 executable prepares the explicit 0.2.0 → 0.3.0 transition:
 `/path/to/new/discipline-worker upgrade plan /path/to/new/discipline-worker --root PROJECT`.
 The release argument is a local executable. Its existing `init` exports stock
 content into a temporary directory using the project's memory and skill paths.
-A 0.1.0 installation without a receipt reconstructs its stock baseline using
+A 0.2.0 installation without a receipt reconstructs its stock baseline using
 its installed executable; the plan identifies that origin.
 
 The command writes `plan.json`, `diff.txt` and checksummed before/after blobs
 under the configured runtime directory's `upgrade/plan-*` directory. It shows
 local conflicts and the required config-check, doctor and project check steps.
-Settings and memory stay intact; the runtime pin and lint path change while root
-TOML comments are preserved. The legacy lint policy is explicitly converted to
-YAML with its values preserved; its original formatting and comments remain in
-the reviewed preimage for rollback. An existing YAML destination is a conflict.
+Project settings move from worker.toml to agentrig.yaml, with an updated runtime
+pin and YAML resource references. Lint, review/project and delegate configurations
+are explicitly converted. Values and memory are preserved; original formatting
+and comments remain in reviewed preimages for rollback, rather than in the YAML
+output. An existing YAML destination is a conflict. Review project configuration
+files must currently reside inside the installation for this migration.
 Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
 `"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
 plan fields intact. Kept local contents are recorded separately from stock
@@ -166,5 +166,12 @@ commands work even when interruption leaves binary and configuration versions
 out of step. The installed `just upgrade` adapter forwards these commands;
 `resume` and session hooks expose the operation and next action. Commit and
 merge reject an unfinished operation. The journal is technical recovery data,
-separate from agent State. This release supports only 0.1.0 → 0.2.0, keeps schema
-version 1, and performs no memory-format migration.
+separate from agent State. The transition supports only 0.2.0 → 0.3.0, keeps schema
+version 1, and performs no memory-format migration. Normal commands load only
+agentrig.yaml. During an active upgrade with that file not yet installed, resume
+and SessionStart expose technical recovery guidance without loading legacy task
+settings. Historical memory checks still read the committed legacy memory location
+so a format change cannot remove the prior decisions baseline.
+
+P004 remains in development: final AgentRig binary/service-directory naming,
+composed environments and complete delegate migration acceptance are outstanding.
