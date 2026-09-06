@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: expose directory architecture checking through the shared lint CLI.
+Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: verify behavior-preserving architectural repairs in real four-language consumers.
 
 ## Workspace
 
 Branch: feature/directory-architecture
 
-Revision: 82d731a
+Revision: cf82ef2
 
-Resumed the clean P006 feature branch at 82d731a. Git confirms the Rust resolver VAC is committed and resume reports its full gate completed with code 0. State had still described that commit as pending. No unrelated changes were present; the installed development pin remains unchanged.
+Resumed the clean P006 feature branch at cf82ef2. Git confirms CLI integration is committed and resume reports its full gate completed with code 0: 396 Python and 101 Rust tests passed. State still described that commit as pending. No unrelated work is present; the installed development pin remains unchanged.
 
 ## Progress
 
-P006 remains active. The opt-in directory-architecture rule now connects configuration, directory/source selection, four-language resolution, contracts, cycles and diagnostics. Discovery describes settings and limits; config-check validates selection and explain reports source-bearing directories. Excluded sources remain visible as dependency targets. The canonical directory repair skill now addresses responsibility, dependency direction and public/private access; ARCHITECTURE.md documents actual semantics and limits. CLI tests are grouped under tooling/tests/native/lint with portable and explain tests. Remaining supported-import coverage and complete independent consumer acceptance stay inside P006. P007/P008 remain pending.
+P006 remains active. Four new independent consumers exercise actual compiled/interpreted behavior and both lint binaries. Each initially accesses private implementation, then switches to its existing public API without changing directory permissions. Results and consumer files are preserved. The shared CLI, contracts, graph, discovery and repair guidance are committed. Remaining extraction gaps and final feature acceptance stay inside P006. P007/P008 remain pending.
 
 ## Verification
 
-All 51 architecture component tests and 100 focused CLI/language regression tests pass. New consumers cover four languages with valid/missing/forbidden/private/cyclic contracts, incomplete analysis, warning severity, standalone nonmutation, excluded dependency targets, configuration/discovery/explanation and an escaping Git symlink. A regression in shared syntax-error deduplication was found and repaired. Ruff and the directory skill metadata validator pass. The latest lint finding was corrected by indexing catalog entries by kind; the full staged gate remains pending. No complete P006 acceptance is claimed.
+All four executable repair tests pass using Rust 1.98.1, Python 3.12.3 and Node 22.22.3. TypeScript has real annotations and executes through Node strip-types; this does not claim compiler type checking. Both CLIs agree before/after repairs, return source evidence and leave project files unchanged; contracts remain byte-identical. An unused import and inline comprehension condition were corrected after local checks. The new VAC's full staged gate remains pending. No complete P006 acceptance is claimed.
 
 ## Blockers
 
-No external blocker. Rust lexical/wildcard and compiler-expansion coverage, Python initializer exports/runtime imports, and unsupported JavaScript/TypeScript resolution forms still need acceptance-driven handling; documented limits alone do not complete P006.
+No external blocker. The contract permits explicit resolution limits; it does not require a full compiler. Recognized unsupported forms must report incomplete analysis instead of silently passing. Python loader aliases, JavaScript loader factories/aliases and Rust macro attributes need concrete probes against that requirement.
 
 ## Next action
 
-Commit CLI integration through the staged gate, correcting any failures. Complete supported-import handling needed by actual consumers and verify real behavior-preserving architectural repairs, full standalone/embedded parity and all four-language acceptance before marking P006 complete and feature-merge. Then deliver P007 and P008 in order. Preserve the installed development pin while testing candidates.
+Commit the executable consumer verification through the staged gate. Probe and repair recognized source forms that bypass extraction, then audit all P006 acceptance against current evidence, record supported forms and integrate through feature-merge only after acceptance. Deliver P007 and P008 afterward. Preserve the installed development pin while testing candidates.

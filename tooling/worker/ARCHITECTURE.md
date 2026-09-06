@@ -107,3 +107,14 @@ proof; remaining coverage is part of P006 delivery.
 Use the linked `refactor-large-directory` skill to repair responsibility, dependency
 direction or public access. Moving files into arbitrary buckets or widening
 permissions to silence findings does not establish the intended architecture.
+
+## Executable consumer verification
+
+`tooling/tests/native/lint/test_architecture_behavior.py` compiles or executes
+independent Rust, Python, JavaScript and TypeScript consumers before and after
+replacing private access with an existing public API. The result stays `7`, the
+directory contracts remain byte-for-byte unchanged, and both lint binaries agree
+on the violation and repair without changing consumer files. These tests use
+Rust 1.98.1, Python 3.12.3 and Node 22.22.3. TypeScript execution uses Node's
+`--experimental-strip-types` with explicit `.ts` imports and type annotations;
+it verifies runtime behavior, not TypeScript compiler type checking.
