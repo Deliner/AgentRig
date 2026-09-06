@@ -11,6 +11,8 @@ use std::{
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema_version: u32,
+    #[serde(default)]
+    pub vcs: review_runner::vcs::Kind,
     pub profiles: BTreeMap<String, Profile>,
 }
 

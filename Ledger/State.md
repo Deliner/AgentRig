@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: select Git/Mercurial for snapshots and isolated review, including repair reviews.
+Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: select Git/Mercurial for delegated revision inputs and identify the source VCS in retained results.
 
 ## Workspace
 
 Branch: feature/vcs-backends
 
-Revision: 134cf94
+Revision: 8a868c0
 
-P006 is integrated at 0c9cc39. The first P007 component is committed at 134cf94 through the full gate (430 Python and 103 Rust tests). The current branch retains that component and the installed development pin is unchanged. Ledger/Requests.md separately preserves the user's requested reminder and original description; it is untracked and must be preserved.
+P006 is integrated at 0c9cc39. Native VCS reads and selectable review snapshots are committed at 134cf94 and 8a868c0; the latter passed its full gate with 430 Python and 107 Rust tests. The installed development pin is unchanged. Ledger/Requests.md separately preserves the user's requested reminder and original description; it is untracked and must be preserved.
 
 ## Progress
 
-P007 is active. Mercurial 7.2.4 is supplied by the locked uv test environment. Native revision/file reads are committed. Review project YAML now selects repository.vcs (git by default, or mercurial). Snapshot export, visibility checks and repair-review diffs use that backend; Mercurial control metadata is excluded. The current delegate scope still defaults to Git. Shared delivery configuration, setup, private adapters, delegation and delivery/recovery operations remain required. P008 is pending.
+P007 is active. Mercurial 7.2.4 is supplied by the locked uv test environment. Review project YAML selects repository.vcs. Delegation YAML now selects top-level vcs, defaulting to Git, for all profiles' source snapshots. Retained input manifests and code reports identify the source VCS. Real Mercurial read/artifact/code runs pass with test clients, including failed checks and patch import into a separate base checkout. The isolated code patch builder still uses Git internally, explicitly documented. Shared delivery configuration, setup, private adapters and delivery/recovery operations remain required. P008 is pending.
 
 ## Verification
 
-Nineteen focused Rust tests pass: five native VCS/config/snapshot tests, three existing snapshot tests and eleven execution tests. A real Mercurial repository completes isolated review and repair review through bubblewrap with a test critic; original base, changed candidate, repair diff and dirty worktree preservation are verified. No real model acceptance is claimed. The fixture extraction was rechecked with the Mercurial execution test, and structural lint has no blocking findings. This VAC's full staged gate is pending; the prior component's passing gate does not prove this content.
+Forty-six focused Python tests pass across new Mercurial delegation, configuration validation and existing Git code delegation. Four Rust task tests pass. New scenarios verify committed inputs despite dirty source files, read-only mounts, retained VCS/revision identity, checked code success/failure, cleanup and importing the retained patch into a separate Mercurial base checkout. Structural lint has no blocking findings. No real model acceptance is claimed. This VAC's full staged gate is pending; the prior component's passing gate does not prove this content.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed. Only Git was initially on PATH; the locked uv environment now pro
 
 ## Next action
 
-Commit snapshot/review backend selection through the staged gate. Continue shared project configuration, setup, delegation, private adapters and all configured delivery/recovery operations with actual backend capabilities. Commit the separately requested reminder without losing it. Verify independent Git/Mercurial consumers and private extension behavior before P007 acceptance/integration, then deliver P008. Preserve the installed development pin while testing candidates.
+Commit delegation backend selection through the staged gate. Continue shared project configuration, setup, private adapters and all configured delivery/recovery operations with actual backend capabilities, consolidating remaining VCS-specific code at the shared boundary. Commit the separately requested reminder without losing it. Verify full independent Git/Mercurial consumer acceptance and private extension behavior before P007 integration, then deliver P008. Preserve the installed development pin while testing candidates.

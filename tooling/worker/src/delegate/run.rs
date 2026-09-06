@@ -39,12 +39,12 @@ pub fn cancel(runtime: &Path, id: &str) -> Result<Value> {
 }
 
 pub fn start(root: &Path, runtime: &Path, config_path: &Path, request: Request) -> Result<Value> {
-    let mut config = config::load(config_path)?;
+    let config = config::load(config_path)?;
     let profile = config
         .profiles
-        .remove(&request.profile)
+        .get(&request.profile)
         .context("unknown delegate profile")?;
-    task::validate(&request, &profile)?;
+    task::validate(&request, profile)?;
     let mut job = Job::create(
         runtime,
         root,
@@ -52,7 +52,7 @@ pub fn start(root: &Path, runtime: &Path, config_path: &Path, request: Request) 
         root,
     )?;
     let id = job.record().run_id.clone();
-    let prepared = prepare(&mut job, &profile, &request, runtime);
+    let prepared = prepare(&mut job, &config, &request, runtime);
     if let Err(error) = prepared {
         report::finish(job.directory(), Err(error))?;
         job.finish(
@@ -70,13 +70,19 @@ pub fn start(root: &Path, runtime: &Path, config_path: &Path, request: Request) 
 
 fn prepare(
     job: &mut Job,
-    profile: &config::Profile,
+    config: &config::Config,
     request: &Request,
     runtime: &Path,
 ) -> Result<()> {
+    let profile = &config.profiles[&request.profile];
     let directory = job.directory();
     let input = directory.join("input");
-    let inputs = task::prepare(&job.record().project, &input, request, profile)?;
+    let inputs = task::prepare(
+        (&job.record().project, config.vcs),
+        &input,
+        request,
+        profile,
+    )?;
     sandbox::write_prompt(&input, profile)?;
     save_json(&directory.join("profile.json"), profile)?;
     save_json(&directory.join("request.json"), request)?;
@@ -90,6 +96,10 @@ fn prepare(
     let environment = sandbox::prepare(&layout, profile)?;
     save_json(&directory.join("environment.json"), &environment)?;
     save_json(&directory.join("codex.json"), &layout.codex)?;
+    prepare_job(job, runtime, profile)
+}
+
+fn prepare_job(job: &mut Job, runtime: &Path, profile: &config::Profile) -> Result<()> {
     let argv = vec![
         env::current_exe()?.to_string_lossy().into_owned(),
         "delegate".into(),

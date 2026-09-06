@@ -301,9 +301,12 @@ The contract contains `result_schema` (JSON Schema) and optional `artifacts`
 `result.json` is reserved for the structured response. The task preparation and
 result verification library is covered by `rust-test`.
 
-Preparation resolves revision to a full commit and reuses the review snapshot
+Set top-level `vcs: git` or `vcs: mercurial` in the delegation YAML; omission
+retains Git. The backend applies to the source repository for all profiles.
+Preparation resolves revision to a full revision ID and reuses the review snapshot
 exporter with the profile's visible_paths. Explicit inputs also obey those globs;
-they need no Git repository. Snapshots and copied files have a SHA-256 manifest.
+they need no VCS repository. Snapshots and copied files have a SHA-256 manifest;
+inputs.json retains the selected VCS and resolved revision.
 Traversal, symlinks and sensitive development-control paths are rejected.
 Preparation requires a new directory. Result verification uses the shared bounded
 regular-file reader, checks JSON Schema and required artifacts, and records their
@@ -368,10 +371,15 @@ are writable by the delegate; original snapshot and runner-owned Git metadata
 remain outside that write area. All changed paths must satisfy both visible_paths
 and write_paths, and symlinks/control paths are rejected.
 
+The source may be Git or Mercurial. The current patch builder still requires
+Git internally; it does not stage or commit the source repository. Its Git-format
+patch can be imported into a Mercurial checkout of the reported base with
+`hg import --no-commit change.patch` after inspection and verification.
+
 Checks run in the same containment with /project read-only; use /work or /tmp for
 build outputs. Model execution and checks share timeout_seconds. The retained
 change.patch contains binary-safe changes; code-report.json records the original
-commit, snapshot/candidate tree IDs, patch digest, changed paths and exact check
+VCS and revision, snapshot/candidate tree IDs, patch digest, changed paths and exact check
 commands, output and exit codes. Status/result expose this report as `code`.
 Failed checks retain the patch for inspection and yield overall ERROR. Code
 `verified` refers to patch/check verification; the top-level outcome additionally
