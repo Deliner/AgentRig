@@ -37,6 +37,9 @@ pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
 }
 pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
     let handler = handler(path).context("unsupported source language")?;
+    let inspect_node = handler
+        .inspect
+        .context("language has no scalar measurement handler")?;
     let tree = parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
         measurements: Vec::new(),
@@ -53,7 +56,7 @@ pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
         }
         let inspect = valid && node.is_named();
         if inspect {
-            (handler.inspect)(node, source, &mut analysis.measurements);
+            inspect_node(node, source, &mut analysis.measurements);
         }
         let mut cursor = node.walk();
         pending.extend(

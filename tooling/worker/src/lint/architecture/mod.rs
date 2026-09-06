@@ -1,6 +1,7 @@
 //! Directory contracts and checks over resolved source dependencies.
 mod graph;
 mod policy;
+pub mod source;
 #[cfg(test)]
 mod tests;
 
