@@ -217,6 +217,15 @@ fn cleanup_cli(runtime: &Path, args: &[String]) -> Result<i32> {
     Ok(i32::from(failed))
 }
 fn observe(runtime: &Path, record: &Record) -> Result<Value> {
+    let value = observe_once(runtime, record)?;
+    let interrupted = value["state"] == "interrupted";
+    if interrupted {
+        let latest = storage::load(runtime, &record.run_id)?;
+        return observe_once(runtime, &latest);
+    }
+    Ok(value)
+}
+fn observe_once(runtime: &Path, record: &Record) -> Result<Value> {
     let child = record.child.as_ref().and_then(Identity::observe);
     let supervisor = record.supervisor.observe().is_some();
     let state = match (record.finished, child.is_some(), supervisor) {

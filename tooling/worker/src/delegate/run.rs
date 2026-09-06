@@ -15,22 +15,26 @@ use std::{env, fs, path::Path, process::Command};
 
 pub fn cli(root: &Path, runtime: &Path, args: &[String]) -> Result<i32> {
     let value = match args {
+        [command, config] if command == "mcp" => {
+            return super::mcp::serve(root, runtime, &root.join(config)).map(|()| 0);
+        }
         [command, config, request] if command == "start" => {
             let request = serde_json::from_slice(&fs::read(root.join(request))?)?;
             start(root, runtime, &root.join(config), request)?
         }
         [command, id] if matches!(command.as_str(), "result" | "status") => result(runtime, id)?,
-        [command, id] if command == "cancel" => {
-            result(runtime, id)?;
-            jobs::cancel(runtime, id)?;
-            result(runtime, id)?
-        }
+        [command, id] if command == "cancel" => cancel(runtime, id)?,
         _ => anyhow::bail!(
-            "delegate start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID"
+            "delegate mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID"
         ),
     };
     println!("{value}");
     Ok(0)
+}
+pub fn cancel(runtime: &Path, id: &str) -> Result<Value> {
+    result(runtime, id)?;
+    jobs::cancel(runtime, id)?;
+    result(runtime, id)
 }
 
 pub fn start(root: &Path, runtime: &Path, config_path: &Path, request: Request) -> Result<Value> {

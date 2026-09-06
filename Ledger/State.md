@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: 3c3fa27
+Revision: 4bdf8ed
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Sandbox construction is committed. Current VAC connects delegate start/status/result/cancel to shared jobs, with timeout, cgroup resource limits, retained results/artifacts and recovery of report/cleanup after cancellation. The top-level outcome requires job success, valid results and cleanup. MCP/setup integration, real Codex smoke and isolated code mode remain outstanding.
+Asynchronous CLI delegation is committed. Current VAC exposes start/status/result/cancel through MCP using the shared review protocol and existing jobs runner. A demonstrated job-observation race is corrected by rereading the record before declaring interruption. Setup integration, real Codex/service smoke and isolated code mode remain outstanding.
 
 ## Verification
 
-Sandbox delivery passed the full gate: 273 native, 22 review and five Rust tests. Six focused CLI tests pass using real systemd/bubblewrap and a deterministic executor: artifact reconnect, timeout, cancellation, kernel memory/pid limits, read-only explicit inputs, and cleanup failure/retry without overall PASS. The shared launcher now rechecks adoption after a fast child exits. Current staged gate is pending; no real model or MCP-client execution is claimed.
+CLI delivery passed the full gate: 279 native, 22 review and five Rust tests. Current focused run-CS2Y9z completed with 37 passing MCP, delegate and command tests. Actual stdio connections verify catalog/arguments, reconnect without a duplicate run, and cancellation; execution uses real systemd/bubblewrap with a deterministic executor. Current staged gate is pending; no real model or sandboxed external MCP-service execution is claimed.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit asynchronous delegation through the staged gate. Integrate MCP/setup, verify actual Codex/MCP behavior and delayed-launch recovery, then add isolated code mode and independent consumer acceptance. P003 remains active until all stages and final integration are verified.
+Commit the MCP adapter through the staged gate. Integrate setup, verify actual Codex/service behavior and delayed-launch recovery, then add isolated code mode and independent consumer acceptance. P003 remains active until all stages and final integration are verified.

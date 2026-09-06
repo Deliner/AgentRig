@@ -216,8 +216,8 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 ## Delegation profiles
 
 `just delegate config-check CONFIG` validates a separate TOML profile file.
-Profile validation and asynchronous CLI execution are implemented; MCP and setup
-integration remain under development in P003. A successful configuration check does not run
+Profile validation, asynchronous CLI execution and the MCP adapter are implemented;
+setup integration remains under development in P003. A successful configuration check does not run
 an executor or prove model/service availability.
 
 ```toml
@@ -289,7 +289,8 @@ home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
 Codex configuration is read-only, disables hooks and contains only the configured
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
-fixtures verify execution and limits. Real Codex/MCP smoke verification remains pending.
+fixtures verify execution and limits. Real model and sandboxed MCP-service smoke
+verification remains pending.
 
 `just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
 registry. `just delegate status RUN_ID` and `result RUN_ID` return OS state and the
@@ -301,3 +302,11 @@ under the configured runtime/jobs/RUN_ID. Temporary input/private directories ar
 removed after saving the report. Result/status recover an interrupted report and
 retry incomplete cleanup only after the job is terminal; cleanup errors remain
 separate from validation findings. A failed job does not become PASS after cleanup.
+
+`worker delegate --root PROJECT mcp CONFIG` serves the same runner over stdio MCP.
+Its tools are delegate_start, delegate_status, delegate_result and delegate_cancel.
+The start schema lists configured profile names and accepts the same task contract
+as the CLI request. Retain the returned run_id; disconnecting the MCP client leaves
+the managed task running, and another connection can retrieve or cancel it.
+Status/result can recover terminal reports and cleanup, so they are not read-only
+operations. Tool errors and unsuccessful outcomes are returned with isError.
