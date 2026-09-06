@@ -6,6 +6,10 @@ use std::{fs, path::Path};
 use yaml_rust2::scanner::{Scanner, Token, TokenType};
 
 pub fn read<T: DeserializeOwned>(path: &Path) -> Result<T> {
+    read_document(path).map(|(value, _)| value)
+}
+
+pub fn read_document<T: DeserializeOwned>(path: &Path) -> Result<(T, String)> {
     let legacy = path
         .extension()
         .is_some_and(|extension| extension == "toml");
@@ -15,7 +19,9 @@ pub fn read<T: DeserializeOwned>(path: &Path) -> Result<T> {
         path.display()
     );
     let source = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    decode(&source).with_context(|| format!("YAML configuration {}", path.display()))
+    let value =
+        decode(&source).with_context(|| format!("YAML configuration {}", path.display()))?;
+    Ok((value, source))
 }
 
 pub fn decode<T: DeserializeOwned>(source: &str) -> Result<T> {

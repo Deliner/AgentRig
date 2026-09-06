@@ -83,6 +83,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | `setup` | Install or reconcile the existing declaration, register adapters/MCP and diagnose dependencies; preserve settings and report conflicts. |
 | `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, service directory (`--service`), base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
+| `config-resolve CONFIG_YAML` | Preview local package composition as JSON: values, declaring files and configuration digests. Does not install resources or replace capability validation. |
 | `doctor` | Diagnose the installed runtime, configured executables, sandbox and hooks. |
 | `commands` / `run NAME -- ARGS` | List or execute the shared catalog. Arguments remain argv elements. |
 | `report` | Summarize command timing, latest check evidence and repeated check failures from the configured runtime directory. |
@@ -109,6 +110,67 @@ Warnings do not fail lint; blocking findings exit 1 and configuration failures e
 Lint uses strict YAML and compiled Rust/Python handlers; [rule semantics](README.md#rules-and-languages) describe counting, selectors and parser limits. The installed template supplies all five rules and focused repair skills. Language rules block unnamed conditions, functions above 40 nonblank lines and signatures above 4 counted inputs. Unsupported selected languages are configuration errors, not silently ignored files. Numeric warning/error limits and named-condition severity are editable project policy.
 
 Read-only commands require functioning Linux bubblewrap. Worker does not fall back to unrestricted execution when isolation is unavailable. Command records are append-only JSONL in `paths.runtime`; they describe process results, not task lifecycle. Staged command timing logs remain in the disposable exported tree; the latest gate evidence is saved in the original project runtime directory. If you relocate `paths.runtime`, add the new directory to the consumer Git ignore rules; initialization supplies an ignore rule for the default location.
+
+## Configuration composition preview
+
+The shared resolver is available through `agentrig config-resolve declaration.yaml`.
+It reads YAML, writes JSON to stdout and does not install or execute anything.
+A declaration contains ordinary configuration fields plus `packages` and optional
+`overrides`. A reusable package has this envelope:
+
+```yaml
+schema_version: 1
+id: common-checks
+version: "1.0"
+configuration:
+  commands:
+    test:
+      argv: [python3, -m, pytest]
+```
+
+For example, a consumer declaration can select and override that command:
+
+```yaml
+packages:
+  - path: ../shared/package.yaml
+    id: common-checks
+    version: "1.0"
+overrides: [/commands/test/argv]
+commands:
+  test:
+    argv: [cargo, test]
+```
+
+Packages can themselves declare `packages` and `overrides`. Paths to packages
+resolve relative to the declaring file, including outside the consumer root.
+IDs and versions on imports are optional exact assertions; there is no version
+range resolver or network registry. Repeated references to the same canonical
+package apply once. Different files cannot claim the same package ID. Cycles,
+missing files, unknown envelope fields, invalid YAML and mismatched assertions
+are errors identifying the import chain.
+
+Mappings compose recursively. Repeated scalar or ordinary list definitions
+require an explicit override, even when their values agree. Overrides replace
+the addressed value in full; list elements are never appended implicitly.
+Top-level `checks` and `rules` are named lists: IDs must be unique, new IDs append
+in declaration order, and replacing an existing ID requires its own override,
+such as `/checks/tests`. An override of `/checks` replaces the whole list;
+`checks: []` can remove it from the resolved declaration. Capability validators
+and mandatory runtime controls still decide whether the resulting policy is valid.
+Unused or duplicate overrides fail. Addresses escape `/` as `~1` and `~` as `~0`;
+named lists use IDs instead of positional indexes.
+
+Output contains `configuration`, `provenance`, `packages`, `root` and `root_digest`.
+Provenance records the declaring file for each retained value; a container merged
+from multiple files has only its children's origins. Package records contain ID,
+version, canonical path and SHA-256 of the exact YAML bytes read. Digests describe
+configuration inputs, not yet their referenced resource contents. Composition
+leaves resource strings untouched and does not grant filesystem access to delegates.
+
+P004 integration remains in progress: ordinary runtime commands and setup still
+read their existing fully resolved configuration. Package resource rebasing,
+installation, fixed-input update checks, full composed capability validation and
+delegate environment assembly are subsequent work under the same feature.
 
 ## Memory and recovery
 

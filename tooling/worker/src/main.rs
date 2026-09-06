@@ -32,6 +32,7 @@ fn run() -> Result<i32> {
         return scaffold::run(&root, &command, &args);
     }
     match command.as_str() {
+        "config-resolve" => agentrig::composition::cli(&root, &args),
         "hook" => hook(&root),
         "review" => run_review(&root, args),
         "delegate" => run_delegate(&root, args),
@@ -67,6 +68,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     root.canonicalize().map_err(Into::into)
 }
 fn print_help() {
+    println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
     println!(
         "delegate config-check CONFIG | mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
     );

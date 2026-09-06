@@ -8,17 +8,17 @@ Deliver all of P004 under the AgentRig goal in .tmp/agentrig-yaml-environments-p
 
 Branch: feature/agentrig-environments
 
-Revision: 6f84939
+Revision: ca08930
 
 Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-Root YAML conversion, real 0.2.0 migration and AgentRig executable naming are committed. Current VAC adds paths.service and init --service, defaulting new installations to .agentrig. Binary, hooks, receipt, generated policies and MCP adapters use the selected location; setup and doctor agree on it. Explicit migration records .worker to preserve existing runtime and recovery placement. Composition, external-config setup, interactive init, custom delegate environments and complete migration acceptance remain outstanding in P004.
+YAML, AgentRig naming and configurable service placement are committed. Current VAC adds the shared composition resolver and config-resolve CONFIG_YAML preview: local and transitive packages, exact identity/version assertions, explicit overrides, named checks/rules, deterministic input digests and value origins. The existing strict codec supplies decoded values and exact source bytes together. Resource strings remain untouched; runtime/setup integration, resource installation and fixed-input updates are not yet implemented. Interactive init, custom delegate environments and complete migration acceptance also remain outstanding in P004.
 
 ## Verification
 
-Last committed full gate passed 296 native, 27 review/YAML and eight worker Rust tests. Current service-directory VAC passes 40 focused installation/setup/migration checks, including actual Just, Git/Codex hook and review/delegate MCP execution with spaces and shell metacharacters in the selected path. Repeat setup preserves settings; invalid paths and implicit relocation conflict before writing. Lint has no blockers; current full staged gate remains pending. Real 0.2.0 baseline binary/digest remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
+Last committed full gate passed 304 native, 27 review/YAML and eight worker Rust tests. Composition passes nine focused Rust tests and one actual CLI test: preview is read-only, origins identify the external package, and its resolved command passes ordinary config-check and executes after projection into the consumer config. Tests cover transitive/repeated imports, cycles, identity/version conflicts, strict YAML, overrides, named ordering and digest changes. Lint has no blockers; current full staged gate remains pending. Real 0.2.0 baseline binary/digest remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the service-directory VAC through the full staged gate and correct any failures. Continue local package composition and effective configuration with provenance, external-config setup and interactive init, using the existing builders. Complete custom delegate environments and migration acceptance (including selected skill/MCP installation ownership and external resources). Verify all P004 acceptance before feature integration; configuration, naming and service paths alone do not complete the goal.
+Commit the composition-preview VAC through the full staged gate and correct any failures. Connect the resolver to the existing environment builder: external-config setup, resource paths resolved from recorded origins, packaged skills/hooks/programs/MCP and fixed configuration/resource digests with explicit updates. Preserve project-relative source selectors and sandbox boundaries. Add interactive init and shared delegate assembly, complete migration acceptance including selected delegate ownership and external resources, then verify every P004 criterion before integration. Composition preview alone does not complete the feature or goal.

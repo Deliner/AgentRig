@@ -1,0 +1,128 @@
+mod merge;
+mod source;
+#[cfg(test)]
+mod tests;
+
+use anyhow::{Context, Result, ensure};
+use serde::Serialize;
+use serde_json::{Map, Value};
+use sha2::{Digest, Sha256};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
+
+#[derive(Serialize)]
+pub struct Resolved {
+    pub configuration: Map<String, Value>,
+    pub provenance: BTreeMap<String, PathBuf>,
+    pub packages: Vec<Package>,
+    pub root: PathBuf,
+    pub root_digest: String,
+}
+
+#[derive(Serialize)]
+pub struct Package {
+    pub id: String,
+    pub version: String,
+    pub path: PathBuf,
+    pub digest: String,
+}
+
+#[derive(Default)]
+struct Resolver {
+    values: merge::Values,
+    packages: Vec<Package>,
+    visiting: Vec<PathBuf>,
+}
+
+pub fn resolve(path: &Path) -> Result<Resolved> {
+    let path = path
+        .canonicalize()
+        .with_context(|| format!("resolve {}", path.display()))?;
+    let (root, source): (source::Root, _) = review_runner::config::yaml::read_document(&path)?;
+    let mut resolver = Resolver::default();
+    resolver.imports(&path, &root.packages)?;
+    resolver
+        .values
+        .add(&path, root.configuration, &root.overrides)?;
+    Ok(Resolved {
+        configuration: resolver.values.configuration,
+        provenance: resolver.values.provenance,
+        packages: resolver.packages,
+        root: path,
+        root_digest: digest(&source),
+    })
+}
+
+pub fn cli(root: &Path, args: &[String]) -> Result<i32> {
+    ensure!(args.len() == 1, "config-resolve CONFIG_YAML");
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&resolve(&root.join(&args[0]))?)?
+    );
+    Ok(0)
+}
+
+impl Resolver {
+    fn imports(&mut self, declaring: &Path, imports: &[source::Import]) -> Result<()> {
+        for reference in imports {
+            let path = declaring
+                .parent()
+                .context("configuration directory required")?
+                .join(&reference.path);
+            self.package(&path, reference).with_context(|| {
+                format!(
+                    "package {} imported by {}",
+                    path.display(),
+                    declaring.display()
+                )
+            })?;
+        }
+        Ok(())
+    }
+
+    fn package(&mut self, path: &Path, reference: &source::Import) -> Result<()> {
+        let path = path.canonicalize()?;
+        ensure!(
+            !self.visiting.contains(&path),
+            "package cycle: {:?} -> {}",
+            self.visiting,
+            path.display()
+        );
+        let (package, source): (source::Package, _) =
+            review_runner::config::yaml::read_document(&path)?;
+        package.validate(reference)?;
+        if let Some(existing) = self.packages.iter().find(|item| item.id == package.id) {
+            ensure!(
+                existing.path == path && existing.digest == digest(&source),
+                "package identity conflict for {}: {} and {}",
+                package.id,
+                existing.path.display(),
+                path.display()
+            );
+            return Ok(());
+        }
+        self.visiting.push(path.clone());
+        self.imports(&path, &package.packages)?;
+        ensure!(
+            !self.packages.iter().any(|item| item.id == package.id),
+            "package identity conflict for {}",
+            package.id
+        );
+        self.values
+            .add(&path, package.configuration, &package.overrides)?;
+        self.visiting.pop();
+        self.packages.push(Package {
+            id: package.id,
+            version: package.version,
+            path,
+            digest: digest(&source),
+        });
+        Ok(())
+    }
+}
+
+fn digest(source: &str) -> String {
+    format!("{:x}", Sha256::digest(source.as_bytes()))
+}

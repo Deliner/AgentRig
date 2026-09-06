@@ -5,6 +5,7 @@ import tomllib
 from pathlib import Path
 
 import pytest
+import yaml
 from support import file_contents, invoke, update_config
 
 
@@ -214,3 +215,33 @@ def test_setup_installs_selected_delegation_skill(worker: Path, tmp_path: Path) 
     assert (root / path).is_file()
     receipt = json.loads((root / ".agentrig/manifest.json").read_text())
     assert receipt["files"][path]["ownership"] == "editable"
+
+
+def test_composition_cli_previews_reusable_commands_without_installing(
+    worker: Path, tmp_path: Path
+) -> None:
+    root = tmp_path / "consumer"
+    root.mkdir()
+    assert invoke(worker, root, "init").returncode == 0
+    package = tmp_path / "package.yaml"
+    package.write_text(
+        "schema_version: 1\nid: commands\nversion: '1'\nconfiguration:\n"
+        "  commands:\n    hello:\n      argv: [python3, -c, \"print('package command')\"]\n"
+    )
+    source = root / "declaration.yaml"
+    source.write_text(
+        (root / "agentrig.yaml").read_text() + "\npackages:\n- path: ../package.yaml\n"
+    )
+    before = file_contents(tmp_path)
+    preview = invoke(worker, root, "config-resolve", str(source))
+    assert preview.returncode == 0, preview.stderr
+    resolved = json.loads(preview.stdout)
+    assert file_contents(tmp_path) == before
+    assert resolved["packages"][0]["id"] == "commands"
+    assert resolved["provenance"]["/commands/hello/argv"] == str(package)
+    assert "packages" not in resolved["configuration"]
+    (root / "agentrig.yaml").write_text(yaml.safe_dump(resolved["configuration"], sort_keys=False))
+    assert invoke(worker, root, "config-check").returncode == 0
+    executed = invoke(worker, root, "run", "hello")
+    assert executed.returncode == 0, executed.stderr
+    assert "package command" in executed.stdout
