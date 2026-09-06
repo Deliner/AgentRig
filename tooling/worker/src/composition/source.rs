@@ -30,6 +30,8 @@ pub struct Package {
 #[serde(deny_unknown_fields)]
 pub struct Import {
     pub path: PathBuf,
+    #[serde(default)]
+    pub into: String,
     pub id: Option<String>,
     pub version: Option<String>,
 }

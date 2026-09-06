@@ -8,7 +8,7 @@ use serde::Serialize;
 use serde_json::{Map, Value};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
 
@@ -48,6 +48,7 @@ struct Resolver {
     values: merge::Values,
     packages: Vec<Package>,
     visiting: Vec<PathBuf>,
+    applied: BTreeSet<(PathBuf, String)>,
 }
 
 pub fn resolve(path: &Path) -> Result<Resolved> {
@@ -56,7 +57,7 @@ pub fn resolve(path: &Path) -> Result<Resolved> {
         .with_context(|| format!("resolve {}", path.display()))?;
     let (root, source): (source::Root, _) = review_runner::config::yaml::read_document(&path)?;
     let mut resolver = Resolver::default();
-    resolver.imports(&path, &root.packages)?;
+    resolver.imports(&path, &root.packages, "")?;
     resolver
         .values
         .add(&path, root.configuration, &root.overrides)?;
@@ -79,13 +80,23 @@ pub fn cli(root: &Path, args: &[String]) -> Result<i32> {
 }
 
 impl Resolver {
-    fn imports(&mut self, declaring: &Path, imports: &[source::Import]) -> Result<()> {
+    fn imports(
+        &mut self,
+        declaring: &Path,
+        imports: &[source::Import],
+        target: &str,
+    ) -> Result<()> {
         for reference in imports {
+            ensure!(
+                reference.into.is_empty() || reference.into.starts_with('/'),
+                "package into must be a JSON pointer"
+            );
             let path = declaring
                 .parent()
                 .context("configuration directory required")?
                 .join(&reference.path);
-            self.package(&path, reference).with_context(|| {
+            let target = format!("{target}{}", reference.into);
+            self.package(&path, reference, &target).with_context(|| {
                 format!(
                     "package {} imported by {}",
                     path.display(),
@@ -96,7 +107,7 @@ impl Resolver {
         Ok(())
     }
 
-    fn package(&mut self, path: &Path, reference: &source::Import) -> Result<()> {
+    fn package(&mut self, path: &Path, reference: &source::Import, target: &str) -> Result<()> {
         let path = path.canonicalize()?;
         ensure!(
             !self.visiting.contains(&path),
@@ -107,33 +118,43 @@ impl Resolver {
         let (package, source): (source::Package, _) =
             review_runner::config::yaml::read_document(&path)?;
         package.validate(reference)?;
-        if let Some(existing) = self.packages.iter().find(|item| item.id == package.id) {
-            ensure!(
-                existing.path == path && existing.digest == digest(&source),
-                "package identity conflict for {}: {} and {}",
-                package.id,
-                existing.path.display(),
-                path.display()
-            );
+        let digest = digest(&source);
+        self.known(&path, &package.id, &digest)?;
+        let application = (path.clone(), target.to_owned());
+        let applied = self.applied.contains(&application);
+        if applied {
             return Ok(());
         }
         self.visiting.push(path.clone());
-        self.imports(&path, &package.packages)?;
-        ensure!(
-            !self.packages.iter().any(|item| item.id == package.id),
-            "package identity conflict for {}",
-            package.id
-        );
+        self.imports(&path, &package.packages, target)?;
+        let known = self.known(&path, &package.id, &digest)?;
         self.values
-            .add(&path, package.configuration, &package.overrides)?;
+            .add_at(&path, package.configuration, &package.overrides, target)?;
         self.visiting.pop();
-        self.packages.push(Package {
-            id: package.id,
-            version: package.version,
-            path,
-            digest: digest(&source),
-        });
+        let unseen = !known;
+        if unseen {
+            self.packages.push(Package {
+                id: package.id,
+                version: package.version,
+                path,
+                digest,
+            });
+        }
+        self.applied.insert(application);
         Ok(())
+    }
+
+    fn known(&self, path: &Path, id: &str, digest: &str) -> Result<bool> {
+        let Some(existing) = self.packages.iter().find(|item| item.id == id) else {
+            return Ok(false);
+        };
+        ensure!(
+            existing.path == path && existing.digest == digest,
+            "package identity conflict for {id}: {} and {}",
+            existing.path.display(),
+            path.display()
+        );
+        Ok(true)
     }
 }
 

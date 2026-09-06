@@ -167,9 +167,24 @@ Packages can themselves declare `packages` and `overrides`. Paths to packages
 resolve relative to the declaring file, including outside the consumer root.
 IDs and versions on imports are optional exact assertions; there is no version
 range resolver or network registry. Repeated references to the same canonical
-package apply once. Different files cannot claim the same package ID. Cycles,
+package at the same destination apply once. Different files cannot claim the same package ID. Cycles,
 missing files, unknown envelope fields, invalid YAML and mismatched assertions
 are errors identifying the import chain.
+
+An import may specify `into`, a JSON pointer to a mapping destination. Omit it
+to merge at the root. A resource package whose `configuration` directly contains
+`skills`, `programs`, `hooks` and `mcp_servers` can be imported with
+`into: /environment` in a project and `into: /profiles/reader` in a delegate
+configuration. Importing it again into `/profiles/writer` supplies that profile
+independently, without copying the package or giving it another ID.
+
+Nested imports inherit their parent's destination; their own `into` appends to
+it. Package overrides are relative to that package's destination; root overrides
+use complete resolved addresses, for example `/profiles/writer/hooks/guide/args`.
+Destinations use nonempty mapping keys with the same `~0`/`~1` escapes as overrides;
+they do not index lists or select source fragments. Provenance and resource paths
+continue to refer to the file declaring the value. Scoping does not relax cycle,
+identity or conflict validation.
 
 Setup checks package identity across the complete assembly, including the root
 declaration and nested lint, review, material and delegate configurations. The

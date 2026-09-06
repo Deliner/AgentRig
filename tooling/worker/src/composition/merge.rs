@@ -18,6 +18,36 @@ struct Layer<'a> {
 }
 
 impl Values {
+    pub fn add_at(
+        &mut self,
+        source: &Path,
+        values: Map<String, Value>,
+        overrides: &[String],
+        target: &str,
+    ) -> Result<()> {
+        let mut wrapped = values;
+        let scoped = !target.is_empty();
+        if scoped {
+            ensure!(
+                target.starts_with('/'),
+                "package into must be a JSON pointer"
+            );
+            for part in target[1..].split('/').rev() {
+                let key = part.replace("~1", "/").replace("~0", "~");
+                ensure!(
+                    !key.is_empty() && address("", &key) == format!("/{part}"),
+                    "package into must contain nonempty mapping keys with valid JSON pointer escapes"
+                );
+                wrapped = Map::from_iter([(key, Value::Object(wrapped))]);
+            }
+        }
+        let overrides: Vec<_> = overrides
+            .iter()
+            .map(|path| format!("{target}{path}"))
+            .collect();
+        self.add(source, wrapped, &overrides)
+    }
+
     pub fn add(
         &mut self,
         source: &Path,

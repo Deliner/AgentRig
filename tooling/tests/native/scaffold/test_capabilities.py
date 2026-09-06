@@ -1,3 +1,4 @@
+import copy
 import json
 import shutil
 import subprocess
@@ -302,3 +303,77 @@ def environment_update(worker: Path, target: Path, declaration: Path) -> Path:
     plan["files"][".codex/config.toml"]["resolution"] = "replace"
     path.write_text(json.dumps(plan))
     return path
+
+
+def composed_environment_declaration(worker: Path, root: Path) -> Path:
+    declaration = environment_declaration(worker, root)
+    config = yaml.safe_load(declaration.read_text())
+    package = {
+        "schema_version": 1,
+        "id": "shared-environment",
+        "version": "1",
+        "configuration": config.pop("environment"),
+    }
+    (declaration.parent / "shared.yaml").write_text(yaml.safe_dump(package))
+    config["packages"] = [{"path": "shared.yaml", "into": "/environment"}]
+    config.setdefault("capabilities", {})["delegation"] = {"config": "delegates.yaml"}
+    declaration.write_text(yaml.safe_dump(config))
+    profile = {
+        "frontend": "codex",
+        "model": "configured-model",
+        "reasoning_effort": "high",
+        "mode": "read",
+        "prompt": "prompt.md",
+        "visible_paths": [],
+        "timeout_seconds": 60,
+        "credentials": {"env": {"OPENAI_API_KEY": "DELEGATE_TOKEN"}},
+    }
+    delegates = {
+        "schema_version": 1,
+        "packages": [
+            {"path": "shared.yaml", "into": f"/profiles/{name}"} for name in ["first", "second"]
+        ],
+        "overrides": ["/profiles/second/hooks/guide/args"],
+        "profiles": {
+            "first": profile,
+            "second": {
+                **copy.deepcopy(profile),
+                "hooks": {"guide": {"args": ["hook", "second instructions"]}},
+            },
+        },
+    }
+    (declaration.parent / "delegates.yaml").write_text(yaml.safe_dump(delegates))
+    (declaration.parent / "prompt.md").write_text("Perform the configured task.")
+    return declaration
+
+
+def test_one_resource_package_installs_project_and_distinct_delegate_environments(
+    worker: Path, tmp_path: Path
+) -> None:
+    declaration = composed_environment_declaration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    result = invoke(worker, target, "setup", "--config", str(declaration))
+    assert result.returncode == 0, result.stdout + result.stderr
+    installed = yaml.safe_load((target / "agentrig.yaml").read_text())
+    path = target / installed["capabilities"]["delegation"]["config"]
+    profiles = yaml.safe_load(path.read_text())["profiles"]
+    assert set(profiles) == {"first", "second"}
+    assert profiles["first"]["skills"] == profiles["second"]["skills"]
+    assert profiles["first"]["programs"] == profiles["second"]["programs"]
+    assert (
+        profiles["first"]["hooks"]["guide"]["args"] != profiles["second"]["hooks"]["guide"]["args"]
+    )
+    for profile in profiles.values():
+        skill = path.parent / profile["skills"][0]
+        assert (skill / "support.txt").read_text() == "portable support"
+        assert (path.parent / profile["programs"]["handler"]).stat().st_mode & 0o111
+    assert (target / ".agents/skills/guide/support.txt").read_text() == "portable support"
+    receipt = json.loads((target / ".agentrig/composition.json").read_text())
+    assert receipt["packages"][0]["id"] == "shared-environment"
+    assert (
+        len(receipt["configurations"][str(declaration.parent / "delegates.yaml")]["packages"]) == 1
+    )
+    shutil.rmtree(declaration.parent)
+    checked = invoke(target / ".agentrig/bin/agentrig", target, "delegate", "config-check")
+    assert checked.returncode == 0, checked.stdout + checked.stderr

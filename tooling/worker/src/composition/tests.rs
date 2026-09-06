@@ -265,3 +265,97 @@ fn transitive_fixture(root: &Path) {
         "packages:\n- path: special/package.yaml\n- path: shared/common.yaml\n",
     );
 }
+
+#[test]
+fn one_environment_package_can_target_project_and_distinct_profiles() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    put(
+        root,
+        "environment.yaml",
+        &package("  skills: [skills/guide]\n  programs: {helper: tools/helper}\n"),
+    );
+    put(
+        root,
+        "root.yaml",
+        "packages:\n- path: environment.yaml\n  into: /environment\n- path: environment.yaml\n  into: /profiles/first\n- path: environment.yaml\n  into: /profiles/second\n- path: environment.yaml\n  into: /profiles/first\noverrides: [/profiles/second/skills]\nprofiles:\n  second:\n    skills: [skills/other]\n",
+    );
+    let resolved = resolve(&root.join("root.yaml")).unwrap();
+    assert_eq!(resolved.packages.len(), 1);
+    assert_eq!(
+        resolved.configuration["environment"]["skills"],
+        json!(["skills/guide"])
+    );
+    assert_eq!(
+        resolved.configuration["profiles"]["first"]["skills"],
+        json!(["skills/guide"])
+    );
+    assert_eq!(
+        resolved.configuration["profiles"]["second"]["skills"],
+        json!(["skills/other"])
+    );
+    for target in ["/environment", "/profiles/first", "/profiles/second"] {
+        assert_eq!(
+            resolved.origin(&format!("{target}/programs/helper")),
+            root.join("environment.yaml")
+        );
+    }
+    assert_eq!(
+        resolved.origin("/profiles/second/skills"),
+        root.join("root.yaml")
+    );
+}
+
+#[test]
+fn nested_package_targets_and_overrides_follow_the_import_scope() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    put(root, "base.yaml", &package("  helper: tools/old\n"));
+    put(
+        root,
+        "special.yaml",
+        "schema_version: 1\nid: special\nversion: '1'\npackages:\n- path: base.yaml\n  into: /programs\noverrides: [/programs/helper]\nconfiguration:\n  programs: {helper: tools/new}\n",
+    );
+    put(
+        root,
+        "root.yaml",
+        "packages:\n- path: special.yaml\n  into: /environment\n- path: special.yaml\n  into: /profiles/reader\n",
+    );
+    let resolved = resolve(&root.join("root.yaml")).unwrap();
+    assert_eq!(resolved.packages.len(), 2);
+    for target in ["/environment", "/profiles/reader"] {
+        let value = serde_json::to_value(&resolved.configuration).unwrap();
+        assert_eq!(
+            value.pointer(&format!("{target}/programs/helper")).unwrap(),
+            "tools/new"
+        );
+        assert_eq!(
+            resolved.origin(&format!("{target}/programs/helper")),
+            root.join("special.yaml")
+        );
+    }
+}
+
+#[test]
+fn invalid_package_targets_and_scoped_identity_conflicts_are_rejected() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    put(root, "common.yaml", &package("  enabled: true\n"));
+    for target in ["environment", "/", "/empty//key", "/bad~2key"] {
+        put(
+            root,
+            "root.yaml",
+            &format!("packages:\n- path: common.yaml\n  into: '{target}'\n"),
+        );
+        let error = resolve(&root.join("root.yaml")).err().unwrap();
+        assert!(format!("{error:#}").contains("package into"), "{error:#}");
+    }
+    put(root, "copy.yaml", &package("  enabled: false\n"));
+    put(
+        root,
+        "root.yaml",
+        "packages:\n- path: common.yaml\n  into: /first\n- path: copy.yaml\n  into: /second\n",
+    );
+    let error = resolve(&root.join("root.yaml")).err().unwrap();
+    assert!(format!("{error:#}").contains("package identity conflict"));
+}
