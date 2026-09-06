@@ -7,7 +7,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import pytest
-from support import git, invoke
+import yaml
+from support import file_contents, git, invoke, update_config
 
 
 @dataclass(frozen=True)
@@ -57,7 +58,7 @@ class Consumer:
 
     @property
     def binary(self) -> Path:
-        return self.root / ".worker/bin/discipline-worker"
+        return self.root / ".agentrig/bin/agentrig"
 
     @property
     def source(self) -> Path:
@@ -108,10 +109,10 @@ class Consumer:
         runner = "pytest" if self.python else "cargo"
         function = "test_doubles" if self.python else "doubles"
         link = "../" + self.test_path.relative_to(self.root).as_posix()
-        with (self.root / "worker.toml").open("a") as stream:
-            stream.write(
-                f'\n[oracles.I001]\ncheck = "tests"\nrunner = "{runner}"\ntarget = "{self.oracle}"\n'
-            )
+        update_config(
+            self.root / "agentrig.yaml",
+            oracles={"I001": {"check": "tests", "runner": runner, "target": self.oracle}},
+        )
         memory = self.root / self.layout.paths.memory
         (memory / "Invariants").mkdir()
         index = memory / "Invariants.md"
@@ -129,19 +130,19 @@ class Consumer:
             assert result.returncode == 0, (command, result.stdout, result.stderr)
 
     def language_selection(self) -> None:
-        config = self.root / ".worker/lint.toml"
+        config = self.root / ".agentrig/lint.yaml"
         before = config.read_text()
         assert invoke(self.binary, self.root, "lint").returncode == 0
         (self.source / "tool.sh").write_text("if true; then echo example; fi\n")
         config.write_text(
             before
-            + f'\n[[rules]]\nid = "unsupported"\nkind = "function-lines"\ntarget = "file"\ninclude = ["{self.layout.paths.source}/**"]\nextensions = [".sh"]\nwarning = 40\nwarning_skill = "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\nerror_skill = "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n'
+            + f'\n- id: unsupported\n  kind: function-lines\n  target: file\n  include: ["{self.layout.paths.source}/**"]\n  extensions: [".sh"]\n  warning: 40\n  warning_skill: "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n  error_skill: "{self.layout.paths.skills}/refactor-long-function/SKILL.md"\n'
         )
         result = invoke(self.binary, self.root, "config-check")
         assert result.returncode == 2
         assert ".sh" in result.stderr and "handlers support" in result.stderr
         config.write_text(
-            config.read_text().replace('extensions = [".sh"]', 'extensions = [".rs", ".py"]')
+            config.read_text().replace('extensions: [".sh"]', 'extensions: [".rs", ".py"]')
         )
         assert invoke(self.binary, self.root, "config-check").returncode == 0
         assert invoke(self.binary, self.root, "run", "test").returncode == 0
@@ -191,12 +192,10 @@ class Consumer:
         self.test_path.write_text(valid)
 
     def oracle_discovery(self) -> None:
-        config = self.root / "worker.toml"
+        config = self.root / "agentrig.yaml"
         valid_config = config.read_text()
         missing = self.oracle.replace("::", "::Missing::", 1)
-        config.write_text(
-            valid_config.replace(f'target = "{self.oracle}"', f'target = "{missing}"')
-        )
+        config.write_text(valid_config.replace(self.oracle, missing))
         result = invoke(self.binary, self.root, "memory-check")
         assert result.returncode == 2
         assert "marked oracle function" in result.stderr
@@ -292,3 +291,101 @@ def test_init_collision_preserves_files(worker: Path, tmp_path: Path) -> None:
     assert "collision" in result.stderr
     assert list(tmp_path.iterdir()) == [path]
     assert path.read_text() == "user contents"
+
+
+def composed_consumer(worker: Path, directory: Path, language: str) -> Path:
+    declaration = directory / f"declaration-{language}"
+    service = f"rig-{language}"
+    result = invoke(
+        worker,
+        declaration,
+        "init",
+        "--language",
+        language,
+        "--source",
+        "application",
+        "--service",
+        service,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr
+    path = declaration / "agentrig.yaml"
+    config = yaml.safe_load(path.read_text())
+    config["packages"] = [{"path": "../shared.yaml", "id": "shared-command", "version": "1"}]
+    config["overrides"] = ["/commands/probe/argv"]
+    config["commands"]["probe"] = {"argv": ["python3", "-c", f"print({language!r})"]}
+    path.write_text(yaml.safe_dump(config))
+    target = directory / language
+    target.mkdir()
+    preview = invoke(worker, target, "setup", "--config", str(path), "--preview")
+    assert preview.returncode == 0, preview.stdout + preview.stderr
+    assert file_contents(target) == {}
+    installed = invoke(worker, target, "setup", "--config", str(path))
+    assert installed.returncode == 0, installed.stdout + installed.stderr
+    example = Path(__file__).parents[3] / "worker/examples" / language
+    example /= {"python": "application", "rust": "crates/engine"}[language]
+    shutil.copytree(
+        example,
+        target / "application",
+        ignore=shutil.ignore_patterns("target", "__pycache__", ".pytest_cache"),
+    )
+    receipt = json.loads((target / service / "composition.json").read_text())
+    assert receipt["packages"][0]["id"] == "shared-command"
+    assert receipt["provenance"]["/commands/probe/argv"] == str(path)
+    shutil.rmtree(declaration)
+    return target
+
+
+def verify_composed_consumer(target: Path, standalone: Path) -> None:
+    language = target.name
+    binary = target / f"rig-{language}/bin/agentrig"
+    assert not (target / "tooling/worker/Cargo.toml").exists()
+    for command in ["config-check", "doctor", "check"]:
+        result = invoke(binary, target, command)
+        assert result.returncode == 0, result.stdout + result.stderr
+    result = invoke(binary, target, "run", "probe")
+    assert result.returncode == 0 and result.stdout.strip() == language
+    before = file_contents(target)
+    result = invoke(binary, target, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert file_contents(target) == before
+    config = yaml.safe_load((target / "agentrig.yaml").read_text())
+    policy = str(target / config["paths"]["lint"])
+    python = language == "python"
+    suffix = "test_sample.py" if python else "src/lib.rs"
+    commands = [
+        ["lint-rules"],
+        ["lint-rule", "function-lines", "--example"],
+        ["lint-explain", f"application/{suffix}", "--config", policy, "--json"],
+        ["--config", policy, "--json"],
+    ]
+    for args in commands:
+        result = subprocess.run(
+            [standalone, *args], cwd=target, capture_output=True, text=True, check=False
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+    assert file_contents(target) == before
+
+
+def test_shared_package_prepares_independent_python_and_rust_consumers(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("PATH", str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"])
+    shared = tmp_path / "shared.yaml"
+    shared.write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "id": "shared-command",
+                "version": "1",
+                "configuration": {
+                    "commands": {"probe": {"argv": ["python3", "-c", "print('shared')"]}}
+                },
+            }
+        )
+    )
+    consumers = [composed_consumer(worker, tmp_path, language) for language in ["python", "rust"]]
+    shared.unlink()
+    standalone = tmp_path / "agentrig-lint"
+    shutil.copy2(worker.with_name("agentrig-lint"), standalone)
+    for target in consumers:
+        verify_composed_consumer(target, standalone)

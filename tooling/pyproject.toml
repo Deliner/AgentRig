@@ -1,5 +1,5 @@
 [project]
-name = "discipline-worker-tooling"
+name = "agentrig-tooling"
 version = "0.1.0"
 requires-python = ">=3.12"
 dependencies = []
@@ -8,7 +8,9 @@ dependencies = []
 dev = [
   "mypy>=1.17,<2",
   "pytest>=8.4,<9",
+  "pyyaml>=6.0.3",
   "ruff>=0.12,<1",
+  "types-pyyaml>=6.0.12.20260906",
   "typos>=1.35,<2",
   "vulture>=2.14,<3",
 ]

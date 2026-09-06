@@ -14,7 +14,7 @@ from test_lint import CONFIG, lint, prepare
 
 def check(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     result = subprocess.run(
-        [str(worker), "lint-config-check", "--root", str(root), "--config", "lint.toml", "--json"],
+        [str(worker), "lint-config-check", "--root", str(root), "--config", "lint.yaml", "--json"],
         capture_output=True,
         text=True,
         check=False,
@@ -23,18 +23,18 @@ def check(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
 
 
 @pytest.mark.parametrize(
-    "selector", ['extensions = [".sh"]', 'include = ["src/*.sh"]', 'include = ["src/**"]']
+    "selector", ['extensions: [".sh"]', 'include: ["src/*.sh"]', 'include: ["src/**"]']
 )
 # INVARIANT: I016
 def test_config_rejects_unsupported_language(worker: Path, tmp_path: Path, selector: str) -> None:
     configure(tmp_path, "named-if-condition")
-    path = tmp_path / "lint.toml"
-    config = path.read_text().replace('extensions = [".rs", ".py", ".pyi"]', "")
+    path = tmp_path / "lint.yaml"
+    config = path.read_text().replace('extensions: [".rs", ".py", ".pyi"]', "")
     include_selector = selector.startswith("include")
     if include_selector:
-        config = config.replace('include = ["src/**"]', selector)
+        config = config.replace('include: ["src/**"]', selector)
     else:
-        config += selector + "\n"
+        config += "    " + selector + "\n"
     path.write_text(config)
     (tmp_path / "src/run.sh").write_text("if true; then echo ok; fi")
     for result in [check(worker, tmp_path), lint(worker, tmp_path)]:
@@ -55,15 +55,15 @@ def test_config_check_does_not_parse_source(worker: Path, tmp_path: Path) -> Non
 @pytest.mark.parametrize(
     ("old", "new"),
     [
-        ('kind = "nonblank-lines"', 'kind = "unknown"'),
-        ('target = "file"', 'target = "directory"'),
-        ("warning = 3", "warning = 5"),
-        ('include = ["src/**"]', 'include = ["["]'),
+        ('kind: "nonblank-lines"', 'kind: "unknown"'),
+        ('target: "file"', 'target: "directory"'),
+        ("warning: 3", "warning: 5"),
+        ('include: ["src/**"]', 'include: ["["]'),
         (
-            'error_skill = ".agents/skills/refactor-large-file/SKILL.md"',
-            'error_skill = "missing/SKILL.md"',
+            'error_skill: ".agents/skills/refactor-large-file/SKILL.md"',
+            'error_skill: "missing/SKILL.md"',
         ),
-        ("version = 1", "version = ["),
+        ("version: 1", "version: ["),
     ],
 )
 def test_config_check_reports_schema_errors(
@@ -76,27 +76,29 @@ def test_config_check_reports_schema_errors(
 
 
 def test_config_check_effective_override(worker: Path, tmp_path: Path) -> None:
-    prepare(tmp_path, CONFIG + '\n[[rules.overrides]]\ninclude = ["src/**"]\nwarning = 9\n')
+    prepare(
+        tmp_path, CONFIG + '\n    overrides:\n      - include: ["src/**"]\n        warning: 9\n'
+    )
     (tmp_path / "src/file.py").write_text("")
     assert check(worker, tmp_path)[0] == 2
 
 
 def test_disabled_rule_preserves_schema_validation(worker: Path, tmp_path: Path) -> None:
     configure(tmp_path, "named-if-condition")
-    path = tmp_path / "lint.toml"
-    config = path.read_text().replace('extensions = [".rs", ".py", ".pyi"]', "enabled = false")
+    path = tmp_path / "lint.yaml"
+    config = path.read_text().replace('extensions: [".rs", ".py", ".pyi"]', "enabled: false")
     path.write_text(config)
     (tmp_path / "src/run.sh").write_text("echo ok")
     assert check(worker, tmp_path) == (0, [])
     assert lint(worker, tmp_path) == (0, [])
-    path.write_text(config.replace('level = "error"', 'level = "fatal"'))
+    path.write_text(config.replace('level: "error"', 'level: "fatal"'))
     assert check(worker, tmp_path)[0] == 2
 
 
 def test_explicit_suffix_rejected_without_files(worker: Path, tmp_path: Path) -> None:
     configure(tmp_path, "named-if-condition")
-    path = tmp_path / "lint.toml"
-    path.write_text(path.read_text().replace('include = ["src/**"]', 'include = ["future/*.sh"]'))
+    path = tmp_path / "lint.yaml"
+    path.write_text(path.read_text().replace('include: ["src/**"]', 'include: ["future/*.sh"]'))
     assert check(worker, tmp_path)[0] == 2
 
 

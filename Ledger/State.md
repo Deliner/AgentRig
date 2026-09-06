@@ -2,23 +2,23 @@
 
 ## Focus
 
-Complete integration of verified P003 under the user's active goal and complexity-discipline.
+Finish local integration of accepted P004 under .tmp/agentrig-yaml-environments-plan.md, applying complexity-discipline throughout.
 
 ## Workspace
 
-Branch: feature/worker-execution
+Branch: feature/agentrig-environments
 
-Revision: 49c61b4
+Revision: 6c5d63b
 
-Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
+Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-All four implementation stages and consumer acceptance are verified. Current VAC records completion in Plan with actual acceptance evidence. The worker feature still needs its completion commit and integration; no additional feature is authorized or active.
+All functional P004 acceptance is verified, including the external review migration gap found during audit. Current VAC reconciles AgentRig naming, pinned distributor commands, review MCP instructions and historical versus current evidence; Plan records accepted P004. The remaining required action is the final commit gate and local feature integration. No other feature is authorized by this handoff.
 
 ## Verification
 
-Gate at 49c61b4 passed: 295 native, 22 review and eight worker Rust tests, plus configured static checks. Real read and artifact/MCP runs passed; Plan/003.md records their locations. Real code run-Ef57if in /tmp/worker-code-live-1v1yid5j returned a verified patch without changing the original checkout. Explicit application passed consumer commit and merge gates, reaching clean main at 8d277ce9cc7e9a60ab014a06346893277eb81e9c with its feature branch retained. Installed lint catalog/details/explain/config checks passed there. Current completion-memory gate and worker integration are pending.
+Implementation gate at 6c5d63b passed 361 Python and 50 Rust tests and every configured check. Metadata lock validation passed after the tooling package rename. The final documentation/acceptance gate and integration remain pending. The acceptance map in tooling/worker/examples/PORTABILITY.md records requirement-level evidence. Actual MCP evidence in .tmp/agentrig-environment-kwjhy7x1 includes all modes, reconnect, custom resources, cancellation, bare-profile isolation, unchanged reports/checkout and cleanup; all five private directories were rechecked absent. All smoke runs are terminal. Real migration baseline remains .tmp/agentrig-baseline-0.2.0 at a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit this completion VAC through the staged gate, run just feature-merge, and verify clean master with the feature branch retained. Reconcile this pre-integration snapshot against Git on resume. Mark the goal complete only after successful worker integration.
+Commit final acceptance through the full staged gate, then run just feature-merge. Observe the actual integration result, retain the feature branch and verify a clean tree before completing the goal. If resumed after merge, reconcile this pre-integration snapshot with Git instead of repeating completed implementation. Do not push or publish.

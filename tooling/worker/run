@@ -5,13 +5,13 @@ source_dir="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$source_dir/../.." && pwd)"
 target="$(printenv WORKER_TARGET_DIR || true)"
 if [[ -z "$target" ]]; then target="$root/.cache/worker"; fi
-binary="$target/release/discipline-worker"
+binary="$target/release/agentrig"
 export WORKER_TARGET_DIR="$target"
 export CARGO_TARGET_DIR="$target"
 export WORKER_BINARY="$binary"
 export WORKER_SOURCE_ROOT="${WORKER_SOURCE_ROOT:-$root}"
 export UV_PROJECT_ENVIRONMENT="${UV_PROJECT_ENVIRONMENT:-$root/.cache/venv}"
-signature="$(cd "$source_dir" && find . \( -path './review/runtime' -o -path './review/reports' -o -path './review/target' \) -prune -o -type f \( -path './assets/*' -o -name '*.rs' -o -name '*.txt' -o -name '*.json' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
+signature="$(cd "$source_dir" && find . \( -path './review/runtime' -o -path './review/reports' -o -path './review/target' \) -prune -o -type f \( -path './assets/*' -o -name '*.rs' -o -name '*.txt' -o -name '*.json' -o -name '*.yaml' -o -name '*.yml' -o -name Cargo.toml -o -name Cargo.lock -o -name rust-toolchain.toml \) -print0 | sort -z | xargs -0 sha256sum | sha256sum)"
 saved=""
 if [[ -f "$target/source-signature" ]]; then read -r saved < "$target/source-signature"; fi
 if [[ ! -x "$binary" || "$saved" != "$signature" ]]; then

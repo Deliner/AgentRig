@@ -12,7 +12,7 @@ def test_standalone_matches_worker_without_installing_files(
 ) -> None:
     policy = tmp_path / "policy"
     policy.mkdir()
-    prepare(policy, 'skill_root = "."\n' + CONFIG)
+    prepare(policy, 'skill_root: "."\n' + CONFIG)
     project = tmp_path / "consumer"
     (project / "src").mkdir(parents=True)
     source = project / "src/value.py"
@@ -20,9 +20,9 @@ def test_standalone_matches_worker_without_installing_files(
     if git_repository:
         subprocess.run(["git", "init", "-q", str(project)], check=True)
     before = sorted(str(path.relative_to(project)) for path in project.rglob("*"))
-    args = ["--root", str(project), "--config", str(policy / "lint.toml"), "--json"]
+    args = ["--root", str(project), "--config", str(policy / "lint.yaml"), "--json"]
     results = []
-    for binary in [worker, worker.with_name("discipline-lint")]:
+    for binary in [worker, worker.with_name("agentrig-lint")]:
         using_worker = binary == worker
         prefix = ["lint"] if using_worker else []
         result = subprocess.run(
@@ -42,18 +42,18 @@ def test_standalone_matches_worker_without_installing_files(
 def test_standalone_config_check_rejects_unsupported_language(worker: Path, tmp_path: Path) -> None:
     policy = tmp_path / "policy"
     policy.mkdir()
-    config = CONFIG.replace('kind = "nonblank-lines"', 'kind = "function-lines"')
-    prepare(policy, 'skill_root = "."\n' + config)
+    config = CONFIG.replace('kind: "nonblank-lines"', 'kind: "function-lines"')
+    prepare(policy, 'skill_root: "."\n' + config)
     project = tmp_path / "consumer"
     project.mkdir()
     result = subprocess.run(
         [
-            str(worker.with_name("discipline-lint")),
+            str(worker.with_name("agentrig-lint")),
             "lint-config-check",
             "--root",
             str(project),
             "--config",
-            str(policy / "lint.toml"),
+            str(policy / "lint.yaml"),
             "--json",
         ],
         capture_output=True,

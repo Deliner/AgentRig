@@ -13,7 +13,7 @@ from test_memory import memory
 
 
 def repository(root: Path) -> None:
-    project(root, CONFIG + GATE.replace("warning = true", "warning = false"))
+    project(root, CONFIG + GATE.replace("warning: true", "warning: false"))
     memory(root)
     (root / ".gitignore").write_text(".runtime/\n")
     (root / "src/value.py").write_text("value = 1\n")
@@ -82,7 +82,7 @@ def test_repeat_report_is_evidence_not_skill_read_claim(worker: Path, tmp_path: 
     checks = resumed(worker, tmp_path)["checks"]
     assert checks["last_run"]["results"][-1]["consecutive_failures"] == 2
     assert not checks["full_gate_passed"]
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     config.write_text(config.read_text().replace("exit 23", "exit 0"))
     assert invoke(worker, tmp_path, "check").returncode == 0
     checks = resumed(worker, tmp_path)["checks"]
@@ -98,7 +98,7 @@ def test_repeat_report_is_evidence_not_skill_read_claim(worker: Path, tmp_path: 
 
 def test_changed_inputs_are_not_a_completed_proof(worker: Path, tmp_path: Path) -> None:
     repository(tmp_path)
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     config.write_text(config.read_text().replace("exit 23", "echo changed > src/value.py"))
     assert invoke(worker, tmp_path, "check").returncode == 0
     checks = resumed(worker, tmp_path)["checks"]
@@ -118,7 +118,7 @@ def await_evidence(root: Path) -> None:
 
 def test_interrupted_attempt_survives_fresh_resume(worker: Path, tmp_path: Path) -> None:
     repository(tmp_path)
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     config.write_text(config.read_text().replace("exit 23", "echo $$ > started; sleep 30"))
     with subprocess.Popen(
         [str(worker), "check", "--root", str(tmp_path)],

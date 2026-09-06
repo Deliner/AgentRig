@@ -177,13 +177,34 @@ def test_repository_layout_and_detail_contract(worker: Path, tmp_path: Path) -> 
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 
+def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: Path) -> None:
+    notes = committed_memory(worker, tmp_path)
+    config = tmp_path / "agentrig.yaml"
+    current = config.read_text()
+    config.unlink()
+    legacy = tmp_path / "worker.toml"
+    legacy.write_text('[paths]\nmemory = "notes"\n')
+    for args in [("add", "-A"), ("commit", "-qm", "legacy memory location")]:
+        subprocess.run(["git", *args], cwd=tmp_path, check=True)
+    legacy.unlink()
+    config.write_text(current.replace('memory: "notes"', 'memory: "relocated"'))
+    relocated = tmp_path / "relocated"
+    notes.rename(relocated)
+    assert invoke(worker, tmp_path, "memory-check").returncode == 0
+    index = relocated / "Decisions.md"
+    index.write_text(index.read_text().replace("| Choice |", "| Changed choice |"))
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert "committed decision identity cannot change" in result.stderr
+
+
 def committed_memory(worker: Path, tmp_path: Path) -> Path:
     project(tmp_path)
     path = memory(tmp_path)
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     with config.open("a") as stream:
         stream.write(
-            '\n[[checks]]\nid = "memory"\nkind = "memory"\nskill = "guides/repair/SKILL.md"\n'
+            '\nchecks:\n- id: "memory"\n  kind: "memory"\n  skill: "guides/repair/SKILL.md"\n'
         )
     index = path / "Decisions.md"
     index.write_text(

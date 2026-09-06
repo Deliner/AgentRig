@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 from support import git as git_result
-from support import invoke
+from support import invoke, update_config
 from test_commands import background_id, require_user_systemd, wait_for_background_output
 
 
@@ -31,12 +31,19 @@ def installed(worker: Path, tmp_path: Path) -> Path:
     commit(tmp_path, "shared.txt", "initial\n")
     git(tmp_path, "switch", "-c", "task/bootstrap")
     assert invoke(worker, tmp_path, "init", "--base", "trunk", "--prefix", "task/").returncode == 0
-    config = tmp_path / "worker.toml"
-    with config.open("a") as stream:
-        argv = json.dumps(["sh", "-c", 'test -z "$BLOCK_DELIVERY"'])
-        stream.write(
-            f'\n[commands.probe]\nargv = {argv}\n[[checks]]\nid = "probe"\nkind = "command"\ncommand = "probe"\nskill = ".worker/skills/repair/SKILL.md"\n'
-        )
+    config = tmp_path / "agentrig.yaml"
+    update_config(
+        config,
+        commands={"probe": {"argv": ["sh", "-c", 'test -z "$BLOCK_DELIVERY"']}},
+        checks=[
+            {
+                "id": "probe",
+                "kind": "command",
+                "command": "probe",
+                "skill": ".agentrig/skills/repair/SKILL.md",
+            }
+        ],
+    )
     commit(tmp_path, "ready.txt", "ready")
     result = invoke(worker, tmp_path, "feature-merge")
     assert result.returncode == 0, result.stdout + result.stderr
@@ -188,9 +195,9 @@ def test_merge_cleans_only_owned_task_runs(
 
 
 def background_commands(root: Path) -> None:
-    argv = json.dumps(["python3", "-c", "import time; print('ready',flush=True); time.sleep(60)"])
-    config = root / "worker.toml"
-    config.write_text(
-        config.read_text()
-        + f'\n[commands.wait]\nargv = {argv}\n[commands.service]\nargv = {argv}\nlifetime = "shared"\n'
+    argv = ["python3", "-c", "import time; print('ready',flush=True); time.sleep(60)"]
+    config = root / "agentrig.yaml"
+    update_config(
+        config,
+        commands={"wait": {"argv": argv}, "service": {"argv": argv.copy(), "lifetime": "shared"}},
     )

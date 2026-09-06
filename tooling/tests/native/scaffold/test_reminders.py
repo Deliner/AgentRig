@@ -67,7 +67,7 @@ def test_reminder_configuration_rejects_malformed_values(
     worker: Path, tmp_path: Path, change: dict[str, object]
 ) -> None:
     assert invoke(worker, tmp_path, "init").returncode == 0
-    path = tmp_path / ".worker/reminder.json"
+    path = tmp_path / ".agentrig/reminder.json"
     config = json.loads(path.read_text())
     config.update(change)
     path.write_text(json.dumps(config))
@@ -78,7 +78,7 @@ def test_reminder_configuration_rejects_malformed_values(
 
 def test_partial_and_truncated_transcripts_recover(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init").returncode == 0
-    settings = tmp_path / ".worker/reminder.json"
+    settings = tmp_path / ".agentrig/reminder.json"
     settings.write_text(
         json.dumps({"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300})
     )
@@ -102,7 +102,7 @@ def test_partial_and_truncated_transcripts_recover(worker: Path, tmp_path: Path)
     )
     transcript.write_text(record[:-2])
     assert "deny" not in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
-    saved = next((tmp_path / ".worker/runtime/reminders").glob("*.json"))
+    saved = next((tmp_path / ".agentrig/runtime/reminders").glob("*.json"))
     assert json.loads(saved.read_text())["scan_offset"] == 0
     transcript.write_text(record + "\n")
     assert "deny" in invoke(worker, tmp_path, "hook", input=json.dumps(event)).stdout
@@ -135,11 +135,11 @@ def configured_session(worker: Path, tmp_path: Path) -> dict[str, Any]:
     assert (
         invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
     )
-    config = tmp_path / "worker.toml"
+    config = tmp_path / "agentrig.yaml"
     config.write_text(
         config.read_text()
-        .replace('runtime = ".worker/runtime"', 'runtime = ".scratch/state"')
-        .replace('reminder = ".worker/reminder.json"', 'reminder = ".scratch/reminder.json"')
+        .replace("runtime: .agentrig/runtime", "runtime: .scratch/state")
+        .replace("reminder: .agentrig/reminder.json", "reminder: .scratch/reminder.json")
     )
     scratch = tmp_path / ".scratch"
     scratch.mkdir()

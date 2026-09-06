@@ -22,7 +22,7 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
-    let capability = discipline_worker::jobs::capability();
+    let capability = agentrig::jobs::capability();
     println!("process scope capability: {capability}");
     let required = context.config.processes.foreground
         == super::super::config::Containment::Systemd
@@ -50,13 +50,17 @@ pub fn run(context: &Context) -> Result<i32> {
     Ok(i32::from(failed))
 }
 fn installed_binary(context: &Context) -> bool {
-    let installed = Command::new(context.root.join(".worker/bin/discipline-worker"))
-        .arg("--version")
-        .output();
+    let installed = Command::new(
+        context
+            .root
+            .join(context.config.paths.service_path("bin/agentrig")),
+    )
+    .arg("--version")
+    .output();
     let matches = installed.is_ok_and(|output| {
         output.status.success()
             && String::from_utf8_lossy(&output.stdout).trim()
-                == format!("discipline-worker {}", super::super::config::VERSION)
+                == format!("agentrig {}", super::super::config::VERSION)
     });
     println!(
         "installed binary: {}",
@@ -107,13 +111,15 @@ fn sandbox_availability(context: &Context) -> bool {
 fn git_registration(context: &Context) -> bool {
     let hooks =
         crate::util::git(&context.root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
-    let registered = hooks == ".worker/hooks"
-        && super::adapters::git_hooks().iter().all(|(path, contents)| {
-            available(path, &context.root)
-                && fs::read(context.root.join(path)).is_ok_and(|actual| {
-                    actual == *contents || super::manifest::approved(&context.root, path, &actual)
-                })
-        });
+    let registered = hooks == context.config.paths.service_path("hooks")
+        && super::adapters::git_hooks(&context.config)
+            .iter()
+            .all(|(path, contents)| {
+                available(path, &context.root)
+                    && fs::read(context.root.join(path)).is_ok_and(|actual| {
+                        actual == *contents || super::manifest::approved(context, path, &actual)
+                    })
+            });
     println!(
         "Git hooks: {}",
         if registered {
@@ -137,16 +143,7 @@ fn codex_registration(context: &Context) -> Result<bool> {
     let configured = fs::read(context.root.join(".codex/hooks.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
-    let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration()?)?;
-    let codex = enabled
-        && configured.as_ref().is_some_and(|value| {
-            ["SessionStart", "PreToolUse"].iter().all(|event| {
-                let desired = &expected["hooks"][event][0];
-                value["hooks"][event]
-                    .as_array()
-                    .is_some_and(|routes| routes.contains(desired))
-            })
-        });
+    let codex = enabled && hooks_registered(context, configured.as_ref())?;
     println!(
         "Codex registration: {}",
         if codex {
@@ -156,6 +153,26 @@ fn codex_registration(context: &Context) -> Result<bool> {
         }
     );
     Ok(codex)
+}
+
+fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -> Result<bool> {
+    let expected: serde_json::Value =
+        serde_json::from_slice(&super::adapters::registration(&context.config)?)?;
+    Ok(configured.is_some_and(|value| {
+        expected["hooks"]
+            .as_object()
+            .unwrap()
+            .iter()
+            .all(|(event, desired)| {
+                value["hooks"][event].as_array().is_some_and(|routes| {
+                    desired
+                        .as_array()
+                        .unwrap()
+                        .iter()
+                        .all(|route| routes.contains(route))
+                })
+            })
+    }))
 }
 
 fn executor_dependencies(context: &Context) -> bool {

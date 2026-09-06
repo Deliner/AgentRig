@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 
-@pytest.fixture(scope="session", params=["acaa0b3", "83a81d9"])
+@pytest.fixture(scope="session", params=["a3e4b4f4d83538e21fecc7ed30393cdcf576ed30"])
 def predecessor(request: pytest.FixtureRequest, tmp_path_factory: pytest.TempPathFactory) -> Path:
     root = Path(os.environ.get("WORKER_SOURCE_ROOT", Path(__file__).parents[4]))
     revision = str(request.param)

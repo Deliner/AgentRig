@@ -1,6 +1,6 @@
 # Independent scaffold examples
 
-These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `discipline-worker` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
+These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
 
 For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux, Git, Just and bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.
 
@@ -32,12 +32,12 @@ git switch -c change/bootstrap
 "$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies --base release --prefix change/
 ```
 
-Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.worker/lint.toml`.
+Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.agentrig/lint.yaml`.
 
 ## Exercise either installation
 
 ```sh
-.worker/bin/discipline-worker --version
+.agentrig/bin/agentrig --version
 just setup
 just config-check
 just resume
@@ -45,7 +45,7 @@ just run test
 just check
 git add .
 just check --staged
-printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .worker/bin/discipline-worker hook
+printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook
 git commit -m "Attach portable scaffold"
 just feature-merge
 just feature-start next
@@ -53,22 +53,24 @@ just feature-start next
 
 `git commit` invokes the staged gate. `feature-merge` checks the integration candidate and retains the bootstrap branch. The initial commit is made before hook installation so bootstrap does not require bypassing an installed guard. Later development uses the configured branch prefix.
 
-The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with nonempty `Predicate` and `Oracle` sections. Add to `worker.toml`:
+The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with nonempty `Predicate` and `Oracle` sections. Add to `agentrig.yaml`:
 
-```toml
-[oracles.I001]
-check = "tests"
-runner = "pytest"
-target = "application/test_sample.py::test_doubles"
+```yaml
+oracles:
+  I001:
+    check: tests
+    runner: pytest
+    target: application/test_sample.py::test_doubles
 ```
 
 For Rust use `knowledge/Invariants/001.md`, `[doubles](../crates/engine/src/lib.rs)` and:
 
-```toml
-[oracles.I001]
-check = "tests"
-runner = "cargo"
-target = "tests::doubles"
+```yaml
+oracles:
+  I001:
+    check: tests
+    runner: cargo
+    target: tests::doubles
 ```
 
 Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery alone does not verify the predicate.
@@ -80,11 +82,12 @@ See [observed latency](LATENCY.md) for first-process and repeated-process measur
 
 ## Enable isolated review
 
-Add the review capability to the consumer's worker.toml:
+Add the review capability to the consumer's agentrig.yaml:
 
-```toml
-[capabilities.review]
-config = ".worker/review/config/review.toml"
+```yaml
+capabilities:
+  review:
+    config: .agentrig/review/config/review.yaml
 ```
 
 Run `just setup`. It installs the stock review resources and review-project skill,
@@ -99,7 +102,7 @@ needed, REVIEW_CODEX_BIN in the environment from which the MCP client starts.
 Restart the MCP connection after changing its tool configuration. Repeated setup
 preserves settings and reports conflicting adapters instead of overwriting them.
 
-The separate `discipline-lint --root OTHER_PROJECT --config POLICY --json` command
+The separate `agentrig-lint --root OTHER_PROJECT --config POLICY --json` command
 needs no worker installation in OTHER_PROJECT. See the
 [lint guide](../README.md) for external repair-skill resources.
 See [portable delivery verification](PORTABILITY.md) for the observed setup,

@@ -1,6 +1,6 @@
 # Rust worker runtime and structural linter
 
-The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project worker.toml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
+The Rust runtime owns agent and Git hooks, command execution, feature integration, memory validation and structural lint. Configuration and gate stages come from the project agentrig.yaml; see [the scaffold guide](SCAFFOLD.md) for their schema. Just and Git/Codex adapters only route calls into this runtime. Python is used for behavioral tests and the benchmark.
 
 ## Build and execution
 
@@ -12,11 +12,11 @@ The hook registration invokes run hook with an explicit repository root. Ledger 
 
 ## Configuration
 
-The lint file selected by worker.toml (or --config; standalone default lint.toml) uses TOML version 1 of the worker schema. Unknown fields, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
+The lint file selected by agentrig.yaml (or --config; standalone default lint.yaml) uses strict YAML version 1 of the worker schema. Unknown fields, duplicate keys, wrong types, unsupported rule kinds/targets, invalid globs, duplicate IDs, missing skills, and invalid effective thresholds are errors. Anchors, aliases, tags and merge keys are rejected. Legacy TOML requires explicit migration; there is no runtime fallback. A configuration failure exits 2 and points at the configured repair skill; a structural error exits 1; warnings alone exit 0.
 
-Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.toml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks TOML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
+Validate independently with just lint-config-check. Use just lint-config-check --config path/to/lint.yaml --json for another config and machine-readable diagnostics (an empty array means valid). Exit 0 means the configuration and current target selection are valid; exit 2 reports a configuration error and repair skill. This command checks YAML/schema, skills, selectors, supported targets/extensions and effective overrides against the current inventory, without reading or parsing source contents. It does not claim the source passes lint. Normal lint uses the same validation automatically.
 
-Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete TOML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
+Use just lint-rule function-lines for readable details, add --json for machine output or --example for a complete YAML configuration using the installed .agents/skills. Use just lint-rules to inspect each rule's target, languages, supported handler extensions and measurement. These are implementation capabilities, not user-editable claims. Language selection uses extensions; setting a suffix cannot create a handler.
 
 Each rules entry requires:
 
@@ -28,7 +28,7 @@ Each rules entry requires:
 - exclude: optional rule-local glob list.
 - extensions: optional literal suffixes, such as .rs or .ts; only file rules accept them.
 - Numeric rules require warning, error, or both: nonnegative thresholds; warning must be strictly below error when both exist. Equality passes; a greater value triggers that level. Omit error for warnings only, or warning for blocking only.
-- named-if-condition instead requires level = "warning" or "error", with no numeric thresholds or threshold overrides.
+- named-if-condition instead requires level: warning or error, with no numeric thresholds or threshold overrides.
 - warning_skill and error_skill: existing repository SKILL.md paths with name/description frontmatter.
 - overrides: optional ordered selector/threshold overrides.
 
@@ -36,19 +36,17 @@ Global exclude removes paths from the inventory before directory counts. Rule-lo
 
 An override inherits the rule's target and repair skills. It supplies include, optional extensions, and at least one of warning/error. All matching overrides apply in declaration order; later supplied thresholds replace earlier values. Effective warning must remain below error when both exist. An omitted override threshold inherits its prior value; overrides cannot remove thresholds. Different rules are independent and can both report on a file.
 
-Example, placed inside the file-size rule before the next rules entry:
+Example overrides field, indented to match the other fields of its file-size rule:
 
-~~~toml
-[[rules.overrides]]
-include = ["Project/Runtime/**"]
-extensions = [".rs", ".ts"]
-warning = 220
-error = 400
-
-[[rules.overrides]]
-include = ["Project/Runtime/parser.rs"]
-warning = 280
-error = 450
+~~~yaml
+overrides:
+  - include: ["Project/Runtime/**"]
+    extensions: [".rs", ".ts"]
+    warning: 220
+    error: 400
+  - include: ["Project/Runtime/parser.rs"]
+    warning: 280
+    error: 450
 ~~~
 
 Do not add exceptions merely to turn the gate green. Preserve a current requirement or record a justified policy change.
@@ -63,14 +61,14 @@ Current defaults retain warnings above 300 nonblank lines and errors above 500; 
 
 Example syntax rule selection (inside its rules entry):
 
-~~~toml
-enabled = true
-include = ["Project/**"]
-exclude = ["Project/generated/**"]
-extensions = [".rs", ".py"]
+~~~yaml
+enabled: true
+include: ["Project/**"]
+exclude: ["Project/generated/**"]
+extensions: [".rs", ".py"]
 ~~~
 
-Setting extensions = [".sh"] on function-lines fails with an error naming supported Rust/Python handlers. The same applies to numeric override selectors. File-size remains language independent, so it can select shell scripts.
+Setting extensions: [".sh"] on function-lines fails with an error naming supported Rust/Python handlers. The same applies to numeric override selectors. File-size remains language independent, so it can select shell scripts.
 
 ### Syntax-aware rules
 
@@ -80,7 +78,7 @@ The Rust engine parses each selected source once per run using Tree-sitter. Comp
 - function-lines counts nonblank lines from the function signature through the end of its body, including comments, docstrings and nested definitions. Decorators and preceding attributes are excluded. Methods, async functions, constructors, nested functions and anonymous closures/lambdas are included; declarations without bodies have no size finding. Nested functions are also measured independently.
 - parameter-count counts declared inputs, including optional and variadic parameters as one each. Generic type parameters, commas inside types/defaults, and separators do not count. Rust self receivers (including typed self) and the first bound Python method receiver are excluded. For literal @staticmethod decorators, inputs all count; bound method/classmethod receivers do not. Decorator aliases are not resolved. Python constructors are checked through explicit __init__/__new__ declarations; Rust associated constructor functions such as new are ordinary functions. Calls, class inheritance arguments, generated constructors (such as dataclass) and macro-expanded code are not inferred.
 
-Repository policy and newly installed defaults block all three language rules: named-if-condition uses level = "error", function-lines uses error = 40, and parameter-count uses error = 4. Equality passes. Production code, tests and the benchmark follow these limits without new exclusions. D021 supersedes the initial advisory rollout; existing consumer configurations require an explicit policy update. File/directory thresholds and configurable warning capabilities remain unchanged.
+Repository policy and newly installed defaults block all three language rules: named-if-condition uses level: error, function-lines uses error: 40, and parameter-count uses error: 4. Equality passes. Production code, tests and the benchmark follow these limits without new exclusions. D021 supersedes the initial advisory rollout; existing consumer configurations require an explicit policy update. File/directory thresholds and configurable warning capabilities remain unchanged.
 
 Syntax diagnostics add a 1-based line and symbol to the existing JSON fields; text output renders file:line (symbol). Each finding points to name-if-condition, refactor-long-function or reduce-parameters. No automatic code transformation is performed.
 
@@ -92,11 +90,11 @@ Parser APIs and grammars: [Tree-sitter](https://docs.rs/tree-sitter/0.26.13/tree
 
 The pre-commit hook checks the actual exported Git index, including its Rust sources, lint config, and skill files. Structural lint runs before the other checks. The same gate runs on the integration candidate before merge and after a required rebase; errors stop the operation, warnings do not.
 
-Each checks entry in worker.toml names its repair skill. The shared gate preserves original tool output and reports that skill, the selected scope and an executable retry command on failure; structural findings use their rule-specific skills. `just check --only CHECK_ID` retries one stage without replacing the full commit/merge gates. See [recovery and check evidence](SCAFFOLD.md#memory-and-recovery) for resume freshness and repeated-failure feedback.
+Each checks entry in agentrig.yaml names its repair skill. The shared gate preserves original tool output and reports that skill, the selected scope and an executable retry command on failure; structural findings use their rule-specific skills. `just check --only CHECK_ID` retries one stage without replacing the full commit/merge gates. See [recovery and check evidence](SCAFFOLD.md#memory-and-recovery) for resume freshness and repeated-failure feedback.
 
 Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
-Configuration parsing uses the [TOML serde library](https://docs.rs/toml/latest/toml/); selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
+Lint, review and delegate configuration share the strict YAML codec in review/src/config/yaml.rs. Selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
 
 ## Measured latency
 
@@ -104,19 +102,19 @@ See [repeatable measurements](examples/LATENCY.md) and [their runner](examples/m
 
 ## Standalone assessment
 
-The release build also produces `discipline-lint`, a native CLI over the same
+The release build also produces `agentrig-lint`, a native CLI over the same
 engine used by worker checks. Copy that executable outside the project to be
 assessed; no worker setup, memory, hooks or MCP are required there:
 
 ```sh
-discipline-lint --root /projects/consumer --config /policies/lint.toml --json
-discipline-lint lint-config-check --root /projects/consumer --config /policies/lint.toml
-discipline-lint lint-rules
+agentrig-lint --root /projects/consumer --config /policies/lint.yaml --json
+agentrig-lint lint-config-check --root /projects/consumer --config /policies/lint.yaml
+agentrig-lint lint-rules
 ```
 
 Source selectors always apply to the assessed root. By default, skill references
 retain their existing project-relative semantics. An external policy can set
-`skill_root = "skills"`, resolved relative to its configuration file, to use a
+`skill_root: skills`, resolved relative to its configuration file, to use a
 separate skill bundle. References must still identify valid SKILL.md files inside
 that selected root. Diagnostics provide their resolved paths. The assessment
 writes no project files; worker and standalone findings agree for the same
@@ -144,7 +142,7 @@ and error thresholds; policy rules use level. Existing configuration syntax and
 strict installed defaults are preserved.
 
 
-Use just lint-explain src/example.rs (or discipline-lint lint-explain with
+Use just lint-explain src/example.rs (or agentrig-lint lint-explain with
 --root and --config) to see every configured rule's selection reason. --json
 returns the same information for automation. Selected entries include effective
 warning/error or level and zero-based matched override indexes, in application
@@ -194,7 +192,7 @@ not successful completion. Ownership is coordination within a user account,
 not an access-control boundary against that same user's own programs.
 
 Commands default to `lifetime = "task"`; set `lifetime = "shared"` in a command's
-worker.toml table for a service that must outlive task cleanup. `just job-cleanup`
+agentrig.yaml table for a service that must outlive task cleanup. `just job-cleanup`
 cleans the current owner's task scopes; `--branch BRANCH` narrows that selection.
 Successful feature-merge invokes the same cleanup for the merged branch. Shared
 services, other owners, other branches and the active cleanup caller are retained.
@@ -215,39 +213,45 @@ owner cleanup covers them. A single scope stop only covers that scope's cgroup.
 
 ## Delegation profiles
 
-`just delegate config-check CONFIG` validates a separate TOML profile file.
+`just delegate config-check CONFIG` validates a separate strict YAML profile file.
+Duplicate keys, unknown fields, incorrect types and YAML composition constructs
+are errors. Legacy TOML requires explicit migration; no fallback is used.
 Profile validation, asynchronous CLI execution and the MCP adapter are implemented.
-Select `capabilities.delegation.config` in worker.toml and run setup to register
+Select `capabilities.delegation.config` in agentrig.yaml and run setup to register
 the configured MCP service. A successful configuration check does not run
 an executor or prove model/service availability.
 
-```toml
-schema_version = 1
-
-[profiles.reader]
-frontend = "codex"
-model = "your-configured-model"
-reasoning_effort = "high"
-mode = "read"
-prompt = "prompts/reader.md"
-visible_paths = ["src/**", "docs/**"]
-timeout_seconds = 900
-memory_bytes = 1073741824
-max_processes = 64
-skills = ["skills/project-guide"]
-
-[profiles.reader.programs]
-python = "/usr/bin/python3"
-
-[profiles.reader.credentials]
-codex_auth_file_env = "PROJECT_CODEX_AUTH_FILE"
-
-[profiles.reader.mcp_servers.helper]
-program = "python"
-args = ["-m", "your_server"]
-
-[profiles.reader.mcp_servers.helper.env]
-SERVICE_TOKEN = "PROJECT_SERVICE_TOKEN"
+```yaml
+schema_version: 1
+profiles:
+  reader:
+    frontend: codex
+    model: your-configured-model
+    reasoning_effort: high
+    mode: read
+    prompt: prompts/reader.md
+    visible_paths: ["src/**", "docs/**"]
+    timeout_seconds: 900
+    memory_bytes: 1073741824
+    max_processes: 64
+    skills: ["skills/project-guide"]
+    programs:
+      python: /usr/bin/python3
+    hooks:
+      inspect_shell:
+        event: PreToolUse
+        program: python
+        args: ["-c", "print('{}')"]
+        matcher: "^Bash$"
+        timeout_seconds: 10
+    credentials:
+      codex_auth_file_env: PROJECT_CODEX_AUTH_FILE
+    mcp_servers:
+      helper:
+        program: python
+        args: ["-m", "your_server"]
+        env:
+          SERVICE_TOKEN: PROJECT_SERVICE_TOKEN
 ```
 
 Frontend currently accepts `codex`; modes accept `read`, `artifacts` and `code`.
@@ -259,6 +263,25 @@ Visible-path globs describe project inputs, not configuration resource paths.
 Timeout is required and positive; memory_bytes and max_processes are optional
 positive limits. Memory and process limits apply to the entire systemd scope;
 the Linux process limit counts threads too. Program, skill and server maps can be omitted when unused.
+
+`hooks` is an optional map of stable handler IDs. AgentRig currently supports
+synchronous command hooks for `SessionStart`, `PreToolUse`, `PostToolUse` and `Stop`.
+Each handler references a declared program, accepts literal argv through `args`
+and requires a positive `timeout_seconds`. Unsupported events and handler fields,
+unknown programs and invalid matcher regexes are configuration errors. Omit
+`matcher`, or use an empty string or `*`, to match all occurrences. Stop does not
+support filtering, so a Stop matcher is rejected. Hooks and their program bytes
+can be shared through the same profile configuration packages.
+
+Codex supplies JSON on stdin and interprets hook stdout using its
+[event-specific hook contract](https://learn.chatgpt.com/docs/hooks).
+The runner enables and trusts only the selected inline hook configuration in the
+isolated Codex home. Programs run inside the delegate sandbox and share its
+deadline and process limits. Frontend hook failures are not mandatory delivery
+gates: contracted results and code checks remain independently verified by the
+runner. Profiles with no hooks keep the frontend hook feature disabled.
+The four events and a blocking Stop repair were exercised with real Codex CLI
+0.153.4 and gpt-5.6-sol on Linux; temporary files were removed after verification.
 
 Credential values are environment-variable references, never secret values.
 codex_auth_file_env names a variable containing the auth.json path at execution;
@@ -285,10 +308,16 @@ sizes and hashes. A model's declaration of completion does not satisfy this cont
 The delegated sandbox builder mounts prepared inputs at /project, /inputs and
 /delegate-input, plus a writable /work and a private /codex. Only configured
 programs are added under /tools; sh, bash, env and system libraries form the CLI
-runtime. Configured skills are mounted read-only under /codex/skills. Host checkout,
+runtime. Configured skills are mounted read-only under /codex/skills. Configured
+programs and skill trees are captured by the shared resource builder before launch;
+mounts use these private copies, so later edits to their sources cannot change a
+running delegate. Skill support files and executable flags are preserved; nested
+symlinks are rejected. The retained environment.json receipt records source and
+installed file hashes and executable flags, and status/result includes it as
+`environment` after temporary files have been cleaned. Host checkout,
 home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
-Codex configuration is read-only, disables hooks and contains only the configured
+Codex configuration is read-only and contains only the configured hooks and
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
 fixtures verify execution and limits. A real Codex read task has passed through
 the configured MCP in an independent consumer, including input reading, result

@@ -22,15 +22,7 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
     if unborn {
         return Ok(());
     }
-    let listed = crate::util::git(git_root, &["ls-tree", "HEAD", "--", FILE])?;
-    let adoption = listed.is_empty();
-    let prior_memory = if adoption {
-        context.config.paths.memory.clone()
-    } else {
-        let prior: Config =
-            toml::from_str(&committed(git_root, FILE)?).context("committed worker.toml schema")?;
-        prior.paths.memory
-    };
+    let prior_memory = prior_memory(context, git_root)?;
     let index = format!("{}/Decisions.md", prior_memory);
     let no_prior_memory =
         crate::util::git(git_root, &["ls-tree", "HEAD", "--", &index])?.is_empty();
@@ -54,6 +46,21 @@ pub fn check(context: &Context, git_root: &Path) -> Result<()> {
         )?;
     }
     Ok(())
+}
+
+fn prior_memory(context: &Context, git_root: &Path) -> Result<String> {
+    let current = !crate::util::git(git_root, &["ls-tree", "HEAD", "--", FILE])?.is_empty();
+    if current {
+        let prior: Config = review_runner::config::yaml::decode(&committed(git_root, FILE)?)
+            .context("committed agentrig.yaml schema")?;
+        return Ok(prior.paths.memory);
+    }
+    let legacy = super::super::upgrade::migration::LEGACY_FILE;
+    let migrated = !crate::util::git(git_root, &["ls-tree", "HEAD", "--", legacy])?.is_empty();
+    if migrated {
+        return super::super::upgrade::migration::historical_memory(&committed(git_root, legacy)?);
+    }
+    Ok(context.config.paths.memory.clone())
 }
 
 fn preserve(

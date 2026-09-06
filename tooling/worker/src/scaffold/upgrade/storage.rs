@@ -9,13 +9,7 @@ use std::{
 };
 
 pub fn directory(root: &Path) -> Result<PathBuf> {
-    let source = fs::read_to_string(root.join(config::FILE))?;
-    let value: toml::Value = toml::from_str(&source)?;
-    let runtime = value
-        .get("paths")
-        .and_then(|value| value.get("runtime"))
-        .and_then(toml::Value::as_str)
-        .context("paths.runtime required for upgrade recovery")?;
+    let runtime = super::migration::recovery_runtime(root)?;
     config::relative(root, &format!("{runtime}/upgrade"))
 }
 pub fn state(root: &Path, path: &str) -> Result<State> {

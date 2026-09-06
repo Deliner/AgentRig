@@ -1,71 +1,90 @@
 use super::super::config::{self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route};
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
-pub(super) type Options<'a> = BTreeMap<&'a str, &'a str>;
+pub(super) type Options<'a> = BTreeMap<&'a str, String>;
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
-    let mut options = BTreeMap::from([
+    let mut options: Options<'_> = [
         ("language", "python"),
         ("review", "false"),
         ("source", "src"),
         ("memory", "memory"),
-        ("skills", ".worker/skills"),
+        ("skills", ".agentrig/skills"),
+        ("service", ".agentrig"),
         ("base", "main"),
         ("prefix", "feature/"),
-    ]);
+    ]
+    .into_iter()
+    .map(|(key, value)| (key, value.into()))
+    .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--source PATH] [--memory PATH] [--skills PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
+        "init [--language python|rust] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
         ensure!(options.contains_key(key), "unknown init option {}", pair[0]);
-        options.insert(key, &pair[1]);
+        options.insert(key, pair[1].clone());
     }
-    let language = options["language"];
+    let default_skills = !args
+        .as_chunks::<2>()
+        .0
+        .iter()
+        .any(|pair| pair[0] == "--skills");
+    if default_skills {
+        options.insert("skills", format!("{}/skills", options["service"]));
+    }
+    validate_options(root, &options)?;
+    Ok(options)
+}
+fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
+    let language = options["language"].as_str();
     ensure!(
         ["python", "rust"].contains(&language),
         "init supports python or rust"
     );
     ensure!(
-        ["true", "false"].contains(&options["review"]),
+        ["true", "false"].contains(&options["review"].as_str()),
         "init --review expects true or false"
     );
-    for key in ["source", "memory", "skills"] {
-        config::relative(root, options[key])?;
+    for key in ["source", "memory", "skills", "service"] {
+        config::relative(root, &options[key])?;
     }
-    Ok(options)
+    Ok(())
 }
 pub(super) fn config(options: &Options<'_>) -> Config {
-    let skill_root = options["skills"];
+    let skill_root = &options["skills"];
+    let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
+        environment: Default::default(),
         version: 1,
         processes: Default::default(),
         capabilities: config::Capabilities {
             lint: true,
             delegation: None,
             review: (options["review"] == "true").then(|| config::Resource {
-                config: super::review::CONFIG.into(),
+                config: format!("{service}/review/config/review.yaml"),
             }),
         },
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
+            service: service.clone(),
             sources: vec![format!("{}/**", options["source"])],
-            memory: options["memory"].into(),
+            memory: options["memory"].clone(),
             skills: skill_root.into(),
-            lint: ".worker/lint.toml".into(),
-            runtime: ".worker/runtime".into(),
+            lint: format!("{service}/lint.yaml"),
+            runtime: format!("{service}/runtime"),
         },
         git: Git {
-            base: options["base"].into(),
-            prefix: options["prefix"].into(),
+            base: options["base"].clone(),
+            prefix: options["prefix"].clone(),
         },
         commands: commands(options),
-        checks: checks(options["source"], &repair),
+        checks: checks(&options["source"], &repair),
         hooks: Hooks {
-            routes: routes(options["memory"], skill_root),
-            reminder: Some(".worker/reminder.json".into()),
+            routes: routes(&options["memory"], skill_root),
+            reminder: Some(format!("{service}/reminder.json")),
             discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
         },
         oracles: BTreeMap::new(),
@@ -105,7 +124,7 @@ fn test_command(options: &Options<'_>) -> Vec<String> {
             "python3".into(),
             "-m".into(),
             "pytest".into(),
-            options["source"].into(),
+            options["source"].clone(),
         ]
     } else {
         vec![
@@ -162,8 +181,10 @@ fn checks(source: &str, repair: &str) -> Vec<Check> {
         },
     ]
 }
-pub(super) fn justfile() -> String {
+pub(super) fn justfile(config: &Config) -> String {
     let mut source = "set positional-arguments := true\n\n".to_owned();
+    let path = format!("./{}", config.paths.service_path("bin/agentrig"));
+    let binary = shell_words::quote(&path);
     for (name, command, args) in [
         ("list", "commands", false),
         ("run", "run", true),
@@ -174,7 +195,7 @@ pub(super) fn justfile() -> String {
         ("feature-start", "feature-start", true),
         ("feature-merge", "feature-merge", false),
         ("upgrade", "upgrade", true),
-        ("setup", "setup", false),
+        ("setup", "setup", true),
         ("lint", "lint", true),
         ("lint-config-check", "lint-config-check", true),
         ("lint-rule", "lint-rule", true),
@@ -189,7 +210,7 @@ pub(super) fn justfile() -> String {
         ("delegate", "delegate", true),
     ] {
         source.push_str(&format!(
-            "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @.worker/bin/discipline-worker {command} --root .{}\n\n",
+            "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @{binary} {command} --root .{}\n\n",
             if args { " *args" } else { "" },
             if args { " \"$@\"" } else { "" }
         ));

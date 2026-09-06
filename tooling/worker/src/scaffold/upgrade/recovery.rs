@@ -16,6 +16,11 @@ pub fn active(root: &Path) -> Result<bool> {
     Ok(journal(root)?
         .is_some_and(|journal| !matches!(journal.phase.as_str(), "applied" | "rolled-back")))
 }
+pub fn configuration_pending(root: &Path) -> Result<bool> {
+    Ok(!root.join(crate::scaffold::config::FILE).is_file()
+        && root.join(super::migration::LEGACY_FILE).is_file()
+        && active(root)?)
+}
 pub fn guard(root: &Path) -> Result<()> {
     ensure!(
         !active(root)?,

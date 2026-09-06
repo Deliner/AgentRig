@@ -1,0 +1,101 @@
+# Every rule declares supported target, selectors, thresholds, and repair skills.
+# Validate with just lint-config-check; inspect capabilities with just lint-rules.
+# Every rule accepts enabled: false; include/exclude/extensions select its scope.
+# Supports any selected UTF-8 language, including shell.
+# Supports directories, independent of language; no extensions.
+# DECISION: D021
+# All language rules block delivery; the same defaults are installed in consumers.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+version: 1
+config_skill: .agents/skills/repair/SKILL.md
+exclude:
+- .git
+- .git/**
+- .cache
+- .cache/**
+- '**/__pycache__'
+- '**/__pycache__/**'
+- '**/.venv'
+- '**/.venv/**'
+- '**/target'
+- '**/target/**'
+rules:
+- id: file-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .py
+  - .sh
+  - .rs
+  - .js
+  - .ts
+  - .tsx
+  - .jsx
+  - .go
+  - .c
+  - .h
+  - .cpp
+  - .cs
+  - .java
+  - .json
+  - .md
+  - .toml
+  - .txt
+  - .yaml
+  - .yml
+  warning: 300
+  error: 500
+  warning_skill: .agents/skills/refactor-large-file/SKILL.md
+  error_skill: .agents/skills/refactor-large-file/SKILL.md
+- id: directory-size
+  kind: directory-entries
+  target: directory
+  include:
+  - '**'
+  exclude:
+  - Ledger/Decisions
+  - Ledger/Invariants
+  warning: 10
+  error: 15
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+- id: named-if-condition
+  kind: named-if-condition
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/name-if-condition/SKILL.md
+  error_skill: .agents/skills/name-if-condition/SKILL.md
+- id: function-lines
+  kind: function-lines
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 40
+  warning_skill: .agents/skills/refactor-long-function/SKILL.md
+  error_skill: .agents/skills/refactor-long-function/SKILL.md
+- id: parameter-count
+  kind: parameter-count
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 4
+  warning_skill: .agents/skills/reduce-parameters/SKILL.md
+  error_skill: .agents/skills/reduce-parameters/SKILL.md

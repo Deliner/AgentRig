@@ -15,6 +15,7 @@ pub fn owns(command: &str) -> bool {
     matches!(
         command,
         "config-check"
+            | "config-inspect"
             | "run"
             | "commands"
             | "report"
@@ -40,7 +41,11 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::init(root, args),
         "setup" => return package::setup(root, args),
+        "config-inspect" => return package::setup::inspect(root, args),
         "upgrade" => return upgrade::run(root, args),
+        "resume" if upgrade::recovery::configuration_pending(root)? => {
+            return resume_upgrade(root, args);
+        }
         "check" => {
             let (staged, only) = gate::arguments(args)?;
             return gate::selected(root, staged, only);
@@ -53,27 +58,31 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         upgrade::recovery::guard(root)?;
     }
     let recovery = matches!(command, "run" | "resume" | "commands");
-    let context = config::Context::load_for(root, recovery).map_err(|error| {
-        anyhow::anyhow!(
-            "{error:#}. ACTION: Correct worker.toml and its referenced configuration/skills"
-        )
-    })?;
+    let context = config::Context::load_for(root, recovery)?;
     let jobs = matches!(
         command,
         "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
     );
     if jobs {
-        return discipline_worker::jobs::cli(
-            &context.path(&context.config.paths.runtime)?,
-            command,
-            args,
-        );
+        return agentrig::jobs::cli(&context.path(&context.config.paths.runtime)?, command, args);
     }
     match command {
         "job-start" => commands::background(&context, args),
         "_job-run" => commands::background_run(&context, args),
         _ => configured_command(&context, command, args),
     }
+}
+fn resume_upgrade(root: &Path, args: &[String]) -> Result<i32> {
+    validate_arguments("resume", args)?;
+    println!(
+        "{}",
+        serde_json::json!({
+            "snapshot": "unavailable",
+            "upgrade": upgrade::recovery::journal(root)?,
+            "guidance": upgrade::recovery::guidance(root)?,
+        })
+    );
+    Ok(0)
 }
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
     let unexpected = matches!(

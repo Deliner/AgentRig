@@ -1,5 +1,8 @@
 // DECISION: D024
 mod apply;
+mod configuration;
+mod external;
+pub(super) mod migration;
 mod model;
 mod operation;
 mod plan;
@@ -13,6 +16,12 @@ use std::path::Path;
 
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     arguments(args)?;
+    if let [_, option, path] = args {
+        let configuration = option == "--config";
+        if configuration {
+            return configuration::create(root, Path::new(path));
+        }
+    }
     if let [command, binary] = args {
         let planning = command == "plan";
         if planning {
@@ -30,16 +39,19 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     match args {
         [command, path] if command == "apply" => apply::run(root, Path::new(path)),
         [command] if command == "rollback" => apply::rollback(root),
-        _ => bail!("upgrade plan RELEASE_EXECUTABLE | apply PLAN | rollback"),
+        _ => bail!(
+            "upgrade plan RELEASE_EXECUTABLE | plan --config CONFIG_YAML | apply PLAN | rollback"
+        ),
     }
 }
 
 pub fn arguments(args: &[String]) -> Result<()> {
     let valid = matches!(args, [command, _] if command == "plan" || command == "apply")
-        || matches!(args, [command] if command == "rollback");
+        || matches!(args, [command] if command == "rollback")
+        || matches!(args, [command, option, _] if command == "plan" && option == "--config");
     anyhow::ensure!(
         valid,
-        "upgrade plan RELEASE_EXECUTABLE | apply PLAN | rollback"
+        "upgrade plan RELEASE_EXECUTABLE | plan --config CONFIG_YAML | apply PLAN | rollback"
     );
     Ok(())
 }

@@ -6,7 +6,7 @@ use toml_edit::{DocumentMut, Item, value};
 pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> {
     let hooks = crate::util::git(root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
     ensure!(
-        hooks.is_empty() || hooks == ".worker/hooks",
+        hooks.is_empty() || hooks == config.paths.service_path("hooks"),
         "setup conflict: core.hooksPath={hooks}; existing registration preserved"
     );
     let mut document: DocumentMut = std::str::from_utf8(&files[".codex/config.toml"])?.parse()?;
@@ -16,11 +16,16 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         value(true),
         "features.hooks",
     )?;
-    super::delegation::configure(root, config, &mut document)?;
+    super::delegation::configure(root, config, files, &mut document)?;
+    super::environment::configure(config, &mut document)?;
     if let Some(review) = &config.capabilities.review {
         let timeout = review_timeout(root, files, &review.config)?;
         table(&mut document["mcp_servers"], "mcp_servers")?;
-        mcp(&mut document["mcp_servers"]["worker_review"], timeout)?;
+        mcp(
+            &mut document["mcp_servers"]["worker_review"],
+            timeout,
+            &config.paths.service,
+        )?;
     } else {
         let server = document
             .get("mcp_servers")
@@ -28,7 +33,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         ensure!(
             server
                 .is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
-            "setup conflict: review is disabled in worker.toml; disable or remove mcp_servers.worker_review; existing settings preserved"
+            "setup conflict: review is disabled in agentrig.yaml; disable or remove mcp_servers.worker_review; existing settings preserved"
         );
     }
     files.insert(
@@ -38,23 +43,17 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
     Ok(())
 }
 fn review_timeout(root: &Path, files: &Files, path: &str) -> Result<u64> {
-    let source = match std::fs::read_to_string(root.join(path)) {
-        Ok(source) => source,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            String::from_utf8(files.get(path).context("review config missing")?.clone())?
-        }
-        Err(error) => return Err(error.into()),
-    };
-    let review: review_runner::config::Config = toml::from_str(&source)?;
+    let source = super::source(root, files, path)?;
+    let review: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
     Ok(review.runner.timeout_seconds)
 }
-fn mcp(server: &mut Item, timeout: u64) -> Result<()> {
+fn mcp(server: &mut Item, timeout: u64, service: &str) -> Result<()> {
     table(server, "mcp_servers.worker_review")?;
     setting(&mut server["enabled"], value(true), "worker_review.enabled")?;
     setting(&mut server["command"], value("sh"), "worker_review.command")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/discipline-worker\" review mcp --root \"$root\"");
+    args.push(super::super::adapters::mcp_command(service, "review"));
     setting(&mut server["args"], value(args), "worker_review.args")?;
     let timeout = i64::try_from(timeout)?
         .checked_add(60)

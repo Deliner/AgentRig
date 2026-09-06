@@ -132,7 +132,7 @@ def test_nested_cwd_and_symlinks(worker: Path, tmp_path: Path) -> None:
 
 def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init").returncode == 0
-    (tmp_path / ".worker/runtime").write_text("occupied")
+    (tmp_path / ".agentrig/runtime").write_text("occupied")
     result = invoke(worker, tmp_path, "hook", input=json.dumps({"hook_event_name": "SessionStart"}))
     assert "memory/State.md" in result.stdout
     assert "FULL_REFRESH_REQUIRED" in result.stdout
@@ -141,7 +141,7 @@ def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) ->
 
 def test_hook_requires_project_configuration(worker: Path, tmp_path: Path) -> None:
     result = invoke(worker, tmp_path, "hook", input=json.dumps({"hook_event_name": "SessionStart"}))
-    assert "worker.toml" in result.stdout
+    assert "agentrig.yaml" in result.stdout
     assert "deny" in result.stdout
 
 

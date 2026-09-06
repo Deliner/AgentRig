@@ -1,10 +1,11 @@
 use super::{
+    external, migration,
     model::{Action, Change, Plan, State},
     release, storage,
 };
 use crate::scaffold::{
     config,
-    package::manifest::{self, Manifest, Ownership},
+    package::manifest::{Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeSet, fs, path::Path, process::Command};
@@ -15,6 +16,7 @@ struct Draft<'a> {
     directory: &'a Path,
     exported: &'a Path,
     old: Manifest,
+    resources: migration::Resources,
     plan: Plan,
 }
 
@@ -30,24 +32,28 @@ pub fn create(root: &Path, binary: &Path) -> Result<i32> {
     let pending = tempfile::Builder::new()
         .prefix("plan-")
         .tempdir_in(directory)?;
-    let plan = new_plan(root, exported.path(), baseline)?;
+    let mut plan = new_plan(root, exported.path(), baseline)?;
+    let resources = migration::resources(root, &configuration)?;
+    resources.register(&mut plan.manifest);
     let mut draft = Draft {
         root,
         configuration: &configuration,
         directory: pending.path(),
         exported: exported.path(),
         old,
+        resources,
         plan,
     };
     draft.collect()?;
-    draft.report()?;
+    draft.resources.imported.verify()?;
+    report(draft.directory, &draft.plan)?;
     storage::json(&pending.path().join("plan.json"), &draft.plan)?;
     let directory = pending.keep();
     println!("Plan: {}", directory.join("plan.json").display());
     Ok(0)
 }
 fn prepare_release(root: &Path, binary: &Path) -> Result<(config::Config, tempfile::TempDir)> {
-    let configuration = release::configuration(root)?;
+    let configuration = migration::configuration(root)?;
     ensure!(
         configuration.runtime == release::FROM,
         "only {} -> {} is implemented",
@@ -70,13 +76,14 @@ fn new_plan(root: &Path, exported: &Path, baseline: String) -> Result<Plan> {
         from_version: release::FROM.into(),
         to_version: release::TO.into(),
         baseline,
+        service: ".worker".into(),
         files: Default::default(),
         manifest: release::manifest(exported)?,
         checks: vec!["config-check".into(), "doctor".into(), "check".into()],
     })
 }
 fn baseline(root: &Path, configuration: &config::Config) -> Result<(Manifest, String)> {
-    let installed = root.join(manifest::PATH).is_file();
+    let installed = root.join(super::migration::MANIFEST).is_file();
     if installed {
         return Ok((release::manifest(root)?, "manifest".into()));
     }
@@ -98,15 +105,23 @@ impl Draft<'_> {
             .cloned()
             .collect();
         paths.insert(self.configuration.paths.lint.clone());
+        paths.insert(release::lint_path(&self.configuration.paths.lint));
+        paths.extend(self.resources.converted.keys().cloned());
+        paths.extend(
+            self.resources
+                .converted
+                .keys()
+                .map(|path| release::lint_path(path)),
+        );
         paths.extend(self.configuration.hooks.reminder.iter().cloned());
         for path in paths {
             let change = self.change(&path)?;
             self.plan.files.insert(path, change);
         }
-        let receipt = storage::state(self.root, manifest::PATH)?;
+        let receipt = storage::state(self.root, super::migration::MANIFEST)?;
         self.save_before(&receipt)?;
         self.plan.files.insert(
-            manifest::PATH.into(),
+            super::migration::MANIFEST.into(),
             Change {
                 before: receipt.clone(),
                 after: receipt,
@@ -127,17 +142,89 @@ impl Draft<'_> {
             reason: "preserve project content".into(),
             resolution: None,
         };
-        let migrate = path == config::FILE;
-        let replace_stock = !self.preserve(path);
-        if migrate {
-            let bytes = release::migrated(&fs::read_to_string(self.root.join(path))?)?;
-            change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
-            change.action = Action::Replace;
-            change.reason = "migrate runtime pin; preserve settings and comments".into();
-        } else if replace_stock {
+        let migrated = self.migrate(path, &mut change)?;
+        let replace_stock = !migrated && !self.preserve(path);
+        if replace_stock {
             self.stock_change(path, &mut change)?;
         }
         Ok(change)
+    }
+    fn migrate(&self, path: &str, change: &mut Change) -> Result<bool> {
+        let lint = &self.configuration.paths.lint;
+        let bytes = match self.migration_bytes(path)? {
+            Some(bytes) => bytes,
+            None if path == lint
+                || path == migration::LEGACY_FILE
+                || self.resources.converted.contains_key(path) =>
+            {
+                change.after.sha256 = None;
+                change.after.mode = None;
+                change.action = Action::Remove;
+                change.reason = "replace legacy path with its YAML configuration".into();
+                return Ok(true);
+            }
+            None => return Ok(false),
+        };
+        change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
+        let imported_mode = self
+            .resources
+            .imported
+            .files
+            .get(path)
+            .map(|file| if file.executable { 0o755 } else { 0o644 });
+        change.after.mode = imported_mode.or(change.before.mode).or(Some(0o644));
+        let collision = path != external::CODEX
+            && path != lint
+            && !self.resources.converted.contains_key(path)
+            && change.before.sha256.is_some();
+        change.action = if collision {
+            Action::Conflict
+        } else {
+            Action::Replace
+        };
+        change.reason = self.migration_reason(path).into();
+        Ok(true)
+    }
+    fn migration_reason(&self, path: &str) -> &str {
+        let imported = self.resources.imported.files.contains_key(path);
+        let project = path == config::FILE;
+        let codex = path == external::CODEX;
+        if imported {
+            "import selected external review material; preserve its source outside the installation"
+        } else if codex {
+            "migrate managed executable references; preserve other Codex settings and comments"
+        } else if project {
+            "convert project settings and runtime pin to YAML; original formatting/comments retained in reviewed preimage"
+        } else {
+            "convert configured resource to YAML; original formatting/comments retained in reviewed preimage; resolve destination conflicts explicitly"
+        }
+    }
+    fn migration_bytes(&self, path: &str) -> Result<Option<Vec<u8>>> {
+        if let Some(file) = self.resources.imported.files.get(path) {
+            return Ok(Some(file.bytes.clone()));
+        }
+        let codex = path == external::CODEX;
+        if codex {
+            return external::codex(self.root);
+        }
+        let root_config = path == config::FILE;
+        if root_config {
+            return Ok(Some(release::migrated(&fs::read_to_string(
+                self.root.join(migration::LEGACY_FILE),
+            )?)?));
+        }
+        let lint = &self.configuration.paths.lint;
+        let lint_target = path == release::lint_path(lint)
+            && (self.configuration.capabilities.lint || self.root.join(lint).is_file());
+        if lint_target {
+            return Ok(Some(release::lint_yaml(self.root, lint)?));
+        }
+        Ok(self
+            .resources
+            .converted
+            .iter()
+            .find(|(source, _)| release::lint_path(source) == path)
+            .map(|(_, bytes)| bytes.clone()))
     }
     fn preserve(&self, path: &str) -> bool {
         let ownership = self
@@ -162,6 +249,18 @@ impl Draft<'_> {
                 && Some(entry.executable) == change.before.mode.map(|mode| mode & 0o111 != 0)
         });
         let fresh = old.is_none() && change.before.sha256.is_none();
+        let customized = !unchanged;
+        let migrated = if customized {
+            external::git_hook(self.root, path)?
+        } else {
+            None
+        };
+        if let Some(bytes) = migrated {
+            change.after.sha256 = Some(storage::blob(self.directory, &bytes)?);
+            change.action = Action::Conflict;
+            change.reason = "migrate the known legacy executable call while preserving custom adapter contents; review the replacement".into();
+            return Ok(());
+        }
         change.action = classify(change, unchanged || fresh);
         change.reason = match change.action {
             Action::Conflict => "local change: set resolution to keep or replace",
@@ -201,52 +300,52 @@ impl Draft<'_> {
         }
         Ok(())
     }
-    fn report(&self) -> Result<()> {
-        let mut report = format!(
-            "Upgrade {} -> {} (baseline: {})\n",
-            self.plan.from_version, self.plan.to_version, self.plan.baseline
-        );
-        for (path, change) in &self.plan.files {
-            let action = serde_json::to_string(&change.action)?;
-            report.push_str(&format!("{action} {path}: {}\n", change.reason));
-            let changed = change.before != change.after;
-            if changed {
-                report.push_str(&self.diff(change)?);
-            }
+}
+pub(super) fn report(directory: &Path, plan: &Plan) -> Result<()> {
+    let mut report = format!(
+        "Upgrade {} -> {} (baseline: {})\n",
+        plan.from_version, plan.to_version, plan.baseline
+    );
+    for (path, change) in &plan.files {
+        let action = serde_json::to_string(&change.action)?;
+        report.push_str(&format!("{action} {path}: {}\n", change.reason));
+        let changed = change.before != change.after;
+        if changed {
+            report.push_str(&diff(directory, change)?);
         }
-        report.push_str(&format!("Checks: {}\n", self.plan.checks.join(", ")));
-        fs::write(self.directory.join("diff.txt"), &report)?;
-        print!("{report}");
-        Ok(())
     }
-    fn diff(&self, change: &Change) -> Result<String> {
-        let left = self.directory.join("before");
-        let right = self.directory.join("after");
-        for (path, state) in [(&left, &change.before), (&right, &change.after)] {
-            let bytes = match &state.sha256 {
-                Some(hash) => storage::payload(self.directory, hash)?,
-                None => Vec::new(),
-            };
-            fs::write(path, bytes)?;
-        }
-        let output = Command::new("git")
-            .args(["diff", "--no-index", "--no-ext-diff", "--no-color"])
-            .arg(&left)
-            .arg(&right)
-            .output()?;
-        ensure!(
-            matches!(output.status.code(), Some(0 | 1)),
-            "cannot produce upgrade diff"
-        );
-        fs::remove_file(left)?;
-        fs::remove_file(right)?;
-        Ok(format!(
-            "mode {:?} -> {:?}\n{}",
-            change.before.mode,
-            change.after.mode,
-            String::from_utf8_lossy(&output.stdout)
-        ))
+    report.push_str(&format!("Checks: {}\n", plan.checks.join(", ")));
+    fs::write(directory.join("diff.txt"), &report)?;
+    print!("{report}");
+    Ok(())
+}
+fn diff(directory: &Path, change: &Change) -> Result<String> {
+    let left = directory.join("before");
+    let right = directory.join("after");
+    for (path, state) in [(&left, &change.before), (&right, &change.after)] {
+        let bytes = match &state.sha256 {
+            Some(hash) => storage::payload(directory, hash)?,
+            None => Vec::new(),
+        };
+        fs::write(path, bytes)?;
     }
+    let output = Command::new("git")
+        .args(["diff", "--no-index", "--no-ext-diff", "--no-color"])
+        .arg(&left)
+        .arg(&right)
+        .output()?;
+    ensure!(
+        matches!(output.status.code(), Some(0 | 1)),
+        "cannot produce upgrade diff"
+    );
+    fs::remove_file(left)?;
+    fs::remove_file(right)?;
+    Ok(format!(
+        "mode {:?} -> {:?}\n{}",
+        change.before.mode,
+        change.after.mode,
+        String::from_utf8_lossy(&output.stdout)
+    ))
 }
 fn classify(change: &Change, stock: bool) -> Action {
     let equal = change.before == change.after;

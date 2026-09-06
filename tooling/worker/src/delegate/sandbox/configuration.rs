@@ -1,12 +1,13 @@
 use super::{Layout, Profile};
+use crate::environment::resolve_references as resolve;
 use anyhow::{Context, Result};
 use serde_json::json;
-use std::{collections::BTreeMap, env, fs, os::unix::fs::PermissionsExt, process::Command};
+use std::{env, fs, os::unix::fs::PermissionsExt, process::Command};
 
 pub(super) fn write(layout: &Layout, profile: &Profile) -> Result<()> {
     fs::set_permissions(&layout.private, fs::Permissions::from_mode(0o700))?;
     let mut servers = serde_json::Map::new();
-    for (name, server) in &profile.mcp_servers {
+    for (name, server) in &profile.environment.mcp_servers {
         servers.insert(
             name.clone(),
             json!({"command":format!("/tools/{}",server.program),
@@ -14,7 +15,10 @@ pub(super) fn write(layout: &Layout, profile: &Profile) -> Result<()> {
         );
     }
     let config = json!({"model":profile.model,"model_reasoning_effort":profile.reasoning_effort,
-        "features":{"hooks":false},"mcp_servers":servers});
+    "features":{"hooks":!profile.environment.hooks.is_empty()},"mcp_servers":servers,
+    "hooks":crate::environment::hooks::configuration(&profile.environment.hooks, |_, hook| {
+        shell_words::join(std::iter::once(format!("/tools/{}", hook.program)).chain(hook.args.clone()))
+    })});
     fs::write(
         layout.private.join("codex/config.toml"),
         toml::to_string(&config)?,
@@ -37,15 +41,4 @@ pub(super) fn environment(command: &mut Command, profile: &Profile) -> Result<()
         .env("PATH", "/tools:/bin")
         .env("SHELL", "/bin/bash");
     Ok(())
-}
-
-fn resolve(references: &BTreeMap<String, String>) -> Result<BTreeMap<String, String>> {
-    references
-        .iter()
-        .map(|(name, reference)| {
-            let value = env::var(reference)
-                .with_context(|| format!("missing credential reference {reference}"))?;
-            Ok((name.clone(), value))
-        })
-        .collect()
 }

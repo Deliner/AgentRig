@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -22,7 +23,7 @@ def consumer(worker: Path, root: Path, monkeypatch: pytest.MonkeyPatch, script: 
     monkeypatch.setenv("DELEGATE_FAKE_KEY", "unused-fixture-key")
     monkeypatch.setenv("WORKER_OWNER", "delegate-fixture")
     (root / "prompt.md").write_text("Complete the task.\n")
-    (root / "delegate.toml").write_text(CONFIG)
+    (root / "delegate.yaml").write_text(CONFIG)
     request = {
         "profile": "fixture",
         "task": "Generate an artifact",
@@ -38,19 +39,21 @@ def consumer(worker: Path, root: Path, monkeypatch: pytest.MonkeyPatch, script: 
     (root / "request.json").write_text(json.dumps(request))
 
 
-CONFIG = """schema_version = 1
-[profiles.fixture]
-frontend = "codex"
-model = "fixture"
-reasoning_effort = "high"
-mode = "artifacts"
-prompt = "prompt.md"
-visible_paths = ["src/**"]
-timeout_seconds = 2
-[profiles.fixture.programs]
-sleep = "/usr/bin/sleep"
-[profiles.fixture.credentials.env]
-OPENAI_API_KEY = "DELEGATE_FAKE_KEY"
+CONFIG = """schema_version: 1
+profiles:
+  fixture:
+    frontend: "codex"
+    model: "fixture"
+    reasoning_effort: "high"
+    mode: "artifacts"
+    prompt: "prompt.md"
+    visible_paths: ["src/**"]
+    timeout_seconds: 2
+    programs:
+      sleep: "/usr/bin/sleep"
+    credentials:
+      env:
+        OPENAI_API_KEY: "DELEGATE_FAKE_KEY"
 """
 
 
@@ -86,24 +89,31 @@ def test_async_artifact_result_survives_reconnect_and_cleanup(
         monkeypatch,
         "printf artifact > /work/asset.txt\nprintf '{\"ok\":true}' > /work/result.json\n",
     )
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = terminal(worker, tmp_path, identifier)
     assert result["job"]["exit_code"] == 0, result
     assert result["outcome"] == "PASS", result
     assert result["report"]["status"] == "PASS", result
     assert result["report"]["cleanup_errors"] == []
     assert call(worker, tmp_path, "result", identifier)["report"] == result["report"]
-    directory = tmp_path / ".worker/runtime/jobs" / identifier
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
     assert (directory / "artifacts/asset.txt").read_text() == "artifact"
     assert not (directory / "input").exists()
     assert not (directory / "private").exists()
+    receipt = json.loads((directory / "environment.json").read_text())
+    assert result["environment"] == receipt
+    assert receipt["files"]["programs/sleep"] == {
+        "sha256": hashlib.sha256(Path("/usr/bin/sleep").read_bytes()).hexdigest(),
+        "executable": True,
+    }
+    assert call(worker, tmp_path, "result", identifier)["environment"] == receipt
 
 
 def test_timeout_is_a_persisted_error(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     consumer(worker, tmp_path, monkeypatch, "/tools/sleep 60\n")
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = terminal(worker, tmp_path, identifier)
     assert result["report"]["status"] == "ERROR", result
     assert result["outcome"] == "ERROR", result
@@ -115,27 +125,27 @@ def test_cancel_recovers_report_and_cleans_private_files(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     consumer(worker, tmp_path, monkeypatch, "/tools/sleep 60\n")
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = call(worker, tmp_path, "cancel", identifier)
     assert result["job"]["state"] == "cancelled", result
     assert result["outcome"] == "CANCELLED", result
     assert result["report"]["status"] == "ERROR", result
     assert result["report"]["cleanup_errors"] == []
-    assert not (tmp_path / ".worker/runtime/jobs" / identifier / "private").exists()
+    assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "private").exists()
 
 
 def test_profile_limits_reach_kernel_cgroup(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     consumer(worker, tmp_path, monkeypatch, "/tools/sleep 60\n")
-    config = tmp_path / "delegate.toml"
+    config = tmp_path / "delegate.yaml"
     config.write_text(
         config.read_text().replace(
-            "timeout_seconds = 2",
-            "timeout_seconds = 60\nmemory_bytes = 268435456\nmax_processes = 64",
+            "timeout_seconds: 2",
+            "timeout_seconds: 60\n    memory_bytes: 268435456\n    max_processes: 64",
         )
     )
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     try:
         status = call(worker, tmp_path, "status", identifier)
         group = status["job"]["scope_observation"]["control_group"]
@@ -151,8 +161,8 @@ def test_read_delegate_uses_explicit_read_only_inputs(
 ) -> None:
     script = 'read value < /inputs/value\ntest "$value" = sample\n! echo changed > /inputs/value\nprintf \'{"ok":true}\' > /work/result.json\n'
     consumer(worker, tmp_path, monkeypatch, script)
-    config = tmp_path / "delegate.toml"
-    config.write_text(config.read_text().replace('mode = "artifacts"', 'mode = "read"'))
+    config = tmp_path / "delegate.yaml"
+    config.write_text(config.read_text().replace('mode: "artifacts"', 'mode: "read"'))
     source = tmp_path / "src/value.txt"
     source.parent.mkdir(exist_ok=True)
     source.write_text("sample\n")
@@ -161,7 +171,7 @@ def test_read_delegate_uses_explicit_read_only_inputs(
     request["inputs"] = {"value": "src/value.txt"}
     request["contract"]["artifacts"] = {}
     request_file.write_text(json.dumps(request))
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = terminal(worker, tmp_path, identifier)
     assert result["outcome"] == "PASS", result
     assert source.read_text() == "sample\n"
@@ -172,14 +182,12 @@ def test_cleanup_failure_cannot_be_overall_pass_and_can_be_retried(
 ) -> None:
     script = "printf artifact > /work/asset.txt\nprintf '{\"ok\":true}' > /work/result.json\n/tools/chmod 000 /codex\n"
     consumer(worker, tmp_path, monkeypatch, script)
-    config = tmp_path / "delegate.toml"
+    config = tmp_path / "delegate.yaml"
     config.write_text(
-        config.read_text().replace(
-            "[profiles.fixture.programs]", '[profiles.fixture.programs]\nchmod = "/usr/bin/chmod"'
-        )
+        config.read_text().replace("    programs:", '    programs:\n      chmod: "/usr/bin/chmod"')
     )
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
-    directory = tmp_path / ".worker/runtime/jobs" / identifier
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
     try:
         result = terminal(worker, tmp_path, identifier)
         assert result["outcome"] == "ERROR", result
@@ -206,14 +214,14 @@ def test_slow_launcher_survives_start_disconnect(
     launcher.write_text('#!/bin/sh\n/bin/sleep 7\nexec /usr/bin/systemd-run "$@"\n')
     launcher.chmod(0o755)
     monkeypatch.setenv("PATH", str(launcher.parent) + os.pathsep + os.environ["PATH"])
-    identifier = call(worker, tmp_path, "start", "delegate.toml", "request.json")["run_id"]
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
     result = call(worker, tmp_path, "result", identifier)
     assert result["outcome"] == "RUNNING", result
-    assert (tmp_path / ".worker/runtime/jobs" / identifier / "input").exists()
+    assert (tmp_path / ".agentrig/runtime/jobs" / identifier / "input").exists()
     if cancel:
         result = call(worker, tmp_path, "cancel", identifier)
         assert result["job"]["state"] == "stopping", result
         assert terminal(worker, tmp_path, identifier)["outcome"] == "CANCELLED"
-        assert not (tmp_path / ".worker/runtime/jobs" / identifier / "artifacts").exists()
+        assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "artifacts").exists()
     else:
         assert terminal(worker, tmp_path, identifier)["outcome"] == "PASS"

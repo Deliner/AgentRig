@@ -1,9 +1,18 @@
 use super::*;
 use crate::lint::config::{globs, skill};
-use std::collections::HashSet;
+use std::{collections::HashSet, fs};
 
 impl Config {
     pub(super) fn validate(&self, root: &Path) -> Result<()> {
+        self.validate_structure(root)?;
+        self.capabilities.validate(root, &self.checks)?;
+        if self.capabilities.lint {
+            crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
+                .context("paths.lint")?;
+        }
+        Ok(())
+    }
+    pub(super) fn validate_structure(&self, root: &Path) -> Result<()> {
         ensure!(self.version == 1, "version: supported schema is 1");
         ensure!(
             self.runtime == VERSION,
@@ -15,16 +24,22 @@ impl Config {
         self.validate_commands(root)?;
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
-        self.validate_oracles()?;
-        self.capabilities.validate(root, &self.checks)?;
-        if self.capabilities.lint {
-            crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
-                .context("paths.lint")?;
+        self.environment
+            .clone()
+            .resolve(&root.join(FILE))
+            .context("environment")?;
+        for name in self.environment.mcp_servers.keys() {
+            ensure!(
+                !matches!(name.as_str(), "worker_review" | "worker_delegation"),
+                "environment.mcp_servers.{name} is reserved by AgentRig"
+            );
         }
+        self.validate_oracles()?;
         Ok(())
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {
         for (label, value) in [
+            ("service", &self.paths.service),
             ("memory", &self.paths.memory),
             ("skills", &self.paths.skills),
             ("lint", &self.paths.lint),
@@ -32,6 +47,10 @@ impl Config {
         ] {
             relative(root, value).with_context(|| format!("paths.{label}"))?;
         }
+        ensure!(
+            !self.paths.service.contains(['\n', '\r']) && !self.paths.service.contains("{{"),
+            "paths.service cannot contain newlines or Just interpolation syntax"
+        );
         ensure!(
             !self.paths.sources.is_empty(),
             "paths.sources cannot be empty"

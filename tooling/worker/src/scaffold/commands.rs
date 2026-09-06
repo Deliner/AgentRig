@@ -31,7 +31,7 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
     let runtime = context.path(&context.config.paths.runtime)?;
-    let mut job = discipline_worker::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
+    let mut job = agentrig::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
     job.prepare(&argv, spec.read_only, spec.lifetime)?;
     let scoped = context.config.processes.foreground == super::config::Containment::Systemd;
     if scoped {
@@ -46,7 +46,7 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
     result
 }
 pub fn report(context: &Context) -> Result<()> {
-    discipline_worker::jobs::report::print(&context.path(&context.config.paths.runtime)?)
+    agentrig::jobs::report::print(&context.path(&context.config.paths.runtime)?)
 }
 pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let (name, extra) = args
@@ -56,12 +56,8 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
     let runtime = context.path(&context.config.paths.runtime)?;
-    let mut job = discipline_worker::jobs::Job::create(
-        &runtime,
-        &context.root,
-        name,
-        &context.path(&spec.cwd)?,
-    )?;
+    let mut job =
+        agentrig::jobs::Job::create(&runtime, &context.root, name, &context.path(&spec.cwd)?)?;
     job.prepare(&argv, spec.read_only, spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     println!("{}", serde_json::json!({"run_id": id}));
@@ -70,7 +66,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
 pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     ensure!(args.len() == 1, "_job-run RUN_ID");
     let runtime = context.path(&context.config.paths.runtime)?;
-    let mut job = discipline_worker::jobs::Job::adopt(&runtime, &args[0])?;
+    let mut job = agentrig::jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
     let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);
     let result = process::tracked(&cwd, &argv, (read_only, false), Some(&mut job));

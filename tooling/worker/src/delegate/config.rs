@@ -4,7 +4,6 @@ use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
-    fs,
     path::{Path, PathBuf},
 };
 
@@ -27,12 +26,8 @@ pub struct Profile {
     pub timeout_seconds: u64,
     pub memory_bytes: Option<u64>,
     pub max_processes: Option<u64>,
-    #[serde(default)]
-    pub skills: Vec<PathBuf>,
-    #[serde(default)]
-    pub programs: BTreeMap<String, PathBuf>,
-    #[serde(default)]
-    pub mcp_servers: BTreeMap<String, McpServer>,
+    #[serde(flatten, deserialize_with = "crate::environment::deserialize")]
+    pub environment: crate::environment::Environment,
     pub credentials: Credentials,
 }
 
@@ -52,16 +47,6 @@ pub enum Mode {
 
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
-pub struct McpServer {
-    pub program: String,
-    #[serde(default)]
-    pub args: Vec<String>,
-    #[serde(default)]
-    pub env: BTreeMap<String, String>,
-}
-
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
 pub struct Credentials {
     pub codex_auth_file_env: Option<String>,
     #[serde(default)]
@@ -69,8 +54,9 @@ pub struct Credentials {
 }
 
 pub fn load(path: &Path) -> Result<Config> {
-    let source = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let mut config: Config = toml::from_str(&source).context("delegation configuration schema")?;
+    resolve(path, review_runner::config::yaml::read(path)?)
+}
+pub fn resolve(path: &Path, mut config: Config) -> Result<Config> {
     ensure!(
         config.schema_version == 1,
         "unsupported delegation schema_version"

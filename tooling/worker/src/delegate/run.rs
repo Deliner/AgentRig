@@ -87,7 +87,8 @@ fn prepare(
         private: directory.join("private"),
         codex,
     };
-    sandbox::prepare(&layout, profile)?;
+    let environment = sandbox::prepare(&layout, profile)?;
+    save_json(&directory.join("environment.json"), &environment)?;
     save_json(&directory.join("codex.json"), &layout.codex)?;
     let argv = vec![
         env::current_exe()?.to_string_lossy().into_owned(),
@@ -151,7 +152,13 @@ pub fn result(runtime: &Path, id: &str) -> Result<Value> {
         .ok()
         .map(|bytes| serde_json::from_slice::<Value>(&bytes))
         .transpose()?;
-    Ok(json!({"run_id":id,"outcome":outcome,"job":status,"report":report,"code":code}))
+    let environment = fs::read(directory.join("environment.json"))
+        .ok()
+        .map(|bytes| serde_json::from_slice::<Value>(&bytes))
+        .transpose()?;
+    Ok(
+        json!({"run_id":id,"outcome":outcome,"job":status,"report":report,"code":code,"environment":environment}),
+    )
 }
 fn outcome(status: &Value, report: Option<&Value>) -> &'static str {
     let passed = status["exit_code"] == 0

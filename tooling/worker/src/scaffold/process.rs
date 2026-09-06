@@ -1,5 +1,5 @@
+pub use agentrig::jobs::process::exit_code;
 use anyhow::{Result, ensure};
-pub use discipline_worker::jobs::process::exit_code;
 use std::{
     path::Path,
     process::{Command, Output},
@@ -15,7 +15,7 @@ pub fn tracked(
     root: &Path,
     argv: &[String],
     options: (bool, bool),
-    job: Option<&mut discipline_worker::jobs::Job>,
+    job: Option<&mut agentrig::jobs::Job>,
 ) -> Result<Output> {
     let (read_only, capture) = options;
     ensure!(!argv.is_empty(), "command requires an executable");
@@ -27,7 +27,7 @@ pub fn tracked(
         command
     };
     command.current_dir(root);
-    discipline_worker::jobs::process::execute(&mut command, capture, job)
+    agentrig::jobs::process::execute(&mut command, capture, job)
 }
 fn sandbox(root: &Path, argv: &[String]) -> Result<Command> {
     ensure!(

@@ -3,7 +3,9 @@ use crate::lint::rules;
 use anyhow::Result;
 use serde_json::json;
 
-pub fn template(skills: &str, sources: &[String]) -> Result<String> {
+pub fn template(settings: &super::Config) -> Result<String> {
+    let skills = &settings.paths.skills;
+    let sources = &settings.paths.sources;
     let rules: Vec<_> = rules::ALL
         .iter()
         .map(|kind| rules::example(*kind, skills, sources))
@@ -11,8 +13,8 @@ pub fn template(skills: &str, sources: &[String]) -> Result<String> {
     let config = json!({
         "version": 1,
         "config_skill": format!("{skills}/repair/SKILL.md"),
-        "exclude": [".git/**", ".worker/bin/**", ".worker/runtime/**", "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
+        "exclude": [".git/**", settings.paths.service_path("bin/**"), format!("{}/**", settings.paths.runtime), "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
         "rules": rules,
     });
-    Ok(toml::to_string_pretty(&config)?)
+    review_runner::config::yaml::encode(&config)
 }

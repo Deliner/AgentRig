@@ -3,8 +3,8 @@ name: delegate-task
 description: Delegate an authorized bounded task to a configured worker profile and recover its validated result through MCP.
 ---
 
-Read `capabilities.delegation.config` in worker.toml and the selected profile before
-choosing an executor. Profiles define modes, allowed files, programs, skills, MCP
+Read `capabilities.delegation.config` in agentrig.yaml and the selected profile before
+choosing an executor. Profiles define modes, allowed files, programs, skills, hooks, MCP
 services and credential references. Use `just delegate config-check` to diagnose
 configuration. Setup registers worker_delegation from these settings; authentication
 remains separate.
@@ -23,6 +23,8 @@ an observation timeout does not authorize a duplicate start. Inspect the top-lev
 outcome: PASS requires successful execution, a validated result and cleanup.
 RUNNING and UNKNOWN are not success. Return the retained report, artifact paths
 and hashes, and any execution or cleanup errors to the caller.
+The returned environment receipt identifies captured program and skill bytes;
+configured hooks run automatically and do not replace the runner's result checks.
 
 Use delegate_cancel to cancel the owned task. Restore the same WORKER_OWNER when
 resuming from another session. A pending launch may remain stopping until its

@@ -59,7 +59,7 @@ def main() -> None:
                 capture_output=True,
                 check=True,
             )
-            binary = root / ".worker/bin/discipline-worker"
+            binary = root / ".agentrig/bin/agentrig"
             events = operations()
             for label, command, event in events:
                 first, median, p95 = measure(binary, root, (command, event), args.samples)
@@ -114,7 +114,7 @@ Each language uses a new consumer installation of its independent source example
 | --- | --- | ---: | ---: | ---: |
 """
         + "\n".join(rows)
-        + "\n\nThese local observations describe this workload, not a latency guarantee. No additional cache, daemon or parallel scheduler was introduced for this measurement. Reproduce with `python3 tooling/worker/examples/measure.py --worker /absolute/path/discipline-worker --output /path/to/report.md`.\n"
+        + "\n\nThese local observations describe this workload, not a latency guarantee. No additional cache, daemon or parallel scheduler was introduced for this measurement. Reproduce with `python3 tooling/worker/examples/measure.py --worker /absolute/path/agentrig --output /path/to/report.md`.\n"
     )
     return source
 

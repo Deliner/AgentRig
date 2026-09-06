@@ -6,25 +6,26 @@ use anyhow::{Result, ensure};
 use std::{collections::BTreeSet, path::Path};
 use toml_edit::{DocumentMut, Item, value};
 
-pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Result<()> {
+pub fn configure(
+    root: &Path,
+    config: &Config,
+    files: &super::Files,
+    document: &mut DocumentMut,
+) -> Result<()> {
     let Some(capability) = &config.capabilities.delegation else {
-        let server = document
-            .get("mcp_servers")
-            .and_then(|servers| servers.get("worker_delegation"));
-        ensure!(
-            server
-                .is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
-            "setup conflict: delegation is disabled; disable or remove mcp_servers.worker_delegation; existing settings preserved"
-        );
-        return Ok(());
+        return disabled(document);
     };
-    let profiles = discipline_worker::delegate::config::load(&root.join(&capability.config))?;
+    let profiles: agentrig::delegate::config::Config =
+        review_runner::config::yaml::decode(&super::source(root, files, &capability.config)?)?;
     table(&mut document["mcp_servers"], "mcp_servers")?;
     let server = &mut document["mcp_servers"]["worker_delegation"];
     table(server, "mcp_servers.worker_delegation")?;
     let mut args = toml_edit::Array::new();
     args.push("-c");
-    args.push("root=$(git rev-parse --show-toplevel) && exec \"$root/.worker/bin/discipline-worker\" delegate mcp --root \"$root\"");
+    args.push(super::super::adapters::mcp_command(
+        &config.paths.service,
+        "delegate",
+    ));
     for (key, desired) in [
         ("enabled", value(true)),
         ("command", value("sh")),
@@ -41,7 +42,18 @@ pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Re
     Ok(())
 }
 
-fn environment(config: &discipline_worker::delegate::config::Config) -> toml_edit::Array {
+fn disabled(document: &DocumentMut) -> Result<()> {
+    let server = document
+        .get("mcp_servers")
+        .and_then(|servers| servers.get("worker_delegation"));
+    ensure!(
+        server.is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
+        "setup conflict: delegation is disabled; disable or remove mcp_servers.worker_delegation; existing settings preserved"
+    );
+    Ok(())
+}
+
+fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array {
     let mut names = BTreeSet::from([
         "DELEGATE_CODEX_BIN",
         "WORKER_OWNER",
@@ -52,7 +64,7 @@ fn environment(config: &discipline_worker::delegate::config::Config) -> toml_edi
     for profile in config.profiles.values() {
         names.extend(profile.credentials.codex_auth_file_env.as_deref());
         names.extend(profile.credentials.env.values().map(String::as_str));
-        for server in profile.mcp_servers.values() {
+        for server in profile.environment.mcp_servers.values() {
             names.extend(server.env.values().map(String::as_str));
         }
     }

@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
-pub const PATH: &str = ".worker/manifest.json";
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum Ownership {
@@ -68,15 +67,20 @@ fn ownership(path: &str, config: &Config) -> Ownership {
     let memory = ["Plan", "State", "Decisions", "Invariants"]
         .iter()
         .any(|name| path == format!("{}/{name}.md", config.paths.memory));
-    let settings = ["worker.toml", ".codex/config.toml", &config.paths.lint].contains(&path)
+    let settings = ["agentrig.yaml", ".codex/config.toml", &config.paths.lint].contains(&path)
         || config.hooks.reminder.as_deref() == Some(path)
-        || path.starts_with(".worker/review/config/");
+        || path.starts_with(&config.paths.service_path("review/config/"));
     let editable = (path.starts_with(&format!("{}/", config.paths.skills))
         && path.ends_with("/SKILL.md"))
-        || path.starts_with(".worker/hooks/")
-        || path.starts_with(".worker/review/prompts/")
+        || config
+            .environment
+            .skills
+            .iter()
+            .any(|skill| std::path::Path::new(path).starts_with(skill))
+        || path.starts_with(&config.paths.service_path("hooks/"))
+        || path.starts_with(&config.paths.service_path("review/prompts/"))
         || ["AGENTS.md", "justfile", ".codex/hooks.json"].contains(&path);
-    let runtime = path == ".worker/bin/discipline-worker";
+    let runtime = path == config.paths.service_path("bin/agentrig");
     if memory {
         Ownership::Memory
     } else if settings {
@@ -90,10 +94,14 @@ fn ownership(path: &str, config: &Config) -> Ownership {
     }
 }
 
-pub fn approved(root: &std::path::Path, path: &str, bytes: &[u8]) -> bool {
-    let receipt = std::fs::read(root.join(PATH))
-        .ok()
-        .and_then(|bytes| serde_json::from_slice::<Manifest>(&bytes).ok());
+pub fn approved(context: &super::config::Context, path: &str, bytes: &[u8]) -> bool {
+    let receipt = std::fs::read(
+        context
+            .root
+            .join(context.config.paths.service_path("manifest.json")),
+    )
+    .ok()
+    .and_then(|bytes| serde_json::from_slice::<Manifest>(&bytes).ok());
     receipt.is_some_and(|receipt| {
         receipt.package_version == super::config::VERSION
             && receipt.local.get(path) == Some(&Some(checksum(bytes)))

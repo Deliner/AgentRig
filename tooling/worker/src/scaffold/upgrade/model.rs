@@ -40,9 +40,14 @@ pub struct Plan {
     pub from_version: String,
     pub to_version: String,
     pub baseline: String,
+    #[serde(default = "legacy_service")]
+    pub service: String,
     pub files: BTreeMap<String, Change>,
     pub manifest: Manifest,
     pub checks: Vec<String>,
+}
+fn legacy_service() -> String {
+    ".worker".into()
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

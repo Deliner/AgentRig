@@ -16,4 +16,4 @@ def worker() -> Path:
     if configured:
         return Path(configured)
     subprocess.run([str(ROOT / "tooling/worker/run"), "lint-rules"], cwd=ROOT, check=True)
-    return ROOT / ".cache/worker/release/discipline-worker"
+    return ROOT / ".cache/worker/release/agentrig"
