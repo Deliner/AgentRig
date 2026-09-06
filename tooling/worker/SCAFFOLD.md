@@ -356,6 +356,14 @@ deleted. The plan contains the imported payloads and includes their hashes and
 ownership in the installation manifest. Rollback removes those installed copies
 and restores the original references. Keep external sources available if the
 restored 0.2.0 installation must run after rollback.
+Delegate profiles are validated through the shared profile resolver during explicit
+migration. External prompts, complete skill directories and declared programs are
+copied into the same input bundle, retaining support files and executable modes.
+Resources already inside the consumer remain there with portable relative references.
+Credential references remain references. Converted profiles and imported files enter
+the installation manifest, and the target's generated guidance includes the selected
+delegate capability. Local instruction changes remain reviewed conflicts; rollback
+restores the old profile and removes imported copies.
 Planning leaves installed files unchanged. Review the diff and set each conflicting entry's `resolution` in `plan.json` to
 `"keep"` or `"replace"`. There is no automatic conflict merge. Leave the remaining
 plan fields intact. Kept local contents are recorded separately from stock

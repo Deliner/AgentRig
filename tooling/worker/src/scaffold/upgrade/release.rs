@@ -57,7 +57,25 @@ pub fn export(binary: &Path, config: &Config) -> Result<tempfile::TempDir> {
         "cannot export release: {}",
         String::from_utf8_lossy(&output.stderr)
     );
+    if target {
+        selected_guidance(directory.path(), config)?;
+    }
     Ok(directory)
+}
+
+fn selected_guidance(root: &Path, config: &Config) -> Result<()> {
+    let files = crate::scaffold::package::guidance(config);
+    let selected: Manifest = serde_json::from_slice(&manifest::installed(&files, config)?)?;
+    let receipt = root.join(config.paths.service_path("manifest.json"));
+    let mut current: Manifest = serde_json::from_slice(&fs::read(&receipt)?)?;
+    for (name, bytes) in files {
+        let path = crate::scaffold::config::relative(root, &name)?;
+        fs::create_dir_all(path.parent().context("guidance parent required")?)?;
+        fs::write(path, bytes)?;
+    }
+    current.files.extend(selected.files);
+    fs::write(receipt, serde_json::to_vec_pretty(&current)?)?;
+    Ok(())
 }
 pub fn manifest(root: &Path) -> Result<Manifest> {
     let path = root.join(super::migration::MANIFEST);

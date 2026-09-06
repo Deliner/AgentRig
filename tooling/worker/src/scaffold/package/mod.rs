@@ -65,15 +65,11 @@ fn reject_legacy(root: &Path) -> Result<()> {
     Ok(())
 }
 fn bundle(config: &Config) -> Result<Files> {
-    let skill_root = &config.paths.skills;
-    let mut files = BTreeMap::<String, Vec<u8>>::new();
+    let mut files = guidance(config);
     files.insert(
         config::FILE.into(),
         review_runner::config::yaml::encode(config)?.into_bytes(),
     );
-    for (name, source) in assets::skills(config) {
-        files.insert(format!("{skill_root}/{name}/SKILL.md"), source.into_bytes());
-    }
     for (name, source) in assets::memory() {
         files.insert(
             format!("{}/{name}.md", config.paths.memory),
@@ -84,14 +80,27 @@ fn bundle(config: &Config) -> Result<Files> {
     add_runtime(&mut files, config)?;
     review::bundle(&mut files, config);
     files.insert(
-        "AGENTS.md".into(),
-        assets::instructions(config).into_bytes(),
-    );
-    files.insert(
         config.paths.service_path("manifest.json"),
         manifest::installed(&files, config)?,
     );
     Ok(files)
+}
+
+pub(super) fn guidance(config: &Config) -> Files {
+    let mut files: Files = assets::skills(config)
+        .into_iter()
+        .map(|(name, source)| {
+            (
+                format!("{}/{name}/SKILL.md", config.paths.skills),
+                source.into_bytes(),
+            )
+        })
+        .collect();
+    files.insert(
+        "AGENTS.md".into(),
+        assets::instructions(config).into_bytes(),
+    );
+    files
 }
 fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     if config.capabilities.lint {

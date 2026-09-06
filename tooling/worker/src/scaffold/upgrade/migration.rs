@@ -53,13 +53,55 @@ pub fn resources(root: &Path, config: &Config) -> Result<Resources> {
     if let Some(delegate) = &config.capabilities.delegation {
         files.insert(
             delegate.config.clone(),
-            super::release::lint_yaml(root, &delegate.config)?,
+            delegate_resources(root, &delegate.config, &mut imported)?,
         );
     }
     Ok(Resources {
         converted: files,
         imported,
     })
+}
+
+fn delegate_resources(
+    root: &Path,
+    path: &str,
+    imported: &mut agentrig::resources::Bundle,
+) -> Result<Vec<u8>> {
+    let source = toml::from_str(&fs::read_to_string(root.join(path))?)?;
+    let mut config = agentrig::delegate::config::resolve(&root.join(path), source)?;
+    for profile in config.profiles.values_mut() {
+        profile.prompt = relocate(root, path, &profile.prompt, imported)?.into();
+        for skill in &mut profile.environment.skills {
+            *skill = relocate(root, path, skill, imported)?.into();
+        }
+        for program in profile.environment.programs.values_mut() {
+            *program = relocate(root, path, program, imported)?.into();
+        }
+    }
+    Ok(review_runner::config::yaml::encode(&config)?.into_bytes())
+}
+
+fn relocate(
+    root: &Path,
+    config: &str,
+    resource: &Path,
+    imported: &mut agentrig::resources::Bundle,
+) -> Result<String> {
+    let target = match resource.strip_prefix(root) {
+        Ok(path) => path
+            .to_str()
+            .context("resource path must be UTF-8")?
+            .to_owned(),
+        Err(_) => {
+            let directory = resource.is_dir();
+            if directory {
+                imported.directory(resource)?
+            } else {
+                imported.copy(resource)?
+            }
+        }
+    };
+    from_config(root, config, &target)
 }
 
 fn review_resources(
