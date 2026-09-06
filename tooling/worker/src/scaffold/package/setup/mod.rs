@@ -2,14 +2,16 @@ mod delegation;
 mod preview;
 mod reconcile;
 mod registration;
+mod report;
 use super::{Config, Files, config, manifest};
 use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
+    let preview = args == ["--preview"];
     ensure!(
-        args.is_empty(),
-        "setup takes no arguments except --root PATH"
+        args.is_empty() || preview,
+        "setup [--preview] [--root PATH]"
     );
     let config = config::read(root)?;
     ensure!(
@@ -22,6 +24,17 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
         reconcile::Installation::prepare(root, files, &config.paths.service_path("manifest.json"))?;
     preview::validate(root, &config, &installation.files)?;
     registration::configure(root, &config, &mut installation.files)?;
+    if preview {
+        println!(
+            "{}",
+            serde_json::to_string_pretty(&report::prepared(root, &config, &installation)?)?
+        );
+        return Ok(0);
+    }
+    install(root, &config, &installation)
+}
+
+fn install(root: &Path, config: &Config, installation: &reconcile::Installation) -> Result<i32> {
     let fresh_git = !root.join(".git").exists();
     if fresh_git {
         crate::util::git(root, &["init", "-q", "-b", &config.git.base])?;

@@ -67,6 +67,16 @@ conflict instead of silently replacing it. Missing dependencies are reported by
 doctor after installation; fix them and repeat setup. Release changes use upgrade.
 Setup uses the installation manifest and the same atomic writer as upgrade.
 
+`agentrig setup --preview --root CONSUMER` prepares and validates the same files
+and registrations without installing them, initializing Git or invoking doctor.
+It prints JSON with changed file paths, before/after SHA-256 and resulting modes,
+Git/Codex registrations, runtime directories and required dependencies. Existing
+conflicts are reported before writes, just as in ordinary setup. The report includes
+only managed MCP settings, so unrelated settings and credential values remain in
+their original files. Dependencies are requirements, not successful runtime probes;
+doctor verifies their availability after installation. Preview is recomputed from
+current inputs on each call; it creates no independent saved installation plan.
+
 The generated MCP entry sets the documented
 [Codex stdio settings and tool timeout](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
 Its timeout exceeds the review deadline by 60 seconds; the launcher resolves the
@@ -80,7 +90,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 
 | Command | Result |
 | --- | --- |
-| `setup` | Install or reconcile the existing declaration, register adapters/MCP and diagnose dependencies; preserve settings and report conflicts. |
+| `setup [--preview]` | Prepare the existing declaration and report changes without writing, or install/reconcile it and run doctor; preserve settings and report conflicts. |
 | `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, service directory (`--service`), base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `config-resolve CONFIG_YAML` | Preview local package composition as JSON: values, declaring files and configuration digests. Does not install resources or replace capability validation. |

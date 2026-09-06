@@ -54,14 +54,38 @@ impl Installation {
             let before = &self.before[path];
             let changed = before.sha256.as_deref() != Some(&manifest::checksum(bytes));
             if changed {
-                let executable = manifest::executable(path);
-                let default_mode = if executable { 0o755 } else { 0o644 };
-                let mode = before.mode.unwrap_or(default_mode);
-                storage::atomic(&config::relative(root, path)?, bytes, mode)?;
+                storage::atomic(&config::relative(root, path)?, bytes, mode(path, before))?;
             }
         }
         Ok(())
     }
+
+    pub fn changes(&self) -> Vec<serde_json::Value> {
+        self.files
+            .iter()
+            .filter_map(|(path, bytes)| {
+                let before = &self.before[path];
+                let after = manifest::checksum(bytes);
+                let unchanged = before.sha256.as_deref() == Some(&after);
+                if unchanged {
+                    return None;
+                }
+                let existing = before.sha256.is_some();
+                Some(serde_json::json!({
+                    "path": path,
+                    "action": if existing { "update" } else { "create" },
+                    "before_sha256": before.sha256,
+                    "after_sha256": after,
+                    "mode": mode(path, before),
+                }))
+            })
+            .collect()
+    }
+}
+fn mode(path: &str, before: &State) -> u32 {
+    let executable = manifest::executable(path);
+    let default = if executable { 0o755 } else { 0o644 };
+    before.mode.unwrap_or(default)
 }
 fn retain_receipt(receipt: &mut Manifest, old: &Manifest) -> Result<()> {
     ensure!(

@@ -1,3 +1,4 @@
+import hashlib
 import json
 import os
 import subprocess
@@ -245,3 +246,59 @@ def test_composition_cli_previews_reusable_commands_without_installing(
     executed = invoke(worker, root, "run", "hello")
     assert executed.returncode == 0, executed.stderr
     assert "package command" in executed.stdout
+
+
+def test_setup_preview_matches_application_without_changing_the_consumer(
+    worker: Path, tmp_path: Path
+) -> None:
+    root = declaration(worker, tmp_path, "preview rig")
+    before = file_contents(root)
+    result = invoke(worker, root, "setup", "--preview")
+    assert result.returncode == 0, result.stderr
+    preview = json.loads(result.stdout)
+    assert file_contents(root) == before
+    assert not (root / ".git").exists()
+    assert preview["registrations"]["git"]["hooks_path"] == "preview rig/hooks"
+    assert preview["registrations"]["git"]["initialize"] is True
+    assert "worker_review" in preview["registrations"]["codex"]["mcp_servers"]
+    assert set(preview["dependencies"]["executables"]) == {"git", "bwrap", "python3"}
+    assert preview["dependencies"]["model_frontends"][0]["override_env"] == "REVIEW_CODEX_BIN"
+    applied = invoke(worker, root, "setup")
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    for change in preview["files"]:
+        path = root / change["path"]
+        assert hashlib.sha256(path.read_bytes()).hexdigest() == change["after_sha256"]
+        assert path.stat().st_mode & 0o777 == change["mode"]
+    for path in preview["directories"]:
+        assert (root / path).is_dir()
+    repeated = invoke(worker, root, "setup", "--preview")
+    assert repeated.returncode == 0, repeated.stderr
+    assert json.loads(repeated.stdout)["files"] == []
+    just = subprocess.run(
+        ["just", "setup", "--preview"], cwd=root, capture_output=True, text=True, check=False
+    )
+    assert just.returncode == 0, just.stderr
+    assert json.loads(just.stdout)["preview"] is True
+
+
+def test_setup_preview_preserves_conflicts_and_omits_unrelated_settings(
+    worker: Path, tmp_path: Path
+) -> None:
+    root = delegated_project(worker, tmp_path)
+    settings = root / ".codex/config.toml"
+    settings.parent.mkdir()
+    settings.write_text('[mcp_servers.worker_review.env]\nAPI_KEY="consumer-secret"\n')
+    before = file_contents(root)
+    result = invoke(worker, root, "setup", "--preview")
+    assert result.returncode == 0, result.stderr
+    preview = json.loads(result.stdout)
+    assert "consumer-secret" not in result.stdout
+    assert "worker_delegation" in preview["registrations"]["codex"]["mcp_servers"]
+    assert preview["dependencies"]["systemd_user_scope"] is True
+    assert file_contents(root) == before
+    settings.write_text("[features]\nhooks=false\n")
+    before = file_contents(root)
+    refused = invoke(worker, root, "setup", "--preview")
+    assert refused.returncode == 2
+    assert "setup conflict" in refused.stderr
+    assert file_contents(root) == before
