@@ -15,3 +15,4 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P001](Plan/001.md) | complete | - | Isolated review MCP | Request reproducible multi-reviewer assessment of an exact project revision and receive one validated report. |
 | [P002](Plan/002.md) | complete | P001 | Portable worker capabilities and setup | Configure and prepare a consuming project with shipped lint/review, safely repeat setup and update or roll back the environment. |
 | [P003](Plan/003.md) | complete | P002 | Discoverable lint and managed delegation | Configure rules and specialized workers, inspect owned processes, and obtain isolated verified reports, artifacts and code changes. |
+| [P004](Plan/004.md) | active | P003 | Composable AgentRig environments | Assemble, install and migrate YAML-configured project and delegate environments from reusable packages, with custom skills and hooks. |
