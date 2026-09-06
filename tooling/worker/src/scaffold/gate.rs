@@ -8,10 +8,7 @@ use super::{
 };
 use crate::lint::{self, config::globs, inventory};
 use anyhow::{Result, ensure};
-use std::{
-    path::{Path, PathBuf},
-    process::Command,
-};
+use std::path::{Path, PathBuf};
 
 pub fn arguments(args: &[String]) -> Result<(bool, Option<&str>)> {
     let mut staged = false;
@@ -135,17 +132,9 @@ fn checked(context: &Context, root: &Path, check: &Check, rerun: &str) -> (i32, 
     (code, broken)
 }
 fn export(root: &Path) -> Result<tempfile::TempDir> {
-    let directory = tempfile::tempdir()?;
-    let prefix = format!("--prefix={}/", directory.path().display());
-    let result = Command::new("git")
-        .args(["checkout-index", "--all", &prefix])
-        .current_dir(root)
-        .output()?;
-    ensure!(
-        result.status.success(),
-        "cannot export index: {}",
-        String::from_utf8_lossy(&result.stderr)
-    );
+    let repository = review_runner::vcs::Repository::discover(root)?
+        .ok_or_else(|| anyhow::anyhow!("index export requires a VCS repository"))?;
+    let directory = repository.export_index()?;
     ensure!(
         directory.path().join(config::FILE).is_file(),
         "stage agentrig.yaml before checking the index"

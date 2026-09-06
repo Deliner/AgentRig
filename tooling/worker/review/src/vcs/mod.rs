@@ -1,4 +1,5 @@
 //! VCS-owned revision and file operations shared by delivery consumers.
+mod export;
 mod git;
 mod mercurial;
 
@@ -129,6 +130,22 @@ impl<'a> Repository<'a> {
                 anyhow::bail!("Mercurial has no staging index; run check without --staged")
             }
         }
+    }
+
+    pub fn export_index(&self) -> Result<tempfile::TempDir> {
+        match self.kind {
+            Kind::Git => git::export_index(self.root),
+            Kind::Mercurial => {
+                anyhow::bail!("Mercurial has no staging index; run check without --staged")
+            }
+        }
+    }
+
+    /// Export all committed project inputs, preserving symlinks and executable bits.
+    /// Isolated review must use its restricted snapshot exporter instead.
+    pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {
+        let revision = self.resolve(reference)?;
+        export::revision(self, &revision)
     }
 
     pub fn diff(&self, base: &str, candidate: &str) -> Result<String> {

@@ -222,3 +222,116 @@ fn native_heads_distinguish_unborn_repositories_from_committed_revisions() {
         assert_eq!(repository.head().unwrap(), Some(revision));
     }
 }
+
+#[test]
+fn full_revision_exports_preserve_project_inputs_and_native_file_kinds() {
+    for kind in [Kind::Git, Kind::Mercurial] {
+        let root = tempfile::tempdir().unwrap();
+        let (base, _) = revisions(root.path(), kind);
+        fs::create_dir_all(root.path().join(".agents/skills/example")).unwrap();
+        fs::write(
+            root.path().join(".agents/skills/example/SKILL.md"),
+            "instructions",
+        )
+        .unwrap();
+        fs::write(root.path().join("agentrig.yaml"), "version: 1\n").unwrap();
+        let candidate = commit(root.path(), kind);
+        fs::write(root.path().join("agentrig.yaml"), "dirty").unwrap();
+        let repository = Repository::new(root.path(), kind);
+        let export = repository.export_revision(&candidate).unwrap();
+        assert_eq!(
+            fs::read(export.path().join("agentrig.yaml")).unwrap(),
+            b"version: 1\n"
+        );
+        assert_eq!(
+            fs::read(export.path().join(".agents/skills/example/SKILL.md")).unwrap(),
+            b"instructions"
+        );
+        assert_exported_file_kinds(export.path());
+        assert!(!export.path().join("old name").exists());
+        assert!(!export.path().join(".git").exists());
+        assert!(!export.path().join(".hg").exists());
+        let previous = repository.export_revision(&base).unwrap();
+        assert_eq!(fs::read(previous.path().join("link")).unwrap(), b"before\n");
+        assert!(!previous.path().join("new name").exists());
+        assert_eq!(
+            fs::read(root.path().join("agentrig.yaml")).unwrap(),
+            b"dirty"
+        );
+    }
+}
+
+fn assert_exported_file_kinds(root: &Path) {
+    assert_eq!(fs::read(root.join("binary")).unwrap(), [0, 255, 20]);
+    assert_eq!(
+        fs::read_link(root.join("link")).unwrap(),
+        Path::new("old name")
+    );
+    assert_eq!(
+        fs::metadata(root.join("executable"))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o755
+    );
+}
+
+#[test]
+fn index_export_preserves_staged_content_and_reports_unsupported_backends() {
+    let root = tempfile::tempdir().unwrap();
+    revisions(root.path(), Kind::Git);
+    fs::write(root.path().join("new name"), "staged").unwrap();
+    command(root.path(), "git", &["add", "new name"]);
+    fs::write(root.path().join("new name"), "unstaged").unwrap();
+    let repository = Repository::new(root.path(), Kind::Git);
+    let before = repository.index_entries().unwrap();
+    let export = repository.export_index().unwrap();
+    assert_eq!(fs::read(export.path().join("new name")).unwrap(), b"staged");
+    assert_eq!(fs::read(root.path().join("new name")).unwrap(), b"unstaged");
+    assert_eq!(repository.index_entries().unwrap(), before);
+    let mercurial = tempfile::tempdir().unwrap();
+    initialize(mercurial.path(), Kind::Mercurial);
+    let error = Repository::new(mercurial.path(), Kind::Mercurial)
+        .export_index()
+        .unwrap_err();
+    assert!(error.to_string().contains("Mercurial has no staging index"));
+}
+
+#[test]
+fn full_revision_export_rejects_control_metadata_and_submodules() {
+    let root = tempfile::tempdir().unwrap();
+    let (_, revision) = revisions(root.path(), Kind::Git);
+    command(
+        root.path(),
+        "git",
+        &[
+            "update-index",
+            "--add",
+            "--cacheinfo",
+            &format!("160000,{revision},dependency"),
+        ],
+    );
+    command(root.path(), "git", &["commit", "-qm", "submodule"]);
+    let repository = Repository::new(root.path(), Kind::Git);
+    let error = repository.export_revision("HEAD").unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("cannot include submodule dependency")
+    );
+    command(
+        root.path(),
+        "git",
+        &["update-index", "--force-remove", "dependency"],
+    );
+    fs::create_dir(root.path().join(".hg")).unwrap();
+    fs::write(root.path().join(".hg/hgrc"), "[hooks]\n").unwrap();
+    let candidate = commit(root.path(), Kind::Git);
+    let error = repository.export_revision(&candidate).unwrap_err();
+    assert!(
+        error
+            .to_string()
+            .contains("unsafe VCS export path: .hg/hgrc")
+    );
+}

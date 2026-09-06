@@ -72,6 +72,13 @@ pub(super) fn index_entries(root: &Path) -> Result<Vec<u8>> {
     run(root, &["ls-files", "--stage", "-z"])
 }
 
+pub(super) fn export_index(root: &Path) -> Result<tempfile::TempDir> {
+    let directory = tempfile::tempdir()?;
+    let prefix = format!("--prefix={}/", directory.path().display());
+    run(root, &["checkout-index", "--all", &prefix])?;
+    Ok(directory)
+}
+
 pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8>> {
     run(
         root,
