@@ -16,7 +16,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
         value(true),
         "features.hooks",
     )?;
-    super::delegation::configure(root, config, &mut document)?;
+    super::delegation::configure(root, config, files, &mut document)?;
     if let Some(review) = &config.capabilities.review {
         let timeout = review_timeout(root, files, &review.config)?;
         table(&mut document["mcp_servers"], "mcp_servers")?;
@@ -42,13 +42,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
     Ok(())
 }
 fn review_timeout(root: &Path, files: &Files, path: &str) -> Result<u64> {
-    let source = match std::fs::read_to_string(root.join(path)) {
-        Ok(source) => source,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            String::from_utf8(files.get(path).context("review config missing")?.clone())?
-        }
-        Err(error) => return Err(error.into()),
-    };
+    let source = super::source(root, files, path)?;
     let review: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
     Ok(review.runner.timeout_seconds)
 }

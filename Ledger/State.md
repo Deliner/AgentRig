@@ -8,17 +8,17 @@ Deliver all of P004 under the AgentRig goal in .tmp/agentrig-yaml-environments-p
 
 Branch: feature/agentrig-environments
 
-Revision: b06927c
+Revision: 6a45db5
 
 Started from clean master. P003 is integrated; its earlier pending-integration State was stale. No merge/rebase or upgrade is active.
 
 ## Progress
 
-YAML, AgentRig naming, service placement and the composition resolver are committed. Current VAC adds setup --preview using the existing preparation, validation and reconciliation path. It reports actual file changes and modes, Git/Codex registration, runtime directories and declared dependencies without installation or dependency execution. The generated Just adapter forwards preview arguments. Composition still leaves resource strings untouched; external-config setup, resource installation, fixed-input updates, interactive init, custom delegate environments and complete migration acceptance remain outstanding in P004.
+YAML, AgentRig naming, service placement, composition resolution and setup preview are committed. Current VAC connects external setup --config to composition and copies selected guidance, lint/review/delegate configurations and resources into the installation. Referenced skill directories and executable programs are retained; installed runtime operation no longer needs the original source tree. Repeated setup preserves approved custom guidance and configuration receipts. Changed external inputs are deliberately rejected until explicit updates are implemented. Interactive init, common custom delegate environments, complete composition/update semantics and migration acceptance remain required in P004.
 
 ## Verification
 
-Last committed full gate passed 305 native, 27 review/YAML and 17 worker Rust tests. All 16 setup tests pass; three preview-focused checks pass after final path-resolution changes and formatting. New checks prove consumer bytes remain unchanged during preview, reported hashes/modes match subsequent installation, repeated preview has no file changes, Just forwards --preview, conflicts preserve originals, and unrelated credential values are omitted. Lint has no blockers; current full staged gate remains pending. Real 0.2.0 baseline binary/digest remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
+Last committed full gate passed 307 native, 27 review/YAML and 17 worker Rust tests. Current focused suite passes all 32 package/setup tests, including external installation, executable resource preservation, repeated installation and operation after deleting source configuration/packages. Missing resources, nested symlinks and changed package inputs are rejected without consumer writes. Lint has no blockers. The current staged full gate is pending. Real 0.2.0 baseline binary/digest remains .tmp/agentrig-baseline-0.2.0, pinned to a3e4b4f4d83538e21fecc7ed30393cdcf576ed30.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the setup-preview VAC through the full staged gate and correct any failures. Connect composition to this same preparation path with explicit external --config input and selected target root. Materialize referenced resources from recorded origins, preserve project-relative selectors, include configuration/resource digests and explicit updates, and share resource assembly with configured delegates. Complete interactive init, custom hooks/skills/MCP and migration acceptance including external resources and selected delegate ownership. Verify every P004 criterion before integration; these preview commands alone do not complete the goal.
+Commit external-config installation through the staged full gate and correct failures. Implement explicit updates of fixed inputs using existing reconciliation/upgrade owners; check review runtime/report placement and ignore behavior for imported configs. Complete nested capability composition and shared resource assembly for configured delegates, interactive init, custom hooks/skills/MCP and migration acceptance including external resources and selected delegate ownership. Verify every P004 criterion before integration; external setup alone does not complete the goal.

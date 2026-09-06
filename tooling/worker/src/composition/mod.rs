@@ -20,6 +20,20 @@ pub struct Resolved {
     pub root: PathBuf,
     pub root_digest: String,
 }
+impl Resolved {
+    pub fn origin(&self, address: &str) -> &Path {
+        let mut candidate = address;
+        loop {
+            if let Some(origin) = self.provenance.get(candidate) {
+                return origin;
+            }
+            let Some((parent, _)) = candidate.rsplit_once('/') else {
+                return &self.root;
+            };
+            candidate = parent;
+        }
+    }
+}
 
 #[derive(Serialize)]
 pub struct Package {

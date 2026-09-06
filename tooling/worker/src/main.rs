@@ -69,7 +69,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "setup --preview: inspect prepared file changes, registrations and dependencies without installing"
+        "setup [--config CONFIG_YAML] --preview: inspect prepared file changes, registrations and dependencies without installing"
     );
     println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
     println!(

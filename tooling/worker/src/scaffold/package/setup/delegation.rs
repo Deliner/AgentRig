@@ -6,19 +6,17 @@ use anyhow::{Result, ensure};
 use std::{collections::BTreeSet, path::Path};
 use toml_edit::{DocumentMut, Item, value};
 
-pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Result<()> {
+pub fn configure(
+    root: &Path,
+    config: &Config,
+    files: &super::Files,
+    document: &mut DocumentMut,
+) -> Result<()> {
     let Some(capability) = &config.capabilities.delegation else {
-        let server = document
-            .get("mcp_servers")
-            .and_then(|servers| servers.get("worker_delegation"));
-        ensure!(
-            server
-                .is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
-            "setup conflict: delegation is disabled; disable or remove mcp_servers.worker_delegation; existing settings preserved"
-        );
-        return Ok(());
+        return disabled(document);
     };
-    let profiles = agentrig::delegate::config::load(&root.join(&capability.config))?;
+    let profiles: agentrig::delegate::config::Config =
+        review_runner::config::yaml::decode(&super::source(root, files, &capability.config)?)?;
     table(&mut document["mcp_servers"], "mcp_servers")?;
     let server = &mut document["mcp_servers"]["worker_delegation"];
     table(server, "mcp_servers.worker_delegation")?;
@@ -41,6 +39,17 @@ pub fn configure(root: &Path, config: &Config, document: &mut DocumentMut) -> Re
             &format!("worker_delegation.{key}"),
         )?;
     }
+    Ok(())
+}
+
+fn disabled(document: &DocumentMut) -> Result<()> {
+    let server = document
+        .get("mcp_servers")
+        .and_then(|servers| servers.get("worker_delegation"));
+    ensure!(
+        server.is_none_or(|server| server.get("enabled").and_then(Item::as_bool) == Some(false)),
+        "setup conflict: delegation is disabled; disable or remove mcp_servers.worker_delegation; existing settings preserved"
+    );
     Ok(())
 }
 

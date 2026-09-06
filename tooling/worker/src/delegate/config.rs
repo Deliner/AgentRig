@@ -68,7 +68,9 @@ pub struct Credentials {
 }
 
 pub fn load(path: &Path) -> Result<Config> {
-    let mut config: Config = review_runner::config::yaml::read(path)?;
+    resolve(path, review_runner::config::yaml::read(path)?)
+}
+pub fn resolve(path: &Path, mut config: Config) -> Result<Config> {
     ensure!(
         config.schema_version == 1,
         "unsupported delegation schema_version"

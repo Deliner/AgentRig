@@ -75,7 +75,9 @@ pub fn resource(config: &Path, resource: &Path) -> Result<PathBuf> {
         })
 }
 pub fn load(path: &Path) -> Result<Config> {
-    let mut config: Config = yaml::read(path)?;
+    resolve(path, yaml::read(path)?)
+}
+pub fn resolve(path: &Path, mut config: Config) -> Result<Config> {
     ensure!(
         config.schema_version == 1,
         "unsupported configuration schema"

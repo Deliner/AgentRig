@@ -2,11 +2,14 @@
 import hashlib
 import json
 import shlex
+import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
+import yaml
 from support import file_contents, invoke, update_config
+from test_setup import delegated_project
 
 
 def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) -> None:
@@ -166,3 +169,101 @@ def test_setup_cannot_silently_relocate_an_installation(worker: Path, tmp_path: 
     assert result.returncode == 2
     assert "setup conflict" in result.stderr
     assert file_contents(tmp_path) == before
+
+
+def external_configuration(worker: Path, root: Path) -> Path:
+    source = delegated_project(worker, root)
+    result = invoke(worker, source, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    skill = source / ".agentrig/skills/repair/SKILL.md"
+    skill.write_text(skill.read_text() + "\nExternal repair instruction.\n")
+    helper = skill.parent / "helper.sh"
+    helper.write_text("#!/bin/sh\necho custom-helper\n")
+    helper.chmod(0o755)
+    agents = source / "agents"
+    (agents / "special").mkdir()
+    (agents / "special/SKILL.md").write_text("# Specialized skill\nFollow the task contract.\n")
+    program = agents / "tool.sh"
+    program.write_text("#!/bin/sh\necho custom-program\n")
+    program.chmod(0o755)
+    profiles = agents / "profiles.yaml"
+    config = yaml.safe_load(profiles.read_text())
+    config["profiles"]["reader"].update(skills=["special"], programs={"asset": "tool.sh"})
+    profiles.write_text(yaml.safe_dump(config))
+    package = root / "package.yaml"
+    package.write_text(
+        "schema_version: 1\nid: commands\nversion: '1'\nconfiguration:\n"
+        "  commands:\n    hello:\n      argv: [python3, -c, \"print('external command')\"]\n"
+    )
+    declaration = source / "agentrig.yaml"
+    declaration.write_text(declaration.read_text() + "\npackages:\n- path: ../package.yaml\n")
+    return declaration
+
+
+def test_external_setup_survives_removal_of_its_sources(worker: Path, tmp_path: Path) -> None:
+    declaration = external_configuration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    before = file_contents(target)
+    preview = invoke(worker, target, "setup", "--config", str(declaration), "--preview")
+    assert preview.returncode == 0, preview.stderr
+    assert file_contents(target) == before
+    applied = invoke(worker, target, "setup", "--config", str(declaration))
+    assert applied.returncode == 0, applied.stdout + applied.stderr
+    verify_external_resources(target)
+    before = file_contents(target)
+    repeated = invoke(worker, target, "setup", "--config", str(declaration))
+    assert repeated.returncode == 0, repeated.stdout + repeated.stderr
+    assert file_contents(target) == before
+    shutil.rmtree(declaration.parent)
+    (tmp_path / "package.yaml").unlink()
+    installed = target / ".agentrig/bin/agentrig"
+    for arguments in [("config-check",), ("delegate", "config-check"), ("setup",)]:
+        result = invoke(installed, target, *arguments)
+        assert result.returncode == 0, result.stdout + result.stderr
+    receipt = target / ".agentrig/manifest.json"
+    expected = json.loads(before[receipt])
+    actual = json.loads(receipt.read_text())
+    for path, entry in expected["files"].items():
+        assert actual["files"].get(path) == entry, path
+    assert actual == expected
+    assert file_contents(target) == before
+    executed = invoke(installed, target, "run", "hello")
+    assert executed.returncode == 0, executed.stderr
+    assert "external command" in executed.stdout
+
+
+def verify_external_resources(target: Path) -> None:
+    skill = target / ".agentrig/skills/repair/SKILL.md"
+    assert "External repair instruction." in skill.read_text()
+    assert skill.with_name("helper.sh").stat().st_mode & 0o111
+    config = yaml.safe_load((target / "agentrig.yaml").read_text())
+    profiles = target / config["capabilities"]["delegation"]["config"]
+    reader = yaml.safe_load(profiles.read_text())["profiles"]["reader"]
+    assert (profiles.parent / reader["programs"]["asset"]).stat().st_mode & 0o111
+    assert (profiles.parent / reader["skills"][0] / "SKILL.md").is_file()
+
+
+@pytest.mark.parametrize("case", ["missing-prompt", "linked-skill", "changed-package"])
+def test_external_setup_rejects_invalid_inputs_without_writing(
+    worker: Path, tmp_path: Path, case: str
+) -> None:
+    declaration = external_configuration(worker, tmp_path)
+    target = tmp_path / "target"
+    target.mkdir()
+    changed_package = case == "changed-package"
+    missing_prompt = case == "missing-prompt"
+    if changed_package:
+        installed = invoke(worker, target, "setup", "--config", str(declaration))
+        assert installed.returncode == 0, installed.stdout + installed.stderr
+        package = tmp_path / "package.yaml"
+        package.write_text(package.read_text() + "# Updated input\n")
+    elif missing_prompt:
+        (declaration.parent / "agents/prompt.md").unlink()
+    else:
+        (declaration.parent / "agents/special/link").symlink_to(tmp_path / "package.yaml")
+    before = file_contents(target)
+    for arguments in [("--preview",), ()]:
+        result = invoke(worker, target, "setup", "--config", str(declaration), *arguments)
+        assert result.returncode == 2, result.stdout + result.stderr
+        assert file_contents(target) == before

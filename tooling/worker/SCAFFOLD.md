@@ -90,7 +90,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 
 | Command | Result |
 | --- | --- |
-| `setup [--preview]` | Prepare the existing declaration and report changes without writing, or install/reconcile it and run doctor; preserve settings and report conflicts. |
+| `setup [--config CONFIG_YAML] [--preview]` | Prepare an external or installed declaration; preview changes or install/reconcile it and run doctor. |
 | `init` | Create standard config, memory, skills, binary and hook adapters; reject collisions before writing. Options select language, source, memory, skills, service directory (`--service`), base branch, branch prefix and `--review true|false`. Review defaults to false; enabling it installs editable presets and the standard review skill. |
 | `config-check` | Validate schema, cross-references, skills and lint applicability without analyzing source contents. |
 | `config-resolve CONFIG_YAML` | Preview local package composition as JSON: values, declaring files and configuration digests. Does not install resources or replace capability validation. |
@@ -177,10 +177,27 @@ version, canonical path and SHA-256 of the exact YAML bytes read. Digests descri
 configuration inputs, not yet their referenced resource contents. Composition
 leaves resource strings untouched and does not grant filesystem access to delegates.
 
-P004 integration remains in progress: ordinary runtime commands and setup still
-read their existing fully resolved configuration. Package resource rebasing,
-installation, fixed-input update checks, full composed capability validation and
-delegate environment assembly are subsequent work under the same feature.
+`agentrig setup --config /path/to/agentrig.yaml --root CONSUMER --preview`
+resolves an external declaration and validates the selected capabilities before
+writing. Remove `--preview` to install. Relative `--config` arguments use the
+invocation directory; resource references use their declaring configuration's
+directory, while source selectors continue to describe the consumer.
+
+Setup copies selected guidance, lint policies, review prompts/contracts/project
+settings and delegate prompts/skill directories/programs into the installation.
+Declared stock guidance retains its canonical installed path; other inputs use
+content-addressed paths under the configured service directory. Skill support
+files and executable modes are retained. Nested resource-directory symlinks are
+rejected. Missing references to shipped defaults use those embedded defaults;
+missing custom resources are errors. Secrets remain environment references.
+
+The installed root declaration contains resolved portable resource references.
+`composition.json` records configuration provenance and source/resource digests;
+runtime operation and ordinary repeated setup do not require the source tree.
+Repeating external setup accepts identical inputs. Changed external inputs are
+currently rejected without modifying the installation; explicit input updates,
+the interactive wizard and shared custom delegate environment assembly remain
+under development in P004.
 
 ## Memory and recovery
 

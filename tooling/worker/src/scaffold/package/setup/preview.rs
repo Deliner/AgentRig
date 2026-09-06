@@ -7,9 +7,7 @@ use std::{
 
 pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
     let preview = tempfile::tempdir()?;
-    for (name, bytes) in files {
-        put(preview.path(), name, bytes)?;
-    }
+    bundle(preview.path(), config, files)?;
     let mut skills = vec![&config.config_skill];
     skills.extend(config.checks.iter().map(|check| &check.skill));
     skills.extend(config.hooks.routes.iter().map(|route| &route.skill));
@@ -27,14 +25,34 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
         review_config(root, preview.path(), &review.config)?;
     }
     if let Some(delegation) = &config.capabilities.delegation {
-        let resolved = agentrig::delegate::config::load(&root.join(&delegation.config))?;
-        put(
-            preview.path(),
-            &delegation.config,
-            review_runner::config::yaml::encode(&resolved)?.as_bytes(),
-        )?;
+        let existing = !files.contains_key(&delegation.config);
+        if existing {
+            let resolved = agentrig::delegate::config::load(&root.join(&delegation.config))?;
+            put(
+                preview.path(),
+                &delegation.config,
+                review_runner::config::yaml::encode(&resolved)?.as_bytes(),
+            )?;
+        }
     }
     config::Context::load(preview.path())?;
+    Ok(())
+}
+
+fn bundle(root: &Path, config: &Config, files: &Files) -> Result<()> {
+    let receipt: super::manifest::Manifest =
+        serde_json::from_slice(&files[&config.paths.service_path("manifest.json")])?;
+    for (name, bytes) in files {
+        put(root, name, bytes)?;
+        let executable = receipt
+            .files
+            .get(name)
+            .is_some_and(|entry| entry.executable);
+        if executable {
+            use std::os::unix::fs::PermissionsExt;
+            fs::set_permissions(root.join(name), fs::Permissions::from_mode(0o755))?;
+        }
+    }
     Ok(())
 }
 fn put(root: &Path, path: &str, bytes: &[u8]) -> Result<()> {
