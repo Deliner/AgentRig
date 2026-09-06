@@ -53,13 +53,38 @@ pub fn command(layout: &Layout, profile: &Profile) -> Result<Command> {
         .arg(&host)
         .arg("/codex-code-mode-host");
     configuration::environment(&mut command, profile)?;
-    command.args([
-        "/codex-cli", "exec", "--ignore-rules", "--ephemeral", "--skip-git-repo-check",
-        "--dangerously-bypass-approvals-and-sandbox", "--json", "--output-schema",
-        "/delegate-input/schema.json", "--output-last-message", "/work/result.json",
-        "Read /delegate-input/prompt.md and /delegate-input/request.json. Complete the task within its contract. Inputs are in /project and /inputs. Write required artifacts under /work and return the contracted JSON response.",
-    ]);
+    executor(&mut command, profile);
     Ok(command)
+}
+
+fn executor(command: &mut Command, profile: &Profile) {
+    command
+        .args([
+            "/codex-cli",
+            "exec",
+            "--ignore-rules",
+            "--ephemeral",
+            "--skip-git-repo-check",
+            "--dangerously-bypass-approvals-and-sandbox",
+            "--json",
+            "--output-schema",
+            "/delegate-input/schema.json",
+            "--output-last-message",
+            "/work/result.json",
+        ])
+        .arg(instructions(profile));
+}
+
+fn instructions(profile: &Profile) -> String {
+    let programs = profile
+        .programs
+        .keys()
+        .map(|name| format!("/tools/{name}"))
+        .collect::<Vec<_>>()
+        .join(", ");
+    format!(
+        "This is a minimal sandbox. Available programs: /bin/bash, /bin/sh, /bin/env, {programs}. Use these absolute paths or shell builtins; other host utilities are unavailable. Read /delegate-input/prompt.md and /delegate-input/request.json. Complete the task within its contract. Inputs are in /project and /inputs. Write required artifacts under /work and return the contracted JSON response."
+    )
 }
 
 fn mounts(command: &mut Command, layout: &Layout, profile: &Profile) {

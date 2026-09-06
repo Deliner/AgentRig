@@ -290,8 +290,11 @@ home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
 Codex configuration is read-only, disables hooks and contains only the configured
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
-fixtures verify execution and limits. Real model and sandboxed MCP-service smoke
-verification remains pending.
+fixtures verify execution and limits. A real Codex read task has passed through
+the configured MCP in an independent consumer, including input reading, result
+validation and cleanup. Sandboxed MCP-service and artifact-model smoke checks
+remain pending. The initial task message lists the profile's programs by sandbox
+path; generic host utilities are not implicitly available.
 
 `just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
 registry. `just delegate status RUN_ID` and `result RUN_ID` return OS state and the
