@@ -4,7 +4,7 @@ mod doctor;
 mod lint;
 pub(super) mod manifest;
 mod review;
-mod setup;
+pub(super) mod setup;
 pub use setup::run as setup;
 mod template;
 use super::config::{self, Config};

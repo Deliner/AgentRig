@@ -24,7 +24,11 @@ struct Source {
 
 pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
     match path {
-        Some(path) => external(root, path),
+        Some(path) => {
+            let prepared = external(root, path)?;
+            unchanged(root, &prepared.config, &prepared.files)?;
+            Ok(prepared)
+        }
         None => {
             let config = config::read(root)?;
             let files = super::super::bundle(&config)?;
@@ -37,7 +41,7 @@ pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
     }
 }
 
-fn external(root: &Path, path: &Path) -> Result<Prepared> {
+pub(super) fn external(root: &Path, path: &Path) -> Result<Prepared> {
     ensure!(
         !root.join("worker.toml").exists(),
         "legacy installation requires explicit upgrade before external setup"
@@ -56,7 +60,6 @@ fn external(root: &Path, path: &Path) -> Result<Prepared> {
     review::prepare(&mut source, &mut config)?;
     delegation::prepare(&mut source, &mut config)?;
     let files = source.files(&config)?;
-    unchanged(root, &config, &files)?;
     Ok(Prepared {
         config,
         files,
@@ -204,7 +207,7 @@ fn unchanged(root: &Path, desired: &Config, files: &Files) -> Result<()> {
     if installed {
         ensure!(
             serde_json::to_value(config::read(root)?)? == serde_json::to_value(desired)?,
-            "external setup conflicts with installed configuration; this command currently accepts unchanged inputs for existing installations; original preserved"
+            "external setup conflicts with installed configuration; use upgrade plan --config CONFIG_YAML to review the update; original preserved"
         );
     }
     let receipt = desired.paths.service_path("composition.json");
@@ -212,7 +215,7 @@ fn unchanged(root: &Path, desired: &Config, files: &Files) -> Result<()> {
     if present {
         ensure!(
             fs::read(root.join(&receipt))? == files[&receipt],
-            "composition inputs changed; this command currently accepts unchanged inputs for existing installations; installed environment preserved"
+            "composition inputs changed; use upgrade plan --config CONFIG_YAML to review the update; installed environment preserved"
         );
     }
     Ok(())

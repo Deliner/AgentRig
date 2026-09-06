@@ -42,14 +42,18 @@ impl Operation {
         let exists = operation.exists();
         if exists {
             let current = Self::open(root)?;
-            let rolled_back = current.journal.phase == "rolled-back";
-            if rolled_back {
+            let archive_previous = current.journal.phase == "rolled-back"
+                || (current.journal.phase == "applied"
+                    && current.journal.plan != path.to_string_lossy());
+            if archive_previous {
+                let plan = review::load(root, &path)?;
                 let archive = tempfile::Builder::new()
                     .prefix("restored-")
                     .tempdir_in(&directory)?;
                 fs::rename(&current.directory, archive.path().join("operation"))?;
                 let _ = archive.keep();
                 fs::File::open(&directory)?.sync_all()?;
+                return Self::persist(&directory, &path, plan);
             } else {
                 ensure!(
                     current.journal.plan == path.to_string_lossy(),

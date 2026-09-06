@@ -8,6 +8,24 @@ use super::{Config, Files, config, manifest};
 use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 
+pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
+    let mut prepared = input::external(root, path)?;
+    let current = config::read(root)?;
+    ensure!(
+        prepared.config.runtime == current.runtime,
+        "configuration update cannot change the runtime version; use a release upgrade"
+    );
+    ensure!(
+        current.paths.service == prepared.config.paths.service
+            && current.paths.runtime == prepared.config.paths.runtime,
+        "configuration update must preserve service and recovery runtime locations"
+    );
+    registration::configure(root, &prepared.config, &mut prepared.files)?;
+    preview::validate(root, &prepared.config, &prepared.files)?;
+    prepared.verify()?;
+    Ok((prepared.config, prepared.files))
+}
+
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let mut args = args.to_vec();
     let external = crate::util::take_option(&mut args, "--config")?.map(std::path::PathBuf::from);

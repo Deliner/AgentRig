@@ -73,6 +73,9 @@ fn print_help() {
     );
     println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
     println!(
+        "upgrade plan --config CONFIG_YAML: review an explicit configuration/resource update using the existing apply and rollback workflow"
+    );
+    println!(
         "delegate config-check CONFIG | mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
     );
     println!(

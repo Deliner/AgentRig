@@ -194,9 +194,21 @@ missing custom resources are errors. Secrets remain environment references.
 The installed root declaration contains resolved portable resource references.
 `composition.json` records configuration provenance and source/resource digests;
 runtime operation and ordinary repeated setup do not require the source tree.
-Repeating external setup accepts identical inputs. Changed external inputs are
-currently rejected without modifying the installation; explicit input updates,
-the interactive wizard and shared custom delegate environment assembly remain
+Repeating external setup accepts identical inputs. Changed external inputs require
+`agentrig upgrade plan --config /path/to/agentrig.yaml --root CONSUMER`.
+It uses the same resource builder and writes a reviewed `plan.json` and `diff.txt`
+under the existing recovery directory. Configuration changes are explicit;
+local file conflicts require `resolution: keep` or `resolution: replace` in the
+JSON plan. Memory is retained, and unrelated Codex settings remain in place.
+Apply with `agentrig upgrade apply PLAN --root CONSUMER`; all existing post-upgrade
+checks run. `upgrade rollback` restores the previous installation. The plan keeps
+its payloads, so applying it does not require the external source tree.
+
+Configuration updates retain the runtime version, service directory and recovery
+runtime location. Use a release upgrade for a runtime version change. A subsequent
+configuration update archives the completed recovery operation; rollback targets
+the latest operation. Invalid or stale plans cannot replace that recovery record.
+The interactive wizard and shared custom delegate environment assembly remain
 under development in P004.
 
 ## Memory and recovery

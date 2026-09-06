@@ -62,6 +62,10 @@ fn put(root: &Path, path: &str, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 fn copy(root: &Path, preview: &Path, path: &str) -> Result<()> {
+    let prepared = config::relative(preview, path)?.is_file();
+    if prepared {
+        return Ok(());
+    }
     let source = config::relative(root, path)?;
     let exists = source.is_file();
     if exists {

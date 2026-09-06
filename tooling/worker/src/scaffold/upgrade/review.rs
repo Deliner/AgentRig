@@ -8,7 +8,9 @@ use std::{collections::BTreeSet, fs, path::Path};
 pub fn load(root: &Path, path: &Path) -> Result<Plan> {
     let mut plan: Plan = serde_json::from_slice(&fs::read(path)?)?;
     ensure!(
-        plan.version == 1 && plan.from_version == release::FROM && plan.to_version == release::TO,
+        plan.version == 1
+            && matches!(plan.from_version.as_str(), release::FROM | release::TO)
+            && plan.to_version == release::TO,
         "unsupported upgrade plan"
     );
     ensure!(
@@ -20,6 +22,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Plan> {
         "plan must retain all post-upgrade checks"
     );
     let directory = path.parent().context("plan directory required")?;
+    installed(root, &plan)?;
     let mut resolved = BTreeSet::new();
     for (name, change) in &mut plan.files {
         verify_state(root, name, change, &mut resolved)?;
@@ -34,6 +37,25 @@ pub fn load(root: &Path, path: &Path) -> Result<Plan> {
     }
     receipt(&mut plan, directory)?;
     Ok(plan)
+}
+
+fn installed(root: &Path, plan: &Plan) -> Result<()> {
+    crate::scaffold::config::relative(root, &plan.service)?;
+    let migration = plan.from_version == release::FROM;
+    let current = if migration {
+        super::migration::configuration(root)?
+    } else {
+        crate::scaffold::config::read(root)?
+    };
+    ensure!(
+        plan.service == current.paths.service && plan.from_version == current.runtime,
+        "upgrade plan does not match the installed environment"
+    );
+    ensure!(
+        plan.manifest.package_version == plan.to_version,
+        "upgrade manifest does not match the target version"
+    );
+    Ok(())
 }
 fn verify_state(
     root: &Path,
@@ -92,7 +114,7 @@ fn receipt(plan: &mut Plan, directory: &Path) -> Result<()> {
     let bytes = serde_json::to_vec_pretty(&plan.manifest)?;
     let change = plan
         .files
-        .get_mut(super::migration::MANIFEST)
+        .get_mut(&format!("{}/manifest.json", plan.service))
         .context("plan must include installation receipt")?;
     change.after.sha256 = Some(storage::blob(directory, &bytes)?);
     change.after.mode = Some(0o644);

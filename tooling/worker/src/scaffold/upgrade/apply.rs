@@ -40,11 +40,13 @@ fn ordered(operation: &Operation) -> Vec<String> {
         .filter(|(_, change)| change.before != change.after)
         .map(|(name, _)| name.clone())
         .collect();
+    let binary = format!("{}/bin/agentrig", operation.plan.service);
+    let manifest = format!("{}/manifest.json", operation.plan.service);
     names.sort_by_key(|name| match name.as_str() {
-        ".worker/bin/agentrig" => 0,
+        name if name == binary => 0,
         config::FILE => 2,
         super::migration::LEGACY_FILE => 3,
-        ".worker/manifest.json" => 4,
+        name if name == manifest => 4,
         _ => 1,
     });
     names
@@ -53,7 +55,7 @@ fn verify(root: &Path, operation: &mut Operation) -> Result<i32> {
     operation.phase("validating")?;
     for command in operation.plan.checks.clone() {
         let argv = vec![
-            root.join(".worker/bin/agentrig")
+            root.join(format!("{}/bin/agentrig", operation.plan.service))
                 .to_string_lossy()
                 .into_owned(),
             command.clone(),
