@@ -8,17 +8,17 @@ Deliver P003 under the user's active goal, applying complexity-discipline and th
 
 Branch: feature/worker-execution
 
-Revision: cf08a0b
+Revision: 5e42a98
 
 Clean master was observed before feature-start. P002 is integrated by merge 7b831f7; its old pre-integration State was stale.
 
 ## Progress
 
-Delegate skill guidance is committed. A real Codex read task exposed missing information about sandbox programs; current VAC lists the configured absolute tool paths in the startup message. Real read execution now passes. Sandboxed MCP-service/artifact smoke and isolated code mode remain outstanding.
+Read/artifact delegation, setup and skill guidance are implemented. Real Codex read and artifact tasks have now passed through configured MCP in independent consumers. The artifact task called a configured stdio MCP service inside its sandbox. Isolated code mode and full final consumer acceptance/integration remain outstanding.
 
 ## Verification
 
-Skill delivery passed the full gate: 288 native, 22 review and five Rust tests. Independent consumer /tmp/worker-delegate-live-ynd7u0i3 ran gpt-5.6-luna through configured MCP, run-7yl7ZO: PASS, exit 0, cleanup_errors empty, scope empty. The log shows /tools/cat reading the actual input and returning teal-lantern-47; that value was absent from the response schema. Retained report/logs live under its .worker/runtime/jobs/run-7yl7ZO. Current startup-message staged gate is pending. No sandboxed external MCP-service or artifact-model execution is claimed.
+Startup guidance passed the full gate: 288 native, 22 review and five Rust tests. Real read evidence remains at /tmp/worker-delegate-live-ynd7u0i3/.worker/runtime/jobs/run-7yl7ZO. Real gpt-5.6-luna artifact/MCP run-XVhSf6 at /tmp/worker-delegate-live-wn_id599/.worker/runtime/jobs/run-XVhSf6 passed with exit 0, empty scope and no cleanup errors. Its log records probe.inspect_input; retained artifact.json has SHA-256 3aa5dc3e1e93a864c430c5b68dd6bad730bd5c870e1491c205ce9ad653d773e2, correct input/environment values and host_visible=false. Actual bytes, unchanged source and absent input/private directories were checked independently. Current evidence documentation gate is pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None observed.
 
 ## Next action
 
-Commit the verified sandbox startup guidance. Exercise a configured MCP service and artifact output with real Codex, then add isolated code mode and complete independent consumer acceptance. P003 remains active until all stages and final integration are verified.
+Commit real integration evidence, then implement isolated code mode with a fixed revision, explicit write/check contract and retained verifiable patch. Verify failure/cancellation/concurrency and complete independent consumer acceptance and feature integration. P003 remains active until all stages are verified.

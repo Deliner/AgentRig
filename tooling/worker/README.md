@@ -292,8 +292,10 @@ Codex configuration is read-only, disables hooks and contains only the configure
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
 fixtures verify execution and limits. A real Codex read task has passed through
 the configured MCP in an independent consumer, including input reading, result
-validation and cleanup. Sandboxed MCP-service and artifact-model smoke checks
-remain pending. The initial task message lists the profile's programs by sandbox
+validation and cleanup. A real Codex artifact task also invoked a configured
+stdio MCP service inside the sandbox: its verified output confirmed allowed input
+reading, explicit environment forwarding and an invisible host checkout. The
+initial task message lists the profile's programs by sandbox
 path; generic host utilities are not implicitly available.
 
 `just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
