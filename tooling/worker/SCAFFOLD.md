@@ -172,7 +172,9 @@ then repeat `feature-merge` from the base branch. To discard an attempted merge,
 first preserve any work you need, then use native `hg merge --abort`. If the base
 advanced, abort and retry from the retained feature instead of committing against
 the outdated base. Complete multi-VCS delivery, including private adapters, is not
-yet accepted.
+yet accepted. The implemented [private VCS read protocol](review/EXTERNAL_VCS.md)
+and separate Mercurial process example establish the external data boundary;
+private backend configuration selection and delivery writes remain pending.
 
 ## Configuration ownership
 

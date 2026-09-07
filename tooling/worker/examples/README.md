@@ -1,5 +1,9 @@
 # Independent scaffold examples
 
+The separate [external VCS example](external_vcs.py) exercises the implemented
+[private read protocol](../review/EXTERNAL_VCS.md) over Mercurial without importing
+AgentRig. CLI selection and delivery writes for private adapters remain pending.
+
 These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
 
 For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux, Git, Just and bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.

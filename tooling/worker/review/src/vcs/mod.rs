@@ -1,6 +1,7 @@
 //! VCS-owned revision and file operations shared by delivery consumers.
 mod branches;
 mod export;
+pub mod external;
 mod git;
 mod git_integration;
 mod integration;
@@ -22,7 +23,8 @@ pub enum Kind {
     Mercurial,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
 pub enum FileKind {
     File,
     Executable,

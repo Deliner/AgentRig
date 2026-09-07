@@ -40,8 +40,10 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
     Ok(directory)
 }
 
-fn validate_path(name: &str) -> Result<()> {
+pub(super) fn validate_path(name: &str) -> Result<()> {
     let normal = !name.is_empty()
+        && !name.contains('\0')
+        && name.split('/').all(|part| !matches!(part, "" | "." | ".."))
         && Path::new(name).components().all(
             |part| matches!(part, Component::Normal(value) if value != ".git" && value != ".hg"),
         );
