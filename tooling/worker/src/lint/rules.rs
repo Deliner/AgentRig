@@ -1,30 +1,15 @@
 mod descriptor;
+pub mod kind;
 use super::languages;
 use anyhow::{Result, bail};
 pub use descriptor::{Descriptor, Parameters};
-use serde::{Deserialize, Serialize};
+pub use kind::Kind;
 use serde_json::{Value, json};
-use std::{fmt, path::Path};
+use std::path::Path;
 
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub enum Kind {
-    NonblankLines,
-    DirectoryEntries,
-    NamedIfCondition,
-    FunctionLines,
-    ParameterCount,
-    DirectoryArchitecture,
-}
-impl fmt::Display for Kind {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let value = serde_json::to_value(self).map_err(|_| fmt::Error)?;
-        formatter.write_str(value.as_str().ok_or(fmt::Error)?)
-    }
-}
 pub const ALL: &[Kind] = &[
     Kind::NonblankLines,
     Kind::DirectoryEntries,

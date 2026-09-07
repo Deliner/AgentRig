@@ -1,0 +1,12 @@
+purpose: Parse supported source languages and measure scalar rules through registered syntax handlers
+files:
+  architecture.yaml: Language measurement responsibilities and dependency boundary
+  mod.rs: Shared parsing and scalar measurement traversal with located results
+  registry.rs: Grammar and measurement capabilities exposed for supported extensions
+  python.rs: Python conditions, function lengths and parameter measurements
+  rust.rs: Rust conditions, function lengths and parameter measurements
+directories: {}
+allow:
+  - tooling/worker/src/lint/rules/kind.rs
+deny: []
+public: [mod.rs, registry.rs]

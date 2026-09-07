@@ -1,5 +1,5 @@
 use super::{Measurement, python, rust};
-use crate::lint::rules::Kind;
+use crate::lint::rules::kind::Kind;
 use std::path::Path;
 use tree_sitter::Node;
 

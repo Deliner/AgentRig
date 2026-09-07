@@ -1,0 +1,9 @@
+purpose: Define lint rule identities and their metrics, parameters and repair guidance independently of language handlers
+files:
+  architecture.yaml: Rule definition responsibilities and public boundary
+  kind.rs: Stable rule identities and their serialized names
+  descriptor.rs: Rule metrics, parameter contracts, defaults and repair skill bindings
+directories: {}
+allow: []
+deny: []
+public: [kind.rs, descriptor.rs]

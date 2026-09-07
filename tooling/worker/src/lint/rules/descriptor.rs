@@ -1,4 +1,4 @@
-use super::Kind;
+use super::kind::Kind;
 use serde_json::{Value, json};
 
 pub struct Descriptor {
