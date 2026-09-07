@@ -60,6 +60,18 @@ def test_inventory_excludes_generated_subtree(worker: Path, tmp_path: Path) -> N
     assert parity(worker, tmp_path) == (0, [])
 
 
+def test_empty_directory_requires_its_own_contract(worker: Path, tmp_path: Path) -> None:
+    docs = documents(tmp_path)
+    empty = docs / "drafts"
+    empty.mkdir()
+    contract(docs)
+    code, findings = parity(worker, tmp_path)
+    assert code == 1, findings
+    assert any(item["path"] == "src/docs/drafts/architecture.yaml" for item in findings)
+    contract(empty)
+    assert parity(worker, tmp_path) == (0, [])
+
+
 def test_rule_exclusion_keeps_inventory_and_analysis_in_scope(worker: Path, tmp_path: Path) -> None:
     docs = documents(tmp_path)
     (docs / "generated.py").write_text("from unknown import missing\n")

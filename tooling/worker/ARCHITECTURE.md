@@ -36,6 +36,12 @@ directory and descendant pattern. Selected-source exclusions do not remove files
 from dependency resolution. Resolution uses Git tracked/unignored files, or regular
 non-symlink files in a non-Git project. Git-ignored targets cannot be resolved.
 
+Without a VCS, filesystem discovery also retains empty directories, so an empty
+selected directory still needs its contract. With a VCS, the selected backend's
+tracked/unignored file inventory defines the directory tree; Git and Mercurial
+do not version empty directories. Adding architecture.yaml makes such a directory
+part of that inventory. Symlink entries are not followed by filesystem discovery.
+
 `architecture` and explicit source extensions are required. `python_root` defaults
 to the project root. `rust_roots` lists the actual crate roots and is required when
 Rust sources are selected; use `[]` for other languages. No Cargo or tsconfig

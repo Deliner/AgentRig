@@ -20,7 +20,7 @@ pub fn collect_source(
     exclude: &GlobSet,
     source: Option<&review_runner::vcs::Source<'_>>,
 ) -> Result<Inventory> {
-    let mut files = if let Some(source) = source {
+    let mut files: Vec<PathBuf> = if let Some(source) = source {
         source
             .working_files()?
             .into_iter()
@@ -33,9 +33,7 @@ pub fn collect_source(
             .map(PathBuf::from)
             .collect()
     } else {
-        let mut files = Vec::new();
-        walk(root, Path::new(""), exclude, &mut files)?;
-        files
+        return unversioned(root, exclude);
     };
     files.sort();
     files.dedup();
@@ -66,7 +64,27 @@ fn directories(files: &[PathBuf]) -> BTreeMap<PathBuf, BTreeSet<String>> {
     }
     directories
 }
-fn walk(root: &Path, relative: &Path, exclude: &GlobSet, files: &mut Vec<PathBuf>) -> Result<()> {
+fn unversioned(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
+    let mut inventory = Inventory {
+        files: Vec::new(),
+        directories: BTreeMap::new(),
+    };
+    walk(root, Path::new(""), exclude, &mut inventory)?;
+    inventory.files.sort();
+    for (directory, entries) in directories(&inventory.files) {
+        inventory
+            .directories
+            .entry(directory)
+            .or_default()
+            .extend(entries);
+    }
+    Ok(inventory)
+}
+
+fn walk(root: &Path, relative: &Path, exclude: &GlobSet, inventory: &mut Inventory) -> Result<()> {
+    let at_root = relative.as_os_str().is_empty();
+    let parent = if at_root { Path::new(".") } else { relative };
+    inventory.directories.entry(parent.into()).or_default();
     for entry in fs::read_dir(root.join(relative))? {
         let entry = entry?;
         let path = relative.join(entry.file_name());
@@ -78,9 +96,14 @@ fn walk(root: &Path, relative: &Path, exclude: &GlobSet, files: &mut Vec<PathBuf
         let directory = kind.is_dir();
         let file = kind.is_file();
         if directory {
-            walk(root, &path, exclude, files)?;
+            inventory
+                .directories
+                .entry(parent.into())
+                .or_default()
+                .insert(entry.file_name().to_string_lossy().into_owned());
+            walk(root, &path, exclude, inventory)?;
         } else if file {
-            files.push(path);
+            inventory.files.push(path);
         }
     }
     Ok(())
