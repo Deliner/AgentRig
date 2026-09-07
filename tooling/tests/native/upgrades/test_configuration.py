@@ -3,16 +3,21 @@ import shutil
 import tomllib
 from pathlib import Path
 
+import pytest
 import yaml
 
 from .test_upgrade_apply import snapshot
 from .test_upgrade_plan import invoke
 
 
-def consumer(worker: Path, root: Path, review: str = "false") -> tuple[Path, Path]:
+def consumer(
+    worker: Path, root: Path, review: str = "false", backend: str = "git"
+) -> tuple[Path, Path]:
     source = root / "source"
     source.mkdir()
-    result = invoke(worker, source, "init", "--service", "custom rig", "--review", review)
+    result = invoke(
+        worker, source, "init", "--service", "custom rig", "--review", review, "--vcs", backend
+    )
     assert result.returncode == 0, result.stderr
     declaration = source / "agentrig.yaml"
     config = yaml.safe_load(declaration.read_text())
@@ -31,8 +36,11 @@ def update(worker: Path, target: Path, source: Path) -> Path:
     return Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
 
 
-def test_configuration_update_and_rollback(worker: Path, tmp_path: Path) -> None:
-    target, declaration = consumer(worker, tmp_path)
+@pytest.mark.parametrize("backend", ["git", "mercurial"])
+def test_configuration_update_and_rollback(worker: Path, tmp_path: Path, backend: str) -> None:
+    target, declaration = consumer(worker, tmp_path, backend=backend)
+    metadata = {"git": ".git/config", "mercurial": ".hg/hgrc"}[backend]
+    registration = (target / metadata).read_bytes()
     declaration.write_text(declaration.read_text().replace("print('before')", "print('after')"))
     skill = declaration.parent / "custom rig/skills/repair/SKILL.md"
     skill.write_text(skill.read_text() + "\nNew upstream instruction.\n")
@@ -54,10 +62,13 @@ def test_configuration_update_and_rollback(worker: Path, tmp_path: Path) -> None
     assert "after" in result.stdout
     assert "New upstream instruction." in (target / "custom rig/skills/repair/SKILL.md").read_text()
     assert state.read_bytes() == original["memory/State.md"]
+    assert yaml.safe_load((target / "agentrig.yaml").read_text())["vcs"]["backend"] == backend
+    assert (target / metadata).read_bytes() == registration
     result = invoke(worker, target, "upgrade", "rollback")
     assert result.returncode == 0, result.stdout + result.stderr
     assert snapshot(target, list(plan["files"])) == original
     assert "before" in invoke(worker, target, "run", "hello").stdout
+    assert (target / metadata).read_bytes() == registration
 
 
 def test_configuration_update_reports_local_conflicts(worker: Path, tmp_path: Path) -> None:
