@@ -15,12 +15,17 @@ def consumer(
 ) -> tuple[Path, Path]:
     source = root / "source"
     source.mkdir()
+    private = backend == "private"
+    native = "mercurial" if private else backend
     result = invoke(
-        worker, source, "init", "--service", "custom rig", "--review", review, "--vcs", backend
+        worker, source, "init", "--service", "custom rig", "--review", review, "--vcs", native
     )
     assert result.returncode == 0, result.stderr
     declaration = source / "agentrig.yaml"
     config = yaml.safe_load(declaration.read_text())
+    if private:
+        adapter = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+        config["vcs"]["backend"] = {"command": ["python3", "-B", str(adapter)]}
     config["commands"]["hello"] = {"argv": ["python3", "-c", "print('before')"]}
     declaration.write_text(yaml.safe_dump(config))
     target = root / "target"
@@ -36,10 +41,10 @@ def update(worker: Path, target: Path, source: Path) -> Path:
     return Path(result.stdout.rsplit("Plan: ", 1)[1].strip())
 
 
-@pytest.mark.parametrize("backend", ["git", "mercurial"])
+@pytest.mark.parametrize("backend", ["git", "mercurial", "private"])
 def test_configuration_update_and_rollback(worker: Path, tmp_path: Path, backend: str) -> None:
     target, declaration = consumer(worker, tmp_path, backend=backend)
-    metadata = {"git": ".git/config", "mercurial": ".hg/hgrc"}[backend]
+    metadata = {"git": ".git/config", "mercurial": ".hg/hgrc", "private": ".hg/hgrc"}[backend]
     registration = (target / metadata).read_bytes()
     declaration.write_text(declaration.read_text().replace("print('before')", "print('after')"))
     skill = declaration.parent / "custom rig/skills/repair/SKILL.md"
@@ -62,7 +67,8 @@ def test_configuration_update_and_rollback(worker: Path, tmp_path: Path, backend
     assert "after" in result.stdout
     assert "New upstream instruction." in (target / "custom rig/skills/repair/SKILL.md").read_text()
     assert state.read_bytes() == original["memory/State.md"]
-    assert yaml.safe_load((target / "agentrig.yaml").read_text())["vcs"]["backend"] == backend
+    expected = yaml.safe_load(declaration.read_text())["vcs"]["backend"]
+    assert yaml.safe_load((target / "agentrig.yaml").read_text())["vcs"]["backend"] == expected
     assert (target / metadata).read_bytes() == registration
     result = invoke(worker, target, "upgrade", "rollback")
     assert result.returncode == 0, result.stdout + result.stderr
@@ -71,8 +77,11 @@ def test_configuration_update_and_rollback(worker: Path, tmp_path: Path, backend
     assert (target / metadata).read_bytes() == registration
 
 
-def test_configuration_update_reports_local_conflicts(worker: Path, tmp_path: Path) -> None:
-    target, declaration = consumer(worker, tmp_path)
+@pytest.mark.parametrize("backend", ["git", "private"])
+def test_configuration_update_reports_local_conflicts(
+    worker: Path, tmp_path: Path, backend: str
+) -> None:
+    target, declaration = consumer(worker, tmp_path, backend=backend)
     skill_path = "custom rig/skills/repair/SKILL.md"
     local = target / skill_path
     local.write_text(local.read_text() + "\nLocal instruction.\n")

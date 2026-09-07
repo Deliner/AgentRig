@@ -263,6 +263,12 @@ exercise failed gates, native commit rejection, mutated gate inputs and conflict
 recovery through the example. These fixtures do not establish full independent
 installed delivery or real model-client acceptance.
 
+Configuration-upgrade consumers select the private adapter before setup, update a
+command and shipped skill, preserve consumer memory and native hook registration,
+then roll back to the exact original file snapshot. A local skill conflict blocks
+application until explicitly resolved; keeping the local file preserves its bytes.
+These use the same upgrade/rollback implementation as native consumers.
+
 Configured review tests run a failing review, a repair and a successful re-review
 through the example, then reject a changed adapter or source root. Snapshot tests
 retain scope and symlink restrictions. Native Python tests run read/artifacts/code
