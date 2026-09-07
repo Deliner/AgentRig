@@ -12,7 +12,7 @@ allow:
   - tooling/worker/src/delegate/config/mod.rs
   - tooling/worker/src/environment/mod.rs
   - tooling/worker/src/environment/hooks.rs
-  - tooling/worker/src/resources.rs
+  - tooling/worker/src/resources/mod.rs
   - tooling/worker/review/src/execution/sandbox/mod.rs
 deny: []
 public: [mod.rs]

@@ -1,4 +1,7 @@
 use anyhow::{Context, Result, ensure};
+pub use review_runner::artifacts::digest;
+#[cfg(test)]
+mod tests;
 use serde::Serialize;
 use sha2::{Digest, Sha256};
 use std::{
@@ -169,10 +172,6 @@ impl Bundle {
         }
         Ok(())
     }
-}
-
-pub fn digest(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
 }
 
 fn name(path: &Path) -> Result<&str> {

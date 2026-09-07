@@ -1,0 +1,10 @@
+purpose: Prepare frozen resource bundles with content identities, executable modes and input consistency checks
+files:
+  architecture.yaml: Shared resource bundle responsibilities and public boundary
+  mod.rs: Resource snapshots, content-addressed destinations, conflict checks and verification
+  tests.rs: Stable bundle identities, source mutation detection and directory and destination behavior
+directories: {}
+allow:
+  - tooling/worker/review/src/artifacts/mod.rs
+deny: []
+public: [mod.rs]

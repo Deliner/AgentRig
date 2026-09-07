@@ -259,6 +259,7 @@ checks:
     - tooling/worker/src/environment/**
     - tooling/worker/src/composition/**
     - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
     - tooling/worker/src/jobs/**
     - tooling/worker/review/src/**
     - tooling/tests/native/test_delegate*.py
@@ -277,6 +278,7 @@ checks:
     - tooling/worker/src/environment/**
     - tooling/worker/src/composition/**
     - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
     - tooling/worker/src/jobs/**
     - tooling/worker/review/src/vcs/**
     - tooling/worker/review/src/config/yaml.rs
