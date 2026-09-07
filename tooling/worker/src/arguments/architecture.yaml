@@ -1,0 +1,9 @@
+purpose: Consume shared command-line options while preserving literal arguments and caller-owned command parsing
+files:
+  architecture.yaml: Shared argument consumption responsibilities and public boundary
+  mod.rs: Extract one named option before the literal argument separator
+  tests.rs: Option order, duplicates, separator handling and missing-value behavior
+directories: {}
+allow: []
+deny: []
+public: [mod.rs]

@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 66e5dc7
+Revision: 8d4990c
 
-Installed runtime 9aee4ae is available. Resolver colocation and contracts are committed in 66e5dc7. The current P009 VAC gives frozen resource bundle preparation an independent owner with colocated behavior tests. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae is available. Frozen resource bundle ownership is committed in 8d4990c. The current P009 VAC moves shared option consumption from mixed util.rs to arguments/mod.rs with colocated behavior tests and an exact contract. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -28,7 +28,9 @@ Commit e042b69 passed the selective gate (4296 exited 0): 251 Python cases in 31
 
 Commit 66e5dc7 passed its selective gate (58310 exited 0). Resolver implementations and their tests share owners; all resolver/runner directories now have contracts. Its self-analysis reported 29 cycles and 18 missing contracts.
 
-The current shared resource owner preserves resources::Bundle/File/Input/digest paths. Byte hashing reuses the identical artifact digest; bundle identity still includes executable mode. Three colocated tests pass (58248): input content/mode mutation, destination collisions, directory identity and symlink rejection. Candidate self-analysis (32490, .tmp/p009-resource-owner.json) removes exactly two root/delegation cycles, leaving 27 cycles and 18 missing contracts with no new cycles or other findings. Delegation contracts name resources/mod.rs; both affected groups also include resources/** so future commits keep testing consumers. Final selective commit verification remains pending.
+Commit 8d4990c passed its selective gate (16954 exited 0): 491 Python cases in 588.90 seconds and configured Rust checks. It removed two root/delegation cycles, leaving 27 cycles and 18 missing contracts.
+
+Current argument ownership preserves util::take_option as an explicit compatibility export; main, lint and setup use the actual owner. Three argument tests pass (18589), covering order, duplicates, literal separation, values and error consumption. Twenty-seven embedded/standalone lint and setup cases pass in 0.67 seconds (84926). Candidate self-analysis removes the lint/root cycle with no new cycles or other findings, leaving 26 cycles and 18 missing contracts (.tmp/p009-arguments-owner.json, 22170). Lint permissions now name arguments/mod.rs; lint and scaffold affected maps cover arguments/**. Resume confirmed 8d4990c without merge/rebase. Final selective commit verification remains pending.
 
 ## Blockers
 
@@ -36,6 +38,6 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit shared resource ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. Hook object/text helpers are hook-owned; path resolution and option parsing have multiple consumers; Git queries belong with the VCS owner. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
+Commit shared argument ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. Hook object/text helpers are hook-owned; path resolution has multiple consumers; Git queries belong with the VCS owner. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
 
 Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

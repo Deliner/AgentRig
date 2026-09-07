@@ -14,7 +14,7 @@ directories:
   rules: Define stable rule identities, parameters and architecture settings
   selection: Select targets and compute effective thresholds
 allow:
-  - tooling/worker/src/util.rs
+  - tooling/worker/src/arguments/mod.rs
   - tooling/worker/src/diagnostics/mod.rs
   - tooling/worker/src/diagnostics/lint.rs
   - tooling/worker/review/src/config/yaml.rs

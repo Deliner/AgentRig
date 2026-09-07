@@ -240,6 +240,7 @@ checks:
     - tooling/tests/native/test_config_check.py
   - include:
     - tooling/worker/src/lint/**
+    - tooling/worker/src/arguments/**
     - tooling/worker/review/src/vcs/**
     - tooling/worker/review/src/config/yaml.rs
     - tooling/tests/native/lint/**
@@ -274,6 +275,7 @@ checks:
     - tooling/tests/native/upgrades
   - include:
     - tooling/worker/src/scaffold/**
+    - tooling/worker/src/arguments/**
     - tooling/worker/src/hooks/**
     - tooling/worker/src/environment/**
     - tooling/worker/src/composition/**

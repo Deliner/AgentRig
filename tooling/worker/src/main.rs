@@ -3,6 +3,7 @@ use std::{os::unix::process::CommandExt, process::Command};
 mod hooks;
 mod scaffold;
 
+use agentrig::arguments::take_option;
 use agentrig::{diagnostics, lint, util};
 use anyhow::{Result, bail};
 use serde_json::Value;
@@ -11,7 +12,6 @@ use std::{
     io::{self, Read},
     path::{Path, PathBuf},
 };
-use util::take_option;
 
 // DECISION: D015
 // DECISION: D016
