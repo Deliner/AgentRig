@@ -144,6 +144,14 @@ branch reference; Mercurial sets the working directory's named branch, recorded
 permanently by the next commit. Native branch commands reject invalid or existing
 names and honor consumer hooks.
 
+`feature-merge` dispatches through the shared VCS owner. Git rebases divergent
+features with merge history preserved, checks the candidate and merges it into
+the configured base with an explicit merge commit. Both backends require a full
+passing gate whose revision and content still match before completing integration.
+A check that changes those inputs cannot authorize integration even if it exits
+successfully. Git command interruptions and failures retain native exit codes and
+recovery state; the feature branch is retained.
+
 Mercurial `feature-merge` selects the base branch's single head, updates to that
 exact revision and merges the committed feature using the native internal merge
 tool. Multiple base heads and uncommitted feature names are rejected before

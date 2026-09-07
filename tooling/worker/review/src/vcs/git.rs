@@ -2,7 +2,7 @@ use super::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
-fn command(root: &Path, args: &[&str]) -> Command {
+pub(super) fn command(root: &Path, args: &[&str]) -> Command {
     let mut command = Command::new("git");
     command
         .current_dir(root)
@@ -22,6 +22,15 @@ pub fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
         String::from_utf8_lossy(&output.stderr)
     );
     Ok(output.stdout)
+}
+
+pub(super) fn ancestor(root: &Path, older: &str, newer: &str) -> Result<bool> {
+    let status = command(root, &["merge-base", "--is-ancestor", older, newer]).status()?;
+    ensure!(
+        matches!(status.code(), Some(0 | 1)),
+        "cannot inspect Git ancestry"
+    );
+    Ok(status.success())
 }
 
 pub(super) fn head(root: &Path) -> Result<Option<String>> {

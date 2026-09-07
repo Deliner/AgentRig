@@ -1,15 +1,36 @@
 use super::{Kind, Repository, Settings, mercurial, validate_revision};
 use anyhow::{Context as _, Result, ensure};
+use std::process::Command;
 
 #[derive(PartialEq, Eq)]
-pub struct Merge {
-    pub feature: String,
+struct Merge {
+    feature: String,
     base: String,
     candidate: String,
 }
 
 impl Repository<'_> {
-    pub fn prepare_mercurial_merge(&self, settings: &Settings) -> Result<Merge> {
+    pub fn integrate(
+        &self,
+        settings: &Settings,
+        mut check: impl FnMut() -> Result<i32>,
+        run: impl FnMut(&mut Command) -> Result<i32>,
+    ) -> Result<(String, i32)> {
+        match self.kind {
+            Kind::Git => self.integrate_git(settings, check, run),
+            Kind::Mercurial => {
+                let merge = self.prepare_mercurial_merge(settings)?;
+                let code = check()?;
+                let passed = code == 0;
+                if passed {
+                    self.commit_mercurial_merge(settings, &merge)?;
+                }
+                Ok((merge.feature, code))
+            }
+        }
+    }
+
+    fn prepare_mercurial_merge(&self, settings: &Settings) -> Result<Merge> {
         ensure!(
             self.kind == Kind::Mercurial,
             "native Mercurial integration required"
@@ -45,7 +66,7 @@ impl Repository<'_> {
         self.mercurial_merge_context(settings)
     }
 
-    pub fn commit_mercurial_merge(&self, settings: &Settings, merge: &Merge) -> Result<()> {
+    fn commit_mercurial_merge(&self, settings: &Settings, merge: &Merge) -> Result<()> {
         ensure!(
             self.mercurial_merge_context(settings)? == *merge,
             "merge parents changed during checks; inspect the native operation and retry"

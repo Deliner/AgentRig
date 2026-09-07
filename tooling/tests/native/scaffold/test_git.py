@@ -132,6 +132,29 @@ def test_gate_failure_and_dirty_workspace_preserve_branches(
     assert git(root, "rev-parse", "HEAD") == feature
 
 
+def test_git_integration_rejects_mutated_gate_inputs(
+    worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = installed
+    assert invoke(worker, root, "feature-start", "mutating-check").returncode == 0
+    update_config(
+        root / "agentrig.yaml",
+        commands={
+            "probe": {"argv": ["sh", "-c", 'test -z "$MUTATE_MERGE" || echo changed > product.txt']}
+        },
+    )
+    commit(root, "product.txt", "verified")
+    feature = git(root, "rev-parse", "HEAD")
+    base = git(root, "rev-parse", "trunk")
+    monkeypatch.setenv("MUTATE_MERGE", "1")
+    result = invoke(worker, root, "feature-merge")
+    assert result.returncode == 2 and "checked merge inputs changed" in result.stderr
+    assert git(root, "branch", "--show-current") == "task/mutating-check"
+    assert git(root, "rev-parse", "HEAD") == feature
+    assert git(root, "rev-parse", "trunk") == base
+    assert (root / "product.txt").read_text() == "changed\n"
+
+
 # INVARIANT: I006
 def test_staged_commit_preserves_unstaged_work(
     worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
