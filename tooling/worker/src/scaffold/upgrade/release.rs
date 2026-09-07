@@ -47,9 +47,9 @@ pub fn export(binary: &Path, config: &Config) -> Result<tempfile::TempDir> {
             "--memory",
             &config.paths.memory,
             "--base",
-            &config.git.base,
+            &config.vcs.base,
             "--prefix",
-            &config.git.prefix,
+            &config.vcs.prefix,
         ])
         .output()?;
     ensure!(

@@ -389,3 +389,91 @@ def test_shared_package_prepares_independent_python_and_rust_consumers(
     shutil.copy2(worker.with_name("agentrig-lint"), standalone)
     for target in consumers:
         verify_composed_consumer(target, standalone)
+
+
+def installed_hg_consumer(worker: Path, root: Path, vcs: str) -> Path:
+    from test_git import hg, initialize_mercurial
+
+    hg(root, "init")
+    hg(root, "branch", "trunk")
+    (root / "README.md").write_text("Independent consumer\n")
+    (root / ".hgignore").write_text("syntax: glob\n**/__pycache__/**\n**/.pytest_cache/**\n")
+    hg(root, "add", "README.md", ".hgignore")
+    hg(root, "commit", "-m", "base", "-u", "Test")
+    hg(root, "branch", "task/bootstrap")
+    initialize_mercurial(worker, root)
+    private = vcs == "private"
+    if private:
+        adapter = root / "vcs_adapter.py"
+        shutil.copy2(Path(__file__).parents[3] / "worker/examples/external_vcs.py", adapter)
+        update_config(
+            root / "agentrig.yaml", vcs={"backend": {"command": ["python3", "-B", str(adapter)]}}
+        )
+    assert invoke(worker, root, "setup").returncode == 0
+    with (root / ".hg/hgrc").open("a") as settings:
+        settings.write("\n[ui]\nusername = Test\n")
+    source = root / "src/test_sample.py"
+    source.parent.mkdir()
+    source.write_text("def test_value():\n    assert 1 == 1\n")
+    add_delivery_probe(root)
+    hg(root, "add")
+    hg(root, "commit", "-m", "install environment")
+    binary = root / "rig space/bin/agentrig"
+    assert binary.read_bytes() == worker.read_bytes()
+    assert not (root / "tooling/worker/Cargo.toml").exists()
+    return binary
+
+
+def add_delivery_probe(root: Path) -> None:
+    path = root / "agentrig.yaml"
+    config = yaml.safe_load(path.read_text())
+    config["commands"]["delivery-probe"] = {
+        "argv": ["python3", "-c", "import os,sys; sys.exit(bool(os.environ.get('BLOCK_DELIVERY')))"]
+    }
+    config["checks"].append(
+        {
+            "id": "delivery-probe",
+            "kind": "command",
+            "command": "delivery-probe",
+            "skill": "rig space/skills/repair/SKILL.md",
+        }
+    )
+    path.write_text(yaml.safe_dump(config))
+
+
+def consumer_just(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(["just", *args], cwd=root, text=True, capture_output=True, check=False)
+
+
+@pytest.mark.parametrize("vcs", ["hg", "private"])
+def test_installed_mercurial_delivery_recovers_failed_integration(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, vcs: str
+) -> None:
+    from test_git import hg
+
+    binary = installed_hg_consumer(worker, tmp_path, vcs)
+    bootstrap = consumer_just(tmp_path, "feature-merge")
+    assert bootstrap.returncode == 0, (
+        bootstrap.stdout + bootstrap.stderr + invoke(binary, tmp_path, "resume").stdout
+    )
+    assert hg(tmp_path, "branch") == "trunk"
+    base = hg(tmp_path, "log", "-r", ".", "-T", "{node}")
+    assert consumer_just(tmp_path, "feature-start", "product").returncode == 0
+    source = tmp_path / "src/test_sample.py"
+    source.write_text("def test_value():\n    assert 2 == 2\n")
+    hg(tmp_path, "commit", "-m", "product")
+    candidate = hg(tmp_path, "log", "-r", ".", "-T", "{node}")
+    monkeypatch.setenv("BLOCK_DELIVERY", "yes")
+    failed = consumer_just(tmp_path, "feature-merge")
+    assert failed.returncode != 0 and "delivery-probe" in failed.stderr
+    recovery = json.loads(invoke(binary, tmp_path, "resume").stdout)
+    assert recovery["vcs"]["merge_in_progress"]
+    assert hg(tmp_path, "log", "-r", ".", "-T", "{node}") == base
+    monkeypatch.delenv("BLOCK_DELIVERY")
+    merged = consumer_just(tmp_path, "feature-merge")
+    assert merged.returncode == 0, merged.stdout + merged.stderr
+    assert hg(tmp_path, "log", "-r", ".", "-T", "{p1node} {p2node}").split() == [base, candidate]
+    assert hg(tmp_path, "log", "-r", candidate, "-T", "{branch}") == "task/product"
+    assert hg(tmp_path, "branch") == "trunk" and hg(tmp_path, "status") == ""
+    assert invoke(binary, tmp_path, "doctor").returncode == 0
+    assert consumer_just(tmp_path, "feature-start", "next").returncode == 0

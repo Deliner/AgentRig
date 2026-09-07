@@ -19,7 +19,7 @@ def test_doctor_observes_registration_and_tools(worker: Path, tmp_path: Path) ->
     changes = [
         (".codex/config.toml", "hooks = true", "hooks = false", "Codex registration"),
         (".codex/hooks.json", "SessionStart", "UnknownEvent", "Codex registration"),
-        (".agentrig/hooks/pre-commit", "--staged", "--incorrect", "Git hooks"),
+        (".agentrig/hooks/pre-commit", "--staged", "--incorrect", "git hooks"),
         ("agentrig.yaml", "python3", "missing-tool-xyz", "MISSING"),
         ("agentrig.yaml", "runtime: 0.3.0", "runtime: 999.0.0", "project pins"),
     ]

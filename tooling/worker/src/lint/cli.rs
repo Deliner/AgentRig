@@ -6,12 +6,57 @@ use std::{
 };
 
 pub fn execute(root: &Path, config: &Path, args: &[String], validate_only: bool) -> Result<i32> {
+    let mut args = args.to_vec();
+    let selected = selection(root, &mut args)?;
     ensure!(
         args.iter().all(|arg| arg == "--json"),
         "unknown lint argument"
     );
-    let json = args.iter().any(|arg| arg == "--json");
-    super::run(root, config, json, validate_only)
+    let source = selected
+        .as_ref()
+        .map(|(_, backend)| backend.repository_source(root))
+        .transpose()?
+        .flatten();
+    let command = if validate_only {
+        "lint-config-check"
+    } else {
+        "lint"
+    };
+    let rerun = selected.as_ref().map(|(path, _)| {
+        crate::diagnostics::rerun(
+            root,
+            &[
+                command.into(),
+                "--config".into(),
+                config.to_string_lossy().into_owned(),
+                "--vcs-config".into(),
+                path.to_string_lossy().into_owned(),
+            ],
+        )
+    });
+    super::run_output(
+        root,
+        config,
+        super::Output {
+            json: args.iter().any(|arg| arg == "--json"),
+            validate_only,
+            rerun: rerun.as_deref(),
+            source: source.as_ref(),
+        },
+    )
+}
+
+pub(super) fn selection(
+    root: &Path,
+    args: &mut Vec<String>,
+) -> Result<Option<(PathBuf, review_runner::vcs::Backend)>> {
+    let Some(path) = take_option(args, "--vcs-config")? else {
+        return Ok(None);
+    };
+    let path = root.join(path).canonicalize()?;
+    let backend: review_runner::vcs::Backend = review_runner::config::yaml::read(&path)?;
+    backend.validate()?;
+    Ok(Some((path, backend)))
 }
 pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     let command = args

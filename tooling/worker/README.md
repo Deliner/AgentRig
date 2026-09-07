@@ -59,7 +59,13 @@ Do not add exceptions merely to turn the gate green. Preserve a current requirem
 
 nonblank-lines supports UTF-8 text files of any language. It counts nonempty lines, including comments, and skips non-UTF-8 files. Default suffixes include Python, shell, Rust, JavaScript/TypeScript, Go, C/C++, C#, Java, and common documentation/configuration formats. Selectors can narrow or extend these suffixes without Rust changes; an empty extension list selects all files supported by the rule.
 
-directory-entries counts immediate child names, including child directories, from the selected file inventory. It is independent of language and rejects extension selectors. Git inventories include tracked and non-ignored untracked files; exported staged trees use their physical files. Deleted files and symlinks are excluded. Empty directories are not represented in Git and are not counted.
+directory-entries counts immediate child names, including child directories, from the selected file inventory. It is independent of language and rejects extension selectors. Git and Mercurial inventories include tracked and non-ignored untracked files; exported trees and plain directories use their physical files. Deleted files and symlinks are excluded. Empty directories are not represented in the file inventory and are not counted.
+
+Lint discovers `.git` or `.hg` at the selected root through the shared VCS owner;
+having both is an actionable ambiguity. Git uses its standard ignore rules;
+Mercurial uses `.hgignore` while user/repository configuration is disabled as for
+snapshot reads. Additional ignores configured through Mercurial hgrc are not
+loaded. VCS inventory failures are reported, not replaced with a filesystem walk.
 
 Current defaults retain warnings above 300 nonblank lines and errors above 500; directory warnings above 10 and errors above 15. Ledger/Decisions and Ledger/Invariants remain excluded from directory-size checks. All structural diagnostics include rule ID, path, measurement, limit, severity, repair skill, and a shell-quoted rerun command. Use just lint --json for structured output.
 
@@ -301,9 +307,13 @@ The contract contains `result_schema` (JSON Schema) and optional `artifacts`
 `result.json` is reserved for the structured response. The task preparation and
 result verification library is covered by `rust-test`.
 
-Preparation resolves revision to a full commit and reuses the review snapshot
+Set top-level `vcs: git`, `vcs: mercurial` or a
+[private adapter command object](review/EXTERNAL_VCS.md) in the delegation YAML; omission
+retains Git. The backend applies to the source repository for all profiles.
+Preparation resolves revision to a full revision ID and reuses the review snapshot
 exporter with the profile's visible_paths. Explicit inputs also obey those globs;
-they need no Git repository. Snapshots and copied files have a SHA-256 manifest.
+they need no VCS repository. Snapshots and copied files have a SHA-256 manifest;
+inputs.json retains the selected VCS and resolved revision.
 Traversal, symlinks and sensitive development-control paths are rejected.
 Preparation requires a new directory. Result verification uses the shared bounded
 regular-file reader, checks JSON Schema and required artifacts, and records their
@@ -368,10 +378,15 @@ are writable by the delegate; original snapshot and runner-owned Git metadata
 remain outside that write area. All changed paths must satisfy both visible_paths
 and write_paths, and symlinks/control paths are rejected.
 
+The source may be Git, Mercurial or a configured private adapter. The patch builder requires
+Git internally; it does not stage or commit the source repository. Its Git-format
+patch can be imported into a Mercurial checkout of the reported base with
+`hg import --no-commit change.patch` after inspection and verification.
+
 Checks run in the same containment with /project read-only; use /work or /tmp for
 build outputs. Model execution and checks share timeout_seconds. The retained
 change.patch contains binary-safe changes; code-report.json records the original
-commit, snapshot/candidate tree IDs, patch digest, changed paths and exact check
+VCS and revision, snapshot/candidate tree IDs, patch digest, changed paths and exact check
 commands, output and exit codes. Status/result expose this report as `code`.
 Failed checks retain the patch for inspection and yield overall ERROR. Code
 `verified` refers to patch/check verification; the top-level outcome additionally

@@ -56,6 +56,18 @@ def project(root: Path, config: str = CONFIG) -> Path:
     return root
 
 
+def vcs_backend(vcs: str) -> str | dict[str, list[str]]:
+    private = vcs == "private"
+    if private:
+        script = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+        return {"command": ["python3", "-B", str(script)]}
+    return {"git": "git", "hg": "mercurial"}[vcs]
+
+
+def vcs_executable(vcs: str) -> str:
+    return {"private": "hg"}.get(vcs, vcs)
+
+
 def update_config(path: Path, **changes: Any) -> None:
     source = path.read_text()
     config = yaml.safe_load(source)

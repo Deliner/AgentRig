@@ -22,11 +22,11 @@ use std::{
 };
 
 pub fn check(context: &Context) -> Result<i32> {
-    check_with_history(context, &context.root)
+    check_with_history(context, &context.root, None)
 }
-pub fn check_with_history(context: &Context, git_root: &Path) -> Result<i32> {
+pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>) -> Result<i32> {
     let memory = context.path(&context.config.paths.memory)?;
-    history::check(context, git_root)?;
+    history::check(context, root, revision)?;
     plan(context, &memory)?;
     decisions(context, &memory)?;
     invariants(context, &memory)?;

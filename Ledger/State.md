@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P006, then P007 and P008 under the user's active implementation goal. Current VAC: record P006 acceptance and integrate its retained feature branch.
+Integrate accepted P007, then deliver P008 under the user's active implementation goal; P006 is integrated. Current VAC: repair cached review tests that retained paths into a deleted exported source tree.
 
 ## Workspace
 
-Branch: feature/directory-architecture
+Branch: feature/vcs-backends
 
-Revision: 7440f8c
+Revision: 45a6866
 
-The extractor repair is committed at 7440f8c through its full gate: 410 Python and 101 Rust tests passed. Only the final acceptance matrix and completion memory are now changed. No unrelated work is present; the installed development pin remains unchanged.
+P006 is integrated at 0c9cc39. P007 completion commit 45a6866 passed its full gate with 567 Python and 138 Rust tests. Its integration failed in review-test after all 567 Python tests passed. No merge or rebase is pending; the feature branch is retained. Resume reports completed focused review-test evidence. User remarks remain in Ledger/Requests.md. The installed development pin is unchanged.
 
 ## Progress
 
-P006 acceptance is verified and recorded as complete in Plan; integration is still pending. The final matrix exercises each required architecture scenario through both binaries for all four languages. Directory contracts, graph checks, source resolution, CLI integration, exact capability limits and canonical repair guidance are implemented. P007/P008 remain pending and authorized in that order.
+P007 implementation acceptance is recorded in Plan/007.md, but base integration remains unfinished. Three review test fixtures now resolve CARGO_MANIFEST_DIR at test execution instead of embedding a temporary compilation path. Review/repair assertions include the failed report. Product behavior and verification thresholds are unchanged. P008 remains pending; preliminary inspection found Codex-specific setup and review/delegate launch owners.
 
 ## Verification
 
-All 78 lint CLI tests and 51 architecture component tests pass. The matrix covers five scenarios across four languages and two binaries, with additional configuration, scope, incomplete-analysis and behavior-preservation tests. Real repairs preserve program result 7 and unchanged permissions. The implementation gate passed with 410 Python and 101 Rust tests; completion-commit and integration gates are next, not yet observed.
+The failed review stage reproduced missing external_vcs.py under the deleted exported tree /tmp/.tmpKOhDOo. Recompiling execution tests removed their failure while cached external_vcs tests still failed with that exact path. After correcting all three owners, just check --only review-test passed all 64 Rust review tests. The correction is rustfmt formatted; its full commit gate and the integration retry remain pending.
 
 ## Blockers
 
-None observed. Documented compiler/runtime resolution limits remain explicit product capabilities, with recognized unsupported forms diagnosed. P006 acceptance evidence and the supported first-delivery forms are recorded in its detail.
+P007 has no unresolved implementation blocker; commit and integration gates remain required. For later P008 real-client acceptance, local Codex is 0.153.4 and Claude Code is 2.1.201. The user supplied admin@macbook.local, reachable through network-enabled just write SSH; its Claude is 2.1.263 at /Users/admin/.local/bin/claude. Its Keychain credential entry exists, but SSH cannot read it (security exit 36, corresponding to interaction not allowed); launchctl asuser is denied. The user was asked to unlock the login Keychain locally. SSH loggedIn=false does not establish absent local login; credentials have not been copied or exposed. This does not block P008 implementation and deterministic tests.
 
 ## Next action
 
-Commit P006 completion through the staged gate, then run just feature-merge and verify integration in Git. Start P007 on its own feature branch after integration and choose the simplest available real second VCS as authorized. Deliver P008 afterward. Preserve the installed development pin while testing candidates.
+Commit this focused test repair through the mandatory full gate, then retry just feature-merge and verify integration into master. Keep the feature branch. Start P008 on a new feature branch only after integration, activate its contract under the existing goal, and deliver actual Codex/Claude setup, review and delegation with real-client acceptance. Preserve the installed development pin while testing candidates. Native index bootstrap, the internal Git patch builder and the Git-only release migration remain explicit supported boundaries.

@@ -11,7 +11,7 @@ use std::{fs, path::Path};
 
 pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
     ensure!(args.len() == 1, "config-inspect CONFIG_YAML [--root PATH]");
-    let prepared = input::external(&root.join(&args[0]))?;
+    let prepared = input::external(root, &root.join(&args[0]))?;
     preview::validate(root, &prepared.config, &prepared.files)?;
     prepared.verify()?;
     println!(
@@ -27,7 +27,7 @@ pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
 
 pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
     super::reject_legacy(root)?;
-    let mut prepared = input::external(path)?;
+    let mut prepared = input::external(root, path)?;
     let current = config::read(root)?;
     ensure!(
         prepared.config.runtime == current.runtime,
@@ -109,24 +109,18 @@ pub(super) fn install(
     installation: &reconcile::Installation,
 ) -> Result<i32> {
     installation.apply(root)?;
-    let fresh_git = !root.join(".git").exists();
-    if fresh_git {
-        crate::util::git(root, &["init", "-q", "-b", &config.git.base])?;
-    }
+    config.vcs.backend.initialize(root, &config.vcs.base)?;
     fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
     if let Some(review) = &config.capabilities.review {
         let review = review_runner::config::load(&config::relative(root, &review.config)?)?;
         fs::create_dir_all(review.runner.runtime_root)?;
         fs::create_dir_all(review.runner.report_root)?;
     }
-    crate::util::git(
-        root,
-        &[
-            "config",
-            "core.hooksPath",
-            &config.paths.service_path("hooks"),
-        ],
-    )?;
+    config
+        .vcs
+        .backend
+        .source(root)
+        .register_hooks(&config.paths.service_path("hooks"))?;
     println!("Setup installed the configured worker environment. Authentication remains separate.");
     super::doctor(&config::Context::load(root)?)
 }

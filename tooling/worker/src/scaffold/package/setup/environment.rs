@@ -5,7 +5,11 @@ use super::{
 use anyhow::Result;
 use toml_edit::{DocumentMut, value};
 
-pub(super) fn configure(config: &Config, document: &mut DocumentMut) -> Result<()> {
+pub(super) fn configure(
+    root: &std::path::Path,
+    config: &Config,
+    document: &mut DocumentMut,
+) -> Result<()> {
     for (name, server) in &config.environment.mcp_servers {
         table(&mut document["mcp_servers"], "mcp_servers")?;
         let target = &mut document["mcp_servers"][name];
@@ -18,6 +22,7 @@ pub(super) fn configure(config: &Config, document: &mut DocumentMut) -> Result<(
             &config.paths.service,
             "mcp",
             name,
+            &super::super::adapters::generated(root, config)?.root_command,
         ));
         setting(&mut target["args"], value(args), name)?;
         let mut references = toml_edit::Array::new();

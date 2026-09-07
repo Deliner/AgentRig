@@ -9,7 +9,66 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import file_contents, invoke, update_config
+from support import CONFIG, file_contents, invoke, project, update_config, vcs_backend
+
+
+@pytest.mark.parametrize("backend", ["git", "mercurial"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        ("main", True, True),
+        ("main line", False, True),
+        ("HEAD", False, True),
+        ("tip", True, False),
+        ("null", True, False),
+        ("123", True, False),
+        ("+123", True, False),
+        ("12_3", True, True),
+        ("bad:name", False, False),
+        ("", False, False),
+        (" main", False, False),
+        ("main ", False, False),
+        ("main\v", False, False),
+        ("main\nline", False, False),
+    ],
+)
+def test_configuration_uses_native_vcs_names(
+    worker: Path, tmp_path: Path, backend: str, case: tuple[str, bool, bool]
+) -> None:
+    name, git_valid, hg_valid = case
+    project(tmp_path, CONFIG)
+    update_config(tmp_path / "agentrig.yaml", git={"backend": backend, "base": name})
+    result = invoke(worker, tmp_path, "config-check")
+    using_git = backend == "git"
+    valid = git_valid if using_git else hg_valid
+    assert result.returncode == (0 if valid else 2), result.stderr
+    invalid = not valid
+    if invalid:
+        assert "vcs.base" in result.stderr
+    assert not (tmp_path / ".git").exists() and not (tmp_path / ".hg").exists()
+
+
+def test_mercurial_setup_retains_configured_spaces(worker: Path, tmp_path: Path) -> None:
+    result = invoke(
+        worker, tmp_path, "init", "--vcs", "mercurial", "--base", "main line", "--prefix", "task "
+    )
+    assert result.returncode == 0, result.stderr
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    assert subprocess.check_output(["hg", "branch"], cwd=tmp_path, text=True).strip() == "main line"
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    # Bootstrap generated files on a native feature branch before delivery commands.
+    subprocess.run(["hg", "branch", "task product"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(["hg", "add"], cwd=tmp_path, check=True, capture_output=True)
+    committed = subprocess.run(
+        ["hg", "commit", "-m", "bootstrap", "-u", "Test"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert committed.returncode == 0, committed.stdout + committed.stderr
+    update_config(tmp_path / "agentrig.yaml", vcs={"prefix": " leading/"})
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2 and "vcs.prefix" in result.stderr
 
 
 def declaration(worker: Path, root: Path, service: str = ".agentrig") -> Path:
@@ -28,10 +87,12 @@ def declaration(worker: Path, root: Path, service: str = ".agentrig") -> Path:
 
 
 @pytest.mark.parametrize("service", [".agentrig", "rig space's $cash"])
+@pytest.mark.parametrize("vcs", ["git", "private"])
 def test_setup_prepares_and_repeats_without_losing_settings(
-    worker: Path, tmp_path: Path, service: str
+    worker: Path, tmp_path: Path, service: str, vcs: str
 ) -> None:
     root = declaration(worker, tmp_path, service)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     (root / ".codex").mkdir()
     settings = "# Keep this comment\nmodel = 'consumer-model'\n[features]\nhooks = true # enabled\n"
     (root / ".codex/config.toml").write_text(settings)
@@ -76,8 +137,12 @@ def test_setup_preserves_changed_review_and_memory(worker: Path, tmp_path: Path)
     assert file_contents(root) == before
 
 
-def test_setup_rejects_conflicting_assets_without_writing(worker: Path, tmp_path: Path) -> None:
+@pytest.mark.parametrize("vcs", ["git", "private"])
+def test_setup_rejects_conflicting_assets_without_writing(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
     root = declaration(worker, tmp_path)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     assert invoke(worker, root, "setup").returncode == 0
     skill = root / ".agentrig/skills/repair/SKILL.md"
     skill.write_text(skill.read_text() + "\nConsumer instruction.\n")
@@ -89,10 +154,12 @@ def test_setup_rejects_conflicting_assets_without_writing(worker: Path, tmp_path
 
 
 @pytest.mark.parametrize("settings", ["features=false\n", "[features]\nhooks=false\n"])
+@pytest.mark.parametrize("vcs", ["git", "private"])
 def test_setup_rejects_hook_conflicts_before_writing(
-    worker: Path, tmp_path: Path, settings: str
+    worker: Path, tmp_path: Path, settings: str, vcs: str
 ) -> None:
     root = declaration(worker, tmp_path)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     (root / ".codex").mkdir()
     (root / ".codex/config.toml").write_text(settings)
     before = file_contents(root)
@@ -260,8 +327,8 @@ def test_setup_preview_matches_application_without_changing_the_consumer(
     preview = json.loads(result.stdout)
     assert file_contents(root) == before
     assert not (root / ".git").exists()
-    assert preview["registrations"]["git"]["hooks_path"] == "preview rig/hooks"
-    assert preview["registrations"]["git"]["initialize"] is True
+    assert preview["registrations"]["vcs"]["hooks_path"] == "preview rig/hooks"
+    assert preview["registrations"]["vcs"]["initialize"] is True
     assert "worker_review" in preview["registrations"]["codex"]["mcp_servers"]
     assert set(preview["dependencies"]["executables"]) == {"git", "bwrap", "python3"}
     assert preview["dependencies"]["model_frontends"][0]["override_env"] == "REVIEW_CODEX_BIN"
@@ -317,18 +384,20 @@ def interactive(worker: Path, root: Path, answers: list[str]) -> subprocess.Comp
 
 
 @pytest.mark.parametrize("language", ["python", "rust"])
+@pytest.mark.parametrize("vcs", ["git", "mercurial"])
 def test_interactive_init_matches_declarative_setup(
-    worker: Path, tmp_path: Path, language: str
+    worker: Path, tmp_path: Path, language: str, vcs: str
 ) -> None:
     target = tmp_path / "interactive"
-    answers = [""] * 12
+    answers = [""] * 13
     answers[1] = language
+    answers[9] = vcs
     answers[-1] = "yes"
     result = interactive(worker, target, answers)
     assert result.returncode == 0, result.stdout + result.stderr
     ordinary = tmp_path / "ordinary"
     ordinary.mkdir()
-    assert invoke(worker, ordinary, "init", "--language", language).returncode == 0
+    assert invoke(worker, ordinary, "init", "--language", language, "--vcs", vcs).returncode == 0
     assert invoke(worker, ordinary, "setup").returncode == 0
     for name in [
         "agentrig.yaml",
@@ -343,7 +412,7 @@ def test_interactive_init_matches_declarative_setup(
     assert invoke(target / ".agentrig/bin/agentrig", target, "config-check").returncode == 0
 
 
-@pytest.mark.parametrize("answers", [[], ["cancel"], [""] * 11, [""] * 11 + ["no"]])
+@pytest.mark.parametrize("answers", [[], ["cancel"], [""] * 12, [""] * 12 + ["no"]])
 def test_interactive_cancellation_leaves_no_target(
     worker: Path, tmp_path: Path, answers: list[str]
 ) -> None:
@@ -359,7 +428,7 @@ def test_interactive_invalid_selection_preserves_existing_files(
 ) -> None:
     (tmp_path / "user.txt").write_text("Keep user content.\n")
     before = file_contents(tmp_path)
-    answers = [""] * 12
+    answers = [""] * 13
     answers[1] = "unsupported-language"
     result = interactive(worker, tmp_path, answers)
     assert result.returncode == 2
@@ -372,13 +441,13 @@ def test_interactive_selects_layout_checks_review_and_delegation(
 ) -> None:
     root = delegated_project(worker, tmp_path)
     (root / "agentrig.yaml").unlink()
-    answers = [""] * 12
+    answers = [""] * 13
     answers[2] = "wizard rig"
     answers[4] = "notes"
     answers[8] = "true"
-    answers[9] = "agents/profiles.yaml"
-    answers[10] = "lint,memory"
-    answers[11] = "yes"
+    answers[10] = "agents/profiles.yaml"
+    answers[11] = "lint,memory"
+    answers[12] = "yes"
     result = interactive(worker, root, answers)
     assert result.returncode == 0, result.stdout + result.stderr
     config = yaml.safe_load((root / "agentrig.yaml").read_text())
@@ -414,7 +483,7 @@ def test_interactive_preserves_changes_after_preview(worker: Path, tmp_path: Pat
     ) as process:
         try:
             assert process.stdin is not None
-            process.stdin.write(b"\n" * 11)
+            process.stdin.write(b"\n" * 12)
             process.stdin.flush()
             wait_for_preview(process)
             note = tmp_path / "AGENTS.md"
@@ -440,7 +509,7 @@ def test_init_requires_explicit_legacy_migration(
     legacy.write_text("# Preserve the legacy declaration for explicit migration.\n")
     before = file_contents(tmp_path)
     if wizard:
-        result = interactive(worker, tmp_path, [""] * 11 + ["yes"])
+        result = interactive(worker, tmp_path, [""] * 12 + ["yes"])
     else:
         result = invoke(worker, tmp_path, "init")
     assert result.returncode == 2

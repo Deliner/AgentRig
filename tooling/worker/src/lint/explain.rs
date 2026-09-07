@@ -1,9 +1,11 @@
 use super::{config, inventory, selection};
 use anyhow::{Result, ensure};
 use serde_json::{Value, json};
-use std::path::{Component, Path};
+use std::path::{Component, Path, PathBuf};
 
 pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+    let mut args = args.to_vec();
+    let selected = super::cli::selection(root, &mut args)?;
     let (path, flags) = args
         .split_first()
         .ok_or_else(|| anyhow::anyhow!("lint-explain PATH [--json]"))?;
@@ -11,25 +13,16 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
         flags.iter().all(|flag| flag == "--json"),
         "unknown lint-explain argument"
     );
-    let path = Path::new(path);
-    ensure!(
-        !path.is_absolute()
-            && !path
-                .components()
-                .any(|part| matches!(part, Component::ParentDir)),
-        "explain path must stay relative to the project"
-    );
-    let path = path
-        .components()
-        .filter(|part| !matches!(part, Component::CurDir))
-        .collect::<std::path::PathBuf>();
-    let path = match path.as_os_str().is_empty() {
-        true => Path::new("."),
-        false => &path,
-    };
+    let path = selected_path(path)?;
+    let path = path.as_path();
     let config = config::load(root, config_path)?;
     let excluded = config::globs(&config.exclude)?;
-    let inventory = inventory::collect(root, &excluded)?;
+    let source = selected
+        .as_ref()
+        .map(|(_, backend)| backend.repository_source(root))
+        .transpose()?
+        .flatten();
+    let inventory = inventory::collect_source(root, &excluded, source.as_ref())?;
     let global = excluded.is_match(path);
     let mut rows = Vec::new();
     for rule in &config.rules {
@@ -42,6 +35,25 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
         print(path, &rows);
     }
     Ok(0)
+}
+
+fn selected_path(value: &str) -> Result<PathBuf> {
+    let path = Path::new(value);
+    ensure!(
+        !path.is_absolute()
+            && !path
+                .components()
+                .any(|part| matches!(part, Component::ParentDir)),
+        "explain path must stay relative to the project"
+    );
+    let path = path
+        .components()
+        .filter(|part| !matches!(part, Component::CurDir))
+        .collect::<std::path::PathBuf>();
+    Ok(match path.as_os_str().is_empty() {
+        true => PathBuf::from("."),
+        false => path,
+    })
 }
 fn explain(
     rule: &config::Rule,

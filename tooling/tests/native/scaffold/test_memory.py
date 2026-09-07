@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import file_contents, invoke, project
+from support import file_contents, invoke, project, update_config, vcs_backend, vcs_executable
 
 
 def memory(root: Path) -> Path:
@@ -187,7 +187,8 @@ def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: P
     for args in [("add", "-A"), ("commit", "-qm", "legacy memory location")]:
         subprocess.run(["git", *args], cwd=tmp_path, check=True)
     legacy.unlink()
-    config.write_text(current.replace('memory: "notes"', 'memory: "relocated"'))
+    config.write_text(current)
+    update_config(config, paths={"memory": "relocated"})
     relocated = tmp_path / "relocated"
     notes.rename(relocated)
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
@@ -198,8 +199,9 @@ def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: P
     assert "committed decision identity cannot change" in result.stderr
 
 
-def committed_memory(worker: Path, tmp_path: Path) -> Path:
+def committed_memory(worker: Path, tmp_path: Path, vcs: str = "git") -> Path:
     project(tmp_path)
+    update_config(tmp_path / "agentrig.yaml", git={"backend": vcs_backend(vcs)})
     path = memory(tmp_path)
     config = tmp_path / "agentrig.yaml"
     with config.open("a") as stream:
@@ -219,13 +221,62 @@ def committed_memory(worker: Path, tmp_path: Path) -> Path:
         )
     )
     (tmp_path / "src/lib.rs").write_text("// DECISION: D001\nfn example() {}")
-    for args in [
+    git_commands = [
         ("init", "-q"),
         ("config", "user.name", "Test"),
         ("config", "user.email", "test@example.invalid"),
         ("add", "."),
         ("commit", "-qm", "baseline"),
-    ]:
-        subprocess.run(["git", *args], cwd=tmp_path, check=True, capture_output=True)
+    ]
+    using_git = vcs == "git"
+    commands = (
+        git_commands
+        if using_git
+        else [("init",), ("add", "."), ("commit", "-m", "baseline", "-u", "Test")]
+    )
+    for args in commands:
+        subprocess.run([vcs_executable(vcs), *args], cwd=tmp_path, check=True, capture_output=True)
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
     return path
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_native_history_preserves_decisions_in_worktree_and_gate(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    notes = committed_memory(worker, tmp_path, vcs)
+    index = notes / "Decisions.md"
+    detail = notes / "Decisions/001.md"
+    original_index = index.read_text()
+    row = "| [D001](Decisions/001.md) | Choice | [code](../src/lib.rs) |\n"
+    changes = [
+        (index, original_index.replace("| Choice |", "| Changed |"), "identity cannot change"),
+        (detail, detail.read_text().replace("Text.", "Changed."), "detail cannot change"),
+        (index, original_index.replace(row, ""), "cannot be removed"),
+    ]
+    for path, content, diagnostic in changes:
+        original = path.read_text()
+        path.write_text(content)
+        for args in [("memory-check",), ("check", "--only", "memory")]:
+            result = invoke(worker, tmp_path, *args)
+            assert result.returncode == 2, result.stdout + result.stderr
+            assert diagnostic in result.stderr
+        path.write_text(original)
+        assert invoke(worker, tmp_path, "memory-check").returncode == 0
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_native_history_keeps_committed_memory_location(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    notes = committed_memory(worker, tmp_path, vcs)
+    config = tmp_path / "agentrig.yaml"
+    update_config(config, paths={"memory": "relocated"})
+    notes.rename(tmp_path / "relocated")
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 0, result.stderr
+    index = tmp_path / "relocated/Decisions.md"
+    index.write_text(index.read_text().replace("| Choice |", "| Changed |"))
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert "committed decision identity cannot change" in result.stderr

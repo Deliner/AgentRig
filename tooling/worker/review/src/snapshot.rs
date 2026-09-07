@@ -1,6 +1,7 @@
 use crate::{
     config::{Repository, globs},
     digest,
+    vcs::{FileKind, Source},
 };
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -8,7 +9,6 @@ use std::{
     collections::BTreeMap,
     fs,
     path::{Component, Path},
-    process::Command,
 };
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -27,32 +27,10 @@ pub struct Snapshot {
     pub diff: String,
 }
 pub fn git(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
-    let output = Command::new("git")
-        .current_dir(root)
-        .env("GIT_OPTIONAL_LOCKS", "0")
-        .env("GIT_NO_REPLACE_OBJECTS", "1")
-        .env_remove("GIT_DIR")
-        .env_remove("GIT_WORK_TREE")
-        .args(args)
-        .output()?;
-    ensure!(
-        output.status.success(),
-        "git failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    Ok(output.stdout)
+    crate::vcs::git_command(root, args)
 }
 pub fn resolve(root: &Path, reference: &str) -> Result<String> {
-    let bytes = git(
-        root,
-        &[
-            "rev-parse",
-            "--verify",
-            "--end-of-options",
-            &format!("{reference}^{{commit}}"),
-        ],
-    )?;
-    Ok(String::from_utf8(bytes)?.trim().into())
+    crate::vcs::Repository::new(root, crate::vcs::Kind::Git).resolve(reference)
 }
 pub fn prepare(
     root: &Path,
@@ -60,15 +38,16 @@ pub fn prepare(
     scope: &Repository,
     output: &Path,
 ) -> Result<Snapshot> {
-    let base = resolve(root, revisions.0)?;
-    let candidate = resolve(root, revisions.1)?;
+    let source = scope.vcs.source(root);
+    let base = source.resolve(revisions.0)?;
+    let candidate = source.resolve(revisions.1)?;
     let allowed = globs(&scope.visible_paths)?;
-    let changed = changed_paths(root, &base, &candidate)?;
-    validate_changes(root, &changed, &allowed, &base)?;
+    let changed = source.changed_paths(&base, &candidate)?;
+    validate_changes(&source, &changed, &allowed, &base)?;
     fs::create_dir(output).context("snapshot output must be new")?;
-    let manifest = export(root, &candidate, &allowed, output)?;
+    let manifest = export(&source, &candidate, &allowed, output)?;
     let contracts = contract_paths(scope, &manifest)?;
-    let diff = diff(root, &base, &candidate)?;
+    let diff = source.diff(&base, &candidate)?;
     Ok(Snapshot {
         base,
         candidate,
@@ -79,7 +58,7 @@ pub fn prepare(
     })
 }
 fn validate_changes(
-    root: &Path,
+    source: &Source<'_>,
     changed: &[String],
     allowed: &globset::GlobSet,
     base: &str,
@@ -91,66 +70,33 @@ fn validate_changes(
         );
         safe_path(path)?;
     }
-    let old = tree(root, base)?;
+    let old = source.tree(base)?;
     for path in changed {
-        if let Some((mode, object)) = old.get(path) {
-            inspect(root, path, mode, object)?;
+        if let Some(entry) = old.get(path) {
+            inspect(source, base, path, entry.kind)?;
         }
     }
     Ok(())
 }
 pub fn changed_paths(root: &Path, base: &str, candidate: &str) -> Result<Vec<String>> {
-    let bytes = git(
-        root,
-        &[
-            "diff",
-            "--no-ext-diff",
-            "--no-textconv",
-            "--no-renames",
-            "--name-only",
-            "-z",
-            base,
-            candidate,
-            "--",
-        ],
-    )?;
-    bytes
-        .split(|byte| *byte == 0)
-        .filter(|name| !name.is_empty())
-        .map(|name| Ok(String::from_utf8(name.to_vec())?))
-        .collect()
-}
-fn tree(root: &Path, commit: &str) -> Result<BTreeMap<String, (String, String)>> {
-    let bytes = git(root, &["ls-tree", "-rz", "--full-tree", commit])?;
-    let mut entries = BTreeMap::new();
-    for entry in bytes
-        .split(|byte| *byte == 0)
-        .filter(|entry| !entry.is_empty())
-    {
-        let text = std::str::from_utf8(entry)?;
-        let (header, path) = text.split_once('\t').context("invalid Git tree entry")?;
-        let fields: Vec<_> = header.split_whitespace().collect();
-        ensure!(fields.len() == 3, "invalid Git tree entry");
-        entries.insert(path.into(), (fields[0].into(), fields[2].into()));
-    }
-    Ok(entries)
+    crate::vcs::Repository::new(root, crate::vcs::Kind::Git).changed_paths(base, candidate)
 }
 fn export(
-    root: &Path,
+    source: &Source<'_>,
     commit: &str,
     allowed: &globset::GlobSet,
     output: &Path,
 ) -> Result<BTreeMap<String, Entry>> {
     let mut manifest = BTreeMap::new();
-    for (path, (mode, object)) in tree(root, commit)? {
+    for (path, entry) in source.tree(commit)? {
         let visible = allowed.is_match(&path);
         if visible {
-            let bytes = inspect(root, &path, &mode, &object)?;
+            let bytes = inspect(source, commit, &path, entry.kind)?;
             let target = output.join(&path);
             fs::create_dir_all(target.parent().context("file parent required")?)?;
             fs::write(&target, &bytes)?;
             use std::os::unix::fs::PermissionsExt;
-            let executable = mode == "100755";
+            let executable = entry.kind == FileKind::Executable;
             fs::set_permissions(
                 target,
                 fs::Permissions::from_mode(if executable { 0o755 } else { 0o644 }),
@@ -159,21 +105,21 @@ fn export(
                 path,
                 Entry {
                     sha256: digest(&bytes),
-                    object,
-                    mode,
+                    object: entry.object,
+                    mode: entry.kind.mode().into(),
                 },
             );
         }
     }
     Ok(manifest)
 }
-fn inspect(root: &Path, path: &str, mode: &str, object: &str) -> Result<Vec<u8>> {
+fn inspect(source: &Source<'_>, revision: &str, path: &str, kind: FileKind) -> Result<Vec<u8>> {
     safe_path(path)?;
     ensure!(
-        ["100644", "100755"].contains(&mode),
+        matches!(kind, FileKind::File | FileKind::Executable),
         "cannot expose symlink or submodule: {path}"
     );
-    let bytes = git(root, &["cat-file", "blob", object])?;
+    let bytes = source.read(revision, path)?;
     let content = String::from_utf8_lossy(&bytes);
     let private_key = [
         "-----BEGIN PRIVATE KEY-----",
@@ -196,6 +142,7 @@ pub fn safe_path(path: &str) -> Result<()> {
         let name = name.to_string_lossy();
         let sensitive = [
             ".git",
+            ".hg",
             ".codex",
             ".agents",
             ".ssh",
@@ -231,21 +178,10 @@ fn contract_paths(scope: &Repository, manifest: &BTreeMap<String, Entry>) -> Res
 }
 
 pub fn diff(root: &Path, base: &str, candidate: &str) -> Result<String> {
-    Ok(String::from_utf8(git(
-        root,
-        &[
-            "diff",
-            "--no-ext-diff",
-            "--no-textconv",
-            "--binary",
-            "--no-renames",
-            base,
-            candidate,
-            "--",
-        ],
-    )?)?)
+    crate::vcs::Repository::new(root, crate::vcs::Kind::Git).diff(base, candidate)
 }
 pub fn check_boundary(root: &Path, base: &str, candidate: &str, scope: &Repository) -> Result<()> {
-    let changed = changed_paths(root, base, candidate)?;
-    validate_changes(root, &changed, &globs(&scope.visible_paths)?, base)
+    let source = scope.vcs.source(root);
+    let changed = source.changed_paths(base, candidate)?;
+    validate_changes(&source, &changed, &globs(&scope.visible_paths)?, base)
 }

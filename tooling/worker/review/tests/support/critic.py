@@ -17,7 +17,13 @@ def hook():
 
 def isolation():
     assert Path.cwd() == Path("/work")
-    for hidden in ["/home/deliner", "/project/.git", "/reviewers", "/codex/config.toml"]:
+    for hidden in [
+        "/home/deliner",
+        "/project/.git",
+        "/project/.hg",
+        "/reviewers",
+        "/codex/config.toml",
+    ]:
         assert not Path(hidden).exists(), hidden
     for protected in [
         "/project/src/value.py",

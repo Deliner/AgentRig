@@ -51,18 +51,28 @@ fn document(
 
 pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Result<Value> {
     let hooks = config.paths.service_path("hooks");
-    let current =
-        crate::util::git(root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
+    let present = config.vcs.backend.repository_present(root)?;
+    let source = config.vcs.backend.source(root);
+    let registered = present && source.hooks_registered(&hooks)?;
+    let registration = match &config.vcs.backend {
+        review_runner::vcs::Backend::Native(kind) => {
+            json!(review_runner::vcs::Repository::new(root, *kind).expected_registration(&hooks))
+        }
+        review_runner::vcs::Backend::External(_) => json!(source.registration_values(&hooks)?),
+    };
     Ok(json!({
         "preview": true,
         "root": root,
         "files": installation.changes(),
         "registrations": {
-            "git": {
-                "initialize": !root.join(".git").exists(),
-                "initial_branch": config.git.base,
+            "vcs": {
+                "backend": config.vcs.backend,
+                "initialize": !present,
+                "initial_branch": config.vcs.base,
                 "hooks_path": hooks,
-                "update_hooks_path": current != hooks,
+                "registration": registration,
+                "update_registration": !registered,
+                "runtime_ignore": (config.vcs.backend == review_runner::vcs::Kind::Mercurial.into()).then(|| format!("{hooks}.hgignore")),
             },
             "codex": codex(&installation.files, config)?,
         },
@@ -130,7 +140,12 @@ fn directories(root: &Path, config: &Config, files: &Files) -> Result<Value> {
 }
 
 fn dependencies(config: &Config) -> Value {
-    let mut executables = BTreeSet::from(["git"]);
+    let mut executables = BTreeSet::from([config.vcs.backend.executable()]);
+    // Delegated code results currently use Git internally to produce binary patches.
+    let code_delegation = config.capabilities.delegation.is_some();
+    if code_delegation {
+        executables.insert("git");
+    }
     executables.extend(
         config
             .commands
@@ -139,8 +154,10 @@ fn dependencies(config: &Config) -> Value {
     );
     let review = config.capabilities.review.is_some();
     let delegation = config.capabilities.delegation.is_some();
-    let isolated =
-        review || delegation || config.commands.values().any(|command| command.read_only);
+    let isolated = review
+        || delegation
+        || config.vcs.backend != review_runner::vcs::Kind::Git.into()
+        || config.commands.values().any(|command| command.read_only);
     if isolated {
         executables.insert("bwrap");
     }

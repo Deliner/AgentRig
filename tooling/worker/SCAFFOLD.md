@@ -1,12 +1,12 @@
 # Portable scaffold runtime
 
-The portable entry point is `agentrig.yaml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, Git, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
+The portable entry point is `agentrig.yaml` in the selected project root. Initial distribution targets Linux. The runtime is a Rust binary; consumer projects need their own configured tools, the selected VCS executable, and bubblewrap for read-only commands. Just is a thin optional command interface. The consumer does not compile the worker or run the worker repository's tests.
 
 A distributor builds the pinned crate with `cargo +1.98.1 build --release --locked --manifest-path tooling/worker/Cargo.toml` and supplies the resulting `agentrig` and `agentrig-lint` executables. Both lint interfaces use the same engine; standalone lint accepts an external root and policy without installing worker files there. `init` copies its running executable and bundled assets into a consumer, pinning the package version in the generated configuration. See [independent examples](examples/README.md) for complete bootstrap commands. See upgrades below for the supported transition and recovery commands.
 
 `paths.service` selects the service directory and defaults to `.agentrig`.
 For example, `agentrig init --root CONSUMER --service 'team rig'` places the
-binary, Git hooks and installation receipt there. Generated defaults also place
+binary, VCS hooks and installation receipt there. Generated defaults also place
 skills, lint settings, reminders and runtime data under that directory; their
 individual paths remain configurable. Adapters quote the selected path, including
 spaces and shell metacharacters. Newlines and Just interpolation syntax (`{{`)
@@ -47,8 +47,8 @@ reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks ru
 asynchronously and their own timeouts remain profile settings. Doctor requires
 working systemd scopes, bubblewrap and native Codex when delegation is enabled.
 `agentrig init --interactive --root CONSUMER` starts the setup wizard. It asks for
-the project directory, language, service/source/memory/skills paths, Git naming,
-review, an optional existing delegate-profile YAML path relative to the project,
+the project directory, language, service/source/memory/skills paths, branch naming,
+review, VCS, an optional existing delegate-profile YAML path relative to the project,
 and selected checks. Enter accepts defaults. `cancel`, EOF or declining the final
 confirmation leaves the target untouched, including when its directory is absent.
 The wizard shows ordinary `agentrig.yaml` and the shared setup preview before
@@ -61,9 +61,9 @@ fully noninteractive. Dependency diagnostics still run after installation.
 prepares the environment. To obtain a starting declaration and assets, use
 `init --root CONSUMER --review true`, edit the generated settings, then run setup.
 Setup can also start from only agentrig.yaml and any custom referenced resources.
-It installs missing stock assets, validates a temporary preview, registers Git
+It installs missing stock assets, validates a temporary preview, registers native VCS
 hooks and the `worker_review` MCP server, creates runtime/report directories and
-runs doctor. A new consumer receives a Git repository on the configured base.
+runs doctor. A new consumer receives a repository of the selected kind on the configured base.
 Authentication is separate: provide Codex authentication through CODEX_HOME;
 REVIEW_CODEX_BIN can select the installed native CLI. These environment variables
 are forwarded to MCP; setup never copies credentials into the project.
@@ -79,9 +79,9 @@ doctor after installation; fix them and repeat setup. Release changes use upgrad
 Setup uses the installation manifest and the same atomic writer as upgrade.
 
 `agentrig setup --preview --root CONSUMER` prepares and validates the same files
-and registrations without installing them, initializing Git or invoking doctor.
+and registrations without installing them, initializing a repository or invoking doctor.
 It prints JSON with changed file paths, before/after SHA-256 and resulting modes,
-Git/Codex registrations, runtime directories and required dependencies. Existing
+VCS/Codex registrations, runtime directories and required dependencies. Existing
 conflicts are reported before writes, just as in ordinary setup. The report includes
 only managed MCP settings, so unrelated settings and credential values remain in
 their original files. Dependencies are requirements, not successful runtime probes;
@@ -91,7 +91,30 @@ current inputs on each call; it creates no independent saved installation plan.
 The generated MCP entry sets the documented
 [Codex stdio settings and tool timeout](https://learn.chatgpt.com/docs/extend/mcp?surface=cli).
 Its timeout exceeds the review deadline by 60 seconds; the launcher resolves the
-consumer Git root, so the command does not contain the worker repository path.
+consumer root through the selected VCS, so the command does not contain the worker repository path.
+
+Select `init --vcs git|mercurial` or set `vcs.backend` in YAML. The `vcs` section
+also owns `base` and `prefix`; omitted backend means Git. Existing `git` sections
+remain accepted as an alias, but declaring both sections is an error. Setup rejects
+a backend that differs from the existing repository. Mercurial setup registers
+`hooks.pretxncommit.agentrig` and `ui.ignore.agentrig` in `.hg/hgrc`, preserving
+unrelated settings and hooks. It appends a missing `include:` line to the user's
+`.hgignore`, retaining existing rules, so isolated reads also see the managed exclusions.
+The additional ignore file
+excludes configured runtime data and default review runtime/reports. Repeated
+setup leaves matching registrations unchanged; conflicts stop before installation.
+Review presets generated for Mercurial select its native snapshot backend.
+Mercurial consumers need `hg` and working bubblewrap. Native reads mount the
+filesystem read-only because Mercurial can otherwise refresh cache files and
+dirstate during inspection. Initialization and hook registration remain explicit
+writes. Delegation also requires Git for its internal patch builder.
+
+For a private implementation, set `vcs.backend` to a `command` argv object and
+run `setup` with that YAML declaration. The [private VCS protocol](review/EXTERNAL_VCS.md)
+covers setup generation, registration, reads, exact exports, recovery, guarded
+commits and feature integration; no workflow-specific corporate code is required.
+The independent Mercurial process example exercises this contract. Protocol v1
+does not expose a staging index: use working-tree or exact-revision checks.
 
 New installations write `<paths.service>/manifest.json` (default `.agentrig/manifest.json`) with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
@@ -110,20 +133,69 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | `commands` / `run NAME -- ARGS` | List or execute the shared catalog. Arguments remain argv elements. |
 | `report` | Summarize command timing, latest check evidence and repeated check failures from the configured runtime directory. |
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate only lint settings, or list actual rule/language capabilities. |
-| `check [--staged] [--only CHECK_ID]` | Sequential gate over the working tree or exported index, including config and skills from that tree; --only repeats one configured stage. |
+| `check [--staged \| --revision REV] [--only CHECK_ID]` | Sequential gate over the working tree, Git index or an exact revision from the selected VCS, including config and skills from that tree; --only repeats one configured stage. |
 | `memory-check` | Check the four memory files, links, decision history and executable invariant targets. |
-| `resume` | Return State, Plan, observed Git operations, State revision comparison and check freshness as JSON without changing the project. |
+| `resume` | Return State, Plan, observed VCS operations, State revision comparison and check freshness as JSON without changing the project. |
 | `feature-start NAME` / `feature-merge` | Create or integrate a branch according to configured base/prefix. Integration runs the gate and retains the branch. |
 | `hook` | Read an agent event as JSON from stdin and emit guidance or denial. |
 
 Warnings do not fail lint; blocking findings exit 1 and configuration failures exit 2. External checks retain their process exit codes; a check configured with `warning: true` can report a nonzero exit without failing the gate. Interruptions still stop it. External output is preserved. Failure diagnostics identify the check, location or selected scope, cause, configured repair skill and a shell-quoted RERUN command. Lint JSON also includes rerun. In a project requiring catalogued shell operations, execute that command through `just run write --`; `just check --only CHECK_ID` is the shorter gate retry. Commit and integration adapters always run the full gate.
+
+Historical memory validation reads the checked-out revision from the selected VCS
+through the shared VCS owner. Published decision identities and detail contents
+remain immutable when the memory directory moves. Plain directories and unborn
+repositories have no historical baseline; backend errors are reported rather
+than treated as absent history. This applies to `memory-check` and memory gates;
+Mercurial setup installs the commit hook described below. `feature-start NAME`
+supports native and private implementations through the shared VCS owner. It requires the configured
+base branch, a clean working tree and no pending merge/rebase. Git creates a new
+branch reference; Mercurial sets the working directory's named branch, recorded
+permanently by the next commit. Native branch commands reject invalid or existing
+names and honor consumer hooks.
+
+Configuration validates `vcs.base` and the names formed by `vcs.prefix` using the
+selected backend's rules, without creating a repository. Git reference syntax
+remains enforced. Mercurial permits names such as `main line` and a prefix such as
+`task `; reserved labels, integer names, forbidden characters and surrounding
+whitespace are rejected. Surrounding whitespace would be trimmed by its native
+CLI and would no longer match the configured base or prefix. The prefix must be
+nonempty and distinguish feature branches from the configured base.
+
+`feature-merge` dispatches through the shared VCS owner. Git rebases divergent
+features with merge history preserved, checks the candidate and merges it into
+the configured base with an explicit merge commit. Supported backends require a full
+passing gate whose revision and content still match before completing integration.
+A check that changes those inputs cannot authorize integration even if it exits
+successfully. Git command interruptions and failures retain native exit codes and
+recovery state; the feature branch is retained.
+
+Mercurial `feature-merge` selects the base branch's single head, updates to that
+exact revision and merges the committed feature using the native internal merge
+tool. Multiple base heads and uncommitted feature names are rejected before
+switching. The merged working tree must pass the full gate with unchanged inputs;
+the commit retains both selected parents and the feature's named-branch history.
+Configured native hooks run normally, including setup's pending-changeset gate.
+A conflict or failed gate preserves the pending merge. Resolve conflicts with
+native `hg resolve`, repair failing checks, handle retained backup/untracked files,
+then repeat `feature-merge` from the base branch. To discard an attempted merge,
+first preserve any work you need, then use native `hg merge --abort`. If the base
+advanced, abort and retry from the retained feature instead of committing against
+the outdated base. Mercurial integration requires an existing committed base head;
+the independent consumer seeds that base before installing commit guards.
+Private integration prepares or resumes the native operation through the adapter,
+runs the shared mandatory gate, then finishes only after its input checks pass.
+The adapter revalidates its native context and retains the feature reference.
+Review and delegation accept its command object in their VCS selection and retain
+the common snapshot, visibility and result checks. Independent installed tests
+exercise generated Just recipes, guarded commits, failed integration recovery,
+exact merge parents and retained branches for native Mercurial and the private example.
 
 ## Configuration ownership
 
 `agentrig.yaml` has schema `version: 1` and an exact `runtime` package version. Unknown fields are errors. Project-relative filesystem paths cannot escape the root. Source and check selectors are globs. The generated file is a complete editable example.
 
 - `paths`: source selectors and locations of memory, skills, lint configuration and transient runtime data.
-- `git`: base branch and working-branch prefix.
+- `vcs`: backend, base branch and working-branch prefix (`git` remains a YAML alias).
 - `commands.NAME`: `argv`, `cwd` (default `.`), `accepts_args` and `read_only`. An empty argv requires forwarded arguments. Shell evaluation happens only if the catalog explicitly invokes a shell.
 - `checks`: ordered IDs, `kind` (`command`, `lint`, `memory`), optional command reference, `include`, repair `skill`, and `warning`. A check with no matching files is skipped.
 - `hooks`: file-to-skill routes, optional reminder JSON and the corresponding discipline skill. The hook and runner use the same command catalog.
@@ -331,11 +403,71 @@ Decision rows contain ID, Decision and Applies in. Details contain Context, Chos
 
 Invariant rows contain ID, Invariant and Enforced by. Details contain Predicate and Oracle. The enforcement link names a function in a Rust/Python source file, with its `INVARIANT: INNN` comment before the function (attributes/decorators may intervene). Its configured oracle must name that function, including its class/module scope, and be discoverable by the actual test runner. Multiple declarations of that qualified name are ambiguous to syntax-only linking and are reported rather than treated as one marked target. Unsupported source languages are reported explicitly.
 
-`resume` compares explicit `Branch: ` and `Revision: ` claims, optionally wrapped in backticks, with Git. Commit hashes may be full or unambiguous abbreviations. It reports current, stale or unverified snapshot status, an explicit state_revision.head_changed comparison (null when unknown), and merge/rebase facts resolved through Git so linked worktrees are supported. It does not infer completed acceptance, select a new feature, or overwrite State. The agent reconciles the snapshot with live evidence and current instructions.
+`resume` compares explicit `Branch: ` and `Revision: ` claims, optionally wrapped
+in backticks, with the discovered native repository. Commit hashes may be full or
+unambiguous abbreviations. It reports current, stale or unverified snapshot status,
+an explicit state_revision.head_changed comparison (null when unknown), and a
+`vcs` object containing backend, branch, revision, native status and merge/rebase
+facts. Git consumers retain the `git` alias; Mercurial reports its own identity.
+Plain directories have `vcs: null`; unborn repositories have an empty revision.
+Repository observation errors are reported, not interpreted as a clean checkout.
+Git operation paths support linked worktrees. Mercurial uses working-directory
+parents for pending merges and its native rebase state marker. It does not infer
+completed acceptance, select a new feature, or overwrite State. The agent
+reconciles the snapshot with live evidence and current instructions.
 
-The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, including start time, observed HEAD, input fingerprint, staged/working-tree scope, optional selected check, results and completion state. This is disposable verification evidence, not a VAC registry or task history. An unfinished record means no completion was recorded; it does not establish that a process is still alive. A check that changes inputs or HEAD is marked inputs-changed. Results survive the temporary staged export and a fresh worker process.
+The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, including start time, native revision, input fingerprint, scope, optional selected check, results and completion state. This is disposable verification evidence, not a VAC registry or task history. An unfinished record means no completion was recorded; it does not establish that a process is still alive. A working-tree or staged check that changes inputs or the checked-out revision is marked inputs-changed. Results survive temporary exports and a fresh worker process.
 
-`resume.checks` exposes last_run, revision_matches, worktree_matches, index_matches, current and full_gate_passed. Current requires matching HEAD and content plus recorded completion; staged evidence also requires the same index. Index identity is captured before export and compared again after checks. A passing selected check never sets full_gate_passed. After a commit changes HEAD, matching content remains visible separately; do not confuse content equality with a check executed against the new revision. No additional mandatory gate is introduced. Missing evidence is absent; unreadable or malformed evidence is unavailable, never a passing result. The fingerprint covers Git tracked and non-ignored untracked paths (only indexed paths for a staged run), file bytes, executable bits and symlink targets, excluding paths.runtime. Non-Git projects use physical files and cannot claim a matching Git revision. This does not fingerprint external tools, environment variables, ignored dependencies or remote services; retain their original output when relevant to acceptance.
+`check --revision REV` resolves one immutable revision through the selected backend
+and checks its full exported tree, including configuration and skills. It cannot
+be combined with --staged. Memory history is compared against each parent, with no
+prior baseline for a root revision. The report records the resolved ID in revision
+and sets revision_export; diagnostic retries retain that ID, including opaque
+private IDs. Fingerprints use the revision's tracked paths, excluding paths.runtime,
+and detect changes to exported inputs during checks. A changed export retains
+inputs-changed evidence and exits 2 even when external commands returned zero.
+Changes to the original checkout do not alter the selected revision or its result.
+The report is stored under the original root using the selected configuration's
+runtime path. Current/full_gate_passed still require the original checkout's
+revision and files to match, and --only remains a partial check. Full exports
+preserve symlinks and executable bits; submodules and VCS control paths are rejected
+explicitly. This command does not provide the restricted isolation boundary used by review.
+
+Mercurial setup registers the generated adapter in `.hg/hgrc` (default service path):
+
+```ini
+[hooks]
+pretxncommit.agentrig = sh .agentrig/hooks/pretxncommit
+```
+
+The adapter runs `guard-commit --revision "$HG_NODE"` followed by the full
+`check --revision "$HG_NODE"`. Mercurial exposes the pending changeset to this
+hook and rolls its transaction back on a nonzero exit. The guard uses the selected
+changeset's configuration and branch; direct base commits are rejected. The gate
+checks exactly that changeset, including a partial commit's selected files, while
+unrelated working changes remain untouched. The retained report identifies the
+attempted hash even after rollback; that rejected hash is no longer available for
+revision-based retries until a new commit is attempted. Native source reads disable
+repository-configured Mercurial commands, so they do not recursively execute hooks.
+Setup separately reads trusted local registration settings to preserve conflicts.
+
+`resume.checks` exposes last_run, revision_matches, worktree_matches, index_matches,
+current and full_gate_passed. Current requires matching revision and content plus
+recorded completion; staged evidence also requires the same index. Native index
+identity is captured before export, then the staged configuration selects the
+backend for checks and subsequent comparisons. An invalid unstaged YAML file does
+not replace staged settings. A passing selected check never sets full_gate_passed.
+After a commit changes the revision, matching content remains visible separately;
+do not confuse content equality with a check executed against the new revision.
+Missing evidence is absent; unreadable or malformed evidence is unavailable,
+never a passing result. The fingerprint covers the selected backend's tracked and
+non-ignored untracked paths (only indexed paths for a Git staged run), file bytes,
+executable bits and symlink targets, excluding paths.runtime. Plain directories use
+physical files and cannot claim a matching VCS revision. Mercurial has no staging
+index; the private protocol exposes none. Both reject selected index operations
+explicitly; ordinary working-tree and exact-revision checks are supported. This
+does not fingerprint external tools, environment variables, ignored dependencies
+or remote services; retain their original output when relevant to acceptance.
 
 `report` shows consecutive failures of a check and its presented skill and retry command. Counts reset on success or when that check is absent from the previous attempt; they describe check attempts, not identical errors or proof of reading guidance. If an applied skill fails to help with the same concrete error, use the repair skill to correct the canonical instruction or diagnostic and verify the actual failed scenario. VAC intent and observed verification belong in context and commit descriptions; there is no manager, scheduler or extra checkpoint.
 

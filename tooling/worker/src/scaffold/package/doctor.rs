@@ -31,7 +31,7 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
     failed |= !executor_dependencies(context);
-    failed |= !git_registration(context);
+    failed |= !vcs_registration(context)?;
     failed |= !codex_registration(context)?;
     if failed {
         let rerun = crate::diagnostics::rerun(&context.root, &["doctor".into()]);
@@ -93,6 +93,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .commands
         .values()
         .any(|command| command.read_only)
+        || context.config.vcs.backend != review_runner::vcs::Kind::Git.into()
         || context.config.capabilities.review.is_some()
         || context.config.capabilities.delegation.is_some();
     if read_only {
@@ -108,11 +109,15 @@ fn sandbox_availability(context: &Context) -> bool {
     }
     !failed
 }
-fn git_registration(context: &Context) -> bool {
-    let hooks =
-        crate::util::git(&context.root, &["config", "--get", "core.hooksPath"]).unwrap_or_default();
-    let registered = hooks == context.config.paths.service_path("hooks")
-        && super::adapters::git_hooks(&context.config)
+fn vcs_registration(context: &Context) -> Result<bool> {
+    let registered = context
+        .config
+        .vcs
+        .backend
+        .source(&context.root)
+        .hooks_registered(&context.config.paths.service_path("hooks"))?;
+    let registered = registered
+        && super::adapters::vcs_hooks(&context.root, &context.config)?
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)
@@ -121,14 +126,15 @@ fn git_registration(context: &Context) -> bool {
                     })
             });
     println!(
-        "Git hooks: {}",
+        "{} hooks: {}",
+        context.config.vcs.backend.executable(),
         if registered {
             "registered"
         } else {
-            "NOT REGISTERED OR CHANGED; verify core.hooksPath, adapter contents and executable permissions"
+            "NOT REGISTERED OR CHANGED; verify VCS registration, adapter contents and executable permissions"
         }
     );
-    registered
+    Ok(registered)
 }
 fn codex_registration(context: &Context) -> Result<bool> {
     let settings = fs::read_to_string(context.root.join(".codex/config.toml"))
@@ -156,8 +162,10 @@ fn codex_registration(context: &Context) -> Result<bool> {
 }
 
 fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -> Result<bool> {
-    let expected: serde_json::Value =
-        serde_json::from_slice(&super::adapters::registration(&context.config)?)?;
+    let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
+        &context.config,
+        &super::adapters::generated(&context.root, &context.config)?.root_command,
+    )?)?;
     Ok(configured.is_some_and(|value| {
         expected["hooks"]
             .as_object()

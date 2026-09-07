@@ -1,6 +1,6 @@
 // DECISION: D022
 mod content;
-pub use content::index;
+pub use content::native_index;
 
 use super::config::{self, Check, Context};
 use anyhow::Result;
@@ -24,6 +24,8 @@ struct ResultRecord {
 struct Record {
     timestamp: u64,
     revision: Option<String>,
+    #[serde(default)]
+    revision_export: bool,
     fingerprint: String,
     staged: bool,
     index_fingerprint: Option<String>,
@@ -32,6 +34,25 @@ struct Record {
     code: Option<i32>,
     results: Vec<ResultRecord>,
 }
+pub enum Input {
+    Worktree,
+    Index(String),
+    Revision(String),
+}
+
+impl Record {
+    fn exported_revision(&self) -> Option<&str> {
+        self.revision.as_deref().filter(|_| self.revision_export)
+    }
+
+    fn fingerprint(&self, context: &Context, origin: &Path) -> Result<String> {
+        match self.exported_revision() {
+            Some(revision) => content::revision_fingerprint(context, origin, revision),
+            None => content::fingerprint(context, origin, self.staged),
+        }
+    }
+}
+
 pub struct Attempt {
     path: PathBuf,
     record: Record,
@@ -41,28 +62,32 @@ impl Attempt {
     pub fn start(
         context: &Context,
         origin: &Path,
-        index_fingerprint: Option<String>,
+        input: Input,
         only: Option<&str>,
     ) -> Result<Self> {
-        let staged = index_fingerprint.is_some();
+        let (index_fingerprint, selected) = match input {
+            Input::Worktree => (None, None),
+            Input::Index(index) => (Some(index), None),
+            Input::Revision(revision) => (None, Some(revision)),
+        };
         let directory = config::relative(origin, &context.config.paths.runtime)?;
         let path = directory.join("checks.json");
-        let record = Record {
+        let mut record = Record {
             timestamp: SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(),
-            revision: crate::util::git(origin, &["rev-parse", "HEAD"]).ok(),
-            fingerprint: content::fingerprint(
-                &context.root,
-                origin,
-                &context.config.paths.runtime,
-                staged,
-            )?,
-            staged,
+            revision_export: selected.is_some(),
+            revision: match selected {
+                Some(revision) => Some(revision),
+                None => content::head(context, origin)?,
+            },
+            fingerprint: String::new(),
+            staged: index_fingerprint.is_some(),
             index_fingerprint,
             only: only.map(str::to_owned),
             status: "unfinished".into(),
             code: None,
             results: Vec::new(),
         };
+        record.fingerprint = record.fingerprint(context, origin)?;
         let attempt = Self {
             previous: read(&path)?,
             path,
@@ -71,10 +96,16 @@ impl Attempt {
         attempt.save()?;
         Ok(attempt)
     }
+    pub fn exported_revision(&self) -> Option<&str> {
+        self.record.exported_revision()
+    }
     pub fn rerun(&self, root: &Path, id: &str) -> String {
         let mut args = vec!["check".to_owned(), "--only".into(), id.into()];
         if self.record.staged {
             args.push("--staged".into());
+        }
+        if let Some(revision) = self.exported_revision() {
+            args.extend(["--revision".into(), revision.into()]);
         }
         crate::diagnostics::rerun(root, &args)
     }
@@ -98,19 +129,19 @@ impl Attempt {
         });
         self.save()
     }
-    pub fn finish(&mut self, context: &Context, origin: &Path, code: i32) -> Result<()> {
-        let fingerprint = content::fingerprint(
-            &context.root,
-            origin,
-            &context.config.paths.runtime,
-            self.record.staged,
-        )?;
-        let revision = crate::util::git(origin, &["rev-parse", "HEAD"]).ok();
+    pub fn finish(&mut self, context: &Context, origin: &Path, code: i32) -> Result<bool> {
+        let fingerprint = self.record.fingerprint(context, origin)?;
+        let revision = match self.exported_revision() {
+            Some(revision) => Some(revision.to_owned()),
+            None => content::head(context, origin)?,
+        };
         let index_matches = self
             .record
             .index_fingerprint
             .as_ref()
-            .map(|saved| index(origin).map(|current| current == *saved))
+            .map(|saved| {
+                content::index(&context.config.vcs.backend, origin).map(|current| current == *saved)
+            })
             .transpose()?;
         let stable = fingerprint == self.record.fingerprint
             && revision == self.record.revision
@@ -122,7 +153,8 @@ impl Attempt {
         }
         .into();
         self.record.code = Some(code);
-        self.save()
+        self.save()?;
+        Ok(stable)
     }
     fn save(&self) -> Result<()> {
         let directory = self.path.parent().expect("runtime file parent");
@@ -154,19 +186,17 @@ fn observed(context: &Context) -> Result<Value> {
     let Some(record) = read(&path)? else {
         return Ok(json!({"status": "absent"}));
     };
-    let revision = crate::util::git(&context.root, &["rev-parse", "HEAD"]).ok();
-    let worktree = content::fingerprint(
-        &context.root,
-        &context.root,
-        &context.config.paths.runtime,
-        false,
-    )?;
+    let revision = content::head(context, &context.root)?;
+    let worktree = content::fingerprint(context, &context.root, false)?;
     let revision_matches = revision.is_some() && revision == record.revision;
     let content_matches = worktree == record.fingerprint;
     let index_matches = record
         .index_fingerprint
         .as_ref()
-        .map(|saved| index(&context.root).map(|current| current == *saved))
+        .map(|saved| {
+            content::index(&context.config.vcs.backend, &context.root)
+                .map(|current| current == *saved)
+        })
         .transpose()?;
     let current = revision_matches
         && content_matches

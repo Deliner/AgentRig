@@ -4,7 +4,6 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
-    process::Command,
 };
 
 // DECISION: D016
@@ -13,9 +12,26 @@ pub struct Inventory {
     pub directories: BTreeMap<PathBuf, BTreeSet<String>>,
 }
 pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
-    let git_repository = root.join(".git").exists();
-    let mut files = if git_repository {
-        git_files(root)?
+    collect_source(root, exclude, None)
+}
+
+pub fn collect_source(
+    root: &Path,
+    exclude: &GlobSet,
+    source: Option<&review_runner::vcs::Source<'_>>,
+) -> Result<Inventory> {
+    let mut files = if let Some(source) = source {
+        source
+            .working_files()?
+            .into_iter()
+            .map(PathBuf::from)
+            .collect()
+    } else if let Some(repository) = review_runner::vcs::Repository::discover(root)? {
+        repository
+            .working_files()?
+            .into_iter()
+            .map(PathBuf::from)
+            .collect()
     } else {
         let mut files = Vec::new();
         walk(root, Path::new(""), exclude, &mut files)?;
@@ -29,25 +45,6 @@ pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
     });
     let directories = directories(&files);
     Ok(Inventory { files, directories })
-}
-fn git_files(root: &Path) -> Result<Vec<PathBuf>> {
-    let output = Command::new("git")
-        .args([
-            "ls-files",
-            "--cached",
-            "--others",
-            "--exclude-standard",
-            "-z",
-        ])
-        .current_dir(root)
-        .output()?;
-    anyhow::ensure!(output.status.success(), "cannot read Git inventory");
-    output
-        .stdout
-        .split(|ch| *ch == 0)
-        .filter(|name| !name.is_empty())
-        .map(|name| Ok(PathBuf::from(String::from_utf8(name.to_vec())?)))
-        .collect()
 }
 fn directories(files: &[PathBuf]) -> BTreeMap<PathBuf, BTreeSet<String>> {
     let mut directories: BTreeMap<PathBuf, BTreeSet<String>> = BTreeMap::new();

@@ -1,14 +1,37 @@
-use anyhow::{Result, ensure};
+use super::super::config::Context as Project;
+use anyhow::{Context, Result};
+use review_runner::vcs::{Backend, Repository};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
-    process::Command,
 };
 
-pub fn fingerprint(tree: &Path, origin: &Path, runtime: &str, staged: bool) -> Result<String> {
-    let mut paths = paths(origin, staged)?;
+pub fn fingerprint(context: &Project, origin: &Path, staged: bool) -> Result<String> {
+    fingerprint_paths(
+        &context.root,
+        &context.config.paths.runtime,
+        paths(context, origin, staged)?,
+    )
+}
+
+pub fn revision_fingerprint(context: &Project, origin: &Path, revision: &str) -> Result<String> {
+    let repository = context
+        .config
+        .vcs
+        .backend
+        .repository_source(origin)?
+        .context("revision checking requires a VCS repository")?;
+    let paths = repository
+        .tree(revision)?
+        .into_keys()
+        .map(PathBuf::from)
+        .collect();
+    fingerprint_paths(&context.root, &context.config.paths.runtime, paths)
+}
+
+fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Result<String> {
     paths.sort();
     paths.dedup();
     let mut digest = Sha256::new();
@@ -48,22 +71,14 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn paths(root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
-    let repository = root.join(".git").exists();
-    if repository {
-        let mut args = vec!["ls-files", "--cached", "-z"];
-        let worktree = !staged;
-        if worktree {
-            args.extend(["--others", "--exclude-standard"]);
-        }
-        let output = Command::new("git").args(args).current_dir(root).output()?;
-        ensure!(output.status.success(), "cannot inventory check inputs");
-        return output
-            .stdout
-            .split(|byte| *byte == 0)
-            .filter(|name| !name.is_empty())
-            .map(|name| Ok(PathBuf::from(String::from_utf8(name.to_vec())?)))
-            .collect();
+fn paths(context: &Project, root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
+    if let Some(repository) = context.config.vcs.backend.repository_source(root)? {
+        let files = if staged {
+            repository.staged_files()?
+        } else {
+            repository.working_files()?
+        };
+        return Ok(files.into_iter().map(PathBuf::from).collect());
     }
     let mut paths = Vec::new();
     walk(root, Path::new(""), &mut paths)?;
@@ -83,7 +98,27 @@ fn walk(root: &Path, parent: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-pub fn index(root: &Path) -> Result<String> {
-    let entries = crate::util::git(root, &["ls-files", "--stage", "-z"])?;
-    Ok(format!("{:x}", Sha256::digest(entries.as_bytes())))
+// Bootstrap only: the staged declaration is unavailable until the native index is exported.
+pub fn native_index(root: &Path) -> Result<String> {
+    let repository =
+        Repository::discover(root)?.context("a VCS repository is required for --staged")?;
+    Ok(format!("{:x}", Sha256::digest(repository.index_entries()?)))
+}
+
+pub fn index(backend: &Backend, root: &Path) -> Result<String> {
+    Ok(format!(
+        "{:x}",
+        Sha256::digest(backend.source(root).index_entries()?)
+    ))
+}
+
+pub fn head(context: &Project, root: &Path) -> Result<Option<String>> {
+    Ok(context
+        .config
+        .vcs
+        .backend
+        .repository_source(root)?
+        .map(|repository| repository.head())
+        .transpose()?
+        .flatten())
 }

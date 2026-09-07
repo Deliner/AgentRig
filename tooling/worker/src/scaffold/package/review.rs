@@ -33,13 +33,23 @@ const RESOURCES: &[(&str, &[u8])] = &[
         include_bytes!("../../../review/prompts/requirements.md"),
     ),
 ];
-pub fn bundle(files: &mut Files, config: &Config) {
+pub fn bundle(files: &mut Files, config: &Config) -> anyhow::Result<()> {
     let enabled = config.capabilities.review.is_some();
     if enabled {
         for (path, bytes) in RESOURCES {
+            let selected_project = path.starts_with("config/projects/")
+                && config.vcs.backend != review_runner::vcs::Kind::Git.into();
+            let contents = if selected_project {
+                let mut project: review_runner::config::Project =
+                    review_runner::config::yaml::decode(std::str::from_utf8(bytes)?)?;
+                project.repository.vcs = config.vcs.backend.clone();
+                review_runner::config::yaml::encode(&project)?.into_bytes()
+            } else {
+                bytes.to_vec()
+            };
             files.insert(
                 config.paths.service_path(&format!("review/{path}")),
-                bytes.to_vec(),
+                contents,
             );
         }
         files.insert(
@@ -47,4 +57,5 @@ pub fn bundle(files: &mut Files, config: &Config) {
             b"runtime/\nreports/\n".to_vec(),
         );
     }
+    Ok(())
 }

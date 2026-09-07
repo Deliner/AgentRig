@@ -11,6 +11,8 @@ use std::{
 #[serde(deny_unknown_fields)]
 pub struct Config {
     pub schema_version: u32,
+    #[serde(default)]
+    pub vcs: review_runner::vcs::Backend,
     pub profiles: BTreeMap<String, Profile>,
 }
 
@@ -57,6 +59,7 @@ pub fn load(path: &Path) -> Result<Config> {
     resolve(path, review_runner::config::yaml::read(path)?)
 }
 pub fn resolve(path: &Path, mut config: Config) -> Result<Config> {
+    config.vcs.validate().context("vcs")?;
     ensure!(
         config.schema_version == 1,
         "unsupported delegation schema_version"

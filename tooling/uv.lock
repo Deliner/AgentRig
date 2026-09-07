@@ -7,21 +7,13 @@ resolution-markers = [
 ]
 
 [[package]]
-name = "colorama"
-version = "0.4.6"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
-]
-
-[[package]]
 name = "agentrig-tooling"
 version = "0.1.0"
 source = { virtual = "." }
 
 [package.dev-dependencies]
 dev = [
+    { name = "mercurial" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pyyaml" },
@@ -35,6 +27,7 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "mercurial", specifier = ">=7.2.4" },
     { name = "mypy", specifier = ">=1.17,<2" },
     { name = "pytest", specifier = ">=8.4,<9" },
     { name = "pyyaml", specifier = ">=6.0.3" },
@@ -42,6 +35,15 @@ dev = [
     { name = "types-pyyaml", specifier = ">=6.0.12.20260906" },
     { name = "typos", specifier = ">=1.35,<2" },
     { name = "vulture", specifier = ">=2.14,<3" },
+]
+
+[[package]]
+name = "colorama"
+version = "0.4.6"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/d8/53/6f443c9a4a8358a93a6792e2acffb9d9d5cb0a5cfd8802644b7b1c9a02e4/colorama-0.4.6.tar.gz", hash = "sha256:08695f5cb7ed6e0531a20572697297273c47b8cae5a63ffc6d6ed5c201be6e44", size = 27697, upload-time = "2022-10-25T02:36:22.414Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/d1/d6/3965ed04c63042e047cb6a3e6ed1a63a35087b6a609aa3a15ed8ac56c221/colorama-0.4.6-py2.py3-none-any.whl", hash = "sha256:4f1d9991f5acc0ca119f9d443620b77f9d6b33703e51011c16baf57afb285fc6", size = 25335, upload-time = "2022-10-25T02:36:20.889Z" },
 ]
 
 [[package]]
@@ -152,6 +154,38 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/6c/f0/89eb11dffbe9279ff37144dec786927314502ae0b114f1449dc78c458aab/librt-0.15.0-cp315-cp315t-win32.whl", hash = "sha256:c16d15ee371643ab48dc8248a3e680ebbeca573a13af2c3dd0c985b142d77162", size = 104313, upload-time = "2026-08-07T10:49:12.305Z" },
     { url = "https://files.pythonhosted.org/packages/6d/4a/1f1978c200f563beda63c36adff2d65bbecb81e365e8e69e572f5f70fbc6/librt-0.15.0-cp315-cp315t-win_amd64.whl", hash = "sha256:dbd605739f228912dc49027cb764456b9757750bdc2b6b7773164db7096c6fd1", size = 126889, upload-time = "2026-08-07T10:49:13.881Z" },
     { url = "https://files.pythonhosted.org/packages/38/a6/800800bfed7b1fb10fc3f3d557785c3854e80d3f7a9800d784b176a1fc2d/librt-0.15.0-cp315-cp315t-win_arm64.whl", hash = "sha256:84d244b00604d17df3fc7736c327892d6bba66181254aa4087be807b6c342bdc", size = 110700, upload-time = "2026-08-07T10:49:15.499Z" },
+]
+
+[[package]]
+name = "mercurial"
+version = "7.2.4"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/de/41/e6fc64d51a04d430dfd1aa1f1643b3c831787c00d3a3431fca5492b1bc29/mercurial-7.2.4.tar.gz", hash = "sha256:85839e0f39e6cb893a88932aa36ef661759f3c5c5de4551ad26bd9df53cb71a2", size = 9304061, upload-time = "2026-08-11T12:38:28.667Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fa/6b/771d5d154a5d497db0f7fbcec53223c5028cc6e9b36dcd837ce2469ea43a/mercurial-7.2.4-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:ef36828935b19e3297fb0c61c922b3d9997acabf91f10f40dff8f41d844df2f3", size = 5422706, upload-time = "2026-08-11T12:37:26.931Z" },
+    { url = "https://files.pythonhosted.org/packages/ed/1a/78142797f653d33dfd6b7deb0a49985827d92ef997acb6f93cc7389c5cac/mercurial-7.2.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:310609b648d355cf35662a41ad961ab7e64d078d0f1e50d0d590945be1481f52", size = 7587356, upload-time = "2026-08-11T12:37:29.064Z" },
+    { url = "https://files.pythonhosted.org/packages/21/a5/4002d1532755a092c20565ddb66a23c60c92cb7ea250433595340549d305/mercurial-7.2.4-cp312-cp312-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:fd63336c99088e6e166b23df66e7c48cf6d55a3c45aa3473330a4d9b7de0edb1", size = 7279871, upload-time = "2026-08-11T12:37:30.944Z" },
+    { url = "https://files.pythonhosted.org/packages/d1/66/3f9e1b14c3810727c55906227a56ad978d4f789c2184b968332282962030/mercurial-7.2.4-cp312-cp312-musllinux_1_2_i686.whl", hash = "sha256:1e1eb9e89f349c9420d39e23a8c098a3d2a8de32c0ef77a6ada05cbabbd7692c", size = 7249007, upload-time = "2026-08-11T12:37:33.337Z" },
+    { url = "https://files.pythonhosted.org/packages/2b/d5/03c07706a93a0fd2a3ddd70805224ccc05e5dbb3172e4978f45c833a1257/mercurial-7.2.4-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:f86ef90e28b43db2c9545425c8de4eae4613552d050c02c4626a052d32ca8941", size = 7473858, upload-time = "2026-08-11T12:37:35.1Z" },
+    { url = "https://files.pythonhosted.org/packages/87/85/d36b6d52eb4afec33847683e3f4b9f64039ffba67abb68b68bf3c10c7ea0/mercurial-7.2.4-cp312-cp312-win32.whl", hash = "sha256:9cba7fd43a1a2143acd6dcce129d9bc6d8af85216979dfb7468c7e881719a26c", size = 7049167, upload-time = "2026-08-11T12:37:37.005Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/65/d0ca4958ae4ec12f996cbe3d6209767ea90cddebfd393553f44e40b9b469/mercurial-7.2.4-cp312-cp312-win_amd64.whl", hash = "sha256:68d66b296da018fa14b06eda60c4d8570d29186328612296ad3a1fe043208df0", size = 7374899, upload-time = "2026-08-11T12:37:38.817Z" },
+    { url = "https://files.pythonhosted.org/packages/83/43/1e4631fd9004f115857003a8ff5cb20533591822d33c354825b804283c88/mercurial-7.2.4-cp312-cp312-win_arm64.whl", hash = "sha256:cab9afdaf0305b33b1f9af7449dae88f005c14ea087b97ad82758588213dfbff", size = 7339608, upload-time = "2026-08-11T12:37:40.717Z" },
+    { url = "https://files.pythonhosted.org/packages/13/a2/9c409c04f2b26324369c62d47cc4eb56eb4c53bdf041ddb0484a97beb830/mercurial-7.2.4-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:1600b1a10358716c4a18c4c428003a1ab8b8da01148b100d70ae3e7ba744eca3", size = 5422498, upload-time = "2026-08-11T12:37:42.428Z" },
+    { url = "https://files.pythonhosted.org/packages/7a/8c/09072956ebd5ea250d43818ac2c688deb96939b5ed16beac99e07764c5a4/mercurial-7.2.4-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:75a2277a5691d28fa2a5a791e033f0c2b72a09b9ac9b83ebd8d3dd736c114729", size = 7587835, upload-time = "2026-08-11T12:37:44.548Z" },
+    { url = "https://files.pythonhosted.org/packages/41/db/ce3987afcc4e41063344b4268c2600651801a4115fae9c1e33bd0faf6df7/mercurial-7.2.4-cp313-cp313-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:aeaa40658b001e17dda4ca94a88ff0a3c5808cb7c7c4a74d5ae27199d6a225e2", size = 7279649, upload-time = "2026-08-11T12:37:46.285Z" },
+    { url = "https://files.pythonhosted.org/packages/4a/d2/76a4d8fc65fb35dd8512de9604825291c0afb9730bb96d8c602312bf54a8/mercurial-7.2.4-cp313-cp313-musllinux_1_2_i686.whl", hash = "sha256:ef7cc3803d8cf6f104b21fd0de59fa326ec34ab0b4789911fd79b17e0adffb56", size = 7249422, upload-time = "2026-08-11T12:37:47.947Z" },
+    { url = "https://files.pythonhosted.org/packages/59/4b/2dea83c06186ae16b0e971f7944a1b07a666c477e95d0c87840bad9e26a2/mercurial-7.2.4-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:017a25bd33f150a8eea87837dc1b10248c3b34e5ffa886660e43e0fdc0b4e6c5", size = 7474127, upload-time = "2026-08-11T12:37:50.133Z" },
+    { url = "https://files.pythonhosted.org/packages/59/fe/dffc17323110bbd4d3e286ed8278b0b87698499dad04d3531e49472fb504/mercurial-7.2.4-cp313-cp313-win32.whl", hash = "sha256:d1e5802696dab0bf68da08fec5863f512dac4bf7b599ed598e4a1e8057d04a61", size = 6922445, upload-time = "2026-08-11T12:37:52.132Z" },
+    { url = "https://files.pythonhosted.org/packages/06/80/268d8a0750bd7683d4405ed0082896361eee180b016e1aaaf49ae5e416e3/mercurial-7.2.4-cp313-cp313-win_amd64.whl", hash = "sha256:fb19f5232c4938abc6147dd826c10c4ea28a081771d92fbcaebc2678b8620793", size = 7314040, upload-time = "2026-08-11T12:37:53.924Z" },
+    { url = "https://files.pythonhosted.org/packages/cc/4c/f91bbc7a219cc7f3ea3ca65fe33157a7d46ee138a02afc19e4e89a3e5cf2/mercurial-7.2.4-cp313-cp313-win_arm64.whl", hash = "sha256:b58d7a651c61eb3d6c2130f631261202c22808a3c9ba674c108a1a03ef108ff9", size = 7278703, upload-time = "2026-08-11T12:37:55.836Z" },
+    { url = "https://files.pythonhosted.org/packages/f5/6c/e930fb9dfb9150b8852f53e3ebba7b442d083ba72ed4c43fd9e63a246e6c/mercurial-7.2.4-cp314-cp314-macosx_10_15_universal2.whl", hash = "sha256:179bf53de0d47aec08891c733c677f6dea0d0244289386acbc42dcb7331c56f9", size = 5424167, upload-time = "2026-08-11T12:37:57.491Z" },
+    { url = "https://files.pythonhosted.org/packages/e1/21/fe7e9230f0e8b43e2c897d38067ea8c6baf1dd54f10775784b019dcf59de/mercurial-7.2.4-cp314-cp314-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:d7e8c8028a5d74de926e26b5d073786f3e3178fcc56f5cd075e0da11c014bf2a", size = 7587621, upload-time = "2026-08-11T12:37:59.285Z" },
+    { url = "https://files.pythonhosted.org/packages/f8/46/91668e8addecdb18b1b8cb969bd25b274d254e1bf8bb588579dd149c09e6/mercurial-7.2.4-cp314-cp314-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:a5cf97266b1893e36a24f14d1d732880336eef743cd9c2582552a871398be86b", size = 7281134, upload-time = "2026-08-11T12:38:01.062Z" },
+    { url = "https://files.pythonhosted.org/packages/46/45/2da84c2fd6c3580de1450ae1abc1a39830459ba7039bcf9a4551f6a919a9/mercurial-7.2.4-cp314-cp314-musllinux_1_2_i686.whl", hash = "sha256:5d7b92ffa9a4af239ed6df3d1a84855cb6ca119389d50c6b9556da61e0706215", size = 7250247, upload-time = "2026-08-11T12:38:02.826Z" },
+    { url = "https://files.pythonhosted.org/packages/ab/9e/90d7552fbdee8006305ea87b8dc6ac23eea772ea3782153064a4b8934973/mercurial-7.2.4-cp314-cp314-musllinux_1_2_x86_64.whl", hash = "sha256:87b716cbb571815dfb5b7b3092929d50d32e017929a5b6b948f3da5ab6e9d348", size = 7474111, upload-time = "2026-08-11T12:38:04.709Z" },
+    { url = "https://files.pythonhosted.org/packages/45/e0/1e819279e0c0e294ed30279bdae1744c6c9dc407588143882974fc8d16a5/mercurial-7.2.4-cp314-cp314-win32.whl", hash = "sha256:58f452398c1698466d4aaa1103a423d0ae4a740bd303e2f2b39ae03167a41aa6", size = 7179066, upload-time = "2026-08-11T12:38:06.501Z" },
+    { url = "https://files.pythonhosted.org/packages/91/5e/175602e135298797827b39300dec2d229959d2dea913a9f78de29f133d3d/mercurial-7.2.4-cp314-cp314-win_amd64.whl", hash = "sha256:a62f5c3cb987e4dca8167804685a80425fb1ad275afb25de2076600b4647ab80", size = 7656366, upload-time = "2026-08-11T12:38:08.364Z" },
+    { url = "https://files.pythonhosted.org/packages/e4/da/b8eb2ff108d7043fe9abe86a859acd8324aad3918c5c79b36dfd56aad1c8/mercurial-7.2.4-cp314-cp314-win_arm64.whl", hash = "sha256:71886fab24aa4a56d54657c28a3bc14d751d8021a374ff3b7cfa98635633791b", size = 7623325, upload-time = "2026-08-11T12:38:10.564Z" },
 ]
 
 [[package]]

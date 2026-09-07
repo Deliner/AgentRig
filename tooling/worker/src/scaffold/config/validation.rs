@@ -21,6 +21,7 @@ impl Config {
         );
         skill(root, &self.config_skill).context("config_skill")?;
         self.validate_paths(root)?;
+        self.vcs.validate()?;
         self.validate_commands(root)?;
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
@@ -56,16 +57,6 @@ impl Config {
             "paths.sources cannot be empty"
         );
         globs(&self.paths.sources).context("paths.sources")?;
-        ensure!(
-            branch_name(&self.git.base),
-            "git.base must name a valid branch"
-        );
-        ensure!(
-            !self.git.prefix.is_empty()
-                && branch_name(&format!("{}example", self.git.prefix))
-                && !self.git.base.starts_with(&self.git.prefix),
-            "git.prefix must form valid branches distinct from git.base"
-        );
         Ok(())
     }
     fn validate_commands(&self, root: &Path) -> Result<()> {

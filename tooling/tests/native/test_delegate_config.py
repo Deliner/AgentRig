@@ -93,6 +93,13 @@ def test_profile_resources_resolve_from_config_without_loading_secrets(
         ),
         ("schema_version: 1", "schema_version: 2", "unsupported delegation"),
         ("schema_version: 1", "schema_version: 1\nunknown: true", "unknown field"),
+        ("schema_version: 1", "schema_version: 1\nvcs: unknown", "unknown variant"),
+        ("schema_version: 1", "schema_version: 1\nvcs:\n  command: []", "external VCS command"),
+        (
+            "schema_version: 1",
+            "schema_version: 1\nvcs:\n  command: [python3]\n  extra: true",
+            "unknown field",
+        ),
         ("timeout_seconds: 60", "timeout_seconds: '60'", "profiles.reader.timeout_seconds"),
         ("timeout_seconds: 60", "timeout_seconds: 60\n    timeout_seconds: 10", "duplicate"),
         ('visible_paths: ["src/**", "docs/**"]', 'visible_paths: ["["]', "glob"),

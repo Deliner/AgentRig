@@ -25,6 +25,7 @@ pub fn configure(
     args.push(super::super::adapters::mcp_command(
         &config.paths.service,
         "delegate",
+        &super::super::adapters::generated(root, config)?.root_command,
     ));
     for (key, desired) in [
         ("enabled", value(true)),

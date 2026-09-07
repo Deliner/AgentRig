@@ -47,6 +47,7 @@ fn patch(directory: &Path, changes: &task::Changes, profile: &config::Profile) -
     }
     let inputs: task::Inputs = serde_json::from_slice(&fs::read(directory.join("inputs.json"))?)?;
     report["base"] = json!(inputs.revision);
+    report["vcs"] = json!(inputs.vcs);
     report["patch"] = json!("change.patch");
     report["checks"] = json!({});
     report["verified"] = json!(false);

@@ -43,7 +43,16 @@ impl Fixture {
     }
     pub fn invoke(&self, previous: Option<&Path>) -> std::process::Output {
         let root = self.0.path();
-        let request = json!({"root":root.join("repo"),"base":git(&root.join("repo"), &["rev-list", "--max-parents=0", "HEAD"]),"candidate":"HEAD","tool":"review_code","previous_report":previous});
+        let mercurial = root.join("repo/.hg").is_dir();
+        let (base, candidate) = if mercurial {
+            ("0".into(), ".")
+        } else {
+            (
+                git(&root.join("repo"), &["rev-list", "--max-parents=0", "HEAD"]),
+                "HEAD",
+            )
+        };
+        let request = json!({"root":root.join("repo"),"base":base,"candidate":candidate,"tool":"review_code","previous_report":previous});
         fs::write(
             root.join("request.json"),
             serde_json::to_vec(&request).unwrap(),

@@ -9,6 +9,7 @@ pub fn digest(bytes: &[u8]) -> String {
 pub mod execution;
 pub mod run;
 pub mod snapshot;
+pub mod vcs;
 
 pub mod mcp;
 

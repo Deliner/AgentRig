@@ -46,7 +46,13 @@ fn snapshot_preserves_fixed_revision_and_checkout() {
     let mut request = request();
     request.revision = Some(expected.clone());
     let output = root.path().join("input");
-    let inputs = prepare(root.path(), &output, &request, &profile()).unwrap();
+    let inputs = prepare(
+        (root.path(), &Default::default()),
+        &output,
+        &request,
+        &profile(),
+    )
+    .unwrap();
     assert_eq!(inputs.revision, Some(expected));
     assert_eq!(
         fs::read_to_string(output.join("project/src/value.txt")).unwrap(),
@@ -54,7 +60,15 @@ fn snapshot_preserves_fixed_revision_and_checkout() {
     );
     assert_eq!(fs::read_to_string(file).unwrap(), "uncommitted");
     assert!(!output.join("project/.git").exists());
-    assert!(prepare(root.path(), &output, &request, &profile()).is_err());
+    assert!(
+        prepare(
+            (root.path(), &Default::default()),
+            &output,
+            &request,
+            &profile()
+        )
+        .is_err()
+    );
 }
 
 #[test]
@@ -67,12 +81,18 @@ fn explicit_inputs_work_without_git_and_enforce_visibility() {
         .inputs
         .insert("asset.bin".into(), "src/input.bin".into());
     let output = root.path().join("input");
-    let inputs = prepare(root.path(), &output, &request, &profile()).unwrap();
+    let inputs = prepare(
+        (root.path(), &Default::default()),
+        &output,
+        &request,
+        &profile(),
+    )
+    .unwrap();
     assert!(inputs.revision.is_none());
     assert_eq!(fs::read(output.join("inputs/asset.bin")).unwrap(), [0, 255]);
     request.inputs.insert("hidden".into(), "other/file".into());
     let error = prepare(
-        root.path(),
+        (root.path(), &Default::default()),
         &root.path().join("denied"),
         &request,
         &profile(),

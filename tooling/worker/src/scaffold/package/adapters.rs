@@ -1,5 +1,6 @@
 use super::Config;
 use anyhow::Result;
+use std::path::Path;
 
 pub const CODEX_CONFIG: &str = "[features]\nhooks = true\n";
 
@@ -10,33 +11,53 @@ fn binary(service: &str) -> String {
     )
 }
 
-pub fn mcp_command(service: &str, command: &str) -> String {
+pub fn mcp_command(service: &str, command: &str, root_command: &str) -> String {
     format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} {command} mcp --root \"$root\"",
+        "root=$({}) && exec {} {command} mcp --root \"$root\"",
+        root_command,
         binary(service)
     )
 }
 
-pub fn environment_command(service: &str, command: &str, name: &str) -> String {
+pub fn environment_command(service: &str, command: &str, name: &str, root_command: &str) -> String {
     format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} environment-{command} {} --root \"$root\"",
+        "root=$({}) && exec {} environment-{command} {} --root \"$root\"",
+        root_command,
         binary(service),
         shell_words::quote(name)
     )
 }
 
-pub fn git_hooks(config: &Config) -> [(String, Vec<u8>); 2] {
-    let binary = binary(&config.paths.service);
-    let prefix = "#!/bin/sh\nset -eu\nroot=$(git rev-parse --show-toplevel)\n";
-    [
-        (config.paths.service_path("hooks/pre-commit"), format!("{prefix}{binary} guard-commit --root \"$root\"\nexec {binary} check --root \"$root\" --staged\n").into_bytes()),
-        (config.paths.service_path("hooks/reference-transaction"), format!("{prefix}exec {binary} guard-reference --root \"$root\" \"$1\"\n").into_bytes()),
-    ]
+pub fn generated(root: &Path, config: &Config) -> Result<review_runner::vcs::Generated> {
+    let ignored = vec![
+        config.paths.runtime.clone(),
+        config.paths.service_path("review/runtime"),
+        config.paths.service_path("review/reports"),
+    ];
+    config.vcs.backend.generate(
+        root,
+        &review_runner::vcs::Generation {
+            binary: &binary(&config.paths.service),
+            directory: &config.paths.service_path("hooks"),
+            ignored: &ignored,
+        },
+    )
 }
 
-pub fn registration(config: &Config) -> Result<Vec<u8>> {
+pub fn vcs_hooks(root: &Path, config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
+    let prefix = config.paths.service_path("hooks/");
+    Ok(generated(root, config)?
+        .files
+        .into_iter()
+        .filter(|(path, _)| path.starts_with(&prefix))
+        .map(|(path, contents)| (path, contents.into_bytes()))
+        .collect())
+}
+
+pub fn registration(config: &Config, root_command: &str) -> Result<Vec<u8>> {
     let command = format!(
-        "root=$(git rev-parse --show-toplevel) && exec {} hook --root \"$root\"",
+        "root=$({}) && exec {} hook --root \"$root\"",
+        root_command,
         binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
@@ -46,7 +67,7 @@ pub fn registration(config: &Config) -> Result<Vec<u8>> {
     }});
     let custom =
         agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
-            environment_command(&config.paths.service, "hook", name)
+            environment_command(&config.paths.service, "hook", name, root_command)
         });
     for (event, groups) in custom.as_object().unwrap() {
         value["hooks"]

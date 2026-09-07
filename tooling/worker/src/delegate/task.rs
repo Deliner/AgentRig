@@ -41,6 +41,8 @@ pub struct Changes {
 }
 #[derive(Deserialize, Serialize)]
 pub struct Inputs {
+    #[serde(default)]
+    pub vcs: review_runner::vcs::Backend,
     pub revision: Option<String>,
     pub manifest: BTreeMap<String, String>,
 }
@@ -99,17 +101,22 @@ fn validator(contract: &Contract) -> Result<jsonschema::Validator> {
 }
 
 pub fn prepare(
-    root: &Path,
+    source: (&Path, &review_runner::vcs::Backend),
     directory: &Path,
     request: &Request,
     profile: &Profile,
 ) -> Result<Inputs> {
     validate(request, profile)?;
     fs::create_dir(directory).context("task input directory must be new")?;
-    let mut inputs = prepare_project(root, &directory.join("project"), request, profile)?;
+    let mut inputs = prepare_project(source, &directory.join("project"), request, profile)?;
     let explicit = directory.join("inputs");
     fs::create_dir(&explicit)?;
-    files::copy_inputs((root, &explicit), request, profile, &mut inputs.manifest)?;
+    files::copy_inputs(
+        (source.0, &explicit),
+        request,
+        profile,
+        &mut inputs.manifest,
+    )?;
     fs::write(
         directory.join("request.json"),
         serde_json::to_vec_pretty(request)?,
@@ -126,21 +133,23 @@ pub fn prepare(
 }
 
 fn prepare_project(
-    root: &Path,
+    source: (&Path, &review_runner::vcs::Backend),
     project: &Path,
     request: &Request,
     profile: &Profile,
 ) -> Result<Inputs> {
     let mut inputs = Inputs {
+        vcs: source.1.clone(),
         revision: None,
         manifest: BTreeMap::new(),
     };
     if let Some(revision) = &request.revision {
         let scope = Repository {
+            vcs: source.1.clone(),
             visible_paths: profile.visible_paths.clone(),
             contract_paths: vec![],
         };
-        let snapshot = snapshot::prepare(root, (revision, revision), &scope, project)?;
+        let snapshot = snapshot::prepare(source.0, (revision, revision), &scope, project)?;
         inputs.revision = Some(snapshot.candidate);
         for (path, entry) in snapshot.manifest {
             inputs
