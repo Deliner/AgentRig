@@ -52,3 +52,13 @@ The command must accept arguments. Group include lists must be nonempty valid
 globs, and each target must be a nonempty, NUL-free string. Invalid maps fail
 configuration validation. Existing configurations without groups retain full
 verification.
+
+AgentRig's own repository uses a catch-all group, `include: ['**']`, with three
+smoke targets, alongside its affected feature groups. Thus every commit path
+has a selection: an unknown path runs smoke tests rather than the full suite.
+All lint source paths select lint consumers, including strict defaults and memory
+syntax checks. Delegation selects its tests and setup consumers. Scaffold changes
+select scaffold/upgrade tests; the long complete-project integration scenarios
+are selected on commit only when their own test file changes. Merge runs all
+configured tests. Keep feature mappings current when ownership moves; smoke-only
+verification does not establish that every affected behavior was tested.

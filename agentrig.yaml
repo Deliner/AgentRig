@@ -233,10 +233,17 @@ checks:
   kind: command
   skill: .agents/skills/repair/SKILL.md
   command: test
-  # Explicit impact groups; unmatched paths run the full suite.
+  # Commit checks use affected groups plus smoke tests; merge runs everything.
   affected:
+  - include: ['**']
+    targets:
+    - tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills
+    - tooling/tests/native/scaffold/test_commands.py::test_config_and_command_streams
+    - tooling/tests/native/scaffold/test_gate.py::test_staged_gate_uses_staged_configuration
   - include:
-    - tooling/worker/src/lint/architecture/**
+    - tooling/worker/src/lint/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
     - tooling/tests/native/lint/**
     - tooling/tests/native/test_lint.py
     - tooling/tests/native/test_language*.py
@@ -247,8 +254,15 @@ checks:
     - tooling/tests/native/test_language.py
     - tooling/tests/native/test_language_delivery.py
     - tooling/tests/native/test_config_check.py
+    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/tests/native/scaffold/test_memory.py
   - include:
     - tooling/worker/src/delegate/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/**
     - tooling/tests/native/test_delegate*.py
     targets:
     - tooling/tests/native/test_delegate_code.py
@@ -256,29 +270,46 @@ checks:
     - tooling/tests/native/test_delegate_mcp.py
     - tooling/tests/native/test_delegate_run.py
     - tooling/tests/native/test_delegate_vcs.py
-    - tooling/tests/native/scaffold
-    - tooling/tests/native/upgrades
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/tests/native/upgrades/test_delegate_migration.py
   - include:
     - tooling/worker/src/scaffold/**
     - tooling/worker/src/hooks/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
     - tooling/tests/native/scaffold/**
     - tooling/tests/native/upgrades/**
     targets:
-    - tooling/tests/native/scaffold
+    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/tests/native/scaffold/test_feedback.py
+    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/tests/native/scaffold/test_git.py
+    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/tests/native/scaffold/test_package.py
+    - tooling/tests/native/scaffold/test_plan.py
+    - tooling/tests/native/scaffold/test_reminders.py
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_state.py
+    - tooling/tests/native/scaffold/test_strict.py
     - tooling/tests/native/upgrades
     - tooling/tests/native/test_launcher.py
   - include:
-    - Ledger/**
-    - AGENTS.md
-    - README.md
-    - Project/README.md
-    - tooling/worker/README.md
-    - tooling/worker/SCAFFOLD.md
-    - tooling/worker/CHECKS.md
-    - tooling/worker/ARCHITECTURE.md
-    - tooling/worker/EXTERNAL_VCS.md
-    - tooling/distribution/README.md
-    targets: []
+    - tooling/tests/native/scaffold/test_integration.py
+    targets:
+    - tooling/tests/native/scaffold/test_integration.py
+  - include:
+    - tooling/worker/review/src/**
+    - tooling/tests/native/test_review.py
+    targets:
+    - tooling/tests/native/test_review.py
+    - tooling/tests/native/scaffold/test_capabilities.py
 - id: typos
   kind: command
   skill: .agents/skills/repair/SKILL.md
