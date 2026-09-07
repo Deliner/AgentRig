@@ -8,8 +8,13 @@ from typing import Any
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, invoke, project
+from support import CONFIG, file_contents, invoke, project, update_config
 from test_review import claude_consumer_settings, claude_registered_services, resources
+
+CLIENT_FILES = {
+    "codex": (".agents/skills", ".codex/hooks.json"),
+    "claude-code": (".claude/skills", ".claude/settings.json"),
+}
 
 
 def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Path) -> None:
@@ -163,40 +168,43 @@ def environment_declaration(worker: Path, root: Path) -> Path:
     return path
 
 
+@pytest.mark.parametrize("frontend", CLIENT_FILES)
 def test_project_environment_installs_portable_skills_hooks_and_mcp(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, frontend: str
 ) -> None:
     declaration = environment_declaration(worker, tmp_path)
+    update_config(declaration, frontend=frontend)
+    skill_root, hook_path = CLIENT_FILES[frontend]
     target = tmp_path / "target"
     target.mkdir()
     preview = invoke(worker, target, "setup", "--config", str(declaration), "--preview")
     assert preview.returncode == 0, preview.stderr
-    registration = json.loads(preview.stdout)["registrations"]["codex"]["mcp_servers"]
-    assert registration["probe"]["env_vars"] == ["PROBE_VALUE"]
+    registration = json.loads(preview.stdout)["registrations"][frontend]["mcp_servers"]
+    assert registration["probe"]["command"] == "sh"
     assert file_contents(target) == {}
     applied = invoke(worker, target, "setup", "--config", str(declaration))
     assert applied.returncode == 0, applied.stdout + applied.stderr
-    assert (target / ".agents/skills/guide/support.txt").read_text() == "portable support"
+    assert (target / f"{skill_root}/guide/support.txt").read_text() == "portable support"
     shutil.rmtree(declaration.parent)
     monkeypatch.setenv("PROBE_VALUE", "fixture-value")
-    verify_project_environment(target)
+    verify_project_environment(target, frontend)
     receipt = json.loads((target / ".agentrig/manifest.json").read_text())["files"]
-    assert receipt[".agents/skills/guide/support.txt"]["ownership"] == "editable"
-    (target / ".agents/skills/guide/support.txt").write_text("local support")
+    assert receipt[f"{skill_root}/guide/support.txt"]["ownership"] == "editable"
+    (target / f"{skill_root}/guide/support.txt").write_text("local support")
     before = file_contents(target)
     installed = target / ".agentrig/bin/agentrig"
     repeated = invoke(installed, target, "setup")
     assert repeated.returncode == 0, repeated.stdout + repeated.stderr
     assert file_contents(target) == before
-    hook_file = target / ".codex/hooks.json"
+    hook_file = target / hook_path
     hooks = json.loads(hook_file.read_text())
     hooks["hooks"]["SessionStart"].pop()
     hook_file.write_text(json.dumps(hooks))
     assert invoke(installed, target, "doctor").returncode == 1
 
 
-def verify_project_environment(root: Path) -> None:
-    hooks = json.loads((root / ".codex/hooks.json").read_text())["hooks"]
+def verify_project_environment(root: Path, frontend: str) -> None:
+    hooks = json.loads((root / CLIENT_FILES[frontend][1]).read_text())["hooks"]
     assert len(hooks["SessionStart"]) == 2
     assert hooks["PreToolUse"][0]["matcher"].startswith("Bash|")
     command = hooks["SessionStart"][1]["hooks"][0]["command"]
@@ -213,9 +221,13 @@ def verify_project_environment(root: Path) -> None:
         json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
         == "literal 'quotes' $(echo injection)"
     )
-    config = tomllib.loads((root / ".codex/config.toml").read_text())
-    server = config["mcp_servers"]["probe"]
-    assert server["env_vars"] == ["PROBE_VALUE"]
+    codex = frontend == "codex"
+    if codex:
+        config = tomllib.loads((root / ".codex/config.toml").read_text())
+        server = config["mcp_servers"]["probe"]
+        assert server["env_vars"] == ["PROBE_VALUE"]
+    else:
+        server = json.loads((root / ".mcp.json").read_text())["mcpServers"]["probe"]
     result = subprocess.run(
         [server["command"], *server["args"]],
         cwd=root,

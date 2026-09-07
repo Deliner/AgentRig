@@ -16,6 +16,13 @@ pub enum Frontend {
 }
 
 impl Frontend {
+    pub fn project_skills(self) -> &'static str {
+        match self {
+            Self::Codex => ".agents/skills",
+            Self::ClaudeCode => ".claude/skills",
+        }
+    }
+
     pub fn directory(self) -> &'static str {
         match self {
             Self::Codex => "codex",

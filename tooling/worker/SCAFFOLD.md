@@ -391,8 +391,8 @@ environment:
 ```
 
 External setup resolves resources relative to their declaring YAML file, including
-package origins. It installs custom skill directories under `.agents/skills` for
-native frontend discovery; `paths.skills` still selects the shipped worker guidance.
+package origins. It installs custom skills under `.agents/skills` for Codex or
+`.claude/skills` for Claude native discovery; `paths.skills` selects the shipped worker guidance.
 Skill support files remain editable. Programs are copied with executable modes into
 the shared input bundle. Installed operation does not need the original package tree.
 Duplicate skill names, missing programs, unknown fields and unsupported hook events
