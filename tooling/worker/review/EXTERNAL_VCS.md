@@ -40,6 +40,14 @@ private backend in YAML and use `setup`; the `init --vcs` choices remain native.
 Commit guards inspect the selected backend's native commit context. Feature
 integration runs shared mandatory checks between adapter preparation and completion.
 
+`check --staged` is a native-index operation. Preparation fingerprints and exports
+the native index before loading its staged configuration; an invalid unstaged
+YAML file does not replace that configuration. The selected staged backend must
+support index reads before any adapter or delivery check runs. Mercurial has no
+staging index, and protocol v1 exposes no private index operation: use `check`
+or `check --revision REV` instead. Saved check evidence uses the configured source
+for subsequent index comparisons, rather than rediscovering a nearby repository.
+
 For direct lint commands, put the Backend declaration alone in a YAML file:
 
 ```yaml

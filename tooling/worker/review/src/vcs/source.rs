@@ -121,6 +121,23 @@ pub struct Source<'a> {
 }
 
 impl Source<'_> {
+    fn index_repository(&self) -> Result<Repository<'_>> {
+        match self.backend {
+            Backend::Native(kind) => Ok(Repository::new(self.root, *kind)),
+            Backend::External(_) => anyhow::bail!(
+                "private VCS has no staging index protocol; run check without --staged or check --revision REV"
+            ),
+        }
+    }
+
+    pub fn staged_files(&self) -> Result<Vec<String>> {
+        self.index_repository()?.staged_files()
+    }
+
+    pub fn index_entries(&self) -> Result<Vec<u8>> {
+        self.index_repository()?.index_entries()
+    }
+
     pub fn commit_context(&self, revision: Option<&str>) -> Result<(String, bool)> {
         match self.backend {
             Backend::Native(kind) => Repository::new(self.root, *kind).commit_context(revision),

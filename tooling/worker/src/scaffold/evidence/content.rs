@@ -1,6 +1,6 @@
 use super::super::config::Context as Project;
 use anyhow::{Context, Result};
-use review_runner::vcs::Repository;
+use review_runner::vcs::{Backend, Repository};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
@@ -74,8 +74,7 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
 fn paths(context: &Project, root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
     if let Some(repository) = context.config.vcs.backend.repository_source(root)? {
         let files = if staged {
-            let kind = context.config.vcs.backend.native("staging index")?;
-            Repository::new(root, kind).staged_files()?
+            repository.staged_files()?
         } else {
             repository.working_files()?
         };
@@ -99,10 +98,18 @@ fn walk(root: &Path, parent: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-pub fn index(root: &Path) -> Result<String> {
+// Bootstrap only: the staged declaration is unavailable until the native index is exported.
+pub fn native_index(root: &Path) -> Result<String> {
     let repository =
         Repository::discover(root)?.context("a VCS repository is required for --staged")?;
     Ok(format!("{:x}", Sha256::digest(repository.index_entries()?)))
+}
+
+pub fn index(backend: &Backend, root: &Path) -> Result<String> {
+    Ok(format!(
+        "{:x}",
+        Sha256::digest(backend.source(root).index_entries()?)
+    ))
 }
 
 pub fn head(context: &Project, root: &Path) -> Result<Option<String>> {

@@ -1,6 +1,6 @@
 // DECISION: D022
 mod content;
-pub use content::index;
+pub use content::native_index;
 
 use super::config::{self, Check, Context};
 use anyhow::Result;
@@ -139,7 +139,9 @@ impl Attempt {
             .record
             .index_fingerprint
             .as_ref()
-            .map(|saved| index(origin).map(|current| current == *saved))
+            .map(|saved| {
+                content::index(&context.config.vcs.backend, origin).map(|current| current == *saved)
+            })
             .transpose()?;
         let stable = fingerprint == self.record.fingerprint
             && revision == self.record.revision
@@ -191,7 +193,10 @@ fn observed(context: &Context) -> Result<Value> {
     let index_matches = record
         .index_fingerprint
         .as_ref()
-        .map(|saved| index(&context.root).map(|current| current == *saved))
+        .map(|saved| {
+            content::index(&context.config.vcs.backend, &context.root)
+                .map(|current| current == *saved)
+        })
         .transpose()?;
     let current = revision_matches
         && content_matches

@@ -48,6 +48,74 @@ def test_staged_gate_uses_staged_configuration(worker: Path, tmp_path: Path) -> 
     assert "exceeds 60" in result.stdout
 
 
+def test_staged_git_check_preserves_invalid_unstaged_configuration(
+    worker: Path, tmp_path: Path
+) -> None:
+    project(tmp_path, CONFIG + GATE)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    config = tmp_path / "agentrig.yaml"
+    config.write_text("invalid: [\n")
+    result = invoke(worker, tmp_path, "check", "--staged")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert config.read_text() == "invalid: [\n"
+
+
+def test_staged_private_selection_rejects_index_before_running_adapter(
+    worker: Path, tmp_path: Path
+) -> None:
+    project(tmp_path, CONFIG + GATE)
+    update_config(
+        tmp_path / "agentrig.yaml",
+        git={
+            "backend": {
+                "command": [
+                    "python3",
+                    "-c",
+                    "from pathlib import Path; Path('adapter-called').touch(); raise Exception('adapter executed')",
+                ]
+            }
+        },
+    )
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    (tmp_path / "agentrig.yaml").write_text(CONFIG + GATE)
+    result = invoke(worker, tmp_path, "check", "--staged")
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "private VCS has no staging index protocol" in result.stderr
+    assert "check --revision" in result.stderr
+    assert not (tmp_path / "adapter-called").exists()
+
+
+def test_staged_evidence_uses_current_backend_without_native_fallback(
+    worker: Path, tmp_path: Path
+) -> None:
+    from test_feedback import repository
+
+    repository(tmp_path)
+    assert invoke(worker, tmp_path, "check", "--staged", "--only", "lint").returncode == 0
+    values = {
+        "head": None,
+        "working-files": ["src/value.py"],
+        "observe": {
+            "branch": "trunk",
+            "revision": "",
+            "status": "",
+            "merge_in_progress": False,
+            "rebase_in_progress": False,
+        },
+    }
+    script = f"import json,sys; request=json.load(sys.stdin); values={values!r}; print(json.dumps({{'version':1,'result':values[request['operation']]}}))"
+    update_config(
+        tmp_path / "agentrig.yaml", git={"backend": {"command": ["python3", "-c", script]}}
+    )
+    result = invoke(worker, tmp_path, "resume")
+    assert result.returncode == 0, result.stderr
+    checks = json.loads(result.stdout)["checks"]
+    assert checks["status"] == "unavailable"
+    assert "private VCS has no staging index protocol" in checks["error"]
+
+
 def test_missing_stage_command_is_actionable(worker: Path, tmp_path: Path) -> None:
     project(
         tmp_path,

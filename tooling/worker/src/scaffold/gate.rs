@@ -62,6 +62,9 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
     let only = options.only;
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let context = Context::load(tree)?;
+    if options.staged {
+        context.config.vcs.backend.source(root).index_entries()?;
+    }
     ensure!(
         only.is_none_or(|id| context.config.checks.iter().any(|check| check.id == id)),
         "unknown check {}",
@@ -81,9 +84,9 @@ fn prepare(
     root: &Path,
     options: &Options<'_>,
 ) -> Result<(Option<tempfile::TempDir>, super::evidence::Input)> {
-    use super::evidence::{Input, index};
+    use super::evidence::{Input, native_index};
     if options.staged {
-        let index = index(root)?;
+        let index = native_index(root)?;
         return Ok((Some(export(root)?), Input::Index(index)));
     }
     if let Some(reference) = options.revision {
