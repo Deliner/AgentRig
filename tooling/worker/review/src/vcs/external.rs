@@ -32,6 +32,12 @@ struct TreeEntry {
 }
 
 impl Adapter {
+    pub fn initialize(&self, root: &Path, base: &str) -> Result<()> {
+        self.call::<()>(root, "initialize", json!({"base": base}))?;
+        self.observe(root)?;
+        Ok(())
+    }
+
     pub fn validate(&self) -> Result<()> {
         ensure!(
             self.command.first().is_some_and(|value| !value.is_empty())
@@ -147,7 +153,7 @@ impl Adapter {
             "--proc",
             "/proc",
         ]);
-        let writes_repository = operation == "start-feature";
+        let writes_repository = matches!(operation, "start-feature" | "initialize");
         if writes_repository {
             command.arg("--bind").arg(root).arg(root);
         }

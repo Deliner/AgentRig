@@ -109,11 +109,7 @@ pub(super) fn install(
     installation: &reconcile::Installation,
 ) -> Result<i32> {
     installation.apply(root)?;
-    config
-        .vcs
-        .backend
-        .native("initialization")?
-        .initialize(root, &config.vcs.base)?;
+    config.vcs.backend.initialize(root, &config.vcs.base)?;
     fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
     if let Some(review) = &config.capabilities.review {
         let review = review_runner::config::load(&config::relative(root, &review.config)?)?;

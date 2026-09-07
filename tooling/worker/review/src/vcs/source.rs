@@ -51,6 +51,13 @@ impl From<Kind> for Backend {
 }
 
 impl Backend {
+    pub fn initialize(&self, root: &Path, base: &str) -> Result<()> {
+        match self {
+            Self::Native(kind) => kind.initialize(root, base),
+            Self::External(adapter) => adapter.initialize(root, base),
+        }
+    }
+
     pub fn native(&self, operation: &str) -> Result<Kind> {
         match self {
             Self::Native(kind) => Ok(*kind),

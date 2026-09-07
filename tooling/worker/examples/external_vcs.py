@@ -57,12 +57,23 @@ def start_feature(arguments: dict[str, Any]) -> None:
     assert not current["status"], "working copy must be clean"
     assert not current["merge_in_progress"], "merge is pending"
     assert not current["rebase_in_progress"], "rebase is pending"
+    write("branch", "--", arguments["branch"])
+
+
+def initialize(arguments: dict[str, Any]) -> None:
+    assert not Path(".git").exists(), "existing Git repository must be preserved"
+    existing = Path(".hg").exists()
+    if existing:
+        return
+    write("init")
+    write("branch", "--", arguments["base"])
+
+
+def write(*arguments: str) -> None:
     environment = dict(os.environ, HGPLAIN="1")
     environment.pop("HGRCSKIPREPO", None)
     environment.pop("HGPLAINEXCEPT", None)
-    result = subprocess.run(
-        ["hg", "branch", "--", arguments["branch"]], env=environment, capture_output=True
-    )
+    result = subprocess.run(["hg", *arguments], env=environment, capture_output=True)
     assert result.returncode == 0, result.stderr.decode()
 
 
@@ -121,6 +132,7 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "resolve": resolve,
     "head": head,
     "observe": observe,
+    "initialize": initialize,
     "start-feature": start_feature,
     "parents": parents,
     "tree": tree,

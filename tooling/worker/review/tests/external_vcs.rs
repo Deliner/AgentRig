@@ -22,6 +22,48 @@ fn example() -> Adapter {
     }
 }
 
+#[test]
+fn configured_initialization_preserves_files_and_repeated_repository_state() {
+    for backend in [
+        Kind::Git.into(),
+        Kind::Mercurial.into(),
+        Backend::External(example()),
+    ] {
+        let directory = tempfile::tempdir().unwrap();
+        let root = directory.path();
+        fs::write(root.join("consumer.txt"), "untracked consumer input").unwrap();
+        backend.initialize(root, "trunk").unwrap();
+        let observed = backend.source(root).observe().unwrap();
+        assert_eq!(observed.branch, "trunk");
+        assert!(observed.revision.is_empty());
+        assert!(observed.status.contains("consumer.txt"));
+        let before = contents(root);
+        backend.initialize(root, "another-base").unwrap();
+        assert_eq!(backend.source(root).observe().unwrap().branch, "trunk");
+        assert_eq!(contents(root), before);
+    }
+}
+
+#[test]
+fn private_initialization_preserves_existing_committed_and_mismatched_repositories() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    let (_, candidate) = revisions(root);
+    let backend = Backend::External(example());
+    let before = contents(root);
+    backend.initialize(root, "another-base").unwrap();
+    assert_eq!(backend.source(root).head().unwrap(), Some(candidate));
+    assert_eq!(contents(root), before);
+    let git = tempfile::tempdir().unwrap();
+    Backend::Native(Kind::Git)
+        .initialize(git.path(), "main")
+        .unwrap();
+    let before = contents(git.path());
+    assert!(backend.initialize(git.path(), "trunk").is_err());
+    assert_eq!(contents(git.path()), before);
+    assert!(!git.path().join(".hg").exists());
+}
+
 fn hg(root: &Path, args: &[&str]) {
     let output = Command::new("hg")
         .args(args)

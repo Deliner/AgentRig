@@ -85,7 +85,7 @@ No shell interprets this vector. The executable must be nonempty, and arguments
 cannot contain NUL. Each call starts one process with the consumer repository as
 its working directory. AgentRig uses bubblewrap with the filesystem mounted
 read-only for reads; the adapter must not require repository cache writes for reads.
-For `start-feature` only, the consumer repository root is mounted writable;
+For `start-feature` and `initialize`, the consumer repository root is mounted writable;
 the rest of the filesystem remains read-only.
 Credentials and executable dependencies remain the caller's environment, outside
 the protocol payload. This is a filesystem write restriction, not a claim that
@@ -118,6 +118,7 @@ session is required.
 | `head` | Empty object | Exact current revision ID, or null for an unborn repository. |
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
 | `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
+| `initialize` | `base` string | Null after ensuring a repository exists; an existing repository is preserved. |
 | `parents` | `revision` string | Array of exact parent IDs; empty for a root revision. |
 | `tree` | `revision` string | Array of `{path, kind, object}` entries. |
 | `read` | `revision` and `path` strings | Byte array: integer values from 0 through 255. |
@@ -143,6 +144,15 @@ branch, unchanged revision, clean status and no pending operation. A failure
 retains the native state for inspection; AgentRig does not reset or undo it.
 The example rechecks expected state before invoking `hg branch`; this is not an
 atomic lock against concurrent external commands.
+
+`Backend::initialize` dispatches native and private repository creation. The
+private adapter initializes the requested base only when no repository exists;
+repeated calls must preserve existing branches, revisions, user files and native
+configuration. The example refuses a Git repository and uses native Mercurial
+writes for a new repository. AgentRig observes the result to ensure it is readable.
+Failed initialization retains its state for repair. This operation does not
+install hooks; the complete private setup flow remains pending until generation
+and registration are supported.
 
 Paths must be canonical relative paths. Empty components, `.`, `..`, NUL,
 absolute paths and `.git`/`.hg` control components are rejected. Duplicate tree
