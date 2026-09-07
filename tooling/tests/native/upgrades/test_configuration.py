@@ -1,7 +1,9 @@
 import json
 import shutil
+import subprocess
 import tomllib
 from pathlib import Path
+from typing import Any
 
 import pytest
 import yaml
@@ -13,6 +15,12 @@ from .test_upgrade_plan import invoke
 def consumer(
     worker: Path, root: Path, review: str = "false", backend: str = "git"
 ) -> tuple[Path, Path]:
+    declaration = source_configuration(worker, root, review, backend)
+    target = install_consumer(worker, root, declaration)
+    return target, declaration
+
+
+def source_configuration(worker: Path, root: Path, review: str, backend: str) -> Path:
     source = root / "source"
     source.mkdir()
     private = backend == "private"
@@ -28,11 +36,228 @@ def consumer(
         config["vcs"]["backend"] = {"command": ["python3", "-B", str(adapter)]}
     config["commands"]["hello"] = {"argv": ["python3", "-c", "print('before')"]}
     declaration.write_text(yaml.safe_dump(config))
+    return declaration
+
+
+def install_consumer(worker: Path, root: Path, declaration: Path) -> Path:
     target = root / "target"
     target.mkdir()
     result = invoke(worker, target, "setup", "--config", str(declaration))
     assert result.returncode == 0, result.stdout + result.stderr
-    return target, declaration
+    return target
+
+
+def client_consumer(worker: Path, root: Path, frontend: str) -> tuple[Path, Path]:
+    declaration = source_configuration(worker, root, "false", "git")
+    config = yaml.safe_load(declaration.read_text())
+    config["frontend"] = frontend
+    config["agent"] = {
+        "model": "before-model",
+        "reasoning_effort": "low",
+        "api": {"key_env": "OLD_KEY", "base_url": "https://before.example"},
+    }
+    config["environment"] = {
+        "programs": {"probe": "probe.sh"},
+        "hooks": {
+            "probe": {
+                "event": "SessionStart",
+                "program": "probe",
+                "args": ["before"],
+                "timeout_seconds": 10,
+            }
+        },
+        "mcp_servers": {"probe": {"program": "probe", "args": ["before"]}},
+    }
+    program = declaration.parent / "probe.sh"
+    program.write_text("#!/bin/sh\nprintf '%s' \"$1\"\n")
+    program.chmod(0o755)
+    declaration.write_text(yaml.safe_dump(config))
+    return install_consumer(worker, root, declaration), declaration
+
+
+def client_preferences(target: Path, frontend: str) -> None:
+    codex = frontend == "codex"
+    hook_file = target / ".claude/settings.json"
+    if codex:
+        settings = target / ".codex/config.toml"
+        settings.write_text(
+            "# Keep preferences\nproject_doc_max_bytes = 4096\n"
+            + settings.read_text()
+            + '\n[mcp_servers.foreign]\ncommand = "external"\n'
+        )
+        hook_file = target / ".codex/hooks.json"
+    else:
+        settings = hook_file
+        mcp = target / ".mcp.json"
+        data = json.loads(mcp.read_text())
+        data["mcpServers"]["foreign"] = {"command": "external"}
+        mcp.write_text(json.dumps(data))
+    data = json.loads(hook_file.read_text())
+    data["hooks"]["SessionStart"].append(
+        {"matcher": "foreign", "hooks": [{"type": "command", "command": "true"}]}
+    )
+    claude = not codex
+    if claude:
+        data.setdefault("env", {})["PRESERVE_ME"] = "kept"
+    hook_file.write_text(json.dumps(data))
+    settings.chmod(0o600)
+
+
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
+@pytest.mark.parametrize("remove", [False, True])
+def test_client_configuration_update_preserves_preferences_and_rolls_back(
+    worker: Path, tmp_path: Path, frontend: str, remove: bool
+) -> None:
+    target, declaration = client_consumer(worker, tmp_path, frontend)
+    client_preferences(target, frontend)
+    config = yaml.safe_load(declaration.read_text())
+    if remove:
+        config.pop("agent")
+    else:
+        config["agent"] = {
+            "model": "after-model",
+            "reasoning_effort": "high",
+            "api": {"key_env": "NEW_KEY"},
+        }
+    config["environment"]["mcp_servers"] = {"renamed": {"program": "probe", "args": ["after"]}}
+    config["environment"]["hooks"]["probe"]["args"] = ["after"]
+    config["environment"]["hooks"]["probe"]["timeout_seconds"] = 20
+    declaration.write_text(yaml.safe_dump(config))
+    path = update(worker, target, declaration)
+    plan = json.loads(path.read_text())
+    original = snapshot(target, list(plan["files"]))
+    assert any(change["action"] == "conflict" for change in plan["files"].values())
+    assert invoke(worker, target, "upgrade", "apply", str(path)).returncode == 2
+    assert snapshot(target, list(plan["files"])) == original
+    resolve_update_conflicts(path)
+    shutil.rmtree(declaration.parent)
+    result = invoke(worker, target, "upgrade", "apply", str(path))
+    assert result.returncode == 0, result.stdout + result.stderr
+    verify_client_update(target, frontend, remove)
+    before_repeat = snapshot(target, list(plan["files"]))
+    assert invoke(worker, target, "setup").returncode == 0
+    after_repeat = snapshot(target, list(plan["files"]))
+    for relative, before in before_repeat.items():
+        assert after_repeat[relative] == before, relative
+    rolled_back = invoke(worker, target, "upgrade", "rollback")
+    assert rolled_back.returncode == 0, rolled_back.stdout + rolled_back.stderr
+    assert snapshot(target, list(plan["files"])) == original
+
+
+def verify_client_update(target: Path, frontend: str, removed: bool) -> None:
+    codex = frontend == "codex"
+    if codex:
+        settings_path = target / ".codex/config.toml"
+        settings = tomllib.loads(settings_path.read_text())
+        assert settings["project_doc_max_bytes"] == 4096
+        assert "# Keep preferences" in settings_path.read_text()
+        servers = settings["mcp_servers"]
+        assert servers["probe"]["enabled"] is False
+        provider = settings.get("model_providers", {}).get("agentrig_api", {})
+        assert provider.get("env_key") == (None if removed else "NEW_KEY")
+        assert provider.get("base_url") == (None if removed else "https://api.openai.com/v1")
+        hooks = json.loads((target / ".codex/hooks.json").read_text())
+    else:
+        settings_path = target / ".claude/settings.json"
+        settings = json.loads(settings_path.read_text())
+        servers = json.loads((target / ".mcp.json").read_text())["mcpServers"]
+        assert "probe" not in servers
+        assert "ANTHROPIC_BASE_URL" not in settings["env"]
+        assert settings["env"]["PRESERVE_ME"] == "kept"
+        assert ("NEW_KEY" in settings.get("apiKeyHelper", "")) != removed
+        hooks = settings
+    assert settings.get("model") == (None if removed else "after-model")
+    effort = "model_reasoning_effort" if codex else "effortLevel"
+    assert settings.get(effort) == (None if removed else "high")
+    assert settings_path.stat().st_mode & 0o777 == 0o600
+    assert servers["foreign"] == {"command": "external"}
+    assert servers["renamed"]["command"] == "sh"
+    groups = hooks["hooks"]["SessionStart"]
+    assert any(group.get("matcher") == "foreign" for group in groups)
+    verify_updated_hook(target, groups)
+
+
+def resolve_update_conflicts(path: Path) -> None:
+    plan = json.loads(path.read_text())
+    for change in plan["files"].values():
+        conflict = change["action"] == "conflict"
+        if conflict:
+            change["resolution"] = "replace"
+    path.write_text(json.dumps(plan))
+
+
+def verify_updated_hook(target: Path, groups: list[dict[str, Any]]) -> None:
+    routes = [route for group in groups for route in group["hooks"]]
+    managed = list(filter(lambda route: "environment-hook" in route["command"], routes))
+    assert len(managed) == 1
+    assert managed[0]["timeout"] == 20
+    result = subprocess.run(
+        ["sh", "-c", managed[0]["command"]],
+        cwd=target,
+        input='{"hook_event_name":"SessionStart"}',
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert result.stdout == "after"
+
+
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
+def test_update_rejects_disabled_client_hooks_before_writing(
+    worker: Path, tmp_path: Path, frontend: str
+) -> None:
+    target, declaration = client_consumer(worker, tmp_path, frontend)
+    codex = frontend == "codex"
+    if codex:
+        path = target / ".codex/config.toml"
+        path.write_text(path.read_text().replace("hooks = true", "hooks = false"))
+    else:
+        path = target / ".claude/settings.json"
+        settings = json.loads(path.read_text())
+        settings["disableAllHooks"] = True
+        path.write_text(json.dumps(settings))
+    receipt = "custom rig/manifest.json"
+    paths = [*json.loads((target / receipt).read_text())["files"], receipt]
+    original = snapshot(target, paths)
+    result = invoke(worker, target, "upgrade", "plan", "--config", str(declaration))
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "hooks" in result.stderr.lower()
+    assert snapshot(target, paths) == original
+
+
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
+def test_frontend_update_preserves_existing_native_preferences(
+    worker: Path, tmp_path: Path, frontend: str
+) -> None:
+    target, declaration = client_consumer(worker, tmp_path, frontend)
+    previous_codex = frontend == "codex"
+    selected = "claude-code" if previous_codex else "codex"
+    codex = selected == "codex"
+    relative = ".codex/config.toml" if codex else ".claude/settings.json"
+    preferences = target / relative
+    preferences.parent.mkdir(exist_ok=True)
+    contents = 'model = "native-choice"\n' if codex else '{"model":"native-choice"}'
+    preferences.write_text(contents)
+    preferences.chmod(0o600)
+    config = yaml.safe_load(declaration.read_text())
+    config["frontend"] = selected
+    config.pop("agent")
+    declaration.write_text(yaml.safe_dump(config))
+    path = update(worker, target, declaration)
+    plan = json.loads(path.read_text())
+    original = snapshot(target, list(plan["files"]))
+    resolve_update_conflicts(path)
+    result = invoke(worker, target, "upgrade", "apply", str(path))
+    assert result.returncode == 0, result.stdout + result.stderr
+    parse = tomllib.loads if codex else json.loads
+    assert parse(preferences.read_text())["model"] == "native-choice"
+    assert preferences.stat().st_mode & 0o777 == 0o600
+    assert yaml.safe_load((target / "agentrig.yaml").read_text())["frontend"] == selected
+    assert invoke(worker, target, "setup").returncode == 0
+    rolled_back = invoke(worker, target, "upgrade", "rollback")
+    assert rolled_back.returncode == 0, rolled_back.stdout + rolled_back.stderr
+    assert snapshot(target, list(plan["files"])) == original
 
 
 def update(worker: Path, target: Path, source: Path) -> Path:

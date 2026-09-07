@@ -3,7 +3,7 @@ mod environment;
 mod input;
 mod preview;
 mod reconcile;
-mod registration;
+pub(crate) mod registration;
 mod report;
 use super::{Config, Files, config, manifest};
 use anyhow::{Result, ensure};

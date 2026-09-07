@@ -71,6 +71,29 @@ These observations verify native discovery and hook scope, not completed P008
 review/delegation acceptance. The earlier paid Codex evidence above remains
 separate from current Claude acceptance.
 
+## P008 Codex model acceptance
+
+Observed on Linux on 2026-09-07 with Codex 0.153.4 and gpt-5.6-sol/high,
+using independently installed candidate consumers after deleting their source packages.
+Read, artifact and code delegation passed as run-53lZke, run-1MJbBH and
+run-PPoBtH. Responses used distinct values supplied by an installed skill,
+SessionStart hook and an observed MCP tool call. Reconnection retained run IDs,
+the code patch passed `git apply --check`, the consumer checkout was preserved,
+and private execution directories were removed. Evidence is retained in
+`.tmp/agentrig-environment-yqn1m9ri/acceptance.json` and its run artifacts.
+
+Real review through the consumer's generated MCP registration returned a
+validated PASS for run-pjyGqb on an exact committed revision. The checkout was
+preserved and the private execution directory removed. Evidence is retained in
+`.tmp/p008-review-8sup9idw`, including the request, MCP exchange and report.
+These observations establish current Codex model execution; real Claude review
+and delegation remain required for P008 acceptance.
+
+Configuration-update tests separately exercise both clients' model/API changes
+and removal, hooks and MCP changes, retained user settings and permissions,
+explicit conflict resolution, repeat setup and exact rollback. They also cover
+client switching and rejection of disabled hooks before plan writes.
+
 ## Historical worker delivery observation
 
 Observed on Linux on 2026-09-05, using worker revision fe31ee6 and a separate
