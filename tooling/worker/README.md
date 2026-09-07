@@ -307,7 +307,8 @@ The contract contains `result_schema` (JSON Schema) and optional `artifacts`
 `result.json` is reserved for the structured response. The task preparation and
 result verification library is covered by `rust-test`.
 
-Set top-level `vcs: git` or `vcs: mercurial` in the delegation YAML; omission
+Set top-level `vcs: git`, `vcs: mercurial` or a
+[private adapter command object](review/EXTERNAL_VCS.md) in the delegation YAML; omission
 retains Git. The backend applies to the source repository for all profiles.
 Preparation resolves revision to a full revision ID and reuses the review snapshot
 exporter with the profile's visible_paths. Explicit inputs also obey those globs;
@@ -377,7 +378,7 @@ are writable by the delegate; original snapshot and runner-owned Git metadata
 remain outside that write area. All changed paths must satisfy both visible_paths
 and write_paths, and symlinks/control paths are rejected.
 
-The source may be Git or Mercurial. The current patch builder still requires
+The source may be Git, Mercurial or a configured private adapter. The patch builder requires
 Git internally; it does not stage or commit the source repository. Its Git-format
 patch can be imported into a Mercurial checkout of the reported base with
 `hg import --no-commit change.patch` after inspection and verification.

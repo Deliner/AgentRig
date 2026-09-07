@@ -5,8 +5,8 @@ configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
 native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
 visibility checks. A separate executable can implement the protocol without
 linking AgentRig or publishing its implementation. Private setup, preview and
-doctor, commit guards and feature integration use this boundary. Full independent
-installed delivery acceptance remains required P007 work.
+doctor, commit guards and feature integration use this boundary. Independent
+installed consumers verify delivery through both native Mercurial and the example.
 
 An adapter declaration contains one argv vector, for example:
 
@@ -264,7 +264,7 @@ working file fails and the original bytes remain unchanged.
 `tests/registration.rs` registers the external Mercurial hook, invokes it through
 a real native commit, preserves custom configuration and checks repeat registration,
 both managed-setting conflicts, invalid descriptions and false success replies.
-That hook is a test fixture; full installed delivery-gate acceptance remains separate.
+That hook is a test fixture; installed delivery is exercised separately below.
 Generation tests compare native and external Mercurial output and reject escaped
 paths and invalid root commands. Python consumers exercise private setup, repeat
 installation, preserved settings, asset/harness conflicts and a real MCP handshake
@@ -276,8 +276,15 @@ working changes through a subsequent successful selected commit. A synthetic ada
 without Git/Mercurial metadata proves opaque-ID export and context use the same
 resolved revision and retain branch/merge policy. Integration fixtures additionally
 exercise failed gates, native commit rejection, mutated gate inputs and conflict
-recovery through the example. These fixtures do not establish full independent
-installed delivery or real model-client acceptance.
+recovery through the example.
+
+`test_installed_mercurial_delivery_recovers_failed_integration` separately installs
+the binary in independent native/private consumers, copies the private adapter
+into its consumer and uses generated Just recipes. It verifies bootstrap and
+feature integration, installed commit hooks, failed gate recovery, exact merge
+parents, retained branches, doctor and subsequent feature creation. The examples
+seed a committed base before hook installation and retain ordinary language-cache
+ignore rules. These checks establish VCS delivery, not real model-client acceptance.
 
 Configuration-upgrade consumers select the private adapter before setup, update a
 command and shipped skill, preserve consumer memory and native hook registration,
