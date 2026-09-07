@@ -1,8 +1,8 @@
 use super::{Contract, path};
 use anyhow::Result;
 use review_runner::{
-    digest,
-    response::{MAX_BYTES, read_regular},
+    artifacts::{digest, read_regular},
+    response::MAX_BYTES,
 };
 use serde_json::{Value, json};
 use std::path::Path;

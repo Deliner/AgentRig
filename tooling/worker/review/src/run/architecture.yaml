@@ -1,0 +1,15 @@
+purpose: Orchestrate reproducible multi-reviewer runs and persist aggregate review evidence
+files:
+  architecture.yaml: Review run responsibilities and public orchestration boundary
+  mod.rs: Run requests, frozen inputs, reviewer scheduling and lifecycle completion
+  previous.rs: Previous-report validation and repeated-review omission checks
+  report.rs: Aggregate verdicts, report schema and evidence persistence
+directories: {}
+allow:
+  - tooling/worker/review/src/artifacts/**
+  - tooling/worker/review/src/config/**
+  - tooling/worker/review/src/execution/**
+  - tooling/worker/review/src/response/**
+  - tooling/worker/review/src/snapshot/**
+deny: []
+public: [mod.rs, report.rs]

@@ -1,6 +1,6 @@
 use crate::{
+    artifacts::digest,
     config::{Repository, globs},
-    digest,
     vcs::{FileKind, Source},
 };
 use anyhow::{Context, Result, ensure};

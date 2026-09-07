@@ -1,0 +1,13 @@
+purpose: Execute isolated reviewer roles with bounded attempts, validated answers and process diagnostics
+files:
+  architecture.yaml: Reviewer execution responsibilities and public boundary
+  mod.rs: Public execution components used by review orchestration and hook dispatch
+  broker.rs: Parent-owned validation attempts and stop-hook feedback over a Unix socket
+  reviewer.rs: Reviewer process lifecycle, deadlines, validated outcomes and retained diagnostics
+directories:
+  sandbox: Harness executable discovery, credentials and isolated filesystem configuration
+allow:
+  - tooling/worker/review/src/config/**
+  - tooling/worker/review/src/response/**
+deny: []
+public: [mod.rs, broker.rs, reviewer.rs, sandbox/mod.rs]

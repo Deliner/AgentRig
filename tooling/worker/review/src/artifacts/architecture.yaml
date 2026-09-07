@@ -1,0 +1,9 @@
+purpose: Read bounded regular artifact files and fingerprint their bytes for review and delegation
+files:
+  architecture.yaml: Artifact byte responsibilities and public boundary
+  mod.rs: Shared regular-file reading with caller limits and SHA-256 content fingerprints
+  tests.rs: Exact-limit reads, stable fingerprints and rejection of unsafe artifact paths
+directories: {}
+allow: []
+deny: []
+public: [mod.rs]

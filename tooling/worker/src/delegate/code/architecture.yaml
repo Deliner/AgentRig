@@ -5,9 +5,9 @@ files:
   tests.rs: Behavioral checks for snapshot preservation, write scope, binary patches and executable modes
 directories: {}
 allow:
-  - tooling/worker/review/src/lib.rs
+  - tooling/worker/review/src/artifacts/mod.rs
   - tooling/worker/review/src/config/mod.rs
-  - tooling/worker/review/src/snapshot.rs
+  - tooling/worker/review/src/snapshot/mod.rs
 deny: []
 public:
   - mod.rs

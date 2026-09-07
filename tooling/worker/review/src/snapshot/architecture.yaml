@@ -1,0 +1,12 @@
+purpose: Export exact scoped revisions and verify snapshot paths, contents and change boundaries
+files:
+  architecture.yaml: Snapshot responsibilities and public revision boundary
+  mod.rs: Snapshot manifest, revision export, visibility checks and safe input paths
+  tests.rs: Committed revision, deletion, rename, sensitive input and symlink behavior tests
+directories: {}
+allow:
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

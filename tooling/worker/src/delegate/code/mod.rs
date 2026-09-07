@@ -2,7 +2,7 @@
 mod tests;
 
 use anyhow::{Context, Result, ensure};
-use review_runner::{config::globs, digest, snapshot::safe_path};
+use review_runner::{artifacts::digest, config::globs, snapshot::safe_path};
 use serde_json::{Value, json};
 use std::{
     fs,

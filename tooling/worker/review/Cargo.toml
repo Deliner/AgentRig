@@ -18,6 +18,10 @@ path = "src/config/yaml_tests.rs"
 name = "validation"
 path = "src/response/tests.rs"
 
+[[test]]
+name = "snapshot"
+path = "src/snapshot/tests.rs"
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

@@ -1,8 +1,8 @@
 mod previous;
 pub mod report;
 use crate::{
+    artifacts::digest,
     config::{self, Config},
-    digest,
     execution::{
         reviewer::{self, Task},
         sandbox::{self, Layout},
