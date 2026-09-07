@@ -47,12 +47,88 @@ blocking Stop repair. `.tmp/agentrig-installed-discovery-x3yq3jb2/result.json`
 records native frontend discovery of an installed custom skill after source
 removal. These are paid-model observations, separate from deterministic tests.
 
-Linux, local packages and the Codex frontend are the implemented scope. Ready
+That P004 acceptance covered Linux, local packages and the Codex frontend. Ready
 executables still require the documented host tools, model authentication and
-working bubblewrap/systemd support. No remote registry, extra OS/frontend or
-automatic patch merge is supplied. Release publication is separate from local
+working bubblewrap/systemd support. That delivery supplied no remote registry,
+extra OS/frontend or automatic patch merge. Release publication is separate from local
 feature integration. See [P004 delivery](../../../Ledger/Plan/004.md) and Git for
 the final gate and integration state.
+
+## P008 native skill discovery
+
+Observed on Linux on 2026-09-07 with disposable consumers and isolated client homes:
+
+| Client | Native observation |
+| --- | --- |
+| Codex 0.153.4 | App-server `skills/list` discovered a setup-installed custom skill under `.agents/skills` with no loading errors. |
+| Claude Code 2.1.201, project | Initialization listed the setup-installed `.claude/skills` skill in both `skills` and `slash_commands`; the startup hook executed. |
+| Claude Code 2.1.201, delegate settings | An empty `--setting-sources` hid a skill in the private `CLAUDE_CONFIG_DIR`. Selecting `user` discovered it. With the same file also supplied by `--settings`, its SessionStart hook ran once; a project settings hook did not run. |
+
+Delegates select only that private user scope; the existing read-only mounts and
+explicit MCP configuration still own isolation. Claude probes used a synthetic
+key and an unreachable loopback endpoint and ended before any model response.
+These discovery-only observations are separate from the real model acceptance
+recorded below.
+
+## P008 Codex model acceptance
+
+Observed on Linux on 2026-09-07 with Codex 0.153.4 and gpt-5.6-sol/high,
+using independently installed candidate consumers after deleting their source packages.
+Read, artifact and code delegation passed as run-53lZke, run-1MJbBH and
+run-PPoBtH. Responses used distinct values supplied by an installed skill,
+SessionStart hook and an observed MCP tool call. Reconnection retained run IDs,
+the code patch passed `git apply --check`, the consumer checkout was preserved,
+and private execution directories were removed. Evidence is retained in
+`.tmp/agentrig-environment-yqn1m9ri/acceptance.json` and its run artifacts.
+
+Real review through the consumer's generated MCP registration returned a
+validated PASS for run-pjyGqb on an exact committed revision. The checkout was
+preserved and the private execution directory removed. Evidence is retained in
+`.tmp/p008-review-8sup9idw`, including the request, MCP exchange and report.
+These observations establish current Codex model execution; Claude acceptance
+is recorded below.
+
+Configuration-update tests separately exercise both clients' model/API changes
+and removal, hooks and MCP changes, retained user settings and permissions,
+explicit conflict resolution, repeat setup and exact rollback. They also cover
+client switching and rejection of disabled hooks before plan writes.
+
+## P008 Claude through OpenRouter
+
+Observed on Linux on 2026-09-07 with Claude Code 2.1.201 and an externally
+loaded OpenRouter key. Native connection used `ANTHROPIC_AUTH_TOKEN` and
+`https://openrouter.ai/api`, following the
+[provider integration](https://openrouter.ai/docs/cookbook/coding-agents/claude-code-integration).
+The cheapest discovered Anthropic model, `anthropic/claude-3-haiku`, connected
+but failed the full task contracts. Free `nvidia/nemotron-3-super-120b-a12b:free`
+completed these independent consumers after their source packages were removed:
+
+- Review run-o7px9A: generated MCP registration, validated PASS, preserved
+  checkout and removed runtime directory; `.tmp/p008-review-c_sd5tdi`.
+- Read run-rSxFAL: exact independent skill/hook/MCP values and cleanup;
+  `.tmp/agentrig-environment-bhno66v1/read-acceptance.json`.
+- Artifacts run-dsgPOK: exact values, retained actual MCP tools/call and startup
+  output, preserved checkout and cleanup;
+  `.tmp/agentrig-environment-m57roq1f/artifacts-acceptance.json`.
+- Code run-nOqUpc used the inexpensive paid variant
+  `nvidia/nemotron-3-super-120b-a12b`: exact file bytes, code check exit 0,
+  applicable patch, unchanged original checkout and cleanup;
+  `.tmp/agentrig-environment-rh6u9fa5/acceptance.json`. A prior missing-newline
+  edit failed the same unchanged check; the final task specified the exact bytes.
+
+Read/artifact consumers used `ENABLE_TOOL_SEARCH=false` and
+`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` through existing profile environment
+references. These native [gateway settings](https://code.claude.com/docs/en/env-vars)
+are consumer choices, not global AgentRig defaults. Initial runs had malformed
+API responses; combined code probes returned HTTP 404. Focused free code
+run-FPUmYi then received HTTP 429, `free-models-per-day`. The paid variant resolved
+that quota obstacle. The focused code consumer verified editing and patch checks;
+the read/artifact consumers separately verified configured skills, hooks and MCP.
+All probes terminated and retained their reports.
+
+Actual provider spending was $0.16007502, with $1.39727778 remaining; free runs
+did not increase usage. Claude's displayed gateway cost estimates differed from
+actual billing. Accounting is retained in `.tmp/p008-openrouter-cost.json`.
 
 ## Historical worker delivery observation
 

@@ -224,3 +224,59 @@ fn complete_environment(root: &Path) -> Profile {
         .insert("hook".into(), root.join("hook"));
     selected
 }
+
+#[test]
+fn claude_receives_frozen_skills_hooks_and_mcp_configuration() {
+    let root = tempfile::tempdir().unwrap();
+    let layout = fixture(root.path());
+    let mut profile = complete_environment(root.path());
+    profile.frontend = Frontend::ClaudeCode;
+    prepare(&layout, &profile).unwrap();
+    fs::remove_dir_all(&profile.environment.skills[0]).unwrap();
+    fs::write(&profile.environment.programs["helper"], "changed").unwrap();
+    let settings: serde_json::Value =
+        serde_json::from_slice(&fs::read(layout.private.join("claude/settings.json")).unwrap())
+            .unwrap();
+    let mcp: serde_json::Value =
+        serde_json::from_slice(&fs::read(layout.private.join("claude/mcp.json")).unwrap()).unwrap();
+    assert_eq!(mcp["mcpServers"]["probe"]["command"], "/tools/helper");
+    let hook = settings["hooks"]["SessionStart"][0]["hooks"][0]["command"]
+        .as_str()
+        .unwrap();
+    let probe = format!(
+        "{}\n{hook}\n! echo changed > /claude/settings.json\n! echo changed > /claude/mcp.json\n! echo changed > /project/input.txt\n",
+        resource_probe().replace("/codex/", "/claude/")
+    );
+    let output = base(&layout, &profile)
+        .unwrap()
+        .args(["/bin/sh", "-c", &probe])
+        .output()
+        .unwrap();
+    assert!(
+        output.status.success(),
+        "{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_eq!(
+        fs::read_to_string(layout.private.join("work/hook-output")).unwrap(),
+        "instruction"
+    );
+    assert_eq!(
+        fs::read_to_string(layout.input.join("project/input.txt")).unwrap(),
+        "original"
+    );
+}
+
+#[test]
+fn claude_response_cannot_follow_a_model_created_result_symlink() {
+    let root = tempfile::tempdir().unwrap();
+    let layout = fixture(root.path());
+    fs::create_dir_all(layout.private.join("work")).unwrap();
+    let protected = root.path().join("protected");
+    fs::write(&protected, "original").unwrap();
+    std::os::unix::fs::symlink(&protected, layout.private.join("work/result.json")).unwrap();
+    let output = br#"{"is_error":false,"structured_output":{"ok":true}}"#;
+    let error = claude::response(&layout, output).unwrap_err();
+    assert!(error.to_string().contains("reserved"));
+    assert_eq!(fs::read_to_string(protected).unwrap(), "original");
+}

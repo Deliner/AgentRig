@@ -2,28 +2,28 @@
 
 ## Focus
 
-Integrate accepted P007, then deliver P008 under the user's active implementation goal; P006 is integrated. Current VAC: repair cached review tests that retained paths into a deleted exported source tree.
+Finish P008 integration under the user's active goal. P006 and P007 are integrated. Current VAC: record completed real-client acceptance and mark P008 complete before feature-merge.
 
 ## Workspace
 
-Branch: feature/vcs-backends
+Branch: feature/agent-harnesses
 
-Revision: 45a6866
+Revision: 3dc57ca
 
-P006 is integrated at 0c9cc39. P007 completion commit 45a6866 passed its full gate with 567 Python and 138 Rust tests. Its integration failed in review-test after all 567 Python tests passed. No merge or rebase is pending; the feature branch is retained. Resume reports completed focused review-test evidence. User remarks remain in Ledger/Requests.md. The installed development pin is unchanged.
+The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Git confirmed clean 3dc57ca after the evidence commit and before this completion VAC. No merge or rebase is in progress. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
 
 ## Progress
 
-P007 implementation acceptance is recorded in Plan/007.md, but base integration remains unfinished. Three review test fixtures now resolve CARGO_MANIFEST_DIR at test execution instead of embedding a temporary compilation path. Review/repair assertions include the failed report. Product behavior and verification thresholds are unchanged. P008 remains pending; preliminary inspection found Codex-specific setup and review/delegate launch owners.
+Selected-client setup, model/API updates, native skill discovery, review and delegation implementations are committed. Real review and read/artifact/code acceptance passed for both clients in independent consumers. Claude uses the user's existing OpenRouter references; inexpensive paid Nemotron completed code mode after the free quota was exhausted. Evidence is recorded in tooling/worker/examples/PORTABILITY.md. All probes are terminal. P008 acceptance is complete; integration is pending.
 
 ## Verification
 
-The failed review stage reproduced missing external_vcs.py under the deleted exported tree /tmp/.tmpKOhDOo. Recompiling execution tests removed their failure while cached external_vcs tests still failed with that exact path. After correcting all three owners, just check --only review-test passed all 64 Rust review tests. The correction is rustfmt formatted; its full commit gate and the integration retry remain pending.
+Commit 3dc57ca passed the full gate: 607 Python and 145 Rust tests. Claude review run-o7px9A, read run-rSxFAL and artifacts run-dsgPOK passed with free Nemotron, including exact probe values, actual MCP use and cleanup. Code run-nOqUpc passed with nvidia/nemotron-3-super-120b-a12b: exact file bytes, code check exit 0, applicable patch, unchanged original checkout and removed private directory. Its earlier missing-newline result was correctly rejected by the same check. Codex acceptance remains recorded in PORTABILITY.md. This completion VAC and integration gates remain to run.
 
 ## Blockers
 
-P007 has no unresolved implementation blocker; commit and integration gates remain required. For later P008 real-client acceptance, local Codex is 0.153.4 and Claude Code is 2.1.201. The user supplied admin@macbook.local, reachable through network-enabled just write SSH; its Claude is 2.1.263 at /Users/admin/.local/bin/claude. Its Keychain credential entry exists, but SSH cannot read it (security exit 36, corresponding to interaction not allowed); launchctl asuser is denied. The user was asked to unlock the login Keychain locally. SSH loggedIn=false does not establish absent local login; credentials have not been copied or exposed. This does not block P008 implementation and deterministic tests.
+No acceptance blocker remains. The free OpenRouter quota and Mac SSH Keychain restriction are observed provider/environment limitations. The user's original cheap-test authorization allowed the less expensive paid Nemotron variant; the optional stronger-Claude budget was not needed. Actual spending was $0.16007502, leaving $1.39727778. Claude's displayed gateway estimates differ from provider billing. No more inference is needed for this acceptance.
 
 ## Next action
 
-Commit this focused test repair through the mandatory full gate, then retry just feature-merge and verify integration into master. Keep the feature branch. Start P008 on a new feature branch only after integration, activate its contract under the existing goal, and deliver actual Codex/Claude setup, review and delegation with real-client acceptance. Preserve the installed development pin while testing candidates. Native index bootstrap, the internal Git patch builder and the Git-only release migration remain explicit supported boundaries.
+Commit this completion VAC through the normal gate, run just feature-merge, retain feature/agent-harnesses and verify the actual integrated Git state. Preserve the development pin. Mark the user's goal complete only after successful integration and a clean checkout; no further model probes are required.

@@ -27,6 +27,8 @@ pub struct Task<'a> {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RoleResult {
     pub role: String,
+    #[serde(default)]
+    pub frontend: String,
     pub model: String,
     pub reasoning_effort: String,
     pub format_attempts: usize,
@@ -41,6 +43,7 @@ pub struct RoleResult {
 pub fn review(task: Task<'_>) -> RoleResult {
     let mut result = RoleResult {
         role: task.expected.role.clone(),
+        frontend: task.reviewer.frontend.clone(),
         model: task.reviewer.model.clone(),
         reasoning_effort: task.reviewer.reasoning_effort.clone(),
         format_attempts: 0,
@@ -69,7 +72,7 @@ fn execute(task: &Task<'_>, result: &mut RoleResult) -> Result<()> {
         Instant::now() < task.deadline,
         "review timeout before role launch"
     );
-    sandbox::prepare(&task.layout.role)?;
+    sandbox::prepare(&task.layout.role, task.reviewer)?;
     let broker = Broker::start(
         task.expected.clone(),
         task.layout.role.join("work"),
@@ -82,7 +85,8 @@ fn execute(task: &Task<'_>, result: &mut RoleResult) -> Result<()> {
     let status = status?;
     ensure!(
         status.success(),
-        "Codex role process exited {status}; see cli_stderr in report"
+        "{} role process exited {status}; see cli_stderr in report",
+        task.reviewer.frontend
     );
     ensure!(!exhausted, "format attempt limit exhausted");
     result.response = Some(response::file(
@@ -102,7 +106,7 @@ fn process(task: &Task<'_>) -> Result<std::process::ExitStatus> {
     let input = child
         .stdin
         .take()
-        .ok_or_else(|| anyhow::anyhow!("Codex input pipe missing"))?;
+        .ok_or_else(|| anyhow::anyhow!("review client input pipe missing"))?;
     let writer = thread::spawn(move || {
         let mut input = input;
         input.write_all(prompt.as_bytes())

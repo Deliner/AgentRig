@@ -64,6 +64,7 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
         "preview": true,
         "root": root,
         "files": installation.changes(),
+        "agent": config.agent,
         "registrations": {
             "vcs": {
                 "backend": config.vcs.backend,
@@ -74,12 +75,19 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
                 "update_registration": !registered,
                 "runtime_ignore": (config.vcs.backend == review_runner::vcs::Kind::Mercurial.into()).then(|| format!("{hooks}.hgignore")),
             },
-            "codex": codex(&installation.files, config)?,
+            (config.frontend.name()): client(&installation.files, config)?,
         },
         "directories": directories(root, config, &installation.files)?,
-        "dependencies": dependencies(config),
+        "dependencies": dependencies(root, config, &installation.files)?,
         "dependency_validation": "doctor runs after installation; preview does not execute dependency probes",
     }))
+}
+
+fn client(files: &Files, config: &Config) -> Result<Value> {
+    match config.frontend {
+        super::config::Frontend::Codex => codex(files, config),
+        super::config::Frontend::ClaudeCode => super::super::claude::report(files, config),
+    }
 }
 
 fn codex(files: &Files, config: &Config) -> Result<Value> {
@@ -139,7 +147,7 @@ fn directories(root: &Path, config: &Config, files: &Files) -> Result<Value> {
     Ok(json!(paths))
 }
 
-fn dependencies(config: &Config) -> Value {
+fn dependencies(root: &Path, config: &Config, files: &Files) -> Result<Value> {
     let mut executables = BTreeSet::from([config.vcs.backend.executable()]);
     // Delegated code results currently use Git internally to produce binary patches.
     let code_delegation = config.capabilities.delegation.is_some();
@@ -162,17 +170,16 @@ fn dependencies(config: &Config) -> Value {
         executables.insert("bwrap");
     }
     let mut frontends = Vec::new();
-    for (enabled, variable) in [
-        (review, "REVIEW_CODEX_BIN"),
-        (delegation, "DELEGATE_CODEX_BIN"),
-    ] {
-        if enabled {
-            frontends.push(json!({"frontend": "native Codex with codex-code-mode-host", "override_env": variable}));
-        }
+    for (variable, frontend) in super::super::executors::configured(root, config, files)? {
+        let description = match frontend {
+            super::config::Frontend::Codex => "native Codex with codex-code-mode-host",
+            super::config::Frontend::ClaudeCode => "native Claude Code",
+        };
+        frontends.push(json!({"frontend": description, "override_env": variable}));
     }
-    json!({
+    Ok(json!({
         "executables": executables,
         "model_frontends": frontends,
         "systemd_user_scope": delegation || config.processes.foreground == super::config::Containment::Systemd,
-    })
+    }))
 }

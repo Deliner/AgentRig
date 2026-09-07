@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 from test_delegate_mcp import client, initialize, tool
-from test_delegate_run import call, consumer, terminal
+from test_delegate_run import CLAUDE_RESPONSE, call, consumer, select_claude, terminal
 
 
 def code_consumer(worker: Path, root: Path, monkeypatch: pytest.MonkeyPatch, script: str) -> str:
@@ -50,6 +50,34 @@ def code_request(root: Path, base: str) -> None:
 
 
 SCRIPT = "test ! -e /project/.git\nprintf 'after\\n' > /project/src/value.txt\nprintf '{\"ok\":true}' > /work/result.json\n"
+
+
+@pytest.mark.parametrize("failed_check", [False, True])
+def test_claude_code_requires_checks_and_preserves_the_checkout(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failed_check: bool
+) -> None:
+    script = (
+        "test ! -e /project/.git\nprintf 'after\\n' > /project/src/value.txt\n" + CLAUDE_RESPONSE
+    )
+    base = code_consumer(worker, tmp_path, monkeypatch, script)
+    select_claude(tmp_path, monkeypatch)
+    if failed_check:
+        path = tmp_path / "request.json"
+        request = json.loads(path.read_text())
+        request["contract"]["changes"]["checks"]["value"] = ["python3", "-c", "raise SystemExit(3)"]
+        path.write_text(json.dumps(request))
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    result = terminal(worker, tmp_path, identifier)
+    expected = "ERROR" if failed_check else "PASS"
+    assert result["outcome"] == expected, result
+    assert result["code"]["base"] == base
+    assert result["code"]["verified"] is not failed_check
+    assert (tmp_path / "src/value.txt").read_text() == "before\n"
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
+    subprocess.run(
+        ["git", "apply", "--check", str(directory / "change.patch")], cwd=tmp_path, check=True
+    )
+    assert not (directory / "private").exists()
 
 
 def test_code_mcp_returns_checked_patch_without_changing_checkout(

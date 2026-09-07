@@ -19,4 +19,4 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P005](Plan/005.md) | complete | P004 | Stable development and public distribution | Develop AgentRig with an independently installed verified runtime and obtain the portable worker from GitHub under MIT. |
 | [P006](Plan/006.md) | complete | P005 | Directory architecture contracts and lint | Describe directory responsibilities and boundaries, detect forbidden dependencies and cycles across languages, and receive architectural repair guidance. |
 | [P007](Plan/007.md) | complete | P005 | Extensible version control support | Use AgentRig with Git and another VCS, and connect a private implementation without publishing its code. |
-| [P008](Plan/008.md) | pending | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |
+| [P008](Plan/008.md) | complete | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |

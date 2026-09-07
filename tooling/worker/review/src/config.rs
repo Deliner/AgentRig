@@ -1,5 +1,7 @@
+pub mod credentials;
 pub mod yaml;
 use anyhow::{Context, Result, ensure};
+pub use credentials::Credentials;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -33,6 +35,8 @@ pub struct Reviewer {
     pub model: String,
     pub reasoning_effort: String,
     pub prompt: PathBuf,
+    #[serde(default)]
+    pub credentials: Credentials,
 }
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -111,15 +115,23 @@ fn codex() -> String {
 }
 fn validate_reviewer(name: &str, reviewer: &Reviewer) -> Result<()> {
     ensure!(
-        reviewer.frontend == "codex",
-        "unsupported frontend {:?} for reviewer {name}; supported: codex",
+        ["codex", "claude-code"].contains(&reviewer.frontend.as_str()),
+        "unsupported frontend {:?} for reviewer {name}; supported: codex, claude-code",
         reviewer.frontend
     );
     ensure!(
         identifier(name) && !reviewer.model.trim().is_empty(),
         "invalid reviewer {name}"
     );
-    reasoning_effort(&reviewer.reasoning_effort)?;
+    reviewer.credentials.validate()?;
+    let claude = reviewer.frontend == "claude-code";
+    if claude {
+        reviewer
+            .credentials
+            .validate_claude(&reviewer.reasoning_effort)?;
+    } else {
+        reasoning_effort(&reviewer.reasoning_effort)?;
+    }
     Ok(())
 }
 pub fn reasoning_effort(value: &str) -> Result<()> {

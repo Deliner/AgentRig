@@ -389,7 +389,7 @@ def test_interactive_init_matches_declarative_setup(
     worker: Path, tmp_path: Path, language: str, vcs: str
 ) -> None:
     target = tmp_path / "interactive"
-    answers = [""] * 13
+    answers = [""] * 14
     answers[1] = language
     answers[9] = vcs
     answers[-1] = "yes"
@@ -412,7 +412,7 @@ def test_interactive_init_matches_declarative_setup(
     assert invoke(target / ".agentrig/bin/agentrig", target, "config-check").returncode == 0
 
 
-@pytest.mark.parametrize("answers", [[], ["cancel"], [""] * 12, [""] * 12 + ["no"]])
+@pytest.mark.parametrize("answers", [[], ["cancel"], [""] * 13, [""] * 13 + ["no"]])
 def test_interactive_cancellation_leaves_no_target(
     worker: Path, tmp_path: Path, answers: list[str]
 ) -> None:
@@ -428,7 +428,7 @@ def test_interactive_invalid_selection_preserves_existing_files(
 ) -> None:
     (tmp_path / "user.txt").write_text("Keep user content.\n")
     before = file_contents(tmp_path)
-    answers = [""] * 13
+    answers = [""] * 14
     answers[1] = "unsupported-language"
     result = interactive(worker, tmp_path, answers)
     assert result.returncode == 2
@@ -441,13 +441,14 @@ def test_interactive_selects_layout_checks_review_and_delegation(
 ) -> None:
     root = delegated_project(worker, tmp_path)
     (root / "agentrig.yaml").unlink()
-    answers = [""] * 13
+    answers = [""] * 14
     answers[2] = "wizard rig"
     answers[4] = "notes"
     answers[8] = "true"
-    answers[10] = "agents/profiles.yaml"
-    answers[11] = "lint,memory"
-    answers[12] = "yes"
+    answers[10] = "claude-code"
+    answers[11] = "agents/profiles.yaml"
+    answers[12] = "lint,memory"
+    answers[13] = "yes"
     result = interactive(worker, root, answers)
     assert result.returncode == 0, result.stdout + result.stderr
     config = yaml.safe_load((root / "agentrig.yaml").read_text())
@@ -455,8 +456,8 @@ def test_interactive_selects_layout_checks_review_and_delegation(
     assert config["paths"]["skills"] == "wizard rig/skills"
     assert config["paths"]["memory"] == "notes"
     assert {check["id"] for check in config["checks"]} == {"lint", "memory"}
-    settings = tomllib.loads((root / ".codex/config.toml").read_text())
-    assert set(settings["mcp_servers"]) == {"worker_review", "worker_delegation"}
+    settings = json.loads((root / ".mcp.json").read_text())
+    assert set(settings["mcpServers"]) == {"worker_review", "worker_delegation"}
     installed = root / "wizard rig/bin/agentrig"
     assert invoke(installed, root, "delegate", "config-check").returncode == 0
     assert invoke(installed, root, "review", "config-check").returncode == 0
@@ -483,7 +484,7 @@ def test_interactive_preserves_changes_after_preview(worker: Path, tmp_path: Pat
     ) as process:
         try:
             assert process.stdin is not None
-            process.stdin.write(b"\n" * 12)
+            process.stdin.write(b"\n" * 13)
             process.stdin.flush()
             wait_for_preview(process)
             note = tmp_path / "AGENTS.md"
@@ -509,7 +510,7 @@ def test_init_requires_explicit_legacy_migration(
     legacy.write_text("# Preserve the legacy declaration for explicit migration.\n")
     before = file_contents(tmp_path)
     if wizard:
-        result = interactive(worker, tmp_path, [""] * 12 + ["yes"])
+        result = interactive(worker, tmp_path, [""] * 13 + ["yes"])
     else:
         result = invoke(worker, tmp_path, "init")
     assert result.returncode == 2

@@ -1,9 +1,42 @@
 pub mod hooks;
 mod validation;
-pub use validation::{resolve_references, validate_references, variable_name};
+pub use review_runner::config::credentials::{
+    resolve_references, validate_references, variable_name,
+};
 
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf};
+
+#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Frontend {
+    #[default]
+    Codex,
+    ClaudeCode,
+}
+
+impl Frontend {
+    pub fn project_skills(self) -> &'static str {
+        match self {
+            Self::Codex => ".agents/skills",
+            Self::ClaudeCode => ".claude/skills",
+        }
+    }
+
+    pub fn directory(self) -> &'static str {
+        match self {
+            Self::Codex => "codex",
+            Self::ClaudeCode => "claude",
+        }
+    }
+
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Codex => "codex",
+            Self::ClaudeCode => "claude-code",
+        }
+    }
+}
 
 #[derive(Clone, Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

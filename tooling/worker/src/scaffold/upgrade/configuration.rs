@@ -1,3 +1,5 @@
+mod claude;
+mod hooks;
 use super::{
     model::{Action, Change, Plan},
     storage,
@@ -30,7 +32,7 @@ pub fn create(root: &Path, path: &Path) -> Result<i32> {
         old.package_version == current.runtime,
         "installation manifest version differs"
     );
-    merge_codex(root, &mut files)?;
+    merge_client(root, &mut files, &current, &configuration)?;
     let manifest = incoming(&files, &receipt)?;
     let directory = storage::directory(root)?;
     fs::create_dir_all(&directory)?;
@@ -157,8 +159,30 @@ fn modified(old: &Manifest, path: &str, before: &storage::State) -> bool {
     before.sha256 != expected || !permissions
 }
 
-fn merge_codex(root: &Path, files: &mut BTreeMap<String, Vec<u8>>) -> Result<()> {
+fn merge_client(
+    root: &Path,
+    files: &mut BTreeMap<String, Vec<u8>>,
+    current: &config::Config,
+    desired: &config::Config,
+) -> Result<()> {
+    match desired.frontend {
+        config::Frontend::Codex => merge_codex(root, files, current, desired)?,
+        config::Frontend::ClaudeCode => claude::merge(root, files, current, desired)?,
+    }
+    package::setup::registration::configure(root, desired, files)
+}
+
+fn merge_codex(
+    root: &Path,
+    files: &mut BTreeMap<String, Vec<u8>>,
+    current: &config::Config,
+    configuration: &config::Config,
+) -> Result<()> {
     let path = ".codex/config.toml";
+    let missing = !root.join(path).try_exists()?;
+    if missing {
+        return hooks::file(root, files, current, ".codex/hooks.json");
+    }
     let mut existing: toml_edit::DocumentMut = fs::read_to_string(root.join(path))?.parse()?;
     let desired: toml_edit::DocumentMut = std::str::from_utf8(&files[path])?.parse()?;
     ensure!(
@@ -167,22 +191,84 @@ fn merge_codex(root: &Path, files: &mut BTreeMap<String, Vec<u8>>) -> Result<()>
             .is_none_or(toml_edit::Item::is_table_like),
         "mcp_servers must be a table; existing settings preserved"
     );
-    for name in managed_servers(root, files)? {
+    for name in managed_servers(current, configuration) {
         merge_server(&mut existing, &desired, &name)?;
     }
+    merge_model(&mut existing, &desired, &agents(current, configuration))?;
     files.insert(path.into(), existing.to_string().into_bytes());
+    hooks::file(root, files, current, ".codex/hooks.json")?;
     Ok(())
 }
 
-fn managed_servers(root: &Path, files: &BTreeMap<String, Vec<u8>>) -> Result<BTreeSet<String>> {
-    let current = config::read(root)?;
-    let desired: config::Config =
-        review_runner::config::yaml::decode(std::str::from_utf8(&files[config::FILE])?)?;
-    Ok(["worker_review".into(), "worker_delegation".into()]
+fn managed_servers(current: &config::Config, desired: &config::Config) -> BTreeSet<String> {
+    ["worker_review".into(), "worker_delegation".into()]
         .into_iter()
-        .chain(current.environment.mcp_servers.into_keys())
-        .chain(desired.environment.mcp_servers.into_keys())
-        .collect())
+        .chain(current.environment.mcp_servers.keys().cloned())
+        .chain(desired.environment.mcp_servers.keys().cloned())
+        .collect()
+}
+
+fn agents<'a>(current: &'a config::Config, desired: &'a config::Config) -> Vec<&'a config::Agent> {
+    let same_client = current.frontend.name() == desired.frontend.name();
+    current
+        .agent
+        .iter()
+        .filter(|_| same_client)
+        .chain(desired.agent.iter())
+        .collect()
+}
+
+fn merge_model(
+    existing: &mut toml_edit::DocumentMut,
+    desired: &toml_edit::DocumentMut,
+    agents: &[&config::Agent],
+) -> Result<()> {
+    let api = agents.iter().any(|agent| agent.api.is_some());
+    for (field, owned) in [
+        ("model", agents.iter().any(|agent| agent.model.is_some())),
+        (
+            "model_reasoning_effort",
+            agents.iter().any(|agent| agent.reasoning_effort.is_some()),
+        ),
+        ("model_provider", api),
+    ] {
+        if owned {
+            match desired.get(field) {
+                Some(value) => existing[field] = value.clone(),
+                None => {
+                    existing.as_table_mut().remove(field);
+                }
+            }
+        }
+    }
+    if api {
+        merge_provider(existing, desired)?;
+    }
+    Ok(())
+}
+
+fn merge_provider(
+    existing: &mut toml_edit::DocumentMut,
+    desired: &toml_edit::DocumentMut,
+) -> Result<()> {
+    let providers = &mut existing["model_providers"];
+    ensure!(
+        providers.is_none() || providers.is_table_like(),
+        "model_providers must be a table; existing settings preserved"
+    );
+    let value = desired
+        .get("model_providers")
+        .and_then(|table| table.get("agentrig_api"));
+    if let Some(value) = value {
+        let absent = providers.is_none();
+        if absent {
+            *providers = toml_edit::Item::Table(toml_edit::Table::new());
+        }
+        providers["agentrig_api"] = value.clone();
+    } else if let Some(table) = providers.as_table_like_mut() {
+        table.remove("agentrig_api");
+    }
+    Ok(())
 }
 
 fn merge_server(

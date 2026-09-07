@@ -15,6 +15,23 @@ its files: setup reports conflicting adapters before writing.
 
 Project capabilities are selected in `agentrig.yaml`:
 
+Top-level `frontend: codex` or `frontend: claude-code` selects project registration;
+omission preserves Codex. `init --frontend claude-code` and the interactive wizard
+select Claude explicitly. Setup manages `.claude/settings.json`, `.mcp.json` and
+`CLAUDE.md` importing the shared `AGENTS.md`, with the same preview and installation
+receipt. Existing model settings and unrelated hook/MCP entries are preserved;
+conflicting managed MCP commands or disabled hooks fail before writing.
+
+Optional `agent` declares project defaults, for example:
+```yaml
+agent:
+  model: your-model
+  reasoning_effort: high
+  api: {key_env: TEAM_API_KEY, base_url: https://your-gateway.example}
+```
+Omit `api` to retain native login; omit `base_url` to use the client's default endpoint. Export `key_env` in the shell that starts the client. Setup never resolves the key. Codex uses a named Responses API provider with `env_key`; Claude uses `apiKeyHelper` and `ANTHROPIC_BASE_URL` for an Anthropic-compatible endpoint. Existing conflicting settings are preserved and reported.
+Project effort supports `low`, `medium`, `high`, `xhigh`, plus Codex `minimal`; Claude session-only `max` is rejected here. Model-specific support and higher-priority client settings still apply. See the [Codex configuration reference](https://developers.openai.com/codex/config-reference/) and [Claude gateway configuration](https://code.claude.com/docs/en/llm-gateway).
+
 ```yaml
 capabilities:
   lint: true
@@ -45,7 +62,7 @@ Its environment forwards the declared credential/MCP variable references, execut
 override and existing job owner/parent identifiers. Use the same WORKER_OWNER after
 reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
 asynchronously and their own timeouts remain profile settings. Doctor requires
-working systemd scopes, bubblewrap and native Codex when delegation is enabled.
+working systemd scopes, bubblewrap and the clients selected by enabled profiles.
 `agentrig init --interactive --root CONSUMER` starts the setup wizard. It asks for
 the project directory, language, service/source/memory/skills paths, branch naming,
 review, VCS, an optional existing delegate-profile YAML path relative to the project,
@@ -374,8 +391,8 @@ environment:
 ```
 
 External setup resolves resources relative to their declaring YAML file, including
-package origins. It installs custom skill directories under `.agents/skills` for
-native frontend discovery; `paths.skills` still selects the shipped worker guidance.
+package origins. It installs custom skills under `.agents/skills` for Codex or
+`.claude/skills` for Claude native discovery; `paths.skills` selects the shipped worker guidance.
 Skill support files remain editable. Programs are copied with executable modes into
 the shared input bundle. Installed operation does not need the original package tree.
 Duplicate skill names, missing programs, unknown fields and unsupported hook events

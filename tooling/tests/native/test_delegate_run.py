@@ -57,6 +57,86 @@ profiles:
 """
 
 
+def select_claude(root: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = root / "delegate.yaml"
+    path.write_text(
+        path.read_text()
+        .replace('frontend: "codex"', 'frontend: "claude-code"')
+        .replace("OPENAI_API_KEY:", "CLAUDE_CODE_OAUTH_TOKEN:")
+    )
+    monkeypatch.setenv("DELEGATE_CLAUDE_BIN", str(root / "fixture/codex"))
+    (root / "fixture/codex-code-mode-host").unlink()
+
+
+CLAUDE_RESPONSE = 'printf \'{"is_error":false,"structured_output":{"ok":true}}\\n\'\n'
+
+
+@pytest.mark.parametrize("mode", ["read", "artifacts"])
+def test_claude_structured_result_and_artifacts_survive_cleanup(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, mode: str
+) -> None:
+    script = 'test "$1" = --print\ntest "$CLAUDE_CONFIG_DIR" = /claude\ntest "$CLAUDE_CODE_OAUTH_TOKEN" = unused-fixture-key\n! echo changed > /claude/settings.json\n! echo changed > /claude/mcp.json\nprintf artifact > /work/asset.txt\n'
+    consumer(worker, tmp_path, monkeypatch, script + CLAUDE_RESPONSE)
+    select_claude(tmp_path, monkeypatch)
+    path = tmp_path / "delegate.yaml"
+    path.write_text(path.read_text().replace('mode: "artifacts"', f'mode: "{mode}"'))
+    request_path = tmp_path / "request.json"
+    request = json.loads(request_path.read_text())
+    reading = mode == "read"
+    if reading:
+        request["contract"]["artifacts"] = {}
+    request_path.write_text(json.dumps(request))
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    result = terminal(worker, tmp_path, identifier)
+    assert result["outcome"] == "PASS", result
+    directory = tmp_path / ".agentrig/runtime/jobs" / identifier
+    assert not (directory / "private").exists()
+    assert call(worker, tmp_path, "result", identifier)["report"] == result["report"]
+    not_reading = not reading
+    if not_reading:
+        assert (directory / "artifacts/asset.txt").read_text() == "artifact"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        "not-json",
+        '{"is_error":true}',
+        '{"is_error":false}',
+        '{"is_error":false,"structured_output":{"ok":false}}',
+    ],
+)
+def test_claude_client_success_does_not_bypass_result_validation(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, payload: str
+) -> None:
+    consumer(
+        worker,
+        tmp_path,
+        monkeypatch,
+        "printf artifact > /work/asset.txt\nprintf '%s' '" + payload + "'\n",
+    )
+    select_claude(tmp_path, monkeypatch)
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    result = terminal(worker, tmp_path, identifier)
+    assert result["outcome"] == "ERROR", result
+    assert not (tmp_path / ".agentrig/runtime/jobs" / identifier / "private").exists()
+
+
+@pytest.mark.parametrize("cancel", [False, True])
+def test_claude_timeout_and_cancel_use_existing_recovery(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, cancel: bool
+) -> None:
+    consumer(worker, tmp_path, monkeypatch, "/tools/sleep 60\n")
+    select_claude(tmp_path, monkeypatch)
+    identifier = call(worker, tmp_path, "start", "delegate.yaml", "request.json")["run_id"]
+    if cancel:
+        call(worker, tmp_path, "cancel", identifier)
+    result = terminal(worker, tmp_path, identifier)
+    expected = "CANCELLED" if cancel else "ERROR"
+    assert result["outcome"] == expected, result
+    assert result["report"]["cleanup_errors"] == []
+
+
 def call(worker: Path, root: Path, *args: str) -> dict[str, Any]:
     result = subprocess.run(
         [str(worker), "delegate", "--root", str(root), *args],

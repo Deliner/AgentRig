@@ -12,7 +12,7 @@ impl Source {
                 .file_name()
                 .and_then(|name| name.to_str())
                 .context("skill name")?;
-            let target = format!(".agents/skills/{name}");
+            let target = format!("{}/{name}", config.frontend.project_skills());
             self.resources.directory_at(&source, &target)?;
             *skill = target.into();
         }

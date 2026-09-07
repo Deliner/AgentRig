@@ -1,6 +1,9 @@
 mod capabilities;
+mod client;
 mod validation;
+pub use agentrig::environment::Frontend;
 pub use capabilities::{Capabilities, Resource};
+pub use client::{Agent, Api};
 // DECISION: D005
 use anyhow::{Context as _, Result, ensure};
 pub use review_runner::vcs::Settings as Vcs;
@@ -15,6 +18,10 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
+    #[serde(default)]
+    pub frontend: Frontend,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent: Option<Agent>,
     pub version: u32,
     pub runtime: String,
     pub config_skill: String,

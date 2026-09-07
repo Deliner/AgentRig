@@ -133,7 +133,6 @@ fn reviewers(
     inputs: (&contract::Contract, Instant),
 ) -> Result<()> {
     let (contract, deadline) = inputs;
-    let codex = sandbox::native_codex()?;
     for roles in config.tools[&report.tool]
         .reviewers
         .chunks(config.runner.parallelism)
@@ -141,12 +140,7 @@ fn reviewers(
         let outcomes = std::thread::scope(|scope| {
             let mut threads = Vec::new();
             for role in roles {
-                let task = task(
-                    config,
-                    role,
-                    (directory, &codex),
-                    (report, contract, deadline),
-                )?;
+                let task = task(config, role, directory, (report, contract, deadline))?;
                 threads.push(scope.spawn(move || reviewer::review(task)));
             }
             threads
@@ -195,7 +189,7 @@ fn resources(
 fn task<'a>(
     config: &'a Config,
     role: &str,
-    paths: (&Path, &Path),
+    directory: &Path,
     inputs: (&Report, &contract::Contract, Instant),
 ) -> Result<Task<'a>> {
     let (report, contract, deadline) = inputs;
@@ -209,10 +203,10 @@ fn task<'a>(
     };
     Ok(Task {
         layout: Layout {
-            project: paths.0.join("project"),
-            input: paths.0.join("input"),
-            role: paths.0.join("reviewers").join(role),
-            codex: paths.1.to_owned(),
+            project: directory.join("project"),
+            input: directory.join("input"),
+            role: directory.join("reviewers").join(role),
+            executable: sandbox::executable(&config.reviewers[role].frontend)?,
         },
         expected,
         reviewer: &config.reviewers[role],

@@ -1,4 +1,4 @@
-use super::{Credentials, Profile};
+use super::{Credentials, Frontend, Profile};
 use anyhow::{Result, ensure};
 use review_runner::config::{globs, identifier, resource};
 use std::{fs, path::Path};
@@ -6,7 +6,12 @@ use std::{fs, path::Path};
 pub(super) fn profile(config: &Path, name: &str, profile: &mut Profile) -> Result<()> {
     ensure!(identifier(name), "invalid profile identifier");
     ensure!(!profile.model.trim().is_empty(), "model must not be empty");
-    review_runner::config::reasoning_effort(&profile.reasoning_effort)?;
+    match profile.frontend {
+        Frontend::Codex => review_runner::config::reasoning_effort(&profile.reasoning_effort)?,
+        Frontend::ClaudeCode => profile
+            .credentials
+            .validate_claude(&profile.reasoning_effort)?,
+    }
     ensure!(
         profile.timeout_seconds > 0,
         "timeout_seconds must be positive"
@@ -26,7 +31,10 @@ pub(super) fn profile(config: &Path, name: &str, profile: &mut Profile) -> Resul
         "prompt must not be empty"
     );
     profile.environment.resolve(config)?;
-    credentials(&profile.credentials)
+    match profile.frontend {
+        Frontend::Codex => credentials(&profile.credentials),
+        Frontend::ClaudeCode => profile.credentials.validate(),
+    }
 }
 
 fn credentials(credentials: &Credentials) -> Result<()> {

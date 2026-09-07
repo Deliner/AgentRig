@@ -8,8 +8,13 @@ from typing import Any
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, invoke, project
-from test_review import resources
+from support import CONFIG, file_contents, invoke, project, update_config
+from test_review import claude_consumer_settings, claude_registered_services, resources
+
+CLIENT_FILES = {
+    "codex": (".agents/skills", ".codex/hooks.json"),
+    "claude-code": (".claude/skills", ".claude/settings.json"),
+}
 
 
 def test_review_uses_project_capability_configuration(worker: Path, tmp_path: Path) -> None:
@@ -163,40 +168,43 @@ def environment_declaration(worker: Path, root: Path) -> Path:
     return path
 
 
+@pytest.mark.parametrize("frontend", CLIENT_FILES)
 def test_project_environment_installs_portable_skills_hooks_and_mcp(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, frontend: str
 ) -> None:
     declaration = environment_declaration(worker, tmp_path)
+    update_config(declaration, frontend=frontend)
+    skill_root, hook_path = CLIENT_FILES[frontend]
     target = tmp_path / "target"
     target.mkdir()
     preview = invoke(worker, target, "setup", "--config", str(declaration), "--preview")
     assert preview.returncode == 0, preview.stderr
-    registration = json.loads(preview.stdout)["registrations"]["codex"]["mcp_servers"]
-    assert registration["probe"]["env_vars"] == ["PROBE_VALUE"]
+    registration = json.loads(preview.stdout)["registrations"][frontend]["mcp_servers"]
+    assert registration["probe"]["command"] == "sh"
     assert file_contents(target) == {}
     applied = invoke(worker, target, "setup", "--config", str(declaration))
     assert applied.returncode == 0, applied.stdout + applied.stderr
-    assert (target / ".agents/skills/guide/support.txt").read_text() == "portable support"
+    assert (target / f"{skill_root}/guide/support.txt").read_text() == "portable support"
     shutil.rmtree(declaration.parent)
     monkeypatch.setenv("PROBE_VALUE", "fixture-value")
-    verify_project_environment(target)
+    verify_project_environment(target, frontend)
     receipt = json.loads((target / ".agentrig/manifest.json").read_text())["files"]
-    assert receipt[".agents/skills/guide/support.txt"]["ownership"] == "editable"
-    (target / ".agents/skills/guide/support.txt").write_text("local support")
+    assert receipt[f"{skill_root}/guide/support.txt"]["ownership"] == "editable"
+    (target / f"{skill_root}/guide/support.txt").write_text("local support")
     before = file_contents(target)
     installed = target / ".agentrig/bin/agentrig"
     repeated = invoke(installed, target, "setup")
     assert repeated.returncode == 0, repeated.stdout + repeated.stderr
     assert file_contents(target) == before
-    hook_file = target / ".codex/hooks.json"
+    hook_file = target / hook_path
     hooks = json.loads(hook_file.read_text())
     hooks["hooks"]["SessionStart"].pop()
     hook_file.write_text(json.dumps(hooks))
     assert invoke(installed, target, "doctor").returncode == 1
 
 
-def verify_project_environment(root: Path) -> None:
-    hooks = json.loads((root / ".codex/hooks.json").read_text())["hooks"]
+def verify_project_environment(root: Path, frontend: str) -> None:
+    hooks = json.loads((root / CLIENT_FILES[frontend][1]).read_text())["hooks"]
     assert len(hooks["SessionStart"]) == 2
     assert hooks["PreToolUse"][0]["matcher"].startswith("Bash|")
     command = hooks["SessionStart"][1]["hooks"][0]["command"]
@@ -213,9 +221,13 @@ def verify_project_environment(root: Path) -> None:
         json.loads(result.stdout)["hookSpecificOutput"]["additionalContext"]
         == "literal 'quotes' $(echo injection)"
     )
-    config = tomllib.loads((root / ".codex/config.toml").read_text())
-    server = config["mcp_servers"]["probe"]
-    assert server["env_vars"] == ["PROBE_VALUE"]
+    codex = frontend == "codex"
+    if codex:
+        config = tomllib.loads((root / ".codex/config.toml").read_text())
+        server = config["mcp_servers"]["probe"]
+        assert server["env_vars"] == ["PROBE_VALUE"]
+    else:
+        server = json.loads((root / ".mcp.json").read_text())["mcpServers"]["probe"]
     result = subprocess.run(
         [server["command"], *server["args"]],
         cwd=root,
@@ -431,3 +443,87 @@ def verify_inspection(report: dict[str, Any], declaration: Path) -> None:
     assert delegates["provenance"]["/profiles/second/hooks/guide/args"] == str(
         declaration.parent / "delegates.yaml"
     )
+
+
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
+def test_project_setup_requires_only_the_selected_review_client(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, frontend: str
+) -> None:
+    result = invoke(worker, tmp_path, "init", "--frontend", frontend, "--review", "true")
+    assert result.returncode == 0, result.stderr
+    path = tmp_path / ".agentrig/review/config/review.yaml"
+    review = yaml.safe_load(path.read_text())
+    for reviewer in review["reviewers"].values():
+        reviewer["frontend"] = "claude-code"
+        reviewer["credentials"] = {"env": {"CLAUDE_CODE_OAUTH_TOKEN": "PROJECT_CLAUDE_TOKEN"}}
+    path.write_text(yaml.safe_dump(review))
+    monkeypatch.setenv("REVIEW_CODEX_BIN", str(tmp_path / "missing-codex"))
+    monkeypatch.setenv("REVIEW_CLAUDE_BIN", "/bin/true")
+    result = invoke(worker, tmp_path, "setup", "--preview")
+    assert result.returncode == 0, result.stderr
+    dependencies = json.loads(result.stdout)["dependencies"]["model_frontends"]
+    assert dependencies == [{"frontend": "native Claude Code", "override_env": "REVIEW_CLAUDE_BIN"}]
+    result = invoke(worker, tmp_path, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "REVIEW_CLAUDE_BIN" in result.stdout and "REVIEW_CODEX_BIN" not in result.stdout
+    codex = frontend == "codex"
+    if codex:
+        settings = tomllib.loads((tmp_path / ".codex/config.toml").read_text())
+        references = settings["mcp_servers"]["worker_review"]["env_vars"]
+        assert {"PROJECT_CLAUDE_TOKEN", "REVIEW_CLAUDE_BIN"} <= set(references)
+
+
+@pytest.mark.parametrize("vcs", ["git", "mercurial"])
+def test_claude_project_setup_preserves_settings_and_runs_registered_services(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    initialized = invoke(
+        worker, tmp_path, "init", "--frontend", "claude-code", "--vcs", vcs, "--review", "true"
+    )
+    assert initialized.returncode == 0, initialized.stderr
+    assert not (tmp_path / ".codex").exists()
+    assert (tmp_path / "CLAUDE.md").read_text() == "@AGENTS.md\n"
+    settings_path, mcp_path = claude_consumer_settings(tmp_path)
+    before = file_contents(tmp_path)
+    preview = invoke(worker, tmp_path, "setup", "--preview")
+    assert preview.returncode == 0, preview.stderr
+    assert file_contents(tmp_path) == before
+    assert "claude-code" in json.loads(preview.stdout)["registrations"]
+    assert "consumer-secret" not in preview.stdout
+    result = invoke(worker, tmp_path, "setup")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(settings_path.read_text())["model"] == "consumer-model"
+    assert settings_path.stat().st_mode & 0o777 == 0o600
+    installed = file_contents(tmp_path)
+    assert (
+        json.loads(mcp_path.read_text())["mcpServers"]["unrelated"]["env"]["TOKEN"]
+        == "consumer-secret"
+    )
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    assert file_contents(tmp_path) == installed
+    claude_registered_services(tmp_path)
+
+
+@pytest.mark.parametrize("conflict", ["disabled-hooks", "invalid-hooks", "mcp"])
+def test_claude_setup_conflicts_preserve_all_files(
+    worker: Path, tmp_path: Path, conflict: str
+) -> None:
+    assert (
+        invoke(worker, tmp_path, "init", "--frontend", "claude-code", "--review", "true").returncode
+        == 0
+    )
+    path = tmp_path / ".claude/settings.json"
+    payload: dict[str, Any] = {"disableAllHooks": True}
+    malformed = conflict == "invalid-hooks"
+    mcp = conflict == "mcp"
+    if malformed:
+        payload = {"hooks": []}
+    if mcp:
+        path = tmp_path / ".mcp.json"
+        payload = {"mcpServers": {"worker_review": {"command": "custom"}}}
+    path.write_text(json.dumps(payload))
+    before = file_contents(tmp_path)
+    result = invoke(worker, tmp_path, "setup")
+    assert result.returncode == 2, result.stdout
+    assert "setup conflict" in result.stderr
+    assert file_contents(tmp_path) == before

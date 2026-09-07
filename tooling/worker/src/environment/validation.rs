@@ -1,12 +1,7 @@
-use super::Environment;
-use anyhow::{Context, Result, ensure};
+use super::{Environment, validate_references};
+use anyhow::{Result, ensure};
 use review_runner::config::{identifier, resource};
-use std::{
-    collections::{BTreeMap, BTreeSet},
-    env, fs,
-    os::unix::fs::PermissionsExt,
-    path::Path,
-};
+use std::{collections::BTreeSet, fs, os::unix::fs::PermissionsExt, path::Path};
 
 impl Environment {
     pub fn resolve(&mut self, config: &Path) -> Result<()> {
@@ -49,47 +44,4 @@ impl Environment {
         }
         Ok(())
     }
-}
-
-pub fn validate_references(references: &BTreeMap<String, String>) -> Result<()> {
-    for (name, reference) in references {
-        ensure!(
-            variable_name(name) && variable_name(reference),
-            "credential environment entries must map variable names to variable names"
-        );
-        ensure!(
-            ![
-                "HOME",
-                "CODEX_HOME",
-                "PATH",
-                "SHELL",
-                "LD_PRELOAD",
-                "LD_LIBRARY_PATH"
-            ]
-            .contains(&name.as_str()),
-            "environment {name} is owned by the sandbox"
-        );
-    }
-    Ok(())
-}
-
-pub fn variable_name(name: &str) -> bool {
-    let mut bytes = name.bytes();
-    bytes
-        .next()
-        .is_some_and(|byte| byte.is_ascii_alphabetic() || byte == b'_')
-        && bytes.all(|byte| byte.is_ascii_alphanumeric() || byte == b'_')
-}
-
-pub fn resolve_references(
-    references: &BTreeMap<String, String>,
-) -> Result<BTreeMap<String, String>> {
-    references
-        .iter()
-        .map(|(name, reference)| {
-            let value = env::var(reference)
-                .with_context(|| format!("missing credential reference {reference}"))?;
-            Ok((name.clone(), value))
-        })
-        .collect()
 }

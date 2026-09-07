@@ -63,6 +63,13 @@ fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array 
         "CODEX_SESSION_ID",
     ]);
     for profile in config.profiles.values() {
+        let claude = matches!(
+            profile.frontend,
+            agentrig::environment::Frontend::ClaudeCode
+        );
+        if claude {
+            names.insert("DELEGATE_CLAUDE_BIN");
+        }
         names.extend(profile.credentials.codex_auth_file_env.as_deref());
         names.extend(profile.credentials.env.values().map(String::as_str));
         for server in profile.environment.mcp_servers.values() {

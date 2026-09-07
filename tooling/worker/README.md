@@ -264,7 +264,10 @@ profiles:
           SERVICE_TOKEN: PROJECT_SERVICE_TOKEN
 ```
 
-Frontend currently accepts `codex`; modes accept `read`, `artifacts` and `code`.
+Frontend accepts `codex` and `claude-code`; both support `read`, `artifacts` and `code`.
+Claude Code uses a native Linux executable found through PATH or
+`DELEGATE_CLAUDE_BIN`. Its `reasoning_effort` accepts `low`, `medium`, `high`,
+`xhigh` and `max`. Select a model supported by your Claude account.
 Prompts, skill directories and executable program paths resolve relative to the
 configuration file (absolute resource paths are also accepted). Each skill
 directory must contain SKILL.md and have a distinct name. MCP servers reference
@@ -290,15 +293,23 @@ isolated Codex home. Programs run inside the delegate sandbox and share its
 deadline and process limits. Frontend hook failures are not mandatory delivery
 gates: contracted results and code checks remain independently verified by the
 runner. Profiles with no hooks keep the frontend hook feature disabled.
+Claude receives explicit settings for the same declared events; its hook programs
+must emit Claude's event-specific responses. AgentRig does not translate program
+stdout between client protocols. Explicit settings and strict MCP configuration
+exclude inherited host configuration.
 The four events and a blocking Stop repair were exercised with real Codex CLI
 0.153.4 and gpt-5.6-sol on Linux; temporary files were removed after verification.
 
 Credential values are environment-variable references, never secret values.
 codex_auth_file_env names a variable containing the auth.json path at execution;
 alternatively credentials.env.OPENAI_API_KEY names a variable holding the API key.
+Claude requires an external reference under `credentials.env` for
+`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN` or `CLAUDE_CODE_OAUTH_TOKEN`;
+`codex_auth_file_env` is rejected for Claude. For example,
+`CLAUDE_CODE_OAUTH_TOKEN: PROJECT_CLAUDE_TOKEN` reads that project variable at launch.
 Other credential env entries and server env entries use the same mapping.
 Configuration validation checks reference syntax without reading those values.
-HOME, CODEX_HOME, PATH, SHELL and loader overrides belong to the sandbox.
+HOME, CODEX_HOME, CLAUDE_CONFIG_DIR, PATH, SHELL and loader overrides belong to the sandbox.
 
 Task requests separate `profile` and `task` from optional `revision`, explicit
 `inputs` (sandbox input name to project-relative source file), and `contract`.
@@ -320,9 +331,9 @@ regular-file reader, checks JSON Schema and required artifacts, and records thei
 sizes and hashes. A model's declaration of completion does not satisfy this contract.
 
 The delegated sandbox builder mounts prepared inputs at /project, /inputs and
-/delegate-input, plus a writable /work and a private /codex. Only configured
+/delegate-input, plus a writable /work and a private /codex or /claude. Only configured
 programs are added under /tools; sh, bash, env and system libraries form the CLI
-runtime. Configured skills are mounted read-only under /codex/skills. Configured
+runtime. Configured skills are mounted read-only under the selected client home's skills directory. Configured
 programs and skill trees are captured by the shared resource builder before launch;
 mounts use these private copies, so later edits to their sources cannot change a
 running delegate. Skill support files and executable flags are preserved; nested
@@ -331,7 +342,7 @@ installed file hashes and executable flags, and status/result includes it as
 `environment` after temporary files have been cleaned. Host checkout,
 home and user-manager sockets are not mounted. The environment starts empty and
 receives fixed runtime variables and explicit credential references. Generated
-Codex configuration is read-only and contains only the configured hooks and
+Client configuration is read-only and contains only the configured hooks and
 MCP servers; their commands resolve inside this sandbox. Real bubblewrap/systemd
 fixtures verify execution and limits. A real Codex read task has passed through
 the configured MCP in an independent consumer, including input reading, result
@@ -340,6 +351,12 @@ stdio MCP service inside the sandbox: its verified output confirmed allowed inpu
 reading, explicit environment forwarding and an invisible host checkout. The
 initial task message lists the profile's programs by sandbox
 path; generic host utilities are not implicitly available.
+
+Claude's print-mode JSON envelope supplies `structured_output`; the parent writes
+the reserved result file and applies the same schema, artifact and code checks.
+Deterministic Claude executors in real sandboxes cover all three modes, invalid
+responses, cancellation, timeout and resource isolation. Real Claude model, hook
+discovery and MCP acceptance remain pending; these fixtures do not establish them.
 
 `just delegate start CONFIG REQUEST_JSON` returns a run_id from the shared jobs
 registry. `just delegate status RUN_ID` and `result RUN_ID` return OS state and the

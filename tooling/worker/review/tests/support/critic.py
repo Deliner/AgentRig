@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import json
+import os
 import subprocess
 import sys
 import time
@@ -41,6 +42,17 @@ def isolation():
 
 def main():
     print(time.monotonic(), flush=True)
+    assert "UNDECLARED_SECRET" not in os.environ
+    claude = "--print" in sys.argv
+    if claude:
+        assert os.environ["CLAUDE_CODE_OAUTH_TOKEN"] == "fixture-token"
+        assert os.environ["CLAUDE_CONFIG_DIR"] == "/claude"
+        assert "CODEX_HOME" not in os.environ
+        assert "--bare" not in sys.argv
+        settings = json.loads(Path("/review-bin/settings.json").read_text())
+        assert settings["hooks"]["Stop"][0]["hooks"][0]["command"].endswith("review-hook")
+        assert sys.argv[sys.argv.index("--setting-sources") + 1] == ""
+        assert "--strict-mcp-config" in sys.argv
     data = sys.stdin.read().split("Expected identity and contract:\n")[1]
     expected = json.loads(data)
     isolation()
@@ -51,6 +63,9 @@ def main():
     if exhausted:
         assert hook()["decision"] == "block"
         assert hook()["continue"] is False
+    correction = MODE == "correction"
+    if correction:
+        assert hook()["decision"] == "block"
     parallel = MODE == "parallel"
     if parallel:
         time.sleep(0.3)
