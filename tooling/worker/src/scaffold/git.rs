@@ -29,10 +29,10 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     Ok(0)
 }
 pub fn merge(context: &Context) -> Result<i32> {
-    ensure!(
-        context.config.vcs.backend == review_runner::vcs::Kind::Git,
-        "feature-merge for this VCS is not implemented yet; preserve the branch until native integration support is available"
-    );
+    let mercurial = context.config.vcs.backend == review_runner::vcs::Kind::Mercurial;
+    if mercurial {
+        return merge_mercurial(context);
+    }
     let root = &context.root;
     let settings = &context.config.vcs;
     let feature = git(root, &["branch", "--show-current"])?;
@@ -64,6 +64,27 @@ pub fn merge(context: &Context) -> Result<i32> {
     }
     Ok(code)
 }
+fn merge_mercurial(context: &Context) -> Result<i32> {
+    let settings = &context.config.vcs;
+    let repository = settings
+        .backend
+        .repository(&context.root)?
+        .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
+    let merge = repository.prepare_mercurial_merge(settings)?;
+    let code = gate::run(&context.root, false)?;
+    let failed = code != 0;
+    if failed {
+        return Ok(code);
+    }
+    ensure!(
+        super::evidence::resume(context)["full_gate_passed"] == true,
+        "checked merge inputs changed; preserve the native merge and retry after repairing the checks"
+    );
+    repository.commit_mercurial_merge(settings, &merge)?;
+    println!("merged {}; branch retained", merge.feature);
+    cleanup_merged(context, &merge.feature)
+}
+
 fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
     let identified = agentrig::jobs::owner().is_some();
     let anonymous = !identified;

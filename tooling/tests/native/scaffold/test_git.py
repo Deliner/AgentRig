@@ -468,3 +468,37 @@ def test_mercurial_feature_start_rejects_pending_merge_with_clean_files(
     observed = resumed(worker, tmp_path)["vcs"]
     assert observed["merge_in_progress"]
     assert observed["branch"] == "default"
+
+
+def test_mercurial_integration_preserves_empty_feature_branch(worker: Path, tmp_path: Path) -> None:
+    base = feature_repository(tmp_path, "hg")
+    assert invoke(worker, tmp_path, "feature-start", "empty").returncode == 0
+    result = invoke(worker, tmp_path, "feature-merge")
+    assert result.returncode == 2 and "no committed changes" in result.stderr
+    assert hg(tmp_path, "branch") == "task/empty"
+    assert revision(tmp_path, "hg") == base
+
+
+@pytest.mark.parametrize("obstacle", ["dirty", "multiple-heads"])
+def test_mercurial_integration_preserves_unready_repository(
+    worker: Path, tmp_path: Path, obstacle: str
+) -> None:
+    feature_repository(tmp_path, "hg")
+    assert invoke(worker, tmp_path, "feature-start", "product").returncode == 0
+    source = tmp_path / "src/value.py"
+    source.write_text("value = 2\n")
+    candidate = revision_commit(tmp_path, "hg")
+    multiple_heads = obstacle == "multiple-heads"
+    if multiple_heads:
+        hg(tmp_path, "update", "--rev", "0")
+        source.write_text("value = 3\n")
+        revision_commit(tmp_path, "hg")
+        hg(tmp_path, "update", "--rev", candidate)
+    else:
+        source.write_text("value = 4\n")
+    before = source.read_bytes()
+    result = invoke(worker, tmp_path, "feature-merge")
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert revision(tmp_path, "hg") == candidate
+    assert hg(tmp_path, "branch") == "task/product"
+    assert source.read_bytes() == before

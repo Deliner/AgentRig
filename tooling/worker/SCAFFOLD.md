@@ -142,15 +142,28 @@ supports Git and Mercurial through the shared VCS owner. It requires the configu
 base branch, a clean working tree and no pending merge/rebase. Git creates a new
 branch reference; Mercurial sets the working directory's named branch, recorded
 permanently by the next commit. Native branch commands reject invalid or existing
-names and honor consumer hooks. Mercurial `feature-merge` remains unimplemented
-and returns an explicit capability error; complete multi-VCS delivery is not yet accepted.
+names and honor consumer hooks.
+
+Mercurial `feature-merge` selects the base branch's single head, updates to that
+exact revision and merges the committed feature using the native internal merge
+tool. Multiple base heads and uncommitted feature names are rejected before
+switching. The merged working tree must pass the full gate with unchanged inputs;
+the commit retains both selected parents and the feature's named-branch history.
+Configured native hooks run normally, including setup's pending-changeset gate.
+A conflict or failed gate preserves the pending merge. Resolve conflicts with
+native `hg resolve`, repair failing checks, handle retained backup/untracked files,
+then repeat `feature-merge` from the base branch. To discard an attempted merge,
+first preserve any work you need, then use native `hg merge --abort`. If the base
+advanced, abort and retry from the retained feature instead of committing against
+the outdated base. Complete multi-VCS delivery, including private adapters, is not
+yet accepted.
 
 ## Configuration ownership
 
 `agentrig.yaml` has schema `version: 1` and an exact `runtime` package version. Unknown fields are errors. Project-relative filesystem paths cannot escape the root. Source and check selectors are globs. The generated file is a complete editable example.
 
 - `paths`: source selectors and locations of memory, skills, lint configuration and transient runtime data.
-- `git`: base branch and working-branch prefix.
+- `vcs`: backend, base branch and working-branch prefix (`git` remains a YAML alias).
 - `commands.NAME`: `argv`, `cwd` (default `.`), `accepts_args` and `read_only`. An empty argv requires forwarded arguments. Shell evaluation happens only if the catalog explicitly invokes a shell.
 - `checks`: ordered IDs, `kind` (`command`, `lint`, `memory`), optional command reference, `include`, repair `skill`, and `warning`. A check with no matching files is skipped.
 - `hooks`: file-to-skill routes, optional reminder JSON and the corresponding discipline skill. The hook and runner use the same command catalog.

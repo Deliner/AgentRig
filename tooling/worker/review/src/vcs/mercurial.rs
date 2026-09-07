@@ -45,17 +45,22 @@ fn execute(mut command: Command, root: &Path, args: &[&str]) -> Result<Vec<u8>> 
 }
 
 pub(super) fn create_branch(root: &Path, branch: &str) -> Result<()> {
+    write(root, &["branch", "--", branch])
+}
+
+pub(super) fn write(root: &Path, args: &[&str]) -> Result<()> {
     // Authorized writes honor the consumer's native configuration and hooks.
     let output = Command::new("hg")
         .current_dir(root)
         .env("HGPLAIN", "1")
         .env_remove("HGRCSKIPREPO")
         .env_remove("HGPLAINEXCEPT")
-        .args(["branch", "--", branch])
+        .args(args)
         .output()?;
     ensure!(
         output.status.success(),
-        "Mercurial branch failed: {}",
+        "Mercurial write failed; preserve the native operation for repair or abort: {}{}",
+        String::from_utf8_lossy(&output.stdout),
         String::from_utf8_lossy(&output.stderr)
     );
     Ok(())

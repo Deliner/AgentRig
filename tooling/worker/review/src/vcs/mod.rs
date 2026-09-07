@@ -2,9 +2,11 @@
 mod branches;
 mod export;
 mod git;
+mod integration;
 mod mercurial;
 mod observation;
 mod registration;
+pub use integration::Merge;
 pub use observation::Observation;
 pub use registration::Settings;
 
