@@ -9,7 +9,66 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import file_contents, invoke, update_config
+from support import CONFIG, file_contents, invoke, project, update_config
+
+
+@pytest.mark.parametrize("backend", ["git", "mercurial"])
+@pytest.mark.parametrize(
+    "case",
+    [
+        ("main", True, True),
+        ("main line", False, True),
+        ("HEAD", False, True),
+        ("tip", True, False),
+        ("null", True, False),
+        ("123", True, False),
+        ("+123", True, False),
+        ("12_3", True, True),
+        ("bad:name", False, False),
+        ("", False, False),
+        (" main", False, False),
+        ("main ", False, False),
+        ("main\v", False, False),
+        ("main\nline", False, False),
+    ],
+)
+def test_configuration_uses_native_vcs_names(
+    worker: Path, tmp_path: Path, backend: str, case: tuple[str, bool, bool]
+) -> None:
+    name, git_valid, hg_valid = case
+    project(tmp_path, CONFIG)
+    update_config(tmp_path / "agentrig.yaml", git={"backend": backend, "base": name})
+    result = invoke(worker, tmp_path, "config-check")
+    using_git = backend == "git"
+    valid = git_valid if using_git else hg_valid
+    assert result.returncode == (0 if valid else 2), result.stderr
+    invalid = not valid
+    if invalid:
+        assert "vcs.base" in result.stderr
+    assert not (tmp_path / ".git").exists() and not (tmp_path / ".hg").exists()
+
+
+def test_mercurial_setup_retains_configured_spaces(worker: Path, tmp_path: Path) -> None:
+    result = invoke(
+        worker, tmp_path, "init", "--vcs", "mercurial", "--base", "main line", "--prefix", "task "
+    )
+    assert result.returncode == 0, result.stderr
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    assert subprocess.check_output(["hg", "branch"], cwd=tmp_path, text=True).strip() == "main line"
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    # Bootstrap generated files on a native feature branch before delivery commands.
+    subprocess.run(["hg", "branch", "task product"], cwd=tmp_path, check=True, capture_output=True)
+    subprocess.run(["hg", "add"], cwd=tmp_path, check=True, capture_output=True)
+    committed = subprocess.run(
+        ["hg", "commit", "-m", "bootstrap", "-u", "Test"],
+        cwd=tmp_path,
+        capture_output=True,
+        text=True,
+    )
+    assert committed.returncode == 0, committed.stdout + committed.stderr
+    update_config(tmp_path / "agentrig.yaml", vcs={"prefix": " leading/"})
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2 and "vcs.prefix" in result.stderr
 
 
 def declaration(worker: Path, root: Path, service: str = ".agentrig") -> Path:

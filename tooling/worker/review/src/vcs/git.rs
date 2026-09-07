@@ -2,6 +2,21 @@ use super::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
+pub(super) fn branch_name(value: &str) -> bool {
+    !value.is_empty()
+        && value != "HEAD"
+        && !value.starts_with('-')
+        && !value.ends_with('.')
+        && !value.contains("..")
+        && !value.contains("@{")
+        && !value
+            .bytes()
+            .any(|byte| byte <= 32 || byte == 127 || b"~^:?*[\\".contains(&byte))
+        && value
+            .split('/')
+            .all(|part| !part.is_empty() && !part.starts_with('.') && !part.ends_with(".lock"))
+}
+
 pub(super) fn command(root: &Path, args: &[&str]) -> Command {
     let mut command = Command::new("git");
     command

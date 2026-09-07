@@ -144,6 +144,14 @@ branch reference; Mercurial sets the working directory's named branch, recorded
 permanently by the next commit. Native branch commands reject invalid or existing
 names and honor consumer hooks.
 
+Configuration validates `vcs.base` and the names formed by `vcs.prefix` using the
+selected backend's rules, without creating a repository. Git reference syntax
+remains enforced. Mercurial permits names such as `main line` and a prefix such as
+`task `; reserved labels, integer names, forbidden characters and surrounding
+whitespace are rejected. Surrounding whitespace would be trimmed by its native
+CLI and would no longer match the configured base or prefix. The prefix must be
+nonempty and distinguish feature branches from the configured base.
+
 `feature-merge` dispatches through the shared VCS owner. Git rebases divergent
 features with merge history preserved, checks the candidate and merges it into
 the configured base with an explicit merge commit. Both backends require a full

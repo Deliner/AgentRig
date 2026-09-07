@@ -196,18 +196,3 @@ fn name(value: &str) -> bool {
             .chars()
             .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
-
-fn branch_name(value: &str) -> bool {
-    !value.is_empty()
-        && value != "HEAD"
-        && !value.starts_with('-')
-        && !value.ends_with('.')
-        && !value.contains("..")
-        && !value.contains("@{")
-        && !value
-            .bytes()
-            .any(|byte| byte <= 32 || byte == 127 || b"~^:?*[\\".contains(&byte))
-        && value
-            .split('/')
-            .all(|part| !part.is_empty() && !part.starts_with('.') && !part.ends_with(".lock"))
-}

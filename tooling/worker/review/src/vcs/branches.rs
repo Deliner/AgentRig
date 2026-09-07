@@ -1,6 +1,33 @@
 use super::{Kind, Repository, Settings, git, mercurial};
 use anyhow::{Result, ensure};
 
+impl Settings {
+    pub fn validate(&self) -> Result<()> {
+        ensure!(
+            self.backend.branch_name(&self.base),
+            "vcs.base must name a valid {} branch without normalization",
+            self.backend.executable()
+        );
+        ensure!(
+            !self.prefix.is_empty()
+                && self.backend.branch_name(&format!("{}example", self.prefix))
+                && !self.base.starts_with(&self.prefix),
+            "vcs.prefix must form valid {} branches distinct from vcs.base",
+            self.backend.executable()
+        );
+        Ok(())
+    }
+}
+
+impl Kind {
+    fn branch_name(self, value: &str) -> bool {
+        match self {
+            Self::Git => git::branch_name(value),
+            Self::Mercurial => mercurial::branch_name(value),
+        }
+    }
+}
+
 impl Repository<'_> {
     pub fn start_feature(&self, settings: &Settings, name: &str) -> Result<String> {
         ensure!(

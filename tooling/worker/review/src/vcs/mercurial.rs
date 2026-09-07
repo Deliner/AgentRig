@@ -3,6 +3,17 @@ use anyhow::{Context as _, Result, bail, ensure};
 use serde::Deserialize;
 use std::{collections::BTreeMap, path::Path, process::Command};
 
+pub(super) fn branch_name(value: &str) -> bool {
+    // Match Mercurial's checknewlabel; do not accept names its CLI would trim.
+    let digits = value.strip_prefix(['+', '-']).unwrap_or(value);
+    let integer = !digits.is_empty() && digits.bytes().all(|byte| byte.is_ascii_digit());
+    !value.is_empty()
+        && !matches!(value, "tip" | "." | "null")
+        && !value.contains([':', '\0', '\n', '\r'])
+        && value.trim_matches([' ', '\t', '\r', '\n', '\x0b', '\x0c']) == value
+        && !integer
+}
+
 pub(super) fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
     // Mercurial can refresh caches and dirstate during native read commands.
     let mut command = Command::new("bwrap");
