@@ -1,4 +1,5 @@
 use super::evidence::{Input, native_index};
+mod selection;
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
@@ -72,7 +73,7 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
         only.unwrap_or_default()
     );
     let mut attempt = super::evidence::Attempt::start(&context, root, input, only)?;
-    let code = execute_checks(&context, root, &mut attempt, only)?;
+    let code = execute_checks(&context, root, &mut attempt, &options)?;
     let stable = attempt.finish(&context, root, code)?;
     ensure!(
         stable || options.revision.is_none(),
@@ -106,14 +107,15 @@ fn execute_checks(
     context: &Context,
     root: &Path,
     attempt: &mut super::evidence::Attempt,
-    only: Option<&str>,
+    options: &Options<'_>,
 ) -> Result<i32> {
     let files = files(context, root)?;
+    let changes = selection::changes(root, options.staged)?;
     for check in context
         .config
         .checks
         .iter()
-        .filter(|check| only.is_none_or(|id| check.id == id))
+        .filter(|check| options.only.is_none_or(|id| check.id == id))
     {
         let include = globs(&check.include)?;
         let applies = files.iter().any(|path| include.is_match(path));
@@ -122,25 +124,45 @@ fn execute_checks(
             println!("SKIP [{}]: no selected files", check.id);
             continue;
         }
-        let rerun = attempt.rerun(root, &check.id);
-        let (code, broken) = checked(context, (root, attempt.exported_revision()), check, &rerun);
-        attempt.checked(check, code, rerun)?;
-        let passed = code == 0;
-        if passed {
-            println!("PASS [{}]", check.id);
-            continue;
+        let targets = selection::targets(check, changes.as_deref())?;
+        if let Some(targets) = &targets {
+            attempt.selective()?;
+            println!("SELECT [{}]: {targets:?}", check.id);
+            let empty = targets.is_empty();
+            if empty {
+                continue;
+            }
         }
-        let stop = broken || code >= 128 || !check.warning;
-        if stop {
+        let source = (root, targets.as_deref().unwrap_or_default());
+        if let Some(code) = execute_selected(context, source, check, attempt)? {
             return Ok(code);
         }
     }
     Ok(0)
 }
 
+fn execute_selected(
+    context: &Context,
+    source: (&Path, &[String]),
+    check: &Check,
+    attempt: &mut super::evidence::Attempt,
+) -> Result<Option<i32>> {
+    let rerun = attempt.rerun(source.0, &check.id);
+    let input = (source.0, attempt.exported_revision(), source.1);
+    let (code, broken) = checked(context, input, check, &rerun);
+    attempt.checked(check, code, rerun)?;
+    let passed = code == 0;
+    if passed {
+        println!("PASS [{}]", check.id);
+        return Ok(None);
+    }
+    let stop = broken || code >= 128 || !check.warning;
+    Ok(stop.then_some(code))
+}
+
 fn run_check(
     context: &Context,
-    source: (&Path, Option<&str>),
+    source: (&Path, Option<&str>, &[String]),
     check: &Check,
     rerun: &str,
 ) -> Result<i32> {
@@ -148,7 +170,7 @@ fn run_check(
         CheckKind::Command => commands::run(
             context,
             check.command.as_deref().expect("validated command"),
-            &[],
+            source.2,
         ),
         CheckKind::Lint => lint::check(
             &context.root,
@@ -161,7 +183,7 @@ fn run_check(
 }
 fn checked(
     context: &Context,
-    source: (&Path, Option<&str>),
+    source: (&Path, Option<&str>, &[String]),
     check: &Check,
     rerun: &str,
 ) -> (i32, bool) {

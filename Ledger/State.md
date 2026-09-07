@@ -8,21 +8,21 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 61ebbe6
+Revision: f17e53e
 
-Current VAC extends VCS directory discovery so empty visible directories participate in architectural inventory. Native Git/Mercurial use their own ignore commands; external adapters provide working-directories. File-derived directory-size measurements are preserved. Development pin is unchanged. Integration remains pending.
+Current authorized maintenance VAC adds affected-path test groups to command checks. Staged checks use the index diff, unknown paths retain full commands, and ordinary/revision/integration checks remain full. The installed development pin and AgentRig test policy are not changed yet. P009 integration remains pending.
 
 ## Progress
 
 Inventory, repair guidance, Rust binding analysis, delegation/environment/review ownership and declaration/use cycle correction are committed. Standard Rust module declarations remain subject to access checks but no longer manufacture use cycles. Calls, imports, type references and reexports retain cycle checks.
 
-Shared artifact bytes, snapshots and diagnostic ownership are committed through 61ebbe6. The current discovery fix preserves tracked-file parents, skips metadata/symlink directories and applies lint exclusions. The external Mercurial example and protocol documentation include the new operation. Unsupported directory inventory is an explicit error without native fallback. Existing private gate fixtures supply their directory inventory.
+VCS empty-directory discovery is committed in f17e53e, including native ignore handling, private working-directories, explicit unsupported-operation errors and preserved file-derived size counts. The current maintenance adds optional Check.affected groups, literal target union, empty selection skips and selective evidence that cannot set full_gate_passed. Existing configurations omit the new field and retain full commands. CHECKS.md, AGENTS.md and the canonical execution skill explain configured commit tests versus full integration verification.
 
 ## Verification
 
-Commit 61ebbe6 passed all gates (92749 exited 0): 676 Python tests in 643.43 seconds and 147 Rust tests.
+Commit f17e53e passed all gates (74086 exited 0): 687 Python tests in 710.53 seconds and 147 Rust tests.
 
-Before the fix, all six new backend/binary cases incorrectly returned success for a missing empty-directory contract (78868). After the fix, 25 inventory tests passed (73320), then 48 inventory/CLI/private-gate tests passed (96661) and three additional file-derived count regressions passed. Review Clippy, both Rust format checks, touched Python Ruff/format, structural lint and whitespace pass. Source probe still reports 34 cycles and 28 missing contracts, with no other findings. This probe covers Rust sources, not the complete maintained repository. No check process remains active; mandatory commit gate is next.
+Current maintenance passed all-target compilation, Clippy, mypy, both Rust format checks, touched Python Ruff/format, structural lint and whitespace. Twelve new behavior/configuration cases pass, including edits, deletions, renames, unstaged isolation, full fallback, explicit skips and a real feature-merge invoking the full command. Eight existing gate/evidence/integration cases passed (97179). Fixture-only failures from report parsing, an unignored runtime directory, function size and action-map typing were corrected; final checks pass. The narrow canonical skill edit passed quick_validate. All observed check processes are terminal; the mandatory commit gate is next.
 
 ## Blockers
 
@@ -30,4 +30,6 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit the VCS directory discovery VAC through the mandatory gate and repair any failures without weakening coverage. Continue remaining worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources, including Python test import roots, and justify service/generated/third-party exclusions. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.
+Commit this selective-test runtime support through the mandatory gate. Then promote the accepted full commit in tooling/distribution/stable.txt, bootstrap it, and enable explicit affected groups for the expensive AgentRig test command in agentrig.yaml. Keep shared infrastructure and unknown paths on full fallback; map documentation/memory-only paths explicitly where no tests are needed, retain fast checks, and verify installed-hook selection plus full integration behavior. The user's selective-commit/full-merge request is the current maintenance priority; P009 remains the active unfinished goal.
+
+Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

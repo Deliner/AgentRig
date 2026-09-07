@@ -2,10 +2,12 @@ import json
 import shlex
 import shutil
 import subprocess
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
-from support import CONFIG, file_contents, invoke, project, update_config, vcs_backend
+import yaml
+from support import CONFIG, file_contents, git, invoke, project, update_config, vcs_backend
 
 GATE = """
 checks:
@@ -18,6 +20,133 @@ checks:
   skill: "guides/repair/SKILL.md"
   warning: true
 """
+
+
+def affected_project(root: Path) -> None:
+    project(root)
+    groups = [
+        {"include": ["src/a.rs"], "targets": ["tests/a", "tests/shared"]},
+        {"include": ["src/b.rs", "src/moved.rs"], "targets": ["tests/b", "tests/shared"]},
+        {"include": ["docs/**"], "targets": []},
+    ]
+    update_config(
+        root / "agentrig.yaml",
+        commands={
+            "test": {
+                "argv": [
+                    "python3",
+                    "-c",
+                    "import json,sys; print('TARGETS='+json.dumps(sys.argv[1:]))",
+                ],
+                "accepts_args": True,
+            }
+        },
+        checks=[
+            {
+                "id": "tests",
+                "kind": "command",
+                "command": "test",
+                "skill": "guides/repair/SKILL.md",
+                "affected": groups,
+            }
+        ],
+    )
+    affected_baseline(root)
+
+
+def affected_baseline(root: Path) -> None:
+    (root / ".gitignore").write_text(".runtime/\n")
+    (root / "src/a.rs").write_text("before\n")
+    (root / "src/b.rs").write_text("before\n")
+    (root / "docs").mkdir()
+    (root / "docs/guide.md").write_text("before\n")
+    git(root, "init", "-b", "task/selection")
+    git(root, "add", ".")
+    git(root, "config", "user.name", "Test")
+    git(root, "config", "user.email", "test@example.invalid")
+    git(root, "commit", "-qm", "base")
+
+
+def affected_check(worker: Path, root: Path, case: str) -> subprocess.CompletedProcess[str]:
+    merge = case == "merge"
+    if merge:
+        git(root, "branch", "trunk")
+        git(root, "commit", "-qm", "feature")
+        return invoke(worker, root, "feature-merge")
+    full = case == "full"
+    args = [] if full else ["--staged"]
+    return invoke(worker, root, "check", *args)
+
+
+def affected_change(tmp_path: Path, case: str) -> None:
+    source = tmp_path / "src/a.rs"
+
+    def edit() -> int:
+        return source.write_text("changed\n")
+
+    actions: dict[str, Callable[[], object]] = {
+        "edit": edit,
+        "unstaged": edit,
+        "full": edit,
+        "merge": edit,
+        "delete": source.unlink,
+        "rename": lambda: source.rename(tmp_path / "src/moved.rs"),
+        "unknown": lambda: (tmp_path / "unknown.txt").write_text("new\n"),
+        "docs": lambda: (tmp_path / "docs/guide.md").write_text("changed\n"),
+    }
+    actions[case]()
+    git(tmp_path, "add", "-A")
+    unstaged = case == "unstaged"
+    if unstaged:
+        (tmp_path / "src/b.rs").write_text("not staged\n")
+
+
+@pytest.mark.parametrize(
+    "case", ["edit", "delete", "rename", "unknown", "docs", "unstaged", "full", "merge"]
+)
+def test_staged_groups_preserve_full_fallback_and_full_gate(
+    worker: Path, tmp_path: Path, case: str
+) -> None:
+    affected_project(tmp_path)
+    affected_change(tmp_path, case)
+    result = affected_check(worker, tmp_path, case)
+    assert result.returncode == 0, result.stdout + result.stderr
+    expected = {
+        "rename": ["tests/a", "tests/b", "tests/shared"],
+        "unknown": [],
+        "full": [],
+        "merge": [],
+    }
+    docs = case == "docs"
+    if docs:
+        assert "TARGETS=" not in result.stdout
+    else:
+        assert (
+            "TARGETS=" + json.dumps(expected.get(case, ["tests/a", "tests/shared"]))
+            in result.stdout
+        )
+    record = json.loads((tmp_path / ".runtime/checks.json").read_text())
+    assert record["selective"] == (case not in {"unknown", "full", "merge"})
+    report = invoke(worker, tmp_path, "report")
+    assert report.returncode == 0, report.stderr
+    evidence = json.loads(report.stdout.split("Check evidence: ", 1)[1].splitlines()[0])
+    assert evidence["full_gate_passed"] == (case in {"unknown", "full"})
+
+
+@pytest.mark.parametrize(
+    "include,targets", [([], []), (["["], []), (["src/**"], [""]), (["src/**"], ["a\0b"])]
+)
+def test_affected_groups_reject_invalid_configuration(
+    worker: Path, tmp_path: Path, include: list[str], targets: list[str]
+) -> None:
+    affected_project(tmp_path)
+    path = tmp_path / "agentrig.yaml"
+    config = yaml.safe_load(path.read_text())
+    config["checks"][0]["affected"] = [{"include": include, "targets": targets}]
+    path.write_text(yaml.safe_dump(config))
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "affected" in result.stderr
 
 
 def test_gate_warning_and_block(worker: Path, tmp_path: Path) -> None:

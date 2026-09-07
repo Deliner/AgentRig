@@ -30,6 +30,8 @@ struct Record {
     staged: bool,
     index_fingerprint: Option<String>,
     only: Option<String>,
+    #[serde(default)]
+    selective: bool,
     status: String,
     code: Option<i32>,
     results: Vec<ResultRecord>,
@@ -83,6 +85,7 @@ impl Attempt {
             staged: index_fingerprint.is_some(),
             index_fingerprint,
             only: only.map(str::to_owned),
+            selective: false,
             status: "unfinished".into(),
             code: None,
             results: Vec::new(),
@@ -98,6 +101,10 @@ impl Attempt {
     }
     pub fn exported_revision(&self) -> Option<&str> {
         self.record.exported_revision()
+    }
+    pub fn selective(&mut self) -> Result<()> {
+        self.record.selective = true;
+        self.save()
     }
     pub fn rerun(&self, root: &Path, id: &str) -> String {
         let mut args = vec!["check".to_owned(), "--only".into(), id.into()];
@@ -202,7 +209,8 @@ fn observed(context: &Context) -> Result<Value> {
         && content_matches
         && index_matches.unwrap_or(true)
         && record.status == "completed";
-    let full_gate_passed = current && record.only.is_none() && record.code == Some(0);
+    let full_gate_passed =
+        current && record.only.is_none() && !record.selective && record.code == Some(0);
     Ok(
         json!({"last_run": record, "revision_matches": revision_matches, "worktree_matches": content_matches, "index_matches": index_matches,
         "current": current, "full_gate_passed": full_gate_passed}),

@@ -109,6 +109,14 @@ pub struct Check {
     pub skill: String,
     #[serde(default)]
     pub warning: bool,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub affected: Vec<AffectedTests>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct AffectedTests {
+    pub include: Vec<String>,
+    pub targets: Vec<String>,
 }
 #[derive(Deserialize, Serialize, Default)]
 #[serde(deny_unknown_fields)]

@@ -166,6 +166,23 @@ impl<'a> Repository<'a> {
         paths(&bytes)
     }
 
+    pub fn staged_changes(&self) -> Result<Vec<String>> {
+        match self.kind {
+            Kind::Git => paths(&git::run(
+                self.root,
+                &[
+                    "diff",
+                    "--cached",
+                    "--name-only",
+                    "--no-renames",
+                    "-z",
+                    "--",
+                ],
+            )?),
+            Kind::Mercurial => anyhow::bail!("Mercurial has no staging index"),
+        }
+    }
+
     pub fn staged_files(&self) -> Result<Vec<String>> {
         match self.kind {
             Kind::Git => paths(&git::staged_files(self.root)?),

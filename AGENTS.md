@@ -14,7 +14,7 @@ Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers an
 
 Invoke shell operations through the justfile recipes (`just --list`). `just list` lists the configured command catalog. Use `just read -- ...` for sandboxed shell inspection, `just write -- ...` for authorized shell mutations, and `just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately preceding What/Why comment.
 
-Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that change. Commit through .githooks/pre-commit, which runs the full exported-index gate. Never bypass it. Avoid repeating the full gate immediately before the same commit unless needed for diagnosis. Finish on a clean feature branch with `just feature-merge`; retain the branch after integration. Branch policy comes from agentrig.yaml; never commit directly to its configured base.
+Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that change. Commit through .githooks/pre-commit, which runs the configured exported-index gate; explicit affected-path groups may select commit tests. Never bypass it. Avoid repeating the gate immediately before the same commit unless needed for diagnosis. Finish on a clean feature branch with `just feature-merge`, which runs the full test suite; retain the branch after integration. Branch policy comes from agentrig.yaml; never commit directly to its configured base.
 
 ## Memory and skills
 

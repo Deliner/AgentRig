@@ -113,11 +113,41 @@ impl Config {
             );
             skill(root, &check.skill).with_context(|| format!("checks.{}.skill", check.id))?;
             check.validate_command(&self.commands)?;
+            check.validate_affected(&self.commands)?;
         }
         Ok(())
     }
 }
 impl Check {
+    fn validate_affected(&self, commands: &BTreeMap<String, Command>) -> Result<()> {
+        let configured = !self.affected.is_empty();
+        if configured {
+            let command = self
+                .command
+                .as_ref()
+                .context("affected requires a command check")?;
+            ensure!(
+                commands[command].accepts_args,
+                "affected command must accept test targets"
+            );
+        }
+        for group in &self.affected {
+            ensure!(
+                !group.include.is_empty(),
+                "affected group requires include paths"
+            );
+            globs(&group.include).context("affected include paths")?;
+            ensure!(
+                group
+                    .targets
+                    .iter()
+                    .all(|target| !target.is_empty() && !target.contains('\0')),
+                "affected targets must be nonempty and NUL-free"
+            );
+        }
+        Ok(())
+    }
+
     fn validate_command(&self, commands: &BTreeMap<String, Command>) -> Result<()> {
         match (&self.kind, &self.command) {
             (CheckKind::Command, Some(command)) => {
