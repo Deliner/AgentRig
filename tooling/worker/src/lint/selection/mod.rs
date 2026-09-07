@@ -1,7 +1,7 @@
 use super::{
+    catalog as rules,
     config::{self, Rule, extension_matches, globs},
     inventory::Inventory,
-    rules,
 };
 use anyhow::{Context, Result, bail};
 use globset::GlobSet;

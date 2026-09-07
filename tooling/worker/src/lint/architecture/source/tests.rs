@@ -1,5 +1,5 @@
 use super::{Loader, Reference, References, Target, extract};
-use crate::lint::{languages, rules};
+use crate::lint::{catalog as rules, languages};
 use std::path::Path;
 
 fn parse(path: &str, text: &str) -> References {

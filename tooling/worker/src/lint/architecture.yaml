@@ -1,0 +1,37 @@
+purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
+files:
+  architecture.yaml: Lint module responsibilities and public consumer boundary
+  mod.rs: Evaluation orchestration, scalar findings and configured diagnostic output
+  cli.rs: Embedded and standalone command arguments and rule discovery output
+  explain.rs: Explain why a configured rule selects or excludes a target
+  rules.rs: Preserve public rule paths while forwarding to definitions and catalogue owners
+directories:
+  architecture: Check responsibility inventories and measured dependency boundaries
+  catalog: Describe implemented rule and language capabilities
+  config: Load and validate strict lint policy and guidance paths
+  inventory: Discover maintained files and directories
+  languages: Parse source syntax and measure language-specific scalar rules
+  rules: Define stable rule identities, parameters and architecture settings
+  selection: Select targets and compute effective thresholds
+allow:
+  - tooling/worker/src/util.rs
+  - tooling/worker/src/diagnostics/mod.rs
+  - tooling/worker/src/diagnostics/lint.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public:
+  - mod.rs
+  - cli.rs
+  - explain.rs
+  - rules.rs
+  - catalog/mod.rs
+  - config/mod.rs
+  - inventory/mod.rs
+  - languages/mod.rs
+  - rules/kind.rs
+  - rules/descriptor.rs
+  - rules/architecture.rs
+  - architecture/mod.rs
+  - architecture/runner/mod.rs
+  - architecture/source/mod.rs

@@ -11,6 +11,6 @@ directories:
 allow:
   - tooling/worker/src/lint/architecture/mod.rs
   - tooling/worker/src/lint/languages/**
-  - tooling/worker/src/lint/rules.rs
+  - tooling/worker/src/lint/catalog/mod.rs
 deny: []
 public: [mod.rs, model/mod.rs]

@@ -1,0 +1,13 @@
+purpose: Load strict lint configuration and validate rule selection, severity and repair guidance
+files:
+  architecture.yaml: Configuration responsibilities and dependency boundary
+  mod.rs: YAML schema, configuration validation and shared selector and guidance validation
+directories: {}
+allow:
+  - tooling/worker/src/lint/catalog/mod.rs
+  - tooling/worker/src/lint/rules/kind.rs
+  - tooling/worker/src/lint/rules/descriptor.rs
+  - tooling/worker/src/lint/rules/architecture.rs
+  - tooling/worker/review/src/config/yaml.rs
+deny: []
+public: [mod.rs]

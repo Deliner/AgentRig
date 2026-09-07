@@ -1,4 +1,5 @@
 pub mod architecture;
+pub mod catalog;
 pub mod cli;
 // DECISION: D007
 pub mod config;

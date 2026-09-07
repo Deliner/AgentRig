@@ -1,0 +1,13 @@
+purpose: Describe and validate rule capabilities using the existing definitions and language handlers
+files:
+  architecture.yaml: Catalogue responsibilities and dependency boundary
+  mod.rs: Supported rules, language compatibility, configuration examples and catalogue output
+directories: {}
+allow:
+  - tooling/worker/src/lint/rules/kind.rs
+  - tooling/worker/src/lint/rules/descriptor.rs
+  - tooling/worker/src/lint/rules/architecture.rs
+  - tooling/worker/src/lint/languages/mod.rs
+  - tooling/worker/src/lint/languages/registry.rs
+deny: []
+public: [mod.rs]

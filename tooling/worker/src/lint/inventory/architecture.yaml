@@ -1,0 +1,9 @@
+purpose: Collect maintained files and directories consistently from versioned and unversioned projects
+files:
+  architecture.yaml: Inventory responsibilities and dependency boundary
+  mod.rs: Source discovery, exclusions, directory inventory and structural entry counting
+directories: {}
+allow:
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

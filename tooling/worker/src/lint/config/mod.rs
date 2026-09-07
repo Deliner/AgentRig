@@ -1,4 +1,4 @@
-use super::rules;
+use super::catalog as rules;
 use anyhow::{Result, bail};
 use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use serde::{Deserialize, Serialize};
@@ -42,7 +42,7 @@ pub struct Rule {
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub architecture: Option<super::architecture::Settings>,
+    pub architecture: Option<super::rules::architecture::Settings>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
