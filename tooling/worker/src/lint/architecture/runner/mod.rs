@@ -2,8 +2,8 @@ mod analysis;
 mod scope;
 
 use super::{Contracts, Issue, source::References};
+use crate::diagnostics::lint::Diagnostic;
 use crate::lint::{
-    Diagnostic,
     config::{Rule, globs},
     inventory::{self, Inventory},
 };

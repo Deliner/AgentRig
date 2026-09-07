@@ -8,21 +8,21 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: c64eb1d
+Revision: ce19b5e
 
-Current ownership VAC extracts bounded regular-file reading and SHA-256 fingerprints into review/src/artifacts, with direct review/delegate consumers and compatibility reexports. Snapshot implementation and tests now share review/src/snapshot; Cargo retains the snapshot test target. Contracts cover artifacts, snapshot, execution and run. Development pin is unchanged. No integration or commit process is running yet.
+Current VAC moves the lint diagnostic result and text rendering to diagnostics/lint.rs beside the existing shared guidance owner in diagnostics/mod.rs. Architecture evaluation consumes the result directly; lint::Diagnostic remains a compatibility reexport. The D022 application link follows its marked owner. Development pin is unchanged. Integration remains pending.
 
 ## Progress
 
 Inventory, repair guidance, Rust binding analysis, delegation/environment/review ownership and declaration/use cycle correction are committed. Standard Rust module declarations remain subject to access checks but no longer manufacture use cycles. Calls, imports, type references and reexports retain cycle checks.
 
-The current shared artifact owner centralizes existing byte behavior, without new runtime modes or interfaces. Response validation delegates file reading to it. Snapshot consumers retain revision visibility, manifest and path behavior. New run/execution contracts use module-level outbound permissions constrained by target public entries.
+Shared artifact bytes and revision snapshot ownership are committed in ce19b5e. The current diagnostic move removes one reverse dependency on lint orchestration while preserving JSON fields, text formatting and failure codes. Its exact inventory and public boundary are recorded in diagnostics/architecture.yaml. Other edges still produce cycles in the same directories; this move does not claim those cycles are resolved.
 
 ## Verification
 
-Commit c64eb1d passed all gates (65585 exited 0): 676 Python tests in 665.38 seconds and 145 Rust tests.
+Commit ce19b5e passed all gates (75682 exited 0): 676 Python tests in 648.01 seconds and 147 Rust tests.
 
-Current VAC passed all-target compilation, 13 delegate component tests (48123), seven review validation/snapshot tests (58244), then 18 review execution/snapshot tests after colocation (62235). The first execution retry outside uv failed to find hg; the configured uv environment passed unchanged sources. Two direct artifact tests passed for exact-limit reads, known SHA-256, source preservation and unsafe path rejection. Both crates were formatted; structural lint, review-rustfmt and whitespace checks pass. Final source probe (97633 exited 0): 34 cycles and 28 missing contracts, no other findings. These source findings do not prove complete repository coverage. All observed processes are terminal; mandatory commit gate remains required.
+Current VAC passed 95 lint/configuration/explain/recovery CLI tests in 196.57 seconds (50999), structural lint and whitespace checks. Rust sources are formatted. The first focused invocation used a nonexistent explain test path and ran no tests; the corrected invocation passed. Source probe (34881 exited 0) still reports 34 cycles and 28 missing contracts, with no other findings. This probe covers Rust sources, not the complete maintained repository. Mandatory commit gate remains required.
 
 ## Blockers
 
@@ -30,4 +30,4 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit this shared-owner VAC through the mandatory gate. Continue remaining worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources, justify service/generated/third-party exclusions, and assess VCS empty-directory coverage without bypassing ignore semantics. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.
+Commit this diagnostic ownership VAC through the mandatory gate. Continue remaining worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources, justify service/generated/third-party exclusions, and fix VCS empty-directory coverage without bypassing ignore semantics: current VCS inventory derives directories only from working files. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

@@ -1,0 +1,10 @@
+purpose: Represent actionable findings and render diagnostic guidance with reproducible rerun commands
+files:
+  architecture.yaml: Diagnostic responsibilities and public boundary
+  mod.rs: Shared guidance formatting and command failure recovery instructions
+  lint.rs: Serializable lint findings and their text locations and rendering
+directories: {}
+allow:
+  - tooling/worker/review/src/config/yaml.rs
+deny: []
+public: [mod.rs, lint.rs]
