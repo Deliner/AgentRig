@@ -97,6 +97,7 @@ def test_staged_evidence_uses_current_backend_without_native_fallback(
     values = {
         "head": None,
         "working-files": ["src/value.py"],
+        "working-directories": ["src"],
         "observe": {
             "branch": "trunk",
             "revision": "",
@@ -241,7 +242,11 @@ def test_private_worktree_inventory_controls_lint_and_check_selection(
     project(tmp_path, CONFIG + GATE)
     (tmp_path / "src/large.py").write_text("line\n" * 61)
     files = ["agentrig.yaml", "lint.yaml", "guides/repair/SKILL.md"]
-    replies = {"head": "r1", "working-files": files}
+    replies = {
+        "head": "r1",
+        "working-files": files,
+        "working-directories": ["guides", "guides/repair"],
+    }
     script = f"import json,sys; r=json.load(sys.stdin); print(json.dumps({{'version':1,'result':{replies!r}[r['operation']]}}))"
     update_config(
         tmp_path / "agentrig.yaml", git={"backend": {"command": ["python3", "-c", script]}}

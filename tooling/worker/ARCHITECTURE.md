@@ -36,11 +36,13 @@ directory and descendant pattern. Selected-source exclusions do not remove files
 from dependency resolution. Resolution uses Git tracked/unignored files, or regular
 non-symlink files in a non-Git project. Git-ignored targets cannot be resolved.
 
-Without a VCS, filesystem discovery also retains empty directories, so an empty
-selected directory still needs its contract. With a VCS, the selected backend's
-tracked/unignored file inventory defines the directory tree; Git and Mercurial
-do not version empty directories. Adding architecture.yaml makes such a directory
-part of that inventory. Symlink entries are not followed by filesystem discovery.
+Discovery retains empty directories, so an empty selected directory still needs
+its contract, with or without a VCS. Native backends inspect physical directories
+using their own ignore rules; parents of visible tracked files remain visible.
+Private adapters supply the `working-directories` operation alongside their file
+inventory. VCS metadata and symlink directories are skipped. The structural
+`directory-entries` metric retains its file-derived counts; architecture coverage
+also includes directories with no selected files.
 
 `architecture` and explicit source extensions are required. `python_root` defaults
 to the project root. `rust_roots` lists the actual crate roots and is required when

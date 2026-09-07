@@ -11,6 +11,17 @@ pub struct Inventory {
     pub files: Vec<PathBuf>,
     pub directories: BTreeMap<PathBuf, BTreeSet<String>>,
 }
+impl Inventory {
+    pub fn file_entries(&self, directory: &Path) -> usize {
+        let root = directory == Path::new(".");
+        let prefix = if root { Path::new("") } else { directory };
+        self.files
+            .iter()
+            .filter_map(|file| file.strip_prefix(prefix).ok()?.components().next())
+            .collect::<BTreeSet<_>>()
+            .len()
+    }
+}
 pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
     collect_source(root, exclude, None)
 }
@@ -20,29 +31,46 @@ pub fn collect_source(
     exclude: &GlobSet,
     source: Option<&review_runner::vcs::Source<'_>>,
 ) -> Result<Inventory> {
-    let mut files: Vec<PathBuf> = if let Some(source) = source {
-        source
-            .working_files()?
-            .into_iter()
-            .map(PathBuf::from)
-            .collect()
+    let (files, directory_paths) = if let Some(source) = source {
+        let files = source.working_files()?;
+        let directories = source.working_directories(&files)?;
+        (files, directories)
     } else if let Some(repository) = review_runner::vcs::Repository::discover(root)? {
-        repository
-            .working_files()?
-            .into_iter()
-            .map(PathBuf::from)
-            .collect()
+        let files = repository.working_files()?;
+        let directories = repository.working_directories(&files)?;
+        (files, directories)
     } else {
         return unversioned(root, exclude);
     };
+    let mut files: Vec<PathBuf> = files.into_iter().map(PathBuf::from).collect();
     files.sort();
     files.dedup();
     files.retain(|path| {
         !exclude.is_match(path)
             && fs::symlink_metadata(root.join(path)).is_ok_and(|meta| meta.is_file())
     });
-    let directories = directories(&files);
+    let mut directories = directories(&files);
+    add_directories(root, exclude, directory_paths, &mut directories);
     Ok(Inventory { files, directories })
+}
+
+fn add_directories(
+    root: &Path,
+    exclude: &GlobSet,
+    paths: Vec<String>,
+    output: &mut BTreeMap<PathBuf, BTreeSet<String>>,
+) {
+    output.entry(".".into()).or_default();
+    for path in paths.into_iter().map(PathBuf::from) {
+        let selected = !exclude.is_match(&path)
+            && fs::symlink_metadata(root.join(&path)).is_ok_and(|meta| meta.is_dir());
+        if selected {
+            output.entry(path.clone()).or_default();
+            for (parent, entries) in directories(&[path]) {
+                output.entry(parent).or_default().extend(entries);
+            }
+        }
+    }
 }
 fn directories(files: &[PathBuf]) -> BTreeMap<PathBuf, BTreeSet<String>> {
     let mut directories: BTreeMap<PathBuf, BTreeSet<String>> = BTreeMap::new();

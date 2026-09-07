@@ -1,5 +1,6 @@
 //! VCS-owned revision and file operations shared by delivery consumers.
 mod branches;
+mod directories;
 mod export;
 pub mod external;
 mod generation;

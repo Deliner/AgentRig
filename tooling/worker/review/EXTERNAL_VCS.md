@@ -146,7 +146,14 @@ session is required.
 | `read` | `revision` and `path` strings | Byte array: integer values from 0 through 255. |
 | `changed-paths` | `base` and `candidate` strings | Array of paths, including deletions and both sides of a rename. |
 | `working-files` | Empty object | Tracked present files and non-ignored untracked files. |
+| `working-directories` | Empty object | All present visible directories, including empty directories; exclude VCS metadata, ignored untracked trees and symlinks. Paths are relative to the root; omit the root itself. |
 | `diff` | `base` and `candidate` strings | Native change representation as a UTF-8 string. |
+
+Lint inventory uses both working operations. Adapters must implement
+`working-directories` to support complete architectural inventories. Unsupported
+operations are reported explicitly, without assuming there are no directories.
+Parents of visible tracked files remain visible even if a later ignore rule
+matches their directory. Lint applies its configured exclusions to this inventory.
 
 Revision and object IDs are opaque nonempty strings without control characters;
 they need not be Git hashes. The adapter owns their immutable meaning. Tree kinds

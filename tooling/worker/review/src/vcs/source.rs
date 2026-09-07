@@ -214,6 +214,13 @@ impl Source<'_> {
         }
     }
 
+    pub fn working_directories(&self, files: &[String]) -> Result<Vec<String>> {
+        match self.backend {
+            Backend::Native(kind) => Repository::new(self.root, *kind).working_directories(files),
+            Backend::External(adapter) => adapter.working_directories(self.root),
+        }
+    }
+
     pub fn diff(&self, base: &str, candidate: &str) -> Result<String> {
         match self.backend {
             Backend::Native(kind) => Repository::new(self.root, *kind).diff(base, candidate),

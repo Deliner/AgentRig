@@ -85,7 +85,7 @@ fn structural_measurement(
                     .filter(|line| !line.trim().is_empty())
                     .count() as u64
             }),
-        rules::Kind::DirectoryEntries => Some(inventory.directories[selected.path].len() as u64),
+        rules::Kind::DirectoryEntries => Some(inventory.file_entries(selected.path) as u64),
         _ => unreachable!("validated by rule registry"),
     })
 }
