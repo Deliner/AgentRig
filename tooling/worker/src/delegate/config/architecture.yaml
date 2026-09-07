@@ -1,0 +1,13 @@
+purpose: Define and validate delegate profiles and resolve their configured resources
+files:
+  architecture.yaml: Profile configuration inventory and dependency boundary
+  mod.rs: Configuration schema, profile types and resource resolution entry points
+  validation.rs: Profile, frontend and credential validation
+directories: {}
+allow:
+  - tooling/worker/src/environment/mod.rs
+  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

@@ -1,4 +1,5 @@
-use super::{config, run};
+use super as run;
+use super::super::config;
 use anyhow::{Context, Result};
 use review_runner::mcp::protocol::{self, Session};
 use serde::{Deserialize, Serialize};
@@ -77,8 +78,8 @@ impl Tool {
     fn schema(self, config: &config::Config) -> Value {
         let starting = matches!(self, Self::Start);
         if starting {
-            let mut schema: Value = serde_json::from_str(include_str!("mcp/start.json"))
-                .expect("embedded delegate schema");
+            let mut schema: Value =
+                serde_json::from_str(include_str!("start.json")).expect("embedded delegate schema");
             schema["properties"]["profile"]["enum"] =
                 json!(config.profiles.keys().collect::<Vec<_>>());
             schema

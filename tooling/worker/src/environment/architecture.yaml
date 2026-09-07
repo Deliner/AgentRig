@@ -1,0 +1,12 @@
+purpose: Define and validate shared harness environments with skills, programs, MCP servers and hooks
+files:
+  architecture.yaml: Environment responsibilities and shared public boundary
+  mod.rs: Harness selection and environment resource schema
+  hooks.rs: Hook event schema, validation and client configuration projection
+  validation.rs: Resource path resolution and consistency checks
+directories: {}
+allow:
+  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/credentials.rs
+deny: []
+public: [mod.rs, hooks.rs]

@@ -1,4 +1,5 @@
 mod execution;
+pub mod mcp;
 mod report;
 
 use super::{
@@ -17,7 +18,7 @@ use std::{env, fs, path::Path};
 pub fn cli(root: &Path, runtime: &Path, args: &[String]) -> Result<i32> {
     let value = match args {
         [command, config] if command == "mcp" => {
-            return super::mcp::serve(root, runtime, &root.join(config)).map(|()| 0);
+            return mcp::serve(root, runtime, &root.join(config)).map(|()| 0);
         }
         [command, config, request] if command == "start" => {
             let request = serde_json::from_slice(&fs::read(root.join(request))?)?;

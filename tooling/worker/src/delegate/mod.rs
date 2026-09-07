@@ -1,6 +1,6 @@
 pub mod code;
 pub mod config;
-pub mod mcp;
+pub use run::mcp;
 pub mod run;
 pub mod sandbox;
 pub mod task;
