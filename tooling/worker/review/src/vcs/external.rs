@@ -153,11 +153,7 @@ impl Adapter {
             "--proc",
             "/proc",
         ]);
-        let writes_repository =
-            matches!(operation, "start-feature" | "initialize" | "register-hooks");
-        if writes_repository {
-            command.arg("--bind").arg(root).arg(root);
-        }
+        let _scratch = writable_mounts(&mut command, root, operation)?;
         let output = command
             .arg("--")
             .args(&self.command)
@@ -167,6 +163,32 @@ impl Adapter {
             .context("launch external VCS adapter with bubblewrap")?;
         decode(operation, output)
     }
+}
+
+fn writable_mounts(
+    command: &mut Command,
+    root: &Path,
+    operation: &str,
+) -> Result<Option<tempfile::TempDir>> {
+    let writes_repository = matches!(
+        operation,
+        "start-feature"
+            | "initialize"
+            | "register-hooks"
+            | "prepare-integration"
+            | "finish-integration"
+    );
+    if writes_repository {
+        let scratch = tempfile::tempdir()?;
+        command.arg("--bind").arg(root).arg(root);
+        command
+            .arg("--bind")
+            .arg(scratch.path())
+            .arg(scratch.path());
+        command.env("TMPDIR", scratch.path());
+        return Ok(Some(scratch));
+    }
+    Ok(None)
 }
 
 fn decode<T: DeserializeOwned>(operation: &str, output: Output) -> Result<T> {
@@ -192,7 +214,7 @@ fn decode<T: DeserializeOwned>(operation: &str, output: Output) -> Result<T> {
     Ok(reply.result)
 }
 
-fn revision(value: String) -> Result<String> {
+pub(super) fn revision(value: String) -> Result<String> {
     ensure!(
         !value.trim().is_empty() && !value.chars().any(char::is_control),
         "external VCS must return one nonempty revision/object ID without control characters"

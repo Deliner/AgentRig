@@ -18,7 +18,7 @@ pub fn merge(context: &Context) -> Result<i32> {
     let settings = &context.config.vcs;
     let repository = settings
         .backend
-        .repository(&context.root)?
+        .repository_source(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
     let (feature, code) = repository.integrate(settings, || checked(context), execute_vcs)?;
     let passed = code == 0;

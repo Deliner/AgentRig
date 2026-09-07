@@ -78,6 +78,58 @@ def initialize(arguments: dict[str, Any]) -> None:
     write("branch", "--", arguments["base"])
 
 
+def branch_head(branch: str) -> str:
+    escaped = branch.replace("\\", "\\\\").replace("'", "\\'")
+    return resolve({"reference": f"heads(branch('{escaped}'))"})
+
+
+def revision_branch(revision: str) -> str:
+    return hg("log", "--rev", revision, "--template", "{branch}").decode()
+
+
+def integration_context(policy: dict[str, Any]) -> dict[str, str]:
+    revisions = hg("parents", "--template", "{node}\n").decode().splitlines()
+    assert len(revisions) == 2, "integration requires two pending merge parents"
+    current = observe({})
+    assert current["branch"] == policy["base"], "resume integration from the base branch"
+    assert not current["rebase_in_progress"], "finish or abort the pending rebase"
+    assert revisions[0] == branch_head(policy["base"]), "base advanced; preserve and retry merge"
+    feature = revision_branch(revisions[1])
+    assert feature.startswith(policy["prefix"]), "second parent must be a feature revision"
+    return {"feature": feature, "base": revisions[0], "candidate": revisions[1]}
+
+
+def prepare_integration(arguments: dict[str, Any]) -> dict[str, str]:
+    current = observe({})
+    assert not current["rebase_in_progress"], "finish or abort the pending rebase"
+    pending = current["merge_in_progress"]
+    if pending:
+        return integration_context(arguments)
+    assert current["branch"].startswith(arguments["prefix"]), "integration requires a feature"
+    assert not current["status"], "working tree must be clean; preserve pending changes"
+    candidate = current["revision"]
+    assert candidate, "feature has no committed revision"
+    assert revision_branch(candidate) == current["branch"], "feature has no committed changes"
+    base = branch_head(arguments["base"])
+    write("update", "--check", "--rev", base)
+    write("merge", "--rev", candidate, "--tool", "internal:merge")
+    return integration_context(arguments)
+
+
+def finish_integration(arguments: dict[str, Any]) -> None:
+    expected = arguments["expected"]
+    assert integration_context(arguments["policy"]) == expected, (
+        "merge parents changed during checks"
+    )
+    write("commit", "--message", "Merge " + expected["feature"])
+    revision = head({})
+    assert revision is not None, "merged revision required"
+    assert parents({"revision": revision}) == [expected["base"], expected["candidate"]], (
+        "integration commit has unexpected parents; inspect retained revisions"
+    )
+    assert not observe({})["status"], "merge committed but working changes remain"
+
+
 def repository_present(arguments: dict[str, Any]) -> bool:
     assert not arguments
     assert not Path(".git").exists(), "existing Git repository must be preserved"
@@ -209,6 +261,8 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "generate": generate,
     "register-hooks": register_hooks,
     "start-feature": start_feature,
+    "prepare-integration": prepare_integration,
+    "finish-integration": finish_integration,
     "parents": parents,
     "commit-context": commit_context,
     "tree": tree,

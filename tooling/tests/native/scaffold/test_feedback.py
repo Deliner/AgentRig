@@ -314,11 +314,11 @@ def commit(root: Path, vcs: str) -> str:
     return revision(root, vcs)
 
 
-def merge_repository(worker: Path, root: Path) -> tuple[str, str]:
-    repository(root, "hg")
+def merge_repository(worker: Path, root: Path, vcs: str = "hg") -> tuple[str, str]:
+    repository(root, vcs)
     update_config(
         root / "agentrig.yaml",
-        git={"backend": "mercurial", "base": "default"},
+        git={"backend": vcs_backend(vcs), "base": "default"},
         commands={
             "fail": {
                 "argv": [
@@ -339,11 +339,14 @@ def merge_repository(worker: Path, root: Path) -> tuple[str, str]:
     return base, commit(root, "hg")
 
 
-@pytest.mark.parametrize("phase", ["gate", "commit-hook"])
+@pytest.mark.parametrize(
+    "scenario", [(vcs, phase) for vcs in ["hg", "private"] for phase in ["gate", "commit-hook"]]
+)
 def test_mercurial_integration_recovers_failed_gate(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, phase: str
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, scenario: tuple[str, str]
 ) -> None:
-    base, candidate = merge_repository(worker, tmp_path)
+    vcs, phase = scenario
+    base, candidate = merge_repository(worker, tmp_path, vcs)
     during_gate = phase == "gate"
     variable = "BLOCK_DELIVERY" if during_gate else "BLOCK_COMMIT"
     monkeypatch.setenv(variable, "yes")
@@ -364,10 +367,11 @@ def test_mercurial_integration_recovers_failed_gate(
     assert (tmp_path / "src/value.py").read_text() == "value = 2\n"
 
 
+@pytest.mark.parametrize("vcs", ["hg", "private"])
 def test_mercurial_integration_rejects_mutated_gate_inputs(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, vcs: str
 ) -> None:
-    base, _ = merge_repository(worker, tmp_path)
+    base, _ = merge_repository(worker, tmp_path, vcs)
     monkeypatch.setenv("MUTATE_MERGE", "yes")
     result = invoke(worker, tmp_path, "feature-merge")
     assert result.returncode == 2 and "checked merge inputs changed" in result.stderr
@@ -376,8 +380,11 @@ def test_mercurial_integration_rejects_mutated_gate_inputs(
     assert (tmp_path / "src/value.py").read_text() == "value = 99\n"
 
 
-def test_mercurial_integration_recovers_native_conflict(worker: Path, tmp_path: Path) -> None:
-    base, candidate = merge_repository(worker, tmp_path)
+@pytest.mark.parametrize("vcs", ["hg", "private"])
+def test_mercurial_integration_recovers_native_conflict(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    base, candidate = merge_repository(worker, tmp_path, vcs)
     subprocess.run(["hg", "update", "-r", base], cwd=tmp_path, capture_output=True, check=True)
     source = tmp_path / "src/value.py"
     source.write_text("value = 3\n")

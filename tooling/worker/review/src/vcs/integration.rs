@@ -1,12 +1,67 @@
-use super::{Kind, Repository, Settings, mercurial, validate_revision};
+use super::{Backend, Kind, Repository, Settings, Source, external, mercurial, validate_revision};
 use anyhow::{Context as _, Result, ensure};
+use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::process::Command;
 
-#[derive(PartialEq, Eq)]
+#[derive(Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 struct Merge {
     feature: String,
     base: String,
     candidate: String,
+}
+
+impl Merge {
+    fn validate_external(&self, settings: &Settings) -> Result<()> {
+        external::revision(self.base.clone())?;
+        external::revision(self.candidate.clone())?;
+        ensure!(
+            self.feature.starts_with(&settings.prefix),
+            "integration requires a {} branch",
+            settings.prefix
+        );
+        Ok(())
+    }
+}
+
+impl Source<'_> {
+    pub fn integrate(
+        &self,
+        settings: &Settings,
+        mut check: impl FnMut() -> Result<i32>,
+        run: impl FnMut(&mut Command) -> Result<i32>,
+    ) -> Result<(String, i32)> {
+        match self.backend {
+            Backend::Native(kind) => {
+                Repository::new(self.root, *kind).integrate(settings, check, run)
+            }
+            Backend::External(adapter) => {
+                let policy = json!({"base": settings.base, "prefix": settings.prefix});
+                let merge: Merge =
+                    adapter.call(self.root, "prepare-integration", policy.clone())?;
+                merge.validate_external(settings)?;
+                let code = check()?;
+                let passed = code == 0;
+                if passed {
+                    adapter.call::<()>(
+                        self.root,
+                        "finish-integration",
+                        json!({"policy": policy, "expected": merge}),
+                    )?;
+                    let current = self.observe()?;
+                    ensure!(
+                        current.branch == settings.base
+                            && current.status.is_empty()
+                            && !current.merge_in_progress
+                            && !current.rebase_in_progress,
+                        "external VCS did not finish clean integration on the base; inspect and preserve its state"
+                    );
+                }
+                Ok((merge.feature, code))
+            }
+        }
+    }
 }
 
 impl Repository<'_> {

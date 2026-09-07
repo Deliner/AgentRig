@@ -5,8 +5,8 @@ configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
 native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
 visibility checks. A separate executable can implement the protocol without
 linking AgentRig or publishing its implementation. Private setup, preview and
-doctor and commit guards use this boundary. Private integration remains pending
-P007 work; an installed environment does not yet prove full delivery support.
+doctor, commit guards and feature integration use this boundary. Full independent
+installed delivery acceptance remains required P007 work.
 
 An adapter declaration contains one argv vector, for example:
 
@@ -37,8 +37,8 @@ nonempty base and prefix. `feature-start` supports the write operation below.
 Setup generates hooks and harness/MCP commands, previews files and registrations,
 initializes the repository and registers hooks through the adapter. Configure a
 private backend in YAML and use `setup`; the `init --vcs` choices remain native.
-Commit guards inspect the selected backend's native commit context. Private
-feature integration still reports an unimplemented error.
+Commit guards inspect the selected backend's native commit context. Feature
+integration runs shared mandatory checks between adapter preparation and completion.
 
 For direct lint commands, put the Backend declaration alone in a YAML file:
 
@@ -89,7 +89,10 @@ No shell interprets this vector. The executable must be nonempty, and arguments
 cannot contain NUL. Each call starts one process with the consumer repository as
 its working directory. AgentRig uses bubblewrap with the filesystem mounted
 read-only for reads; the adapter must not require repository cache writes for reads.
-For `start-feature`, `initialize` and `register-hooks`, the consumer repository root is mounted writable;
+For `start-feature`, `initialize`, `register-hooks`, `prepare-integration` and
+`finish-integration`, the consumer repository root is mounted writable;
+An owned temporary directory is also writable and supplied as `TMPDIR`, allowing
+native hooks to export and check pending revisions. It is removed after the call;
 the rest of the filesystem remains read-only.
 Credentials and executable dependencies remain the caller's environment, outside
 the protocol payload. This is a filesystem write restriction, not a claim that
@@ -123,6 +126,8 @@ session is required.
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
 | `commit-context` | `revision` string or null | `[branch, merge]`; a branch string and boolean identifying whether this commit is a merge. |
 | `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
+| `prepare-integration` | `base` and `prefix` policy strings | `{feature, base, candidate}`; feature branch and exact input revision IDs for the prepared or resumed native integration. |
+| `finish-integration` | `policy: {base, prefix}` and `expected: {feature, base, candidate}` | Null after committing the checked integration and retaining the feature reference. |
 | `initialize` | `base` string | Null after ensuring a repository exists; an existing repository is preserved. |
 | `repository-present` | Empty object | Boolean identifying whether this backend's repository exists; mismatched repositories fail. |
 | `generate` | `binary` shell expression, `directory` relative hook path, `ignored` array of relative runtime paths | `{root_command, files}`; a shell command string and a map of relative file paths to UTF-8 contents. |
@@ -152,6 +157,19 @@ source, resolves the reference and uses that exact ID for the exported configura
 and commit context. Branch policy remains shared: feature-prefix commits are
 permitted, while the configured base permits merge commits only. The separate
 mandatory check still runs against the pending revision through the installed hook.
+
+Integration preparation must preserve unrelated changes, reject an unready feature,
+and retain native conflict or failed-check state for recovery. It must also resume
+an existing integration. AgentRig validates the returned context and runs its
+mandatory full gate, including checked-input freshness. Only a passing gate calls
+`finish-integration`, which must revalidate the expected native context and honor
+native commit hooks. Failed operations are preserved, never automatically reset.
+After completion AgentRig requires the configured base, clean status and no pending
+operation. The context is transient; recovery belongs to the native VCS.
+
+The Mercurial example uses its two merge parents, checks the current unique base
+head and feature branch, and verifies the committed parents. These are Mercurial
+semantics, not a requirement that every private backend implement two-parent merges.
 
 Before `start-feature`, AgentRig requires the configured base branch, a clean
 working copy and no pending merge or rebase. The adapter must reject stale
@@ -240,8 +258,10 @@ repeat preview. Installed private Mercurial hooks also reject direct base commit
 permit feature commits, roll back a failing mandatory check and retain unselected
 working changes through a subsequent successful selected commit. A synthetic adapter
 without Git/Mercurial metadata proves opaque-ID export and context use the same
-resolved revision and retain branch/merge policy. These checks do not establish
-private integration or real model-client acceptance.
+resolved revision and retain branch/merge policy. Integration fixtures additionally
+exercise failed gates, native commit rejection, mutated gate inputs and conflict
+recovery through the example. These fixtures do not establish full independent
+installed delivery or real model-client acceptance.
 
 Configured review tests run a failing review, a repair and a successful re-review
 through the example, then reject a changed adapter or source root. Snapshot tests
