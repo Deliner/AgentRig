@@ -233,6 +233,52 @@ checks:
   kind: command
   skill: .agents/skills/repair/SKILL.md
   command: test
+  # Explicit impact groups; unmatched paths run the full suite.
+  affected:
+  - include:
+    - tooling/worker/src/lint/architecture/**
+    - tooling/tests/native/lint/**
+    - tooling/tests/native/test_lint.py
+    - tooling/tests/native/test_language*.py
+    - tooling/tests/native/test_config_check.py
+    targets:
+    - tooling/tests/native/lint
+    - tooling/tests/native/test_lint.py
+    - tooling/tests/native/test_language.py
+    - tooling/tests/native/test_language_delivery.py
+    - tooling/tests/native/test_config_check.py
+  - include:
+    - tooling/worker/src/delegate/**
+    - tooling/tests/native/test_delegate*.py
+    targets:
+    - tooling/tests/native/test_delegate_code.py
+    - tooling/tests/native/test_delegate_config.py
+    - tooling/tests/native/test_delegate_mcp.py
+    - tooling/tests/native/test_delegate_run.py
+    - tooling/tests/native/test_delegate_vcs.py
+    - tooling/tests/native/scaffold
+    - tooling/tests/native/upgrades
+  - include:
+    - tooling/worker/src/scaffold/**
+    - tooling/worker/src/hooks/**
+    - tooling/tests/native/scaffold/**
+    - tooling/tests/native/upgrades/**
+    targets:
+    - tooling/tests/native/scaffold
+    - tooling/tests/native/upgrades
+    - tooling/tests/native/test_launcher.py
+  - include:
+    - Ledger/**
+    - AGENTS.md
+    - README.md
+    - Project/README.md
+    - tooling/worker/README.md
+    - tooling/worker/SCAFFOLD.md
+    - tooling/worker/CHECKS.md
+    - tooling/worker/ARCHITECTURE.md
+    - tooling/worker/EXTERNAL_VCS.md
+    - tooling/distribution/README.md
+    targets: []
 - id: typos
   kind: command
   skill: .agents/skills/repair/SKILL.md
