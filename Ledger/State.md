@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: selected native discovery paths for installed custom project skills.
+Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: enable native Claude delegate skill discovery through its isolated user settings scope.
 
 ## Workspace
 
 Branch: feature/agent-harnesses
 
-Revision: 5979f0e
+Revision: 23db8dc
 
-The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Git confirmed clean 5979f0e before this VAC after the model/API commit gate completed. Review is committed at 94ce7f1, delegation at b6d7a96 and project registrations at 5173a10. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
+The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Git confirmed clean 23db8dc before this VAC after the project-skill commit gate completed. Model/API settings are committed at 5979f0e, review at 94ce7f1, delegation at b6d7a96 and project registrations at 5173a10. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
 
 ## Progress
 
-Review, all delegation modes, project registrations and model/API references support Claude. Current uncommitted work places custom project skills under .agents/skills for Codex and .claude/skills for Claude, using the existing resource copier and manifest. The shared environment test now exercises both clients, including actual registered hooks/MCP and preservation of local skill support edits. Shipped worker guidance retains paths.skills and explicit hook/instruction routing; no second instruction store or symlink lifecycle was added. Composition/update acceptance for Claude and real review/delegate model runs remain required.
+Project custom skills now use each client's native discovery path. Native probes exposed a separate delegate issue: empty --setting-sources hides skills under its private CLAUDE_CONFIG_DIR. Current uncommitted work selects user instead; the private home and explicit settings/MCP remain unchanged. Native comparison confirmed discovery, single startup-hook execution and exclusion of a project settings hook. Evidence and limits are recorded in tooling/worker/examples/PORTABILITY.md. Configuration-update code still unconditionally reads .codex/config.toml and merges only MCP fields; Claude updates and model/API update behavior need repair and acceptance. Real review/delegate model runs remain required.
 
 ## Verification
 
-Model/API 5979f0e passed the full gate: 598 Python and 145 Rust tests. Current skill placement passed seven focused environment cases, then all 24 capability tests; mypy, structural lint and whitespace checks pass. Native disposable-consumer probes confirmed discovery: Codex 0.153.4 app-server skills/list returned the installed skill with no errors; Claude Code 2.1.201 emitted it in init.skills and slash_commands and executed a startup hook. Both used isolated client homes. Claude used a synthetic key and an unreachable loopback API, timed out after discovery and did not complete a model request. These probes prove discovery, not successful model execution. The current full commit gate is pending.
+Project skills 23db8dc passed the full gate: 599 Python and 145 Rust tests. The current delegate scope correction passed the existing Rust frozen-skill/hook/MCP sandbox test and eight Claude delegation/configuration cases. Native Claude Code 2.1.201 discovered a private-home skill with user scope; the private startup hook ran once and the project hook zero times. These probes used synthetic credentials and an unreachable loopback API, so they do not prove a successful model request. The current full commit gate is pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ For P008 real-client acceptance, local Codex is 0.153.4 and Claude Code is 2.1.2
 
 ## Next action
 
-Commit the current skill-placement VAC through the mandatory gate and repair any failures. Then verify Claude composition/update behavior, native delegate skill loading and actual hook/MCP semantics, and run independent real review/delegate acceptance for both clients before integrating P008. Preserve the development pin and the full P008 contract; discovery and adapter tests alone do not establish completion.
+Commit the current delegate scope VAC through the mandatory gate and repair any failures. Then repair selected-client configuration updates with preservation and rollback tests, verify actual client hook/MCP semantics, and run independent real review/delegate acceptance for both clients before integrating P008. Preserve the development pin and the full P008 contract; discovery and adapter tests alone do not establish completion.

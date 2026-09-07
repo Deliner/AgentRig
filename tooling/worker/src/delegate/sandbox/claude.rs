@@ -42,7 +42,7 @@ pub(super) fn executor(command: &mut Command, layout: &Layout, profile: &Profile
             &schema,
             "--no-session-persistence",
             "--setting-sources",
-            "",
+            "user",
             "--settings",
             "/claude/settings.json",
             "--strict-mcp-config",

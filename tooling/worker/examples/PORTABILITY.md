@@ -47,12 +47,29 @@ blocking Stop repair. `.tmp/agentrig-installed-discovery-x3yq3jb2/result.json`
 records native frontend discovery of an installed custom skill after source
 removal. These are paid-model observations, separate from deterministic tests.
 
-Linux, local packages and the Codex frontend are the implemented scope. Ready
+That P004 acceptance covered Linux, local packages and the Codex frontend. Ready
 executables still require the documented host tools, model authentication and
-working bubblewrap/systemd support. No remote registry, extra OS/frontend or
-automatic patch merge is supplied. Release publication is separate from local
+working bubblewrap/systemd support. That delivery supplied no remote registry,
+extra OS/frontend or automatic patch merge. Release publication is separate from local
 feature integration. See [P004 delivery](../../../Ledger/Plan/004.md) and Git for
 the final gate and integration state.
+
+## P008 native skill discovery
+
+Observed on Linux on 2026-09-07 with disposable consumers and isolated client homes:
+
+| Client | Native observation |
+| --- | --- |
+| Codex 0.153.4 | App-server `skills/list` discovered a setup-installed custom skill under `.agents/skills` with no loading errors. |
+| Claude Code 2.1.201, project | Initialization listed the setup-installed `.claude/skills` skill in both `skills` and `slash_commands`; the startup hook executed. |
+| Claude Code 2.1.201, delegate settings | An empty `--setting-sources` hid a skill in the private `CLAUDE_CONFIG_DIR`. Selecting `user` discovered it. With the same file also supplied by `--settings`, its SessionStart hook ran once; a project settings hook did not run. |
+
+Delegates select only that private user scope; the existing read-only mounts and
+explicit MCP configuration still own isolation. Claude probes used a synthetic
+key and an unreachable loopback endpoint and ended before any model response.
+These observations verify native discovery and hook scope, not completed P008
+review/delegation acceptance. The earlier paid Codex evidence above remains
+separate from current Claude acceptance.
 
 ## Historical worker delivery observation
 
