@@ -1,5 +1,7 @@
+pub mod credentials;
 pub mod yaml;
 use anyhow::{Context, Result, ensure};
+pub use credentials::Credentials;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -33,6 +35,8 @@ pub struct Reviewer {
     pub model: String,
     pub reasoning_effort: String,
     pub prompt: PathBuf,
+    #[serde(default)]
+    pub credentials: Credentials,
 }
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -111,15 +115,39 @@ fn codex() -> String {
 }
 fn validate_reviewer(name: &str, reviewer: &Reviewer) -> Result<()> {
     ensure!(
-        reviewer.frontend == "codex",
-        "unsupported frontend {:?} for reviewer {name}; supported: codex",
+        ["codex", "claude-code"].contains(&reviewer.frontend.as_str()),
+        "unsupported frontend {:?} for reviewer {name}; supported: codex, claude-code",
         reviewer.frontend
     );
     ensure!(
         identifier(name) && !reviewer.model.trim().is_empty(),
         "invalid reviewer {name}"
     );
-    reasoning_effort(&reviewer.reasoning_effort)?;
+    reviewer.credentials.validate()?;
+    let claude = reviewer.frontend == "claude-code";
+    if claude {
+        ensure!(
+            reviewer.credentials.codex_auth_file_env.is_none(),
+            "claude-code does not use codex_auth_file_env; configure credentials.env"
+        );
+        ensure!(
+            [
+                "ANTHROPIC_API_KEY",
+                "ANTHROPIC_AUTH_TOKEN",
+                "CLAUDE_CODE_OAUTH_TOKEN"
+            ]
+            .iter()
+            .any(|key| reviewer.credentials.env.contains_key(*key)),
+            "claude-code requires an ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN environment reference"
+        );
+        ensure!(
+            ["low", "medium", "high", "xhigh", "max"].contains(&reviewer.reasoning_effort.as_str()),
+            "unsupported claude-code reasoning effort {}; use low, medium, high, xhigh or max",
+            reviewer.reasoning_effort
+        );
+    } else {
+        reasoning_effort(&reviewer.reasoning_effort)?;
+    }
     Ok(())
 }
 pub fn reasoning_effort(value: &str) -> Result<()> {

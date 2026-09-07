@@ -1,4 +1,5 @@
 use crate::config::Reviewer;
+mod claude;
 use anyhow::{Context, Result, ensure};
 use std::{
     env, fs,
@@ -11,22 +12,52 @@ pub struct Layout {
     pub project: PathBuf,
     pub input: PathBuf,
     pub role: PathBuf,
-    pub codex: PathBuf,
+    pub executable: PathBuf,
 }
-pub fn prepare(role: &Path) -> Result<()> {
-    for directory in ["work", "bin", "codex"] {
+pub fn prepare(role: &Path, reviewer: &Reviewer) -> Result<()> {
+    for directory in ["work", "bin", client_directory(&reviewer.frontend)] {
         fs::create_dir_all(role.join(directory))?;
     }
     fs::write(role.join("bin/review-runner"), [])?;
+    let is_claude = reviewer.frontend == "claude-code";
+    if is_claude {
+        return claude::prepare(role);
+    }
+    let explicit = &reviewer.credentials.codex_auth_file_env;
+    if let Some(reference) = explicit {
+        let source = env::var_os(reference)
+            .with_context(|| format!("missing credential reference {reference}"))?;
+        return copy_auth(&PathBuf::from(source), role);
+    }
+    let api_key = reviewer.credentials.env.contains_key("OPENAI_API_KEY");
+    if api_key {
+        return Ok(());
+    }
     let home = env::var_os("CODEX_HOME")
         .map(PathBuf::from)
         .or_else(|| env::var_os("HOME").map(|home| PathBuf::from(home).join(".codex")))
         .context("provide CODEX_HOME with isolated CLI authentication")?;
+    copy_auth(&home.join("auth.json"), role)
+}
+fn copy_auth(source: &Path, role: &Path) -> Result<()> {
     let target = role.join("codex/auth.json");
-    fs::copy(home.join("auth.json"), &target)
+    fs::copy(source, &target)
         .context("provide Codex authentication separately in CODEX_HOME/auth.json")?;
     fs::set_permissions(target, fs::Permissions::from_mode(0o600))?;
     Ok(())
+}
+pub fn executable(frontend: &str) -> Result<PathBuf> {
+    match frontend {
+        "codex" => native_codex(),
+        "claude-code" => claude::executable(),
+        _ => anyhow::bail!("unsupported review frontend {frontend}"),
+    }
+}
+fn client_directory(frontend: &str) -> &str {
+    match frontend {
+        "claude-code" => "claude",
+        _ => "codex",
+    }
 }
 pub fn native_codex() -> Result<PathBuf> {
     native_codex_from("REVIEW_CODEX_BIN")
@@ -68,12 +99,12 @@ pub fn native_codex_from(variable: &str) -> Result<PathBuf> {
     Ok(executable)
 }
 pub fn command(layout: &Layout, reviewer: &Reviewer) -> Result<Command> {
-    let host = layout.codex.with_file_name("codex-code-mode-host");
-    ensure!(
-        host.is_file(),
-        "codex-code-mode-host must be next to native codex"
-    );
     let mut command = Command::new("bwrap");
+    command
+        .env_clear()
+        .envs(crate::config::credentials::resolve_references(
+            &reviewer.credentials.env,
+        )?);
     command.args([
         "--die-with-parent",
         "--new-session",
@@ -81,23 +112,38 @@ pub fn command(layout: &Layout, reviewer: &Reviewer) -> Result<Command> {
         "--unshare-pid",
         "--unshare-ipc",
         "--unshare-uts",
-        "--clearenv",
     ]);
     runtime_mounts(&mut command);
-    review_mounts(&mut command, layout);
+    review_mounts(&mut command, layout, &reviewer.frontend);
     command
         .arg("--ro-bind")
         .arg(env::current_exe()?)
-        .arg("/review-bin/review-runner")
+        .arg("/review-bin/review-runner");
+    environment(&mut command);
+    let is_claude = reviewer.frontend == "claude-code";
+    if is_claude {
+        claude::command(&mut command, layout, reviewer);
+    } else {
+        codex(&mut command, layout, reviewer)?;
+    }
+    Ok(command)
+}
+fn codex(command: &mut Command, layout: &Layout, reviewer: &Reviewer) -> Result<()> {
+    let host = layout.executable.with_file_name("codex-code-mode-host");
+    ensure!(
+        host.is_file(),
+        "codex-code-mode-host must be next to native codex"
+    );
+    command
         .arg("--ro-bind")
-        .arg(&layout.codex)
+        .arg(&layout.executable)
         .arg("/codex-cli")
         .arg("--ro-bind")
         .arg(host)
-        .arg("/codex-code-mode-host");
-    environment(&mut command);
-    cli(&mut command, reviewer);
-    Ok(command)
+        .arg("/codex-code-mode-host")
+        .args(["--setenv", "CODEX_HOME", "/codex", "/codex-cli", "exec"]);
+    cli(command, reviewer);
+    Ok(())
 }
 fn environment(command: &mut Command) {
     command.args([
@@ -105,24 +151,21 @@ fn environment(command: &mut Command) {
         "HOME",
         "/home/critic",
         "--setenv",
-        "CODEX_HOME",
-        "/codex",
-        "--setenv",
         "PATH",
         "/usr/bin:/bin",
         "--chdir",
         "/work",
-        "/codex-cli",
-        "exec",
     ]);
 }
-fn review_mounts(command: &mut Command, layout: &Layout) {
+fn review_mounts(command: &mut Command, layout: &Layout, frontend: &str) {
+    let client = client_directory(frontend);
+    let home = format!("/{client}");
     for (source, target, writable) in [
         (layout.project.to_path_buf(), "/project", false),
         (layout.input.to_path_buf(), "/review-input", false),
         (layout.role.join("work"), "/work", true),
         (layout.role.join("bin"), "/review-bin", false),
-        (layout.role.join("codex"), "/codex", true),
+        (layout.role.join(client), home.as_str(), true),
     ] {
         command
             .arg(if writable { "--bind" } else { "--ro-bind" })

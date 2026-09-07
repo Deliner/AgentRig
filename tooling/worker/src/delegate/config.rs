@@ -47,13 +47,7 @@ pub enum Mode {
     Code,
 }
 
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Credentials {
-    pub codex_auth_file_env: Option<String>,
-    #[serde(default)]
-    pub env: BTreeMap<String, String>,
-}
+pub use review_runner::config::Credentials;
 
 pub fn load(path: &Path) -> Result<Config> {
     resolve(path, review_runner::config::yaml::read(path)?)

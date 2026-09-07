@@ -64,6 +64,9 @@ impl Fixture {
             .arg(root.join("request.json"))
             .env("REVIEW_CODEX_BIN", root.join("codex"))
             .env("CODEX_HOME", root.join("auth"))
+            .env("REVIEW_CLAUDE_BIN", root.join("codex"))
+            .env("REVIEW_TEST_CLAUDE_TOKEN", "fixture-token")
+            .env("UNDECLARED_SECRET", "must-not-reach-reviewer")
             .output()
             .unwrap()
     }

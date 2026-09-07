@@ -1,6 +1,8 @@
 pub mod hooks;
 mod validation;
-pub use validation::{resolve_references, validate_references, variable_name};
+pub use review_runner::config::credentials::{
+    resolve_references, validate_references, variable_name,
+};
 
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::PathBuf};

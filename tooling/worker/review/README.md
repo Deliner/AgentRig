@@ -1,14 +1,15 @@
 # Review MCP
 
-Linux review service and shared Rust `review-runner`. Configured Codex roles
-review a committed Git candidate inside separate bubblewrap sandboxes. The
+Linux review service and shared Rust `review-runner`. Configured Codex or
+Claude Code roles review a committed candidate inside separate bubblewrap sandboxes. The
 runner validates file responses and computes the report without model-based
 aggregation. It does not edit the reviewed project or its workflow memory.
 
 ## Build and call
 
 Requirements: Rust 1.98.1, Git, bubblewrap with user namespaces enabled, and
-native Codex plus its adjacent `codex-code-mode-host`. The tested CLI is listed
+the selected native Linux client (Codex also needs its adjacent
+`codex-code-mode-host`). The tested Codex CLI is listed
 in [COMPATIBILITY.md](COMPATIBILITY.md). Standard Linux runtime binaries,
 libraries, resolver files and TLS certificates are mounted read-only.
 
@@ -57,6 +58,40 @@ CLI home. Never put authentication in project files or review configuration.
 handles the npm wrapper. The host user config, skills and hooks are not copied.
 Codex may create fresh service configuration in its private home.
 
+Reviewers can instead declare `credentials.codex_auth_file_env` naming a variable
+whose value is the authentication file path, or `credentials.env.OPENAI_API_KEY`
+naming the variable containing their API key. Values stay outside YAML and are
+resolved only when launching that role. Configurations without these declarations
+retain the `CODEX_HOME/auth.json` behavior.
+
+Claude Code uses `REVIEW_CLAUDE_BIN` or the native `claude` executable on PATH.
+Declare its authentication through `credentials.env`, for example:
+
+```yaml
+frontend: claude-code
+model: your-claude-model
+reasoning_effort: high
+prompt: prompt.md
+credentials:
+  env:
+    CLAUDE_CODE_OAUTH_TOKEN: REVIEW_CLAUDE_TOKEN
+```
+
+`ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` references are also supported.
+An optional `ANTHROPIC_BASE_URL` entry names an external variable containing the
+endpoint. The client receives only declared variables and sandbox-owned paths;
+credentials are not placed in command arguments. Missing references become
+technical role errors. Claude runs in print mode with a private configuration
+directory, explicit read-only Stop settings and no inherited MCP configuration.
+It does not use bare mode, which disables hooks. See the official
+[Claude CLI](https://code.claude.com/docs/en/headless) and
+[hook contracts](https://code.claude.com/docs/en/hooks).
+
+Current client-boundary tests use deterministic executors inside real bubblewrap
+to verify selection, correction, exhaustion, timeout and isolation. Real Claude
+model runs and complete project/delegation setup remain P008 acceptance work;
+these tests do not establish that acceptance.
+
 ## Configuration and contracts
 
 Review settings use strict YAML exclusively. Duplicate keys, unknown fields,
@@ -68,10 +103,13 @@ shared reviewer definitions; role counts and names are not hardcoded. A role
 specifies its model, reasoning effort and prompt. Each tool selects roles and a
 project configuration. Restart MCP after changing its tool configuration.
 
-Each reviewer declares `frontend: codex`, its model, reasoning effort and
-prompt. Codex is the implemented executor; another frontend fails configuration
-validation before any critic starts. Existing configurations without `frontend`
-select Codex. The resolved frontend is retained in the report configuration.
+Each reviewer declares `frontend: codex` or `frontend: claude-code`, its model,
+reasoning effort and prompt. A tool may select roles using both clients.
+Other frontends fail configuration validation before any critic starts.
+Existing configurations without `frontend` select Codex. The resolved frontend
+is retained in the report configuration and each new role result. Claude accepts
+`low`, `medium`, `high`, `xhigh` and `max`; unsupported efforts and Codex auth-file
+settings are rejected for Claude rather than silently translated.
 
 Resource paths are relative to the configuration that declares them. Project
 visibility and normative-document globs are relative to the checkout root.
@@ -111,7 +149,7 @@ the configuration author must exclude sensitive content from the allowlist.
 Critics receive the candidate snapshot, base diff, manifest, contract and schema.
 `/project`, `/review-input` and `/review-bin` are read-only. `/work`, `/tmp` and
 the separate CLI home are private to one role. No other critic or package source
-directory is mounted. Network access is retained for Codex model requests.
+directory is mounted. Network access is retained for model requests.
 
 The shared [response schema](schemas/response.json) and validator enforce exact
 run/role/candidate/contract identities and assigned requirement coverage. FAIL
