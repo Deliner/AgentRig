@@ -137,9 +137,13 @@ through the shared VCS owner. Published decision identities and detail contents
 remain immutable when the memory directory moves. Plain directories and unborn
 repositories have no historical baseline; backend errors are reported rather
 than treated as absent history. This applies to `memory-check` and memory gates;
-Mercurial setup installs the commit hook described below. Native Mercurial
-`feature-start` and `feature-merge` integration remains unimplemented and returns
-an explicit capability error; complete multi-VCS delivery is not yet accepted.
+Mercurial setup installs the commit hook described below. `feature-start NAME`
+supports Git and Mercurial through the shared VCS owner. It requires the configured
+base branch, a clean working tree and no pending merge/rebase. Git creates a new
+branch reference; Mercurial sets the working directory's named branch, recorded
+permanently by the next commit. Native branch commands reject invalid or existing
+names and honor consumer hooks. Mercurial `feature-merge` remains unimplemented
+and returns an explicit capability error; complete multi-VCS delivery is not yet accepted.
 
 ## Configuration ownership
 

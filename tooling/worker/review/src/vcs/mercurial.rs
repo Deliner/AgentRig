@@ -44,6 +44,23 @@ fn execute(mut command: Command, root: &Path, args: &[&str]) -> Result<Vec<u8>> 
     Ok(output.stdout)
 }
 
+pub(super) fn create_branch(root: &Path, branch: &str) -> Result<()> {
+    // Authorized writes honor the consumer's native configuration and hooks.
+    let output = Command::new("hg")
+        .current_dir(root)
+        .env("HGPLAIN", "1")
+        .env_remove("HGRCSKIPREPO")
+        .env_remove("HGPLAINEXCEPT")
+        .args(["branch", "--", branch])
+        .output()?;
+    ensure!(
+        output.status.success(),
+        "Mercurial branch failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    Ok(())
+}
+
 pub(super) fn resolve(root: &Path, reference: &str) -> Result<String> {
     let bytes = run(root, &["log", "--rev", reference, "--template", "{node}\n"])?;
     Ok(String::from_utf8(bytes)?.trim().into())

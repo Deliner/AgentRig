@@ -13,7 +13,7 @@ from support import git as git_result
 from support import invoke, update_config
 from test_commands import background_id, require_user_systemd, wait_for_background_output
 from test_feedback import commit as revision_commit
-from test_feedback import evidence, repository, revision
+from test_feedback import evidence, repository, resumed, revision
 
 
 def git(root: Path, *args: str) -> str:
@@ -375,3 +375,96 @@ def test_vcs_selection_preserves_legacy_git_and_rejects_conflicts(
     result = invoke(worker, tmp_path, "setup")
     assert result.returncode == 2 and "does not match" in result.stderr
     assert not (tmp_path / ".git").exists()
+
+
+def feature_repository(root: Path, vcs: str) -> str:
+    repository(root, vcs)
+    using_git = vcs == "git"
+    update_config(
+        root / "agentrig.yaml",
+        git={
+            "backend": "git" if using_git else "mercurial",
+            "base": "trunk" if using_git else "default",
+        },
+    )
+    return revision_commit(root, vcs)
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_native_feature_start_preserves_parent_and_rejects_existing_branch(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    base = feature_repository(tmp_path, vcs)
+    result = invoke(worker, tmp_path, "feature-start", "product")
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "task/product"
+    assert revision(tmp_path, vcs) == base
+    assert resumed(worker, tmp_path)["vcs"]["branch"] == "task/product"
+    assert invoke(worker, tmp_path, "feature-start", "another").returncode == 2
+    (tmp_path / "src/value.py").write_text("value = 2\n")
+    candidate = revision_commit(tmp_path, vcs)
+    using_git = vcs == "git"
+    args = ["switch", "trunk"] if using_git else ["update", "--rev", base]
+    subprocess.run([vcs, *args], cwd=tmp_path, capture_output=True, check=True)
+    result = invoke(worker, tmp_path, "feature-start", "product")
+    assert result.returncode == 2 and "exists" in result.stderr
+    assert revision(tmp_path, vcs) == base
+    assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
+    assert candidate != base
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+@pytest.mark.parametrize("change", ["modified", "untracked", "invalid-name"])
+def test_native_feature_start_rejects_pending_changes_and_invalid_names(
+    worker: Path, tmp_path: Path, vcs: str, change: str
+) -> None:
+    base = feature_repository(tmp_path, vcs)
+    path = tmp_path / "src/value.py"
+    modified = change == "modified"
+    untracked = change == "untracked"
+    invalid = change == "invalid-name"
+    if modified:
+        path.write_text("value = 2\n")
+    if untracked:
+        (tmp_path / "pending.txt").write_text("preserve me\n")
+    before = path.read_bytes()
+    result = invoke(worker, tmp_path, "feature-start", "bad:name" if invalid else "product")
+    assert result.returncode == 2, result.stderr
+    assert revision(tmp_path, vcs) == base
+    assert not resumed(worker, tmp_path)["vcs"]["branch"].startswith("task/")
+    assert path.read_bytes() == before
+    if untracked:
+        assert (tmp_path / "pending.txt").read_text() == "preserve me\n"
+
+
+def test_mercurial_feature_start_honors_hooks_and_native_names(
+    worker: Path, tmp_path: Path
+) -> None:
+    base = feature_repository(tmp_path, "hg")
+    hgrc = tmp_path / ".hg/hgrc"
+    hgrc.write_text("[hooks]\npre-branch.reject = false\n")
+    result = invoke(worker, tmp_path, "feature-start", "with spaces")
+    assert result.returncode == 2 and "pre-branch.reject" in result.stderr
+    assert resumed(worker, tmp_path)["vcs"]["branch"] == "default"
+    hgrc.write_text("[hooks]\npre-branch.reject = true\n")
+    result = invoke(worker, tmp_path, "feature-start", "with spaces")
+    assert result.returncode == 0, result.stderr
+    assert hg(tmp_path, "branch") == "task/with spaces"
+    assert revision(tmp_path, "hg") == base
+
+
+def test_mercurial_feature_start_rejects_pending_merge_with_clean_files(
+    worker: Path, tmp_path: Path
+) -> None:
+    base = feature_repository(tmp_path, "hg")
+    assert invoke(worker, tmp_path, "feature-start", "side").returncode == 0
+    hg(tmp_path, "commit", "-m", "named branch", "-u", "Test")
+    side = revision(tmp_path, "hg")
+    hg(tmp_path, "update", "--rev", base)
+    hg(tmp_path, "merge", "--rev", side)
+    assert hg(tmp_path, "status") == ""
+    result = invoke(worker, tmp_path, "feature-start", "product")
+    assert result.returncode == 2 and "pending VCS operation" in result.stderr
+    observed = resumed(worker, tmp_path)["vcs"]
+    assert observed["merge_in_progress"]
+    assert observed["branch"] == "default"

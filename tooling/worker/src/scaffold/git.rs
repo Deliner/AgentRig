@@ -19,25 +19,12 @@ fn ancestor(root: &Path, older: &str, newer: &str) -> Result<bool> {
         .success())
 }
 pub fn start(context: &Context, name: &str) -> Result<i32> {
-    ensure!(
-        context.config.vcs.backend == review_runner::vcs::Kind::Git,
-        "feature-start for this VCS is not implemented yet; use its native branch command"
-    );
-    let root = &context.root;
     let settings = &context.config.vcs;
-    let branch = format!("{}{name}", settings.prefix);
-    ensure!(
-        !name.is_empty() && !name.starts_with('-'),
-        "feature name required"
-    );
-    git(root, &["check-ref-format", "--branch", &branch])?;
-    ensure!(
-        git(root, &["branch", "--show-current"])? == settings.base,
-        "start from {}",
-        settings.base
-    );
-    clean(root)?;
-    git(root, &["switch", "-c", &branch])?;
+    let repository = settings
+        .backend
+        .repository(&context.root)?
+        .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
+    let branch = repository.start_feature(settings, name)?;
     println!("{branch}");
     Ok(0)
 }

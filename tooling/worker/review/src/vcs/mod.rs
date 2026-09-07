@@ -1,4 +1,5 @@
 //! VCS-owned revision and file operations shared by delivery consumers.
+mod branches;
 mod export;
 mod git;
 mod mercurial;
