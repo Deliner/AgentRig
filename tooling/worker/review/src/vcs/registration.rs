@@ -168,7 +168,7 @@ impl Repository<'_> {
 }
 
 impl Source<'_> {
-    fn registration_values(&self, directory: &str) -> Result<Vec<(String, String, String)>> {
+    pub fn registration_values(&self, directory: &str) -> Result<Vec<(String, String, String)>> {
         match self.backend {
             Backend::Native(kind) => match kind.repository(self.root)? {
                 Some(repository) => Ok(repository

@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, invoke, project, update_config
+from support import CONFIG, file_contents, invoke, project, update_config, vcs_backend
 
 
 @pytest.mark.parametrize("backend", ["git", "mercurial"])
@@ -87,10 +87,12 @@ def declaration(worker: Path, root: Path, service: str = ".agentrig") -> Path:
 
 
 @pytest.mark.parametrize("service", [".agentrig", "rig space's $cash"])
+@pytest.mark.parametrize("vcs", ["git", "private"])
 def test_setup_prepares_and_repeats_without_losing_settings(
-    worker: Path, tmp_path: Path, service: str
+    worker: Path, tmp_path: Path, service: str, vcs: str
 ) -> None:
     root = declaration(worker, tmp_path, service)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     (root / ".codex").mkdir()
     settings = "# Keep this comment\nmodel = 'consumer-model'\n[features]\nhooks = true # enabled\n"
     (root / ".codex/config.toml").write_text(settings)
@@ -135,8 +137,12 @@ def test_setup_preserves_changed_review_and_memory(worker: Path, tmp_path: Path)
     assert file_contents(root) == before
 
 
-def test_setup_rejects_conflicting_assets_without_writing(worker: Path, tmp_path: Path) -> None:
+@pytest.mark.parametrize("vcs", ["git", "private"])
+def test_setup_rejects_conflicting_assets_without_writing(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
     root = declaration(worker, tmp_path)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     assert invoke(worker, root, "setup").returncode == 0
     skill = root / ".agentrig/skills/repair/SKILL.md"
     skill.write_text(skill.read_text() + "\nConsumer instruction.\n")
@@ -148,10 +154,12 @@ def test_setup_rejects_conflicting_assets_without_writing(worker: Path, tmp_path
 
 
 @pytest.mark.parametrize("settings", ["features=false\n", "[features]\nhooks=false\n"])
+@pytest.mark.parametrize("vcs", ["git", "private"])
 def test_setup_rejects_hook_conflicts_before_writing(
-    worker: Path, tmp_path: Path, settings: str
+    worker: Path, tmp_path: Path, settings: str, vcs: str
 ) -> None:
     root = declaration(worker, tmp_path)
+    update_config(root / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     (root / ".codex").mkdir()
     (root / ".codex/config.toml").write_text(settings)
     before = file_contents(root)

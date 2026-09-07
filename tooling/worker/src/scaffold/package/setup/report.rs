@@ -51,14 +51,15 @@ fn document(
 
 pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Result<Value> {
     let hooks = config.paths.service_path("hooks");
-    let repository = config.vcs.backend.repository(root)?;
-    let registered = match &repository {
-        Some(repository) => repository.hooks_registered(&hooks)?,
-        None => false,
+    let present = config.vcs.backend.repository_present(root)?;
+    let source = config.vcs.backend.source(root);
+    let registered = present && source.hooks_registered(&hooks)?;
+    let registration = match &config.vcs.backend {
+        review_runner::vcs::Backend::Native(kind) => {
+            json!(review_runner::vcs::Repository::new(root, *kind).expected_registration(&hooks))
+        }
+        review_runner::vcs::Backend::External(_) => json!(source.registration_values(&hooks)?),
     };
-    let registration =
-        review_runner::vcs::Repository::new(root, config.vcs.backend.native("setup preview")?)
-            .expected_registration(&hooks);
     Ok(json!({
         "preview": true,
         "root": root,
@@ -66,7 +67,7 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
         "registrations": {
             "vcs": {
                 "backend": config.vcs.backend,
-                "initialize": repository.is_none(),
+                "initialize": !present,
                 "initial_branch": config.vcs.base,
                 "hooks_path": hooks,
                 "registration": registration,

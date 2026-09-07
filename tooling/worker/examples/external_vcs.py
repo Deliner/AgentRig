@@ -70,6 +70,12 @@ def initialize(arguments: dict[str, Any]) -> None:
     write("branch", "--", arguments["base"])
 
 
+def repository_present(arguments: dict[str, Any]) -> bool:
+    assert not arguments
+    assert not Path(".git").exists(), "existing Git repository must be preserved"
+    return Path(".hg").is_dir()
+
+
 def write(*arguments: str) -> None:
     environment = dict(os.environ, HGPLAIN="1")
     environment.pop("HGRCSKIPREPO", None)
@@ -99,6 +105,21 @@ def registration(arguments: dict[str, Any]) -> list[tuple[str, str, str]]:
         "ui.ignore.agentrig": directory + ".hgignore",
     }
     return [(key, configuration(key), value) for key, value in desired.items()]
+
+
+def generate(arguments: dict[str, Any]) -> dict[str, Any]:
+    directory = arguments["directory"]
+    binary = arguments["binary"]
+    hook = (
+        "#!/bin/sh\nset -eu\nroot=$(hg root)\n"
+        f'{binary} guard-commit --root "$root" --revision "$HG_NODE"\n'
+        f'exec {binary} check --root "$root" --revision "$HG_NODE"\n'
+    )
+    ignored = "syntax: glob\n" + "".join(path + "/**\n" for path in arguments["ignored"])
+    return {
+        "root_command": "hg root",
+        "files": {directory + "/pretxncommit": hook, directory + ".hgignore": ignored},
+    }
 
 
 def register_hooks(arguments: dict[str, Any]) -> None:
@@ -175,7 +196,9 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "head": head,
     "observe": observe,
     "initialize": initialize,
+    "repository-present": repository_present,
     "registration": registration,
+    "generate": generate,
     "register-hooks": register_hooks,
     "start-feature": start_feature,
     "parents": parents,

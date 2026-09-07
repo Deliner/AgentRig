@@ -4,8 +4,9 @@ Project checks, recovery, review and delegation can select a private VCS read ad
 configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
 native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
 visibility checks. A separate executable can implement the protocol without
-linking AgentRig or publishing its implementation. Project VCS setup, commit and
-integration operations for private backends remain pending P007 work.
+linking AgentRig or publishing its implementation. Private setup, preview and
+doctor use this boundary. Private commit guards and integration remain pending
+P007 work; an installed environment does not yet prove full delivery support.
 
 An adapter declaration contains one argv vector, for example:
 
@@ -33,8 +34,10 @@ falls back to a native repository found beside it. Native project selection now
 requires matching repository metadata; omitted selection still means Git.
 Private branch naming belongs to the adapter; configuration only requires
 nonempty base and prefix. `feature-start` supports the write operation below.
-Setup, generated hooks/MCP registration, commit and feature integration currently
-report explicit unimplemented private-operation errors.
+Setup generates hooks and harness/MCP commands, previews files and registrations,
+initializes the repository and registers hooks through the adapter. Configure a
+private backend in YAML and use `setup`; the `init --vcs` choices remain native.
+Private commit guards and feature integration still report unimplemented errors.
 
 For direct lint commands, put the Backend declaration alone in a YAML file:
 
@@ -119,6 +122,8 @@ session is required.
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
 | `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
 | `initialize` | `base` string | Null after ensuring a repository exists; an existing repository is preserved. |
+| `repository-present` | Empty object | Boolean identifying whether this backend's repository exists; mismatched repositories fail. |
+| `generate` | `binary` shell expression, `directory` relative hook path, `ignored` array of relative runtime paths | `{root_command, files}`; a shell command string and a map of relative file paths to UTF-8 contents. |
 | `registration` | `directory` string | Nonempty array of `[key, current, desired]` string triples describing managed native settings. |
 | `register-hooks` | `directory` string | Null after registering hooks without replacing conflicting user settings. |
 | `parents` | `revision` string | Array of exact parent IDs; empty for a root revision. |
@@ -153,8 +158,7 @@ repeated calls must preserve existing branches, revisions, user files and native
 configuration. The example refuses a Git repository and uses native Mercurial
 writes for a new repository. AgentRig observes the result to ensure it is readable.
 Failed initialization retains its state for repair. This operation does not
-install hooks; the complete private setup flow remains pending until generated
-files and repository discovery are supported throughout setup.
+install hooks; setup combines initialization with generated files and registration.
 
 `Source` owns registration conflict checks for native and private backends. Each
 external registration key must be unique and nonempty, with a nonempty desired
@@ -164,9 +168,25 @@ exists, reporting the settings that will be needed. The write operation rechecks
 conflicts before mutation, preserves unrelated settings and is idempotent.
 AgentRig rereads external registration after success and requires every current
 value to equal its desired value. It preserves failed native state for repair.
-Setup validation, installation and doctor's registration check use this shared
-owner. Generated hook files, root lookup and MCP command generation still require
-the remaining private setup work.
+Setup validation, installation and doctor's registration check use this shared owner.
+
+`generate` is read-only and runs from the consumer root, including when an external
+configuration file is used or the CLI starts elsewhere. `binary` is the supplied
+shell expression for the installed AgentRig executable, evaluated after the hook
+sets `root`. The adapter owns the executable hook contents and `root_command`;
+the latter is embedded in generated harness and MCP launchers. Unlike the adapter
+argv, these returned shell fragments are executable configuration and are reviewed
+with the generated files. The root command must be nonempty and contain no NUL.
+
+Files must use canonical relative paths within `directory`, or sibling auxiliary
+files named with the `directory.` prefix, such as `.agentrig/hooks.hgignore`.
+Traversal, control metadata, replacing the hook directory itself and unrelated
+installation paths are rejected. The existing installer checks collisions,
+ownership, permissions and changed resources. Native and external Mercurial
+generation produce the same hook and runtime-ignore bytes. The external adapter
+does not write these files itself. Preview reports their hashes and permissions;
+registration reports use native strings for native backends and setting triples
+for external backends.
 
 Paths must be canonical relative paths. Empty components, `.`, `..`, NUL,
 absolute paths and `.git`/`.hg` control components are rejected. Duplicate tree
@@ -201,6 +221,13 @@ working file fails and the original bytes remain unchanged.
 a real native commit, preserves custom configuration and checks repeat registration,
 both managed-setting conflicts, invalid descriptions and false success replies.
 That hook is a test fixture; full installed delivery-gate acceptance remains separate.
+Generation tests compare native and external Mercurial output and reject escaped
+paths and invalid root commands. Python consumers exercise private setup, repeat
+installation, preserved settings, asset/harness conflicts and a real MCP handshake
+through the generated launcher. A relative adapter is resolved from the consumer
+root even when the CLI runs elsewhere; the installed binary passes doctor and
+repeat preview. These checks do not establish private commit/integration acceptance
+or real model-client acceptance.
 
 Configured review tests run a failing review, a repair and a successful re-review
 through the example, then reject a changed adapter or source root. Snapshot tests

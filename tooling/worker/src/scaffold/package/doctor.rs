@@ -117,7 +117,7 @@ fn vcs_registration(context: &Context) -> Result<bool> {
         .source(&context.root)
         .hooks_registered(&context.config.paths.service_path("hooks"))?;
     let registered = registered
-        && super::adapters::vcs_hooks(&context.config)?
+        && super::adapters::vcs_hooks(&context.root, &context.config)?
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)
@@ -162,8 +162,10 @@ fn codex_registration(context: &Context) -> Result<bool> {
 }
 
 fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -> Result<bool> {
-    let expected: serde_json::Value =
-        serde_json::from_slice(&super::adapters::registration(&context.config)?)?;
+    let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
+        &context.config,
+        &super::adapters::generated(&context.root, &context.config)?.root_command,
+    )?)?;
     Ok(configured.is_some_and(|value| {
         expected["hooks"]
             .as_object()

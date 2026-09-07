@@ -26,7 +26,7 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
     reject_legacy(root)?;
     let options = template::options(root, args)?;
     let config = template::config(&options);
-    let files = bundle(&config)?;
+    let files = bundle(root, &config)?;
     check_collisions(root, &files)?;
     // Check native hook ownership before creating any files.
     let repository = config.vcs.backend.repository(root)?;
@@ -57,7 +57,7 @@ fn reject_legacy(root: &Path) -> Result<()> {
     );
     Ok(())
 }
-fn bundle(config: &Config) -> Result<Files> {
+fn bundle(root: &Path, config: &Config) -> Result<Files> {
     let mut files = guidance(config);
     files.insert(
         config::FILE.into(),
@@ -70,7 +70,7 @@ fn bundle(config: &Config) -> Result<Files> {
         );
     }
     add_policy(&mut files, config)?;
-    add_runtime(&mut files, config)?;
+    add_runtime(root, &mut files, config)?;
     review::bundle(&mut files, config)?;
     files.insert(
         config.paths.service_path("manifest.json"),
@@ -111,18 +111,8 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     }
     Ok(())
 }
-fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
-    let mercurial = config.vcs.backend == review_runner::vcs::Kind::Mercurial.into();
-    if mercurial {
-        files.insert(
-            config.paths.service_path("hooks.hgignore"),
-            format!(
-                "syntax: glob\n{}/**\n{}/review/runtime/**\n{}/review/reports/**\n",
-                config.paths.runtime, config.paths.service, config.paths.service
-            )
-            .into_bytes(),
-        );
-    }
+fn add_runtime(root: &Path, files: &mut Files, config: &Config) -> Result<()> {
+    let generated = adapters::generated(root, config)?;
     files.insert(
         config.paths.service_path(".gitignore"),
         b"runtime/\n/inputs/runtime/\n/inputs/reports/\n".to_vec(),
@@ -136,9 +126,16 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         ".codex/config.toml".into(),
         adapters::CODEX_CONFIG.as_bytes().to_vec(),
     );
-    files.insert(".codex/hooks.json".into(), adapters::registration(config)?);
-    for (path, contents) in adapters::vcs_hooks(config)? {
-        files.insert(path, contents);
+    files.insert(
+        ".codex/hooks.json".into(),
+        adapters::registration(config, &generated.root_command)?,
+    );
+    for (path, contents) in generated.files {
+        ensure!(
+            !files.contains_key(&path),
+            "generated VCS file conflicts with another resource: {path}"
+        );
+        files.insert(path, contents.into_bytes());
     }
     Ok(())
 }

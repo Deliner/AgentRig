@@ -1,4 +1,4 @@
-use review_runner::vcs::{Backend, Kind, external::Adapter};
+use review_runner::vcs::{Backend, Generation, Kind, external::Adapter};
 use serde_json::json;
 use std::{fs, path::Path, process::Command};
 
@@ -128,5 +128,70 @@ fn registration_reply(values: serde_json::Value) -> Backend {
     );
     Backend::External(Adapter {
         command: vec!["python3".into(), "-c".into(), script],
+    })
+}
+
+#[test]
+fn private_generation_matches_native_mercurial_without_writing_files() {
+    let root = tempfile::tempdir().unwrap();
+    let request = Generation {
+        binary: "\"$root\"/'rig space/bin/agentrig'",
+        directory: "rig space/hooks",
+        ignored: &["runtime".into(), "rig space/review/runtime".into()],
+    };
+    let native = Backend::Native(Kind::Mercurial)
+        .generate(root.path(), &request)
+        .unwrap();
+    let private = external().generate(root.path(), &request).unwrap();
+    assert_eq!(private.root_command, native.root_command);
+    assert_eq!(private.files, native.files);
+    assert_eq!(fs::read_dir(root.path()).unwrap().count(), 0);
+}
+
+#[test]
+fn generation_rejects_files_outside_the_hook_area_and_invalid_root_commands() {
+    let root = tempfile::tempdir().unwrap();
+    let request = Generation {
+        binary: "worker",
+        directory: ".agentrig/hooks",
+        ignored: &[],
+    };
+    for path in [
+        "../escape",
+        "/tmp/escape",
+        ".git/config",
+        "AGENTS.md",
+        ".agentrig/bin/agentrig",
+        ".agentrig/hooks",
+        ".agentrig/hooks.extra/child",
+    ] {
+        let value = json!({"root_command":"hg root", "files":{path:"contents"}});
+        assert!(
+            generation_reply(value)
+                .generate(root.path(), &request)
+                .is_err()
+        );
+    }
+    for command in [json!(""), json!("bad\u{0}command"), json!(42)] {
+        let value = json!({"root_command":command, "files":{}});
+        assert!(
+            generation_reply(value)
+                .generate(root.path(), &request)
+                .is_err()
+        );
+    }
+    assert_eq!(fs::read_dir(root.path()).unwrap().count(), 0);
+}
+
+fn generation_reply(value: serde_json::Value) -> Backend {
+    Backend::External(Adapter {
+        command: vec![
+            "python3".into(),
+            "-c".into(),
+            format!(
+                "import sys; sys.stdout.write({:?})",
+                json!({"version":1,"result":value}).to_string()
+            ),
+        ],
     })
 }

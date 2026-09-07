@@ -1,5 +1,6 @@
 use super::Config;
 use anyhow::Result;
+use std::path::Path;
 
 pub const CODEX_CONFIG: &str = "[features]\nhooks = true\n";
 
@@ -10,50 +11,53 @@ fn binary(service: &str) -> String {
     )
 }
 
-pub fn mcp_command(service: &str, command: &str, backend: review_runner::vcs::Kind) -> String {
+pub fn mcp_command(service: &str, command: &str, root_command: &str) -> String {
     format!(
         "root=$({}) && exec {} {command} mcp --root \"$root\"",
-        backend.root_command(),
+        root_command,
         binary(service)
     )
 }
 
-pub fn environment_command(
-    service: &str,
-    command: &str,
-    name: &str,
-    backend: review_runner::vcs::Kind,
-) -> String {
+pub fn environment_command(service: &str, command: &str, name: &str, root_command: &str) -> String {
     format!(
         "root=$({}) && exec {} environment-{command} {} --root \"$root\"",
-        backend.root_command(),
+        root_command,
         binary(service),
         shell_words::quote(name)
     )
 }
 
-pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
-    let binary = binary(&config.paths.service);
-    Ok(config
-        .vcs
-        .backend
-        .native("hook generation")?
-        .hooks(&binary)
+pub fn generated(root: &Path, config: &Config) -> Result<review_runner::vcs::Generated> {
+    let ignored = vec![
+        config.paths.runtime.clone(),
+        config.paths.service_path("review/runtime"),
+        config.paths.service_path("review/reports"),
+    ];
+    config.vcs.backend.generate(
+        root,
+        &review_runner::vcs::Generation {
+            binary: &binary(&config.paths.service),
+            directory: &config.paths.service_path("hooks"),
+            ignored: &ignored,
+        },
+    )
+}
+
+pub fn vcs_hooks(root: &Path, config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
+    let prefix = config.paths.service_path("hooks/");
+    Ok(generated(root, config)?
+        .files
         .into_iter()
-        .map(|(name, contents)| {
-            (
-                config.paths.service_path(&format!("hooks/{name}")),
-                contents.into_bytes(),
-            )
-        })
+        .filter(|(path, _)| path.starts_with(&prefix))
+        .map(|(path, contents)| (path, contents.into_bytes()))
         .collect())
 }
 
-pub fn registration(config: &Config) -> Result<Vec<u8>> {
-    let backend = config.vcs.backend.native("harness registration")?;
+pub fn registration(config: &Config, root_command: &str) -> Result<Vec<u8>> {
     let command = format!(
         "root=$({}) && exec {} hook --root \"$root\"",
-        backend.root_command(),
+        root_command,
         binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
@@ -63,7 +67,7 @@ pub fn registration(config: &Config) -> Result<Vec<u8>> {
     }});
     let custom =
         agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
-            environment_command(&config.paths.service, "hook", name, backend)
+            environment_command(&config.paths.service, "hook", name, root_command)
         });
     for (event, groups) in custom.as_object().unwrap() {
         value["hooks"]

@@ -97,7 +97,7 @@ fn migrate_command(entry: &mut Item, command: &str) -> Result<bool> {
         let replacement = crate::scaffold::package::adapters::mcp_command(
             ".worker",
             command,
-            review_runner::vcs::Kind::Git,
+            review_runner::vcs::Kind::Git.root_command(),
         );
         *args.get_mut(1).context("managed MCP argument required")? = Value::from(replacement);
     }

@@ -11,7 +11,7 @@ use std::{fs, path::Path};
 
 pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
     ensure!(args.len() == 1, "config-inspect CONFIG_YAML [--root PATH]");
-    let prepared = input::external(&root.join(&args[0]))?;
+    let prepared = input::external(root, &root.join(&args[0]))?;
     preview::validate(root, &prepared.config, &prepared.files)?;
     prepared.verify()?;
     println!(
@@ -27,7 +27,7 @@ pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
 
 pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
     super::reject_legacy(root)?;
-    let mut prepared = input::external(path)?;
+    let mut prepared = input::external(root, path)?;
     let current = config::read(root)?;
     ensure!(
         prepared.config.runtime == current.runtime,

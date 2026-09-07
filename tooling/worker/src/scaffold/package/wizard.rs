@@ -13,7 +13,7 @@ pub fn run(root: &Path) -> Result<i32> {
     let Some((root, config)) = selection(root)? else {
         return cancelled();
     };
-    let installation = setup::prepare(&root, &config, super::bundle(&config)?)?;
+    let installation = setup::prepare(&root, &config, super::bundle(&root, &config)?)?;
     println!(
         "Configuration for {}:\n{}",
         root.display(),

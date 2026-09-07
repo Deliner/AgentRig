@@ -51,6 +51,15 @@ impl From<Kind> for Backend {
 }
 
 impl Backend {
+    pub fn repository_present(&self, root: &Path) -> Result<bool> {
+        match self {
+            Self::Native(kind) => Ok(kind.repository(root)?.is_some()),
+            Self::External(adapter) => {
+                adapter.call(root, "repository-present", serde_json::json!({}))
+            }
+        }
+    }
+
     pub fn initialize(&self, root: &Path, base: &str) -> Result<()> {
         match self {
             Self::Native(kind) => kind.initialize(root, base),

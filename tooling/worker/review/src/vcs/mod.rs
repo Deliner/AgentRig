@@ -2,6 +2,7 @@
 mod branches;
 mod export;
 pub mod external;
+mod generation;
 mod git;
 mod git_integration;
 mod integration;
@@ -9,6 +10,7 @@ mod mercurial;
 mod observation;
 mod registration;
 mod source;
+pub use generation::{Generated, Generation};
 pub use observation::Observation;
 pub use registration::Settings;
 pub use source::{Backend, Source};
