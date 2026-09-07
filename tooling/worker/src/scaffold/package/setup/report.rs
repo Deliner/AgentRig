@@ -152,8 +152,10 @@ fn dependencies(config: &Config) -> Value {
     );
     let review = config.capabilities.review.is_some();
     let delegation = config.capabilities.delegation.is_some();
-    let isolated =
-        review || delegation || config.commands.values().any(|command| command.read_only);
+    let isolated = review
+        || delegation
+        || config.vcs.backend == review_runner::vcs::Kind::Mercurial
+        || config.commands.values().any(|command| command.read_only);
     if isolated {
         executables.insert("bwrap");
     }

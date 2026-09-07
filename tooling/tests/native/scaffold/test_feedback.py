@@ -183,15 +183,22 @@ def test_interrupted_attempt_survives_fresh_resume(worker: Path, tmp_path: Path)
     assert not checks["full_gate_passed"]
 
 
-def test_resume_resolves_state_revision(worker: Path, tmp_path: Path) -> None:
-    repository(tmp_path)
-    revision = git(tmp_path, "rev-parse", "--short", "HEAD").stdout.strip()
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_resume_resolves_state_revision(worker: Path, tmp_path: Path, vcs: str) -> None:
+    repository(tmp_path, vcs)
+    saved = revision(tmp_path, vcs)
+    using_git = vcs == "git"
+    branch = "trunk" if using_git else "default"
     state = tmp_path / "notes/State.md"
-    state.write_text(state.read_text() + f"\nBranch: `trunk`\nRevision: `{revision}`\n")
+    state.write_text(state.read_text() + f"\nBranch: `{branch}`\nRevision: `{saved[:12]}`\n")
     value = resumed(worker, tmp_path)
     assert value["snapshot"] == "current"
     assert value["state_revision"]["head_changed"] is False
-    git(tmp_path, "commit", "--allow-empty", "-qm", "next revision")
+    assert value["vcs"]["revision"] == saved
+    assert value["vcs"]["branch"] == branch
+    assert not value["vcs"]["merge_in_progress"]
+    assert not value["vcs"]["rebase_in_progress"]
+    commit(tmp_path, vcs)
     value = resumed(worker, tmp_path)
     assert value["snapshot"] == "stale"
     assert value["state_revision"]["head_changed"] is True
@@ -216,10 +223,72 @@ def test_resume_observes_real_conflict(worker: Path, tmp_path: Path, operation: 
     assert file_contents(tmp_path) == before
 
 
+@pytest.mark.parametrize("operation", ["merge", "rebase"])
+def test_mercurial_resume_observes_real_conflict(
+    worker: Path, tmp_path: Path, operation: str
+) -> None:
+    repository(tmp_path, "hg")
+    source = tmp_path / "src/value.py"
+    source.write_text("value = 2\n")
+    feature = commit(tmp_path, "hg")
+    subprocess.run(["hg", "update", "-r", "0"], cwd=tmp_path, capture_output=True, check=True)
+    source.write_text("value = 3\n")
+    base = commit(tmp_path, "hg")
+    subprocess.run(["hg", "update", "-r", feature], cwd=tmp_path, capture_output=True, check=True)
+    merging = operation == "merge"
+    args = (
+        ["merge", "-r", base]
+        if merging
+        else ["--config", "extensions.rebase=", "rebase", "-s", feature, "-d", base]
+    )
+    result = subprocess.run(
+        ["hg", *args, "--tool", "internal:fail"], cwd=tmp_path, capture_output=True, text=True
+    )
+    assert result.returncode != 0, result.stdout + result.stderr
+    status = subprocess.check_output(["hg", "status"], cwd=tmp_path, text=True).strip()
+    before = file_contents(tmp_path)
+    value = resumed(worker, tmp_path)
+    assert value["vcs"]["backend"] == "mercurial"
+    assert value["vcs"][f"{operation}_in_progress"]
+    assert value["vcs"]["status"] == status
+    assert "git" not in value
+    assert file_contents(tmp_path) == before
+
+
 def revision(root: Path, vcs: str) -> str:
     using_git = vcs == "git"
     args = ["rev-parse", "HEAD"] if using_git else ["log", "-r", ".", "-T", "{node}"]
     return subprocess.check_output([vcs, *args], cwd=root, text=True).strip()
+
+
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_resume_distinguishes_plain_and_unborn_repositories(
+    worker: Path, tmp_path: Path, vcs: str
+) -> None:
+    project(tmp_path, CONFIG + GATE)
+    memory(tmp_path)
+    assert resumed(worker, tmp_path)["vcs"] is None
+    subprocess.run([vcs, "init"], cwd=tmp_path, capture_output=True, check=True)
+    before = file_contents(tmp_path)
+    value = resumed(worker, tmp_path)
+    assert value["vcs"]["revision"] == ""
+    assert not value["vcs"]["merge_in_progress"]
+    assert not value["vcs"]["rebase_in_progress"]
+    assert file_contents(tmp_path) == before
+
+
+def test_resume_observes_linked_git_worktree(
+    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.delenv("GIT_INDEX_FILE", raising=False)
+    repository(tmp_path)
+    linked = tmp_path.parent / f"{tmp_path.name}-linked"
+    git(tmp_path, "worktree", "add", "-b", "task/linked", str(linked))
+    before = file_contents(linked)
+    value = resumed(worker, linked)
+    assert value["vcs"]["branch"] == "task/linked"
+    assert value["git"] == value["vcs"]
+    assert file_contents(linked) == before
 
 
 def commit(root: Path, vcs: str) -> str:

@@ -1,10 +1,34 @@
 use super::{Entry, FileKind};
-use anyhow::{Result, bail, ensure};
+use anyhow::{Context as _, Result, bail, ensure};
 use serde::Deserialize;
 use std::{collections::BTreeMap, path::Path, process::Command};
 
 pub(super) fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
-    let output = Command::new("hg")
+    // Mercurial can refresh caches and dirstate during native read commands.
+    let mut command = Command::new("bwrap");
+    command.args([
+        "--die-with-parent",
+        "--ro-bind",
+        "/",
+        "/",
+        "--dev",
+        "/dev",
+        "--proc",
+        "/proc",
+        "--",
+        "hg",
+    ]);
+    execute(command, root, args).context("read Mercurial repository with bubblewrap")
+}
+
+pub(super) fn initialize(root: &Path, base: &str) -> Result<()> {
+    execute(Command::new("hg"), root, &["init"])?;
+    execute(Command::new("hg"), root, &["branch", "--", base])?;
+    Ok(())
+}
+
+fn execute(mut command: Command, root: &Path, args: &[&str]) -> Result<Vec<u8>> {
+    let output = command
         .current_dir(root)
         .env("HGPLAIN", "1")
         .env("HGRCPATH", "")

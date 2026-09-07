@@ -2,7 +2,9 @@
 mod export;
 mod git;
 mod mercurial;
+mod observation;
 mod registration;
+pub use observation::Observation;
 pub use registration::Settings;
 
 use anyhow::{Result, ensure};

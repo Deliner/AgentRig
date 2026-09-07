@@ -2,6 +2,7 @@
 // DECISION: D022
 use super::super::{config::Context, evidence};
 use anyhow::Result;
+use review_runner::vcs::Repository;
 use serde_json::{Value, json};
 use std::fs;
 
@@ -9,21 +10,22 @@ pub fn run(context: &Context) -> Result<()> {
     let memory = context.path(&context.config.paths.memory)?;
     let state = fs::read_to_string(memory.join("State.md"))?;
     let plan = fs::read_to_string(memory.join("Plan.md"))?;
-    let git = |args: &[&str]| crate::util::git(&context.root, args).unwrap_or_default();
-    let branch = git(&["branch", "--show-current"]);
-    let revision = git(&["rev-parse", "HEAD"]);
-    let status = git(&["--no-optional-locks", "status", "--short"]);
-    let recorded = recorded_revision(context, &state, &revision);
-    let snapshot = snapshot(&state, &branch, &recorded);
-    println!(
-        "{}",
-        json!({"state": state, "plan": plan,
-        "git": {"branch": branch, "revision": revision, "status": status,
-            "merge_in_progress": operation(context, "MERGE_HEAD"),
-            "rebase_in_progress": operation(context, "rebase-merge") || operation(context, "rebase-apply")},
+    let repository = Repository::discover(&context.root)?;
+    let observed = repository.as_ref().map(Repository::observe).transpose()?;
+    let branch = observed.as_ref().map_or("", |value| value.branch.as_str());
+    let revision = observed
+        .as_ref()
+        .map_or("", |value| value.revision.as_str());
+    let recorded = recorded_revision(repository.as_ref(), &state, revision);
+    let snapshot = snapshot(&state, branch, &recorded);
+    let mut report = json!({"state": state, "plan": plan, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "upgrade": crate::scaffold::upgrade::recovery::journal(&context.root)?, "checks": evidence::resume(context),
-        "jobs": agentrig::jobs::list(&context.path(&context.config.paths.runtime)?)?})
-    );
+        "jobs": agentrig::jobs::list(&context.path(&context.config.paths.runtime)?)?});
+    let legacy_git = report["vcs"]["backend"] == "git";
+    if legacy_git {
+        report["git"] = report["vcs"].clone();
+    }
+    println!("{report}");
     Ok(())
 }
 fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {
@@ -32,7 +34,7 @@ fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {
         .find_map(|line| line.strip_prefix(prefix))
         .map(|value| value.trim().trim_matches('`'))
 }
-fn recorded_revision(context: &Context, state: &str, current: &str) -> Value {
+fn recorded_revision(repository: Option<&Repository<'_>>, state: &str, current: &str) -> Value {
     let saved = claim(state, "Revision: ");
     let resolved = saved
         .filter(|value| {
@@ -40,18 +42,7 @@ fn recorded_revision(context: &Context, state: &str, current: &str) -> Value {
                 && value.len() <= 64
                 && value.bytes().all(|byte| byte.is_ascii_hexdigit())
         })
-        .and_then(|saved| {
-            crate::util::git(
-                &context.root,
-                &[
-                    "rev-parse",
-                    "--verify",
-                    "--end-of-options",
-                    &format!("{saved}^{{commit}}"),
-                ],
-            )
-            .ok()
-        });
+        .and_then(|saved| repository?.resolve(saved).ok());
     let changed = resolved
         .as_deref()
         .filter(|_| !current.is_empty())
@@ -73,12 +64,5 @@ fn snapshot(state: &str, branch: &str, revision: &Value) -> &'static str {
         "unverified"
     } else {
         "current"
-    }
-}
-fn operation(context: &Context, name: &str) -> bool {
-    let path = crate::util::git(&context.root, &["rev-parse", "--git-path", name]);
-    match path {
-        Ok(path) => context.root.join(path).exists(),
-        Err(_) => false,
     }
 }

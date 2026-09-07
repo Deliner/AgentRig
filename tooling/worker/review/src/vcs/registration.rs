@@ -78,8 +78,7 @@ impl Kind {
                     git::run(root, &["init", "-q", "-b", base])?;
                 }
                 Self::Mercurial => {
-                    mercurial::run(root, &["init"])?;
-                    mercurial::run(root, &["branch", "--", base])?;
+                    mercurial::initialize(root, base)?;
                 }
             }
         }

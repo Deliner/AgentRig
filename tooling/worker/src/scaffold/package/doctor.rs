@@ -93,6 +93,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .commands
         .values()
         .any(|command| command.read_only)
+        || context.config.vcs.backend == review_runner::vcs::Kind::Mercurial
         || context.config.capabilities.review.is_some()
         || context.config.capabilities.delegation.is_some();
     if read_only {

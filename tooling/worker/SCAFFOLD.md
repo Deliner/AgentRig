@@ -102,7 +102,10 @@ unrelated settings, hooks and the user's `.hgignore`. The additional ignore file
 excludes configured runtime data and default review runtime/reports. Repeated
 setup leaves matching registrations unchanged; conflicts stop before installation.
 Review presets generated for Mercurial select its native snapshot backend.
-Mercurial consumers need `hg`; delegation also requires Git for its internal patch builder.
+Mercurial consumers need `hg` and working bubblewrap. Native reads mount the
+filesystem read-only because Mercurial can otherwise refresh cache files and
+dirstate during inspection. Initialization and hook registration remain explicit
+writes. Delegation also requires Git for its internal patch builder.
 
 New installations write `<paths.service>/manifest.json` (default `.agentrig/manifest.json`) with manifest_version, package_version, config_schema and a files map. Each relative path records SHA-256, ownership and its executable flag. Ownership is runtime, asset, configuration, editable (skills/adapters), or memory. The receipt excludes itself; it describes shipped contents, so local edits do not silently change that baseline. User-created files are not added automatically. Missing receipts in older installations must not be treated as proof that their files are stock.
 
@@ -123,7 +126,7 @@ All project commands accept `--root PATH`; otherwise the current directory is th
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate only lint settings, or list actual rule/language capabilities. |
 | `check [--staged \| --revision REV] [--only CHECK_ID]` | Sequential gate over the working tree, Git index or exact Git/Mercurial revision, including config and skills from that tree; --only repeats one configured stage. |
 | `memory-check` | Check the four memory files, links, decision history and executable invariant targets. |
-| `resume` | Return State, Plan, observed Git operations, State revision comparison and check freshness as JSON without changing the project. |
+| `resume` | Return State, Plan, observed native VCS operations, State revision comparison and check freshness as JSON without changing the project. |
 | `feature-start NAME` / `feature-merge` | Create or integrate a branch according to configured base/prefix. Integration runs the gate and retains the branch. |
 | `hook` | Read an agent event as JSON from stdin and emit guidance or denial. |
 
@@ -351,7 +354,18 @@ Decision rows contain ID, Decision and Applies in. Details contain Context, Chos
 
 Invariant rows contain ID, Invariant and Enforced by. Details contain Predicate and Oracle. The enforcement link names a function in a Rust/Python source file, with its `INVARIANT: INNN` comment before the function (attributes/decorators may intervene). Its configured oracle must name that function, including its class/module scope, and be discoverable by the actual test runner. Multiple declarations of that qualified name are ambiguous to syntax-only linking and are reported rather than treated as one marked target. Unsupported source languages are reported explicitly.
 
-`resume` compares explicit `Branch: ` and `Revision: ` claims, optionally wrapped in backticks, with Git. Commit hashes may be full or unambiguous abbreviations. It reports current, stale or unverified snapshot status, an explicit state_revision.head_changed comparison (null when unknown), and merge/rebase facts resolved through Git so linked worktrees are supported. It does not infer completed acceptance, select a new feature, or overwrite State. The agent reconciles the snapshot with live evidence and current instructions.
+`resume` compares explicit `Branch: ` and `Revision: ` claims, optionally wrapped
+in backticks, with the discovered native repository. Commit hashes may be full or
+unambiguous abbreviations. It reports current, stale or unverified snapshot status,
+an explicit state_revision.head_changed comparison (null when unknown), and a
+`vcs` object containing backend, branch, revision, native status and merge/rebase
+facts. Git consumers retain the `git` alias; Mercurial reports its own identity.
+Plain directories have `vcs: null`; unborn repositories have an empty revision.
+Repository observation errors are reported, not interpreted as a clean checkout.
+Git operation paths support linked worktrees. Mercurial uses working-directory
+parents for pending merges and its native rebase state marker. It does not infer
+completed acceptance, select a new feature, or overwrite State. The agent
+reconciles the snapshot with live evidence and current instructions.
 
 The latest gate attempt is atomically replaced in `paths.runtime/checks.json`, including start time, native revision, input fingerprint, scope, optional selected check, results and completion state. This is disposable verification evidence, not a VAC registry or task history. An unfinished record means no completion was recorded; it does not establish that a process is still alive. A working-tree or staged check that changes inputs or the checked-out revision is marked inputs-changed. Results survive temporary exports and a fresh worker process.
 
