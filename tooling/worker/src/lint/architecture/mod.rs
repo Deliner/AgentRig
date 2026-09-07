@@ -1,5 +1,6 @@
 //! Directory contracts and checks over resolved source dependencies.
 mod graph;
+mod inventory;
 mod policy;
 pub mod resolution;
 pub mod runner;

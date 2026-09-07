@@ -17,7 +17,6 @@ def private_consumer(root: Path, language: str) -> tuple[Path, str]:
     original = source.read_text()
     private = api.with_name(f"private.{language}")
     api.rename(private)
-    contract(root / "src/b", public=f"['{api.name}']")
     if rust:
         api.write_text("pub mod private; pub use private::value;\n")
         source.write_text(original.replace("b::value", "b::private::value"))
@@ -31,6 +30,7 @@ def private_consumer(root: Path, language: str) -> tuple[Path, str]:
         }
         api.write_text(facades[language])
         source.write_text(original.replace("b.api", "b.private").replace("b/api.", "b/private."))
+    contract(root / "src/b", public=f"['{api.name}']")
     return source, original
 
 

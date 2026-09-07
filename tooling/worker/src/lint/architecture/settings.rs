@@ -34,7 +34,7 @@ impl Default for External {
 impl Settings {
     pub fn describe() -> serde_json::Value {
         serde_json::json!({
-            "contract": "architecture.yaml: purpose, allow, deny, public; every selected source directory",
+            "contract": "architecture.yaml: single-line purpose, files and directories responsibility maps, allow, deny, public; every selected directory",
             "selection": "directory include/exclude; explicit extensions select immediate source files; enclosing selected contracts also apply",
             "python_root": "one project-relative import root; default project root",
             "rust_roots": "explicit project-relative crate root files; required for selected Rust sources",

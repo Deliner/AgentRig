@@ -29,8 +29,8 @@ Add a rule to the existing lint YAML; skill paths use the normal `skill_root`:
 
 The target is a directory; `extensions` selects its immediate source files.
 Include both a parent and its descendants when both are in scope. Every selected
-directory containing selected sources, directly or below it, requires a contract.
-Directories with no selected source are skipped. Use `.` to select the project
+directory requires a contract, including documentation and resource directories.
+Inventory coverage is independent of source extensions. Use `.` to select the project
 root. Exclusions use the existing glob semantics; exclude a subtree with both its
 directory and descendant pattern. Selected-source exclusions do not remove files
 from dependency resolution. Resolution uses Git tracked/unignored files, or regular
@@ -57,13 +57,24 @@ Each required `architecture.yaml` is strict YAML:
 
 ```yaml
 purpose: Orders application service
+files:
+  architecture.yaml: Directory responsibilities and boundaries
+  api.py: Public entry for the orders scenario
+directories:
+  tests: Behavior checks owned by orders
 allow: ['src/catalog/api.py', 'src/storage/**']
 deny: ['src/storage/private/**']
 public: [api.py]
 ```
 
-`purpose` must be nonempty. All other fields default to empty lists; unknown fields
-are errors. `allow` and `deny` match project-relative target file paths for outbound
+`purpose` must be nonempty and occupy one logical line. `files` registers immediate
+filenames with nonempty responsibility descriptions, including architecture.yaml.
+`directories` separately describes immediate child directories, each with its own
+contract. Every in-scope entry must be registered. Names are literal, not globs;
+stale entries and wrong file/directory kinds are errors. Existing P006 contracts
+must acquire these maps; absent maps are empty and missing entries are reported.
+Descriptions guide placement; lint cannot prove their semantic agreement with code.
+Unknown fields are errors. `allow` and `deny` match project-relative target file paths for outbound
 dependencies. Deny takes precedence. `public` matches paths relative to this
 directory for inbound dependencies. Dependencies inside the same boundary need no
 permission. Every crossed enclosing contract applies; a child cannot open its

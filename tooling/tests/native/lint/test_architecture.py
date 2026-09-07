@@ -4,6 +4,7 @@ from itertools import product
 from pathlib import Path
 
 import pytest
+import yaml
 from test_lint import lint, prepare
 from test_lint_explain import explain
 
@@ -26,8 +27,18 @@ rules:
 
 
 def contract(directory: Path, allow: str = "[]", public: str = "['*']") -> None:
+    files = {"architecture.yaml": "Directory responsibilities and boundaries"}
+    directories = {}
+    for path in directory.iterdir():
+        regular = path.is_file()
+        child = path.is_dir()
+        if regular:
+            files[path.name] = "Fixture source or resource"
+        elif child:
+            directories[path.name] = "Fixture child responsibility"
     (directory / "architecture.yaml").write_text(
         f"purpose: {directory.name} responsibility\nallow: {allow}\npublic: {public}\n"
+        + yaml.safe_dump({"files": files, "directories": directories})
     )
 
 
@@ -40,9 +51,6 @@ def consumer(root: Path, language: str) -> tuple[Path, Path]:
     prepare(root, config)
     for name in ["a", "b"]:
         (root / "src" / name).mkdir()
-    contract(root / "src", public="['**']")
-    contract(root / "src/a", "['src/b/**']")
-    contract(root / "src/b")
     filename = "mod.rs" if rust else f"api.{language}"
     source, target = [root / "src" / name / filename for name in ["a", "b"]]
     if rust:
@@ -55,6 +63,9 @@ def consumer(root: Path, language: str) -> tuple[Path, Path]:
     else:
         source.write_text('import { value } from "../b/api.js";\nexport const run = value;\n')
         target.write_text("export const value = () => 7;\n")
+    contract(root / "src", public="['**']")
+    contract(root / "src/a", "['src/b/**']")
+    contract(root / "src/b")
     return source, target
 
 
@@ -177,8 +188,13 @@ def test_architecture_discovery_and_directory_explanation(worker: Path, tmp_path
     docs = tmp_path / "src/docs"
     docs.mkdir()
     (docs / "guide.md").write_text("No source in this directory.\n")
-    skipped = explain(worker, tmp_path, "src/docs")["rules"][0]
-    assert not skipped["selected"] and "no selected source" in skipped["reason"]
+    selected_docs = explain(worker, tmp_path, "src/docs")["rules"][0]
+    assert selected_docs["selected"]
+    code, findings = lint(worker, tmp_path)
+    assert code == 1, findings
+    assert any(item["path"] == "src/docs/architecture.yaml" for item in findings)
+    contract(docs)
+    contract(tmp_path / "src", public="['**']")
     assert lint(worker, tmp_path) == (0, [])
 
 

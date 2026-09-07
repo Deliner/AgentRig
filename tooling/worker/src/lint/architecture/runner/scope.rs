@@ -1,25 +1,27 @@
 use crate::lint::{
-    config::{Rule, extension_matches},
+    config::{Rule, extension_matches, globs},
     inventory::Inventory,
     selection,
 };
 use anyhow::{Result, ensure};
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
 
 pub struct Scope {
     pub directories: BTreeSet<PathBuf>,
     pub files: BTreeSet<PathBuf>,
+    pub inventory: Inventory,
 }
 
 impl Scope {
     pub fn new(rule: &Rule, inventory: &Inventory) -> Result<Self> {
-        let mut directories: BTreeSet<_> = selection::select(rule, inventory)?
+        let directories: BTreeSet<_> = selection::select(rule, inventory)?
             .into_iter()
             .map(|selected| selected.path.to_path_buf())
             .collect();
+        let inventory = selected_inventory(rule, inventory, &directories)?;
         let files: BTreeSet<_> = inventory
             .files
             .iter()
@@ -32,11 +34,6 @@ impl Scope {
             })
             .cloned()
             .collect();
-        directories.retain(|directory| {
-            files
-                .iter()
-                .any(|path| directory == Path::new(".") || path.starts_with(directory))
-        });
         let needs_rust_root = files
             .iter()
             .any(|path| path.extension().is_some_and(|ext| ext == "rs"));
@@ -49,6 +46,39 @@ impl Scope {
             "{}: selected Rust sources need architecture.rust_roots",
             rule.id
         );
-        Ok(Self { directories, files })
+        Ok(Self {
+            directories,
+            files,
+            inventory,
+        })
     }
+}
+
+fn selected_inventory(
+    rule: &Rule,
+    inventory: &Inventory,
+    selected: &BTreeSet<PathBuf>,
+) -> Result<Inventory> {
+    let excluded = globs(&rule.exclude)?;
+    let mut directories = BTreeMap::new();
+    for directory in selected {
+        let entries = inventory.directories[directory]
+            .iter()
+            .filter(|name| {
+                let path = directory.join(name);
+                let path = path.strip_prefix(".").unwrap_or(&path);
+                let child = inventory.directories.contains_key(path);
+                !excluded.is_match(path) && (!child || selected.contains(path))
+            })
+            .cloned()
+            .collect();
+        directories.insert(directory.clone(), entries);
+    }
+    let files = inventory
+        .files
+        .iter()
+        .filter(|path| !excluded.is_match(path))
+        .cloned()
+        .collect();
+    Ok(Inventory { files, directories })
 }
