@@ -6,7 +6,7 @@ files:
 directories: {}
 allow:
   - tooling/worker/review/src/lib.rs
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/snapshot.rs
 deny: []
 public:

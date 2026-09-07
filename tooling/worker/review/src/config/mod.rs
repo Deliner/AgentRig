@@ -99,7 +99,7 @@ pub fn resolve(path: &Path, mut config: Config) -> Result<Config> {
         validate_tool(name, tool, &config.reviewers)?;
         tool.project_config = resource(path, &tool.project_config)?;
         let project = project(&tool.project_config)?;
-        crate::contract::load(&project.review.contract, &tool.reviewers)?;
+        crate::response::contract::load(&project.review.contract, &tool.reviewers)?;
     }
     let parent = path.parent().context("configuration needs a parent")?;
     config.runner.runtime_root = parent.join(&config.runner.runtime_root);

@@ -1,5 +1,6 @@
-use crate::contract::{Contract, Requirement};
+pub mod contract;
 use anyhow::{Context, Result, ensure};
+use contract::{Contract, Requirement};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeSet,
@@ -10,7 +11,7 @@ use std::{
 };
 
 pub const MAX_BYTES: u64 = 1_048_576;
-pub const SCHEMA: &str = include_str!("../schemas/response.json");
+pub const SCHEMA: &str = include_str!("response.json");
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Response {
     pub run_id: String,

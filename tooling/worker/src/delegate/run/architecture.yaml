@@ -15,8 +15,8 @@ allow:
   - tooling/worker/src/jobs/mod.rs
   - tooling/worker/src/jobs/process.rs
   - tooling/worker/src/util.rs
-  - tooling/worker/review/src/config.rs
-  - tooling/worker/review/src/response.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/response/mod.rs
   - tooling/worker/review/src/execution/sandbox/mod.rs
   - tooling/worker/review/src/mcp/protocol.rs
 deny: []

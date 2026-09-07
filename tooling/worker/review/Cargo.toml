@@ -6,6 +6,18 @@ license = "MIT"
 repository = "https://github.com/Deliner/AgentRig"
 description = "Isolated configurable review runner shipped with AgentRig"
 
+[[test]]
+name = "configuration"
+path = "src/config/tests.rs"
+
+[[test]]
+name = "yaml"
+path = "src/config/yaml_tests.rs"
+
+[[test]]
+name = "validation"
+path = "src/response/tests.rs"
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

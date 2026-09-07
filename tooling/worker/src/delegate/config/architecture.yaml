@@ -6,7 +6,7 @@ files:
 directories: {}
 allow:
   - tooling/worker/src/environment/mod.rs
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/config/yaml.rs
   - tooling/worker/review/src/vcs/mod.rs
 deny: []

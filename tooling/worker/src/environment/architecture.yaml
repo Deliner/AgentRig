@@ -6,7 +6,7 @@ files:
   validation.rs: Resource path resolution and consistency checks
 directories: {}
 allow:
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/config/credentials.rs
 deny: []
 public: [mod.rs, hooks.rs]

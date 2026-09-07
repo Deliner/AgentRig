@@ -5,7 +5,7 @@ files:
   claude.rs: Claude executable discovery, credentials and execution configuration
 directories: {}
 allow:
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/config/credentials.rs
 deny: []
 public: [mod.rs]

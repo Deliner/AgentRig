@@ -8,9 +8,9 @@ Deliver active P009. Inventory and Rust analysis support are committed. Apply co
 
 Branch: feature/architecture-ownership
 
-Revision: ecf764b
+Revision: 292af05
 
-The current ownership VAC colocates five delegate entries, its MCP adapter/schema, environment and shared review sandbox entries with their existing implementations. Eight new architecture contracts describe these owners. Public Rust module paths remain available. Development pin is unchanged; no integration is in progress.
+The previous ownership VAC is committed. The new VAC moves review config.rs into config/mod.rs and configuration/YAML integration tests into that directory. Cargo retains the configuration and yaml test target names through explicit paths. The new configuration contract and updated consumer permissions are uncommitted. Development pin is unchanged; no integration is in progress.
 
 ## Progress
 
@@ -18,7 +18,11 @@ P006–P008 remain complete. P009 inventory, repair guidance, empty-directory di
 
 ## Verification
 
-Commit ecf764b passed the full gate: 666 Python tests, 76 worker Rust tests and 69 review Rust tests. For the current ownership changes, all-target cargo check passed, 21 delegate run/MCP/review Python tests passed (2578), rustfmt completed and structural lint reported no errors. Earlier delegate component tests passed before the final shared-owner moves. The current Rust probe (89095, exited 0) reports 42 directory cycles and 31 missing contracts, with no other findings; it does not prove full repository coverage. All observed checks are terminal. The current VAC still needs its mandatory commit gate.
+Commit attempt 90385 exited 1 only at review-rustfmt: the review crate required swapping two imports in response/mod.rs. All preceding checks passed, including 666 Python tests in 710.77 seconds and 145 Rust tests. Formatting was corrected through review/Cargo.toml; the staged focused retry and full commit gate remain to run.
+
+The completed review ownership VAC passes all 69 review Rust tests (61840 exited 0), structural lint and skill quick validation. The latest Rust probe (78927 exited 0) reports 40 cycles and 30 missing contracts, with no other findings. Configuration and response tests retain their Cargo target names and public API coverage. The full commit gate remains required.
+
+Commit 292af05 passed every configured gate (94409 exited 0): 666 Python tests in 657.18 seconds, 76 worker Rust tests and 69 review Rust tests. For the new configuration move, all eight relocated integration tests passed (58243 exited 0). The current Rust probe includes both moved test crate roots and reports 42 directory cycles and 30 missing contracts, with no other findings (82789 exited 0). This does not prove full repository coverage. All observed checks are terminal. The current VAC still needs its remaining focused checks and mandatory commit gate.
 
 ## Blockers
 
@@ -26,4 +30,8 @@ No current blocker. Do not weaken policy to hide remaining findings.
 
 ## Next action
 
-Inspect and stage this ownership VAC and commit through the mandatory exported-index gate. Then continue shared-owner and actual dependency repairs from measured edges, including configuration, lint analysis and scaffold responsibilities. Extend contracts and dependency checks across maintained source, tests, documentation and resources with justified exclusions. Assess VCS empty-directory coverage without bypassing ignore semantics. Enable the expanded checked policy, verify full P009 acceptance, and integrate with feature-merge while retaining the branch.
+Commit the reviewed configuration/response ownership VAC through the full gate before starting another change. Audit found that RustModule declarations currently become ordinary dependency edges; parent-owned types used by child implementations can therefore form directory cycles through module wiring. Existing permissions and public checks also consume those edges. Before changing this behavior, reproduce the signal and preserve genuine cross-module cycles and access checks; do not delete edges or move files merely to silence the graph.
+
+Response implementation, schema, requirement contract and validation tests are now colocated in this VAC. The validation Cargo target and public contract reexport remain available. Ten validation/configuration/broker tests passed (10008); a fresh architecture probe remains needed. The user questioned mechanical mod.rs proliferation. The repair skill now requires an ownership/navigation benefit independent of lint counts and inspection of module-wiring findings; it neither bans standard entry names nor mandates empty facades. Skill quick validation passed. Audit the current moves under this guidance before further decomposition.
+
+Continue the review shared-owner VAC: inspect response validation, its contract/schema/tests and the regular-file reader used by delegation before changing ownership. Preserve public consumers while directing internal imports to their actual owners. Then finish focused checks and commit through the mandatory exported-index gate. Continue lint analysis and scaffold dependency repairs, and extend contracts and dependency checks across maintained source, tests, documentation and resources with justified exclusions. Assess VCS empty-directory coverage without bypassing ignore semantics. Enable the expanded checked policy, verify full P009 acceptance, and integrate with feature-merge while retaining the branch.

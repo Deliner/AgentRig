@@ -1,0 +1,11 @@
+purpose: Validate review answers against assigned requirements and preserve bounded regular-file input checks
+files:
+  architecture.yaml: Response responsibilities and public validation boundary
+  mod.rs: Response schema validation, identity checks, verdict rules and bounded file loading
+  contract.rs: Requirement schema, reviewer assignments and contract validation
+  response.json: Machine-readable answer schema consumed by reviewers and the validator
+  tests.rs: Answer identity, requirement coverage, verdict and unsafe file behavior tests
+directories: {}
+allow: []
+deny: []
+public: [mod.rs, contract.rs]

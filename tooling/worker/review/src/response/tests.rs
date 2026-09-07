@@ -1,6 +1,6 @@
-use review_runner::{
+use review_runner::response::{
+    self, Expected,
     contract::{Contract, Requirement},
-    response::{self, Expected},
 };
 use serde_json::{Value, json};
 

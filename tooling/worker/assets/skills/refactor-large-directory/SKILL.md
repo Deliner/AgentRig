@@ -69,6 +69,17 @@ Passing the numeric limit alone is not completion. The affected behavior and
 consumer contracts must remain valid; the reported architectural violations
 and applicable hard limits must be resolved through cohesive ownership.
 
+A language's module entry filename is not an architectural responsibility.
+For example, moving Rust `name.rs` to `name/mod.rs` can colocate an existing
+owner with its implementation and tests, but does not by itself repair coupling.
+Explain the ownership or navigation improvement independently of lint counts.
+Inspect the entry's actual contents before describing it as a public facade;
+keep cohesive implementation there when appropriate, and use responsibility
+names when separating behavior. Do not require empty facades or ban standard
+entry filenames. If a finding appears to reflect module wiring rather than
+the intended architectural dependency, inspect the measured edge and analyzer
+semantics before moving code solely to change its directory classification.
+
 Inventory completeness and measured dependencies are mechanically checked.
 Read the implementation to assess whether descriptions match its responsibility;
 a green lint result does not prove semantic cohesion.

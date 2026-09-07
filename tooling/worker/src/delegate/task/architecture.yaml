@@ -8,9 +8,9 @@ files:
 directories: {}
 allow:
   - tooling/worker/src/delegate/config/mod.rs
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/lib.rs
-  - tooling/worker/review/src/response.rs
+  - tooling/worker/review/src/response/mod.rs
   - tooling/worker/review/src/snapshot.rs
   - tooling/worker/review/src/vcs/mod.rs
 deny: []

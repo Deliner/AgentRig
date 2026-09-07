@@ -16,9 +16,9 @@ allow:
   - tooling/worker/src/jobs/mod.rs
   - tooling/worker/src/jobs/process.rs
   - tooling/worker/review/src/lib.rs
-  - tooling/worker/review/src/config.rs
+  - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/config/yaml.rs
-  - tooling/worker/review/src/response.rs
+  - tooling/worker/review/src/response/mod.rs
   - tooling/worker/review/src/snapshot.rs
   - tooling/worker/review/src/vcs/mod.rs
   - tooling/worker/review/src/execution/sandbox/mod.rs
