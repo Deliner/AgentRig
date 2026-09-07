@@ -128,6 +128,7 @@ impl Repository<'_> {
             Kind::Git => Ok(vec![("core.hooksPath", current, desired)]),
             Kind::Mercurial => Ok(vec![
                 ("hooks.pretxncommit.agentrig", current, desired),
+                ignore_registration(self.root, directory)?,
                 (
                     "ui.ignore.agentrig",
                     mercurial::configuration(self.root, "ui.ignore.agentrig")?,
@@ -154,6 +155,15 @@ impl Repository<'_> {
                     git::run(self.root, &["config", key, &desired])?;
                 }
                 Kind::Mercurial => {
+                    let ignore = key == ".hgignore";
+                    if ignore {
+                        let mut file = fs::OpenOptions::new()
+                            .create(true)
+                            .append(true)
+                            .open(self.root.join(".hgignore"))?;
+                        writeln!(file, "\n{desired}")?;
+                        continue;
+                    }
                     let mut file = fs::OpenOptions::new()
                         .create(true)
                         .append(true)
@@ -165,6 +175,27 @@ impl Repository<'_> {
         }
         Ok(())
     }
+}
+
+fn ignore_registration(root: &Path, directory: &str) -> Result<(&'static str, String, String)> {
+    let path = root.join(".hgignore");
+    ensure!(
+        !path.is_symlink(),
+        "preserve .hgignore symlink; use a regular ignore file before setup"
+    );
+    let text = match fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(error) => return Err(error.into()),
+    };
+    let desired = format!("include:{directory}.hgignore");
+    let present = text.lines().any(|line| line == desired);
+    let current = if present {
+        desired.clone()
+    } else {
+        String::new()
+    };
+    Ok((".hgignore", current, desired))
 }
 
 impl Source<'_> {

@@ -2,28 +2,28 @@
 
 ## Focus
 
-Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: verify private configuration upgrades, local conflicts and exact rollback through consuming projects.
+Deliver P007, then P008 under the user's active implementation goal; P006 is integrated. Current VAC: complete installed Mercurial/private delivery acceptance and repair its observed runtime-ignore defect.
 
 ## Workspace
 
 Branch: feature/vcs-backends
 
-Revision: f27a241
+Revision: fa6203b
 
-P006 is integrated at 0c9cc39. Commit f27a241 adds private integration; its full staged gate passed, including 560 Python tests. This VAC started from a clean feature/vcs-backends branch. No merge or rebase is pending; resume reports the previous gate completed successfully. User remarks remain in Ledger/Requests.md. The installed development pin is unchanged.
+P006 is integrated at 0c9cc39. Commit fa6203b verifies private upgrades; its full staged gate passed, including 562 Python tests. This VAC started from a clean feature/vcs-backends branch. No merge or rebase is pending; resume reports the previous gate completed successfully. User remarks remain in Ledger/Requests.md. The installed development pin is unchanged. No test or commit process is currently running.
 
 ## Progress
 
-P007 is active. Private integration is committed. The existing configuration upgrade consumer now selects the private adapter before setup and verifies application, local conflict preservation and rollback alongside native backends. No production upgrade changes were needed. The isolated patch builder still uses Git internally. Full installed delivery acceptance and staging-index selection audit remain required; P008 is pending.
+P007 is active. Native/private Mercurial registration now appends the managed include to root .hgignore without replacing existing rules or duplicating the line on repeat setup. Existing hgrc registration remains preserved. Isolated reads still disable local commands/extensions and now see managed runtime exclusions. Independent consumers install the binary under a path with spaces and copy the external adapter locally; generated Just recipes and installed hooks complete feature delivery. Staging-index selection audit remains required; P008 is pending.
 
 ## Verification
 
-All eight configuration upgrade tests pass, including private command/skill updates, retained consumer State and hook registration, exact snapshot rollback, and blocked local conflicts followed by explicit keep resolution. An initial test import error was corrected. Structural lint passes. This VAC's full commit gate remains pending; full P007 acceptance remains unproven.
+Both installed-consumer cases pass in 154 seconds: bootstrap integration, feature creation, installed guarded commits, failed integration check, native recovery, exact merge parents, retained feature and next feature creation. Three existing setup cases pass, including preserved custom ignore rules and repeated registration. All 16 Rust registration/VCS tests pass, including isolation from repository commands. Structural lint passes. The original runtime/checks.json defect is repaired; the new consumer also declares ordinary Python-cache exclusions as the existing Git consumer does. This VAC's full commit gate remains pending.
 
 ## Blockers
 
-None observed. Only Git was initially on PATH; the locked uv environment now provides hg and the review-test catalog command uses it. No corporate VCS access is needed for the authorized private extension example.
+No external blocker. Consumer temporary paths are not available across separate command invocations, so capture diagnostics within the test process. Keep read isolation, existing user ignore rules and clean-tree enforcement intact.
 
 ## Next action
 
-Commit the private upgrade acceptance VAC through the staged gate, correcting failures. Audit remaining metadata-only/Git callers: gate index export and evidence index fingerprint still discover metadata; preserve the existing staged-configuration contract when making capability selection explicit. Complete independent installed-consumer delivery acceptance for Git, Mercurial and the private extension. Release-template export belongs to the Git-only 0.2.0 to 0.3.0 migration. Verify all P007 acceptance before integration, then deliver P008. Preserve the installed development pin while testing candidates.
+Finish the installed-delivery/ignore repair VAC through the mandatory staged gate, correcting failures. Then audit metadata-only index callers without breaking staged configuration, complete P007 acceptance and integration, and deliver P008. Release-template export remains the Git-only 0.2.0 to 0.3.0 migration. Preserve the installed development pin while testing candidates.

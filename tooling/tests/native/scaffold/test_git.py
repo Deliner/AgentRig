@@ -360,7 +360,10 @@ def test_mercurial_setup_preserves_custom_hook_registration(worker: Path, tmp_pa
     ignore.write_text("syntax: glob\nuser-generated/**\n")
     assert invoke(worker, tmp_path, "init", "--vcs", "mercurial").returncode == 0
     assert hgrc.read_text().startswith(existing)
-    assert ignore.read_text() == "syntax: glob\nuser-generated/**\n"
+    assert (
+        ignore.read_text()
+        == "syntax: glob\nuser-generated/**\n\ninclude:.agentrig/hooks.hgignore\n"
+    )
     assert hg(tmp_path, "config", "hooks.pretxncommit.custom") == "true"
     with hgrc.open("a") as stream:
         stream.write("\n[hooks]\npretxncommit.agentrig = false\n")

@@ -164,7 +164,17 @@ def registration(arguments: dict[str, Any]) -> list[tuple[str, str, str]]:
         "hooks.pretxncommit.agentrig": "sh " + shlex.quote(directory + "/pretxncommit"),
         "ui.ignore.agentrig": directory + ".hgignore",
     }
-    return [(key, configuration(key), value) for key, value in desired.items()]
+    values = [(key, configuration(key), value) for key, value in desired.items()]
+    path = Path(".hgignore")
+    assert not path.is_symlink(), (
+        "preserve .hgignore symlink; use a regular ignore file before setup"
+    )
+    exists = path.exists()
+    text = path.read_text() if exists else ""
+    include = "include:" + directory + ".hgignore"
+    present = include in text.splitlines()
+    values.append((".hgignore", include if present else "", include))
+    return values
 
 
 def generate(arguments: dict[str, Any]) -> dict[str, Any]:
@@ -191,6 +201,11 @@ def register_hooks(arguments: dict[str, Any]) -> None:
     for key, current, desired in values:
         missing = current != desired
         if missing:
+            ignore = key == ".hgignore"
+            if ignore:
+                with Path(".hgignore").open("a") as output:
+                    output.write("\n" + desired + "\n")
+                continue
             section, name = key.split(".", 1)
             changes.append(f"\n[{section}]\n{name} = {desired}\n")
     unchanged = not changes

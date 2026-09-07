@@ -26,6 +26,7 @@ fn private_registration_preserves_custom_configuration_and_runs_native_hook() {
     let config = root.join(".hg/hgrc");
     let custom = "[ui]\nusername = Consumer\n[hooks]\npretxncommit.custom = true\n";
     fs::write(&config, custom).unwrap();
+    fs::write(root.join(".hgignore"), "syntax: glob\nconsumer-cache/**\n").unwrap();
     let source = backend.source(root);
     source.validate_registration(hooks).unwrap();
     assert!(!source.hooks_registered(hooks).unwrap());
@@ -33,9 +34,15 @@ fn private_registration_preserves_custom_configuration_and_runs_native_hook() {
     source.register_hooks(hooks).unwrap();
     assert!(source.hooks_registered(hooks).unwrap());
     let registered = fs::read_to_string(&config).unwrap();
+    let ignored = fs::read_to_string(root.join(".hgignore")).unwrap();
+    assert_eq!(
+        ignored,
+        format!("syntax: glob\nconsumer-cache/**\n\ninclude:{hooks}.hgignore\n")
+    );
     assert!(registered.starts_with(custom));
     source.register_hooks(hooks).unwrap();
     assert_eq!(fs::read_to_string(&config).unwrap(), registered);
+    assert_eq!(fs::read_to_string(root.join(".hgignore")).unwrap(), ignored);
     let native = Backend::Native(Kind::Mercurial);
     assert!(native.source(root).hooks_registered(hooks).unwrap());
     run_registered_hook(root, hooks);

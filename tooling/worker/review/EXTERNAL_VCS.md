@@ -198,6 +198,14 @@ AgentRig rereads external registration after success and requires every current
 value to equal its desired value. It preserves failed native state for repair.
 Setup validation, installation and doctor's registration check use this shared owner.
 
+Mercurial registration also appends `include:<directory>.hgignore` to the root
+`.hgignore` when absent, preserving existing rules and avoiding duplicates on
+repeat setup. A symlink there is rejected without changing its target. This
+include makes managed runtime exclusions visible to isolated reads, which disable
+local hgrc commands and extensions. The existing hgrc ignore registration is
+retained; it alone is insufficient for isolated status and inventory. Keep the
+root ignore file under version control along with the generated environment.
+
 `generate` is read-only and runs from the consumer root, including when an external
 configuration file is used or the CLI starts elsewhere. `binary` is the supplied
 shell expression for the installed AgentRig executable, evaluated after the hook
