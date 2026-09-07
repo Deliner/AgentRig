@@ -94,6 +94,36 @@ and removal, hooks and MCP changes, retained user settings and permissions,
 explicit conflict resolution, repeat setup and exact rollback. They also cover
 client switching and rejection of disabled hooks before plan writes.
 
+## P008 Claude through OpenRouter
+
+Observed on Linux on 2026-09-07 with Claude Code 2.1.201 and an externally
+loaded OpenRouter key. Native connection used `ANTHROPIC_AUTH_TOKEN` and
+`https://openrouter.ai/api`, following the
+[provider integration](https://openrouter.ai/docs/cookbook/coding-agents/claude-code-integration).
+The cheapest discovered Anthropic model, `anthropic/claude-3-haiku`, connected
+but failed the full task contracts. Free `nvidia/nemotron-3-super-120b-a12b:free`
+completed these independent consumers after their source packages were removed:
+
+- Review run-o7px9A: generated MCP registration, validated PASS, preserved
+  checkout and removed runtime directory; `.tmp/p008-review-c_sd5tdi`.
+- Read run-rSxFAL: exact independent skill/hook/MCP values and cleanup;
+  `.tmp/agentrig-environment-bhno66v1/read-acceptance.json`.
+- Artifacts run-dsgPOK: exact values, retained actual MCP tools/call and startup
+  output, preserved checkout and cleanup;
+  `.tmp/agentrig-environment-m57roq1f/artifacts-acceptance.json`.
+
+Read/artifact consumers used `ENABLE_TOOL_SEARCH=false` and
+`CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` through existing profile environment
+references. These native [gateway settings](https://code.claude.com/docs/en/env-vars)
+are consumer choices, not global AgentRig defaults. Initial runs had malformed
+API responses; combined code probes still returned HTTP 404. Focused code
+run-FPUmYi then received HTTP 429, `free-models-per-day`. Successful Claude code
+acceptance remains outstanding. All probes terminated and retained their reports.
+
+Actual provider spending was $0.13806775, with $1.41928505 remaining; free runs
+did not increase usage. Claude's displayed gateway cost estimates differed from
+actual billing. Accounting is retained in `.tmp/p008-openrouter-cost.json`.
+
 ## Historical worker delivery observation
 
 Observed on Linux on 2026-09-05, using worker revision fe31ee6 and a separate
