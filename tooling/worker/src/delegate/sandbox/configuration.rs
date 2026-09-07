@@ -6,6 +6,10 @@ use std::{env, fs, os::unix::fs::PermissionsExt, process::Command};
 
 pub(super) fn write(layout: &Layout, profile: &Profile) -> Result<()> {
     fs::set_permissions(&layout.private, fs::Permissions::from_mode(0o700))?;
+    let claude = matches!(profile.frontend, super::Frontend::ClaudeCode);
+    if claude {
+        return super::claude::configure(layout, profile);
+    }
     let mut servers = serde_json::Map::new();
     for (name, server) in &profile.environment.mcp_servers {
         servers.insert(
@@ -37,8 +41,11 @@ pub(super) fn environment(command: &mut Command, profile: &Profile) -> Result<()
     command.envs(resolve(&profile.credentials.env)?);
     command
         .env("HOME", "/home/delegate")
-        .env("CODEX_HOME", "/codex")
         .env("PATH", "/tools:/bin")
         .env("SHELL", "/bin/bash");
+    match profile.frontend {
+        super::Frontend::Codex => command.env("CODEX_HOME", "/codex"),
+        super::Frontend::ClaudeCode => command.env("CLAUDE_CONFIG_DIR", "/claude"),
+    };
     Ok(())
 }

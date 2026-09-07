@@ -1,6 +1,7 @@
 use super::*;
 use crate::delegate::code::Workspace;
 use std::{
+    io::Write,
     process::{Command, Output},
     time::{Duration, Instant},
 };
@@ -15,12 +16,18 @@ pub(super) fn run(directory: &Path) -> Result<Value> {
         codex: serde_json::from_slice(&fs::read(directory.join("codex.json"))?)?,
     };
     let deadline = Instant::now() + Duration::from_secs(profile.timeout_seconds);
-    let output = invoke(sandbox::command(&layout, &profile)?, deadline, false)?;
+    let structured = matches!(profile.frontend, config::Frontend::ClaudeCode);
+    let output = invoke(sandbox::command(&layout, &profile)?, deadline, structured)?;
+    if structured {
+        std::io::stdout().write_all(&output.stdout)?;
+        std::io::stderr().write_all(&output.stderr)?;
+    }
     ensure!(
         output.status.success(),
         "executor exited {} (124 indicates timeout)",
         jobs::process::exit_code(&output)
     );
+    sandbox::response(&layout, &profile, &output.stdout)?;
     if let Some(changes) = &request.contract.changes {
         let mut code = patch(directory, changes, &profile)?;
         let results = checks(&layout, &profile, changes, deadline)?;

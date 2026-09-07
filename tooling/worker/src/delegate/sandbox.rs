@@ -1,9 +1,10 @@
+mod claude;
 mod configuration;
 mod resources;
 #[cfg(test)]
 mod tests;
 
-use super::config::{Mode, Profile};
+use super::config::{Frontend, Mode, Profile};
 use anyhow::{Result, ensure};
 use std::{
     fs,
@@ -19,7 +20,7 @@ pub struct Layout {
 
 pub fn prepare(layout: &Layout, profile: &Profile) -> Result<serde_json::Value> {
     fs::create_dir(&layout.private)?;
-    for name in ["work", "codex"] {
+    for name in ["work", profile.frontend.directory()] {
         fs::create_dir(layout.private.join(name))?;
     }
     configuration::write(layout, profile)?;
@@ -35,7 +36,10 @@ pub fn prepare(layout: &Layout, profile: &Profile) -> Result<serde_json::Value> 
 
 pub fn command(layout: &Layout, profile: &Profile) -> Result<Command> {
     let mut command = base(layout, profile)?;
-    executor(&mut command, profile);
+    match profile.frontend {
+        Frontend::Codex => executor(&mut command, profile),
+        Frontend::ClaudeCode => claude::executor(&mut command, layout, profile)?,
+    }
     Ok(command)
 }
 
@@ -52,8 +56,6 @@ pub fn check(layout: &Layout, profile: &Profile, argv: &[String]) -> Result<Comm
 }
 
 fn base(layout: &Layout, profile: &Profile) -> Result<Command> {
-    let host = layout.codex.with_file_name("codex-code-mode-host");
-    ensure!(host.is_file(), "codex-code-mode-host must be next to Codex");
     let mut command = Command::new("/usr/bin/bwrap");
     command.env_clear().args([
         "--die-with-parent",
@@ -75,10 +77,15 @@ fn base(layout: &Layout, profile: &Profile) -> Result<Command> {
     ]);
     review_runner::execution::sandbox::system_libraries(&mut command);
     mounts(&mut command, layout, profile);
-    command
-        .args(["--ro-bind"])
-        .arg(&host)
-        .arg("/codex-code-mode-host");
+    let codex = matches!(profile.frontend, Frontend::Codex);
+    if codex {
+        let host = layout.codex.with_file_name("codex-code-mode-host");
+        ensure!(host.is_file(), "codex-code-mode-host must be next to Codex");
+        command
+            .args(["--ro-bind"])
+            .arg(host)
+            .arg("/codex-code-mode-host");
+    }
     configuration::environment(&mut command, profile)?;
     Ok(command)
 }
@@ -124,6 +131,9 @@ fn instructions(profile: &Profile) -> String {
 }
 
 fn mounts(command: &mut Command, layout: &Layout, profile: &Profile) {
+    let client = profile.frontend.directory();
+    let home = format!("/{client}");
+    let executable = format!("/{client}-cli");
     let coding = matches!(profile.mode, Mode::Code);
     let project = if coding {
         layout.private.join("code/project")
@@ -135,18 +145,24 @@ fn mounts(command: &mut Command, layout: &Layout, profile: &Profile) {
         (project, "/project", coding),
         (layout.input.join("inputs"), "/inputs", false),
         (layout.private.join("work"), "/work", true),
-        (layout.private.join("codex"), "/codex", true),
-        (layout.codex.clone(), "/codex-cli", false),
+        (layout.private.join(client), home.as_str(), true),
+        (layout.codex.clone(), executable.as_str(), false),
     ] {
         command
             .arg(if writable { "--bind" } else { "--ro-bind" })
             .arg(source)
             .arg(target);
     }
-    command
-        .arg("--ro-bind")
-        .arg(layout.private.join("codex/config.toml"))
-        .arg("/codex/config.toml");
+    let settings: &[&str] = match profile.frontend {
+        Frontend::Codex => &["config.toml"],
+        Frontend::ClaudeCode => &["settings.json", "mcp.json"],
+    };
+    for name in settings {
+        command
+            .arg("--ro-bind")
+            .arg(layout.private.join(client).join(name))
+            .arg(format!("/{client}/{name}"));
+    }
     tools(command, layout, profile);
 }
 
@@ -168,7 +184,7 @@ fn tools(command: &mut Command, layout: &Layout, profile: &Profile) {
         command
             .arg("--ro-bind")
             .arg(layout.private.join(format!("environment/skills/{name}")))
-            .arg(format!("/codex/skills/{name}"));
+            .arg(format!("/{}/skills/{name}", profile.frontend.directory()));
     }
 }
 
@@ -177,9 +193,17 @@ pub fn write_prompt(input: &Path, profile: &Profile) -> Result<()> {
     for skill in &profile.environment.skills {
         let name = skill.file_name().unwrap().to_string_lossy();
         prompt.push_str(&format!(
-            "\nApply the configured skill /codex/skills/{name}/SKILL.md.\n"
+            "\nApply the configured skill /{}/skills/{name}/SKILL.md.\n",
+            profile.frontend.directory()
         ));
     }
     fs::write(input.join("prompt.md"), prompt)?;
     Ok(())
+}
+
+pub fn response(layout: &Layout, profile: &Profile, output: &[u8]) -> Result<()> {
+    match profile.frontend {
+        Frontend::Codex => Ok(()),
+        Frontend::ClaudeCode => claude::response(layout, output),
+    }
 }

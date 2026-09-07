@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: selected-client isolated review for Codex and Claude Code with shared validation and failure handling.
+Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: Claude Code read/artifact/code delegation using shared isolation, task validation and jobs.
 
 ## Workspace
 
 Branch: feature/agent-harnesses
 
-Revision: 10f1d77
+Revision: 94ce7f1
 
-The branch started clean from master after P007 integration. feature/vcs-backends is retained. Resume confirms no merge or rebase and completed baseline checks. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
+The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Resume confirms no merge or rebase. The selected-client review VAC is committed at 94ce7f1; the current delegation changes are uncommitted. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
 
 ## Progress
 
-P007 repair fd49e05 and integration 10f1d77 are complete. Plan activates P008. The first VAC adds per-role Codex/Claude Code review selection, Claude print-mode launch with explicit read-only Stop settings, shared parent-owned validation and external credential references. Credentials and environment-reference helpers now have one shared owner used by review and delegation. New role reports identify the client. Existing Codex auth-file fallback remains; explicit API references work without it. Project setup and delegation still select only Codex and remain required P008 work.
+Selected-client review is committed. The current VAC adds Claude delegation with explicit settings, frozen skills/programs/hooks/MCP resources and external credential references. Claude structured_output feeds the existing parent-owned schema, artifact and code verification. The parent reserves result.json without following model-created paths. Jobs retain shared cancellation, timeout, reports and cleanup. Existing Codex execution remains covered. Project setup still selects only Codex and remains required P008 work.
 
 ## Verification
 
-P007's commit and integration gates each passed 567 Python and 138 Rust tests. For this VAC, the full review-test stage passed 67 tests before adding two credential cases; the final five-test harness suite then passed. All 38 delegate configuration tests, structural lint and diff whitespace checks pass. Rust and Python changes are formatted. These client-boundary tests use deterministic executors in real bubblewrap; they verify mixed selection, correction, exhaustion, timeout, missing references and source preservation, not real model acceptance. The full commit gate is pending.
+The review VAC's full commit gate passed 567 Python and 143 Rust tests. After recovering interrupted output and confirming no test processes remained, the current delegation VAC passed 62 Python tests across run/code/config and 13 Rust delegate tests. Structural lint has no errors. Tests cover both clients, all modes, invalid responses, timeout, cancellation, frozen resources, read-only inputs/configuration and code check failure. Claude fixtures are deterministic executors in real bubblewrap, not real model acceptance. The current full commit gate is pending.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ For P008 real-client acceptance, local Codex is 0.153.4 and Claude Code is 2.1.2
 
 ## Next action
 
-Finish the current selected-client review VAC through the mandatory commit gate and repair any failures. Then complete selected-client project setup and read/artifact/code delegation with shared environment declarations, skills/hooks/MCP and supported model/API settings. Verify independent real-client acceptance for both clients and integrate P008. Preserve the development pin and the full P008 contract; the current review tests alone do not establish completion.
+Inspect and commit the current delegation VAC through the mandatory gate, repairing any failures. Then complete selected-client project setup with shared environment declarations, skills/hooks/MCP and supported model/API settings. Verify independent real-client acceptance for both clients and integrate P008. Preserve the development pin and the full P008 contract; deterministic client tests alone do not establish completion.

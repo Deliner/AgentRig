@@ -7,17 +7,19 @@ use std::{
     process::Command,
 };
 
-pub(super) fn executable() -> Result<PathBuf> {
-    if let Some(path) = env::var_os("REVIEW_CLAUDE_BIN") {
+pub(super) fn executable(variable: &str) -> Result<PathBuf> {
+    if let Some(path) = env::var_os(variable) {
         return PathBuf::from(path)
             .canonicalize()
-            .context("resolve REVIEW_CLAUDE_BIN");
+            .with_context(|| format!("resolve {variable}"));
     }
     let path = env::var_os("PATH").context("PATH is required to find claude")?;
     env::split_paths(&path)
         .map(|directory| directory.join("claude"))
         .find(|path| path.is_file())
-        .context("claude is not installed; set REVIEW_CLAUDE_BIN to the native Linux executable")?
+        .with_context(|| {
+            format!("claude is not installed; set {variable} to the native Linux executable")
+        })?
         .canonicalize()
         .context("resolve claude executable")
 }

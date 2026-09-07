@@ -49,9 +49,12 @@ fn copy_auth(source: &Path, role: &Path) -> Result<()> {
 pub fn executable(frontend: &str) -> Result<PathBuf> {
     match frontend {
         "codex" => native_codex(),
-        "claude-code" => claude::executable(),
+        "claude-code" => native_claude_from("REVIEW_CLAUDE_BIN"),
         _ => anyhow::bail!("unsupported review frontend {frontend}"),
     }
+}
+pub fn native_claude_from(variable: &str) -> Result<PathBuf> {
+    claude::executable(variable)
 }
 fn client_directory(frontend: &str) -> &str {
     match frontend {

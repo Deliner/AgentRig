@@ -33,10 +33,20 @@ pub struct Profile {
     pub credentials: Credentials,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Clone, Copy, Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Frontend {
     Codex,
+    ClaudeCode,
+}
+
+impl Frontend {
+    pub fn directory(self) -> &'static str {
+        match self {
+            Self::Codex => "codex",
+            Self::ClaudeCode => "claude",
+        }
+    }
 }
 
 #[derive(Deserialize, Serialize)]

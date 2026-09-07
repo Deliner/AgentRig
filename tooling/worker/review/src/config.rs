@@ -126,25 +126,9 @@ fn validate_reviewer(name: &str, reviewer: &Reviewer) -> Result<()> {
     reviewer.credentials.validate()?;
     let claude = reviewer.frontend == "claude-code";
     if claude {
-        ensure!(
-            reviewer.credentials.codex_auth_file_env.is_none(),
-            "claude-code does not use codex_auth_file_env; configure credentials.env"
-        );
-        ensure!(
-            [
-                "ANTHROPIC_API_KEY",
-                "ANTHROPIC_AUTH_TOKEN",
-                "CLAUDE_CODE_OAUTH_TOKEN"
-            ]
-            .iter()
-            .any(|key| reviewer.credentials.env.contains_key(*key)),
-            "claude-code requires an ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN environment reference"
-        );
-        ensure!(
-            ["low", "medium", "high", "xhigh", "max"].contains(&reviewer.reasoning_effort.as_str()),
-            "unsupported claude-code reasoning effort {}; use low, medium, high, xhigh or max",
-            reviewer.reasoning_effort
-        );
+        reviewer
+            .credentials
+            .validate_claude(&reviewer.reasoning_effort)?;
     } else {
         reasoning_effort(&reviewer.reasoning_effort)?;
     }

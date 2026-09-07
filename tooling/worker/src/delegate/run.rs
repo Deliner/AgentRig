@@ -87,7 +87,14 @@ fn prepare(
     save_json(&directory.join("profile.json"), profile)?;
     save_json(&directory.join("request.json"), request)?;
     save_json(&directory.join("inputs.json"), &inputs)?;
-    let codex = review_runner::execution::sandbox::native_codex_from("DELEGATE_CODEX_BIN")?;
+    let codex = match profile.frontend {
+        config::Frontend::Codex => {
+            review_runner::execution::sandbox::native_codex_from("DELEGATE_CODEX_BIN")?
+        }
+        config::Frontend::ClaudeCode => {
+            review_runner::execution::sandbox::native_claude_from("DELEGATE_CLAUDE_BIN")?
+        }
+    };
     let layout = Layout {
         input,
         private: directory.join("private"),

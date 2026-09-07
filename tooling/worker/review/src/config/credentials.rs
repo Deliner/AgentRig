@@ -55,6 +55,28 @@ pub fn resolve_references(
 }
 
 impl Credentials {
+    pub fn validate_claude(&self, effort: &str) -> Result<()> {
+        ensure!(
+            self.codex_auth_file_env.is_none(),
+            "claude-code does not use codex_auth_file_env; configure credentials.env"
+        );
+        ensure!(
+            [
+                "ANTHROPIC_API_KEY",
+                "ANTHROPIC_AUTH_TOKEN",
+                "CLAUDE_CODE_OAUTH_TOKEN"
+            ]
+            .iter()
+            .any(|key| self.env.contains_key(*key)),
+            "claude-code requires an ANTHROPIC_API_KEY, ANTHROPIC_AUTH_TOKEN or CLAUDE_CODE_OAUTH_TOKEN environment reference"
+        );
+        ensure!(
+            ["low", "medium", "high", "xhigh", "max"].contains(&effort),
+            "unsupported claude-code reasoning effort {effort}; use low, medium, high, xhigh or max"
+        );
+        Ok(())
+    }
+
     pub fn validate(&self) -> Result<()> {
         if let Some(reference) = &self.codex_auth_file_env {
             ensure!(
