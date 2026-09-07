@@ -27,13 +27,32 @@ vcs:
 `check`, `check --revision`, `memory-check`, `report` and `resume` use the selected
 source for committed inputs, historical memory, content evidence and observations.
 The gate's file selection and embedded lint use its working inventory; exported
-checks inspect the exported files. Standalone lint selection still uses native
-discovery and remains pending private-source work. An adapter failure never
+checks inspect the exported files. Direct lint commands select an adapter with
+`--vcs-config` as described below. An adapter failure never
 falls back to a native repository found beside it. Native project selection now
 requires matching repository metadata; omitted selection still means Git.
 Private branch naming belongs to the adapter; configuration only requires
 nonempty base and prefix. Setup, generated hooks/MCP registration and feature
 delivery currently report explicit unimplemented private-operation errors.
+
+For direct lint commands, put the Backend declaration alone in a YAML file:
+
+```yaml
+# vcs.yaml
+command: [python3, -B, /absolute/path/to/external_vcs.py]
+```
+
+Both `agentrig lint` and `agentrig-lint` accept `--vcs-config vcs.yaml` alongside
+`--root` and `--config`. The same option works for `lint-config-check` and
+`lint-explain PATH`. This is a Backend declaration, not a complete project
+configuration; a scalar `git` or `mercurial` also selects that native backend.
+The declaration path is relative to the consumer root, while its command argv
+retains the protocol's repository working-directory semantics. Diagnostics retain
+the absolute selection-file path in their rerun command. Invalid declarations,
+unsupported operations and failed adapters produce errors without native fallback.
+Without this option, direct lint retains native discovery or physical-directory
+inspection. It does not implicitly read project VCS settings; the project `check`
+gate supplies its own selected source and handles exported inputs separately.
 
 Set `repository.vcs` in the existing review project YAML:
 

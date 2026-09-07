@@ -115,6 +115,9 @@ fn print_help() {
     );
     println!("environment-hook NAME | environment-mcp NAME: execute a configured frontend handler");
     println!(
+        "lint | lint-config-check | lint-explain PATH: --vcs-config FILE selects a native or private Backend YAML declaration"
+    );
+    println!(
         "upgrade plan --config CONFIG_YAML: review an explicit configuration/resource update using the existing apply and rollback workflow"
     );
     println!(
