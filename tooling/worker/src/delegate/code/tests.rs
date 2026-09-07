@@ -1,5 +1,8 @@
-use super::*;
+use super::Workspace;
+use anyhow::Result;
+use serde_json::json;
 use std::os::unix::fs::symlink;
+use std::{fs, os::unix::fs::PermissionsExt, process::Command};
 
 #[test]
 fn isolated_patch_preserves_original_and_applies_to_snapshot() -> Result<()> {

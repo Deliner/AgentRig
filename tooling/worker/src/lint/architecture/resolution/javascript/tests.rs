@@ -1,6 +1,15 @@
-use super::*;
-use crate::lint::architecture::source;
+use super::{JavaScript, Mode};
+use crate::lint::architecture::{
+    resolution::Resolved,
+    source::{self, Loader, Target},
+};
+use anyhow::Result;
 use std::process::Command;
+use std::{
+    collections::BTreeSet,
+    fs,
+    path::{Path, PathBuf},
+};
 
 fn target(path: &str, loader: Loader) -> Target {
     Target::JavaScriptModule {

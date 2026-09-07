@@ -31,7 +31,11 @@ from test_lint import lint
             "javascript: ['node:module']",
         ),
         ("rs", "#[generated]\npub fn run() -> i32 { 7 }\n", "rust: [std]"),
-        ("rs", "#[derive(Debug)]\npub struct Value;\npub fn run() -> i32 { 7 }\n", "rust: [std]"),
+        (
+            "rs",
+            "#[derive(Generated)]\npub struct Value;\npub fn run() -> i32 { 7 }\n",
+            "rust: [std]",
+        ),
         (
             "rs",
             '#![cfg_attr(feature="generated", generated)]\npub fn run() -> i32 { 7 }\n',

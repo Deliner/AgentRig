@@ -1,6 +1,11 @@
-use super::*;
-use crate::lint::architecture::source;
-use std::{fs, process::Command};
+use super::Rust;
+use crate::lint::architecture::source::{self, References, Target};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn sources(files: &[(&str, &str)]) -> BTreeMap<PathBuf, References> {
     files

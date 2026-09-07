@@ -101,9 +101,22 @@ proof; remaining coverage is part of P006 delivery.
 - **Rust 2018+**: explicit crate roots, declared `name.rs`/`name/mod.rs` and inline
   modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
   paths and public item facades. Missing/ambiguous module files and alias cycles
-  fail. Macro invocations/definitions, `#[path]`, block-local modules and unresolved
-  lexical/wildcard bindings require further analysis. Derive, conditional and
-  unknown attributes report incomplete expansion, including inner attributes.
+  fail. Known standard expression macros and imported `anyhow::{anyhow,bail,ensure}`
+  and `serde_json::json` retain explicit paths inside their token arguments,
+  including nested calls; strings and comments remain opaque. Macro imports are
+  resolved before accepting the namespace. Unknown macros, definitions, source
+  `include!`, ambiguous wildcard origins, block-local macro imports and declarations
+  inside macro arguments report incomplete analysis. General expansion is not
+  implemented. Static unescaped `include_str!` and `include_bytes!` literals
+  produce resource-file edges, including imported aliases; missing, ignored,
+  escaping or dynamically constructed targets fail analysis.
+  Standard derives and `serde::{Serialize,Deserialize}` are supported. Supported
+  serde callback attributes retain their function-path dependencies; naming
+  metadata remains opaque. Unknown serde forms fail explicitly. `#[cfg(test)]`
+  includes test code in the measured graph alongside ordinary code.
+  `#[path]`, block-local modules and unresolved lexical/wildcard bindings require
+  further analysis. Other conditional and unknown attributes report incomplete
+  expansion, including inner attributes.
   Known nonexpanding metadata (`allow`, `warn`, `deny`, `forbid`, `doc`, `inline`,
   `cold`, `must_use`, `deprecated`, `repr`, `non_exhaustive`, `test`, `ignore`,
   `should_panic`, `track_caller`) remains supported. Compiler expansion and build

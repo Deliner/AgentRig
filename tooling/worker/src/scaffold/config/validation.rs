@@ -1,5 +1,7 @@
-use super::*;
+use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, name, relative};
 use crate::lint::config::{globs, skill};
+use anyhow::{Context, Result, ensure};
+use std::{collections::BTreeMap, path::Path};
 use std::{collections::HashSet, fs};
 
 impl Config {

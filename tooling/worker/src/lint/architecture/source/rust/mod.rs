@@ -1,3 +1,6 @@
+mod attributes;
+mod macros;
+
 use super::{RustImport, RustItem, Source, Target};
 use tree_sitter::Node;
 
@@ -19,14 +22,17 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
         "function_item" | "struct_item" | "enum_item" | "union_item" | "type_item"
         | "trait_item" | "const_item" | "static_item" => item(source, node),
         "attribute_item" | "inner_attribute_item" => {
-            attribute(source, node);
+            attributes::inspect(source, node);
             return false;
         }
         "macro_definition" => source.unsupported(
             node,
             "Rust macro definitions may generate dependencies; expansion is not analyzed",
         ),
-        "macro_invocation" => macro_call(source, node),
+        "macro_invocation" => {
+            macros::inspect(source, node);
+            return false;
+        }
         _ => {}
     }
     true
@@ -36,6 +42,18 @@ fn compact(path: &str) -> String {
     path.split_whitespace()
         .collect::<String>()
         .replace("r#", "")
+}
+
+fn string_literal(source: &Source<'_>, value: Node<'_>) -> Option<String> {
+    let string = matches!(value.kind(), "string_literal" | "raw_string_literal");
+    if string {
+        let text = source.text(value);
+        let start = text.find('"')? + 1;
+        let end = text.rfind('"')?;
+        let value = text.get(start..end)?;
+        return (!value.contains('\\')).then(|| value.to_owned());
+    }
+    None
 }
 
 fn scope(source: &Source<'_>, node: Node<'_>) -> Vec<String> {
@@ -246,11 +264,4 @@ fn attribute(source: &mut Source<'_>, node: Node<'_>) {
             );
         }
     }
-}
-
-fn macro_call(source: &mut Source<'_>, node: Node<'_>) {
-    source.unsupported(
-        node,
-        "Rust macro expansion and dependencies inside macro tokens are not analyzed",
-    );
 }

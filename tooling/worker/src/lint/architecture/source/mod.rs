@@ -14,10 +14,19 @@ use tree_sitter::Node;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Target {
     RustPath { path: String, scope: Vec<String> },
+    RustMacro(RustMacro),
+    RustDerive { path: String, scope: Vec<String> },
     RustModule { path: Vec<String>, inline: bool },
     PythonModule(String),
     PythonFrom { module: String, names: Vec<String> },
     JavaScriptModule { path: String, loader: Loader },
+}
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RustMacro {
+    pub path: String,
+    pub scope: Vec<String>,
+    pub literal: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

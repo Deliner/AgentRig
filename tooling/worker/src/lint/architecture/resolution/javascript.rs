@@ -4,13 +4,13 @@
 #[cfg(test)]
 mod tests;
 
-use super::Resolved;
+use super::{Resolved, normalize};
 use crate::lint::architecture::source::{Loader, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::BTreeSet,
     fs,
-    path::{Component, Path, PathBuf},
+    path::{Path, PathBuf},
 };
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -202,17 +202,4 @@ impl<'a> JavaScript<'a> {
         }
         Ok(None)
     }
-}
-
-fn normalize(path: &Path) -> Result<PathBuf> {
-    let mut normalized = PathBuf::new();
-    for part in path.components() {
-        match part {
-            Component::CurDir => {}
-            Component::Normal(name) => normalized.push(name),
-            Component::ParentDir => ensure!(normalized.pop(), "module path escapes project root"),
-            _ => bail!("module path must stay project-relative"),
-        }
-    }
-    Ok(normalized)
 }

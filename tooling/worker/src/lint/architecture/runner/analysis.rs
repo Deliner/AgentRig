@@ -63,6 +63,7 @@ pub fn incomplete(path: &Path, line: Option<usize>, error: anyhow::Error) -> Iss
 
 pub struct Resolvers<'a> {
     root: &'a Path,
+    files: &'a BTreeSet<PathBuf>,
     python: Python<'a>,
     javascript: JavaScript<'a>,
     typescript: JavaScript<'a>,
@@ -87,6 +88,7 @@ impl<'a> Resolvers<'a> {
         Ok((
             Self {
                 root,
+                files,
                 python: Python::new(&settings.python_root, files, &settings.external.python)?,
                 javascript: JavaScript::new(root, files, &settings.external.javascript, Mode::Node),
                 typescript: JavaScript::new(
@@ -103,6 +105,7 @@ impl<'a> Resolvers<'a> {
 
     pub fn resolve(&self, path: &Path, target: &Target) -> Result<Resolved> {
         let resolved = match target {
+            Target::RustMacro(_) => self.rust_macro(path, target),
             Target::PythonModule(_) | Target::PythonFrom { .. } => {
                 self.python.resolve(path, target)
             }
@@ -123,6 +126,18 @@ impl<'a> Resolvers<'a> {
             ensure!(
                 self.root.join(file).canonicalize()?.starts_with(self.root),
                 "dependency target escapes project root: {}",
+                file.display()
+            );
+        }
+        Ok(resolved)
+    }
+
+    fn rust_macro(&self, path: &Path, target: &Target) -> Result<Resolved> {
+        let resolved = self.rust(path, target)?;
+        for file in &resolved.files {
+            ensure!(
+                self.files.contains(file),
+                "embedded resource is absent from source inventory: {}",
                 file.display()
             );
         }

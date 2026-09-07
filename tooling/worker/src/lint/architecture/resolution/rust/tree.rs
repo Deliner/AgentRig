@@ -1,4 +1,7 @@
-use super::*;
+use super::{Module, Rust, joined};
+use crate::lint::architecture::source::{Reference, Target};
+use anyhow::{Context, Result, bail, ensure};
+use std::path::{Path, PathBuf};
 
 impl Rust<'_> {
     pub(super) fn load(&mut self, file: &Path) -> Result<Vec<PathBuf>> {

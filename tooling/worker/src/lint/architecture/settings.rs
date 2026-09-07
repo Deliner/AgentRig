@@ -40,7 +40,7 @@ impl Settings {
             "rust_roots": "explicit project-relative crate root files; required for selected Rust sources",
             "external": "literal module prefixes by rust/python/javascript namespace; Rust defaults std/core/alloc",
             "resolution": {
-                "rust": "Rust 2018+ declared module trees and module-level aliases; macro/conditional attributes report incomplete expansion; no full lexical/wildcard binding resolution",
+                "rust": "Rust 2018+ declared module trees and module-level aliases; known standard/anyhow/serde_json macro paths and static resource includes; standard/serde derives, supported serde callbacks and cfg(test); unknown expansion and lexical/wildcard ambiguity remain incomplete",
                 "python": "one import root, package initializers and namespace submodules; recognized loader aliases/values report incomplete binding analysis; package export ambiguity and runtime path changes unsupported",
                 "javascript": "Node relative import/require; bare packages need explicit external declarations; loader values, module factory APIs and dynamic paths report incomplete analysis",
                 "typescript": "relative bundler substitutions; no tsconfig aliases, NodeNext or typesVersions"
