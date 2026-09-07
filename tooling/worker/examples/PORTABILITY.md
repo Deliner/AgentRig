@@ -67,9 +67,8 @@ Observed on Linux on 2026-09-07 with disposable consumers and isolated client ho
 Delegates select only that private user scope; the existing read-only mounts and
 explicit MCP configuration still own isolation. Claude probes used a synthetic
 key and an unreachable loopback endpoint and ended before any model response.
-These observations verify native discovery and hook scope, not completed P008
-review/delegation acceptance. The earlier paid Codex evidence above remains
-separate from current Claude acceptance.
+These discovery-only observations are separate from the real model acceptance
+recorded below.
 
 ## P008 Codex model acceptance
 
@@ -86,8 +85,8 @@ Real review through the consumer's generated MCP registration returned a
 validated PASS for run-pjyGqb on an exact committed revision. The checkout was
 preserved and the private execution directory removed. Evidence is retained in
 `.tmp/p008-review-8sup9idw`, including the request, MCP exchange and report.
-These observations establish current Codex model execution; real Claude review
-and delegation remain required for P008 acceptance.
+These observations establish current Codex model execution; Claude acceptance
+is recorded below.
 
 Configuration-update tests separately exercise both clients' model/API changes
 and removal, hooks and MCP changes, retained user settings and permissions,
@@ -111,16 +110,23 @@ completed these independent consumers after their source packages were removed:
 - Artifacts run-dsgPOK: exact values, retained actual MCP tools/call and startup
   output, preserved checkout and cleanup;
   `.tmp/agentrig-environment-m57roq1f/artifacts-acceptance.json`.
+- Code run-nOqUpc used the inexpensive paid variant
+  `nvidia/nemotron-3-super-120b-a12b`: exact file bytes, code check exit 0,
+  applicable patch, unchanged original checkout and cleanup;
+  `.tmp/agentrig-environment-rh6u9fa5/acceptance.json`. A prior missing-newline
+  edit failed the same unchanged check; the final task specified the exact bytes.
 
 Read/artifact consumers used `ENABLE_TOOL_SEARCH=false` and
 `CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=1` through existing profile environment
 references. These native [gateway settings](https://code.claude.com/docs/en/env-vars)
 are consumer choices, not global AgentRig defaults. Initial runs had malformed
-API responses; combined code probes still returned HTTP 404. Focused code
-run-FPUmYi then received HTTP 429, `free-models-per-day`. Successful Claude code
-acceptance remains outstanding. All probes terminated and retained their reports.
+API responses; combined code probes returned HTTP 404. Focused free code
+run-FPUmYi then received HTTP 429, `free-models-per-day`. The paid variant resolved
+that quota obstacle. The focused code consumer verified editing and patch checks;
+the read/artifact consumers separately verified configured skills, hooks and MCP.
+All probes terminated and retained their reports.
 
-Actual provider spending was $0.13806775, with $1.41928505 remaining; free runs
+Actual provider spending was $0.16007502, with $1.39727778 remaining; free runs
 did not increase usage. Claude's displayed gateway cost estimates differed from
 actual billing. Accounting is retained in `.tmp/p008-openrouter-cost.json`.
 
