@@ -177,6 +177,32 @@ fn reply(value: Value) -> Adapter {
 }
 
 #[test]
+fn private_commit_context_requires_a_branch_and_boolean_merge_state() {
+    let root = tempfile::tempdir().unwrap();
+    for invalid in [
+        json!(["task/example", "false"]),
+        json!([42, false]),
+        json!(["task/example", false, true]),
+    ] {
+        let backend = Backend::External(reply(json!({"version":1,"result":invalid})));
+        assert!(
+            backend
+                .source(root.path())
+                .commit_context(Some("revision-42"))
+                .is_err()
+        );
+    }
+    let backend = Backend::External(reply(json!({"version":1,"result":["task/example",false]})));
+    assert_eq!(
+        backend
+            .source(root.path())
+            .commit_context(Some("revision-42"))
+            .unwrap(),
+        ("task/example".into(), false)
+    );
+}
+
+#[test]
 fn configured_external_source_uses_shared_snapshot_visibility_and_file_restrictions() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path();

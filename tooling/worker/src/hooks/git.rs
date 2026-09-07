@@ -15,7 +15,7 @@ pub fn guard_commit_with(
 ) -> Result<i32> {
     let repository = settings
         .backend
-        .repository(root)?
+        .repository_source(root)?
         .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
     let (branch, merge) = repository.commit_context(revision)?;
     let base = settings.base.as_str();

@@ -35,6 +35,14 @@ def parents(arguments: dict[str, Any]) -> list[str]:
     return list(filter(has_revision, lines.decode().splitlines()))
 
 
+def commit_context(arguments: dict[str, Any]) -> tuple[str, bool]:
+    reference = arguments["revision"]
+    assert isinstance(reference, str), "Mercurial commit guard requires the pending revision"
+    revision = resolve({"reference": reference})
+    branch = hg("log", "--rev", revision, "--template", "{branch}").decode()
+    return branch, len(parents({"revision": revision})) > 1
+
+
 def observe(arguments: dict[str, Any]) -> dict[str, Any]:
     assert not arguments
     return {
@@ -202,6 +210,7 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "register-hooks": register_hooks,
     "start-feature": start_feature,
     "parents": parents,
+    "commit-context": commit_context,
     "tree": tree,
     "read": read,
     "changed-paths": changed_paths,

@@ -5,7 +5,7 @@ configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
 native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
 visibility checks. A separate executable can implement the protocol without
 linking AgentRig or publishing its implementation. Private setup, preview and
-doctor use this boundary. Private commit guards and integration remain pending
+doctor and commit guards use this boundary. Private integration remains pending
 P007 work; an installed environment does not yet prove full delivery support.
 
 An adapter declaration contains one argv vector, for example:
@@ -37,7 +37,8 @@ nonempty base and prefix. `feature-start` supports the write operation below.
 Setup generates hooks and harness/MCP commands, previews files and registrations,
 initializes the repository and registers hooks through the adapter. Configure a
 private backend in YAML and use `setup`; the `init --vcs` choices remain native.
-Private commit guards and feature integration still report unimplemented errors.
+Commit guards inspect the selected backend's native commit context. Private
+feature integration still reports an unimplemented error.
 
 For direct lint commands, put the Backend declaration alone in a YAML file:
 
@@ -120,6 +121,7 @@ session is required.
 | `resolve` | `reference` string | One exact revision ID string; ambiguous selections fail. |
 | `head` | Empty object | Exact current revision ID, or null for an unborn repository. |
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
+| `commit-context` | `revision` string or null | `[branch, merge]`; a branch string and boolean identifying whether this commit is a merge. |
 | `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
 | `initialize` | `base` string | Null after ensuring a repository exists; an existing repository is preserved. |
 | `repository-present` | Empty object | Boolean identifying whether this backend's repository exists; mismatched repositories fail. |
@@ -142,6 +144,14 @@ Observation identifies the actual working branch, native status text and pending
 operations. Its backend identity comes from configuration, never the reply.
 Recovery resolves recorded revision references through this source, including
 opaque non-hexadecimal IDs.
+
+Commit context describes the commit being guarded, not an unrelated working-copy
+branch. Backends requiring a pending revision must reject null; the Mercurial
+example requires its changeset ID. `guard-commit --revision` selects the configured
+source, resolves the reference and uses that exact ID for the exported configuration
+and commit context. Branch policy remains shared: feature-prefix commits are
+permitted, while the configured base permits merge commits only. The separate
+mandatory check still runs against the pending revision through the installed hook.
 
 Before `start-feature`, AgentRig requires the configured base branch, a clean
 working copy and no pending merge or rebase. The adapter must reject stale
@@ -226,8 +236,12 @@ paths and invalid root commands. Python consumers exercise private setup, repeat
 installation, preserved settings, asset/harness conflicts and a real MCP handshake
 through the generated launcher. A relative adapter is resolved from the consumer
 root even when the CLI runs elsewhere; the installed binary passes doctor and
-repeat preview. These checks do not establish private commit/integration acceptance
-or real model-client acceptance.
+repeat preview. Installed private Mercurial hooks also reject direct base commits,
+permit feature commits, roll back a failing mandatory check and retain unselected
+working changes through a subsequent successful selected commit. A synthetic adapter
+without Git/Mercurial metadata proves opaque-ID export and context use the same
+resolved revision and retain branch/merge policy. These checks do not establish
+private integration or real model-client acceptance.
 
 Configured review tests run a failing review, a repair and a successful re-review
 through the example, then reject a changed adapter or source root. Snapshot tests

@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 from support import git as git_result
-from support import invoke, update_config
+from support import invoke, update_config, vcs_backend
 from test_commands import background_id, require_user_systemd, wait_for_background_output
 from test_feedback import commit as revision_commit
 from test_feedback import evidence, repository, resumed, revision
@@ -302,13 +302,15 @@ def hg(root: Path, *args: str) -> str:
     return subprocess.check_output(["hg", *args], cwd=root, text=True).strip()
 
 
+@pytest.mark.parametrize("vcs", ["hg", "private"])
 def test_mercurial_setup_registers_native_hooks_and_checks_commits(
-    worker: Path, tmp_path: Path
+    worker: Path, tmp_path: Path, vcs: str
 ) -> None:
     initialize_mercurial(worker, tmp_path)
+    update_config(tmp_path / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
     preview = invoke(worker, tmp_path, "setup", "--preview")
     assert preview.returncode == 0, preview.stderr
-    assert json.loads(preview.stdout)["registrations"]["vcs"]["backend"] == "mercurial"
+    assert json.loads(preview.stdout)["registrations"]["vcs"]["backend"] == vcs_backend(vcs)
     assert not (tmp_path / ".hg").exists() and not (tmp_path / ".git").exists()
     result = invoke(worker, tmp_path, "setup")
     assert result.returncode == 0, result.stdout + result.stderr

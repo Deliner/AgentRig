@@ -121,6 +121,17 @@ pub struct Source<'a> {
 }
 
 impl Source<'_> {
+    pub fn commit_context(&self, revision: Option<&str>) -> Result<(String, bool)> {
+        match self.backend {
+            Backend::Native(kind) => Repository::new(self.root, *kind).commit_context(revision),
+            Backend::External(adapter) => adapter.call(
+                self.root,
+                "commit-context",
+                serde_json::json!({"revision": revision}),
+            ),
+        }
+    }
+
     pub fn observe(&self) -> Result<super::Observation> {
         match self.backend {
             Backend::Native(kind) => Repository::new(self.root, *kind).observe(),

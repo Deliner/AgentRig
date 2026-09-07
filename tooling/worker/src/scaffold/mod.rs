@@ -92,18 +92,24 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
         _ => bail!("guard-commit [--revision REV]"),
     };
     let snapshot = match reference {
-        Some(revision) => Some(
-            review_runner::vcs::Repository::discover(root)?
-                .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?
-                .export_revision(revision)?,
-        ),
+        Some(revision) => {
+            let config = config::read(root)?;
+            let repository = config
+                .vcs
+                .backend
+                .repository_source(root)?
+                .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
+            let revision = repository.resolve(revision)?;
+            Some((repository.export_revision(&revision)?, revision))
+        }
         None => None,
     };
     let tree = snapshot
         .as_ref()
-        .map(|snapshot| snapshot.path())
+        .map(|(snapshot, _)| snapshot.path())
         .unwrap_or(root);
     let context = config::Context::load(tree)?;
+    let reference = snapshot.as_ref().map(|(_, revision)| revision.as_str());
     crate::hooks::git::guard_commit_with(root, &context.config.vcs, reference)
 }
 
