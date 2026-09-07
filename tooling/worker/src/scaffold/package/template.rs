@@ -13,13 +13,14 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
         ("base", "main"),
         ("prefix", "feature/"),
         ("vcs", "git"),
+        ("frontend", "codex"),
     ]
     .into_iter()
     .map(|(key, value)| (key, value.into()))
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--vcs git|mercurial] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
+        "init [--language python|rust] [--vcs git|mercurial] [--frontend codex|claude-code] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -38,6 +39,10 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     Ok(options)
 }
 fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
+    ensure!(
+        ["codex", "claude-code"].contains(&options["frontend"].as_str()),
+        "init --frontend expects codex or claude-code"
+    );
     ensure!(
         ["git", "mercurial"].contains(&options["vcs"].as_str()),
         "init --vcs expects git or mercurial"
@@ -61,6 +66,10 @@ pub(super) fn config(options: &Options<'_>) -> Config {
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
+        frontend: match options["frontend"].as_str() {
+            "claude-code" => config::Frontend::ClaudeCode,
+            _ => config::Frontend::Codex,
+        },
         environment: Default::default(),
         version: 1,
         processes: Default::default(),

@@ -2,23 +2,23 @@
 
 ## Focus
 
-Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: Claude Code read/artifact/code delegation using shared isolation, task validation and jobs.
+Deliver P008 under the user's active goal. P006 and P007 are integrated. Current VAC: explicit project-client selection with Claude setup, preview, hooks/MCP registration and selected executor diagnostics.
 
 ## Workspace
 
 Branch: feature/agent-harnesses
 
-Revision: 94ce7f1
+Revision: b6d7a96
 
-The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Resume confirms no merge or rebase. The selected-client review VAC is committed at 94ce7f1; the current delegation changes are uncommitted. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
+The branch started from master after P007 integration at 10f1d77. feature/vcs-backends is retained. Resume confirmed a clean b6d7a96 with no merge or rebase before this VAC. Review is committed at 94ce7f1 and delegation at b6d7a96. P006 is integrated at 0c9cc39. The installed development pin is unchanged. User remarks remain in Ledger/Requests.md.
 
 ## Progress
 
-Selected-client review is committed. The current VAC adds Claude delegation with explicit settings, frozen skills/programs/hooks/MCP resources and external credential references. Claude structured_output feeds the existing parent-owned schema, artifact and code verification. The parent reserves result.json without following model-created paths. Jobs retain shared cancellation, timeout, reports and cleanup. Existing Codex execution remains covered. Project setup still selects only Codex and remains required P008 work.
+Review and all delegation modes support Claude. The current uncommitted VAC adds top-level project frontend selection and init/wizard choice. Claude uses .claude/settings.json, .mcp.json and CLAUDE.md importing shared AGENTS.md. Existing reconciliation preserves settings, permissions and unrelated hooks/MCP; managed conflicts fail before writing. Preview omits unrelated MCP data. Doctor and preview share selected review/delegate executable discovery. Codex MCP registrations forward declared Claude credential references. The shared Frontend enum moved from delegation into environment. Project model/API mapping, native skill discovery and real-client acceptance remain required.
 
 ## Verification
 
-The review VAC's full commit gate passed 567 Python and 143 Rust tests. After recovering interrupted output and confirming no test processes remained, the current delegation VAC passed 62 Python tests across run/code/config and 13 Rust delegate tests. Structural lint has no errors. Tests cover both clients, all modes, invalid responses, timeout, cancellation, frozen resources, read-only inputs/configuration and code check failure. Claude fixtures are deterministic executors in real bubblewrap, not real model acceptance. The current full commit gate is pending.
+Delegation b6d7a96 passed its full commit gate: 577 Python and 145 Rust tests. Current setup work passed 88 setup/capability/review tests before the final wizard and preview adjustments, then 13 wizard cases and five Claude preview cases. Standalone tests exposed an import-order issue; setup assertions now stay with scaffold helpers and client protocol fixtures stay in test_review.py. No import-path configuration was added. The final capability/review run passed 25 tests. Mypy, structural lint, whitespace checks and Rust compilation pass after repair. The full commit gate is pending. Direct registered hook/MCP tests prove adapter execution, not real client discovery or model acceptance.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ For P008 real-client acceptance, local Codex is 0.153.4 and Claude Code is 2.1.2
 
 ## Next action
 
-Inspect and commit the current delegation VAC through the mandatory gate, repairing any failures. Then complete selected-client project setup with shared environment declarations, skills/hooks/MCP and supported model/API settings. Verify independent real-client acceptance for both clients and integrate P008. Preserve the development pin and the full P008 contract; deterministic client tests alone do not establish completion.
+Commit the current project setup VAC through the mandatory gate and repair any failures. Then complete shared project model/API settings and native skill discovery, verify composition/update behavior and actual client hook semantics, and run independent real-client acceptance for both clients before integrating P008. Preserve the development pin and the full P008 contract; current adapter tests alone do not establish completion.

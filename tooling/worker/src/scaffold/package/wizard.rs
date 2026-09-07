@@ -78,6 +78,7 @@ fn project_config(root: &Path) -> Result<Option<Config>> {
         ("prefix", "Feature branch prefix"),
         ("review", "Enable review: true/false"),
         ("vcs", "Version control: git/mercurial"),
+        ("frontend", "Agent client: codex/claude-code"),
     ] {
         let default = match key {
             "skills" => format!("{}/skills", options["service"]),

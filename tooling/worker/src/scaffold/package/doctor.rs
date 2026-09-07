@@ -30,9 +30,12 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= required && capability["available"] != true;
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
-    failed |= !executor_dependencies(context);
+    failed |= !executor_dependencies(context)?;
     failed |= !vcs_registration(context)?;
-    failed |= !codex_registration(context)?;
+    failed |= !match context.config.frontend {
+        super::config::Frontend::Codex => codex_registration(context)?,
+        super::config::Frontend::ClaudeCode => super::claude::registration(context)?,
+    };
     if failed {
         let rerun = crate::diagnostics::rerun(&context.root, &["doctor".into()]);
         eprintln!(
@@ -161,7 +164,10 @@ fn codex_registration(context: &Context) -> Result<bool> {
     Ok(codex)
 }
 
-fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -> Result<bool> {
+pub(super) fn hooks_registered(
+    context: &Context,
+    configured: Option<&serde_json::Value>,
+) -> Result<bool> {
     let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
         &context.config,
         &super::adapters::generated(&context.root, &context.config)?.root_command,
@@ -183,34 +189,36 @@ fn hooks_registered(context: &Context, configured: Option<&serde_json::Value>) -
     }))
 }
 
-fn executor_dependencies(context: &Context) -> bool {
+fn executor_dependencies(context: &Context) -> Result<bool> {
     let mut success = true;
-    for (capability, variable) in [
-        (&context.config.capabilities.review, "REVIEW_CODEX_BIN"),
-        (
-            &context.config.capabilities.delegation,
-            "DELEGATE_CODEX_BIN",
-        ),
-    ] {
-        let enabled = capability.is_some();
-        if enabled {
-            success &= native_executor(context, variable);
-        }
+    for (variable, frontend) in
+        super::executors::configured(&context.root, &context.config, &Default::default())?
+    {
+        success &= native_executor(context, variable, frontend);
     }
-    success
+    Ok(success)
 }
-fn native_executor(context: &Context, variable: &str) -> bool {
-    let native = review_runner::execution::sandbox::native_codex_from(variable);
+fn native_executor(context: &Context, variable: &str, frontend: super::config::Frontend) -> bool {
+    let codex = matches!(frontend, super::config::Frontend::Codex);
+    let native = match frontend {
+        super::config::Frontend::Codex => {
+            review_runner::execution::sandbox::native_codex_from(variable)
+        }
+        super::config::Frontend::ClaudeCode => {
+            review_runner::execution::sandbox::native_claude_from(variable)
+        }
+    };
     let available = native.as_ref().is_ok_and(|path| {
         available(&path.to_string_lossy(), &context.root)
-            && path.with_file_name("codex-code-mode-host").is_file()
+            && (!codex || path.with_file_name("codex-code-mode-host").is_file())
     });
+    let client = frontend.name();
     println!(
-        "{variable} Codex and code-mode host: {}",
+        "{variable} {client} executor: {}",
         if available {
             "available"
         } else {
-            "MISSING; install Codex or set the indicated variable"
+            "MISSING; install the selected native client (including Codex's code-mode host) or set the indicated variable"
         }
     );
     available

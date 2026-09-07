@@ -1,6 +1,8 @@
 pub(super) mod adapters;
 mod assets;
+mod claude;
 mod doctor;
+mod executors;
 mod lint;
 pub(super) mod manifest;
 mod review;
@@ -122,20 +124,29 @@ fn add_runtime(root: &Path, files: &mut Files, config: &Config) -> Result<()> {
         fs::read(std::env::current_exe()?)?,
     );
     files.insert("justfile".into(), template::justfile(config).into_bytes());
-    files.insert(
-        ".codex/config.toml".into(),
-        adapters::CODEX_CONFIG.as_bytes().to_vec(),
-    );
-    files.insert(
-        ".codex/hooks.json".into(),
-        adapters::registration(config, &generated.root_command)?,
-    );
+    client_files(files, config, &generated.root_command)?;
     for (path, contents) in generated.files {
         ensure!(
             !files.contains_key(&path),
             "generated VCS file conflicts with another resource: {path}"
         );
         files.insert(path, contents.into_bytes());
+    }
+    Ok(())
+}
+fn client_files(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
+    match config.frontend {
+        config::Frontend::Codex => {
+            files.insert(
+                ".codex/config.toml".into(),
+                adapters::CODEX_CONFIG.as_bytes().to_vec(),
+            );
+            files.insert(
+                ".codex/hooks.json".into(),
+                adapters::registration(config, root_command)?,
+            );
+        }
+        config::Frontend::ClaudeCode => claude::bundle(files, config, root_command)?,
     }
     Ok(())
 }

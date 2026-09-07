@@ -33,21 +33,7 @@ pub struct Profile {
     pub credentials: Credentials,
 }
 
-#[derive(Clone, Copy, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Frontend {
-    Codex,
-    ClaudeCode,
-}
-
-impl Frontend {
-    pub fn directory(self) -> &'static str {
-        match self {
-            Self::Codex => "codex",
-            Self::ClaudeCode => "claude",
-        }
-    }
-}
+pub use crate::environment::Frontend;
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "kebab-case")]

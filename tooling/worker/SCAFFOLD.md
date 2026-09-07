@@ -15,6 +15,13 @@ its files: setup reports conflicting adapters before writing.
 
 Project capabilities are selected in `agentrig.yaml`:
 
+Top-level `frontend: codex` or `frontend: claude-code` selects project registration;
+omission preserves Codex. `init --frontend claude-code` and the interactive wizard
+select Claude explicitly. Setup manages `.claude/settings.json`, `.mcp.json` and
+`CLAUDE.md` importing the shared `AGENTS.md`, with the same preview and installation
+receipt. Existing model settings and unrelated hook/MCP entries are preserved;
+conflicting managed MCP commands or disabled hooks fail before writing.
+
 ```yaml
 capabilities:
   lint: true
@@ -45,7 +52,7 @@ Its environment forwards the declared credential/MCP variable references, execut
 override and existing job owner/parent identifiers. Use the same WORKER_OWNER after
 reconnecting to cancel owned tasks. The MCP tool timeout is 60 seconds; tasks run
 asynchronously and their own timeouts remain profile settings. Doctor requires
-working systemd scopes, bubblewrap and native Codex when delegation is enabled.
+working systemd scopes, bubblewrap and the clients selected by enabled profiles.
 `agentrig init --interactive --root CONSUMER` starts the setup wizard. It asks for
 the project directory, language, service/source/memory/skills paths, branch naming,
 review, VCS, an optional existing delegate-profile YAML path relative to the project,

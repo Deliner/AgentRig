@@ -67,7 +67,14 @@ fn ownership(path: &str, config: &Config) -> Ownership {
     let memory = ["Plan", "State", "Decisions", "Invariants"]
         .iter()
         .any(|name| path == format!("{}/{name}.md", config.paths.memory));
-    let settings = ["agentrig.yaml", ".codex/config.toml", &config.paths.lint].contains(&path)
+    let settings = [
+        "agentrig.yaml",
+        ".codex/config.toml",
+        ".claude/settings.json",
+        ".mcp.json",
+        &config.paths.lint,
+    ]
+    .contains(&path)
         || config.hooks.reminder.as_deref() == Some(path)
         || path.starts_with(&config.paths.service_path("review/config/"));
     let editable = (path.starts_with(&format!("{}/", config.paths.skills))
@@ -79,7 +86,7 @@ fn ownership(path: &str, config: &Config) -> Ownership {
             .any(|skill| std::path::Path::new(path).starts_with(skill))
         || path.starts_with(&config.paths.service_path("hooks/"))
         || path.starts_with(&config.paths.service_path("review/prompts/"))
-        || ["AGENTS.md", "justfile", ".codex/hooks.json"].contains(&path);
+        || ["AGENTS.md", "CLAUDE.md", "justfile", ".codex/hooks.json"].contains(&path);
     let runtime = path == config.paths.service_path("bin/agentrig");
     if memory {
         Ownership::Memory

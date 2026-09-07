@@ -96,7 +96,7 @@ pub(super) fn print_preview(
     Ok(())
 }
 
-fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
+pub(super) fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
     match files.get(path) {
         Some(bytes) => Ok(std::str::from_utf8(bytes)?.into()),
         None => Ok(fs::read_to_string(config::relative(root, path)?)?),
