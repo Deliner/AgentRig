@@ -42,7 +42,7 @@ pub fn bundle(files: &mut Files, config: &Config) -> anyhow::Result<()> {
             let contents = if selected_project {
                 let mut project: review_runner::config::Project =
                     review_runner::config::yaml::decode(std::str::from_utf8(bytes)?)?;
-                project.repository.vcs = config.vcs.backend;
+                project.repository.vcs = config.vcs.backend.into();
                 review_runner::config::yaml::encode(&project)?.into_bytes()
             } else {
                 bytes.to_vec()

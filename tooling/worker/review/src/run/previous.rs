@@ -21,6 +21,7 @@ pub fn prepare(
         previous.contract_digest == report.contract_digest,
         "previous contract differs; start a new review boundary explicitly"
     );
+    same_source(request, &previous, scope)?;
     let old = previous
         .snapshot
         .as_ref()
@@ -33,12 +34,31 @@ pub fn prepare(
         old.base == current.base,
         "re-review must retain the original base"
     );
-    let source = crate::vcs::Repository::new(&request.root, scope.vcs);
+    let source = scope.vcs.source(&request.root);
     source.resolve(&old.candidate)?;
     report.previous_report_digest = Some(digest(&bytes));
     snapshot::check_boundary(&request.root, &old.candidate, &current.candidate, scope)?;
     report.repair_diff = Some(source.diff(&old.candidate, &current.candidate)?);
     Ok(Some(previous))
+}
+
+fn same_source(
+    request: &Request,
+    previous: &Report,
+    scope: &crate::config::Repository,
+) -> Result<()> {
+    let repository: crate::config::Repository =
+        serde_json::from_value(previous.project_configuration["repository"].clone())
+            .context("previous report has invalid repository configuration")?;
+    let root: std::path::PathBuf = serde_json::from_value(previous.request["root"].clone())
+        .context("previous report has no repository root")?;
+    ensure!(
+        scope
+            .vcs
+            .matches_previous(&request.root, (&repository.vcs, &root)),
+        "previous review used another VCS source; start a new review boundary explicitly"
+    );
+    Ok(())
 }
 pub fn validate(report: &mut Report, previous: Option<&Report>) -> Result<()> {
     let Some(previous) = previous else {

@@ -52,7 +52,7 @@ pub struct Project {
 #[serde(deny_unknown_fields)]
 pub struct Repository {
     #[serde(default)]
-    pub vcs: crate::vcs::Kind,
+    pub vcs: crate::vcs::Backend,
     pub visible_paths: Vec<String>,
     pub contract_paths: Vec<String>,
 }
@@ -161,6 +161,11 @@ fn validate_tool(name: &str, tool: &Tool, reviewers: &BTreeMap<String, Reviewer>
 }
 pub fn project(path: &Path) -> Result<Project> {
     let mut project: Project = yaml::read(path)?;
+    project
+        .repository
+        .vcs
+        .validate()
+        .context("repository.vcs")?;
     ensure!(project.schema_version == 1, "unsupported project schema");
     ensure!(
         !project.repository.visible_paths.is_empty(),

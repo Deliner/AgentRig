@@ -8,8 +8,10 @@ mod integration;
 mod mercurial;
 mod observation;
 mod registration;
+mod source;
 pub use observation::Observation;
 pub use registration::Settings;
+pub use source::{Backend, Source};
 
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};

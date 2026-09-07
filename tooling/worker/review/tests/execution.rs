@@ -17,7 +17,7 @@ fn hg(root: &std::path::Path, args: &[&str]) {
     );
 }
 
-fn mercurial_fixture() -> Fixture {
+fn mercurial_fixture(external: bool) -> Fixture {
     let fixture = Fixture::new("fail");
     let root = fixture.0.path();
     let repo = root.join("repo");
@@ -30,12 +30,29 @@ fn mercurial_fixture() -> Fixture {
         .unwrap()
         .replace("repository:\n", "repository:\n  vcs: mercurial\n");
     std::fs::write(config, yaml).unwrap();
+    if external {
+        let path = root.join("project.yaml");
+        let mut project: serde_json::Value = review_runner::config::yaml::read(&path).unwrap();
+        project["repository"]["vcs"] = serde_json::json!({"command": [
+            "python3", "-B", concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/external_vcs.py")
+        ]});
+        std::fs::write(path, review_runner::config::yaml::encode(&project).unwrap()).unwrap();
+    }
     fixture
 }
 
 #[test]
 fn mercurial_review_and_repair_preserve_revision_scope_and_workspace() {
-    let fixture = mercurial_fixture();
+    review_and_repair(false);
+}
+
+#[test]
+fn external_review_and_repair_preserve_revision_scope_and_workspace() {
+    review_and_repair(true);
+}
+
+fn review_and_repair(external: bool) {
+    let fixture = mercurial_fixture(external);
     let root = fixture.0.path();
     let repo = root.join("repo");
     let first = fixture.run(None);
@@ -102,6 +119,78 @@ fn isolated_parallel_reviews_persist_exact_answers_and_cleanup() {
     let id = report["run_id"].as_str().unwrap();
     assert!(fixture.0.path().join(format!("reports/{id}.md")).is_file());
     assert_ne!(fixture.run(None)["run_id"], id);
+}
+
+#[test]
+fn repeated_external_review_rejects_a_changed_backend() {
+    let fixture = mercurial_fixture(true);
+    let first = fixture.run(None);
+    let root = fixture.0.path();
+    let previous = root.join(format!(
+        "reports/{}.json",
+        first["run_id"].as_str().unwrap()
+    ));
+    let path = root.join("project.yaml");
+    let mut project: serde_json::Value = review_runner::config::yaml::read(&path).unwrap();
+    project["repository"]["vcs"] = serde_json::json!("mercurial");
+    std::fs::write(path, review_runner::config::yaml::encode(&project).unwrap()).unwrap();
+    let denied = fixture.run(Some(&previous));
+    assert_eq!(denied["verdict"], "BLOCKED");
+    assert!(
+        denied["technical_error"]
+            .as_str()
+            .unwrap()
+            .contains("another VCS source")
+    );
+}
+
+#[test]
+fn missing_repository_root_is_preserved_as_a_technical_report() {
+    let fixture = Fixture::new("pass");
+    let root = fixture.0.path();
+    let report = review_runner::run::run(
+        &root.join("config.yaml"),
+        review_runner::run::Request {
+            root: root.join("missing"),
+            base: "HEAD".into(),
+            candidate: "HEAD".into(),
+            previous_report: None,
+            tool: "review_code".into(),
+        },
+    )
+    .unwrap();
+    assert_eq!(report.verdict, "BLOCKED");
+    assert!(report.technical_error.is_some() && report.roles.is_empty());
+    assert!(
+        root.join(format!("reports/{}.json", report.run_id))
+            .exists()
+    );
+}
+
+#[test]
+fn repeated_external_review_rejects_another_repository_with_the_same_ids() {
+    let first = mercurial_fixture(true);
+    let report = first.run(None);
+    let root = first.0.path();
+    let previous = root.join(format!(
+        "reports/{}.json",
+        report["run_id"].as_str().unwrap()
+    ));
+    let other = mercurial_fixture(true);
+    std::fs::remove_dir_all(other.0.path().join("repo")).unwrap();
+    hg(
+        other.0.path(),
+        &["clone", root.join("repo").to_str().unwrap(), "repo"],
+    );
+    let denied = other.run(Some(&previous));
+    assert_eq!(denied["snapshot"]["base"], report["snapshot"]["base"]);
+    assert_eq!(denied["verdict"], "BLOCKED");
+    assert!(
+        denied["technical_error"]
+            .as_str()
+            .unwrap()
+            .contains("another VCS source")
+    );
 }
 #[test]
 fn exhaustion_cannot_be_overridden_by_a_later_valid_response() {

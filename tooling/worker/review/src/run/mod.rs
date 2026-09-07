@@ -50,7 +50,7 @@ pub fn run(path: &Path, request: Request) -> Result<Report> {
         .resource_digests
         .insert("configuration".into(), digest(&fs::read(&path)?));
     let deadline = Instant::now() + Duration::from_secs(config.runner.timeout_seconds);
-    if let Err(error) = execute(&config, &request, directory.path(), (&mut report, deadline)) {
+    if let Err(error) = execute(&config, request, directory.path(), (&mut report, deadline)) {
         report.technical_error = Some(format!("{error:#}"));
     }
     report.aggregate(tool.reviewers.len());
@@ -106,11 +106,13 @@ fn new_report(config: &Config, request: &Request, run_id: String) -> Result<Repo
 }
 fn execute(
     config: &Config,
-    request: &Request,
+    mut request: Request,
     directory: &Path,
     progress: (&mut Report, Instant),
 ) -> Result<()> {
     let (report, deadline) = progress;
+    request.root = request.root.canonicalize()?;
+    report.request["root"] = serde_json::to_value(&request.root)?;
     let (contract, project) = resources(config, &request.tool, report)?;
     report.snapshot = Some(snapshot::prepare(
         &request.root,
@@ -118,7 +120,7 @@ fn execute(
         &project.repository,
         &directory.join("project"),
     )?);
-    let previous = previous::prepare(request, report, &project.repository)?;
+    let previous = previous::prepare(&request, report, &project.repository)?;
     inputs(directory, report, previous.as_ref())?;
     reviewers(config, directory, report, (&contract, deadline))?;
     previous::validate(report, previous.as_ref())?;

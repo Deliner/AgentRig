@@ -2,7 +2,8 @@
 
 The separate [external VCS example](external_vcs.py) exercises the implemented
 [private read protocol](../review/EXTERNAL_VCS.md) over Mercurial without importing
-AgentRig. CLI selection and delivery writes for private adapters remain pending.
+AgentRig. Review and delegation select it through their `vcs` configuration;
+private project setup and delivery writes remain pending.
 
 These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
 

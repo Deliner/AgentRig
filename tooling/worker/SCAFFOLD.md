@@ -173,8 +173,10 @@ first preserve any work you need, then use native `hg merge --abort`. If the bas
 advanced, abort and retry from the retained feature instead of committing against
 the outdated base. Complete multi-VCS delivery, including private adapters, is not
 yet accepted. The implemented [private VCS read protocol](review/EXTERNAL_VCS.md)
-and separate Mercurial process example establish the external data boundary;
-private backend configuration selection and delivery writes remain pending.
+and separate Mercurial process example establish the external data boundary.
+Review and delegation accept its command object in their VCS selection and retain
+the common snapshot, visibility and result checks. Private project setup and
+delivery writes remain pending.
 
 ## Configuration ownership
 

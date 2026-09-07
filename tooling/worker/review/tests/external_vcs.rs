@@ -1,4 +1,7 @@
-use review_runner::vcs::{FileKind, Kind, Repository, external::Adapter};
+use review_runner::{
+    config, snapshot,
+    vcs::{Backend, FileKind, Kind, Repository, external::Adapter},
+};
 use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
@@ -129,6 +132,66 @@ fn reply(value: Value) -> Adapter {
             format!("import sys; sys.stdout.write({:?})", value.to_string()),
         ],
     }
+}
+
+#[test]
+fn configured_external_source_uses_shared_snapshot_visibility_and_file_restrictions() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    let (base, candidate) = revisions(root);
+    let output = tempfile::tempdir().unwrap();
+    let mut scope = config::Repository {
+        vcs: Backend::External(example()),
+        visible_paths: vec!["binary".into(), "*name".into()],
+        contract_paths: vec!["new name".into()],
+    };
+    let before = contents(root);
+    let result = snapshot::prepare(
+        root,
+        (&base, &candidate),
+        &scope,
+        &output.path().join("valid"),
+    )
+    .unwrap();
+    assert_eq!(result.candidate, candidate);
+    assert_eq!(
+        fs::read(output.path().join("valid/new name")).unwrap(),
+        b"before"
+    );
+    scope.visible_paths = vec!["binary".into()];
+    assert!(snapshot::check_boundary(root, &base, &candidate, &scope).is_err());
+    scope.visible_paths = vec!["**".into()];
+    let error = snapshot::prepare(
+        root,
+        (&base, &candidate),
+        &scope,
+        &output.path().join("symlink"),
+    )
+    .unwrap_err();
+    assert!(error.to_string().contains("symlink or submodule"));
+    assert_eq!(contents(root), before);
+}
+
+#[test]
+fn backend_selection_preserves_native_yaml_and_rejects_invalid_external_declarations() {
+    let native: Backend = config::yaml::decode("mercurial").unwrap();
+    assert_eq!(serde_json::to_value(native).unwrap(), json!("mercurial"));
+    let invalid: Backend = config::yaml::decode("command: []").unwrap();
+    assert!(invalid.validate().is_err());
+    assert!(serde_json::from_str::<Backend>(r#"{"command":[],"command":[]}"#).is_err());
+    for yaml in [
+        "unknown",
+        "command: python3",
+        "command: [python3]\nextra: true",
+    ] {
+        assert!(config::yaml::decode::<Backend>(yaml).is_err());
+    }
+    let root = tempfile::tempdir().unwrap();
+    let backend = Backend::External(reply(json!({"version": 1, "result": "revision-42"})));
+    assert_eq!(
+        backend.source(root.path()).resolve("tip").unwrap(),
+        "revision-42"
+    );
 }
 
 #[test]

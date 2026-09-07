@@ -78,7 +78,7 @@ fn prepare(
     let directory = job.directory();
     let input = directory.join("input");
     let inputs = task::prepare(
-        (&job.record().project, config.vcs),
+        (&job.record().project, &config.vcs),
         &input,
         request,
         profile,

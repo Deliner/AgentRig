@@ -47,7 +47,7 @@ fn snapshot_preserves_fixed_revision_and_checkout() {
     request.revision = Some(expected.clone());
     let output = root.path().join("input");
     let inputs = prepare(
-        (root.path(), Default::default()),
+        (root.path(), &Default::default()),
         &output,
         &request,
         &profile(),
@@ -62,7 +62,7 @@ fn snapshot_preserves_fixed_revision_and_checkout() {
     assert!(!output.join("project/.git").exists());
     assert!(
         prepare(
-            (root.path(), Default::default()),
+            (root.path(), &Default::default()),
             &output,
             &request,
             &profile()
@@ -82,7 +82,7 @@ fn explicit_inputs_work_without_git_and_enforce_visibility() {
         .insert("asset.bin".into(), "src/input.bin".into());
     let output = root.path().join("input");
     let inputs = prepare(
-        (root.path(), Default::default()),
+        (root.path(), &Default::default()),
         &output,
         &request,
         &profile(),
@@ -92,7 +92,7 @@ fn explicit_inputs_work_without_git_and_enforce_visibility() {
     assert_eq!(fs::read(output.join("inputs/asset.bin")).unwrap(), [0, 255]);
     request.inputs.insert("hidden".into(), "other/file".into());
     let error = prepare(
-        (root.path(), Default::default()),
+        (root.path(), &Default::default()),
         &root.path().join("denied"),
         &request,
         &profile(),

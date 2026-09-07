@@ -42,7 +42,7 @@ pub struct Changes {
 #[derive(Deserialize, Serialize)]
 pub struct Inputs {
     #[serde(default)]
-    pub vcs: review_runner::vcs::Kind,
+    pub vcs: review_runner::vcs::Backend,
     pub revision: Option<String>,
     pub manifest: BTreeMap<String, String>,
 }
@@ -101,7 +101,7 @@ fn validator(contract: &Contract) -> Result<jsonschema::Validator> {
 }
 
 pub fn prepare(
-    source: (&Path, review_runner::vcs::Kind),
+    source: (&Path, &review_runner::vcs::Backend),
     directory: &Path,
     request: &Request,
     profile: &Profile,
@@ -133,19 +133,19 @@ pub fn prepare(
 }
 
 fn prepare_project(
-    source: (&Path, review_runner::vcs::Kind),
+    source: (&Path, &review_runner::vcs::Backend),
     project: &Path,
     request: &Request,
     profile: &Profile,
 ) -> Result<Inputs> {
     let mut inputs = Inputs {
-        vcs: source.1,
+        vcs: source.1.clone(),
         revision: None,
         manifest: BTreeMap::new(),
     };
     if let Some(revision) = &request.revision {
         let scope = Repository {
-            vcs: source.1,
+            vcs: source.1.clone(),
             visible_paths: profile.visible_paths.clone(),
             contract_paths: vec![],
         };

@@ -1,16 +1,43 @@
 # Private VCS read protocol
 
-The shared Rust API `vcs::external::Adapter` implements the read side of a private
-VCS process boundary. A separate executable can implement it without linking
-AgentRig or publishing its implementation. Project/review/delegate configuration
-selection and delivery writes are still pending P007 work; this component does
-not yet make an external backend selectable through the AgentRig CLI.
+Review and delegation can select a private VCS read adapter through their existing
+configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
+native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
+visibility checks. A separate executable can implement the protocol without
+linking AgentRig or publishing its implementation. Project VCS setup, commit and
+integration operations for private backends remain pending P007 work.
 
 An adapter declaration contains one argv vector, for example:
 
 ```yaml
 command: [python3, -B, /absolute/path/to/external_vcs.py]
 ```
+
+Set `repository.vcs` in the existing review project YAML:
+
+```yaml
+repository:
+  vcs:
+    command: [python3, -B, /absolute/path/to/external_vcs.py]
+  visible_paths: [src/**]
+  contract_paths: []
+```
+
+Set top-level `vcs` in the existing delegation YAML to the same command object.
+The strings `git` and `mercurial` retain their previous meaning and serialized
+form; omitted selection still defaults to Git. Invalid commands, unknown native
+names, duplicate fields and unknown adapter fields fail configuration parsing or
+validation. Command arguments are literal; relative paths are interpreted from
+the source repository, so an absolute adapter path is useful across consumers.
+
+Review reports retain the selection in `project_configuration`. Re-review must
+retain that selection; external adapters must also retain the canonical source
+root because opaque IDs may be local to one repository. A changed source requires
+an explicit new review boundary. Native content hashes retain their existing
+cross-checkout behavior. Delegation stores the selected source with its inputs
+and code result. Read, artifacts and code modes keep their existing isolation and
+checks; code mode still constructs its result patch using the internal Git
+workspace and does not modify the source repository through the private adapter.
 
 No shell interprets this vector. The executable must be nonempty, and arguments
 cannot contain NUL. Each call starts one process with the consumer repository as
@@ -78,3 +105,11 @@ It compares every repository file, including metadata, before and after reads.
 Other cases reject malformed replies, invalid versions and types, unsafe paths,
 duplicate entries and invalid file kinds; a process attempting to overwrite a
 working file fails and the original bytes remain unchanged.
+
+Configured review tests run a failing review, a repair and a successful re-review
+through the example, then reject a changed adapter or source root. Snapshot tests
+retain scope and symlink restrictions. Native Python tests run read/artifacts/code
+delegation through native Mercurial and the external example, preserve dirty
+source files, exercise failed code checks and apply the returned patch to a
+separate base checkout. The critic and delegate clients in these tests are
+deterministic fixtures; these checks prove VCS routing, not real client acceptance.

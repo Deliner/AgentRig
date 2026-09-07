@@ -113,7 +113,7 @@ fn mercurial_rejects_multiple_revisions_and_ignores_repository_commands() {
 
 fn snapshot_scope(kind: Kind) -> config::Repository {
     config::Repository {
-        vcs: kind,
+        vcs: kind.into(),
         visible_paths: vec!["*name".into(), "binary".into(), "executable".into()],
         contract_paths: vec!["new name".into()],
     }
@@ -190,7 +190,7 @@ fn selected_backends_reject_symlinks_and_private_material() {
 fn repository_yaml_selects_backend_and_rejects_unknown_systems() {
     let yaml = "vcs: mercurial\nvisible_paths: ['src/**']\ncontract_paths: []\n";
     let scope: config::Repository = config::yaml::decode(yaml).unwrap();
-    assert!(matches!(scope.vcs, Kind::Mercurial));
+    assert_eq!(scope.vcs, Kind::Mercurial.into());
     let invalid = yaml.replace("mercurial", "unknown");
     assert!(config::yaml::decode::<config::Repository>(&invalid).is_err());
 }

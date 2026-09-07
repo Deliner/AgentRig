@@ -1,7 +1,7 @@
 use crate::{
     config::{Repository, globs},
     digest,
-    vcs::{FileKind, Repository as Source},
+    vcs::{FileKind, Source},
 };
 use anyhow::{Context, Result, ensure};
 use serde::{Deserialize, Serialize};
@@ -38,7 +38,7 @@ pub fn prepare(
     scope: &Repository,
     output: &Path,
 ) -> Result<Snapshot> {
-    let source = Source::new(root, scope.vcs);
+    let source = scope.vcs.source(root);
     let base = source.resolve(revisions.0)?;
     let candidate = source.resolve(revisions.1)?;
     let allowed = globs(&scope.visible_paths)?;
@@ -181,7 +181,7 @@ pub fn diff(root: &Path, base: &str, candidate: &str) -> Result<String> {
     crate::vcs::Repository::new(root, crate::vcs::Kind::Git).diff(base, candidate)
 }
 pub fn check_boundary(root: &Path, base: &str, candidate: &str, scope: &Repository) -> Result<()> {
-    let source = Source::new(root, scope.vcs);
+    let source = scope.vcs.source(root);
     let changed = source.changed_paths(base, candidate)?;
     validate_changes(&source, &changed, &globs(&scope.visible_paths)?, base)
 }
