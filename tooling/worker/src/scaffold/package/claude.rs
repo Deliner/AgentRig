@@ -27,6 +27,9 @@ pub(super) fn configure(root: &Path, config: &Config, files: &mut Files) -> Resu
     let root_command = adapters::generated(root, config)?.root_command;
     let expected: Value = serde_json::from_slice(&adapters::registration(config, &root_command)?)?;
     hooks(&mut settings, &expected)?;
+    if let Some(agent) = &config.agent {
+        model(&mut settings, agent)?;
+    }
     let mut mcp = document(files, ".mcp.json")?;
     let servers = object(&mut mcp, "mcpServers")?;
     capabilities(servers, config, &root_command)?;
@@ -75,6 +78,45 @@ fn capabilities(
             );
         }
     }
+    Ok(())
+}
+
+fn model(settings: &mut Value, agent: &super::config::Agent) -> Result<()> {
+    for (name, desired) in [
+        ("model", &agent.model),
+        ("effortLevel", &agent.reasoning_effort),
+    ] {
+        if let Some(desired) = desired {
+            setting(settings.as_object_mut().unwrap(), name, json!(desired))?;
+        }
+    }
+    if let Some(api) = &agent.api {
+        let helper = format!(
+            "printf '%s' \"${{{}:?missing agent.api.key_env reference}}\"",
+            api.key_env
+        );
+        setting(
+            settings.as_object_mut().unwrap(),
+            "apiKeyHelper",
+            json!(helper),
+        )?;
+        if let Some(url) = &api.base_url {
+            setting(object(settings, "env")?, "ANTHROPIC_BASE_URL", json!(url))?;
+        }
+    }
+    Ok(())
+}
+
+fn setting(
+    settings: &mut serde_json::Map<String, Value>,
+    name: &str,
+    desired: Value,
+) -> Result<()> {
+    let current = settings.entry(name).or_insert_with(|| desired.clone());
+    ensure!(
+        *current == desired,
+        "setup conflict: Claude {name}; existing setting preserved"
+    );
     Ok(())
 }
 

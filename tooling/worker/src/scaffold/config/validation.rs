@@ -21,6 +21,9 @@ impl Config {
         );
         skill(root, &self.config_skill).context("config_skill")?;
         self.validate_paths(root)?;
+        if let Some(agent) = &self.agent {
+            agent.validate(self.frontend)?;
+        }
         self.vcs.validate()?;
         self.validate_commands(root)?;
         self.validate_checks(root)?;

@@ -18,6 +18,9 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
 
 fn codex(root: &Path, config: &Config, files: &mut Files) -> Result<()> {
     let mut document: DocumentMut = std::str::from_utf8(&files[".codex/config.toml"])?.parse()?;
+    if let Some(agent) = &config.agent {
+        model(&mut document, agent)?;
+    }
     table(&mut document["features"], "features")?;
     setting(
         &mut document["features"]["hooks"],
@@ -58,6 +61,53 @@ fn review_configuration(
 ) -> Result<review_runner::config::Config> {
     let source = super::source(root, files, path)?;
     review_runner::config::yaml::decode(&source)
+}
+fn model(document: &mut DocumentMut, agent: &super::config::Agent) -> Result<()> {
+    for (name, desired) in [
+        ("model", &agent.model),
+        ("model_reasoning_effort", &agent.reasoning_effort),
+    ] {
+        if let Some(desired) = desired {
+            setting(&mut document[name], value(desired), name)?;
+        }
+    }
+    if let Some(api) = &agent.api {
+        api_provider(document, api)?;
+    }
+    Ok(())
+}
+fn api_provider(document: &mut DocumentMut, api: &super::config::Api) -> Result<()> {
+    setting(
+        &mut document["model_provider"],
+        value("agentrig_api"),
+        "model_provider",
+    )?;
+    table(&mut document["model_providers"], "model_providers")?;
+    let provider = &mut document["model_providers"]["agentrig_api"];
+    table(provider, "model_providers.agentrig_api")?;
+    for (name, desired) in [
+        ("name", "AgentRig API"),
+        ("env_key", api.key_env.as_str()),
+        (
+            "base_url",
+            api.base_url
+                .as_deref()
+                .unwrap_or("https://api.openai.com/v1"),
+        ),
+        ("wire_api", "responses"),
+    ] {
+        setting(
+            &mut provider[name],
+            value(desired),
+            &format!("model_providers.agentrig_api.{name}"),
+        )?;
+    }
+    setting(
+        &mut provider["requires_openai_auth"],
+        value(false),
+        "model_providers.agentrig_api.requires_openai_auth",
+    )?;
+    Ok(())
 }
 fn mcp(
     server: &mut Item,

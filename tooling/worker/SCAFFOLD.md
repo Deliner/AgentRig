@@ -22,6 +22,16 @@ select Claude explicitly. Setup manages `.claude/settings.json`, `.mcp.json` and
 receipt. Existing model settings and unrelated hook/MCP entries are preserved;
 conflicting managed MCP commands or disabled hooks fail before writing.
 
+Optional `agent` declares project defaults, for example:
+```yaml
+agent:
+  model: your-model
+  reasoning_effort: high
+  api: {key_env: TEAM_API_KEY, base_url: https://your-gateway.example}
+```
+Omit `api` to retain native login; omit `base_url` to use the client's default endpoint. Export `key_env` in the shell that starts the client. Setup never resolves the key. Codex uses a named Responses API provider with `env_key`; Claude uses `apiKeyHelper` and `ANTHROPIC_BASE_URL` for an Anthropic-compatible endpoint. Existing conflicting settings are preserved and reported.
+Project effort supports `low`, `medium`, `high`, `xhigh`, plus Codex `minimal`; Claude session-only `max` is rejected here. Model-specific support and higher-priority client settings still apply. See the [Codex configuration reference](https://developers.openai.com/codex/config-reference/) and [Claude gateway configuration](https://code.claude.com/docs/en/llm-gateway).
+
 ```yaml
 capabilities:
   lint: true

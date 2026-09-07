@@ -64,6 +64,7 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
         "preview": true,
         "root": root,
         "files": installation.changes(),
+        "agent": config.agent,
         "registrations": {
             "vcs": {
                 "backend": config.vcs.backend,

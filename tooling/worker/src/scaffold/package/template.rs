@@ -71,15 +71,10 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             _ => config::Frontend::Codex,
         },
         environment: Default::default(),
+        agent: None,
         version: 1,
         processes: Default::default(),
-        capabilities: config::Capabilities {
-            lint: true,
-            delegation: None,
-            review: (options["review"] == "true").then(|| config::Resource {
-                config: format!("{service}/review/config/review.yaml"),
-            }),
-        },
+        capabilities: capabilities(options),
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
@@ -110,6 +105,15 @@ fn vcs(options: &Options<'_>) -> Vcs {
         .into(),
         base: options["base"].clone(),
         prefix: options["prefix"].clone(),
+    }
+}
+fn capabilities(options: &Options<'_>) -> config::Capabilities {
+    config::Capabilities {
+        lint: true,
+        delegation: None,
+        review: (options["review"] == "true").then(|| config::Resource {
+            config: format!("{}/review/config/review.yaml", options["service"]),
+        }),
     }
 }
 
