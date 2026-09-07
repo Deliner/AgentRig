@@ -1,4 +1,4 @@
-use super::{FileKind, Repository};
+use super::{FileKind, Source};
 use anyhow::{Result, ensure};
 use std::{
     ffi::OsStr,
@@ -7,7 +7,7 @@ use std::{
     path::{Component, Path},
 };
 
-pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::TempDir> {
+pub(super) fn revision(repository: &Source<'_>, revision: &str) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
     let entries = repository.tree(revision)?;
     let mut links = Vec::new();

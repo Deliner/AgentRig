@@ -193,8 +193,9 @@ impl<'a> Repository<'a> {
     /// Export all committed project inputs, preserving symlinks and executable bits.
     /// Isolated review must use its restricted snapshot exporter instead.
     pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {
-        let revision = self.resolve(reference)?;
-        export::revision(self, &revision)
+        Backend::Native(self.kind)
+            .source(self.root)
+            .export_revision(reference)
     }
 
     pub fn diff(&self, base: &str, candidate: &str) -> Result<String> {

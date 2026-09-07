@@ -92,6 +92,14 @@ the selected revision, not from a possibly modified working file. Snapshot
 visibility and private-material restrictions remain the snapshot owner's job;
 valid protocol data alone is not permission to expose a file.
 
+`Source::export_revision` exports complete committed inputs for delivery checks
+through the same owner as native revision exports. It resolves the reference once
+and uses that exact ID for tree and file reads, preserving binary bytes and
+executable modes. Symlinks are created after regular files to prevent writes
+through them; invalid paths, submodules and conflicting file/link trees fail.
+This full export is not the restricted review snapshot. The project CLI's private
+backend selection and `check --revision` wiring remain pending.
+
 ## Independent example and evidence
 
 [external_vcs.py](../examples/external_vcs.py) implements all listed reads over

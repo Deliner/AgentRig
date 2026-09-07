@@ -6,7 +6,7 @@ use serde_json::{Value, json};
 use std::{
     collections::BTreeMap,
     fs,
-    os::unix::ffi::OsStrExt,
+    os::unix::{ffi::OsStrExt, fs::PermissionsExt},
     path::{Path, PathBuf},
     process::Command,
 };
@@ -170,6 +170,88 @@ fn configured_external_source_uses_shared_snapshot_visibility_and_file_restricti
     .unwrap_err();
     assert!(error.to_string().contains("symlink or submodule"));
     assert_eq!(contents(root), before);
+}
+
+#[test]
+fn external_revision_export_preserves_committed_inputs_and_original_checkout() {
+    let directory = tempfile::tempdir().unwrap();
+    let root = directory.path();
+    let (_, candidate) = revisions(root);
+    fs::write(root.join("run"), b"#!/bin/sh\nexit 0\n").unwrap();
+    fs::set_permissions(root.join("run"), fs::Permissions::from_mode(0o755)).unwrap();
+    let executable = commit(root);
+    fs::write(root.join("run"), "dirty").unwrap();
+    let before = contents(root);
+    let backend = Backend::External(example());
+    let source = backend.source(root);
+    let exported = source.export_revision(&candidate).unwrap();
+    assert_eq!(
+        fs::read(exported.path().join("new name")).unwrap(),
+        b"before"
+    );
+    assert_eq!(
+        fs::read(exported.path().join("binary")).unwrap(),
+        [0, 255, 20]
+    );
+    assert_eq!(
+        fs::read_link(exported.path().join("link")).unwrap(),
+        Path::new("old name")
+    );
+    assert!(!exported.path().join("old name").exists());
+    assert!(!exported.path().join("run").exists());
+    assert!(!exported.path().join(".hg").exists());
+    let exported = source.export_revision(&executable).unwrap();
+    let script = exported.path().join("run");
+    assert_eq!(fs::read(&script).unwrap(), b"#!/bin/sh\nexit 0\n");
+    assert_eq!(
+        fs::metadata(script).unwrap().permissions().mode() & 0o777,
+        0o755
+    );
+    assert_eq!(contents(root), before);
+}
+
+fn export_adapter(entries: Value) -> Backend {
+    let responses =
+        json!({"resolve": "revision-42", "tree": entries, "read": [46, 46, 47, 111, 117, 116]});
+    Backend::External(Adapter {
+        command: vec![
+            "python3".into(),
+            "-c".into(),
+            format!(
+                "import json,sys; r=json.load(sys.stdin); responses=json.loads({:?}); assert r['operation']=='resolve' or r['arguments']['revision']=='revision-42'; print(json.dumps({{'version':1,'result':responses[r['operation']]}}))",
+                responses.to_string()
+            ),
+        ],
+    })
+}
+
+#[test]
+fn external_revision_export_resolves_opaque_ids_and_rejects_unsafe_trees() {
+    let root = tempfile::tempdir().unwrap();
+    let file = json!({"path": "file", "kind": "file", "object": "blob-1"});
+    let backend = export_adapter(json!([file]));
+    let output = backend.source(root.path()).export_revision("tip").unwrap();
+    assert_eq!(fs::read(output.path().join("file")).unwrap(), b"../out");
+    for entry in [
+        json!({"path": ".git/config", "kind": "file", "object": "b"}),
+        json!({"path": "../out", "kind": "file", "object": "b"}),
+        json!({"path": "sub", "kind": "submodule", "object": "r"}),
+    ] {
+        assert!(
+            export_adapter(json!([entry]))
+                .source(root.path())
+                .export_revision("tip")
+                .is_err()
+        );
+    }
+    let link = json!({"path": "link", "kind": "symlink", "object": "b"});
+    let child = json!({"path": "link/child", "kind": "file", "object": "b"});
+    assert!(
+        export_adapter(json!([link, child]))
+            .source(root.path())
+            .export_revision("tip")
+            .is_err()
+    );
 }
 
 #[test]

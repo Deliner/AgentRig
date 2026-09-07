@@ -77,6 +77,13 @@ pub struct Source<'a> {
 }
 
 impl Source<'_> {
+    /// Export committed project inputs for delivery checks, preserving file kinds.
+    /// Isolated review must use its restricted snapshot exporter instead.
+    pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {
+        let revision = self.resolve(reference)?;
+        super::export::revision(self, &revision)
+    }
+
     pub fn resolve(&self, reference: &str) -> Result<String> {
         match self.backend {
             Backend::Native(kind) => Repository::new(self.root, *kind).resolve(reference),
