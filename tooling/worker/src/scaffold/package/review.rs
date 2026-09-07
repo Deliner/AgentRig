@@ -38,11 +38,11 @@ pub fn bundle(files: &mut Files, config: &Config) -> anyhow::Result<()> {
     if enabled {
         for (path, bytes) in RESOURCES {
             let selected_project = path.starts_with("config/projects/")
-                && config.vcs.backend != review_runner::vcs::Kind::Git;
+                && config.vcs.backend != review_runner::vcs::Kind::Git.into();
             let contents = if selected_project {
                 let mut project: review_runner::config::Project =
                     review_runner::config::yaml::decode(std::str::from_utf8(bytes)?)?;
-                project.repository.vcs = config.vcs.backend.into();
+                project.repository.vcs = config.vcs.backend.clone();
                 review_runner::config::yaml::encode(&project)?.into_bytes()
             } else {
                 bytes.to_vec()

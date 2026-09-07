@@ -12,7 +12,21 @@ pub struct Inventory {
     pub directories: BTreeMap<PathBuf, BTreeSet<String>>,
 }
 pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
-    let mut files = if let Some(repository) = review_runner::vcs::Repository::discover(root)? {
+    collect_source(root, exclude, None)
+}
+
+pub fn collect_source(
+    root: &Path,
+    exclude: &GlobSet,
+    source: Option<&review_runner::vcs::Source<'_>>,
+) -> Result<Inventory> {
+    let mut files = if let Some(source) = source {
+        source
+            .working_files()?
+            .into_iter()
+            .map(PathBuf::from)
+            .collect()
+    } else if let Some(repository) = review_runner::vcs::Repository::discover(root)? {
         repository
             .working_files()?
             .into_iter()

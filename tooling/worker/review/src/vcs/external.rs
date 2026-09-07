@@ -1,5 +1,5 @@
 //! Process boundary for privately supplied VCS implementations.
-use super::{Entry, FileKind, export};
+use super::{Backend, Entry, FileKind, Observation, export};
 use anyhow::{Context as _, Result, ensure};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::{Value, json};
@@ -48,6 +48,16 @@ impl Adapter {
     pub fn head(&self, root: &Path) -> Result<Option<String>> {
         let value: Option<String> = self.call(root, "head", json!({}))?;
         value.map(revision).transpose()
+    }
+
+    pub fn observe(&self, root: &Path) -> Result<Observation> {
+        let mut value: Observation = self.call(root, "observe", json!({}))?;
+        let committed = !value.revision.is_empty();
+        if committed {
+            value.revision = revision(value.revision)?;
+        }
+        value.backend = Backend::External(self.clone());
+        Ok(value)
     }
 
     pub fn parents(&self, root: &Path, id: &str) -> Result<Vec<String>> {

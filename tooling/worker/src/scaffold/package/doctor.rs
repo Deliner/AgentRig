@@ -93,7 +93,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .commands
         .values()
         .any(|command| command.read_only)
-        || context.config.vcs.backend == review_runner::vcs::Kind::Mercurial
+        || context.config.vcs.backend != review_runner::vcs::Kind::Git.into()
         || context.config.capabilities.review.is_some()
         || context.config.capabilities.delegation.is_some();
     if read_only {
@@ -118,7 +118,7 @@ fn vcs_registration(context: &Context) -> Result<bool> {
         None => false,
     };
     let registered = registered
-        && super::adapters::vcs_hooks(&context.config)
+        && super::adapters::vcs_hooks(&context.config)?
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)

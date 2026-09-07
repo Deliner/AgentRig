@@ -51,6 +51,34 @@ impl From<Kind> for Backend {
 }
 
 impl Backend {
+    pub fn native(&self, operation: &str) -> Result<Kind> {
+        match self {
+            Self::Native(kind) => Ok(*kind),
+            Self::External(_) => anyhow::bail!(
+                "private VCS {operation} is not implemented; configured reads remain available"
+            ),
+        }
+    }
+
+    pub fn executable(&self) -> &str {
+        match self {
+            Self::Native(kind) => kind.executable(),
+            Self::External(adapter) => adapter.command.first().map(String::as_str).unwrap_or(""),
+        }
+    }
+
+    pub fn repository<'a>(&self, root: &'a Path) -> Result<Option<Repository<'a>>> {
+        self.native("setup and delivery")?.repository(root)
+    }
+
+    pub fn repository_source<'a>(&'a self, root: &'a Path) -> Result<Option<Source<'a>>> {
+        let present = match self {
+            Self::Native(kind) => kind.repository(root)?.is_some(),
+            Self::External(_) => true,
+        };
+        Ok(present.then(|| self.source(root)))
+    }
+
     pub fn matches_previous(&self, root: &Path, previous: (&Self, &Path)) -> bool {
         // Native hashes identify content globally; external IDs may be repository-local.
         self == previous.0 && (matches!(self, Self::Native(_)) || root == previous.1)
@@ -77,6 +105,13 @@ pub struct Source<'a> {
 }
 
 impl Source<'_> {
+    pub fn observe(&self) -> Result<super::Observation> {
+        match self.backend {
+            Backend::Native(kind) => Repository::new(self.root, *kind).observe(),
+            Backend::External(adapter) => adapter.observe(self.root),
+        }
+    }
+
     /// Export committed project inputs for delivery checks, preserving file kinds.
     /// Isolated review must use its restricted snapshot exporter instead.
     pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {

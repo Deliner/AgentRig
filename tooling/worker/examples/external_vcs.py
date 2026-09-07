@@ -5,6 +5,7 @@ import os
 import subprocess
 import sys
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 
@@ -31,6 +32,17 @@ def head(arguments: dict[str, Any]) -> str | None:
 def parents(arguments: dict[str, Any]) -> list[str]:
     lines = hg("log", "--rev", arguments["revision"], "--template", "{p1node}\n{p2node}\n")
     return list(filter(has_revision, lines.decode().splitlines()))
+
+
+def observe(arguments: dict[str, Any]) -> dict[str, Any]:
+    assert not arguments
+    return {
+        "branch": hg("branch").decode().strip(),
+        "revision": head({}) or "",
+        "status": hg("status").decode().strip(),
+        "merge_in_progress": len(hg("parents", "--template", "{node}\n").splitlines()) > 1,
+        "rebase_in_progress": Path(".hg/rebasestate").exists(),
+    }
 
 
 def has_revision(value: str) -> bool:
@@ -91,6 +103,7 @@ def diff(arguments: dict[str, Any]) -> str:
 OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "resolve": resolve,
     "head": head,
+    "observe": observe,
     "parents": parents,
     "tree": tree,
     "read": read,

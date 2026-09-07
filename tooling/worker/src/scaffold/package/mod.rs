@@ -112,7 +112,7 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     Ok(())
 }
 fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
-    let mercurial = config.vcs.backend == review_runner::vcs::Kind::Mercurial;
+    let mercurial = config.vcs.backend == review_runner::vcs::Kind::Mercurial.into();
     if mercurial {
         files.insert(
             config.paths.service_path("hooks.hgignore"),
@@ -137,7 +137,7 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         adapters::CODEX_CONFIG.as_bytes().to_vec(),
     );
     files.insert(".codex/hooks.json".into(), adapters::registration(config)?);
-    for (path, contents) in adapters::vcs_hooks(config) {
+    for (path, contents) in adapters::vcs_hooks(config)? {
         files.insert(path, contents);
     }
     Ok(())

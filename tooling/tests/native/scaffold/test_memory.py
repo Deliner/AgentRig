@@ -9,7 +9,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import file_contents, invoke, project
+from support import file_contents, invoke, project, update_config, vcs_backend, vcs_executable
 
 
 def memory(root: Path) -> Path:
@@ -187,7 +187,8 @@ def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: P
     for args in [("add", "-A"), ("commit", "-qm", "legacy memory location")]:
         subprocess.run(["git", *args], cwd=tmp_path, check=True)
     legacy.unlink()
-    config.write_text(current.replace('memory: "notes"', 'memory: "relocated"'))
+    config.write_text(current)
+    update_config(config, paths={"memory": "relocated"})
     relocated = tmp_path / "relocated"
     notes.rename(relocated)
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
@@ -200,6 +201,7 @@ def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: P
 
 def committed_memory(worker: Path, tmp_path: Path, vcs: str = "git") -> Path:
     project(tmp_path)
+    update_config(tmp_path / "agentrig.yaml", git={"backend": vcs_backend(vcs)})
     path = memory(tmp_path)
     config = tmp_path / "agentrig.yaml"
     with config.open("a") as stream:
@@ -233,7 +235,7 @@ def committed_memory(worker: Path, tmp_path: Path, vcs: str = "git") -> Path:
         else [("init",), ("add", "."), ("commit", "-m", "baseline", "-u", "Test")]
     )
     for args in commands:
-        subprocess.run([vcs, *args], cwd=tmp_path, check=True, capture_output=True)
+        subprocess.run([vcs_executable(vcs), *args], cwd=tmp_path, check=True, capture_output=True)
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
     return path
 
@@ -269,7 +271,7 @@ def test_native_history_keeps_committed_memory_location(
 ) -> None:
     notes = committed_memory(worker, tmp_path, vcs)
     config = tmp_path / "agentrig.yaml"
-    config.write_text(config.read_text().replace('memory: "notes"', 'memory: "relocated"'))
+    update_config(config, paths={"memory": "relocated"})
     notes.rename(tmp_path / "relocated")
     result = invoke(worker, tmp_path, "memory-check")
     assert result.returncode == 0, result.stderr

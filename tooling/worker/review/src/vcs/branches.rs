@@ -1,16 +1,27 @@
-use super::{Kind, Repository, Settings, git, mercurial};
+use super::{Backend, Kind, Repository, Settings, git, mercurial};
 use anyhow::{Result, ensure};
 
 impl Settings {
     pub fn validate(&self) -> Result<()> {
+        self.backend.validate()?;
+        let kind = match &self.backend {
+            Backend::Native(kind) => *kind,
+            Backend::External(_) => {
+                ensure!(
+                    !self.base.is_empty() && !self.prefix.is_empty(),
+                    "vcs.base and vcs.prefix must be nonempty; private naming rules belong to the adapter"
+                );
+                return Ok(());
+            }
+        };
         ensure!(
-            self.backend.branch_name(&self.base),
+            kind.branch_name(&self.base),
             "vcs.base must name a valid {} branch without normalization",
             self.backend.executable()
         );
         ensure!(
             !self.prefix.is_empty()
-                && self.backend.branch_name(&format!("{}example", self.prefix))
+                && kind.branch_name(&format!("{}example", self.prefix))
                 && !self.base.starts_with(&self.prefix),
             "vcs.prefix must form valid {} branches distinct from vcs.base",
             self.backend.executable()

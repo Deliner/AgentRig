@@ -1,10 +1,12 @@
-use super::{Kind, Repository, git, mercurial};
+use super::{Backend, Kind, Repository, git, mercurial};
 use anyhow::Result;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize)]
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Observation {
-    pub backend: Kind,
+    #[serde(skip_deserializing)]
+    pub backend: Backend,
     pub branch: String,
     pub revision: String,
     pub status: String,
@@ -36,7 +38,7 @@ impl Repository<'_> {
             ),
         };
         Ok(Observation {
-            backend: self.kind,
+            backend: self.kind.into(),
             branch: branch.trim().into(),
             revision: self.head()?.unwrap_or_default(),
             status: status.trim().into(),

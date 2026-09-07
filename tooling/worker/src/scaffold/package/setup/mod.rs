@@ -109,14 +109,18 @@ pub(super) fn install(
     installation: &reconcile::Installation,
 ) -> Result<i32> {
     installation.apply(root)?;
-    config.vcs.backend.initialize(root, &config.vcs.base)?;
+    config
+        .vcs
+        .backend
+        .native("initialization")?
+        .initialize(root, &config.vcs.base)?;
     fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
     if let Some(review) = &config.capabilities.review {
         let review = review_runner::config::load(&config::relative(root, &review.config)?)?;
         fs::create_dir_all(review.runner.runtime_root)?;
         fs::create_dir_all(review.runner.report_root)?;
     }
-    review_runner::vcs::Repository::new(root, config.vcs.backend)
+    review_runner::vcs::Repository::new(root, config.vcs.backend.native("hook registration")?)
         .register_hooks(&config.paths.service_path("hooks"))?;
     println!("Setup installed the configured worker environment. Authentication remains separate.");
     super::doctor(&config::Context::load(root)?)

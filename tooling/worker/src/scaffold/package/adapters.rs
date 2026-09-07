@@ -18,20 +18,26 @@ pub fn mcp_command(service: &str, command: &str, backend: review_runner::vcs::Ki
     )
 }
 
-pub fn environment_command(config: &Config, command: &str, name: &str) -> String {
+pub fn environment_command(
+    service: &str,
+    command: &str,
+    name: &str,
+    backend: review_runner::vcs::Kind,
+) -> String {
     format!(
         "root=$({}) && exec {} environment-{command} {} --root \"$root\"",
-        config.vcs.backend.root_command(),
-        binary(&config.paths.service),
+        backend.root_command(),
+        binary(service),
         shell_words::quote(name)
     )
 }
 
-pub fn vcs_hooks(config: &Config) -> Vec<(String, Vec<u8>)> {
+pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
     let binary = binary(&config.paths.service);
-    config
+    Ok(config
         .vcs
         .backend
+        .native("hook generation")?
         .hooks(&binary)
         .into_iter()
         .map(|(name, contents)| {
@@ -40,13 +46,14 @@ pub fn vcs_hooks(config: &Config) -> Vec<(String, Vec<u8>)> {
                 contents.into_bytes(),
             )
         })
-        .collect()
+        .collect())
 }
 
 pub fn registration(config: &Config) -> Result<Vec<u8>> {
+    let backend = config.vcs.backend.native("harness registration")?;
     let command = format!(
         "root=$({}) && exec {} hook --root \"$root\"",
-        config.vcs.backend.root_command(),
+        backend.root_command(),
         binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
@@ -56,7 +63,7 @@ pub fn registration(config: &Config) -> Result<Vec<u8>> {
     }});
     let custom =
         agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
-            environment_command(config, "hook", name)
+            environment_command(&config.paths.service, "hook", name, backend)
         });
     for (event, groups) in custom.as_object().unwrap() {
         value["hooks"]

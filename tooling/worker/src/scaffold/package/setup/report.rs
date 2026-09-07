@@ -57,7 +57,8 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
         None => false,
     };
     let registration =
-        review_runner::vcs::Repository::new(root, config.vcs.backend).expected_registration(&hooks);
+        review_runner::vcs::Repository::new(root, config.vcs.backend.native("setup preview")?)
+            .expected_registration(&hooks);
     Ok(json!({
         "preview": true,
         "root": root,
@@ -70,7 +71,7 @@ pub fn prepared(root: &Path, config: &Config, installation: &Installation) -> Re
                 "hooks_path": hooks,
                 "registration": registration,
                 "update_registration": !registered,
-                "runtime_ignore": (config.vcs.backend == review_runner::vcs::Kind::Mercurial).then(|| format!("{hooks}.hgignore")),
+                "runtime_ignore": (config.vcs.backend == review_runner::vcs::Kind::Mercurial.into()).then(|| format!("{hooks}.hgignore")),
             },
             "codex": codex(&installation.files, config)?,
         },
@@ -154,7 +155,7 @@ fn dependencies(config: &Config) -> Value {
     let delegation = config.capabilities.delegation.is_some();
     let isolated = review
         || delegation
-        || config.vcs.backend == review_runner::vcs::Kind::Mercurial
+        || config.vcs.backend != review_runner::vcs::Kind::Git.into()
         || config.commands.values().any(|command| command.read_only);
     if isolated {
         executables.insert("bwrap");

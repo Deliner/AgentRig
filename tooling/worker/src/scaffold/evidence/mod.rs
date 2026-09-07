@@ -46,12 +46,9 @@ impl Record {
     }
 
     fn fingerprint(&self, context: &Context, origin: &Path) -> Result<String> {
-        let runtime = &context.config.paths.runtime;
         match self.exported_revision() {
-            Some(revision) => {
-                content::revision_fingerprint(&context.root, origin, runtime, revision)
-            }
-            None => content::fingerprint(&context.root, origin, runtime, self.staged),
+            Some(revision) => content::revision_fingerprint(context, origin, revision),
+            None => content::fingerprint(context, origin, self.staged),
         }
     }
 }
@@ -80,7 +77,7 @@ impl Attempt {
             revision_export: selected.is_some(),
             revision: match selected {
                 Some(revision) => Some(revision),
-                None => content::head(origin)?,
+                None => content::head(context, origin)?,
             },
             fingerprint: String::new(),
             staged: index_fingerprint.is_some(),
@@ -136,7 +133,7 @@ impl Attempt {
         let fingerprint = self.record.fingerprint(context, origin)?;
         let revision = match self.exported_revision() {
             Some(revision) => Some(revision.to_owned()),
-            None => content::head(origin)?,
+            None => content::head(context, origin)?,
         };
         let index_matches = self
             .record
@@ -187,13 +184,8 @@ fn observed(context: &Context) -> Result<Value> {
     let Some(record) = read(&path)? else {
         return Ok(json!({"status": "absent"}));
     };
-    let revision = content::head(&context.root)?;
-    let worktree = content::fingerprint(
-        &context.root,
-        &context.root,
-        &context.config.paths.runtime,
-        false,
-    )?;
+    let revision = content::head(context, &context.root)?;
+    let worktree = content::fingerprint(context, &context.root, false)?;
     let revision_matches = revision.is_some() && revision == record.revision;
     let content_matches = worktree == record.fingerprint;
     let index_matches = record

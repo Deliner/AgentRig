@@ -1,6 +1,6 @@
 # Private VCS read protocol
 
-Review and delegation can select a private VCS read adapter through their existing
+Project checks, recovery, review and delegation can select a private VCS read adapter through their existing
 configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
 native Mercurial and `vcs::external::Adapter` reads into the same snapshot and
 visibility checks. A separate executable can implement the protocol without
@@ -12,6 +12,28 @@ An adapter declaration contains one argv vector, for example:
 ```yaml
 command: [python3, -B, /absolute/path/to/external_vcs.py]
 ```
+
+Select the source in project `agentrig.yaml`:
+
+```yaml
+vcs:
+  backend:
+    command: [python3, -B, /absolute/path/to/external_vcs.py]
+  base: team/main
+  prefix: task/
+```
+
+`config-check` validates the declaration without executing the adapter. Project
+`check`, `check --revision`, `memory-check`, `report` and `resume` use the selected
+source for committed inputs, historical memory, content evidence and observations.
+The gate's file selection and embedded lint use its working inventory; exported
+checks inspect the exported files. Standalone lint selection still uses native
+discovery and remains pending private-source work. An adapter failure never
+falls back to a native repository found beside it. Native project selection now
+requires matching repository metadata; omitted selection still means Git.
+Private branch naming belongs to the adapter; configuration only requires
+nonempty base and prefix. Setup, generated hooks/MCP registration and feature
+delivery currently report explicit unimplemented private-operation errors.
 
 Set `repository.vcs` in the existing review project YAML:
 
@@ -72,6 +94,7 @@ session is required.
 | --- | --- | --- |
 | `resolve` | `reference` string | One exact revision ID string; ambiguous selections fail. |
 | `head` | Empty object | Exact current revision ID, or null for an unborn repository. |
+| `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
 | `parents` | `revision` string | Array of exact parent IDs; empty for a root revision. |
 | `tree` | `revision` string | Array of `{path, kind, object}` entries. |
 | `read` | `revision` and `path` strings | Byte array: integer values from 0 through 255. |
@@ -84,6 +107,10 @@ they need not be Git hashes. The adapter owns their immutable meaning. Tree kind
 are `file`, `executable`, `symlink` and `submodule`; consumers retain their existing
 restrictions on exporting submodules or exposing symlinks. A symlink read returns
 its target bytes, not the target file's contents.
+Observation identifies the actual working branch, native status text and pending
+operations. Its backend identity comes from configuration, never the reply.
+Recovery resolves recorded revision references through this source, including
+opaque non-hexadecimal IDs.
 
 Paths must be canonical relative paths. Empty components, `.`, `..`, NUL,
 absolute paths and `.git`/`.hg` control components are rejected. Duplicate tree
@@ -97,8 +124,8 @@ through the same owner as native revision exports. It resolves the reference onc
 and uses that exact ID for tree and file reads, preserving binary bytes and
 executable modes. Symlinks are created after regular files to prevent writes
 through them; invalid paths, submodules and conflicting file/link trees fail.
-This full export is not the restricted review snapshot. The project CLI's private
-backend selection and `check --revision` wiring remain pending.
+This full export is not the restricted review snapshot. The project CLI uses it
+for `check --revision`, retaining exact-export checks and input-mutation rejection.
 
 ## Independent example and evidence
 

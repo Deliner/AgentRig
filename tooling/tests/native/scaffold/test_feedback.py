@@ -8,7 +8,16 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from support import CONFIG, file_contents, git, invoke, project, update_config
+from support import (
+    CONFIG,
+    file_contents,
+    git,
+    invoke,
+    project,
+    update_config,
+    vcs_backend,
+    vcs_executable,
+)
 from test_gate import GATE
 from test_memory import committed_memory, memory
 
@@ -33,9 +42,10 @@ def repository(root: Path, vcs: str = "git") -> None:
     )
     needs_mercurial_ignore = not using_git
     if needs_mercurial_ignore:
+        update_config(root / "agentrig.yaml", git={"backend": vcs_backend(vcs)})
         (root / ".hgignore").write_text("syntax: glob\n.runtime/**\nsrc/ignored.py\n")
     for args in commands:
-        subprocess.run([vcs, *args], cwd=root, capture_output=True, check=True)
+        subprocess.run([vcs_executable(vcs), *args], cwd=root, capture_output=True, check=True)
 
 
 def resumed(worker: Path, root: Path) -> dict[str, Any]:
@@ -258,7 +268,7 @@ def test_mercurial_resume_observes_real_conflict(
 def revision(root: Path, vcs: str) -> str:
     using_git = vcs == "git"
     args = ["rev-parse", "HEAD"] if using_git else ["log", "-r", ".", "-T", "{node}"]
-    return subprocess.check_output([vcs, *args], cwd=root, text=True).strip()
+    return subprocess.check_output([vcs_executable(vcs), *args], cwd=root, text=True).strip()
 
 
 @pytest.mark.parametrize("vcs", ["git", "hg"])
@@ -266,6 +276,7 @@ def test_resume_distinguishes_plain_and_unborn_repositories(
     worker: Path, tmp_path: Path, vcs: str
 ) -> None:
     project(tmp_path, CONFIG + GATE)
+    update_config(tmp_path / "agentrig.yaml", git={"backend": vcs_backend(vcs)})
     memory(tmp_path)
     assert resumed(worker, tmp_path)["vcs"] is None
     subprocess.run([vcs, "init"], cwd=tmp_path, capture_output=True, check=True)
@@ -299,7 +310,7 @@ def commit(root: Path, vcs: str) -> str:
         else [("commit", "-m", "candidate", "-u", "Test")]
     )
     for args in commands:
-        subprocess.run([vcs, *args], cwd=root, capture_output=True, check=True)
+        subprocess.run([vcs_executable(vcs), *args], cwd=root, capture_output=True, check=True)
     return revision(root, vcs)
 
 
@@ -396,7 +407,7 @@ def evidence(root: Path) -> dict[str, Any]:
     return value
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
+@pytest.mark.parametrize("vcs", ["git", "hg", "private"])
 def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
     worker: Path, tmp_path: Path, vcs: str
 ) -> None:
@@ -427,7 +438,7 @@ def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
     assert not checks["revision_matches"] and not checks["full_gate_passed"]
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
+@pytest.mark.parametrize("vcs", ["git", "hg", "private"])
 def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_exports(
     worker: Path, tmp_path: Path, vcs: str
 ) -> None:
@@ -451,7 +462,7 @@ def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_expor
     assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
+@pytest.mark.parametrize("vcs", ["git", "hg", "private"])
 @pytest.mark.parametrize("damage", ["identity", "detail", "removal"])
 def test_revision_memory_checks_parent_history_instead_of_candidate_or_checkout(
     worker: Path, tmp_path: Path, vcs: str, damage: str

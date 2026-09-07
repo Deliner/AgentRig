@@ -1,3 +1,4 @@
+use super::super::config::Context as Project;
 use anyhow::{Context, Result};
 use review_runner::vcs::Repository;
 use sha2::{Digest, Sha256};
@@ -7,24 +8,27 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn fingerprint(tree: &Path, origin: &Path, runtime: &str, staged: bool) -> Result<String> {
-    fingerprint_paths(tree, runtime, paths(origin, staged)?)
+pub fn fingerprint(context: &Project, origin: &Path, staged: bool) -> Result<String> {
+    fingerprint_paths(
+        &context.root,
+        &context.config.paths.runtime,
+        paths(context, origin, staged)?,
+    )
 }
 
-pub fn revision_fingerprint(
-    tree: &Path,
-    origin: &Path,
-    runtime: &str,
-    revision: &str,
-) -> Result<String> {
-    let repository =
-        Repository::discover(origin)?.context("revision checking requires a VCS repository")?;
+pub fn revision_fingerprint(context: &Project, origin: &Path, revision: &str) -> Result<String> {
+    let repository = context
+        .config
+        .vcs
+        .backend
+        .repository_source(origin)?
+        .context("revision checking requires a VCS repository")?;
     let paths = repository
         .tree(revision)?
         .into_keys()
         .map(PathBuf::from)
         .collect();
-    fingerprint_paths(tree, runtime, paths)
+    fingerprint_paths(&context.root, &context.config.paths.runtime, paths)
 }
 
 fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Result<String> {
@@ -67,10 +71,11 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn paths(root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
-    if let Some(repository) = Repository::discover(root)? {
+fn paths(context: &Project, root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
+    if let Some(repository) = context.config.vcs.backend.repository_source(root)? {
         let files = if staged {
-            repository.staged_files()?
+            let kind = context.config.vcs.backend.native("staging index")?;
+            Repository::new(root, kind).staged_files()?
         } else {
             repository.working_files()?
         };
@@ -100,8 +105,12 @@ pub fn index(root: &Path) -> Result<String> {
     Ok(format!("{:x}", Sha256::digest(repository.index_entries()?)))
 }
 
-pub fn head(root: &Path) -> Result<Option<String>> {
-    Ok(Repository::discover(root)?
+pub fn head(context: &Project, root: &Path) -> Result<Option<String>> {
+    Ok(context
+        .config
+        .vcs
+        .backend
+        .repository_source(root)?
         .map(|repository| repository.head())
         .transpose()?
         .flatten())

@@ -2,10 +2,10 @@
 use super::super::config::{Config, Context, FILE};
 use super::format;
 use anyhow::{Context as _, Result, ensure};
-use review_runner::vcs::{Entry, Repository};
+use review_runner::vcs::{Entry, Source};
 use std::{collections::BTreeMap, fs, path::Path};
 
-fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<String> {
+fn committed(repository: &Source<'_>, revision: &str, path: &str) -> Result<String> {
     let bytes = repository
         .read(revision, path)
         .with_context(|| format!("cannot read committed memory {path}"))?;
@@ -13,7 +13,7 @@ fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<
 }
 pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<()> {
     // A standalone tree or an unborn repository has no committed memory baseline.
-    let Some(repository) = Repository::discover(root)? else {
+    let Some(repository) = context.config.vcs.backend.repository_source(root)? else {
         return Ok(());
     };
     let revisions = match candidate {
@@ -26,7 +26,7 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
     Ok(())
 }
 
-fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str) -> Result<()> {
+fn check_revision(context: &Context, repository: &Source<'_>, revision: &str) -> Result<()> {
     let tree = repository.tree(revision)?;
     let prior_memory = prior_memory(context, repository, revision, &tree)?;
     let index = format!("{}/Decisions.md", prior_memory);
@@ -58,7 +58,7 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
 }
 
 fn committed_table(
-    repository: &Repository<'_>,
+    repository: &Source<'_>,
     revision: &str,
     path: &str,
 ) -> Result<Vec<format::Row>> {
@@ -71,7 +71,7 @@ fn committed_table(
 
 fn prior_memory(
     context: &Context,
-    repository: &Repository<'_>,
+    repository: &Source<'_>,
     revision: &str,
     tree: &BTreeMap<String, Entry>,
 ) -> Result<String> {

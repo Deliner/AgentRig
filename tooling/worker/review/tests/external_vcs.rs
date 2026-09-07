@@ -277,6 +277,42 @@ fn backend_selection_preserves_native_yaml_and_rejects_invalid_external_declarat
 }
 
 #[test]
+fn private_observation_preserves_selected_identity_and_rejects_invalid_state() {
+    let root = tempfile::tempdir().unwrap();
+    let (_, candidate) = revisions(root.path());
+    let backend = Backend::External(example());
+    let before = contents(root.path());
+    let observed = backend.source(root.path()).observe().unwrap();
+    assert_eq!(observed.backend, backend);
+    assert_eq!(observed.revision, candidate);
+    assert_eq!(observed.branch, "default");
+    assert!(observed.status.contains("new name"));
+    assert!(!observed.merge_in_progress && !observed.rebase_in_progress);
+    assert_eq!(contents(root.path()), before);
+    let valid = json!({"branch":"team/main", "revision":"revision-42", "status":"", "merge_in_progress":false, "rebase_in_progress":false});
+    for (field, value) in [
+        ("revision", json!("r1\nr2")),
+        ("merge_in_progress", json!("false")),
+        ("backend", json!("git")),
+    ] {
+        let mut invalid = valid.clone();
+        invalid[field] = value;
+        assert!(
+            reply(json!({"version":1,"result":invalid}))
+                .observe(root.path())
+                .is_err()
+        );
+    }
+    assert_eq!(
+        reply(json!({"version":1,"result":valid}))
+            .observe(root.path())
+            .unwrap()
+            .revision,
+        "revision-42"
+    );
+}
+
+#[test]
 fn protocol_rejects_wrong_versions_types_unknown_fields_and_empty_ids() {
     let root = tempfile::tempdir().unwrap();
     for value in [

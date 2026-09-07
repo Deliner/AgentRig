@@ -1,4 +1,4 @@
-use super::{Kind, Repository, git, mercurial};
+use super::{Backend, Kind, Repository, git, mercurial};
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::Path};
@@ -7,7 +7,7 @@ use std::{fs, io::Write, path::Path};
 #[serde(deny_unknown_fields)]
 pub struct Settings {
     #[serde(default)]
-    pub backend: Kind,
+    pub backend: Backend,
     pub base: String,
     pub prefix: String,
 }
@@ -15,7 +15,7 @@ pub struct Settings {
 impl Default for Settings {
     fn default() -> Self {
         Self {
-            backend: Kind::Git,
+            backend: Kind::Git.into(),
             base: "main".into(),
             prefix: "feature/".into(),
         }

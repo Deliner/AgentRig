@@ -2,7 +2,7 @@
 // DECISION: D022
 use super::super::{config::Context, evidence};
 use anyhow::Result;
-use review_runner::vcs::Repository;
+use review_runner::vcs::Source;
 use serde_json::{Value, json};
 use std::fs;
 
@@ -10,8 +10,12 @@ pub fn run(context: &Context) -> Result<()> {
     let memory = context.path(&context.config.paths.memory)?;
     let state = fs::read_to_string(memory.join("State.md"))?;
     let plan = fs::read_to_string(memory.join("Plan.md"))?;
-    let repository = Repository::discover(&context.root)?;
-    let observed = repository.as_ref().map(Repository::observe).transpose()?;
+    let repository = context
+        .config
+        .vcs
+        .backend
+        .repository_source(&context.root)?;
+    let observed = repository.as_ref().map(Source::observe).transpose()?;
     let branch = observed.as_ref().map_or("", |value| value.branch.as_str());
     let revision = observed
         .as_ref()
@@ -34,15 +38,9 @@ fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {
         .find_map(|line| line.strip_prefix(prefix))
         .map(|value| value.trim().trim_matches('`'))
 }
-fn recorded_revision(repository: Option<&Repository<'_>>, state: &str, current: &str) -> Value {
+fn recorded_revision(repository: Option<&Source<'_>>, state: &str, current: &str) -> Value {
     let saved = claim(state, "Revision: ");
-    let resolved = saved
-        .filter(|value| {
-            value.len() >= 4
-                && value.len() <= 64
-                && value.bytes().all(|byte| byte.is_ascii_hexdigit())
-        })
-        .and_then(|saved| repository?.resolve(saved).ok());
+    let resolved = saved.and_then(|saved| repository?.resolve(saved).ok());
     let changed = resolved
         .as_deref()
         .filter(|_| !current.is_empty())

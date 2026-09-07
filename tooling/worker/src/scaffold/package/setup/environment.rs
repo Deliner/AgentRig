@@ -15,7 +15,10 @@ pub(super) fn configure(config: &Config, document: &mut DocumentMut) -> Result<(
         let mut args = toml_edit::Array::new();
         args.push("-c");
         args.push(super::super::adapters::environment_command(
-            config, "mcp", name,
+            &config.paths.service,
+            "mcp",
+            name,
+            config.vcs.backend.native("MCP registration")?,
         ));
         setting(&mut target["args"], value(args), name)?;
         let mut references = toml_edit::Array::new();

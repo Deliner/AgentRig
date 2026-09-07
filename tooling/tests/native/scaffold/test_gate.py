@@ -1,10 +1,11 @@
+import json
 import shlex
 import shutil
 import subprocess
 from pathlib import Path
 
 import pytest
-from support import CONFIG, invoke, project
+from support import CONFIG, invoke, project, update_config
 
 GATE = """
 checks:
@@ -149,3 +150,62 @@ def test_retry_survives_running_binary_replacement(worker: Path, tmp_path: Path)
     assert Path(argv[0]).is_file(), command
     repeated = subprocess.run(argv, capture_output=True, text=True, check=False)
     assert repeated.returncode == 23, repeated.stderr
+
+
+def test_private_project_selection_rejects_native_fallback(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path, CONFIG + GATE)
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    config = tmp_path / "agentrig.yaml"
+    adapter = {"command": ["python3", "-c", "import sys; sys.exit(64)"]}
+    update_config(config, git={"backend": adapter})
+    assert invoke(worker, tmp_path, "config-check").returncode == 0
+    for args in [("check",), ("check", "--revision", "tip"), ("feature-start", "example")]:
+        result = invoke(worker, tmp_path, *args)
+        assert result.returncode == 2, result.stdout + result.stderr
+        assert "external VCS" in result.stderr or "private VCS" in result.stderr
+    update_config(config, git={"backend": {"command": []}})
+    assert invoke(worker, tmp_path, "config-check").returncode == 2
+
+
+def test_private_worktree_inventory_controls_lint_and_check_selection(
+    worker: Path, tmp_path: Path
+) -> None:
+    project(tmp_path, CONFIG + GATE)
+    (tmp_path / "src/large.py").write_text("line\n" * 61)
+    files = ["agentrig.yaml", "lint.yaml", "guides/repair/SKILL.md"]
+    replies = {"head": "r1", "working-files": files}
+    script = f"import json,sys; r=json.load(sys.stdin); print(json.dumps({{'version':1,'result':{replies!r}[r['operation']]}}))"
+    update_config(
+        tmp_path / "agentrig.yaml", git={"backend": {"command": ["python3", "-c", script]}}
+    )
+    result = invoke(worker, tmp_path, "check", "--only", "lint")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert "exceeds 60" not in result.stdout
+    assert json.loads((tmp_path / ".runtime/checks.json").read_text())["revision"] == "r1"
+
+
+def test_private_resume_accepts_opaque_recorded_revisions(worker: Path, tmp_path: Path) -> None:
+    from test_memory import memory
+
+    project(tmp_path, CONFIG + GATE)
+    notes = memory(tmp_path)
+    state = notes / "State.md"
+    state.write_text(state.read_text() + "\nBranch: team/main\n\nRevision: revision-42\n")
+    observed = {
+        "branch": "team/main",
+        "revision": "revision-42",
+        "status": "",
+        "merge_in_progress": False,
+        "rebase_in_progress": False,
+    }
+    replies = {"observe": observed, "resolve": "revision-42"}
+    script = f"import json,sys; r=json.load(sys.stdin); print(json.dumps({{'version':1,'result':{replies!r}[r['operation']]}}))"
+    adapter = {"command": ["python3", "-c", script]}
+    update_config(tmp_path / "agentrig.yaml", git={"backend": adapter})
+    result = invoke(worker, tmp_path, "resume")
+    assert result.returncode == 0, result.stderr
+    report = json.loads(result.stdout)
+    assert report["vcs"]["backend"] == adapter
+    assert report["snapshot"] == "current"
+    assert report["state_revision"]["resolved"] == "revision-42"
+    assert "git" not in report

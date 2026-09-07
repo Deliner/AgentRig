@@ -87,7 +87,11 @@ fn prepare(
         return Ok((Some(export(root)?), Input::Index(index)));
     }
     if let Some(reference) = options.revision {
-        let repository = review_runner::vcs::Repository::discover(root)?
+        let config = config::read(root)?;
+        let repository = config
+            .vcs
+            .backend
+            .repository_source(root)?
             .ok_or_else(|| anyhow::anyhow!("revision checking requires a VCS repository"))?;
         let revision = repository.resolve(reference)?;
         let snapshot = repository.export_revision(&revision)?;
@@ -101,7 +105,7 @@ fn execute_checks(
     attempt: &mut super::evidence::Attempt,
     only: Option<&str>,
 ) -> Result<i32> {
-    let files = files(context)?;
+    let files = files(context, root)?;
     for check in context
         .config
         .checks
@@ -147,6 +151,7 @@ fn run_check(
             &context.root,
             &context.path(&context.config.paths.lint)?,
             rerun,
+            inventory_source(context, source.0)?.as_ref(),
         ),
         CheckKind::Memory => super::memory::check_with_history(context, source.0, source.1),
     }
@@ -194,12 +199,28 @@ fn export(root: &Path) -> Result<tempfile::TempDir> {
     );
     Ok(directory)
 }
-pub fn files(context: &Context) -> Result<Vec<PathBuf>> {
+fn inventory_source<'a>(
+    context: &'a Context,
+    origin: &Path,
+) -> Result<Option<review_runner::vcs::Source<'a>>> {
+    let exported = context.root != origin;
+    if exported {
+        return Ok(None);
+    }
+    context.config.vcs.backend.repository_source(&context.root)
+}
+
+pub fn files(context: &Context, origin: &Path) -> Result<Vec<PathBuf>> {
     let excludes = vec![
         ".git".into(),
         ".git/**".into(),
         context.config.paths.runtime.clone(),
         format!("{}/**", context.config.paths.runtime),
     ];
-    Ok(inventory::collect(&context.root, &globs(&excludes)?)?.files)
+    Ok(inventory::collect_source(
+        &context.root,
+        &globs(&excludes)?,
+        inventory_source(context, origin)?.as_ref(),
+    )?
+    .files)
 }

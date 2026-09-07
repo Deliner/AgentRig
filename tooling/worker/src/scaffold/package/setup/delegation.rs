@@ -25,7 +25,7 @@ pub fn configure(
     args.push(super::super::adapters::mcp_command(
         &config.paths.service,
         "delegate",
-        config.vcs.backend,
+        config.vcs.backend.native("MCP registration")?,
     ));
     for (key, desired) in [
         ("enabled", value(true)),

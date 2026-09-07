@@ -23,7 +23,7 @@ pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> 
             &mut document["mcp_servers"]["worker_review"],
             timeout,
             &config.paths.service,
-            config.vcs.backend,
+            config.vcs.backend.native("MCP registration")?,
         )?;
     } else {
         let server = document

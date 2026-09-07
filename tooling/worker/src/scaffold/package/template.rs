@@ -97,7 +97,8 @@ fn vcs(options: &Options<'_>) -> Vcs {
         backend: match options["vcs"].as_str() {
             "mercurial" => review_runner::vcs::Kind::Mercurial,
             _ => review_runner::vcs::Kind::Git,
-        },
+        }
+        .into(),
         base: options["base"].clone(),
         prefix: options["prefix"].clone(),
     }

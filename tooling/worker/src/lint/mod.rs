@@ -37,8 +37,12 @@ struct Evaluation {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
     output: Vec<Diagnostic>,
 }
-fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
-    let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+fn evaluate(
+    root: &Path,
+    config: &config::Config,
+    source: Option<&review_runner::vcs::Source<'_>>,
+) -> Result<Vec<Diagnostic>> {
+    let inventory = inventory::collect_source(root, &globs(&config.exclude)?, source)?;
     let mut evaluation = Evaluation::default();
     for rule in &config.rules {
         let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
@@ -183,6 +187,7 @@ struct Output<'a> {
     json: bool,
     validate_only: bool,
     rerun: Option<&'a str>,
+    source: Option<&'a review_runner::vcs::Source<'a>>,
 }
 pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
     run_output(
@@ -192,10 +197,16 @@ pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<
             json,
             validate_only,
             rerun: None,
+            source: None,
         },
     )
 }
-pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
+pub fn check(
+    root: &Path,
+    path: &Path,
+    rerun: &str,
+    source: Option<&review_runner::vcs::Source<'_>>,
+) -> Result<i32> {
     run_output(
         root,
         path,
@@ -203,21 +214,17 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
             json: false,
             validate_only: false,
             rerun: Some(rerun),
+            source,
         },
     )
 }
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
-    let Output {
-        json,
-        validate_only,
-        rerun,
-    } = output;
-    let result = analyze(root, path, validate_only);
+    let result = analyze(root, path, output.validate_only, output.source);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
-    let command = if validate_only {
+    let command = if output.validate_only {
         "lint-config-check"
     } else {
         "lint"
@@ -228,15 +235,16 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         path.to_string_lossy().into_owned(),
     ];
     for item in &mut diagnostics {
-        item.rerun = rerun
+        item.rerun = output
+            .rerun
             .map(str::to_owned)
             .unwrap_or_else(|| crate::diagnostics::rerun(root, &args));
     }
     let failed = diagnostics.iter().any(|item| item.level == "error");
-    if json {
+    if output.json {
         println!("{}", serde_json::to_string(&diagnostics)?);
     } else {
-        let configuration_valid = validate_only && !config_error;
+        let configuration_valid = output.validate_only && !config_error;
         if configuration_valid {
             println!("Lint configuration is valid: {}", path.display());
         }
@@ -246,10 +254,15 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
 }
-fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnostic>> {
+fn analyze(
+    root: &Path,
+    path: &Path,
+    validate_only: bool,
+    source: Option<&review_runner::vcs::Source<'_>>,
+) -> Result<Vec<Diagnostic>> {
     config::load(root, path).and_then(|config| {
         if validate_only {
-            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+            let inventory = inventory::collect_source(root, &globs(&config.exclude)?, source)?;
             for rule in &config.rules {
                 selection::select(rule, &inventory)?;
                 let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
@@ -259,7 +272,7 @@ fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnost
             }
             Ok(Vec::new())
         } else {
-            evaluate(root, &config)
+            evaluate(root, &config, source)
         }
     })
 }
