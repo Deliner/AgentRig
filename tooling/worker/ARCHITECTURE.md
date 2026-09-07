@@ -51,6 +51,13 @@ to empty. Locally resolved Python and anchored Rust paths cannot be hidden by an
 external declaration. JavaScript bare package names require an external declaration;
 local package aliases are not yet resolved.
 
+For multiple local Rust crates, add `rust_crates`, mapping each import name to
+its root file, also listed in `rust_roots`. For example,
+`rust_crates: {catalog: crates/catalog/src/lib.rs}` makes `catalog::api` resolve
+against that crate's declared modules. Local mappings take precedence over
+external declarations and produce file edges subject to the same contracts.
+Unknown local macro expansion remains incomplete analysis.
+
 `level: warning` reports findings without a failing exit status; `error` exits 1.
 Thresholds and overrides are not applicable. Configuration errors exit 2.
 `lint-rules`, `lint-config-check` and `lint-explain DIRECTORY` use the shared rule
@@ -101,7 +108,12 @@ proof; remaining coverage is part of P006 delivery.
 - **Rust 2018+**: explicit crate roots, declared `name.rs`/`name/mod.rs` and inline
   modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
   paths and public item facades. Missing/ambiguous module files and alias cycles
-  fail. Known standard expression macros and imported `anyhow::{anyhow,bail,ensure}`
+  fail. `Self` paths retain the enclosing impl/trait owner. Generic paths with
+  one explicit inline trait bound retain that bound; unbounded or ambiguous
+  parameters and unsupported local bindings remain incomplete. Observed standard
+  prelude names (`String`, `Vec`, `Default`, `Option`, `Into`) and primitive paths
+  resolve only when syntactic declarations/imports do not shadow them.
+  Known standard expression macros and imported `anyhow::{anyhow,bail,ensure}`
   and `serde_json::json` retain explicit paths inside their token arguments,
   including nested calls; strings and comments remain opaque. Macro imports are
   resolved before accepting the namespace. Unknown macros, definitions, source

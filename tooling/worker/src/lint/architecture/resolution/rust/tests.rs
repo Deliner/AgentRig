@@ -37,7 +37,7 @@ fn an_external_reexport_still_depends_on_its_local_facade() {
         ("app.rs", "use crate::Public;"),
     ]);
     let external = BTreeSet::from(["dep".into()]);
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert_eq!(
         resolver
             .resolve(Path::new("app.rs"), &path("Public::new"))
@@ -57,7 +57,13 @@ fn declared_module_tree_handles_both_filenames_and_inline_modules() {
         ("src/unreferenced.rs", ""),
     ]);
     let external = BTreeSet::new();
-    let resolver = Rust::new(Path::new("src/lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(
+        Path::new("src/lib.rs"),
+        &sources,
+        &external,
+        &BTreeMap::new(),
+    )
+    .unwrap();
     for (name, file) in [
         ("crate::app::nested::run", "src/app/nested/mod.rs"),
         ("crate::domain::api::Item", "src/domain/api.rs"),
@@ -93,7 +99,7 @@ fn self_super_and_repeated_super_use_the_actual_module_scope() {
         ),
     ]);
     let external = BTreeSet::new();
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert_eq!(
         resolver
             .resolve(Path::new("app/nested.rs"), &path("self::local"))
@@ -134,7 +140,7 @@ fn grouped_aliases_reach_submodules_and_item_reexports_preserve_facades() {
         ),
     ]);
     let external = BTreeSet::new();
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     for (name, file) in [
         ("api::private::work", "domain/private.rs"),
         ("Alias::new", "domain.rs"),
@@ -154,7 +160,7 @@ fn grouped_aliases_reach_submodules_and_item_reexports_preserve_facades() {
 fn aliases_cannot_silently_form_a_resolution_cycle() {
     let sources = sources(&[("lib.rs", "use self::B as A; use self::A as B;")]);
     let external = BTreeSet::new();
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert!(
         resolver
             .resolve(Path::new("lib.rs"), &path("A::run"))
@@ -168,22 +174,22 @@ fn aliases_cannot_silently_form_a_resolution_cycle() {
 fn missing_or_ambiguous_module_files_are_errors() {
     let external = BTreeSet::new();
     let missing = sources(&[("lib.rs", "mod absent;")]);
-    assert!(Rust::new(Path::new("lib.rs"), &missing, &external).is_err());
+    assert!(Rust::new(Path::new("lib.rs"), &missing, &external, &BTreeMap::new()).is_err());
     let ambiguous = sources(&[
         ("lib.rs", "mod item;"),
         ("item.rs", ""),
         ("item/mod.rs", ""),
     ]);
-    assert!(Rust::new(Path::new("lib.rs"), &ambiguous, &external).is_err());
+    assert!(Rust::new(Path::new("lib.rs"), &ambiguous, &external, &BTreeMap::new()).is_err());
     let duplicate = sources(&[("lib.rs", "mod item {} mod item {}")]);
-    assert!(Rust::new(Path::new("lib.rs"), &duplicate, &external).is_err());
+    assert!(Rust::new(Path::new("lib.rs"), &duplicate, &external, &BTreeMap::new()).is_err());
 }
 
 #[test]
 fn external_crates_do_not_hide_missing_anchored_paths() {
     let sources = sources(&[("lib.rs", "mod std { pub fn local() {} }")]);
     let external = BTreeSet::from(["std".into(), "dep".into()]);
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert_eq!(
         resolver
             .resolve(Path::new("lib.rs"), &path("std::local"))
@@ -228,7 +234,7 @@ fn unsupported_source_cannot_build_a_verified_module_tree() {
     ] {
         let sources = sources(&[("lib.rs", code)]);
         assert!(
-            Rust::new(Path::new("lib.rs"), &sources, &external).is_err(),
+            Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).is_err(),
             "{code}"
         );
     }
@@ -242,7 +248,7 @@ fn function_locals_are_not_mistaken_for_module_bindings() {
     )]);
     assert!(sources[Path::new("lib.rs")].rust_imports.is_empty());
     let external = BTreeSet::from(["std".into()]);
-    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert!(
         resolver
             .resolve(Path::new("lib.rs"), &path("name::Read"))
@@ -270,7 +276,7 @@ fn compiled_consumer_uses_the_resolved_files() {
     ];
     let sources = sources(&files);
     let external = BTreeSet::from(["std".into()]);
-    let resolver = Rust::new(Path::new("main.rs"), &sources, &external).unwrap();
+    let resolver = Rust::new(Path::new("main.rs"), &sources, &external, &BTreeMap::new()).unwrap();
     assert_eq!(
         resolver
             .resolve(Path::new("app.rs"), &path("api::value"))

@@ -137,6 +137,13 @@ impl Source<'_> {
     }
 
     fn record(&mut self, node: Node<'_>, target: Target) {
+        let target = match target {
+            Target::RustPath { path, scope } => Target::RustPath {
+                path: rust::prelude::path(self, node, rust::generic_path(self, node, path)),
+                scope,
+            },
+            target => target,
+        };
         let reference = Reference {
             line: node.start_position().row + 1,
             target,

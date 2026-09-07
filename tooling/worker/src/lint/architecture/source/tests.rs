@@ -1,4 +1,5 @@
 use super::{Loader, Reference, References, Target, extract};
+use crate::lint::{languages, rules};
 use std::path::Path;
 
 fn parse(path: &str, text: &str) -> References {
@@ -85,7 +86,6 @@ fn rust_comments_raw_identifiers_and_generic_arguments_preserve_paths() {
 
 #[test]
 fn scalar_rules_do_not_claim_javascript_or_typescript_measurements() {
-    use crate::lint::{languages, rules};
     for path in ["a.js", "a.ts", "a.tsx"] {
         assert!(
             languages::parse(Path::new(path), "let n = 1;")

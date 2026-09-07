@@ -1,3 +1,4 @@
+use std::{os::unix::process::CommandExt, process::Command};
 // DECISION: D020
 mod hooks;
 mod scaffold;
@@ -46,7 +47,6 @@ fn run() -> Result<i32> {
 }
 fn run_environment(root: &Path, args: &[String], kind: &str) -> Result<i32> {
     use anyhow::Context as _;
-    use std::{os::unix::process::CommandExt, process::Command};
     anyhow::ensure!(args.len() == 1, "{kind} NAME");
     let context = scaffold::config::Context::load(root)?;
     let mut environment = context.config.environment;

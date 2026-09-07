@@ -68,6 +68,7 @@ pub struct Resolvers<'a> {
     javascript: JavaScript<'a>,
     typescript: JavaScript<'a>,
     rust: Vec<Rust<'a>>,
+    crates: &'a BTreeMap<String, PathBuf>,
 }
 
 impl<'a> Resolvers<'a> {
@@ -80,7 +81,12 @@ impl<'a> Resolvers<'a> {
         let mut rust = Vec::new();
         let mut issues = Vec::new();
         for path in &settings.rust_roots {
-            match Rust::new(path, sources, &settings.external.rust) {
+            match Rust::new(
+                path,
+                sources,
+                &settings.external.rust,
+                &settings.rust_crates,
+            ) {
                 Ok(resolver) => rust.push(resolver),
                 Err(error) => issues.push(incomplete(path, None, error)),
             }
@@ -98,6 +104,7 @@ impl<'a> Resolvers<'a> {
                     Mode::TypeScriptBundler,
                 ),
                 rust,
+                crates: &settings.rust_crates,
             },
             issues,
         ))
@@ -156,9 +163,47 @@ impl<'a> Resolvers<'a> {
         );
         let mut combined = Resolved::default();
         for resolver in owners {
-            combined.files.extend(resolver.resolve(path, target)?.files);
+            combined
+                .files
+                .extend(self.linked(resolver.resolve(path, target)?)?.files);
         }
         Ok(combined)
+    }
+
+    fn linked(&self, mut result: Resolved) -> Result<Resolved> {
+        let mut visiting = BTreeSet::new();
+        while let Some(reference) = result.external.as_deref() {
+            let reference = reference.trim_start_matches("::");
+            let (name, suffix) = reference.split_once("::").unwrap_or((reference, ""));
+            let Some(root) = self.crates.get(name) else {
+                break;
+            };
+            ensure!(
+                visiting.insert(reference.to_owned()),
+                "cyclic local Rust crate reference: {reference}"
+            );
+            let resolver = self
+                .rust
+                .iter()
+                .find(|resolver| resolver.is_root(root))
+                .ok_or_else(|| {
+                    anyhow::anyhow!("local Rust crate root was not analyzed: {}", root.display())
+                })?;
+            let path = match suffix.is_empty() {
+                true => "crate".into(),
+                false => format!("crate::{suffix}"),
+            };
+            let next = resolver.resolve(
+                root,
+                &Target::RustPath {
+                    path,
+                    scope: Vec::new(),
+                },
+            )?;
+            result.files.extend(next.files);
+            result.external = next.external;
+        }
+        Ok(result)
     }
 
     pub fn dependencies(

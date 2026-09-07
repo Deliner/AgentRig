@@ -1,3 +1,4 @@
+use super::evidence::{Input, native_index};
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
@@ -84,7 +85,6 @@ fn prepare(
     root: &Path,
     options: &Options<'_>,
 ) -> Result<(Option<tempfile::TempDir>, super::evidence::Input)> {
-    use super::evidence::{Input, native_index};
     if options.staged {
         let index = native_index(root)?;
         return Ok((Some(export(root)?), Input::Index(index)));

@@ -1,3 +1,4 @@
+use std::fs::OpenOptions;
 mod background;
 pub mod cleanup;
 mod identity;
@@ -143,7 +144,6 @@ impl Job {
         storage::save(&self.directory, &self.record)
     }
     fn open_logs(&self) -> Result<(std::fs::File, std::fs::File)> {
-        use std::fs::OpenOptions;
         let open = |name: &str| {
             OpenOptions::new()
                 .create_new(true)

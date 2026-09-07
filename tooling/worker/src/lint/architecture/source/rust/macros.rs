@@ -54,7 +54,7 @@ fn lexical_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
     false
 }
 
-fn names_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
+pub(super) fn names_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
     let mut pending = vec![node];
     while let Some(node) = pending.pop() {
         let matches = node.kind() == "use_wildcard"
@@ -132,6 +132,7 @@ fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Opti
     } else {
         let qualified = path.contains("::");
         if qualified {
+            let path = super::self_path(source, node, path);
             source.record(node, Target::RustPath { path, scope });
         }
     }

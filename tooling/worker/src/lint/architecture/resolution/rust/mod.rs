@@ -32,7 +32,8 @@ struct Query<'a> {
 
 pub struct Rust<'a> {
     sources: &'a BTreeMap<PathBuf, References>,
-    external: &'a BTreeSet<String>,
+    external: BTreeSet<String>,
+    local: BTreeSet<String>,
     modules: BTreeMap<Vec<String>, Module>,
     files: BTreeMap<PathBuf, Vec<String>>,
     items: BTreeSet<Vec<String>>,
@@ -40,6 +41,10 @@ pub struct Rust<'a> {
 }
 
 impl<'a> Rust<'a> {
+    pub fn is_root(&self, path: &Path) -> bool {
+        self.files.get(path).is_some_and(Vec::is_empty)
+    }
+
     pub fn contains_source(&self, path: &Path) -> bool {
         self.files.contains_key(path)
     }
@@ -47,7 +52,8 @@ impl<'a> Rust<'a> {
     pub fn new(
         root: &Path,
         sources: &'a BTreeMap<PathBuf, References>,
-        external: &'a BTreeSet<String>,
+        external: &BTreeSet<String>,
+        local: &BTreeMap<String, PathBuf>,
     ) -> Result<Self> {
         ensure!(
             sources.contains_key(root),
@@ -56,7 +62,8 @@ impl<'a> Rust<'a> {
         );
         let mut resolver = Self {
             sources,
-            external,
+            external: external.iter().chain(local.keys()).cloned().collect(),
+            local: local.keys().cloned().collect(),
             modules: BTreeMap::new(),
             files: BTreeMap::new(),
             items: BTreeSet::new(),

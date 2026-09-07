@@ -1,5 +1,6 @@
 mod attributes;
 mod macros;
+pub(super) mod prelude;
 
 use super::{RustImport, RustItem, Source, Target};
 use tree_sitter::Node;
@@ -143,6 +144,7 @@ fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<Str
     } else {
         joined(prefix, &value)
     };
+    let path = self_path(source, node, path);
     source.record(
         node,
         Target::RustPath {
@@ -151,6 +153,83 @@ fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<Str
         },
     );
     Some(path)
+}
+
+fn self_path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
+    let Some(suffix) = path.strip_prefix("Self::") else {
+        return path;
+    };
+    let mut parent = node.parent();
+    while let Some(owner) = parent {
+        let binding = match owner.kind() {
+            "impl_item" => owner.child_by_field_name("type"),
+            "trait_item" => owner.child_by_field_name("name"),
+            _ => None,
+        };
+        if let Some(binding) = binding {
+            return path_text(source, binding)
+                .map(|name| joined(&name, suffix))
+                .unwrap_or(path);
+        }
+        let unrelated_item = matches!(owner.kind(), "mod_item" | "struct_item" | "enum_item")
+            || (owner.kind() == "function_item"
+                && owner
+                    .parent()
+                    .is_some_and(|parent| parent.kind() == "block"));
+        if unrelated_item {
+            break;
+        }
+        parent = owner.parent();
+    }
+    path
+}
+
+pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
+    let Some((name, suffix)) = path.split_once("::") else {
+        return path;
+    };
+    let mut parent = node.parent();
+    while let Some(owner) = parent {
+        let local_binding = owner.kind() == "block"
+            && owner
+                .named_children(&mut owner.walk())
+                .any(|item| prelude::names(source, item, name));
+        if local_binding {
+            return path;
+        }
+        if let Some(parameters) = owner.child_by_field_name("type_parameters") {
+            let parameter = parameters
+                .named_children(&mut parameters.walk())
+                .find(|item| {
+                    item.child_by_field_name("name")
+                        .is_some_and(|binding| source.text(binding) == name)
+                });
+            if let Some(parameter) = parameter {
+                let bound = single_bound(source, parameter);
+                return bound.map(|bound| joined(&bound, suffix)).unwrap_or(path);
+            }
+        }
+        let separate_scope = owner.kind() == "mod_item"
+            || (owner.kind() == "function_item"
+                && owner.parent().is_some_and(|p| p.kind() == "block"));
+        if separate_scope {
+            break;
+        }
+        parent = owner.parent();
+    }
+    path
+}
+
+fn single_bound(source: &Source<'_>, parameter: Node<'_>) -> Option<String> {
+    let bounds = parameter.child_by_field_name("bounds")?;
+    let names: Vec<_> = bounds
+        .named_children(&mut bounds.walk())
+        .filter(|node| !node.is_extra() && node.kind() != "lifetime")
+        .collect();
+    let [bound] = names.as_slice() else {
+        return None;
+    };
+    path_text(source, *bound)
 }
 
 fn path_text(source: &Source<'_>, node: Node<'_>) -> Option<String> {

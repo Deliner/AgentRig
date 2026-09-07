@@ -26,6 +26,7 @@ impl Rust<'_> {
         scope: &[String],
     ) -> Result<Resolved> {
         let origin = self.macro_origin(source, path, scope)?;
+        self.require_external_macro(&origin)?;
         let known = origin.split_once("::").is_some_and(|(namespace, name)| {
             matches!(namespace, "std" | "core") && derive(name)
                 || namespace == "serde" && matches!(name, "Serialize" | "Deserialize")
@@ -40,6 +41,7 @@ impl Rust<'_> {
     pub(super) fn macro_result(&self, source: &Path, call: &RustMacro) -> Result<Resolved> {
         let scope = super::joined(&self.files[source], &call.scope);
         let origin = self.macro_origin(source, &call.path, &scope)?;
+        self.require_external_macro(&origin)?;
         let known = origin.split_once("::").is_some_and(|(namespace, name)| {
             matches!(namespace, "std" | "core" | "alloc") && standard(name)
                 || namespace == "anyhow" && matches!(name, "anyhow" | "bail" | "ensure")
@@ -64,6 +66,15 @@ impl Rust<'_> {
             files,
             external: Some(origin),
         })
+    }
+
+    fn require_external_macro(&self, origin: &str) -> Result<()> {
+        let namespace = origin.split("::").next().unwrap_or(origin);
+        ensure!(
+            !self.local.contains(namespace),
+            "local crate macro expansion is not analyzed: {origin}"
+        );
+        Ok(())
     }
 
     fn macro_origin(&self, source: &Path, path: &str, scope: &[String]) -> Result<String> {
