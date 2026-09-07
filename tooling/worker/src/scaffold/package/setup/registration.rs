@@ -4,9 +4,11 @@ use std::path::Path;
 use toml_edit::{DocumentMut, Item, value};
 
 pub fn configure(root: &Path, config: &Config, files: &mut Files) -> Result<()> {
-    if let Some(repository) = config.vcs.backend.repository(root)? {
-        repository.validate_registration(&config.paths.service_path("hooks"))?;
-    }
+    config
+        .vcs
+        .backend
+        .source(root)
+        .validate_registration(&config.paths.service_path("hooks"))?;
     let mut document: DocumentMut = std::str::from_utf8(&files[".codex/config.toml"])?.parse()?;
     table(&mut document["features"], "features")?;
     setting(

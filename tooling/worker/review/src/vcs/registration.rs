@@ -1,4 +1,4 @@
-use super::{Backend, Kind, Repository, git, mercurial};
+use super::{Backend, Kind, Repository, Source, git, mercurial};
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{fs, io::Write, path::Path};
@@ -110,20 +110,15 @@ impl Repository<'_> {
     }
 
     pub fn validate_registration(&self, directory: &str) -> Result<()> {
-        for (key, current, desired) in self.registration_values(directory)? {
-            ensure!(
-                current.is_empty() || current == desired,
-                "setup conflict: {key}={current}; existing registration preserved"
-            );
-        }
-        Ok(())
+        Backend::Native(self.kind)
+            .source(self.root)
+            .validate_registration(directory)
     }
 
     pub fn hooks_registered(&self, directory: &str) -> Result<bool> {
-        Ok(self
-            .registration_values(directory)?
-            .iter()
-            .all(|(_, current, desired)| current == desired))
+        Backend::Native(self.kind)
+            .source(self.root)
+            .hooks_registered(directory)
     }
 
     fn registration_values(&self, directory: &str) -> Result<Vec<(&'static str, String, String)>> {
@@ -143,7 +138,12 @@ impl Repository<'_> {
     }
 
     pub fn register_hooks(&self, directory: &str) -> Result<()> {
-        self.validate_registration(directory)?;
+        Backend::Native(self.kind)
+            .source(self.root)
+            .register_hooks(directory)
+    }
+
+    fn write_registration(&self, directory: &str) -> Result<()> {
         let changes = self
             .registration_values(directory)?
             .into_iter()
@@ -161,6 +161,79 @@ impl Repository<'_> {
                     let (section, name) = key.split_once('.').expect("native configuration key");
                     writeln!(file, "\n[{section}]\n{name} = {desired}")?;
                 }
+            }
+        }
+        Ok(())
+    }
+}
+
+impl Source<'_> {
+    fn registration_values(&self, directory: &str) -> Result<Vec<(String, String, String)>> {
+        match self.backend {
+            Backend::Native(kind) => match kind.repository(self.root)? {
+                Some(repository) => Ok(repository
+                    .registration_values(directory)?
+                    .into_iter()
+                    .map(|(key, current, desired)| (key.into(), current, desired))
+                    .collect()),
+                None => Ok(Vec::new()),
+            },
+            Backend::External(adapter) => {
+                let values: Vec<(String, String, String)> = adapter.call(
+                    self.root,
+                    "registration",
+                    serde_json::json!({"directory": directory}),
+                )?;
+                let mut keys = std::collections::BTreeSet::new();
+                ensure!(
+                    !values.is_empty(),
+                    "external VCS registration must identify managed settings"
+                );
+                for (key, _, desired) in &values {
+                    ensure!(
+                        !key.is_empty() && !desired.is_empty() && keys.insert(key),
+                        "invalid or duplicate external VCS registration setting"
+                    );
+                }
+                Ok(values)
+            }
+        }
+    }
+
+    pub fn validate_registration(&self, directory: &str) -> Result<()> {
+        for (key, current, desired) in self.registration_values(directory)? {
+            ensure!(
+                current.is_empty() || current == desired,
+                "setup conflict: {key}={current}; existing registration preserved"
+            );
+        }
+        Ok(())
+    }
+
+    pub fn hooks_registered(&self, directory: &str) -> Result<bool> {
+        let values = self.registration_values(directory)?;
+        Ok(!values.is_empty()
+            && values
+                .iter()
+                .all(|(_, current, desired)| current == desired))
+    }
+
+    pub fn register_hooks(&self, directory: &str) -> Result<()> {
+        self.validate_registration(directory)?;
+        match self.backend {
+            Backend::Native(kind) => {
+                Repository::new(self.root, *kind).write_registration(directory)?
+            }
+            Backend::External(adapter) => {
+                adapter.call::<()>(
+                    self.root,
+                    "register-hooks",
+                    serde_json::json!({"directory": directory}),
+                )?;
+                ensure!(
+                    self.hooks_registered(directory)?,
+                    "VCS hook registration did not establish the required settings; inspect and preserve current state"
+                );
             }
         }
         Ok(())

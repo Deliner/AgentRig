@@ -2,6 +2,7 @@
 
 import json
 import os
+import shlex
 import subprocess
 import sys
 from collections.abc import Callable
@@ -77,6 +78,47 @@ def write(*arguments: str) -> None:
     assert result.returncode == 0, result.stderr.decode()
 
 
+def configuration(key: str) -> str:
+    missing = not Path(".hg").exists()
+    if missing:
+        return ""
+    environment = dict(os.environ, HGPLAIN="1", HGRCPATH="")
+    environment.pop("HGRCSKIPREPO", None)
+    environment.pop("HGPLAINEXCEPT", None)
+    result = subprocess.run(["hg", "config", key], env=environment, capture_output=True)
+    assert result.returncode in (0, 1), result.stderr.decode()
+    return result.stdout.decode().strip()
+
+
+def registration(arguments: dict[str, Any]) -> list[tuple[str, str, str]]:
+    assert not Path(".git").exists(), "existing Git repository must be preserved"
+    directory = arguments["directory"]
+    assert not any(char in directory for char in "\n\r\0"), "invalid hook directory"
+    desired = {
+        "hooks.pretxncommit.agentrig": "sh " + shlex.quote(directory + "/pretxncommit"),
+        "ui.ignore.agentrig": directory + ".hgignore",
+    }
+    return [(key, configuration(key), value) for key, value in desired.items()]
+
+
+def register_hooks(arguments: dict[str, Any]) -> None:
+    values = registration(arguments)
+    assert all(not current or current == desired for _, current, desired in values), (
+        "setup conflict"
+    )
+    changes = []
+    for key, current, desired in values:
+        missing = current != desired
+        if missing:
+            section, name = key.split(".", 1)
+            changes.append(f"\n[{section}]\n{name} = {desired}\n")
+    unchanged = not changes
+    if unchanged:
+        return
+    with Path(".hg/hgrc").open("a") as output:
+        output.write("".join(changes))
+
+
 def tree(arguments: dict[str, Any]) -> list[dict[str, str]]:
     entries = json.loads(
         hg("manifest", "--rev", arguments["revision"], "--debug", "--template", "json")
@@ -133,6 +175,8 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "head": head,
     "observe": observe,
     "initialize": initialize,
+    "registration": registration,
+    "register-hooks": register_hooks,
     "start-feature": start_feature,
     "parents": parents,
     "tree": tree,

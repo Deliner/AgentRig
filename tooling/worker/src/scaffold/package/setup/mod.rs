@@ -116,7 +116,10 @@ pub(super) fn install(
         fs::create_dir_all(review.runner.runtime_root)?;
         fs::create_dir_all(review.runner.report_root)?;
     }
-    review_runner::vcs::Repository::new(root, config.vcs.backend.native("hook registration")?)
+    config
+        .vcs
+        .backend
+        .source(root)
         .register_hooks(&config.paths.service_path("hooks"))?;
     println!("Setup installed the configured worker environment. Authentication remains separate.");
     super::doctor(&config::Context::load(root)?)

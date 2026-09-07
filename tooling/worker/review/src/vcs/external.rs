@@ -129,7 +129,7 @@ impl Adapter {
         Ok(())
     }
 
-    fn call<T: DeserializeOwned>(
+    pub(super) fn call<T: DeserializeOwned>(
         &self,
         root: &Path,
         operation: &str,
@@ -153,7 +153,8 @@ impl Adapter {
             "--proc",
             "/proc",
         ]);
-        let writes_repository = matches!(operation, "start-feature" | "initialize");
+        let writes_repository =
+            matches!(operation, "start-feature" | "initialize" | "register-hooks");
         if writes_repository {
             command.arg("--bind").arg(root).arg(root);
         }

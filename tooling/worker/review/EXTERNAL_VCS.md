@@ -85,7 +85,7 @@ No shell interprets this vector. The executable must be nonempty, and arguments
 cannot contain NUL. Each call starts one process with the consumer repository as
 its working directory. AgentRig uses bubblewrap with the filesystem mounted
 read-only for reads; the adapter must not require repository cache writes for reads.
-For `start-feature` and `initialize`, the consumer repository root is mounted writable;
+For `start-feature`, `initialize` and `register-hooks`, the consumer repository root is mounted writable;
 the rest of the filesystem remains read-only.
 Credentials and executable dependencies remain the caller's environment, outside
 the protocol payload. This is a filesystem write restriction, not a claim that
@@ -119,6 +119,8 @@ session is required.
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
 | `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
 | `initialize` | `base` string | Null after ensuring a repository exists; an existing repository is preserved. |
+| `registration` | `directory` string | Nonempty array of `[key, current, desired]` string triples describing managed native settings. |
+| `register-hooks` | `directory` string | Null after registering hooks without replacing conflicting user settings. |
 | `parents` | `revision` string | Array of exact parent IDs; empty for a root revision. |
 | `tree` | `revision` string | Array of `{path, kind, object}` entries. |
 | `read` | `revision` and `path` strings | Byte array: integer values from 0 through 255. |
@@ -151,8 +153,20 @@ repeated calls must preserve existing branches, revisions, user files and native
 configuration. The example refuses a Git repository and uses native Mercurial
 writes for a new repository. AgentRig observes the result to ensure it is readable.
 Failed initialization retains its state for repair. This operation does not
-install hooks; the complete private setup flow remains pending until generation
-and registration are supported.
+install hooks; the complete private setup flow remains pending until generated
+files and repository discovery are supported throughout setup.
+
+`Source` owns registration conflict checks for native and private backends. Each
+external registration key must be unique and nonempty, with a nonempty desired
+value. Empty current values mean unconfigured; a different nonempty value is a
+conflict. The read-only `registration` operation must also work before a repository
+exists, reporting the settings that will be needed. The write operation rechecks
+conflicts before mutation, preserves unrelated settings and is idempotent.
+AgentRig rereads external registration after success and requires every current
+value to equal its desired value. It preserves failed native state for repair.
+Setup validation, installation and doctor's registration check use this shared
+owner. Generated hook files, root lookup and MCP command generation still require
+the remaining private setup work.
 
 Paths must be canonical relative paths. Empty components, `.`, `..`, NUL,
 absolute paths and `.git`/`.hg` control components are rejected. Duplicate tree
@@ -182,6 +196,11 @@ It compares every repository file, including metadata, before and after reads.
 Other cases reject malformed replies, invalid versions and types, unsafe paths,
 duplicate entries and invalid file kinds; a process attempting to overwrite a
 working file fails and the original bytes remain unchanged.
+
+`tests/registration.rs` registers the external Mercurial hook, invokes it through
+a real native commit, preserves custom configuration and checks repeat registration,
+both managed-setting conflicts, invalid descriptions and false success replies.
+That hook is a test fixture; full installed delivery-gate acceptance remains separate.
 
 Configured review tests run a failing review, a repair and a successful re-review
 through the example, then reject a changed adapter or source root. Snapshot tests

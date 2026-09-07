@@ -110,13 +110,12 @@ fn sandbox_availability(context: &Context) -> bool {
     !failed
 }
 fn vcs_registration(context: &Context) -> Result<bool> {
-    let repository = context.config.vcs.backend.repository(&context.root)?;
-    let registered = match repository {
-        Some(repository) => {
-            repository.hooks_registered(&context.config.paths.service_path("hooks"))?
-        }
-        None => false,
-    };
+    let registered = context
+        .config
+        .vcs
+        .backend
+        .source(&context.root)
+        .hooks_registered(&context.config.paths.service_path("hooks"))?;
     let registered = registered
         && super::adapters::vcs_hooks(&context.config)?
             .iter()
