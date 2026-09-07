@@ -1,0 +1,11 @@
+purpose: Resolve JavaScript and TypeScript imports using their supported file, package and loader semantics
+files:
+  architecture.yaml: JavaScript and TypeScript resolution responsibilities and boundary
+  mod.rs: Node import and require resolution, TypeScript substitutions and package entry handling
+  tests.rs: Resolution precedence, metadata failures and comparisons with real Node behavior
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/resolution/mod.rs
+  - tooling/worker/src/lint/architecture/source/mod.rs
+deny: []
+public: [mod.rs]

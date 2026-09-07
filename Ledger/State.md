@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: d4f1a21
+Revision: e042b69
 
-Installed runtime 9aee4ae is available. Atomic JSON persistence and the corrected nonoverlapping test selection map are committed in d4f1a21. The current P009 VAC separates lint configuration, inventory, target selection and capability catalogue from execution orchestration. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae is available. Lint policy/discovery ownership is committed in e042b69. The current P009 VAC colocates JavaScript/TypeScript and Python resolver implementations with their existing tests and completes the resolver/runner contracts. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -24,9 +24,9 @@ Lint configuration, inventory and selection now own their implementations in sep
 
 Commit d4f1a21 passed its selective gate (27399 exited 0): 493 Python cases in 526.72 seconds plus configured Rust and other checks. Its wide affected set covered delegation, jobs, setup and evidence; it did not run the full suite. Pytest selection uses nonoverlapping whole targets after a measured file/node overlap was corrected. Full-merge behavior remains unchanged.
 
-Current ownership relocation compiles as a candidate. Fifty native configuration/lint/explanation cases pass, and 51 Rust lint tests passed before the final catalogue boundary correction. Self-analysis of the final layout reports 29 cycles and 23 missing contracts, down from 32 and 25 at d4f1a21. Exactly three lint cycles disappear; there are no new cycles, boundary failures or incomplete-analysis findings. Probe output is .tmp/p009-lint-owners.json. The final configured selective commit gate remains to run.
+Commit e042b69 passed the selective gate (4296 exited 0): 251 Python cases in 31.90 seconds plus configured Rust and other checks. It removed three lint cycles without adding new ones.
 
-Resume confirmed d4f1a21 with no merge or rebase in progress. These checks do not establish full P009 acceptance.
+Current resolver colocation preserves Rust module paths and implementation bytes. All 29 Rust resolver tests pass (78188), including real Python/Node and compiled Rust comparisons. Candidate self-analysis reports 29 cycles and 18 missing contracts, down from 23 missing contracts, with no other findings (.tmp/p009-resolver-owners.json, 56709). The new five contracts cover the shared resolution result, three language owners and the runner. Final selective commit verification remains pending; these checks do not establish full P009 acceptance. Resume confirmed e042b69 with no merge or rebase, completed selective evidence and full_gate_passed=false.
 
 ## Blockers
 

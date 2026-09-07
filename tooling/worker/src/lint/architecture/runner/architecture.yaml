@@ -1,0 +1,20 @@
+purpose: Execute architecture analysis over configured scope and convert measured contract findings into lint diagnostics
+files:
+  architecture.yaml: Architecture execution responsibilities and dependency boundary
+  mod.rs: Coordinate inventory validation, dependency analysis and diagnostic conversion
+  scope.rs: Select directories and source files while preserving complete responsibility inventories
+  analysis.rs: Read sources, build language resolvers and link local crate dependencies
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/mod.rs
+  - tooling/worker/src/lint/architecture/resolution/mod.rs
+  - tooling/worker/src/lint/architecture/resolution/javascript/mod.rs
+  - tooling/worker/src/lint/architecture/resolution/python/mod.rs
+  - tooling/worker/src/lint/architecture/resolution/rust/mod.rs
+  - tooling/worker/src/lint/architecture/source/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/src/lint/inventory/mod.rs
+  - tooling/worker/src/lint/selection/mod.rs
+  - tooling/worker/src/diagnostics/lint.rs
+deny: []
+public: [mod.rs]

@@ -1,0 +1,11 @@
+purpose: Resolve Python imports through regular packages, namespace packages and modules under the configured root
+files:
+  architecture.yaml: Python resolution responsibilities and dependency boundary
+  mod.rs: Import roots, relative names, package precedence and member resolution
+  tests.rs: Package loading, incomplete resolution and comparisons with real Python imports
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/resolution/mod.rs
+  - tooling/worker/src/lint/architecture/source/mod.rs
+deny: []
+public: [mod.rs]
