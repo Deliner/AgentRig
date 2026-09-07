@@ -237,9 +237,7 @@ checks:
   affected:
   - include: ['**']
     targets:
-    - tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills
-    - tooling/tests/native/scaffold/test_commands.py::test_config_and_command_streams
-    - tooling/tests/native/scaffold/test_gate.py::test_staged_gate_uses_staged_configuration
+    - tooling/tests/native/test_config_check.py
   - include:
     - tooling/worker/src/lint/**
     - tooling/worker/review/src/vcs/**
@@ -272,7 +270,7 @@ checks:
     - tooling/tests/native/test_delegate_vcs.py
     - tooling/tests/native/scaffold/test_setup.py
     - tooling/tests/native/scaffold/test_capabilities.py
-    - tooling/tests/native/upgrades/test_delegate_migration.py
+    - tooling/tests/native/upgrades
   - include:
     - tooling/worker/src/scaffold/**
     - tooling/worker/src/hooks/**

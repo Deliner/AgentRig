@@ -1,3 +1,4 @@
+use review_runner::artifacts::json::save as save_json;
 mod execution;
 pub mod mcp;
 mod report;
@@ -7,10 +8,7 @@ use super::{
     sandbox::{self, Layout},
     task::{self, Request},
 };
-use crate::{
-    jobs::{self, Job, Lifetime, Limits},
-    util::save_json,
-};
+use crate::jobs::{self, Job, Lifetime, Limits};
 use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use std::{env, fs, path::Path};

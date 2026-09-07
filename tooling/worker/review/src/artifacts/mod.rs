@@ -1,3 +1,4 @@
+pub mod json;
 use anyhow::{Context, Result, ensure};
 #[cfg(test)]
 mod tests;

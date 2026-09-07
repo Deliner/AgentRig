@@ -1,5 +1,6 @@
-use crate::{delegate::task, util::save_json};
+use crate::delegate::task;
 use anyhow::{Context, Result, ensure};
+use review_runner::artifacts::json::save as save_json;
 use review_runner::artifacts::read_regular;
 use serde_json::{Value, json};
 use std::{fs, path::Path};

@@ -49,7 +49,7 @@ impl Job {
                 return Err(error.into());
             }
         };
-        crate::util::save_json(
+        review_runner::artifacts::json::save(
             &self.directory.join("launcher.json"),
             &Identity::read(child.id()).ok(),
         )?;

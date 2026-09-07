@@ -166,11 +166,7 @@ impl Attempt {
     fn save(&self) -> Result<()> {
         let directory = self.path.parent().expect("runtime file parent");
         fs::create_dir_all(directory)?;
-        let mut file = tempfile::NamedTempFile::new_in(directory)?;
-        serde_json::to_writer(file.as_file_mut(), &self.record)?;
-        file.as_file().sync_all()?;
-        file.persist(&self.path)?;
-        Ok(())
+        review_runner::artifacts::json::save(&self.path, &self.record)
     }
 }
 fn read(path: &Path) -> Result<Option<Record>> {

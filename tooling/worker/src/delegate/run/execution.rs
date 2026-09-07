@@ -7,9 +7,9 @@ use crate::{
         task::{self, Request},
     },
     jobs,
-    util::save_json,
 };
 use anyhow::{Result, ensure};
+use review_runner::artifacts::json::save as save_json;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 use std::{

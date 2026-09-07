@@ -30,3 +30,33 @@ fn non_regular_paths_cannot_supply_artifact_bytes() {
     assert!(read_regular(&root.path().join("missing"), 100).is_err());
     assert_eq!(fs::read(source).unwrap(), b"secret");
 }
+
+#[test]
+fn json_serialization_failure_preserves_the_previous_artifact() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("result.json");
+    let original = serde_json::json!({"status": "accepted"});
+    super::json::save(&path, &original).unwrap();
+    let before = fs::read(&path).unwrap();
+    let invalid = std::collections::BTreeMap::from([(vec![1, 2], "not a JSON object key")]);
+    assert!(super::json::save(&path, &invalid).is_err());
+    assert_eq!(fs::read(&path).unwrap(), before);
+    assert_eq!(fs::read_dir(root.path()).unwrap().count(), 1);
+    let updated = serde_json::json!({"status": "completed"});
+    super::json::save(&path, &updated).unwrap();
+    let actual: serde_json::Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
+    assert_eq!(actual, updated);
+}
+
+#[test]
+fn json_replacement_preserves_symlink_targets_and_reports_missing_parents() {
+    let root = tempfile::tempdir().unwrap();
+    let source = root.path().join("original.json");
+    let link = root.path().join("result.json");
+    fs::write(&source, b"original").unwrap();
+    std::os::unix::fs::symlink(&source, &link).unwrap();
+    super::json::save(&link, &serde_json::json!({"new": true})).unwrap();
+    assert!(fs::symlink_metadata(&link).unwrap().is_file());
+    assert_eq!(fs::read(source).unwrap(), b"original");
+    assert!(super::json::save(&root.path().join("missing/result.json"), &0).is_err());
+}
