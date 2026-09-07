@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 8d4990c
+Revision: dece9c0
 
-Installed runtime 9aee4ae is available. Frozen resource bundle ownership is committed in 8d4990c. The current P009 VAC moves shared option consumption from mixed util.rs to arguments/mod.rs with colocated behavior tests and an exact contract. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae is available. Shared argument ownership is committed in dece9c0. The current P009 VAC moves shared path resolution from mixed util.rs to paths/mod.rs with colocated behavior tests and an exact contract. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -30,7 +30,9 @@ Commit 66e5dc7 passed its selective gate (58310 exited 0). Resolver implementati
 
 Commit 8d4990c passed its selective gate (16954 exited 0): 491 Python cases in 588.90 seconds and configured Rust checks. It removed two root/delegation cycles, leaving 27 cycles and 18 missing contracts.
 
-Current argument ownership preserves util::take_option as an explicit compatibility export; main, lint and setup use the actual owner. Three argument tests pass (18589), covering order, duplicates, literal separation, values and error consumption. Twenty-seven embedded/standalone lint and setup cases pass in 0.67 seconds (84926). Candidate self-analysis removes the lint/root cycle with no new cycles or other findings, leaving 26 cycles and 18 missing contracts (.tmp/p009-arguments-owner.json, 22170). Lint permissions now name arguments/mod.rs; lint and scaffold affected maps cover arguments/**. Resume confirmed 8d4990c without merge/rebase. Final selective commit verification remains pending.
+Commit dece9c0 passed its selective gate (80052 exited 0): 617 Python cases in 514.16 seconds and configured Rust checks. It removed the lint/root cycle, leaving 26 cycles and 18 missing contracts.
+
+Current path ownership preserves util::resolve as an explicit compatibility export; hooks, configuration, memory, setup and migration use the actual owner. The resolver still permits missing tails and leaves project-boundary enforcement to callers. Three path tests pass (24586), covering normalization, relative/absolute links, dangling links and cycles. Five hook/interactive setup cases pass in 5.96 seconds (97934). Candidate self-analysis (92241, .tmp/p009-paths-owner.json) removes one root/hooks/scaffold/memory/upgrade/root cycle without new cycles or other findings, leaving 25 cycles and 18 missing contracts. Scaffold's affected map covers paths/**. Final selective commit verification remains pending.
 
 ## Blockers
 
@@ -38,6 +40,6 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit shared argument ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. Hook object/text helpers are hook-owned; path resolution has multiple consumers; Git queries belong with the VCS owner. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
+Commit shared path ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. Hook object/text helpers are hook-owned; Git queries belong with the VCS owner. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
 
 Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

@@ -5,5 +5,6 @@ pub mod diagnostics;
 pub mod environment;
 pub mod jobs;
 pub mod lint;
+pub mod paths;
 pub mod resources;
 pub mod util;

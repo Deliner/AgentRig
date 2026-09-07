@@ -21,7 +21,7 @@ pub fn configuration(root: &Path, config: &Config, files: &Files) -> Result<Valu
             .parent()
             .context("review configuration directory required")?;
         for tool in settings.tools.values() {
-            let path = crate::util::resolve(&parent.join(&tool.project_config))?;
+            let path = agentrig::paths::resolve(&parent.join(&tool.project_config))?;
             let relative = path
                 .strip_prefix(root)?
                 .to_str()

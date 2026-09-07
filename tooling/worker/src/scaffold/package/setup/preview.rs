@@ -116,7 +116,7 @@ fn lint(root: &Path, preview: &Path, path: &str) -> Result<()> {
     )
 }
 fn resource(root: &Path, preview: &Path, path: &Path) -> Result<PathBuf> {
-    let resolved = crate::util::resolve(path)?;
+    let resolved = agentrig::paths::resolve(path)?;
     let exists = resolved.is_file();
     if exists {
         return Ok(resolved);

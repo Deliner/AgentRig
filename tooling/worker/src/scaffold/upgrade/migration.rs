@@ -124,7 +124,7 @@ fn review_resources(
         let project = reference
             .as_str()
             .context("project_config must be a path")?;
-        let absolute = crate::util::resolve(&root.join(path).parent().unwrap().join(project))?;
+        let absolute = agentrig::paths::resolve(&root.join(path).parent().unwrap().join(project))?;
         let target = match absolute.strip_prefix(root) {
             Ok(relative) => {
                 let name = relative
@@ -222,7 +222,7 @@ fn import_project(path: &Path, imported: &mut agentrig::resources::Bundle) -> Re
 }
 
 fn from_config(root: &Path, config: &str, target: &str) -> Result<String> {
-    let config = crate::util::resolve(&root.join(config))?;
+    let config = agentrig::paths::resolve(&root.join(config))?;
     let parent = config.parent().context("configuration parent required")?;
     let depth = parent.strip_prefix(root)?.components().count();
     let prefix: std::path::PathBuf = std::iter::repeat_n("..", depth).collect();

@@ -275,6 +275,7 @@ checks:
     - tooling/tests/native/upgrades
   - include:
     - tooling/worker/src/scaffold/**
+    - tooling/worker/src/paths/**
     - tooling/worker/src/arguments/**
     - tooling/worker/src/hooks/**
     - tooling/worker/src/environment/**

@@ -174,7 +174,7 @@ pub fn target(root: &Path, base: &Path, value: &str) -> Result<PathBuf> {
         !Path::new(value).is_absolute(),
         "memory link must be relative: {value}"
     );
-    let path = crate::util::resolve(&base.join(value))?;
+    let path = agentrig::paths::resolve(&base.join(value))?;
     ensure!(
         path.starts_with(root) && path.is_file(),
         "missing or escaping memory link: {value}"

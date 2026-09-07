@@ -201,7 +201,7 @@ pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
             && !path.components().any(|c| matches!(c, Component::ParentDir)),
         "path must stay relative to project: {value}"
     );
-    let resolved = crate::util::resolve(&root.join(path))?;
+    let resolved = agentrig::paths::resolve(&root.join(path))?;
     ensure!(resolved.starts_with(root), "path escapes project: {value}");
     Ok(resolved)
 }

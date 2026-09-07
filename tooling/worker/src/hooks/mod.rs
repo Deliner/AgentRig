@@ -11,7 +11,8 @@ mod reminder;
 mod transcript;
 
 use crate::scaffold::config::Context;
-use crate::util::{resolve, text};
+use crate::util::text;
+use agentrig::paths::resolve;
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, path::Path};

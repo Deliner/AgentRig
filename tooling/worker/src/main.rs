@@ -95,7 +95,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     let initializing = command == "init";
     let interactive = initializing && args.iter().any(|arg| arg == "--interactive");
     if interactive {
-        return util::resolve(&env::current_dir()?.join(root));
+        return agentrig::paths::resolve(&env::current_dir()?.join(root));
     }
     if initializing {
         std::fs::create_dir_all(&root)?;
