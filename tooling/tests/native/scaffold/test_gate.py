@@ -5,7 +5,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import CONFIG, invoke, project, update_config
+from support import CONFIG, invoke, project, update_config, vcs_backend
 
 GATE = """
 checks:
@@ -209,3 +209,35 @@ def test_private_resume_accepts_opaque_recorded_revisions(worker: Path, tmp_path
     assert report["snapshot"] == "current"
     assert report["state_revision"]["resolved"] == "revision-42"
     assert "git" not in report
+
+
+@pytest.mark.parametrize("obstacle", ["none", "untracked", "hook", "invalid-name"])
+def test_private_feature_start_preserves_native_state(
+    worker: Path, tmp_path: Path, obstacle: str
+) -> None:
+    from test_feedback import commit, resumed, revision
+    from test_git import feature_repository
+
+    feature_repository(tmp_path, "hg")
+    update_config(tmp_path / "agentrig.yaml", git={"backend": vcs_backend("private")})
+    commit(tmp_path, "hg")
+    base = revision(tmp_path, "hg")
+    untracked = obstacle == "untracked"
+    hook = obstacle == "hook"
+    invalid = obstacle == "invalid-name"
+    succeeds = obstacle == "none"
+    if untracked:
+        (tmp_path / "pending.txt").write_text("preserve me\n")
+    if hook:
+        (tmp_path / ".hg/hgrc").write_text("[hooks]\npre-branch.reject = false\n")
+    name = "bad:name" if invalid else "with spaces"
+    result = invoke(worker, tmp_path, "feature-start", name)
+    assert result.returncode == (0 if succeeds else 2), result.stdout + result.stderr
+    assert revision(tmp_path, "hg") == base
+    branch = resumed(worker, tmp_path)["vcs"]["branch"]
+    assert branch == ("task/with spaces" if succeeds else "default")
+    assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
+    if untracked:
+        assert (tmp_path / "pending.txt").read_text() == "preserve me\n"
+    if hook:
+        assert "pre-branch.reject" in result.stderr

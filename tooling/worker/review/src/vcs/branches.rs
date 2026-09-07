@@ -1,4 +1,4 @@
-use super::{Backend, Kind, Repository, Settings, git, mercurial};
+use super::{Backend, Kind, Repository, Settings, Source, git, mercurial};
 use anyhow::{Result, ensure};
 
 impl Settings {
@@ -41,6 +41,14 @@ impl Kind {
 
 impl Repository<'_> {
     pub fn start_feature(&self, settings: &Settings, name: &str) -> Result<String> {
+        Backend::Native(self.kind)
+            .source(self.root)
+            .start_feature(settings, name)
+    }
+}
+
+impl Source<'_> {
+    pub fn start_feature(&self, settings: &Settings, name: &str) -> Result<String> {
         ensure!(
             !name.is_empty() && !name.starts_with('-'),
             "feature name required"
@@ -60,12 +68,13 @@ impl Repository<'_> {
             !observed.merge_in_progress && !observed.rebase_in_progress,
             "finish or abort the pending VCS operation before starting a feature"
         );
-        match self.kind {
-            Kind::Git => {
+        match self.backend {
+            Backend::Native(Kind::Git) => {
                 git::run(self.root, &["check-ref-format", "--branch", &branch])?;
                 git::run(self.root, &["switch", "-c", &branch])?;
             }
-            Kind::Mercurial => mercurial::create_branch(self.root, &branch)?,
+            Backend::Native(Kind::Mercurial) => mercurial::create_branch(self.root, &branch)?,
+            Backend::External(adapter) => adapter.start_feature(self.root, &branch, &observed)?,
         }
         Ok(branch)
     }

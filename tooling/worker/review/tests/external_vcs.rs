@@ -338,6 +338,24 @@ fn protocol_rejects_wrong_versions_types_unknown_fields_and_empty_ids() {
 }
 
 #[test]
+fn feature_start_rejects_success_without_the_requested_branch() {
+    let root = tempfile::tempdir().unwrap();
+    let state = json!({"branch":"main", "revision":"r1", "status":"", "merge_in_progress":false, "rebase_in_progress":false});
+    let script = format!(
+        "import json,sys; request=json.load(sys.stdin); state=json.loads({:?}); result=state if request['operation']=='observe' else None; print(json.dumps({{'version':1,'result':result}}))",
+        state.to_string()
+    );
+    let adapter = Adapter {
+        command: vec!["python3".into(), "-c".into(), script],
+    };
+    let expected = adapter.observe(root.path()).unwrap();
+    let error = adapter
+        .start_feature(root.path(), "task/new", &expected)
+        .unwrap_err();
+    assert!(error.to_string().contains("did not establish"));
+}
+
+#[test]
 fn protocol_rejects_unsafe_paths_duplicate_entries_and_invalid_file_kinds() {
     let root = tempfile::tempdir().unwrap();
     for path in [

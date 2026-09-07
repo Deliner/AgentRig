@@ -1,4 +1,4 @@
-"""Independent protocol-v1 read adapter over Mercurial; no AgentRig imports."""
+"""Independent protocol-v1 adapter over Mercurial; no AgentRig imports."""
 
 import json
 import os
@@ -47,6 +47,23 @@ def observe(arguments: dict[str, Any]) -> dict[str, Any]:
 
 def has_revision(value: str) -> bool:
     return value != "0" * 40
+
+
+def start_feature(arguments: dict[str, Any]) -> None:
+    current = observe({})
+    expected = arguments["expected"]
+    assert current["branch"] == expected["branch"], "branch changed before feature start"
+    assert current["revision"] == expected["revision"], "revision changed before feature start"
+    assert not current["status"], "working copy must be clean"
+    assert not current["merge_in_progress"], "merge is pending"
+    assert not current["rebase_in_progress"], "rebase is pending"
+    environment = dict(os.environ, HGPLAIN="1")
+    environment.pop("HGRCSKIPREPO", None)
+    environment.pop("HGPLAINEXCEPT", None)
+    result = subprocess.run(
+        ["hg", "branch", "--", arguments["branch"]], env=environment, capture_output=True
+    )
+    assert result.returncode == 0, result.stderr.decode()
 
 
 def tree(arguments: dict[str, Any]) -> list[dict[str, str]]:
@@ -104,6 +121,7 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "resolve": resolve,
     "head": head,
     "observe": observe,
+    "start-feature": start_feature,
     "parents": parents,
     "tree": tree,
     "read": read,

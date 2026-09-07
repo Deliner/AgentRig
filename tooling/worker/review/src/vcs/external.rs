@@ -102,6 +102,27 @@ impl Adapter {
         self.call(root, "diff", boundary(revisions))
     }
 
+    pub fn start_feature(&self, root: &Path, branch: &str, expected: &Observation) -> Result<()> {
+        self.call::<()>(
+            root,
+            "start-feature",
+            json!({
+                "branch": branch,
+                "expected": {"branch": expected.branch, "revision": expected.revision},
+            }),
+        )?;
+        let current = self.observe(root)?;
+        ensure!(
+            current.branch == branch
+                && current.revision == expected.revision
+                && current.status.is_empty()
+                && !current.merge_in_progress
+                && !current.rebase_in_progress,
+            "external VCS did not establish the requested clean feature at the original revision; inspect and preserve its current state"
+        );
+        Ok(())
+    }
+
     fn call<T: DeserializeOwned>(
         &self,
         root: &Path,
@@ -115,23 +136,28 @@ impl Adapter {
             &json!({"version": 1, "operation": operation, "arguments": arguments}),
         )?;
         input.rewind()?;
-        let output = Command::new("bwrap")
-            .args([
-                "--die-with-parent",
-                "--ro-bind",
-                "/",
-                "/",
-                "--dev",
-                "/dev",
-                "--proc",
-                "/proc",
-                "--",
-            ])
+        let mut command = Command::new("bwrap");
+        command.args([
+            "--die-with-parent",
+            "--ro-bind",
+            "/",
+            "/",
+            "--dev",
+            "/dev",
+            "--proc",
+            "/proc",
+        ]);
+        let writes_repository = operation == "start-feature";
+        if writes_repository {
+            command.arg("--bind").arg(root).arg(root);
+        }
+        let output = command
+            .arg("--")
             .args(&self.command)
             .current_dir(root)
             .stdin(input)
             .output()
-            .context("launch read-only external VCS adapter with bubblewrap")?;
+            .context("launch external VCS adapter with bubblewrap")?;
         decode(operation, output)
     }
 }

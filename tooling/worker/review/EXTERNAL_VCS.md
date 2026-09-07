@@ -1,4 +1,4 @@
-# Private VCS read protocol
+# Private VCS protocol
 
 Project checks, recovery, review and delegation can select a private VCS read adapter through their existing
 configuration. The shared `vcs::Backend`/`Source` owner dispatches native Git,
@@ -32,8 +32,9 @@ checks inspect the exported files. Direct lint commands select an adapter with
 falls back to a native repository found beside it. Native project selection now
 requires matching repository metadata; omitted selection still means Git.
 Private branch naming belongs to the adapter; configuration only requires
-nonempty base and prefix. Setup, generated hooks/MCP registration and feature
-delivery currently report explicit unimplemented private-operation errors.
+nonempty base and prefix. `feature-start` supports the write operation below.
+Setup, generated hooks/MCP registration, commit and feature integration currently
+report explicit unimplemented private-operation errors.
 
 For direct lint commands, put the Backend declaration alone in a YAML file:
 
@@ -83,7 +84,9 @@ workspace and does not modify the source repository through the private adapter.
 No shell interprets this vector. The executable must be nonempty, and arguments
 cannot contain NUL. Each call starts one process with the consumer repository as
 its working directory. AgentRig uses bubblewrap with the filesystem mounted
-read-only; the adapter must not require repository cache writes for reads.
+read-only for reads; the adapter must not require repository cache writes for reads.
+For `start-feature` only, the consumer repository root is mounted writable;
+the rest of the filesystem remains read-only.
 Credentials and executable dependencies remain the caller's environment, outside
 the protocol payload. This is a filesystem write restriction, not a claim that
 the configured executable cannot access network services.
@@ -114,6 +117,7 @@ session is required.
 | `resolve` | `reference` string | One exact revision ID string; ambiguous selections fail. |
 | `head` | Empty object | Exact current revision ID, or null for an unborn repository. |
 | `observe` | Empty object | `{branch, revision, status, merge_in_progress, rebase_in_progress}`; the first three are strings, the last two booleans. Empty revision means unborn. |
+| `start-feature` | `branch` string and `expected: {branch, revision}` strings | Null after creating the requested feature at the expected revision. |
 | `parents` | `revision` string | Array of exact parent IDs; empty for a root revision. |
 | `tree` | `revision` string | Array of `{path, kind, object}` entries. |
 | `read` | `revision` and `path` strings | Byte array: integer values from 0 through 255. |
@@ -130,6 +134,15 @@ Observation identifies the actual working branch, native status text and pending
 operations. Its backend identity comes from configuration, never the reply.
 Recovery resolves recorded revision references through this source, including
 opaque non-hexadecimal IDs.
+
+Before `start-feature`, AgentRig requires the configured base branch, a clean
+working copy and no pending merge or rebase. The adapter must reject stale
+expected state, invalid or existing native branch names, and honor native hooks.
+After success, AgentRig observes the repository again and requires the requested
+branch, unchanged revision, clean status and no pending operation. A failure
+retains the native state for inspection; AgentRig does not reset or undo it.
+The example rechecks expected state before invoking `hg branch`; this is not an
+atomic lock against concurrent external commands.
 
 Paths must be canonical relative paths. Empty components, `.`, `..`, NUL,
 absolute paths and `.git`/`.hg` control components are rejected. Duplicate tree
@@ -148,7 +161,7 @@ for `check --revision`, retaining exact-export checks and input-mutation rejecti
 
 ## Independent example and evidence
 
-[external_vcs.py](../examples/external_vcs.py) implements all listed reads over
+[external_vcs.py](../examples/external_vcs.py) implements all listed operations over
 Mercurial using only Python's standard library and the `hg` executable. It imports
 no AgentRig code. It is an example of the boundary, not a proprietary VCS or a
 second native implementation shipped for ordinary Mercurial consumers.

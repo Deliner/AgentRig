@@ -7,7 +7,7 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     let settings = &context.config.vcs;
     let repository = settings
         .backend
-        .repository(&context.root)?
+        .repository_source(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
     let branch = repository.start_feature(settings, name)?;
     println!("{branch}");

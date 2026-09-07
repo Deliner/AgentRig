@@ -100,8 +100,8 @@ impl Backend {
 }
 
 pub struct Source<'a> {
-    root: &'a Path,
-    backend: &'a Backend,
+    pub(super) root: &'a Path,
+    pub(super) backend: &'a Backend,
 }
 
 impl Source<'_> {
