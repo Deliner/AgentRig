@@ -34,7 +34,8 @@ fn mercurial_fixture(external: bool) -> Fixture {
         let path = root.join("project.yaml");
         let mut project: serde_json::Value = review_runner::config::yaml::read(&path).unwrap();
         project["repository"]["vcs"] = serde_json::json!({"command": [
-            "python3", "-B", concat!(env!("CARGO_MANIFEST_DIR"), "/../examples/external_vcs.py")
+            "python3", "-B", std::path::PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
+                .join("../examples/external_vcs.py")
         ]});
         std::fs::write(path, review_runner::config::yaml::encode(&project).unwrap()).unwrap();
     }
@@ -56,7 +57,7 @@ fn review_and_repair(external: bool) {
     let root = fixture.0.path();
     let repo = root.join("repo");
     let first = fixture.run(None);
-    assert_eq!(first["verdict"], "FAIL");
+    assert_eq!(first["verdict"], "FAIL", "{first:#}");
     let previous = root.join(format!(
         "reports/{}.json",
         first["run_id"].as_str().unwrap()
@@ -66,7 +67,7 @@ fn review_and_repair(external: bool) {
     std::fs::write(repo.join("src/value.py"), "uncommitted\n").unwrap();
     fixture.mode("pass");
     let repaired = fixture.run(Some(&previous));
-    assert_eq!(repaired["verdict"], "PASS");
+    assert_eq!(repaired["verdict"], "PASS", "{repaired:#}");
     assert_eq!(repaired["snapshot"]["base"], first["snapshot"]["base"]);
     assert_ne!(
         repaired["snapshot"]["candidate"],

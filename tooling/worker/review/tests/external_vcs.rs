@@ -12,7 +12,9 @@ use std::{
 };
 
 fn example() -> Adapter {
-    let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/external_vcs.py");
+    // Cached tests can outlive the exported source tree where they were compiled.
+    let script = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
+        .join("../examples/external_vcs.py");
     Adapter {
         command: vec![
             "python3".into(),

@@ -3,7 +3,9 @@ use serde_json::json;
 use std::{fs, path::Path, process::Command};
 
 fn external() -> Backend {
-    let script = Path::new(env!("CARGO_MANIFEST_DIR")).join("../examples/external_vcs.py");
+    // Cargo supplies the current crate path even when the test binary is cached.
+    let script = std::path::PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
+        .join("../examples/external_vcs.py");
     Backend::External(Adapter {
         command: vec![
             "python3".into(),
