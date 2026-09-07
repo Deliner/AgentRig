@@ -1,0 +1,12 @@
+purpose: Extract Rust module and item dependencies with language-specific path normalization
+files:
+  architecture.yaml: Rust extraction responsibilities and public handler boundary
+  mod.rs: Rust syntax dispatch and normalized path recording with module scope tracking
+  attributes.rs: Dependency-bearing attributes and explicit unsupported attribute findings
+  macros.rs: Supported macro reference extraction and incomplete expansion findings
+  prelude.rs: Prelude and local binding interpretation for extracted Rust paths
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/source/model/mod.rs
+deny: []
+public: [mod.rs]

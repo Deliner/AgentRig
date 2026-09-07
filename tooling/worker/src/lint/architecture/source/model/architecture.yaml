@@ -1,0 +1,10 @@
+purpose: Represent extracted dependency references and collect located findings without invoking language handlers
+files:
+  architecture.yaml: Shared reference model responsibilities and dependency boundary
+  mod.rs: Reference records and extraction context with deduplication and static literal helpers
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/mod.rs
+  - tooling/worker/src/lint/languages/**
+deny: []
+public: [mod.rs]

@@ -1,4 +1,4 @@
-use super::super::RustMacro;
+use super::super::model::RustMacro;
 use super::{Source, Target, compact, scope};
 use tree_sitter::Node;
 
@@ -16,7 +16,8 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
             source.unsupported(node, "block-local macro imports require lexical resolution");
             return;
         }
-        source.record(
+        super::record(
+            source,
             name,
             Target::RustMacro(RustMacro {
                 path,
@@ -121,7 +122,8 @@ fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> (String,
 fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Option<Node<'_>>) {
     let scope = scope(source, node);
     if let Some(arguments) = arguments {
-        source.record(
+        super::record(
+            source,
             node,
             Target::RustMacro(RustMacro {
                 path,
@@ -133,7 +135,7 @@ fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Opti
         let qualified = path.contains("::");
         if qualified {
             let path = super::self_path(source, node, path);
-            source.record(node, Target::RustPath { path, scope });
+            super::record(source, node, Target::RustPath { path, scope });
         }
     }
 }

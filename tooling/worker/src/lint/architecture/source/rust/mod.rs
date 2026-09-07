@@ -2,8 +2,19 @@ mod attributes;
 mod macros;
 pub(super) mod prelude;
 
-use super::{RustImport, RustItem, Source, Target};
+use super::model::{RustImport, RustItem, Source, Target};
 use tree_sitter::Node;
+
+fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {
+    let target = match target {
+        Target::RustPath { path, scope } => Target::RustPath {
+            path: prelude::path(source, node, generic_path(source, node, path)),
+            scope,
+        },
+        target => target,
+    };
+    source.record(node, target);
+}
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
     match node.kind() {
@@ -145,7 +156,8 @@ fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<Str
         joined(prefix, &value)
     };
     let path = self_path(source, node, path);
-    source.record(
+    record(
+        source,
         node,
         Target::RustPath {
             path: path.clone(),
@@ -271,7 +283,8 @@ fn module(source: &mut Source<'_>, node: Node<'_>) {
     if let Some(name) = node.child_by_field_name("name") {
         let mut path = scope(source, node);
         path.push(compact(source.text(name)));
-        source.record(
+        record(
+            source,
             node,
             Target::RustModule {
                 path,

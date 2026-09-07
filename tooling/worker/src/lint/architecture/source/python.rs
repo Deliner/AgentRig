@@ -1,4 +1,4 @@
-use super::{Source, Target};
+use super::model::{Source, Target};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {

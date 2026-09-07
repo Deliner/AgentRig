@@ -55,7 +55,8 @@ fn derives(source: &mut Source<'_>, attribute: Node<'_>) {
             .iter()
             .map(|node| compact(source.text(*node)))
             .collect();
-        source.record(
+        super::record(
+            source,
             attribute,
             Target::RustDerive {
                 path,
@@ -78,7 +79,8 @@ fn serialization(source: &mut Source<'_>, attribute: Node<'_>) {
         }
         let value = serde_value(source, &group);
         match value {
-            Some((path, true)) => source.record(
+            Some((path, true)) => super::record(
+                source,
                 attribute,
                 Target::RustPath {
                     path,
