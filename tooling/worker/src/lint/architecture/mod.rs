@@ -20,6 +20,8 @@ pub struct Dependency {
     pub source: PathBuf,
     pub target: PathBuf,
     pub line: usize,
+    /// Rust module ownership declarations still undergo boundary checks.
+    pub module_declaration: bool,
 }
 
 #[derive(Debug)]

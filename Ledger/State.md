@@ -2,36 +2,32 @@
 
 ## Focus
 
-Deliver active P009. Inventory and Rust analysis support are committed. Apply complete architecture contracts and repair ownership across AgentRig; acceptance remains unfinished.
+Deliver active P009. Complete architecture self-application and feature/module ownership across maintained AgentRig source, tests, documentation and resources. Acceptance remains unfinished.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: 292af05
+Revision: 14bbd03
 
-The previous ownership VAC is committed. The new VAC moves review config.rs into config/mod.rs and configuration/YAML integration tests into that directory. Cargo retains the configuration and yaml test target names through explicit paths. The new configuration contract and updated consumer permissions are uncommitted. Development pin is unchanged; no integration is in progress.
+The review ownership VAC is committed. Current uncommitted VAC distinguishes Rust module declarations from item-use dependencies for cycle detection, preserving boundary checks. Development pin is unchanged. No integration or commit process is running.
 
 ## Progress
 
-P006–P008 remain complete. P009 inventory, repair guidance, empty-directory discovery, macro/resource/attribute analysis and Rust binding support are committed. Delegate contracts describe code, config, task, sandbox and run, plus the enclosing delegation boundary. Environment and review sandbox have their own contracts. The MCP adapter and schema belong to run; delegate::mcp remains a compatibility export. P009's delivery sequence is reconciled with committed analysis work.
+Inventory, repair guidance, Rust binding analysis and delegate/environment/review ownership changes are committed. Configuration and response validation now include their owned tests and resources; public API paths and Cargo test identities are retained. The repair skill guards against moves justified only by lint counts and against treating every mod.rs as a facade.
+
+The minimal compiling fixture .tmp/p009-module-wiring-9cfetwbh showed that declaration-only composition and actual parent-to-child use produced the same cycle. Dependency now records module_declaration; graph traversal skips only declaration edges, while allow/deny/public still check them. Calls, type references, imports and reexports remain cycle edges. ARCHITECTURE.md documents this distinction.
 
 ## Verification
 
-Commit attempt 90385 exited 1 only at review-rustfmt: the review crate required swapping two imports in response/mod.rs. All preceding checks passed, including 666 Python tests in 710.77 seconds and 145 Rust tests. Formatting was corrected through review/Cargo.toml; the staged focused retry and full commit gate remain to run.
+Commit 14bbd03 passed all configured gates (11377 exited 0): 666 Python tests in 648.70 seconds and 145 Rust tests. Earlier attempt 90385 failed only review-rustfmt and was corrected before that successful retry.
 
-The completed review ownership VAC passes all 69 review Rust tests (61840 exited 0), structural lint and skill quick validation. The latest Rust probe (78927 exited 0) reports 40 cycles and 30 missing contracts, with no other findings. Configuration and response tests retain their Cargo target names and public API coverage. The full commit gate remains required.
-
-Commit 292af05 passed every configured gate (94409 exited 0): 666 Python tests in 657.18 seconds, 76 worker Rust tests and 69 review Rust tests. For the new configuration move, all eight relocated integration tests passed (58243 exited 0). The current Rust probe includes both moved test crate roots and reports 42 directory cycles and 30 missing contracts, with no other findings (82789 exited 0). This does not prove full repository coverage. All observed checks are terminal. The current VAC still needs its remaining focused checks and mandatory commit gate.
+Current VAC: all-target cargo check passed (86846); all 10 new compiled Rust fixture cases passed through both binaries (93928), including real-call/reexport cycles and private/outbound restrictions. All 155 architecture CLI tests passed (16788), as did 51 architecture component tests (97118), rustfmt and structural lint. The current Rust self-probe reports 35 cycles and 30 missing contracts, with no other findings; it does not prove complete repository coverage. All observed processes are terminal. Current VAC still needs the mandatory commit gate.
 
 ## Blockers
 
-No current blocker. Do not weaken policy to hide remaining findings.
+No current blocker. Do not weaken permissions or exclude maintained files to hide remaining findings.
 
 ## Next action
 
-Commit the reviewed configuration/response ownership VAC through the full gate before starting another change. Audit found that RustModule declarations currently become ordinary dependency edges; parent-owned types used by child implementations can therefore form directory cycles through module wiring. Existing permissions and public checks also consume those edges. Before changing this behavior, reproduce the signal and preserve genuine cross-module cycles and access checks; do not delete edges or move files merely to silence the graph.
-
-Response implementation, schema, requirement contract and validation tests are now colocated in this VAC. The validation Cargo target and public contract reexport remain available. Ten validation/configuration/broker tests passed (10008); a fresh architecture probe remains needed. The user questioned mechanical mod.rs proliferation. The repair skill now requires an ownership/navigation benefit independent of lint counts and inspection of module-wiring findings; it neither bans standard entry names nor mandates empty facades. Skill quick validation passed. Audit the current moves under this guidance before further decomposition.
-
-Continue the review shared-owner VAC: inspect response validation, its contract/schema/tests and the regular-file reader used by delegation before changing ownership. Preserve public consumers while directing internal imports to their actual owners. Then finish focused checks and commit through the mandatory exported-index gate. Continue lint analysis and scaffold dependency repairs, and extend contracts and dependency checks across maintained source, tests, documentation and resources with justified exclusions. Assess VCS empty-directory coverage without bypassing ignore semantics. Enable the expanded checked policy, verify full P009 acceptance, and integrate with feature-merge while retaining the branch.
+Finish verification and commit the declaration/use cycle correction. Then repair remaining measured ownership problems, including shared file reading/digests versus review orchestration, lint analysis and scaffold dependencies. Keep feature-owned tests and resources together without arbitrary entry-file splits. Complete contracts across maintained source/tests/docs/resources, justify service/generated/third-party exclusions, and assess VCS empty-directory coverage without bypassing ignore semantics. Enable the expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

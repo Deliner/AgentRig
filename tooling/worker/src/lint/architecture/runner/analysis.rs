@@ -219,6 +219,7 @@ impl<'a> Resolvers<'a> {
                     source: path.into(),
                     target,
                     line: reference.line,
+                    module_declaration: matches!(reference.target, Target::RustModule { .. }),
                 })),
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
             }

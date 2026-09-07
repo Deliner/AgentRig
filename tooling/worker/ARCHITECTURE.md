@@ -96,7 +96,14 @@ regular files inside the project.
 
 Cycles use actual resolved edges and report source evidence. Checks include sibling
 subsystem boundaries even when opposite edges connect different nested directories.
-An allowed edge still participates in cycle detection.
+An allowed use dependency still participates in cycle detection.
+
+Rust module declarations (`mod child;` and inline module ownership) describe
+composition, not use of a child's items. Their resolved targets still undergo
+allow/deny/public checks, but these declaration edges alone do not participate
+in cycles. Imports, calls, type references and reexports remain use dependencies.
+This lets a child use a parent-owned type without inventing a reverse use edge
+merely because Rust requires the parent to declare the child module.
 
 ## Current source analysis
 
