@@ -4,7 +4,7 @@ use anyhow::{Context, Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
-pub const ARGUMENTS: &str = include_str!("../schemas/arguments.json");
+pub const ARGUMENTS: &str = include_str!("arguments.json");
 pub struct Server {
     config: config::Config,
     path: PathBuf,

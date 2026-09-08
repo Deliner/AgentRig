@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 87a9f85
+Revision: 48ee237
 
-Installed runtime 9aee4ae remains pinned. Root composition and standalone lint ownership are committed. Current VAC registers the existing composition, jobs and verification evidence owners. The current Rust probe has no measured cycles.
+Installed runtime 9aee4ae remains pinned. Composition, jobs and verification evidence contracts are committed. Current VAC colocates the review MCP server and its argument schema and registers review composition, MCP and VCS boundaries. The current Rust probe has no measured cycles.
 
 ## Progress
 
@@ -29,6 +29,8 @@ Commit test selection correction is accepted as 546b6d4. Python groups follow sc
 Initialization now belongs to setup/init.rs and setup/wizard.rs. Package generation no longer calls setup; executors read prepared or installed resources through the package owner. CLI dispatch reaches setup's init/run entry points directly. Collision checks, creation permissions, generated-bundle validation, confirmation and cancellation bodies are preserved. New package and setup contracts register exact files, child roles and existing external consumers.
 
 ## Verification
+
+Support contract commit 48ee237 passed gate 37688 (terminal 0): 32 Rust tests, 491 selected Python tests in 502.72 seconds and all configured checks. Review tests skipped. Current review ownership passes review-test (44496 terminal 0), including MCP tool and argument behavior, candidate release build (56058), three native delegation MCP consumers in 0.65 seconds, review Clippy and git diff --check. Probe .tmp/p009-review-composition.json reports three missing scaffold contracts and no other findings. Review commit gate is pending. The argument schema moved unchanged; no stale references to schemas/arguments.json or review/src/mcp.rs remain under tooling or Ledger.
 
 Root composition commit 87a9f85 passed gate 89940 (terminal 0): 92 Rust tests, 251 selected Python tests in 29.29 seconds and all configured checks. Review tests skipped. This supersedes its pending gate below. Current composition/jobs/evidence contracts pass the focused Rust probe .tmp/p009-support-contracts.json with six missing contracts and no other findings; no behavior code changed. Remaining Rust contracts are review/src, review/src/mcp, review/src/vcs, scaffold, scaffold/gate and scaffold/upgrade.
 
@@ -60,7 +62,7 @@ Root agentrig.yaml is strictly decoded; setup configuration packages do not impl
 
 ## Next action
 
-Initialization ownership is committed as 1d09d99: gate 20913 finished successfully, with 418 Python tests in 463.78 seconds and the configured checks passing; unrelated review tests skipped. This supersedes the pending gate recorded above. Finish composition/jobs/evidence contracts through their required commit gate, then complete the remaining six Rust contracts without introducing cycles or arbitrary directory splits. Missing inventories and broader coverage still prevent full acceptance.
+Finish review composition and MCP ownership through its required commit gate, then complete scaffold, scaffold/gate and scaffold/upgrade contracts. Gate orchestration can be colocated with selection while preserving module paths and updating D004/D005/D015/D016 application links; the configured directory selector already covers that destination. Missing inventories and broader coverage still prevent full acceptance.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 

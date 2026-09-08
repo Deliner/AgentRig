@@ -1,0 +1,20 @@
+purpose: Provide repository observation and controlled changes through Git, Mercurial and private adapters
+files:
+  architecture.yaml: Version control capability inventory and public adapter boundary
+  mod.rs: Repository types and common VCS operations and exports
+  branches.rs: Initialize repositories and select feature branches
+  directories.rs: Discover maintained directories with backend ignore semantics
+  export.rs: Export validated repository trees into isolated directories
+  external.rs: Invoke private VCS adapters and validate their machine responses
+  generation.rs: Generate backend-specific project registrations
+  git.rs: Execute Git queries and decode repository contents
+  git_integration.rs: Apply Git-specific feature integration and reference guards
+  integration.rs: Coordinate branch integration across backend implementations
+  mercurial.rs: Execute Mercurial queries and repository changes
+  observation.rs: Observe branch and revision state across backends
+  registration.rs: Validate and install project VCS settings and hooks
+  source.rs: Select native or external repository sources
+directories: {}
+allow: []
+deny: []
+public: [mod.rs, external.rs]

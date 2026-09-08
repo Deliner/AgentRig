@@ -1,0 +1,13 @@
+purpose: Expose configured review tools through MCP and provide shared JSON-RPC session handling
+files:
+  architecture.yaml: MCP server and protocol responsibilities and consumer boundary
+  mod.rs: Review tool discovery, argument validation and runner dispatch
+  arguments.json: Input schema owned by the review MCP tools
+  protocol.rs: Shared MCP session initialization and JSON-RPC transport used by review and delegation
+directories: {}
+allow:
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/run/mod.rs
+  - tooling/worker/review/src/run/report.rs
+deny: []
+public: [mod.rs, protocol.rs]
