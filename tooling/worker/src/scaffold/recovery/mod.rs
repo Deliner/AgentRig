@@ -1,4 +1,6 @@
 pub(crate) mod model;
+pub(crate) mod report;
+pub(crate) mod storage;
 #[cfg(test)]
 mod tests;
 use super::{receipt, settings};

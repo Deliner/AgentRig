@@ -1,12 +1,14 @@
 mod claude;
 mod hooks;
-use super::{
+use crate::scaffold::recovery::{
+    self,
     model::{Action, Change, Plan},
-    storage,
+    report, storage,
 };
 use crate::scaffold::{
-    config, package,
+    package,
     receipt::{self as manifest, Manifest, Ownership},
+    settings as config,
 };
 use anyhow::{Result, ensure};
 use std::{
@@ -16,7 +18,7 @@ use std::{
 };
 
 pub fn create(root: &Path, path: &Path) -> Result<i32> {
-    super::recovery::guard(root)?;
+    recovery::guard(root)?;
     let current = config::read(root)?;
     ensure!(
         current.runtime == config::VERSION,
@@ -49,7 +51,7 @@ pub fn create(root: &Path, path: &Path) -> Result<i32> {
     };
     collect(root, pending.path(), (&old, &files), &mut plan)?;
     storage::json(&pending.path().join("plan.json"), &plan)?;
-    super::plan::report(pending.path(), &plan)?;
+    report::run(pending.path(), &plan)?;
     let directory = pending.keep();
     println!("Plan: {}", directory.join("plan.json").display());
     Ok(0)

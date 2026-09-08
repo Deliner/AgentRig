@@ -1,10 +1,10 @@
-use super::super::{config, receipt as manifest};
 pub use crate::scaffold::installation::{State, atomic, state};
+use crate::scaffold::{receipt as manifest, settings as config};
 use anyhow::{Context as _, Result, ensure};
 use serde::Serialize;
 use std::{fs, path::Path};
 
-pub use crate::scaffold::recovery::directory;
+pub use super::directory;
 pub fn json(path: &Path, value: &impl Serialize) -> Result<()> {
     atomic(path, &serde_json::to_vec_pretty(value)?, 0o600)
 }

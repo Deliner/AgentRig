@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 041f5a0
+Revision: 055accf
 
-Installed runtime 9aee4ae remains pinned. Installation ownership is committed. Current VAC colocates setup input orchestration, its Source/Prepared data and resource handlers under setup/input, with direct owner imports and an exact architecture contract.
+Installed runtime 9aee4ae remains pinned. Setup input ownership is committed. Current VAC moves shared saved-plan storage and reporting into recovery and colocates configuration planning with its client merge handlers, removing its dependency on upgrade orchestration.
 
 ## Progress
 
@@ -21,6 +21,8 @@ Delegate, environment, review, lint configuration/discovery, resources, argument
 Installation/mod.rs owns the unchanged serializable file State, confined file observation and atomic durable replacement formerly under recovery/model and upgrade/storage. Setup reconciliation calls installation directly. Update storage and recovery schemas use the same owner, preserving their internal exports and serialized fields. Installation uses static settings path validation, avoiding Context/recovery coupling. Package legacy rejection uses recovery::LEGACY_FILE directly. Its architecture contract and recovery permissions describe these actual dependencies.
 
 Setup input now imports settings, package generation and manifest helpers from their actual owners instead of setup's aliases. Moving input.rs into the existing input directory colocates its data and orchestration with the handlers that use them; Rust module paths and call behavior remain unchanged. The contract registers all six files and measured dependencies.
+
+Current recovery/storage.rs preserves payload checksums, atomic JSON persistence and recorded-file restoration; recovery/report.rs preserves plan text, Git diff invocation, mode reporting and temporary-file cleanup. Release and configuration plans use this common owner. Configuration planning now imports saved model/storage/reporting directly and its handlers share the same directory. No schema, CLI or diff behavior changed.
 
 Commit test selection correction is accepted as 546b6d4. Python groups follow scaffold behavior ownership; Rust uses existing libtest module filters; unrelated review tests skip. Shared configuration and dispatch still select broad consumer groups. Full integration checks remain unfiltered. Explicit false command defaults are owned by the runtime schema and catchall smoke coverage is not duplicated.
 
@@ -34,6 +36,10 @@ Installation commit 041f5a0 passed gate 66711 (terminal 0): 418 Python cases in 
 
 Current setup input change passes 29 native package/composed-preview consumers in 18.92 seconds (7893), structural lint and git diff --check. Self-analysis .tmp/p009-setup-input.json reports three cycles, 14 missing contracts and no other findings. Direct input-to-setup coupling is removed; a longer representative through package generation remains within the existing package/setup cycle. Do not claim the entire input dependency graph is acyclic. Initial gate 93759 failed Clippy on the now-unused parent manifest import; removing that alias passed the reported staged Clippy rerun (83558). Normal commit retry is pending.
 
+Setup input commit 055accf passed its normal retry (13122 terminal 0): 226 Python tests in 104.56 seconds, seven selected Rust tests and all other configured checks. Review tests were skipped. This supersedes the pending retry above.
+
+Current saved-plan ownership passes Clippy (20636), 34 native release/configuration update and recovery cases in 60.63 seconds (13750), structural lint and git diff --check. Self-analysis .tmp/p009-configuration-owner.json reports two remaining package/setup cycle paths, 13 missing Rust contracts and no other findings. The upgrade/configuration cycle is removed. Current commit gate remains pending.
+
 ## Blockers
 
 No current operational blocker. Keep the full P009 scope and preserve behavior, permissions and maintained-source coverage.
@@ -42,7 +48,7 @@ Root agentrig.yaml is strictly decoded; setup configuration packages do not impl
 
 ## Next action
 
-Commit the setup input ownership VAC through the required staged hook. Then repair the remaining package/setup and upgrade/configuration cycles with complete ownership moves. Package mixes wizard orchestration and generated-file access with bundle generation; doctor and Claude configuration also have shared registration validation. Upgrade configuration imports parent workflow storage, model aliases and plan reporting. Separate actual shared owners rather than only changing directory paths.
+Commit the saved-plan ownership VAC through the required staged hook. Then repair the remaining package/setup cycle with complete ownership moves. Package mixes wizard orchestration and generated-file access with bundle generation; doctor and Claude configuration also have shared registration validation. Separate actual shared owners rather than only changing directory paths.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 

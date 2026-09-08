@@ -6,10 +6,9 @@ pub(super) mod migration;
 use super::recovery::model;
 mod operation;
 mod plan;
-pub(crate) use super::recovery;
+pub(crate) use super::recovery::{self, storage};
 pub(super) mod release;
 mod review;
-pub(crate) mod storage;
 
 use anyhow::{Result, bail};
 use std::path::Path;
