@@ -1,9 +1,9 @@
-use crate::scaffold::config::{self, Config};
+use crate::scaffold::config::Config;
 use crate::scaffold::receipt::{Entry, Ownership, checksum};
 use anyhow::{Context as _, Result};
 use std::{collections::BTreeMap, fs, path::Path};
 
-pub const LEGACY_FILE: &str = "worker.toml";
+pub use crate::scaffold::recovery::LEGACY_FILE;
 pub const MANIFEST: &str = ".worker/manifest.json";
 
 // Legacy parsing belongs to explicit conversion and historical/recovery metadata,
@@ -12,22 +12,6 @@ pub fn configuration(root: &Path) -> Result<Config> {
     let mut config: Config = toml::from_str(&fs::read_to_string(root.join(LEGACY_FILE))?)?;
     config.paths.service = ".worker".into();
     Ok(config)
-}
-
-pub fn recovery_runtime(root: &Path) -> Result<String> {
-    let legacy = root.join(LEGACY_FILE).is_file();
-    if legacy {
-        let source = fs::read_to_string(root.join(LEGACY_FILE))?;
-        let value: toml::Value = toml::from_str(&source)?;
-        Ok(value
-            .get("paths")
-            .and_then(|paths| paths.get("runtime"))
-            .and_then(toml::Value::as_str)
-            .context("paths.runtime required for upgrade recovery")?
-            .into())
-    } else {
-        Ok(config::read(root)?.paths.runtime)
-    }
 }
 
 pub fn historical_memory(source: &str) -> Result<String> {

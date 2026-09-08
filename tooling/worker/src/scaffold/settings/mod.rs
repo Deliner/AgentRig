@@ -15,6 +15,7 @@ use std::{
 
 pub const FILE: &str = "agentrig.yaml";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const LEGACY_VERSION: &str = "0.2.0";
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
@@ -152,41 +153,6 @@ fn all() -> Vec<String> {
     vec!["**".into()]
 }
 
-pub struct Context {
-    pub root: PathBuf,
-    pub config: Config,
-}
-impl Context {
-    pub fn load(root: &Path) -> Result<Self> {
-        Self::load_for(root, false)
-    }
-    pub fn load_for(root: &Path, recovery: bool) -> Result<Self> {
-        let root = root.canonicalize()?;
-        let mut config = read(&root)?;
-        let pin = config.runtime.clone();
-        let supported_pin = pin == VERSION || pin == super::upgrade::release::FROM;
-        let recovering = recovery && supported_pin && super::upgrade::recovery::active(&root)?;
-        if recovering {
-            config.runtime = VERSION.into();
-        }
-        let validation = if recovering {
-            config.validate_structure(&root)
-        } else {
-            config.validate(&root)
-        };
-        validation.with_context(|| {
-            format!(
-                "configuration invalid. ACTION: Apply {}",
-                config.config_skill
-            )
-        })?;
-        config.runtime = pin;
-        Ok(Self { root, config })
-    }
-    pub fn path(&self, value: &str) -> Result<PathBuf> {
-        relative(&self.root, value)
-    }
-}
 pub fn read(root: &Path) -> Result<Config> {
     review_runner::config::yaml::read(&root.join(FILE)).with_context(|| {
         format!("{FILE} required; use explicit upgrade for legacy worker.toml, no format fallback")

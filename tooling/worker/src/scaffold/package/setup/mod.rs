@@ -76,7 +76,7 @@ pub(super) fn prepare(
     );
     let installed = root.join(config::FILE).is_file();
     if installed {
-        crate::scaffold::upgrade::recovery::guard(root)?;
+        crate::scaffold::recovery::guard(root)?;
     }
     let mut installation =
         reconcile::Installation::prepare(root, files, &config.paths.service_path("manifest.json"))?;

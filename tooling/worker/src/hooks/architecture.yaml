@@ -13,7 +13,7 @@ allow:
   - tooling/worker/src/paths/mod.rs
   - tooling/worker/src/lint/config/mod.rs
   - tooling/worker/src/scaffold/mod.rs
-  - tooling/worker/src/scaffold/config.rs
-  - tooling/worker/src/scaffold/upgrade/recovery.rs
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
 deny: []
 public: [mod.rs, input.rs]

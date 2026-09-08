@@ -2,16 +2,9 @@ use super::super::{config, receipt as manifest};
 pub use super::model::State;
 use anyhow::{Context as _, Result, ensure};
 use serde::Serialize;
-use std::{
-    fs,
-    os::unix::fs::PermissionsExt,
-    path::{Path, PathBuf},
-};
+use std::{fs, os::unix::fs::PermissionsExt, path::Path};
 
-pub fn directory(root: &Path) -> Result<PathBuf> {
-    let runtime = super::migration::recovery_runtime(root)?;
-    config::relative(root, &format!("{runtime}/upgrade"))
-}
+pub use crate::scaffold::recovery::directory;
 pub fn state(root: &Path, path: &str) -> Result<State> {
     let resolved = config::relative(root, path)?;
     let name = resolved.strip_prefix(root)?.to_string_lossy().into_owned();

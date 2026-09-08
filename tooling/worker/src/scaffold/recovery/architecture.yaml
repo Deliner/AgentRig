@@ -1,0 +1,12 @@
+purpose: Read and validate saved update state for recovery guidance, context loading and update execution
+files:
+  architecture.yaml: Saved update state responsibilities and dependency boundary
+  mod.rs: Locate recovery data, verify journal and plan integrity and report pending work
+  model.rs: Persisted update plans, file transitions and progress journal schemas
+  tests.rs: Saved-plan integrity, project identity and recovery phase behavior
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+deny: []
+public: [mod.rs, model.rs]

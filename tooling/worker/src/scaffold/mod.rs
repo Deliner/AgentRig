@@ -7,6 +7,8 @@ mod memory;
 mod package;
 mod process;
 pub(crate) mod receipt;
+pub(crate) mod recovery;
+pub(crate) mod settings;
 pub(crate) mod upgrade;
 
 use anyhow::{Result, bail};

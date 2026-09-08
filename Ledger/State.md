@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 0fe3289
+Revision: ad73ab9
 
-Installed runtime 9aee4ae remains available. Hook/scaffold library ownership is committed. The current VAC separates shared installation receipt types and checksums from setup manifest generation, with an independent receipt contract and colocated tests. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae remains available. Shared receipt ownership is committed. The current VAC separates project settings, validated recovery-state reading and context loading while preserving config::Context and configuration exports. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -20,7 +20,9 @@ Delegation, environment, review, lint configuration/discovery, resource bundles,
 
 Hook input helpers preserve util::object and util::text compatibility exports. Hook/scaffold references use crate paths inside the library; main imports the same services through agentrig. No duplicated module compilation or path attributes were introduced. Other util exports remain compatibility aliases.
 
-Current receipt schema is independent of Config, Context and setup orchestration. Setup retains manifest generation and local-approval checks; update/reconciliation consumers import the shared types directly. Receipt checksums reuse the existing artifact digest implementation. D023's unchanged statement now links both the generator and schema owners.
+Receipt schema is independent of Config, Context and setup orchestration. Setup retains manifest generation and local-approval checks; update/reconciliation consumers import the shared types directly. Receipt checksums reuse the existing artifact digest implementation. D023's unchanged statement links both generator and schema owners.
+
+Current settings own static schema, strict validation and reading independently of recovery. config/mod.rs owns Context and explicit compatible exports. Recovery owns persisted update model types, metadata location and validated journal/plan reading; update execution calls that reader. Journal version, saved-plan checksum, project identity and completed-phase behavior are preserved. Hooks, setup and resume use the shared recovery owner. Three contracts cover settings, context loading and recovery; D005 follows its settings validation owner.
 
 ## Verification
 
@@ -28,7 +30,9 @@ Commit b77e5fd passed its selective gate: 692 Python cases in 546.88 seconds plu
 
 Commit 0fe3289 passed its selective gate (33146 exited 0): 418 Python cases in 535.60 seconds plus all configured checks. Its library boundary repair removed nine root-related cycles, leaving 14 cycles and 17 missing contracts.
 
-Current receipt ownership compiles with cargo check --all-targets (40571). Three colocated schema tests pass: old receipts without local overrides roundtrip unchanged, local deletion differs from absence/replacement, and unknown receipt/entry fields remain rejected. Eleven native installation and update-application tests pass (88873, 29.00 seconds). Structural lint has no errors. Self-analysis in .tmp/p009-receipt-owner.json remains at 14 cycles and 17 missing contracts, with no new cycles or other findings; the new receipt contract passes. Commit verification remains pending.
+Commit ad73ab9 passed its selective gate (66752 exited 0): 418 Python cases in 503.48 seconds and all other configured checks. Receipt ownership left 14 cycles and 17 missing contracts.
+
+Current settings/recovery split passes all-target compilation and Clippy (98679). Two colocated recovery tests reject changed plans, foreign projects and unknown journal versions, and verify finished phases. Forty-six native recovery, configuration update and hook cases pass (89461, 47.94 seconds). Structural lint has no errors. Self-analysis (.tmp/p009-project-recovery.json) removes six cycles without new cycles or other findings, leaving eight cycles and 16 missing contracts. Current commit verification remains pending.
 
 ## Blockers
 
@@ -36,7 +40,7 @@ No current blocker. Preserve behavior, permissions and maintained-source coverag
 
 ## Next action
 
-Commit receipt ownership through the affected gate. Then repair remaining scaffold cycles and missing contracts, using actual owners and consumers. Configuration loading currently calls upgrade recovery; recovery opens and validates the operation journal and saved plan, and update generation calls setup. Preserve journal checksum/project validation while separating shared state from orchestration; merely moving config.rs into config/mod.rs leaves those reverse dependencies. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
+Commit settings/recovery ownership through the affected gate. Then repair the eight remaining cycles in scaffold memory, package/setup and update generation and add missing contracts. The graph checks both direct owners and crossed enclosing boundaries; nesting shared state under update execution would restore the cycle. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
 
 The user requires affected commit tests plus a fast baseline, with the full suite only on merge. Repository catchall smoke selection prevents automatic full fallback, but current groups remain coarse and expensive. Refine selection against actual consumers; pytest targets must not overlap whole files/directories with contained nodes, because that can silently narrow collection. Required hooks remain authoritative.
 

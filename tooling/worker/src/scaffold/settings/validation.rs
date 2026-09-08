@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, path::Path};
 use std::{collections::HashSet, fs};
 
 impl Config {
-    pub(super) fn validate(&self, root: &Path) -> Result<()> {
+    pub(crate) fn validate(&self, root: &Path) -> Result<()> {
         self.validate_structure(root)?;
         self.capabilities.validate(root, &self.checks)?;
         if self.capabilities.lint {
@@ -14,7 +14,7 @@ impl Config {
         }
         Ok(())
     }
-    pub(super) fn validate_structure(&self, root: &Path) -> Result<()> {
+    pub(crate) fn validate_structure(&self, root: &Path) -> Result<()> {
         ensure!(self.version == 1, "version: supported schema is 1");
         ensure!(
             self.runtime == VERSION,
