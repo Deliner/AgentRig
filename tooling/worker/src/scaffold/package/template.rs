@@ -166,6 +166,7 @@ fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
     let mut routes = Vec::new();
     for (file, skill) in [
         ("Plan", "edit-plan"),
+        ("Backlog", "edit-backlog"),
         ("Decisions", "edit-decisions"),
         ("Invariants", "edit-invariants"),
         ("State", "edit-state"),

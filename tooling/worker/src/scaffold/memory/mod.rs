@@ -28,6 +28,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     let memory = context.path(&context.config.paths.memory)?;
     history::check(context, root, revision)?;
     plan(context, &memory)?;
+    backlog(context, &memory)?;
     decisions(context, &memory)?;
     invariants(context, &memory)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
@@ -74,6 +75,16 @@ fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> 
         }
     }
     Ok(())
+}
+fn backlog(context: &Context, memory: &Path) -> Result<()> {
+    let path = memory.join("Backlog.md");
+    // Existing consumers may not have adopted Backlog yet.
+    let present = path.try_exists()?;
+    if present {
+        details(context, memory, &table(&path, 'B')?, "Backlog")
+    } else {
+        reject_unindexed(memory, "Backlog", &HashSet::new())
+    }
 }
 fn plan(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Plan.md"), 'P')?;

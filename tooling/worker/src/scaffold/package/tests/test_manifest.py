@@ -23,6 +23,7 @@ def test_installation_manifest_records_ownership(worker: Path, tmp_path: Path) -
     assert entries["guides/repair/SKILL.md"]["ownership"] == "editable"
     assert entries[".agentrig/hooks/pre-commit"]["ownership"] == "editable"
     assert entries["notes/State.md"]["ownership"] == "memory"
+    assert entries["notes/Backlog.md"]["ownership"] == "memory"
     for relative, entry in entries.items():
         path = tmp_path / relative
         assert hashlib.sha256(path.read_bytes()).hexdigest() == entry["sha256"]

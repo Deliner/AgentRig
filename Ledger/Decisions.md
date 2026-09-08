@@ -33,6 +33,7 @@ Current precedence: [D022](Decisions/022.md) adds actionable verification eviden
 | [D027](Decisions/027.md) | Develop AgentRig using an explicitly pinned installed runtime while testing candidate source independently. | [launcher](../tooling/worker/run), [bootstrap](../tooling/distribution/bootstrap.sh), [instructions](../AGENTS.md) |
 | [D028](Decisions/028.md) | Constrain measured source dependencies with directory-owned YAML contracts and enforce each crossed architectural boundary. | [contracts](../tooling/worker/src/lint/architecture/policy.rs), [feature](Plan/006.md) |
 | [D029](Decisions/029.md) | Apply the existing flat-memory registry size exemption to Plan while retaining complete memory and architecture validation. | [lint policy](../tooling/worker/lint.yaml) |
+| [D030](Decisions/030.md) | Apply flat-memory registry size policy to Backlog while retaining idea-card and architecture validation. | [lint policy](../tooling/worker/lint.yaml) |
 
 D025 supersedes D008 for this worker repository; the historical D008 statement and detail remain unchanged.
 

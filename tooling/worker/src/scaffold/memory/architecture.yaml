@@ -1,7 +1,7 @@
 purpose: Validate project memory contracts and report recovery context against repository and check evidence
 files:
   architecture.yaml: Memory validation responsibilities and public consumer boundary
-  mod.rs: Plan, decision and invariant consistency checks
+  mod.rs: Plan, Backlog, decision and invariant consistency checks
   format.rs: Memory document sections, tables, links and source target paths
   history.rs: Preserve committed decisions and locate current or legacy historical memory
   oracles.rs: Bind invariant markers to configured executable test discovery

@@ -61,6 +61,8 @@ rules:
   - Ledger/Invariants
   # DECISION: D029 -- memory requires a flat indexed Plan/NNN.md registry.
   - Ledger/Plan
+  # DECISION: D030 -- Backlog uses the same flat indexed memory representation.
+  - Ledger/Backlog
   warning: 10
   error: 15
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md

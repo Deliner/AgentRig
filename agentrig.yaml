@@ -161,21 +161,15 @@ hooks:
   reminder: .agents/skills/complexity-discipline/context-reminder.json
   discipline_skill: .agents/skills/complexity-discipline/SKILL.md
   routes:
-  - include:
-    - Ledger/Plan.md
-    - Ledger/Plan/**/*.md
+  - include: [Ledger/Plan.md, 'Ledger/Plan/**/*.md']
     skill: .agents/skills/edit-plan/SKILL.md
-  - include:
-    - Ledger/Decisions.md
-    - Ledger/Decisions/**/*.md
+  - include: [Ledger/Backlog.md, 'Ledger/Backlog/**/*.md']
+    skill: .agents/skills/edit-backlog/SKILL.md
+  - include: [Ledger/Decisions.md, 'Ledger/Decisions/**/*.md']
     skill: .agents/skills/edit-decisions/SKILL.md
-  - include:
-    - Ledger/Invariants.md
-    - Ledger/Invariants/**/*.md
+  - include: [Ledger/Invariants.md, 'Ledger/Invariants/**/*.md']
     skill: .agents/skills/edit-invariants/SKILL.md
-  - include:
-    - Ledger/State.md
-    - Ledger/State/**/*.md
+  - include: [Ledger/State.md, 'Ledger/State/**/*.md']
     skill: .agents/skills/edit-state/SKILL.md
 oracles:
   I001:
@@ -425,6 +419,7 @@ checks:
     - tooling/worker/src/scaffold/memory/tests/test_state.py
   - include:
     - tooling/worker/src/hooks/**
+    - agentrig.yaml
     targets:
     - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/hooks/tests/test_reminders.py
@@ -433,6 +428,7 @@ checks:
     - tooling/worker/src/scaffold/git/tests/test_git.py
   - include:
     - tooling/worker/src/scaffold/package/**
+    - tooling/worker/assets/**
     - tooling/worker/src/scaffold/{receipt,installation}/**
     - tooling/worker/src/scaffold/recovery/**
     targets:

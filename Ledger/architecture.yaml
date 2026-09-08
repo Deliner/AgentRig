@@ -2,12 +2,14 @@ purpose: Preserve delivery outcomes, durable choices, executable invariants and 
 files:
   architecture.yaml: Project knowledge inventory and responsibility map
   Plan.md: Ordered outcome contracts and delivery statuses
+  Backlog.md: Index of improvement ideas without delivery authorization
   Decisions.md: Immutable decision statements and current application links
   Invariants.md: Observable predicates linked to marked executable oracles
   State.md: Factual current work and recovery snapshot
   Requests.md: Original user requests and clarifications underlying current delivery contracts
 directories:
   Plan: Feature capabilities, acceptance and delivery context
+  Backlog: Idea context, proposals and expected benefits
   Decisions: Historical context and rationale for durable choices
   Invariants: Detailed predicates and exact executable oracle descriptions
 allow: []

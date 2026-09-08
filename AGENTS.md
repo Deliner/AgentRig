@@ -18,7 +18,9 @@ Choose a cohesive VAC and a falsifiable focused check, edit and correct failures
 
 ## Memory and skills
 
-Before editing Plan, Decisions, Invariants or State (including detail files), read the matching edit-* skill. Their canonical bodies live in tooling/worker/assets/skills and are exposed through .agents/skills. Do not create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the relevant skill yourself.
+Before editing Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching edit-* skill. Their canonical bodies live in tooling/worker/assets/skills and are exposed through .agents/skills. Do not create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the relevant skill yourself.
+
+When work reveals a concrete improvement outside the current task, proactively use edit-backlog to save it under the configured memory directory, then resume the task. Recording the idea needs no additional approval; it does not authorize planning or implementation. Backlog collects ideas, while Plan owns accepted delivery. Never defer work required by current acceptance into Backlog.
 
 State is a factual recovery snapshot. Refresh it at meaningful task/VAC boundaries, blockers and handoffs, with actual verification and a concrete next action; include it in the relevant VAC. Plan owns outcome contracts and delivery priority. Git owns completed VAC history.
 

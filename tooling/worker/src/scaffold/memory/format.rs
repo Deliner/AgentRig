@@ -16,6 +16,7 @@ pub const STATE_SECTIONS: &[&str] = &[
 pub fn columns(prefix: char) -> &'static [&'static str] {
     match prefix {
         'P' => &["ID", "Status", "Depends on", "Feature", "User capability"],
+        'B' => &["ID", "Idea", "Expected benefit"],
         'D' => &["ID", "Decision", "Applies in"],
         'I' => &["ID", "Invariant", "Enforced by"],
         _ => unreachable!("internal memory index kind"),
@@ -28,6 +29,7 @@ pub fn detail_sections(directory: &str) -> (&'static [&'static str], Option<&'st
             &["Feature", "User capability", "Acceptance"],
             Some("Delivery"),
         ),
+        "Backlog" => (&["Context", "Proposal", "Expected benefit"], None),
         "Decisions" => (
             &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
             None,
