@@ -1,5 +1,5 @@
 use super::{operation::Operation, storage};
-use crate::scaffold::{config, process};
+use crate::scaffold::{commands::process, config};
 use anyhow::{Result, ensure};
 use std::path::Path;
 

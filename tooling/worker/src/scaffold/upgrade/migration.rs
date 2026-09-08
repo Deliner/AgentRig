@@ -14,16 +14,6 @@ pub fn configuration(root: &Path) -> Result<Config> {
     Ok(config)
 }
 
-pub fn historical_memory(source: &str) -> Result<String> {
-    let value: toml::Value = toml::from_str(source)?;
-    Ok(value
-        .get("paths")
-        .and_then(|paths| paths.get("memory"))
-        .and_then(toml::Value::as_str)
-        .context("committed legacy paths.memory required")?
-        .into())
-}
-
 pub struct Resources {
     pub converted: BTreeMap<String, Vec<u8>>,
     pub imported: crate::resources::Bundle,

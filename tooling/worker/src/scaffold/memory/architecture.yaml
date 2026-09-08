@@ -1,0 +1,22 @@
+purpose: Validate project memory contracts and report recovery context against repository and check evidence
+files:
+  architecture.yaml: Memory validation responsibilities and public consumer boundary
+  mod.rs: Plan, decision and invariant consistency checks
+  format.rs: Memory document sections, tables, links and source target paths
+  history.rs: Preserve committed decisions and locate current or legacy historical memory
+  oracles.rs: Bind invariant markers to configured executable test discovery
+  resume.rs: Combine recorded State with current repository, job and check observations
+  source.rs: Inspect supported source syntax for decision and invariant markers
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/commands/mod.rs
+  - tooling/worker/src/scaffold/evidence/mod.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
+  - tooling/worker/src/paths/mod.rs
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/lint/languages/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs, format.rs, resume.rs]

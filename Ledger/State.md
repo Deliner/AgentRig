@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: fe035eb
+Revision: 546b6d4
 
-Installed runtime 9aee4ae remains available. Settings and validated recovery-state ownership are committed. Pending changes move legacy memory parsing into history and command process execution into commands, with two architecture contracts and the D005 owner link. User-requested refinement of commit check selection is also uncommitted. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae remains available. Settings, validated recovery-state ownership and the user's commit selection correction are committed. Pending changes move legacy memory parsing into history and command process execution into commands, with two architecture contracts and the D005 owner link. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -42,11 +42,11 @@ The failed extraction exposed a real distinction: setup composes configuration p
 
 ## Next action
 
-Commit the user's check-selection correction independently, preserving the unfinished memory/commands source VAC. The settings/recovery commit is fe035eb; the earlier Verification paragraph describes its pre-commit checks. Pending memory/commands changes passed 41 native cases in the preceding work session. The saved self-analysis .tmp/p009-memory-commands.json has six package/setup/update cycles and 15 missing contracts; broader P009 acceptance remains unfinished.
+The user's check-selection correction is committed as 546b6d4; its required gate (28609) exited 0, including configured Rust and review checks. The settings/recovery commit is fe035eb; the earlier Verification paragraph describes its pre-commit checks. Commit the pending memory/commands changes, which passed 41 native cases in the preceding work session. The saved self-analysis .tmp/p009-memory-commands.json has six package/setup/update cycles and 15 missing contracts; broader P009 acceptance remains unfinished.
 
 Current selection verification: eight existing staged/full/merge scenarios passed; six isolated probes using the repository maps verified memory, hooks, docs, Rust and review selection and unfiltered full checks. The configured Rust command accepts multiple libtest filters: scaffold:: plus hooks:: ran seven tests successfully and filtered out 85. Review changes retain the normal full crate command using the trailing -- separator; unrelated source changes skip review tests. These checks do not prove the pending commit gate or integration passed.
 
-After the selection correction passes its staged gate, commit the preserved source work through the required hook. Do not retry root package extraction. Continue with the six package/setup/update cycles and missing architecture coverage. The graph checks direct owners and crossed enclosing boundaries. Preserve util compatibility exports and actual consumers; do not hide cycles through aliases.
+Commit the preserved source work through the required hook. Do not retry root package extraction. Then continue with the six package/setup/update cycles and missing architecture coverage. Current evidence identifies wizard orchestration, generated-file reads and installation storage as mixed owners; move full responsibilities and consumers rather than only renaming setup. The graph checks direct owners and crossed enclosing boundaries. Preserve util compatibility exports and actual consumers; do not hide cycles through aliases.
 
 The user requires affected commit tests plus a fast baseline, with the full suite only on merge. Repository catchall smoke selection prevents automatic full fallback, but current groups remain coarse and expensive. Refine selection against actual consumers; pytest targets must not overlap whole files/directories with contained nodes, because that can silently narrow collection. Required hooks remain authoritative.
 

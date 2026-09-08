@@ -1,5 +1,6 @@
 // DECISION: D005
-use super::{config::Context, process};
+pub(crate) mod process;
+use super::config::Context;
 use anyhow::{Context as _, Result, ensure};
 use std::process::Output;
 

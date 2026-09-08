@@ -1,0 +1,13 @@
+purpose: Execute configured commands with argument validation, process containment and owned job tracking
+files:
+  architecture.yaml: Command execution responsibilities and consumer boundary
+  mod.rs: Catalog arguments, foreground/background execution and job reporting
+  process.rs: Read-only sandbox commands and tracked subprocess execution
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/jobs/process.rs
+  - tooling/worker/src/jobs/report.rs
+deny: []
+public: [mod.rs, process.rs]

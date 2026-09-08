@@ -49,7 +49,7 @@ fn checked(context: &Context) -> Result<i32> {
 
 fn execute_vcs(command: &mut Command) -> Result<i32> {
     let output = crate::jobs::process::execute(command, false, None)?;
-    Ok(super::process::exit_code(&output))
+    Ok(crate::jobs::process::exit_code(&output))
 }
 
 fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
