@@ -8,7 +8,7 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 5b98a57
+Revision: 1d09d99
 
 Installed runtime 9aee4ae remains pinned. Shared saved-plan ownership is committed. Current VAC moves initialization and its wizard into setup, keeps prepared/installed resource reading with package generation, and records both architecture boundaries. The current Rust probe has no measured cycles.
 
@@ -48,13 +48,15 @@ Current initialization ownership passes Clippy (87034), 90 native setup/package 
 
 ## Blockers
 
+P010 is planned separately at the user's request: malformed configuration blocks diagnostic reads and corrective edits through hooks, and the outer error hides the YAML cause. Reproduced with read and apply_patch events in an isolated candidate fixture; voxel-rust was not modified. Ledger/Plan/010.md defines recovery without discarding edits or bypassing normal verification. Implementation remains pending.
+
 No current operational blocker. Keep the full P009 scope and preserve behavior, permissions and maintained-source coverage.
 
 Root agentrig.yaml is strictly decoded; setup configuration packages do not imply live root package support. A failed root-package extraction blocked all hooks until the user restored flattened checks. Do not retry that unsupported extraction or change the development pin as a workaround. Configuration is now valid at 500 nonblank lines without changing thresholds.
 
 ## Next action
 
-Commit initialization ownership through the required staged hook. Then complete the remaining Rust contracts without introducing cycles or arbitrary directory splits. The expanded Rust probe currently measures no cycles, but missing inventories and broader coverage still prevent full acceptance.
+Initialization ownership is committed as 1d09d99: gate 20913 finished successfully, with 418 Python tests in 463.78 seconds and the configured checks passing; unrelated review tests skipped. This supersedes the pending gate recorded above. Finish the separate P010 planning VAC, then complete the remaining Rust contracts without introducing cycles or arbitrary directory splits. The expanded Rust probe currently measures no cycles, but missing inventories and broader coverage still prevent full acceptance.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 
