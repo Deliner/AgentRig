@@ -8,8 +8,10 @@ files:
   transcript.rs: Read incremental transcript token observations
   attention.txt: Guidance emitted at an attention interval
   full-refresh.txt: Instructions emitted when a complete discipline refresh is due
-directories: {}
+directories:
+  tests: Hook dispatch, edit guidance and reminder scheduling behavior scenarios
 allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/paths/mod.rs
   - tooling/worker/src/lint/config/mod.rs
   - tooling/worker/src/scaffold/mod.rs

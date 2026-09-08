@@ -1,0 +1,10 @@
+purpose: Verify agent hook command guards, memory guidance and context reminder behavior
+files:
+  architecture.yaml: Hook behavior test responsibilities and consumer fixture dependency
+  test_hooks.py: Verify shell invocation guards and direct memory edit guidance
+  test_reminders.py: Verify transcript accounting, attention intervals and full refresh scheduling
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public: []

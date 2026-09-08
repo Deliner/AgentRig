@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -194,7 +194,7 @@ oracles:
   I005:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_hooks.py::test_shell_guard_rejects_bypass
+    target: tooling/worker/src/hooks/tests/test_hooks.py::test_shell_guard_rejects_bypass
   I006:
     check: test
     runner: pytest
@@ -202,7 +202,7 @@ oracles:
   I007:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
+    target: tooling/worker/src/hooks/tests/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
   I008:
     check: test
     runner: pytest
@@ -222,7 +222,7 @@ oracles:
   I012:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_hooks.py::test_ledger_edit_guidance
+    target: tooling/worker/src/hooks/tests/test_hooks.py::test_ledger_edit_guidance
   I014:
     check: test
     runner: pytest
@@ -371,7 +371,7 @@ checks:
     - tooling/tests/native/scaffold/test_feedback.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
-    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
     - tooling/worker/src/scaffold/package/setup/tests/test_client.py
     - tooling/worker/src/scaffold/package/tests/test_doctor.py
@@ -379,7 +379,7 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
     - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/memory/tests/test_plan.py
-    - tooling/tests/native/scaffold/test_reminders.py
+    - tooling/worker/src/hooks/tests/test_reminders.py
     - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
     - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
@@ -422,8 +422,8 @@ checks:
   - include:
     - tooling/worker/src/hooks/**
     targets:
-    - tooling/tests/native/scaffold/test_hooks.py
-    - tooling/tests/native/scaffold/test_reminders.py
+    - tooling/worker/src/hooks/tests/test_hooks.py
+    - tooling/worker/src/hooks/tests/test_reminders.py
     - tooling/tests/native/scaffold/test_commands.py
     - tooling/tests/native/scaffold/test_git.py
   - include:
@@ -440,7 +440,7 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
-    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
