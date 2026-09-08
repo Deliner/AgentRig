@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.scaffold.support import (
+from tooling.worker.src.scaffold.testing.consumer import (
     file_contents,
     invoke,
     project,

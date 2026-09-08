@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.scaffold.support import invoke, project
+from tooling.worker.src.scaffold.testing.consumer import invoke, project
 
 
 # INVARIANT: I007

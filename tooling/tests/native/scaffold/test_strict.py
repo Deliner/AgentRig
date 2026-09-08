@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.scaffold.support import file_contents, invoke, update_config
+from tooling.worker.src.scaffold.testing.consumer import file_contents, invoke, update_config
 
 
 @pytest.mark.parametrize("frontend", ["codex", "claude-code"])

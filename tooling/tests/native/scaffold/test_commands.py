@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.scaffold.support import CONFIG, invoke, project
+from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
 
 
 def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:

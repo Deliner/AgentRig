@@ -1,0 +1,11 @@
+purpose: Verify configured environment capabilities and preservation of existing client preferences
+files:
+  architecture.yaml: Setup capability test responsibilities and fixture dependencies
+  harness.py: Set consumer Claude preferences and verify installed hook and MCP services
+  test_capabilities.py: Review, skill, hook, program, MCP and composed environment installation scenarios
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/review/testing/consumer.py
+deny: []
+public: []

@@ -4,6 +4,7 @@ files:
   mod.rs: Dispatch project commands and expose configured hook command guidance
   git.rs: Coordinate feature branches, integration and Git commit and reference guards
 directories:
+  testing: Construct shared configured consumer projects for workflow behavior tests
   commands: Execute configured commands through owned process tracking
   config: Load project execution context and validate configured readiness
   evidence: Persist check results and determine whether checked inputs remain current
@@ -16,6 +17,7 @@ directories:
   settings: Decode and validate the project configuration schema
   upgrade: Plan and apply reviewed environment upgrades and rollback
 allow:
+  - tooling/worker/review/testing/consumer.py
   - tooling/worker/assets/skills/**
   - tooling/worker/review/config/**
   - tooling/worker/review/prompts/**
@@ -46,6 +48,7 @@ allow:
   - tooling/worker/src/resources/mod.rs
 deny: []
 public:
+  - testing/consumer.py
   - mod.rs
   - config/mod.rs
   - recovery/mod.rs

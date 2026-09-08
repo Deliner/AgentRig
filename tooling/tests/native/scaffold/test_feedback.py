@@ -9,7 +9,9 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.scaffold.support import (
+from tooling.tests.native.scaffold.test_gate import GATE
+from tooling.tests.native.scaffold.test_memory import committed_memory, memory
+from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,
     git,
@@ -19,8 +21,6 @@ from tooling.tests.native.scaffold.support import (
     vcs_backend,
     vcs_executable,
 )
-from tooling.tests.native.scaffold.test_gate import GATE
-from tooling.tests.native.scaffold.test_memory import committed_memory, memory
 
 
 def repository(root: Path, vcs: str = "git") -> None:

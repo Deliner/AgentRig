@@ -17,6 +17,7 @@ directories:
   resources: Resolve resource origins and content
   scaffold: Prepare and maintain configured project workflows
 allow:
+  - tooling/worker/review/testing/consumer.py
   - tooling/worker/assets/skills/**
   - tooling/worker/review/config/**
   - tooling/worker/review/prompts/**
@@ -34,4 +35,5 @@ allow:
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
 public:
+  - scaffold/testing/consumer.py
   - lib.rs

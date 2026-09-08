@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tooling.tests.native.scaffold.support import (
+from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,
     git,

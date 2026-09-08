@@ -8,7 +8,7 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.scaffold.support import invoke
+from tooling.worker.src.scaffold.testing.consumer import invoke
 
 
 @pytest.mark.parametrize(

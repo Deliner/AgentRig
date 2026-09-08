@@ -14,6 +14,8 @@ files:
 directories:
   setup: Initialize, preview and install the configured environment while preserving consumer changes
 allow:
+  - tooling/worker/review/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/scaffold/receipt/mod.rs

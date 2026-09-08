@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.scaffold.support import CONFIG, invoke, project
 from tooling.tests.native.scaffold.test_memory import memory
+from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
 
 # DECISION: D013
 

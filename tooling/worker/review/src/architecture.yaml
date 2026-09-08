@@ -3,6 +3,7 @@ files:
   architecture.yaml: Review library composition and public capability boundary
   lib.rs: Public review capability modules and compatibility exports
   main.rs: Standalone review command entry and failure exit status
+  test_cli.py: Embedded review CLI execution and MCP registration behavior tests
   cli.rs: Dispatch review configuration, execution and MCP commands
 directories:
   artifacts: Validate and persist review artifacts and shared JSON records
@@ -14,6 +15,7 @@ directories:
   snapshot: Freeze and validate review source inputs
   vcs: Access native and private version control implementations
 allow:
+  - tooling/worker/review/testing/consumer.py
   - tooling/worker/review/testing/mod.rs
 deny: []
 public:

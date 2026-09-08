@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -345,7 +345,7 @@ checks:
     - tooling/worker/src/delegate/run/tests/test_delegate_run.py
     - tooling/worker/src/delegate/code/tests/test_delegate_vcs.py
     - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/worker/src/scaffold/upgrade/tests
   - include:
     # Shared configuration and dispatch affect every scaffold consumer.
@@ -364,7 +364,7 @@ checks:
     - tooling/tests/native/scaffold/**
     - tooling/worker/src/scaffold/upgrade/tests/**
     targets:
-    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/tests/native/scaffold/test_commands.py
     - tooling/tests/native/scaffold/test_feedback.py
     - tooling/tests/native/scaffold/test_gate.py
@@ -422,7 +422,7 @@ checks:
     targets:
     - tooling/tests/native/scaffold/test_setup.py
     - tooling/tests/native/scaffold/test_package.py
-    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/tests/native/scaffold/test_hooks.py
     - tooling/tests/native/scaffold/test_state.py
@@ -440,10 +440,10 @@ checks:
     - tooling/tests/native/scaffold/test_integration.py
   - include:
     - tooling/worker/review/src/**
-    - tooling/tests/native/test_review.py
+    - tooling/worker/review/src/test_cli.py
     targets:
-    - tooling/tests/native/test_review.py
-    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/worker/review/src/test_cli.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
 - id: typos
   kind: command
   skill: .agents/skills/repair/SKILL.md

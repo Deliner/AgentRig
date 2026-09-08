@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: ac6f314
+Revision: 9979dc5
 
-Installed runtime 9aee4ae remains pinned. Current unfinished VAC moves test_launcher.py to tooling/distribution/tests and adds exact distribution and test contracts. Configured mypy/Vulture inputs and affected test targets follow the unchanged test body. No commit gate has started for this VAC yet.
+Installed runtime 9aee4ae remains pinned. Current unfinished VAC relocates review CLI scenarios into review/src/test_cli.py and capability installation scenarios into scaffold/package/setup/tests. Shared review resources live in review/testing/consumer.py; Claude preference and registration fixtures stay with setup. Existing scaffold support moved to scaffold/testing/consumer.py and its consumers use the new explicit module path. No commit gate is running for this VAC yet.
 
 ## Progress
 
@@ -25,6 +25,10 @@ Current delegate moves preserve scenario bodies: test_delegate_run.py and test_d
 P010 is separately planned and pending for malformed-configuration hook deadlock. Do not implement it instead of P009 or touch voxel-rust.
 
 ## Verification
+
+Distribution ownership commit 9979dc5 passed normal gate 1477 with all configured checks.
+
+Current review/setup ownership passes 26 tests in 7.62 seconds (95180 terminal 0), mypy on 56 sources, Ruff, structural lint and memory check 72150. Initial collection exposed a shared resources function used by setup; it was moved to review/testing rather than copied into setup. The Python review test filename was corrected to test_cli.py for default pytest discovery. Full collection reports 701 tests in 0.82 seconds. Combined source probe has no new dependency findings; earlier missing contracts/example root findings remain.
 
 Upgrade ownership commit ac6f314 passed gate 91109: 94 Rust tests, 418 selected Python tests in 457.35 seconds, review tests and all configured checks.
 
@@ -46,7 +50,7 @@ No operational blocker. Preserve behavior, exact oracles, permissions and full m
 
 ## Next action
 
-Inspect and stage the distribution ownership VAC and commit through the normal hook. Then move review CLI tests to their actual owner; its two Claude setup helpers used by test_capabilities.py belong with setup, not review. Keep current VAC isolated until accepted; resume a live gate by its process handle. Upgrade, delegate and lint test ownership VACs are already accepted.
+Inspect and stage the current review/setup/shared-consumer VAC, run its normal commit gate and resolve actual findings. All moved scenario assertions remain. Review fixtures are public only to actual setup/review consumers; shared scaffold fixtures are temporarily public across src for remaining external scaffold tests. After this VAC, finish those scaffold test moves and remove unnecessary external fixture exposure when consumers are internal.
 
 Then colocate remaining native Python tests: scaffold behavior with commands/gate/hooks/memory/package/setup owners, upgrades with upgrade, launcher with distribution and review CLI consumers with review. Shared helpers must remain with actual owners. Update configured check targets, invariant oracles, decision application links, fixture discovery and __file__ paths; read matching memory skills first. Existing scaffold helpers have actual feedback/gate/Git cycles that need ownership repair, not exclusion.
 

@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tooling.tests.native.scaffold.support import file_contents, git, invoke, update_config
+from tooling.worker.src.scaffold.testing.consumer import file_contents, git, invoke, update_config
 
 
 @dataclass(frozen=True)

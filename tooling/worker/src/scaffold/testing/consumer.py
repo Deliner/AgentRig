@@ -59,7 +59,7 @@ def project(root: Path, config: str = CONFIG) -> Path:
 def vcs_backend(vcs: str) -> str | dict[str, list[str]]:
     private = vcs == "private"
     if private:
-        script = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+        script = Path(__file__).resolve().parents[3] / "examples/external_vcs.py"
         return {"command": ["python3", "-B", str(script)]}
     return {"git": "git", "hg": "mercurial"}[vcs]
 

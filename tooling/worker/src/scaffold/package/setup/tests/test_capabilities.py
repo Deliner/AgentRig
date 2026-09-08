@@ -9,17 +9,17 @@ from typing import Any
 import pytest
 import yaml
 
-from tooling.tests.native.scaffold.support import (
+from tooling.worker.review.testing.consumer import resources
+from tooling.worker.src.scaffold.package.setup.tests.harness import (
+    claude_consumer_settings,
+    claude_registered_services,
+)
+from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,
     invoke,
     project,
     update_config,
-)
-from tooling.tests.native.test_review import (
-    claude_consumer_settings,
-    claude_registered_services,
-    resources,
 )
 
 CLIENT_FILES = {

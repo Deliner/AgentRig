@@ -1,9 +1,10 @@
 purpose: Construct isolated review consumer fixtures and simulated critic processes for behavior tests
 files:
   architecture.yaml: Shared review fixture inventory and consumer boundary
+  consumer.py: Seed review configurations and fake reviewer executables for CLI consumers
   mod.rs: Build disposable repositories, configurations and review process invocations
   critic.py: Simulate reviewer protocol outcomes for native and Rust consumer tests
 directories: {}
 allow: []
 deny: []
-public: [mod.rs, critic.py]
+public: [mod.rs, critic.py, consumer.py]

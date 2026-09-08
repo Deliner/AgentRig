@@ -11,8 +11,11 @@ files:
   registration.rs: Merge configured managed services with existing client preferences
   report.rs: Describe prospective changes, resources and required executor configuration
 directories:
+  tests: Verify configured environment capabilities and client preference preservation
   input: Prepare and verify composed configurations and their declared resources
 allow:
+  - tooling/worker/review/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/scaffold/receipt/mod.rs
