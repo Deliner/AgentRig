@@ -1,0 +1,9 @@
+purpose: Define the minimal Rust consumer crate and its executable invariant
+files:
+  architecture.yaml: Engine crate inventory and boundaries
+  Cargo.toml: Consumer package identity and Rust edition
+directories:
+  src: Crate entry point and invariant test
+allow: []
+deny: []
+public: []

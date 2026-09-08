@@ -1,0 +1,9 @@
+purpose: Provide an independently installable Python consumer example
+files:
+  architecture.yaml: Python consumer inventory and boundaries
+  .gitignore: Exclude generated Python consumer state from version control
+directories:
+  application: Minimal consumer behavior and its executable invariant
+allow: []
+deny: []
+public: []

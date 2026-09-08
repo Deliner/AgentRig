@@ -8,11 +8,11 @@ Deliver active P009: complete checked architecture maps and feature/module owner
 
 Branch: feature/architecture-ownership
 
-Revision: 086b9db
+Revision: d215bbd
 
-Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Current unfinished VAC completes the remaining old native test moves: gate selection and revision scenarios belong to gate, evidence freshness to evidence, resume and revision-history checks to memory, feature/transaction scenarios to git, private setup preview to setup, and independent consumer delivery to scaffold/testing.
+Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Commit d215bbd completes the remaining old native test moves. Current unfinished VAC adds exact architecture contracts to the seven example directories, repairs their documentation links to relocated test owners and maps example changes to the existing delivery test group.
 
-Git implementation moved unchanged from scaffold/git.rs to scaffold/git/mod.rs to colocate its behavior tests. Exact configured oracles and decision application links follow the original marked functions. The VAC is staged. Prior commit gate 84404 was interrupted: its handle is missing, no commit/pytest process remains, and checks.json records unfinished staged selective verification after build, lint, memory, rustfmt and Clippy passed. HEAD still has no commit for this VAC; retry its normal commit gate.
+Git implementation moved unchanged from scaffold/git.rs to scaffold/git/mod.rs to colocate its behavior tests. Exact configured oracles and decision application links follow the original marked functions. Retry gate 8951 completed with terminal 0 and created d215bbd; do not retry it. The tree was clean before beginning the examples VAC.
 
 ## Progress
 
@@ -26,13 +26,17 @@ P010 remains separately planned and pending. Do not implement it instead of P009
 
 ## Verification
 
+Commit d215bbd passed normal gate 8951 (terminal 0): 348 selected Python tests in 549.88 seconds, review tests and remaining required checks. This is selective commit evidence, not full integration acceptance.
+
+Seven new example contracts inventory maintained documents, scripts, hidden .gitignore files and Python/Rust consumer sources. Adding the actual example Rust crate root to .tmp/p009-combined.yaml makes the combined source/test/example probe return [] (exit 0). The root addition currently exists only in the temporary probe; it must be retained in the final checked architecture configuration. Focused delivery run 4948 passed all six scenarios in 167.15 seconds (terminal 0). All local PORTABILITY.md links resolve; config-check passes. The examples VAC commit gate remains pending.
+
 Commit 086b9db passed normal gate 97338 (terminal 0): 94 Rust tests, 418 selected Python tests in 460.15 seconds, review tests and all remaining checks. Earlier d800ad5 passed gate 87409 with 418 Python tests. These are commit selections, not full P009 acceptance.
 
 Current VAC passes mypy on 73 sources, Ruff, formatting, structural lint and memory check 23686. Candidate compiled after the Rust file move. Pytest still collects 701 cases in 0.67 seconds. All 62 moved scenario-function ASTs match HEAD after hoisting imports and adjusting the delivery example-root depth from parents[3] to parents[4]. The native git source body remains unchanged.
 
 Focused behavioral run 80259 passed all 169 gate, git, evidence, memory, scaffold/testing delivery and setup/test_vcs scenarios in 496.00 seconds (terminal 0). Updated State passed memory check 24382. The affected Git selector follows git/** so its colocated code and tests select their feature checks.
 
-Combined probe .tmp/p009-combined.yaml now reports only seven missing contracts under examples and two incomplete-root findings for examples/rust/crates/engine/src/lib.rs. No remaining new dependency, private-access or cycle findings exist in that selected source/test scope. An initial private-access finding for scaffold -> git was corrected by declaring the existing mod.rs entry public. This partial include scope is not full maintained-tree acceptance; source extensions select dependency analysis, not inventory coverage. Main tooling/worker/lint.yaml still does not enable architecture.
+The combined probe previously reported seven missing example contracts and two incomplete-root findings; the current examples VAC resolves those. This partial include scope is not full maintained-tree acceptance; source extensions select dependency analysis, not inventory coverage. Main tooling/worker/lint.yaml still does not enable architecture.
 
 ## Blockers
 
@@ -40,6 +44,6 @@ No operational blocker. Preserve behavior, exact executable oracles and full mai
 
 ## Next action
 
-Finish the current remaining-test ownership VAC: inspect the full diff and stage and commit through the normal gate. Review the exact target mapping and marked oracle/application links; do not weaken selectors or boundaries. Refresh this snapshot with terminal evidence. Finish this VAC before beginning another implementation change.
+Finish the examples VAC: inspect and stage the contracts, PORTABILITY.md links, affected example selector and this State, then commit through the normal gate. Do not repeat the completed focused delivery test. Refresh this snapshot with terminal gate evidence. Finish this VAC before beginning another implementation change.
 
 Then cover maintained examples, documentation and resources with exact contracts and explicit justified service/generated/third-party exclusions. Configure the example Rust crate root and all maintained language roots. Review full-tree ownership and any remaining actual analysis limitations, enable architecture in checked lint.yaml, verify both binaries and all four languages, complete full P009 acceptance and feature-merge while retaining the branch. A passing subset probe is not completion.

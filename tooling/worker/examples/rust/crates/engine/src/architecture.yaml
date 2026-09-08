@@ -1,0 +1,8 @@
+purpose: Demonstrate a Rust executable invariant in the consumer crate
+files:
+  architecture.yaml: Crate source inventory and boundaries
+  lib.rs: Minimal doubling assertion available as a configured invariant oracle
+directories: {}
+allow: []
+deny: []
+public: []

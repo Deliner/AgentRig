@@ -452,6 +452,7 @@ checks:
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
     - tooling/worker/src/scaffold/testing/test_delivery.py
+    - tooling/worker/examples/**
     targets:
     - tooling/worker/src/scaffold/testing/test_delivery.py
   - include:
