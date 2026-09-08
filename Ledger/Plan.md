@@ -20,5 +20,5 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P006](Plan/006.md) | complete | P005 | Directory architecture contracts and lint | Describe directory responsibilities and boundaries, detect forbidden dependencies and cycles across languages, and receive architectural repair guidance. |
 | [P007](Plan/007.md) | complete | P005 | Extensible version control support | Use AgentRig with Git and another VCS, and connect a private implementation without publishing its code. |
 | [P008](Plan/008.md) | complete | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |
-| [P009](Plan/009.md) | active | P006 | Complete architecture maps and feature ownership | Maintain checked file/directory responsibilities and dependency boundaries, and apply them to AgentRig itself. |
+| [P009](Plan/009.md) | complete | P006 | Complete architecture maps and feature ownership | Maintain checked file/directory responsibilities and dependency boundaries, and apply them to AgentRig itself. |
 | [P010](Plan/010.md) | pending | P005 | Recoverable configuration errors | Diagnose and repair invalid worker configuration without hook deadlock or discarding unfinished project edits. |
