@@ -1,0 +1,11 @@
+purpose: Verify generated environment policy, installation receipts and runtime readiness diagnostics
+files:
+  architecture.yaml: Package behavior test responsibilities and dependencies
+  test_doctor.py: Diagnose installed hooks, client registration, tools and runtime compatibility
+  test_manifest.py: Verify shipped ownership, content hashes and receipt collision handling
+  test_lint_defaults.py: Verify installed Rust and Python lint limits block delivery and accept boundaries
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public: []

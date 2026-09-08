@@ -1,11 +1,17 @@
-purpose: Verify configured environment capabilities and preservation of existing client preferences
+purpose: Verify environment initialization and setup while preserving configured resources and client preferences
 files:
   architecture.yaml: Setup capability test responsibilities and fixture dependencies
   harness.py: Set consumer Claude preferences and verify installed hook and MCP services
+  consumer.py: Construct declarative and delegated consumer environments for setup and workflow tests
+  test_setup.py: Repeat and preview configured installations while preserving existing resources
+  test_wizard.py: Interactive initialization choices, preview consistency and parity with declarative init
+  test_client.py: Client model and API reference generation and invalid setting preservation
+  test_layout.py: Installation locations, generated adapters and rejected layout changes
+  test_resources.py: Imported resource origins, reusable packages and preserved consumer content
   test_capabilities.py: Review, skill, hook, program, MCP and composed environment installation scenarios
 directories: {}
 allow:
   - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/review/testing/consumer.py
 deny: []
-public: []
+public: [consumer.py]

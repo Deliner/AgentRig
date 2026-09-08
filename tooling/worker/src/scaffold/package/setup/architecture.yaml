@@ -11,7 +11,7 @@ files:
   registration.rs: Merge configured managed services with existing client preferences
   report.rs: Describe prospective changes, resources and required executor configuration
 directories:
-  tests: Verify configured environment capabilities and client preference preservation
+  tests: Verify initialization, preview, resources and client settings with shared setup fixtures
   input: Prepare and verify composed configurations and their declared resources
 allow:
   - tooling/worker/review/testing/consumer.py
@@ -40,4 +40,4 @@ allow:
   - tooling/worker/src/scaffold/package/doctor.rs
   - tooling/worker/src/scaffold/package/template.rs
 deny: []
-public: [mod.rs, init.rs, registration.rs]
+public: [mod.rs, init.rs, registration.rs, tests/consumer.py]

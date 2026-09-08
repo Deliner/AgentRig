@@ -12,6 +12,7 @@ files:
   review.rs: Bundle review contracts, prompts and project configurations
   template.rs: Interpret scaffold options and generate project configuration and command adapters
 directories:
+  tests: Verify generated lint policy, installation receipts and runtime readiness
   setup: Initialize, preview and install the configured environment while preserving consumer changes
 allow:
   - tooling/worker/review/testing/consumer.py
@@ -42,4 +43,4 @@ allow:
   - tooling/worker/review/prompts/**
   - tooling/worker/review/src/execution/sandbox/mod.rs
 deny: []
-public: [mod.rs, adapters.rs, manifest.rs, doctor.rs, setup/mod.rs, setup/init.rs, setup/registration.rs]
+public: [setup/tests/consumer.py, mod.rs, adapters.rs, manifest.rs, doctor.rs, setup/mod.rs, setup/init.rs, setup/registration.rs]

@@ -238,7 +238,7 @@ oracles:
   I017:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_strict.py::test_strict_defaults_block_delivery
+    target: tooling/worker/src/scaffold/package/tests/test_lint_defaults.py::test_strict_defaults_block_delivery
   I018:
     check: test
     runner: pytest
@@ -250,7 +250,7 @@ oracles:
   I020:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership
+    target: tooling/worker/src/scaffold/package/tests/test_manifest.py::test_installation_manifest_records_ownership
 
 checks:
 - id: build
@@ -328,7 +328,8 @@ checks:
     - tooling/worker/src/lint/architecture/tests
     - tooling/worker/src/lint/languages/tests/test_language.py
     - tooling/worker/src/lint/languages/tests/test_language_delivery.py
-    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
     - tooling/worker/src/delegate/**
@@ -344,7 +345,8 @@ checks:
     - tooling/worker/src/delegate/run/tests/test_delegate_mcp.py
     - tooling/worker/src/delegate/run/tests/test_delegate_run.py
     - tooling/worker/src/delegate/code/tests/test_delegate_vcs.py
-    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/worker/src/scaffold/upgrade/tests
   - include:
@@ -371,12 +373,17 @@ checks:
     - tooling/tests/native/scaffold/test_git.py
     - tooling/tests/native/scaffold/test_hooks.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
-    - tooling/tests/native/scaffold/test_package.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_doctor.py
+    - tooling/worker/src/scaffold/package/tests/test_manifest.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/memory/tests/test_plan.py
     - tooling/tests/native/scaffold/test_reminders.py
-    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
-    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
@@ -387,7 +394,11 @@ checks:
     - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/tests/native/scaffold/test_feedback.py
     - tooling/tests/native/scaffold/test_gate.py
-    - tooling/tests/native/scaffold/test_package.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_doctor.py
+    - tooling/worker/src/scaffold/package/tests/test_manifest.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
   - include:
     - tooling/worker/src/scaffold/commands.rs
     - tooling/worker/src/scaffold/process.rs
@@ -420,10 +431,15 @@ checks:
     - tooling/worker/src/scaffold/{receipt,installation}/**
     - tooling/worker/src/scaffold/recovery/**
     targets:
-    - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_package.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_doctor.py
+    - tooling/worker/src/scaffold/package/tests/test_manifest.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
-    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
     - tooling/tests/native/scaffold/test_hooks.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/worker/src/scaffold/upgrade/tests
@@ -432,7 +448,8 @@ checks:
     - tooling/worker/src/scaffold/upgrade/**
     targets:
     - tooling/worker/src/scaffold/upgrade/tests
-    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
     - tooling/tests/native/scaffold/test_integration.py

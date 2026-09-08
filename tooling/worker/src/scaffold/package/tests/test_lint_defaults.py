@@ -4,31 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import file_contents, invoke, update_config
-
-
-@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
-@pytest.mark.parametrize(
-    "agent",
-    [
-        {"model": " "},
-        {"reasoning_effort": "max"},
-        {"api": {"key_env": "KEY; touch injected"}},
-        {"api": {"key_env": "KEY", "base_url": "not-a-url"}},
-        {"api": {"key": "literal-secret"}},
-    ],
-)
-def test_invalid_project_agent_preserves_files(
-    worker: Path, tmp_path: Path, frontend: str, agent: dict[str, object]
-) -> None:
-    assert invoke(worker, tmp_path, "init", "--frontend", frontend).returncode == 0
-    update_config(tmp_path / "agentrig.yaml", agent=agent)
-    before = file_contents(tmp_path)
-    for args in [("setup", "--preview"), ("setup",), ("config-check",)]:
-        result = invoke(worker, tmp_path, *args)
-        assert result.returncode == 2, result.stdout + result.stderr
-        assert "agent" in result.stderr or "unknown field" in result.stderr
-        assert file_contents(tmp_path) == before
+from tooling.worker.src.scaffold.testing.consumer import invoke
 
 
 @pytest.mark.parametrize(

@@ -9,6 +9,7 @@ import pytest
 import yaml
 
 from tooling.worker.src.scaffold.memory.tests.consumer import memory
+from tooling.worker.src.scaffold.package.setup.tests.consumer import declaration
 from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,
@@ -456,8 +457,6 @@ def test_private_feature_start_preserves_native_state(
 def test_private_setup_preview_resolves_adapter_from_consumer_root(
     worker: Path, tmp_path: Path
 ) -> None:
-    from tooling.tests.native.scaffold.test_setup import declaration
-
     root = declaration(worker, tmp_path, "private rig")
     backend = vcs_backend("private")
     assert isinstance(backend, dict)
