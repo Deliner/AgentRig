@@ -1,0 +1,22 @@
+purpose: Prepare and verify configured setup inputs with their resource origins before installation
+files:
+  architecture.yaml: Setup input responsibilities and consumer boundary
+  mod.rs: Prepared inputs, resource materialization, receipts and unchanged-input verification
+  composed.rs: Resolve imported configuration origins and selected environment resources
+  delegation.rs: Materialize delegate prompts, skills and programs
+  lint.rs: Materialize lint policy and its declared repair skills
+  review.rs: Materialize review prompts, project definitions and contracts
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/package/mod.rs
+  - tooling/worker/src/scaffold/package/manifest.rs
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/composition/mod.rs
+  - tooling/worker/src/resources/mod.rs
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+deny: []
+public: [mod.rs]

@@ -5,7 +5,7 @@ mod preview;
 mod reconcile;
 pub(crate) mod registration;
 mod report;
-use super::{Config, Files, config, manifest};
+use super::{Config, Files, config};
 use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 

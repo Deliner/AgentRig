@@ -3,7 +3,10 @@ mod delegation;
 mod lint;
 mod review;
 
-use super::{Config, Files, config, manifest};
+use crate::scaffold::{
+    package::{self, Files, manifest},
+    settings::{self as config, Config},
+};
 use crate::{composition, resources};
 use anyhow::{Context, Result, ensure};
 use std::{
@@ -33,7 +36,7 @@ pub fn prepare(root: &Path, path: Option<&Path>) -> Result<Prepared> {
         }
         None => {
             let config = config::read(root)?;
-            let files = super::super::bundle(root, &config)?;
+            let files = package::bundle(root, &config)?;
             Ok(Prepared {
                 config,
                 files,
@@ -50,7 +53,7 @@ pub(super) fn external(root: &Path, path: &Path) -> Result<Prepared> {
     )?;
     let mut source = Source {
         resources: resources::Bundle::new(&config.paths.service),
-        stock: super::super::bundle(root, &config)?,
+        stock: package::bundle(root, &config)?,
         resolved,
         configurations: Default::default(),
     };
