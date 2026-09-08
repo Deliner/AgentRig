@@ -141,7 +141,7 @@ def test_kept_adapter_is_explicitly_approved(
 
 
 def test_rust_consumer_upgrade(worker: Path, predecessor: Path, tmp_path: Path) -> None:
-    example = Path(__file__).parents[4] / "tooling/worker/examples/rust"
+    example = Path(__file__).parents[4] / "examples/rust"
     shutil.copytree(example, tmp_path, dirs_exist_ok=True)
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     installed = invoke(

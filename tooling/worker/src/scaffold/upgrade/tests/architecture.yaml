@@ -1,0 +1,14 @@
+purpose: Verify release migration and configuration upgrades against installed consumer environments
+files:
+  architecture.yaml: Upgrade behavior test inventory and dependencies
+  __init__.py: Package identity for related upgrade test fixtures and scenarios
+  conftest.py: Obtain the fixed predecessor runtime and preserve its build cache
+  test_configuration.py: Desired configuration updates, client customizations and reviewed conflicts
+  test_delegate_migration.py: Legacy delegate profile and installed resource migration
+  test_recovery.py: Interrupted operation recovery and failed-check rollback
+  test_upgrade_apply.py: Reviewed plan application, receipts and registration preservation
+  test_upgrade_plan.py: Legacy consumer construction and upgrade plan comparison scenarios
+directories: {}
+allow: []
+deny: []
+public: []

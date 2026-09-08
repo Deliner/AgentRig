@@ -32,7 +32,7 @@ def source_configuration(worker: Path, root: Path, review: str, backend: str) ->
     declaration = source / "agentrig.yaml"
     config = yaml.safe_load(declaration.read_text())
     if private:
-        adapter = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+        adapter = Path(__file__).resolve().parents[4] / "examples/external_vcs.py"
         config["vcs"]["backend"] = {"command": ["python3", "-B", str(adapter)]}
     config["commands"]["hello"] = {"argv": ["python3", "-c", "print('before')"]}
     declaration.write_text(yaml.safe_dump(config))

@@ -10,6 +10,7 @@ files:
   release.rs: Inspect release executables and convert legacy configuration formats
   review.rs: Validate reviewed plans and explicit conflict resolutions before applying
 directories:
+  tests: Verify real release migration, conflict resolution, customizations and rollback
   configuration: Plan resource and client-setting changes from desired configuration
 allow:
   - tooling/worker/src/scaffold/config/mod.rs

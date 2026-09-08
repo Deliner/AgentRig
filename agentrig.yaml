@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -346,7 +346,7 @@ checks:
     - tooling/worker/src/delegate/code/tests/test_delegate_vcs.py
     - tooling/tests/native/scaffold/test_setup.py
     - tooling/tests/native/scaffold/test_capabilities.py
-    - tooling/tests/native/upgrades
+    - tooling/worker/src/scaffold/upgrade/tests
   - include:
     # Shared configuration and dispatch affect every scaffold consumer.
     - tooling/worker/src/scaffold/mod.rs
@@ -362,7 +362,7 @@ checks:
     - tooling/worker/review/src/vcs/**
     - tooling/worker/review/src/config/yaml.rs
     - tooling/tests/native/scaffold/**
-    - tooling/tests/native/upgrades/**
+    - tooling/worker/src/scaffold/upgrade/tests/**
     targets:
     - tooling/tests/native/scaffold/test_capabilities.py
     - tooling/tests/native/scaffold/test_commands.py
@@ -377,7 +377,7 @@ checks:
     - tooling/tests/native/scaffold/test_setup.py
     - tooling/tests/native/scaffold/test_state.py
     - tooling/tests/native/scaffold/test_strict.py
-    - tooling/tests/native/upgrades
+    - tooling/worker/src/scaffold/upgrade/tests
     - tooling/tests/native/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/memory/**
@@ -397,7 +397,7 @@ checks:
     - tooling/tests/native/scaffold/test_memory.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
-    - tooling/tests/native/upgrades
+    - tooling/worker/src/scaffold/upgrade/tests
   - include:
     - tooling/worker/src/scaffold/git.rs
     - tooling/worker/src/scaffold/gate.rs
@@ -426,12 +426,12 @@ checks:
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/tests/native/scaffold/test_hooks.py
     - tooling/tests/native/scaffold/test_state.py
-    - tooling/tests/native/upgrades
+    - tooling/worker/src/scaffold/upgrade/tests
     - tooling/tests/native/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/upgrade/**
     targets:
-    - tooling/tests/native/upgrades
+    - tooling/worker/src/scaffold/upgrade/tests
     - tooling/tests/native/scaffold/test_setup.py
     - tooling/tests/native/scaffold/test_memory.py
   - include:
