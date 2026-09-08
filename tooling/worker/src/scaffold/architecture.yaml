@@ -1,0 +1,54 @@
+purpose: Prepare and maintain project development workflows from the configured AgentRig environment
+files:
+  architecture.yaml: Project workflow composition and public entry boundary
+  mod.rs: Dispatch project commands and expose configured hook command guidance
+  git.rs: Coordinate feature branches, integration and Git commit and reference guards
+directories:
+  commands: Execute configured commands through owned process tracking
+  config: Load project execution context and validate configured readiness
+  evidence: Persist check results and determine whether checked inputs remain current
+  gate: Run checks against selected source snapshots and affected targets
+  installation: Observe installed file state and perform durable replacements
+  memory: Validate and maintain project planning and recovery records
+  package: Generate and install configured agent environment resources
+  receipt: Describe installed resource ownership and content hashes
+  recovery: Store and validate recoverable update plans and operations
+  settings: Decode and validate the project configuration schema
+  upgrade: Plan and apply reviewed environment upgrades and rollback
+allow:
+  - tooling/worker/assets/skills/**
+  - tooling/worker/review/config/**
+  - tooling/worker/review/prompts/**
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/config/credentials.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/execution/sandbox/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/arguments/mod.rs
+  - tooling/worker/src/composition/mod.rs
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/src/diagnostics/mod.rs
+  - tooling/worker/src/environment/hooks.rs
+  - tooling/worker/src/environment/mod.rs
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/jobs/process.rs
+  - tooling/worker/src/jobs/report.rs
+  - tooling/worker/src/jobs/cleanup.rs
+  - tooling/worker/src/lint/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/src/lint/inventory/mod.rs
+  - tooling/worker/src/lint/languages/mod.rs
+  - tooling/worker/src/lint/rules.rs
+  - tooling/worker/src/lint/rules/kind.rs
+  - tooling/worker/src/paths/mod.rs
+  - tooling/worker/src/resources/mod.rs
+deny: []
+public:
+  - mod.rs
+  - config/mod.rs
+  - recovery/mod.rs
+  - settings/mod.rs
+  - settings/capabilities.rs
+  - settings/client.rs

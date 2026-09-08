@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 48ee237
+Revision: caa4b63
 
-Installed runtime 9aee4ae remains pinned. Composition, jobs and verification evidence contracts are committed. Current VAC colocates the review MCP server and its argument schema and registers review composition, MCP and VCS boundaries. The current Rust probe has no measured cycles.
+Installed runtime 9aee4ae remains pinned. Review composition and MCP ownership are committed. Current VAC colocates gate orchestration with selection and completes scaffold, gate and upgrade contracts. All selected Rust directories now pass the architecture probe without findings.
 
 ## Progress
 
@@ -29,6 +29,8 @@ Commit test selection correction is accepted as 546b6d4. Python groups follow sc
 Initialization now belongs to setup/init.rs and setup/wizard.rs. Package generation no longer calls setup; executors read prepared or installed resources through the package owner. CLI dispatch reaches setup's init/run entry points directly. Collision checks, creation permissions, generated-bundle validation, confirmation and cancellation bodies are preserved. New package and setup contracts register exact files, child roles and existing external consumers.
 
 ## Verification
+
+Review ownership commit caa4b63 passed gate 54205 (terminal 0): 69 AgentRig Rust tests, 692 selected Python tests in 511.91 seconds and the review crate tests and configured checks. Current scaffold composition passes candidate build (95361), Clippy (59595), memory validation (27993) and 11 existing staged/selected/full-gate and rerun consumer cases in 0.63 seconds (86655). Probe .tmp/p009-scaffold-composition.json exits 0 with no findings. The only initial boundary correction exposes the existing recovery guidance entry used by session hooks. Gate code is unchanged, and D004/D005/D015/D016 application links follow its new path. Current commit gate is pending.
 
 Support contract commit 48ee237 passed gate 37688 (terminal 0): 32 Rust tests, 491 selected Python tests in 502.72 seconds and all configured checks. Review tests skipped. Current review ownership passes review-test (44496 terminal 0), including MCP tool and argument behavior, candidate release build (56058), three native delegation MCP consumers in 0.65 seconds, review Clippy and git diff --check. Probe .tmp/p009-review-composition.json reports three missing scaffold contracts and no other findings. Review commit gate is pending. The argument schema moved unchanged; no stale references to schemas/arguments.json or review/src/mcp.rs remain under tooling or Ledger.
 
@@ -62,7 +64,7 @@ Root agentrig.yaml is strictly decoded; setup configuration packages do not impl
 
 ## Next action
 
-Finish review composition and MCP ownership through its required commit gate, then complete scaffold, scaffold/gate and scaffold/upgrade contracts. Gate orchestration can be colocated with selection while preserving module paths and updating D004/D005/D015/D016 application links; the configured directory selector already covers that destination. Missing inventories and broader coverage still prevent full acceptance.
+Finish scaffold composition through its required commit gate. Then broaden architecture coverage to maintained tests, documentation and resources and repair misplaced test ownership. The Rust probe is clean, but source extensions currently narrow its coverage; this is not full P009 acceptance. Resolve local Python imports with explicit actual package ownership rather than marking them external. Enable the checked rule only with its full justified scope and complete required integration.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 

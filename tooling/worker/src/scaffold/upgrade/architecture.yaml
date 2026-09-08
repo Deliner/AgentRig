@@ -1,0 +1,37 @@
+purpose: Plan and apply environment upgrades with conflict review, preserved customizations and rollback
+files:
+  architecture.yaml: Upgrade responsibilities and dependency boundary
+  mod.rs: Dispatch explicit upgrade planning, application and rollback
+  apply.rs: Apply approved changes and execute post-upgrade verification or rollback
+  external.rs: Preserve custom client registrations during legacy migration
+  migration.rs: Import legacy configuration and resources into current ownership records
+  operation.rs: Persist operation progress and retain payloads for recovery
+  plan.rs: Compare installed and release resources and record reviewable changes
+  release.rs: Inspect release executables and convert legacy configuration formats
+  review.rs: Validate reviewed plans and explicit conflict resolutions before applying
+directories:
+  configuration: Plan resource and client-setting changes from desired configuration
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/scaffold/installation/mod.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
+  - tooling/worker/src/scaffold/recovery/model.rs
+  - tooling/worker/src/scaffold/recovery/storage.rs
+  - tooling/worker/src/scaffold/recovery/report.rs
+  - tooling/worker/src/scaffold/commands/process.rs
+  - tooling/worker/src/scaffold/package/mod.rs
+  - tooling/worker/src/scaffold/package/manifest.rs
+  - tooling/worker/src/scaffold/package/adapters.rs
+  - tooling/worker/src/scaffold/package/setup/mod.rs
+  - tooling/worker/src/scaffold/package/setup/registration.rs
+  - tooling/worker/src/scaffold/memory/mod.rs
+  - tooling/worker/src/resources/mod.rs
+  - tooling/worker/src/paths/mod.rs
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]
