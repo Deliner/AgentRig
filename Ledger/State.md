@@ -2,30 +2,47 @@
 
 ## Focus
 
-Apply the user's current-session Plan policy and retain future ideas in unordered Backlog.
+Implement the user's agreed feature-card skill workflow, then demonstrate a
+revised existing Backlog card in chat without saving that draft before approval.
 
 ## Workspace
 
-Branch: feature/session-plan-backlog
+Branch: feature/agreed-feature-cards
 
-Revision: f6cd86efbae8ec501759f0c250b9bd4b76e300d7
+Revision: 349f366c1c35277702e7a43f1fda0edee23f7646
 
-Started from clean master f6cd86efbae8ec501759f0c250b9bd4b76e300d7, which merged and published the context-drift fixes. The retained feature/context-drift-fixes branch is at 211716e. Installed development runtime remains pinned independently to 9aee4ae.
+Started from clean master after reconciling the preceding Plan/Archive task with
+merge 349f366. The installed development runtime remains pinned to 9aee4ae.
 
 ## Progress
 
-The current maintenance VAC moves all seven former pending outcomes P010-P016 into B001-B007, preserving requirements and source context without delivery priority. Completed P001-P009 are preserved under Archive/Plan.md and Archive/Plan/, with current application/navigation links updated. Plan is empty because no deferred product feature was selected for execution.
+The current maintenance VAC updates edit-backlog as the canonical owner of chat
+drafts, explicit agreement, sourced business requirements, scope restraint and
+observable acceptance. Plan and execution guidance reference the agreed Backlog
+contract and allow autonomous completion of selected sets. D032 records the
+policy successor; repository and shipped consumer instructions agree.
 
-Canonical planning, Backlog and execution skills, repository guidance and generated consumer instructions now distinguish current execution from future ideas and hypotheses. D031 records the user's policy and supersedes the old future queue semantics. The user corrected retirement to automatic archival: the agent rotates completed outcomes through edit-plan without another confirmation. Archive uses the existing Plan format; memory-check validates both collections and references.
+All seven existing Backlog cards remain unchanged. B001 is selected only for a
+chat drafting exercise after delivery of this skill change, not implementation
+or persistence of a revised card. Plan remains empty. No runtime agreement
+enforcement or automatic reviewer was introduced.
 
 ## Verification
 
-The preceding context-drift task passed its full integration gate at f6cd86e; those results are historical. For this VAC, all seven new archive regressions first failed on the old checker. After implementation, 48 focused Plan/Backlog scenarios passed, followed by two Codex/Claude archive-guidance and setup-preservation scenarios. Candidate memory-check, rustfmt and all three updated skill validators passed. A direct comparison preserved all nine completed cards (adjusting relative links) and the full acceptance text in seven Backlog cards. The current commit and full integration gates remain pending.
+The candidate built and memory-check passed. All 10 existing Backlog tests passed,
+including Codex and Claude Code installation, hook guidance and preservation.
+Rustfmt, all three changed skill validators and git diff --check passed.
+Git diff confirms no changes under Ledger/Backlog/. The affected commit gate and
+full integration gate have not yet run for this VAC.
 
 ## Blockers
 
-None.
+None for the authorized skill maintenance. A revised B001 may be saved only
+after the user approves the version displayed in chat.
 
 ## Next action
 
-Inspect and commit the completed Plan/Backlog/Archive VAC through the affected gate, then integrate with the full gate and publish the verified refs. Preserve the retained feature branch and independently pinned runtime. Reconcile this pre-commit snapshot with Git and check evidence on resumption.
+Commit the inspected maintenance VAC through the affected gate, integrate with
+the full gate, and retain the feature branch. Then present the B001 business
+behavior and acceptance draft in chat. Reconcile this pre-commit snapshot with
+Git and check evidence before resuming after an interruption.
