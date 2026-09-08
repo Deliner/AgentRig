@@ -1,7 +1,4 @@
-use super::super::{
-    config::Config,
-    package::manifest::{self, Manifest},
-};
+use super::super::{config::Config, package::manifest, receipt::Manifest};
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, fs, path::Path, process::Command};
 

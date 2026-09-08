@@ -62,7 +62,7 @@ fn environment(root: &Path, preview: &Path) -> Result<()> {
 }
 
 fn bundle(root: &Path, config: &Config, files: &Files) -> Result<()> {
-    let receipt: super::manifest::Manifest =
+    let receipt: crate::scaffold::receipt::Manifest =
         serde_json::from_slice(&files[&config.paths.service_path("manifest.json")])?;
     for (name, bytes) in files {
         put(root, name, bytes)?;

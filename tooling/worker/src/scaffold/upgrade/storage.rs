@@ -1,4 +1,4 @@
-use super::super::{config, package::manifest};
+use super::super::{config, receipt as manifest};
 pub use super::model::State;
 use anyhow::{Context as _, Result, ensure};
 use serde::Serialize;

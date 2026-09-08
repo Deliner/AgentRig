@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: aeb8c5b
+Revision: 0fe3289
 
-Installed runtime 9aee4ae remains available. Git query ownership and delivery guard consolidation are committed. The current VAC compiles hooks and scaffold in the library, moves optional JSON input helpers into hooks/input.rs and adds the hook directory contract. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae remains available. Hook/scaffold library ownership is committed. The current VAC separates shared installation receipt types and checksums from setup manifest generation, with an independent receipt contract and colocated tests. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -18,15 +18,17 @@ Expanded inventories, repair guidance, four-language dependency analysis and mea
 
 Delegation, environment, review, lint configuration/discovery, resource bundles, arguments and paths have cohesive owners and contracts. Static lint definitions remain independent of the sibling catalogue that composes language handlers. Contextual Git queries retain inherited environment and raw error semantics separately from the isolated VCS runner. Branch guards now belong with scaffold delivery.
 
-Current hook input helpers preserve util::object and util::text compatibility exports. Hook/scaffold references now use crate paths inside the library; main imports the same services through agentrig. No duplicated module compilation or path attributes were introduced. Other util exports remain compatibility aliases.
+Hook input helpers preserve util::object and util::text compatibility exports. Hook/scaffold references use crate paths inside the library; main imports the same services through agentrig. No duplicated module compilation or path attributes were introduced. Other util exports remain compatibility aliases.
+
+Current receipt schema is independent of Config, Context and setup orchestration. Setup retains manifest generation and local-approval checks; update/reconciliation consumers import the shared types directly. Receipt checksums reuse the existing artifact digest implementation. D023's unchanged statement now links both the generator and schema owners.
 
 ## Verification
 
 Commit b77e5fd passed its selective gate: 692 Python cases in 546.88 seconds plus Rust and other checks. Commit aeb8c5b passed its selective retry (95600 exited 0): 418 Python cases in 592.39 seconds plus all other configured checks. Its earlier unchanged review test timeout did not recur in the focused retry or final commit gate.
 
-Current library ownership compiles with cargo check --all-targets (14845). Two colocated hook input tests pass, covering missing/malformed/non-object state and string/default field behavior. All 35 hook/reminder native cases pass (12592, 1.19 seconds). Structural lint has no errors.
+Commit 0fe3289 passed its selective gate (33146 exited 0): 418 Python cases in 535.60 seconds plus all configured checks. Its library boundary repair removed nine root-related cycles, leaving 14 cycles and 17 missing contracts.
 
-Candidate self-analysis (90973, .tmp/p009-hook-services.json) removes nine root-related cycles without adding cycles or other findings, leaving 14 cycles and 17 missing contracts. Hook inventory and permissions pass. Current commit verification remains pending.
+Current receipt ownership compiles with cargo check --all-targets (40571). Three colocated schema tests pass: old receipts without local overrides roundtrip unchanged, local deletion differs from absence/replacement, and unknown receipt/entry fields remain rejected. Eleven native installation and update-application tests pass (88873, 29.00 seconds). Structural lint has no errors. Self-analysis in .tmp/p009-receipt-owner.json remains at 14 cycles and 17 missing contracts, with no new cycles or other findings; the new receipt contract passes. Commit verification remains pending.
 
 ## Blockers
 
@@ -34,7 +36,7 @@ No current blocker. Preserve behavior, permissions and maintained-source coverag
 
 ## Next action
 
-Finish reviewing and commit hook service/library ownership through the affected gate. Then repair remaining scaffold cycles and missing contracts, using actual owners and consumers. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
+Commit receipt ownership through the affected gate. Then repair remaining scaffold cycles and missing contracts, using actual owners and consumers. Configuration loading currently calls upgrade recovery; recovery opens and validates the operation journal and saved plan, and update generation calls setup. Preserve journal checksum/project validation while separating shared state from orchestration; merely moving config.rs into config/mod.rs leaves those reverse dependencies. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
 
 The user requires affected commit tests plus a fast baseline, with the full suite only on merge. Repository catchall smoke selection prevents automatic full fallback, but current groups remain coarse and expensive. Refine selection against actual consumers; pytest targets must not overlap whole files/directories with contained nodes, because that can silently narrow collection. Required hooks remain authoritative.
 

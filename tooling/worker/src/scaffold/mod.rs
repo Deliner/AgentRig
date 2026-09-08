@@ -6,6 +6,7 @@ mod git;
 mod memory;
 mod package;
 mod process;
+pub(crate) mod receipt;
 pub(crate) mod upgrade;
 
 use anyhow::{Result, bail};

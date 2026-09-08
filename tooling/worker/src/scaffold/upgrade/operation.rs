@@ -2,7 +2,7 @@ use super::{
     model::{Journal, Plan},
     review, storage,
 };
-use crate::scaffold::package::manifest;
+use crate::scaffold::receipt as manifest;
 use anyhow::{Context as _, Result, ensure};
 use std::{
     fs,

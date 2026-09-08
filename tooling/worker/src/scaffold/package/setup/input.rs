@@ -184,7 +184,7 @@ impl Source {
             config.paths.service_path("composition.json"),
             serde_json::to_vec_pretty(&metadata)?,
         );
-        let mut metadata: manifest::Manifest =
+        let mut metadata: crate::scaffold::receipt::Manifest =
             serde_json::from_slice(&manifest::installed(&files, config)?)?;
         for (path, file) in &self.resources.files {
             metadata
@@ -194,9 +194,10 @@ impl Source {
                 .executable = file.executable;
             let stock = self.stock.contains_key(path);
             if stock {
-                metadata
-                    .local
-                    .insert(path.clone(), Some(manifest::checksum(&file.bytes)));
+                metadata.local.insert(
+                    path.clone(),
+                    Some(crate::scaffold::receipt::checksum(&file.bytes)),
+                );
             }
         }
         files.insert(receipt, serde_json::to_vec_pretty(&metadata)?);

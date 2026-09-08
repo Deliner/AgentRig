@@ -5,7 +5,7 @@ use super::{
 };
 use crate::scaffold::{
     config,
-    package::manifest::{Manifest, Ownership},
+    receipt::{Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeSet, fs, path::Path, process::Command};

@@ -1,5 +1,5 @@
 use crate::scaffold::config::{self, Config};
-use crate::scaffold::package::manifest::{Entry, Ownership, checksum};
+use crate::scaffold::receipt::{Entry, Ownership, checksum};
 use anyhow::{Context as _, Result};
 use std::{collections::BTreeMap, fs, path::Path};
 
@@ -230,7 +230,7 @@ fn from_config(root: &Path, config: &str, target: &str) -> Result<String> {
 }
 
 impl Resources {
-    pub fn register(&self, manifest: &mut crate::scaffold::package::manifest::Manifest) {
+    pub fn register(&self, manifest: &mut crate::scaffold::receipt::Manifest) {
         for (path, bytes) in &self.converted {
             manifest.files.insert(
                 super::release::lint_path(path),

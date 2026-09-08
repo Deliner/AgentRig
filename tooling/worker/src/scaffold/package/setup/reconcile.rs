@@ -1,4 +1,5 @@
-use super::{Files, config, manifest};
+use super::{Files, config};
+use crate::scaffold::receipt as manifest;
 use crate::scaffold::upgrade::storage::{self, State};
 use anyhow::{Result, ensure};
 use manifest::{Manifest, Ownership};

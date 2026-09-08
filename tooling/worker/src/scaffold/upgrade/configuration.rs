@@ -5,11 +5,8 @@ use super::{
     storage,
 };
 use crate::scaffold::{
-    config,
-    package::{
-        self,
-        manifest::{self, Manifest, Ownership},
-    },
+    config, package,
+    receipt::{self as manifest, Manifest, Ownership},
 };
 use anyhow::{Result, ensure};
 use std::{

@@ -1,4 +1,4 @@
-use super::super::package::manifest::Manifest;
+use super::super::receipt::Manifest;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
