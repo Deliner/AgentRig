@@ -2,44 +2,38 @@
 
 ## Focus
 
-Deliver the explicitly requested Backlog and proactive edit-backlog skill as a cohesive worker-maintenance change. Keep captured ideas separate from accepted Plan delivery; no pending P010-P016 implementation is being started.
+Fix the new context-drift audit findings under the user's explicit maintenance instruction: truthful State freshness, visible reminder failures, compatible Claude transcript observations and comparable repeated reviews.
 
 ## Workspace
 
-Branch: feature/workflow-quality-plan
+Branch: feature/context-drift-fixes
 
-Revision: 02be4b2
+Revision: 72e2520
 
-Master and origin/master are 9a41db9. Feature/workflow-quality-plan is 02be4b2; its remote remains 7cc25f7 before Backlog publication. The main Backlog change is committed. Installed runtime 9aee4ae remains pinned; candidate tests build current sources.
+Started from clean master b3b2563, which includes the Backlog delivery and memory test-selection correction. Previous feature/workflow-quality-plan is retained at 36b7823. Installed runtime remains pinned to 9aee4ae; candidate checks exercise the fixes.
 
 ## Progress
 
-P009 remains complete. P010 configuration recovery remains pending and first in delivery order. P011 records architecture skills, aggregation of simultaneous hook outcomes, deduplication, scoped requirements, explicit conflicts and retry behavior. P012 records feature/shared ownership and the audited configuration, VCS, build, test-selection and recovery issues. New details are registered in the architecture inventory.
+Five Terra low auditors identified the maintenance scope: false branch-only State freshness, silently lost reminders, incompatible Claude transcript accounting and repeated reviews using changed criteria. Each issue now has a focused behavioral regression; Claude's actual record format was also observed with the installed client.
 
-The latest instruction independently authorizes Backlog and its proactive skill. Earlier publication authorization remains applicable. Audit evidence and limitations are summarized in P012 Delivery. Pending Plan outcomes retain their acceptance and priority.
+Commit e272ab5 makes branch-only State unverified while retaining stale for observed branch/revision differences. Its Git/Mercurial regression exercises another commit on the same branch and a branch mismatch.
 
-P011 now also records same-cause diagnostic grouping and ordinary hook interaction tests. The user's simplicity constraint excludes skill-read tracking, error-repetition counters and a separate agent-evaluation system.
+Commit 72e2520 reports reminder failures through additionalContext while preserving memory guidance and ordinary editing. Repairing the storage path restores the existing schedule. Disabled reminders do not initialize storage. Transcript observations accept Claude assistant/message.usage alongside Codex token_count, counting input plus cache creation/read and excluding output tokens.
 
-P013 records Python, TypeScript, Rust, JavaScript, Go, Java and Kotlin coverage for all existing rules, with a dedicated tooling/worker/evals/ environment. Evaluations exercise actual lint diagnostics on valid, violating and repaired examples; they are product tests, not a separate agent-evaluation system. Implementation remains pending.
+The current VAC rejects previous reports with different prompts, visible/contract path selections or normative file content before launching critics. Model/timeout changes and reordered equivalent path lists remain permitted. Existing late-finding and repair behavior is preserved. Repeated-review regressions now share continuation.rs beside their owner, with explicit Cargo registration and architecture inventory.
 
-P014 follows P013 by priority with separate acceptance for the three selected additions. Existing consumer and interruption tests were inspected to avoid duplication. Ideas 2 and 5 are not included.
-
-P015 records reusable components/modules/recipes, Git revision and digest pinning, shared preparation for rigs/reviewers/advisers/delegates, access isolation and explicit updates. Existing YAML composition is the foundation. Web services, hosted sharing and preparatory infrastructure are excluded. D029 resolves the demonstrated flat Plan schema versus directory-size conflict using the existing exact-directory exemption for memory registries; all memory and architecture checks remain applicable.
-
-P016 records two Rust rules with YAML-selected scopes: forbidden types at public boundaries and numeric/string literals outside permitted declarations or explicit exceptions. Architecture checks retain ownership/dependency enforcement, canonical skills guide repairs and review assesses meaning. It depends on P013 for evaluations; additional language support is not claimed. The user dropped the duplicate-filename proposal, which was never added to the plan.
-
-Backlog.md and Backlog/ provide an empty idea registry with stable BNNN cards. The canonical edit-backlog skill supports proactive capture, deduplication, brief context and returning to the task; it cannot authorize implementation or defer required acceptance. Scaffold assets, generated instructions, memory validation, memory ownership and existing hook routes include Backlog. Older consumers without Backlog remain compatible; setup preserves recorded ideas. D030 applies the existing exact flat-registry size policy to Backlog. No new dispatcher, reminder counter or model service is introduced.
-
-Actual collection exposed an existing overlap problem: passing the memory test directory and test_state.py together selected only seven State cases. The follow-up corrects the package impact group to select the directory consistently. Broader overlap evidence is recorded in P012 rather than duplicated as a new Backlog idea or expanded into an unrelated selection-engine rewrite.
+P010-P016 retain their existing pending outcomes and dependencies; this bounded maintenance does not claim their full acceptance. Backlog remains delivered. The detailed audit is a local ignored artifact at .cache/audits/2026-09-08-context-drift.md.
 
 ## Verification
 
-Previous integration 9a41db9 passed the full gate. Backlog commit 02be4b2 passed its staged gate: 94 native worker tests, 349 selected Python scenarios and the selected review suite. Thirty focused candidate scenarios independently covered Backlog, both harness routes and manifest ownership; skill validation, config-check, candidate memory-check and repaired staged lint also passed. The overlap reproduction means the staged Python set alone did not cover all intended memory tests. Corrected directory-only collection finds 82 memory scenarios including all ten Backlog cases. The follow-up commit gate and full integration remain pending.
+State freshness passed 12 focused tests and the e272ab5 staged gate: seven native and 209 selected Python scenarios. Reminder fixes passed 40 focused scenarios and the 72e2520 gate: two native and 117 selected Python scenarios. Installed Claude Code 2.1.201 against a temporary loopback API with a synthetic key produced a real assistant/message.usage record with input/cache-creation/cache-read counts 10/20/70; no model API spending. The sanitized observation is .cache/audits/claude-transcript-observation.json.
+
+Three new repeated-review regressions first failed on the old implementation with unexpected PASS. After correction, all seven continuation and eleven execution tests passed with real bubblewrap and deterministic critic fixtures. The initial commit gate caught the missing continuation.rs Rust root in lint.yaml; registering it resolved the incomplete analysis and the staged lint retry passed. The third commit gate and full integration remain pending.
 
 ## Blockers
 
-None for the requested Backlog maintenance. All future Plan outcomes remain pending.
+None. Mercurial is provided by the configured test environment, although it was absent from the ordinary shell PATH used by the audit reproduction.
 
 ## Next action
 
-Verify actual collection after the impact-map correction, commit that focused correction, then run full feature integration and publish verified refs while retaining a clean feature branch. Await separate implementation authorization for P010-P016. This snapshot precedes those commit/integration/publication actions; reconcile their results from Git and check evidence on resume.
+Inspect and commit the repeated-review VAC through the affected gate, then run full feature integration and publish the verified refs. Preserve the retained branch and the independently pinned installed runtime. Reconcile this pre-commit snapshot with Git and check evidence on resumption.

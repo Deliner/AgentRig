@@ -49,14 +49,10 @@ fn recorded_revision(repository: Option<&Source<'_>>, state: &str, current: &str
 }
 fn snapshot(state: &str, branch: &str, revision: &Value) -> &'static str {
     let saved_branch = claim(state, "Branch: ");
-    let saved_revision = claim(state, "Revision: ");
-    let absent = saved_branch.is_none() && saved_revision.is_none();
     let changed =
         saved_branch.is_some_and(|saved| saved != branch) || revision["head_changed"] == true;
-    let unresolved = saved_revision.is_some() && revision["head_changed"].is_null();
-    if absent {
-        "unverified"
-    } else if changed {
+    let unresolved = revision["head_changed"].is_null();
+    if changed {
         "stale"
     } else if unresolved {
         "unverified"

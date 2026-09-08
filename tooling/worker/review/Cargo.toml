@@ -35,6 +35,10 @@ name = "execution"
 path = "src/run/tests/execution.rs"
 
 [[test]]
+name = "continuation"
+path = "src/run/tests/continuation.rs"
+
+[[test]]
 name = "external_vcs"
 path = "src/vcs/tests/external_vcs.rs"
 

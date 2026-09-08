@@ -1,7 +1,8 @@
 purpose: Verify complete review runs and their public entry points using isolated consumer fixtures
 files:
   architecture.yaml: Review run behavior test responsibilities and dependencies
-  execution.rs: Verify complete review reports, retries, cleanup and source preservation
+  execution.rs: Verify review execution, VCS integration, cleanup and source preservation
+  continuation.rs: Verify repeated-review input identity, repair scope and late findings
 directories: {}
 allow:
   - tooling/worker/review/src/run/mod.rs

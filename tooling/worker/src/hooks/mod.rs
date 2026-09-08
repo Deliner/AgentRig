@@ -85,7 +85,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         full_refresh(configured),
         crate::scaffold::recovery::guidance(root)?
     );
-    let message = format!(
+    let mut message = format!(
         "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
         root.join(memory).join("State.md").display(),
         root.join(memory).join("Plan.md").display(),
@@ -94,9 +94,16 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     let directory = configured
         .path(&configured.config.paths.runtime)?
         .join("reminders");
-    let started = reminder::start_at(event, &directory);
+    let started = configured
+        .config
+        .hooks
+        .reminder
+        .as_ref()
+        .map(|_| reminder::start_at(event, &directory))
+        .transpose();
     if let Err(error) = started {
         eprintln!("session reminder state: {error}");
+        message.push_str(&format!("\n\n{}", reminder_failure(configured, &error)));
     }
     Ok(Some(context("SessionStart", &message)))
 }
@@ -129,7 +136,7 @@ fn shell_event(root: &Path, event: &Value, configured: &Context) -> Result<Optio
     })
 }
 fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
-    let message = edit_guidance(root, event, false, configured)?;
+    let mut message = edit_guidance(root, event, false, configured)?;
     let reminder = match &configured.config.hooks.reminder {
         Some(path) => reminder::before_at(
             event,
@@ -149,7 +156,10 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
             }
             return Ok(Some(deny(&reason)));
         }
-        Err(error) => eprintln!("complexity reminder: {error}"),
+        Err(error) => {
+            eprintln!("complexity reminder: {error}");
+            message.push_str(&format!("\n\n{}", reminder_failure(configured, &error)));
+        }
         _ => {}
     }
     let no_guidance = message.is_empty();
@@ -158,6 +168,17 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
     } else {
         Some(context("PreToolUse", &message))
     })
+}
+
+fn reminder_failure(configured: &Context, error: &anyhow::Error) -> String {
+    format!(
+        "Context reminders unavailable: {error}. Check reminder storage at {} and the hook transcript_path; repair the unavailable input and retry. Ordinary file editing remains available.",
+        configured
+            .root
+            .join(&configured.config.paths.runtime)
+            .join("reminders")
+            .display()
+    )
 }
 
 fn full_refresh(context: &crate::scaffold::config::Context) -> String {

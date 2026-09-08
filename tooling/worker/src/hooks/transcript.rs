@@ -32,12 +32,26 @@ pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
             }
         };
         offset += count as u64;
-        let token_record =
-            record["type"] == "event_msg" && record["payload"]["type"] == "token_count";
-        let token = token_record
-            .then(|| record["payload"]["info"]["last_token_usage"]["input_tokens"].as_u64())
-            .flatten();
-        tokens.extend(token);
+        tokens.extend(observation(&record));
     }
     Ok((tokens, offset))
+}
+
+fn observation(record: &Value) -> Option<u64> {
+    match record["type"].as_str()? {
+        "event_msg" => {
+            let token_record = record["payload"]["type"] == "token_count";
+            token_record
+                .then(|| record["payload"]["info"]["last_token_usage"]["input_tokens"].as_u64())
+                .flatten()
+        }
+        "assistant" => {
+            let usage = &record["message"]["usage"];
+            let input = usage["input_tokens"].as_u64()?;
+            let created = usage["cache_creation_input_tokens"].as_u64().unwrap_or(0);
+            let cached = usage["cache_read_input_tokens"].as_u64().unwrap_or(0);
+            input.checked_add(created)?.checked_add(cached)
+        }
+        _ => None,
+    }
 }
