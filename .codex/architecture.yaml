@@ -1,0 +1,9 @@
+purpose: Connect the development client to configured AgentRig services
+files:
+  architecture.yaml: Development client integration inventory
+  config.toml: Codex project settings and MCP registrations
+  hooks.json: Forward Codex events to the installed worker hook
+directories: {}
+allow: []
+deny: []
+public: []

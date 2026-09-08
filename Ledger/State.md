@@ -8,11 +8,11 @@ Deliver active P009: complete checked architecture maps and feature/module owner
 
 Branch: feature/architecture-ownership
 
-Revision: 4b7154e
+Revision: 335c167
 
-Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Examples VAC was accepted by commit gate 90573 with terminal 0. The tree was clean before the current review resource VAC.
+Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Review resource VAC was accepted by commit gate 86663 with terminal 0. The tree was clean before the current repository map VAC.
 
-Current uncommitted work adds five architecture contracts covering the review root, config, contracts, projects and prompts. Existing source and fixture contracts remain intact. Public entries correspond to existing library consumers and resources embedded by scaffold/package. Generated review runtime, reports and target are already excluded by review/.gitignore.
+Current uncommitted work adds thirteen architecture contracts covering the repository root, agent/client/Git/CI integration, Project, tooling, worker package and Ledger. Ledger detail descriptions follow existing index statements; immutable decisions and executable invariant contracts remain unchanged. Requests.md is registered as original user context. The skills symlink is skipped consistently with architecture discovery; its canonical target remains in scope.
 
 ## Progress
 
@@ -28,7 +28,7 @@ Commit d215bbd passed gate 8951: 348 selected Python tests in 549.88 seconds and
 
 Focused example delivery run 4948 passed all six scenarios in 167.15 seconds. All local PORTABILITY.md links resolve; config-check passes.
 
-Current combined candidate architecture probe returns [] with exit 0 after adding the full review tree to its includes. It covers worker source, relocated behavior tests, examples and review documentation/resources. Main tooling/worker/lint.yaml still does not enable architecture. This partial scope does not establish full P009 acceptance.
+Commit 335c167 passed gate 86663, including selected Rust/Python checks, review tests and all remaining checks (terminal 0). The earlier combined source/test/example/review probe passed. It now selects the entire repository using . and **, exposing the remaining missing assets contracts. Main tooling/worker/lint.yaml still does not enable architecture. Structural lint passes for the new repository maps; full architecture acceptance remains unfinished.
 
 ## Blockers
 
@@ -36,7 +36,7 @@ No operational blocker. Preserve behavior, exact executable oracles and full mai
 
 ## Next action
 
-Finish the review resource VAC: inspect the five contracts and public resource boundaries, verify structural lint, stage with this State and commit through the normal gate. Do not repeat the completed examples gate.
+Finish the repository map VAC: confirm that the full-tree probe reports only the remaining assets contracts, verify memory, inspect and stage the thirteen contracts with this State, and commit through the normal gate. Do not repeat completed example or review gates.
 
 Then cover remaining maintained root files, Ledger, Project, tooling documents and canonical skill resources. assets/skills currently contains 15 skills and .agents/skills is a single symlink to it: inspect ownership and consumers before any grouping, preserve canonical instruction bodies and installed names, and avoid arbitrary count-based folders or duplicate instructions.
 

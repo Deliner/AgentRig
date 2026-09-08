@@ -1,0 +1,12 @@
+purpose: Build and verify AgentRig and distribute its portable runtime
+files:
+  architecture.yaml: Tooling module composition and inventory
+  conftest.py: Shared pytest candidate binary construction and test environment fixtures
+  pyproject.toml: Python verification dependencies and tool configuration
+  uv.lock: Locked Python verification dependency versions
+directories:
+  distribution: Build releases and install the verified development runtime
+  worker: Implement and document portable AgentRig capabilities
+allow: []
+deny: []
+public: []

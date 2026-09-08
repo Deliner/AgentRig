@@ -1,0 +1,35 @@
+purpose: Preserve contextual rationale for durable repository choices
+files:
+  architecture.yaml: Detail file inventory and knowledge responsibility map
+  001.md: "Context and rationale for: Separate contextual decisions from executable invariants."
+  002.md: "Context and rationale for: Enforce durable-knowledge links and size policy with one standard-library checker."
+  003.md: "Context and rationale for: Block a second agent edit until prior edited contents are committed or reverted."
+  004.md: "Context and rationale for: Use Ruff, mypy, pytest, typos, and Vulture as the Python quality gate."
+  005.md: "Context and rationale for: Route agent shell operations through catalogued and logged Just recipes."
+  006.md: "Context and rationale for: Inject complexity discipline at session start and configured attention intervals."
+  007.md: "Context and rationale for: Warn before size limits fail and route structural findings to focused refactoring skills."
+  008.md: "Context and rationale for: Keep product contents under Project and durable worker knowledge in its sibling Ledger."
+  009.md: "Context and rationale for: Drive development through user-facing Plan features while leaving implementation choices to the executing agent."
+  010.md: "Context and rationale for: Develop on retained feature branches, rebase divergent work onto current master, and integrate it with an explicit merge."
+  011.md: "Context and rationale for: Deliver cohesive VACs through the staged commit gate and retire per-edit checkpoint blocking."
+  012.md: "Context and rationale for: Adapt outcome-based delivery through validated prerequisites, paused features, justified follow-ups, and retained branch handoffs."
+  013.md: "Context and rationale for: Preserve a compact current-work snapshot and reconcile it with Git and contracts on resume."
+  014.md: "Context and rationale for: Route Ledger edit guidance and existing checks through one shared hook entrypoint."
+  015.md: "Context and rationale for: Execute hook services and Git guards in a compatible native Rust runtime."
+  016.md: "Context and rationale for: Configure native structural rules and gate repair skills through versioned TOML."
+  017.md: "Context and rationale for: Analyze Rust and Python syntax for named conditions, function size and input counts with configurable enforcement."
+  018.md: "Context and rationale for: Share config and target validation between lint and a standalone command, rejecting unsupported language selection."
+  019.md: "Context and rationale for: Keep only native hook and structural lint implementations, preserving behavior through direct native tests and explicit historical link migration."
+  020.md: "Context and rationale for: Use one configured native runtime and canonical guidance, preserving decision history while keeping application links current."
+  021.md: "Context and rationale for: Block language-rule violations at the existing limits and repair all selected source."
+  022.md: "Context and rationale for: Connect VAC outcomes to actionable checks and content-bound recovery evidence without another task registry."
+  023.md: "Context and rationale for: Record installation ownership and shipped checksums so upgrades can distinguish stock files from local changes."
+  024.md: "Context and rationale for: Apply one explicit release transition with reviewed conflicts and a recoverable technical journal."
+  025.md: "Context and rationale for: Develop lint and review as portable worker capabilities while consumer projects own their configuration and source."
+  026.md: "Context and rationale for: Use strict YAML for AgentRig configuration without runtime format fallback; migrate legacy settings explicitly."
+  027.md: "Context and rationale for: Develop AgentRig using an explicitly pinned installed runtime while testing candidate source independently."
+  028.md: "Context and rationale for: Constrain measured source dependencies with directory-owned YAML contracts and enforce each crossed architectural boundary."
+directories: {}
+allow: []
+deny: []
+public: []
