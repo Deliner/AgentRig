@@ -442,7 +442,7 @@ checks:
     - tooling/tests/native/scaffold/test_git.py
   - include:
     - tooling/worker/src/scaffold/package/**
-    - tooling/worker/src/scaffold/receipt/**
+    - tooling/worker/src/scaffold/{receipt,installation}/**
     - tooling/worker/src/scaffold/recovery/**
     targets:
     - tooling/tests/native/scaffold/test_setup.py

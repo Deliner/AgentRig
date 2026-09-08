@@ -2,13 +2,7 @@ use super::super::receipt::Manifest;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq)]
-#[serde(deny_unknown_fields)]
-pub struct State {
-    pub resolved: String,
-    pub sha256: Option<String>,
-    pub mode: Option<u32>,
-}
+pub use crate::scaffold::installation::State;
 #[derive(Clone, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum Action {

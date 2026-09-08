@@ -3,6 +3,7 @@ pub mod config;
 mod evidence;
 mod gate;
 mod git;
+pub(crate) mod installation;
 mod memory;
 mod package;
 pub(crate) mod receipt;

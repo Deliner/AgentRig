@@ -54,7 +54,7 @@ pub fn init(root: &Path, args: &[String]) -> Result<i32> {
 }
 fn reject_legacy(root: &Path) -> Result<()> {
     ensure!(
-        !root.join(super::upgrade::migration::LEGACY_FILE).exists(),
+        !root.join(super::recovery::LEGACY_FILE).exists(),
         "legacy installation requires explicit upgrade; existing configuration preserved"
     );
     Ok(())

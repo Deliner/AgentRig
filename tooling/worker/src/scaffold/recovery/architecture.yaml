@@ -8,5 +8,6 @@ directories: {}
 allow:
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/scaffold/installation/mod.rs
 deny: []
 public: [mod.rs, model.rs]
