@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: eaee21b
+Revision: b77e5fd
 
-Installed runtime 9aee4ae is available. Shared path ownership is committed in eaee21b. The current P009 VAC moves inherited-context Git queries from util.rs to the existing review VCS owner, preserving the compatibility export and behavior. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae is available. Contextual Git query ownership is committed in b77e5fd. The current P009 VAC consolidates commit/reference guards into the existing scaffold/git.rs delivery owner and removes scaffold's dependency on hooks. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -36,7 +36,11 @@ Shared path ownership was committed in eaee21b through the selective gate (89697
 
 Current Git ownership preserves inherited GIT_DIR/GIT_WORK_TREE, trimmed UTF-8 output and raw Git stderr failures; the existing isolated VCS runner retains its separate environment semantics. Hooks and jobs call the VCS owner directly. Two colocated Rust tests pass after extracting repository setup into a helper; structural lint reports no errors. Two native command/rebase tests pass (75400, 14.67 seconds). Candidate self-analysis in .tmp/p009-git-owner.json removes the root/delegate/run/jobs/root cycle without new cycles, leaving 24 cycles and 18 missing contracts. Commit verification is pending.
 
-The first Git ownership commit attempt (47542) ran 692 Python cases successfully in 550.15 seconds and passed Rust behavior tests, then failed review-clippy because the inline test module preceded production items. The test block is now last in the file, with unchanged contents; the exact staged review-clippy retry passes. The commit is still pending and requires its configured gate again.
+Git query ownership was committed in b77e5fd after correcting inline test placement. The retry (32967 exited 0) passed 692 Python cases in 546.88 seconds, Rust tests, Clippy and all other configured checks.
+
+Current delivery guard consolidation keeps the original function bodies, updates their two scaffold callers and migrates D019's current application link. Three Git/Mercurial consumer cases pass (47203, 55.97 seconds). The existing divergent-rebase test now also attempts deletion of the integrated feature and verifies that the guard rejects it and preserves the reference; this updated case passes separately (34988, 2.46 seconds). Structural lint reports no errors. Candidate self-analysis in .tmp/p009-delivery-guards.json removes the hooks/scaffold/hooks cycle without new cycles or other findings, leaving 23 cycles and 18 missing contracts. Commit verification remains pending.
+
+The first delivery guard commit attempt (88068 exited 1) passed 418 Python cases in 552.59 seconds, then failed the unchanged review execution case external_review_and_repair_preserve_revision_scope_and_workspace with a timeout before role launch. The complete staged review-test retry (93691 exited 0) passed without code changes. Commit retry remains pending; this is not a completed VAC.
 
 ## Blockers
 
@@ -44,6 +48,6 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit Git query ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. The user reiterated that full checks belong only on merge; current affected groups are coarse and shared VCS changes select most Python groups. Refine selection against actual consumers without replacing the mandatory gate with an ad hoc subset. Hook object/text helpers are hook-owned. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
+Commit delivery guard consolidation through the affected gate, then continue remaining contracts and utility/scaffold ownership. The user reiterated that full checks belong only on merge; current affected groups are coarse and shared VCS changes select most Python groups. Refine selection against actual consumers without replacing the mandatory gate with an ad hoc subset. Hook object/text helpers are hook-owned. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
 
 Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

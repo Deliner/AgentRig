@@ -110,7 +110,7 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
         .unwrap_or(root);
     let context = config::Context::load(tree)?;
     let reference = snapshot.as_ref().map(|(_, revision)| revision.as_str());
-    crate::hooks::git::guard_commit_with(root, &context.config.vcs, reference)
+    git::guard_commit_with(root, &context.config.vcs, reference)
 }
 
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
@@ -139,7 +139,7 @@ fn configured_command(context: &config::Context, command: &str, args: &[String])
     match command {
         "doctor" => package::doctor(context),
         "config-check" => config_check(context),
-        "guard-reference" => crate::hooks::git::guard_reference_with(
+        "guard-reference" => git::guard_reference_with(
             root,
             args.first().map(String::as_str).unwrap_or(""),
             &git.base,

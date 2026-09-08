@@ -82,6 +82,9 @@ def test_divergent_rebase_preserves_merge_history(worker: Path, installed: Path)
     assert git(root, "status", "--porcelain") == ""
     for name in ["product", "side", "main", "concurrent"]:
         assert (root / f"{name}.txt").read_text() == name
+    deleted = git_result(root, "branch", "-D", "task/product", success=False)
+    assert deleted.returncode != 0
+    assert git(root, "rev-parse", "task/product") == tip
 
 
 def test_conflicting_rebase_can_be_aborted_without_losing_feature(

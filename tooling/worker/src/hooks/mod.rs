@@ -5,7 +5,6 @@
 // DECISION: D011
 // DECISION: D003
 // DECISION: D019
-pub mod git;
 mod guard;
 mod reminder;
 mod transcript;
