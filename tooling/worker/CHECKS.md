@@ -59,7 +59,7 @@ has a selection: an unknown path runs smoke tests rather than the full suite.
 All lint source paths select lint consumers, including strict defaults and memory
 syntax checks. Delegation selects its tests and setup consumers. Scaffold changes
 select scaffold/upgrade tests; the long complete-project integration scenarios
-are selected on commit only when their own test file changes. Merge runs all
+are selected on commit when their test file or independent examples change. Merge runs all
 configured tests. Keep feature mappings current when ownership moves; smoke-only
 verification does not establish that every affected behavior was tested.
 
@@ -68,3 +68,10 @@ target in every group that needs it. Passing both a file and a node ID inside it
 can narrow collection to that node; directory/file overlaps can also drop cases.
 Check combined collection against the union of individually collected targets
 when changing these groups.
+
+Repository lint is a command check invoking the candidate through
+`tooling/worker/build lint`. The pinned runtime still orchestrates the gate and
+its exported index; the candidate analyzes syntax added after that runtime was
+pinned. Lint always checks its configured tree, without an affected-path subset.
+`just lint` uses the same configured command. Consumer defaults retain their
+built-in lint check against the installed consumer binary.

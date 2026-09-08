@@ -30,6 +30,9 @@ commands:
     argv:
     - tooling/worker/build
     accepts_args: true
+  lint:
+    argv: [tooling/worker/build, lint]
+    accepts_args: true
   release:
     argv:
     - bash
@@ -258,7 +261,8 @@ checks:
   skill: .agents/skills/repair/SKILL.md
   command: build
 - id: lint
-  kind: lint
+  kind: command
+  command: lint
   skill: .agents/skills/repair/SKILL.md
 - id: memory
   kind: memory

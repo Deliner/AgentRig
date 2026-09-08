@@ -112,7 +112,7 @@ merely because Rust requires the parent to declare the child module.
 Tree-sitter extracts references without executing project code. Malformed syntax,
 unresolved references and recognized unsupported forms produce incomplete-analysis
 findings at the configured severity. This is not a compiler or a full static-analysis
-proof; remaining coverage is part of P006 delivery.
+proof; unsupported forms remain explicit incomplete-analysis findings.
 
 - **Rust 2018+**: explicit crate roots, declared `name.rs`/`name/mod.rs` and inline
   modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
@@ -172,7 +172,7 @@ permissions to silence findings does not establish the intended architecture.
 
 ## Executable consumer verification
 
-`tooling/tests/native/lint/test_architecture_behavior.py` compiles or executes
+`tooling/worker/src/lint/architecture/tests/test_architecture_behavior.py` compiles or executes
 independent Rust, Python, JavaScript and TypeScript consumers before and after
 replacing private access with an existing public API. The result stays `7`, the
 directory contracts remain byte-for-byte unchanged, and both lint binaries agree
@@ -180,3 +180,32 @@ on the violation and repair without changing consumer files. These tests use
 Rust 1.98.1, Python 3.12.3 and Node 22.22.3. TypeScript execution uses Node's
 `--experimental-strip-types` with explicit `.ts` imports and type annotations;
 it verifies runtime behavior, not TypeScript compiler type checking.
+
+## AgentRig repository coverage
+
+The checked `tooling/worker/lint.yaml` enables architecture at error severity for
+`.` and `**`: maintained source, colocated tests, root configuration, Ledger,
+documentation, examples and canonical resources. Language extensions select
+dependency extraction only; every discovered file remains in the inventory.
+Explicit exclusions cover Git metadata, build and dependency caches, virtual
+environments, temporary probes and generated review runtime/report directories.
+Native VCS ignore rules also apply. No maintained source or documentation tree
+is excluded to avoid architecture findings.
+
+Each actual Rust crate and integration-test root is listed, including the
+independent Rust example. Python uses the repository import root. External names
+describe standard libraries and installed dependencies; local modules remain
+subject to analysis and all crossed contracts.
+
+`just lint` and the gate's lint command invoke the candidate through the existing
+build adapter: the pinned runtime predates required Rust module-path analysis.
+The installed runtime still orchestrates commands, hooks, snapshots and gates.
+Use `just check --only lint` for the configured check; use `just candidate
+lint-config-check` to validate the candidate policy implementation.
+
+Canonical memory guidance lives under `assets/skills/memory`. Flat symlink aliases
+preserve existing client and hook instruction paths; source embedding uses the
+canonical files, and installed skill names remain flat. Discovery skips symlink
+aliases and inventories each canonical body once. Descriptions and permissions
+do not by themselves prove semantic ownership; the repair skill and review must
+still assess the actual responsibility and consumers.

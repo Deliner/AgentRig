@@ -48,9 +48,9 @@ resume:
 report:
     @tooling/worker/run report
 
-# What: invoke lint; Why: use the configured native runtime.
+# What: invoke candidate lint; Why: verify the architecture supported by the product under development.
 lint *args:
-    @tooling/worker/run lint "$@"
+    @tooling/worker/run run lint -- "$@"
 
 # What: invoke lint-rules; Why: use the configured native runtime.
 lint-rules:

@@ -8,11 +8,11 @@ Deliver active P009: complete checked architecture maps and feature/module owner
 
 Branch: feature/architecture-ownership
 
-Revision: 1814a08
+Revision: 4e42a7f
 
-Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Repository map VAC was accepted by commit gate 41855 with terminal 0. The tree was clean before the current canonical resource VAC.
+Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress. Canonical resource VAC was accepted by commit gate 37726 with terminal 0. The tree was clean before the current checked architecture enablement VAC.
 
-Current partly staged VAC groups five memory guidance skills under assets/skills/memory and adds eighteen resource contracts. Original bodies are unchanged. Flat symlinks preserve existing hook and client paths, including .agents/skills, while Rust includes the canonical files directly. Installed names remain flat. The root contract documents these compatibility aliases and their existing discovery semantics. Other skill ownership remains unchanged.
+Current VAC enables architecture at error severity in tooling/worker/lint.yaml for . and **, with explicit generated/service exclusions and actual Rust roots. Both binaries select all supported dependency extensions independently of inventory coverage. The repository lint check and just lint call the candidate through the existing build adapter and command catalog. Installed runtime orchestration and consumer defaults remain unchanged. Documentation describes scope, exclusions, compatibility aliases and candidate lint; stale tooling/tests/native references are repaired.
 
 ## Progress
 
@@ -30,7 +30,11 @@ Focused example delivery run 4948 passed all six scenarios in 167.15 seconds. Al
 
 Commit 335c167 passed gate 86663, including selected Rust/Python checks, review tests and all remaining checks. Commit 1814a08 passed gate 41855 with 23 Python smoke cases in 0.13 seconds and remaining required checks (terminal 0).
 
-The combined candidate probe selects the entire repository with . and ** and now returns [] (exit 0), including canonical resources and every crossed resource boundary. Before staging renames Git still listed removed files behind compatibility symlinks; staging the actual moves resolved those stale inventory paths without contract exceptions. Structural lint passes. Focused manifest/resource run 12058 passed all 13 cases in 6.87 seconds. A fresh candidate installation independently verified all 13 base skill names and byte-for-byte contents against HEAD; all five old client paths resolve to unchanged canonical bodies. Main tooling/worker/lint.yaml still does not enable architecture, and full P009 acceptance remains unfinished.
+Commit 4e42a7f passed gate 37726: seven selected Rust tests, 226 Python cases in 106.84 seconds and all required checks. Five memory guidance bodies moved unchanged; original client paths and all thirteen installed base skill names/bodies were verified. Focused resource tests passed thirteen cases in 6.87 seconds.
+
+Current checked configuration passes just check --only lint, config-check and lint-config-check. Architecture test run 58636 passed all 149 cases in 12.24 seconds, including inventory/discovery, measured boundaries and real Rust/Python/JavaScript/TypeScript consumers with both binaries. Direct repository runs of agentrig and agentrig-lint agree: no architecture findings or error-level findings, and the same 33 nonblocking structural size warnings. This verifies the checked full-tree scope, not merely the old temporary probe. Commit and integration gates for this VAC are not yet complete.
+
+The installed runtime lint was independently tested against the full rule and fails on Rust path attributes supported by the candidate. Therefore repository lint now uses a candidate command check, preserving the installed runtime for hooks and gate orchestration under D027. No parser weakening, source exclusions or pin promotion were used to make the analysis pass.
 
 ## Blockers
 
@@ -38,8 +42,8 @@ No operational blocker. Preserve behavior, exact executable oracles and full mai
 
 ## Next action
 
-Finish the canonical resource VAC: inspect staged moves and public resource contracts, stage remaining comments and this State, verify memory and commit through the normal gate. Do not repeat completed focused installation checks.
+Finish the checked architecture enablement VAC: inspect configuration, thin lint adapter and documentation, stage with this State and commit through the normal exported-index gate. This must verify candidate lint against the staged tree, not just the live checkout.
 
-Then promote the full-tree architecture rule from the temporary probe into checked lint.yaml. Review explicit generated/service exclusions, document checked scope and skill compatibility paths, and repair remaining stale documentation links to relocated tests. Preserve current thresholds and actual source roots.
+Then audit every P009 acceptance requirement against current code, contracts, tests and Git. Update Plan delivery evidence only when the full feature acceptance is established, commit it and run feature-merge for full integration verification. Retain the feature branch and refresh State from terminal integration evidence.
 
 Declare full checked scope and explicit justified service/generated/third-party exclusions, retain actual language roots, repair remaining measured findings, enable architecture in tooling/worker/lint.yaml, verify four-language consumers and both binaries, finish acceptance and feature-merge while retaining the branch. Do not mark P009 complete from a subset probe.

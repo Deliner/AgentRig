@@ -6,6 +6,10 @@ After cloning the full Git history, install the prerequisites listed in the scaf
 
 `just candidate --version` builds the current product through tooling/worker/build. Its cache is `.cache/worker`; native tests always select the candidate. `just run test -- PATH` performs focused tests. Commits run the configured exported-index gate with [affected test groups](../worker/CHECKS.md) plus smoke tests. Paths outside feature groups select only the smoke tests, never an automatic full-suite fallback. `just feature-merge` always runs full verification. `tooling/worker/run` performs no compilation. Repository configuration, memory and canonical skill sources remain versioned project policy.
 
+Repository lint also invokes the candidate through the configured command check,
+because its architecture analysis develops independently of the pinned runtime.
+The installed runtime retains gate orchestration and snapshot isolation.
+
 The locked uv development environment also supplies Mercurial 7.2.4 for native
 VCS tests. The configured `review-test` command runs Cargo through this environment
 so both Git and Mercurial executables are available. Mercurial is an external
