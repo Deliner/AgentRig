@@ -14,6 +14,7 @@ files:
   011.md: "Capability and acceptance for: Coordinated hooks and timely architecture guidance"
   012.md: "Capability and acceptance for: Cohesive AgentRig ownership and reliable development flows"
   013.md: "Capability and acceptance for: Complete lint coverage and executable language evaluations"
+  014.md: "Capability and acceptance for: Explainable and verifiable consumer workflows"
 directories: {}
 allow: []
 deny: []
