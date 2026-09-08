@@ -1,0 +1,8 @@
+purpose: "Obtain a validated isolated review of committed project changes"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to obtain a validated isolated review of committed project changes"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

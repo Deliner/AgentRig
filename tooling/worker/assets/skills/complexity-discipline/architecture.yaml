@@ -1,0 +1,9 @@
+purpose: "Keep implementation and workflow complexity within current requirements"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to keep implementation and workflow complexity within current requirements"
+  context-reminder.json: "Attention intervals and full refresh schedule for complexity guidance"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md", "context-reminder.json"]

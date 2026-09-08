@@ -1,0 +1,8 @@
+purpose: "Provide canonical instruction resources embedded into installed AgentRig environments"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+directories:
+  skills: "Canonical agent guidance grouped by its maintained responsibility"
+allow: []
+deny: []
+public: ["skills/complexity-discipline/SKILL.md", "skills/delegate-task/SKILL.md", "skills/execute-plan-feature/SKILL.md", "skills/name-if-condition/SKILL.md", "skills/reduce-parameters/SKILL.md", "skills/refactor-large-directory/SKILL.md", "skills/refactor-large-file/SKILL.md", "skills/refactor-long-function/SKILL.md", "skills/repair/SKILL.md", "skills/review-project/SKILL.md", "skills/memory/edit-plan/SKILL.md", "skills/memory/edit-state/SKILL.md", "skills/memory/edit-decisions/SKILL.md", "skills/memory/edit-invariants/SKILL.md", "skills/memory/norm-or-choice/SKILL.md", "skills/complexity-discipline/context-reminder.json"]

@@ -1,0 +1,8 @@
+purpose: "Diagnose and repair configuration and verification failures"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to diagnose and repair configuration and verification failures"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

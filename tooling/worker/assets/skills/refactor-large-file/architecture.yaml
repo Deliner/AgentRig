@@ -1,0 +1,8 @@
+purpose: "Decompose oversized source files by cohesive responsibility"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to decompose oversized source files by cohesive responsibility"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

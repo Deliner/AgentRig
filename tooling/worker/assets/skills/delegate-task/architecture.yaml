@@ -1,0 +1,8 @@
+purpose: "Run an authorized bounded task through the configured delegation worker"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to run an authorized bounded task through the configured delegation worker"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

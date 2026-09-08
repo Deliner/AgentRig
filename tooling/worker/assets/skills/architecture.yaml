@@ -1,0 +1,21 @@
+# Flat memory-skill symlinks preserve existing hook and client instruction paths.
+# Their canonical bodies are inventoried under memory; discovery skips symlink aliases.
+# Installed skill names remain flat through scaffold/package/assets.rs.
+purpose: "Provide canonical agent guidance for delivery, architectural repair and project memory"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+directories:
+  complexity-discipline: "Keep implementation and workflow complexity within current requirements"
+  delegate-task: "Run an authorized bounded task through the configured delegation worker"
+  execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
+  name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
+  reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
+  refactor-large-directory: "Repair directory ownership, inventories and dependency boundaries"
+  refactor-large-file: "Decompose oversized source files by cohesive responsibility"
+  refactor-long-function: "Simplify oversized functions while preserving observable behavior"
+  repair: "Diagnose and repair configuration and verification failures"
+  review-project: "Obtain a validated isolated review of committed project changes"
+  memory: "Maintain plans, decisions, invariants and current recovery facts"
+allow: []
+deny: []
+public: ["complexity-discipline/SKILL.md", "delegate-task/SKILL.md", "execute-plan-feature/SKILL.md", "name-if-condition/SKILL.md", "reduce-parameters/SKILL.md", "refactor-large-directory/SKILL.md", "refactor-large-file/SKILL.md", "refactor-long-function/SKILL.md", "repair/SKILL.md", "review-project/SKILL.md", "memory/edit-plan/SKILL.md", "memory/edit-state/SKILL.md", "memory/edit-decisions/SKILL.md", "memory/edit-invariants/SKILL.md", "memory/norm-or-choice/SKILL.md", "complexity-discipline/context-reminder.json"]

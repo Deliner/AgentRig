@@ -1,0 +1,12 @@
+purpose: "Maintain durable project knowledge and factual recovery context"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+directories:
+  edit-plan: "Maintain outcome capabilities, acceptance and delivery priority"
+  edit-state: "Maintain factual recovery context and a concrete next action"
+  edit-decisions: "Preserve contextual choices and their current application links"
+  edit-invariants: "Maintain observable predicates linked to exact executable oracles"
+  norm-or-choice: "Distinguish contextual choices from executable invariant predicates"
+allow: []
+deny: []
+public: ["edit-plan/SKILL.md", "edit-state/SKILL.md", "edit-decisions/SKILL.md", "edit-invariants/SKILL.md", "norm-or-choice/SKILL.md"]

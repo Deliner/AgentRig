@@ -1,0 +1,8 @@
+purpose: "Deliver planned features through verified atomic changes and integration"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to deliver planned features through verified atomic changes and integration"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]
