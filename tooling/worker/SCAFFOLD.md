@@ -412,7 +412,9 @@ Codex settings are preserved. Custom hooks do not replace mandatory runner gates
 
 ## Memory and recovery
 
-The initialized indexes are `Plan.md`, `Decisions.md` and `Invariants.md`; details use stable numeric IDs and matching paths such as `Plan/001.md`. `State.md` is a compact snapshot with Focus, Workspace, Progress, Verification, Blockers and Next action sections.
+The initialized indexes are `Plan.md`, `Backlog.md`, `Decisions.md` and `Invariants.md`; details use stable numeric IDs and matching paths such as `Plan/001.md`. `State.md` is a compact snapshot with Focus, Workspace, Progress, Verification, Blockers and Next action sections.
+
+Backlog rows contain ID, Idea and Expected benefit; BNNN links to Backlog/NNN.md with Context, Proposal and Expected benefit sections. Agents proactively use edit-backlog to retain concrete improvements outside their current task, then resume it. Recording an idea does not authorize planning or implementation. The existing memory check validates index/card consistency; older projects without Backlog remain compatible, but orphan cards are rejected. Setup preserves consumer-owned Backlog contents.
 
 Plan rows contain ID, Status, Depends on, Feature and User capability. Status is pending, active, paused or complete; dependencies must exist and be acyclic, with completed prerequisites for active/complete features. Details contain Feature, User capability and Acceptance; paused/complete details also contain Delivery. At most one feature is active.
 

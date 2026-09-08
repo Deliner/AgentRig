@@ -34,7 +34,7 @@ pub fn executable(path: &str) -> bool {
         .any(|component| component.as_os_str() == "bin" || component.as_os_str() == "hooks")
 }
 fn ownership(path: &str, config: &Config) -> Ownership {
-    let memory = ["Plan", "State", "Decisions", "Invariants"]
+    let memory = ["Plan", "Backlog", "State", "Decisions", "Invariants"]
         .iter()
         .any(|name| path == format!("{}/{name}.md", config.paths.memory));
     let settings = [

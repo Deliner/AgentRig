@@ -15,6 +15,8 @@ from tooling.worker.src.scaffold.testing.consumer import invoke
     "edit",
     [
         ("Edit", {"file_path": "Ledger/Plan.md"}, ["edit-plan"]),
+        ("Edit", {"file_path": "Ledger/Backlog.md"}, ["edit-backlog"]),
+        ("Write", {"file_path": "Ledger/Backlog/001.md"}, ["edit-backlog"]),
         ("Write", {"path": "Ledger/State.md"}, ["edit-state"]),
         ("Edit", {"file_path": "Ledger/Decisions.md"}, ["edit-decisions"]),
         ("Write", {"file_path": "Ledger/Invariants.md"}, ["edit-invariants"]),
@@ -85,7 +87,7 @@ def test_ledger_edit_guidance(
     output = result["hookSpecificOutput"]
     assert "permissionDecision" not in output
     message = output["additionalContext"]
-    for skill in ("edit-plan", "edit-decisions", "edit-invariants", "edit-state"):
+    for skill in ("edit-plan", "edit-backlog", "edit-decisions", "edit-invariants", "edit-state"):
         path = tmp_path / "guides" / skill / "SKILL.md"
         assert path.is_file()
         assert message.count(str(path)) == int(skill in expected)

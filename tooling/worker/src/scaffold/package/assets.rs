@@ -3,6 +3,10 @@ use std::collections::BTreeMap;
 
 const SKILLS: &[(&str, &str)] = &[
     (
+        "edit-backlog",
+        include_str!("../../../assets/skills/memory/edit-backlog/SKILL.md"),
+    ),
+    (
         "complexity-discipline",
         include_str!("../../../assets/skills/complexity-discipline/SKILL.md"),
     ),
@@ -81,7 +85,12 @@ pub fn skills(config: &super::Config) -> BTreeMap<&'static str, String> {
 }
 pub fn memory() -> BTreeMap<&'static str, String> {
     let mut files = BTreeMap::new();
-    for (name, prefix) in [("Plan", 'P'), ("Decisions", 'D'), ("Invariants", 'I')] {
+    for (name, prefix) in [
+        ("Plan", 'P'),
+        ("Backlog", 'B'),
+        ("Decisions", 'D'),
+        ("Invariants", 'I'),
+    ] {
         let columns = columns(prefix).join(" | ");
         let separator = columns
             .split('|')
@@ -107,7 +116,7 @@ pub fn memory() -> BTreeMap<&'static str, String> {
 
 pub fn instructions(config: &super::Config) -> String {
     let mut instructions = format!(
-        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration is agentrig.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-decisions, edit-invariants or edit-state skill.\n\nUse just run read -- COMMAND for inspection and just run write -- COMMAND for authorized changes. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n\nReview, when enabled in agentrig.yaml, uses the configured MCP tools or just review. Source changes and acceptance remain the calling workflow's responsibility.\n",
+        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration is agentrig.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nWhen work reveals a concrete improvement outside the current task, proactively use edit-backlog to save it in the configured memory directory, then resume the task. Recording the idea needs no additional approval; it does not authorize planning or implementation. Backlog collects ideas; Plan owns accepted delivery. Required work stays in the current task.\n\nUse just run read -- COMMAND for inspection and just run write -- COMMAND for authorized changes. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n\nReview, when enabled in agentrig.yaml, uses the configured MCP tools or just review. Source changes and acceptance remain the calling workflow's responsibility.\n",
         config.paths.service, config.paths.memory, config.paths.memory, config.paths.skills
     );
     let delegation = config.capabilities.delegation.is_some();

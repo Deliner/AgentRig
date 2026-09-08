@@ -1,0 +1,7 @@
+purpose: Retain improvement ideas and their context before delivery is authorized
+files:
+  architecture.yaml: Idea card inventory and responsibility map
+directories: {}
+allow: []
+deny: []
+public: []

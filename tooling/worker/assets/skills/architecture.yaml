@@ -15,7 +15,7 @@ directories:
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   repair: "Diagnose and repair configuration and verification failures"
   review-project: "Obtain a validated isolated review of committed project changes"
-  memory: "Maintain plans, decisions, invariants and current recovery facts"
+  memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"
 allow: []
 deny: []
-public: ["complexity-discipline/SKILL.md", "delegate-task/SKILL.md", "execute-plan-feature/SKILL.md", "name-if-condition/SKILL.md", "reduce-parameters/SKILL.md", "refactor-large-directory/SKILL.md", "refactor-large-file/SKILL.md", "refactor-long-function/SKILL.md", "repair/SKILL.md", "review-project/SKILL.md", "memory/edit-plan/SKILL.md", "memory/edit-state/SKILL.md", "memory/edit-decisions/SKILL.md", "memory/edit-invariants/SKILL.md", "memory/norm-or-choice/SKILL.md", "complexity-discipline/context-reminder.json"]
+public: ["complexity-discipline/SKILL.md", "delegate-task/SKILL.md", "execute-plan-feature/SKILL.md", "name-if-condition/SKILL.md", "reduce-parameters/SKILL.md", "refactor-large-directory/SKILL.md", "refactor-large-file/SKILL.md", "refactor-long-function/SKILL.md", "repair/SKILL.md", "review-project/SKILL.md", "memory/edit-backlog/SKILL.md", "memory/edit-plan/SKILL.md", "memory/edit-state/SKILL.md", "memory/edit-decisions/SKILL.md", "memory/edit-invariants/SKILL.md", "memory/norm-or-choice/SKILL.md", "complexity-discipline/context-reminder.json"]

@@ -1,0 +1,8 @@
+purpose: Capture concrete future improvements without changing the current delivery scope
+files:
+  architecture.yaml: Resource responsibility map and public installation boundary
+  SKILL.md: Canonical guidance for proactive idea capture and deliberate Plan promotion
+directories: {}
+allow: []
+deny: []
+public: [SKILL.md]

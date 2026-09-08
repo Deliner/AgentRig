@@ -34,6 +34,8 @@ Classify an obstacle against current acceptance:
 
 New entries require a current requirement, observed constraint, or authorized instruction. Keep stable IDs, outcome-based details, and the reason/source in Delivery. Do not turn every implementation step into a feature or split solely because work is large.
 
+When work reveals a concrete improvement outside current acceptance that is not authorized for planning, use edit-backlog to retain the idea and its context, then resume the task. Recording an idea does not expand delivery scope. Work needed for current acceptance must still be completed or reported as a blocker.
+
 If later work is required for current acceptance, the current feature remains incomplete. Perform that work inside it or explicitly revise the result contract under the user's authorization. Do not silently shrink acceptance to manufacture completion.
 
 ## Pause and hand off
