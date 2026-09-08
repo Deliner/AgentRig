@@ -3,8 +3,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from test_architecture import contract, snapshot
-from test_architecture_inventory import documents
+
+from tooling.tests.native.lint.test_architecture import contract, snapshot
+from tooling.tests.native.lint.test_architecture_inventory import documents
 
 
 def repository(root: Path, backend: str) -> list[str]:

@@ -3,8 +3,15 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from test_delegate_mcp import client, initialize, tool
-from test_delegate_run import CLAUDE_RESPONSE, call, consumer, select_claude, terminal
+
+from tooling.tests.native.test_delegate_mcp import client, initialize, tool
+from tooling.tests.native.test_delegate_run import (
+    CLAUDE_RESPONSE,
+    call,
+    consumer,
+    select_claude,
+    terminal,
+)
 
 
 def code_consumer(worker: Path, root: Path, monkeypatch: pytest.MonkeyPatch, script: str) -> str:

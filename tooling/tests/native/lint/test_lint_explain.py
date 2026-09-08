@@ -4,7 +4,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_lint import CONFIG, lint, prepare
+
+from tooling.tests.native.test_lint import CONFIG, lint, prepare
 
 
 def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from support import invoke
+
+from tooling.tests.native.scaffold.support import invoke
 
 
 @pytest.mark.parametrize(

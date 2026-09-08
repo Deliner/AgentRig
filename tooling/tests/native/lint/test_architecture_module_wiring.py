@@ -2,8 +2,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from test_architecture import CONFIG, contract
-from test_lint import lint, prepare
+
+from tooling.tests.native.lint.test_architecture import CONFIG, contract
+from tooling.tests.native.test_lint import lint, prepare
 
 
 def consumer(root: Path, case: str) -> None:

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_delegate_run import consumer
+
+from tooling.tests.native.test_delegate_run import consumer
 
 
 @contextmanager

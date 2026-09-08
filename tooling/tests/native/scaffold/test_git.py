@@ -9,11 +9,16 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import git as git_result
-from support import invoke, update_config, vcs_backend
-from test_commands import background_id, require_user_systemd, wait_for_background_output
-from test_feedback import commit as revision_commit
-from test_feedback import evidence, repository, resumed, revision
+
+from tooling.tests.native.scaffold.support import git as git_result
+from tooling.tests.native.scaffold.support import invoke, update_config, vcs_backend
+from tooling.tests.native.scaffold.test_commands import (
+    background_id,
+    require_user_systemd,
+    wait_for_background_output,
+)
+from tooling.tests.native.scaffold.test_feedback import commit as revision_commit
+from tooling.tests.native.scaffold.test_feedback import evidence, repository, resumed, revision
 
 
 def git(root: Path, *args: str) -> str:

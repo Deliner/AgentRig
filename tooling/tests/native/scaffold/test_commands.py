@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from support import CONFIG, invoke, project
+
+from tooling.tests.native.scaffold.support import CONFIG, invoke, project
 
 
 def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:

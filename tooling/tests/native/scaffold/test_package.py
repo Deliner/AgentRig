@@ -9,8 +9,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import file_contents, invoke, update_config
-from test_setup import delegated_project
+
+from tooling.tests.native.scaffold.support import file_contents, invoke, update_config
+from tooling.tests.native.scaffold.test_setup import delegated_project
 
 
 @pytest.mark.parametrize("frontend", ["codex", "claude-code"])

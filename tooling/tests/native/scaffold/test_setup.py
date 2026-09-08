@@ -9,7 +9,15 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, invoke, project, update_config, vcs_backend
+
+from tooling.tests.native.scaffold.support import (
+    CONFIG,
+    file_contents,
+    invoke,
+    project,
+    update_config,
+    vcs_backend,
+)
 
 
 @pytest.mark.parametrize("backend", ["git", "mercurial"])

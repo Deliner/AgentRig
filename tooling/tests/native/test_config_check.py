@@ -6,8 +6,9 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_language import configure
-from test_lint import CONFIG, lint, prepare
+
+from tooling.tests.native.test_language import configure
+from tooling.tests.native.test_lint import CONFIG, lint, prepare
 
 # DECISION: D018
 

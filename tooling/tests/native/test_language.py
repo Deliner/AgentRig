@@ -3,7 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from test_lint import CONFIG, lint, prepare
+
+from tooling.tests.native.test_lint import CONFIG, lint, prepare
 
 # DECISION: D017
 

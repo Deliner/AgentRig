@@ -6,7 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from support import invoke, project
+
+from tooling.tests.native.scaffold.support import invoke, project
 
 
 # INVARIANT: I007

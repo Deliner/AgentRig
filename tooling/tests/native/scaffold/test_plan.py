@@ -3,8 +3,9 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
-from support import CONFIG, invoke, project
-from test_memory import memory
+
+from tooling.tests.native.scaffold.support import CONFIG, invoke, project
+from tooling.tests.native.scaffold.test_memory import memory
 
 # DECISION: D012
 

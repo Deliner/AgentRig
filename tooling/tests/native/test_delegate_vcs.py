@@ -4,8 +4,9 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from test_delegate_code import SCRIPT, code_consumer, code_request
-from test_delegate_run import call, consumer, terminal
+
+from tooling.tests.native.test_delegate_code import SCRIPT, code_consumer, code_request
+from tooling.tests.native.test_delegate_run import call, consumer, terminal
 
 
 def backend(external: bool) -> str | dict[str, list[str]]:

@@ -5,7 +5,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from test_lint import CONFIG, prepare
+
+from tooling.tests.native.test_lint import CONFIG, prepare
 
 
 def inventory_project(root: Path, vcs: str) -> None:

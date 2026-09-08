@@ -7,7 +7,16 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, git, invoke, project, update_config, vcs_backend
+
+from tooling.tests.native.scaffold.support import (
+    CONFIG,
+    file_contents,
+    git,
+    invoke,
+    project,
+    update_config,
+    vcs_backend,
+)
 
 GATE = """
 checks:
@@ -219,7 +228,7 @@ def test_staged_private_selection_rejects_index_before_running_adapter(
 def test_staged_evidence_uses_current_backend_without_native_fallback(
     worker: Path, tmp_path: Path
 ) -> None:
-    from test_feedback import repository
+    from tooling.tests.native.scaffold.test_feedback import repository
 
     repository(tmp_path)
     assert invoke(worker, tmp_path, "check", "--staged", "--only", "lint").returncode == 0
@@ -387,7 +396,7 @@ def test_private_worktree_inventory_controls_lint_and_check_selection(
 
 
 def test_private_resume_accepts_opaque_recorded_revisions(worker: Path, tmp_path: Path) -> None:
-    from test_memory import memory
+    from tooling.tests.native.scaffold.test_memory import memory
 
     project(tmp_path, CONFIG + GATE)
     notes = memory(tmp_path)
@@ -417,8 +426,8 @@ def test_private_resume_accepts_opaque_recorded_revisions(worker: Path, tmp_path
 def test_private_feature_start_preserves_native_state(
     worker: Path, tmp_path: Path, obstacle: str
 ) -> None:
-    from test_feedback import commit, resumed, revision
-    from test_git import feature_repository
+    from tooling.tests.native.scaffold.test_feedback import commit, resumed, revision
+    from tooling.tests.native.scaffold.test_git import feature_repository
 
     feature_repository(tmp_path, "hg")
     update_config(tmp_path / "agentrig.yaml", git={"backend": vcs_backend("private")})
@@ -448,7 +457,7 @@ def test_private_feature_start_preserves_native_state(
 def test_private_setup_preview_resolves_adapter_from_consumer_root(
     worker: Path, tmp_path: Path
 ) -> None:
-    from test_setup import declaration
+    from tooling.tests.native.scaffold.test_setup import declaration
 
     root = declaration(worker, tmp_path, "private rig")
     backend = vcs_backend("private")
@@ -481,8 +490,8 @@ def test_private_setup_preview_resolves_adapter_from_consumer_root(
 def test_private_installed_commit_gate_preserves_failed_and_unselected_work(
     worker: Path, tmp_path: Path
 ) -> None:
-    from test_feedback import revision
-    from test_git import hg, initialize_mercurial
+    from tooling.tests.native.scaffold.test_feedback import revision
+    from tooling.tests.native.scaffold.test_git import hg, initialize_mercurial
 
     initialize_mercurial(worker, tmp_path)
     update_config(tmp_path / "agentrig.yaml", vcs={"backend": vcs_backend("private")})

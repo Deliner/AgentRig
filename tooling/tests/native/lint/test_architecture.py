@@ -5,8 +5,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from test_lint import lint, prepare
-from test_lint_explain import explain
+
+from tooling.tests.native.lint.test_lint_explain import explain
+from tooling.tests.native.test_lint import lint, prepare
 
 SKILL = ".agents/skills/refactor-large-directory/SKILL.md"
 CONFIG = f"""version: 1

@@ -8,7 +8,8 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from support import (
+
+from tooling.tests.native.scaffold.support import (
     CONFIG,
     file_contents,
     git,
@@ -18,8 +19,8 @@ from support import (
     vcs_backend,
     vcs_executable,
 )
-from test_gate import GATE
-from test_memory import committed_memory, memory
+from tooling.tests.native.scaffold.test_gate import GATE
+from tooling.tests.native.scaffold.test_memory import committed_memory, memory
 
 
 def repository(root: Path, vcs: str = "git") -> None:

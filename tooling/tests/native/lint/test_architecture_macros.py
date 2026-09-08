@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import pytest
-from test_architecture import consumer, contract
-from test_architecture_behavior import parity
+
+from tooling.tests.native.lint.test_architecture import consumer, contract
+from tooling.tests.native.lint.test_architecture_behavior import parity
 
 
 @pytest.mark.parametrize(

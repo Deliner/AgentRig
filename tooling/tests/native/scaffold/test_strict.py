@@ -3,7 +3,8 @@ import json
 from pathlib import Path
 
 import pytest
-from support import file_contents, invoke, update_config
+
+from tooling.tests.native.scaffold.support import file_contents, invoke, update_config
 
 
 @pytest.mark.parametrize("frontend", ["codex", "claude-code"])

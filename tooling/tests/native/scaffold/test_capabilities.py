@@ -8,8 +8,19 @@ from typing import Any
 
 import pytest
 import yaml
-from support import CONFIG, file_contents, invoke, project, update_config
-from test_review import claude_consumer_settings, claude_registered_services, resources
+
+from tooling.tests.native.scaffold.support import (
+    CONFIG,
+    file_contents,
+    invoke,
+    project,
+    update_config,
+)
+from tooling.tests.native.test_review import (
+    claude_consumer_settings,
+    claude_registered_services,
+    resources,
+)
 
 CLIENT_FILES = {
     "codex": (".agents/skills", ".codex/hooks.json"),

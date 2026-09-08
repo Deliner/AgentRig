@@ -2,70 +2,50 @@
 
 ## Focus
 
-Deliver active P009: complete architecture maps and feature/module ownership across maintained AgentRig source, tests, documentation and resources. Acceptance and integration are unfinished.
+Deliver active P009: complete architecture maps and feature/module ownership across maintained AgentRig source, tests, documentation and resources. Acceptance and integration remain unfinished.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: caa4b63
+Revision: ce97ff7
 
-Installed runtime 9aee4ae remains pinned. Review composition and MCP ownership are committed. Current VAC colocates gate orchestration with selection and completes scaffold, gate and upgrade contracts. All selected Rust directories now pass the architecture probe without findings.
+Installed runtime 9aee4ae remains pinned. Rust architecture ownership and inventories are committed. Current VAC replaces 69 short local Python test imports with explicit module paths and aligns pytest/mypy package roots. No test function, oracle path or runtime behavior changes are intended.
 
 ## Progress
 
-Expanded inventories, repair guidance, four-language dependency analysis and measured Rust binding fixes are committed. Module declarations retain access checks without manufacturing use cycles; imports, calls, types and reexports retain cycle checks.
+Expanded exact inventories, repair guidance, four-language dependency analysis and Rust binding fixes are committed. Module declarations retain access checks without manufacturing use cycles; real imports, calls, types and reexports retain cycle checks.
 
-Delegate, environment, review, lint configuration/discovery, resources, arguments, paths, hook input, command execution, memory validation, settings, receipts and recovery have clearer ownership. Existing public compatibility exports remain. D005 follows command execution and settings validation; D023 follows receipt schema and generation.
+Rust capabilities now have exact directory contracts. Shared arguments, paths, resources, settings, receipts, installation state and saved-plan recovery have their own owners. Init and its wizard belong to setup. The standalone lint entry belongs to lint. Review MCP owns its unchanged argument schema. Gate orchestration lives with target selection; D004/D005/D015/D016 application links follow it.
 
-Installation/mod.rs owns the unchanged serializable file State, confined file observation and atomic durable replacement formerly under recovery/model and upgrade/storage. Setup reconciliation calls installation directly. Update storage and recovery schemas use the same owner, preserving their internal exports and serialized fields. Installation uses static settings path validation, avoiding Context/recovery coupling. Package legacy rejection uses recovery::LEGACY_FILE directly. Its architecture contract and recovery permissions describe these actual dependencies.
+Python tests now import uniquely identified local modules by full paths. Pytest uses the repository import root. Mypy explicit_package_bases resolves the observed duplicate short/full module identity. Its default pytest import mode is preserved. No local code was declared external and no analyzer feature was added to accommodate implicit pytest paths.
 
-Setup input now imports settings, package generation and manifest helpers from their actual owners instead of setup's aliases. Moving input.rs into the existing input directory colocates its data and orchestration with the handlers that use them; Rust module paths and call behavior remain unchanged. The contract registers all six files and measured dependencies.
-
-Current recovery/storage.rs preserves payload checksums, atomic JSON persistence and recorded-file restoration; recovery/report.rs preserves plan text, Git diff invocation, mode reporting and temporary-file cleanup. Release and configuration plans use this common owner. Configuration planning now imports saved model/storage/reporting directly and its handlers share the same directory. No schema, CLI or diff behavior changed.
-
-Commit test selection correction is accepted as 546b6d4. Python groups follow scaffold behavior ownership; Rust uses existing libtest module filters; unrelated review tests skip. Shared configuration and dispatch still select broad consumer groups. Full integration checks remain unfiltered. Explicit false command defaults are owned by the runtime schema and catchall smoke coverage is not duplicated.
-
-Initialization now belongs to setup/init.rs and setup/wizard.rs. Package generation no longer calls setup; executors read prepared or installed resources through the package owner. CLI dispatch reaches setup's init/run entry points directly. Collision checks, creation permissions, generated-bundle validation, confirmation and cancellation bodies are preserved. New package and setup contracts register exact files, child roles and existing external consumers.
+P010 is separately planned and pending after the user's configuration-hook deadlock report. The candidate reproduces denial of read and corrective edit events on malformed YAML; diagnostics hide the actual parsing cause. Do not implement P010 instead of P009 or touch voxel-rust.
 
 ## Verification
 
-Review ownership commit caa4b63 passed gate 54205 (terminal 0): 69 AgentRig Rust tests, 692 selected Python tests in 511.91 seconds and the review crate tests and configured checks. Current scaffold composition passes candidate build (95361), Clippy (59595), memory validation (27993) and 11 existing staged/selected/full-gate and rerun consumer cases in 0.63 seconds (86655). Probe .tmp/p009-scaffold-composition.json exits 0 with no findings. The only initial boundary correction exposes the existing recovery guidance entry used by session hooks. Gate code is unchanged, and D004/D005/D015/D016 application links follow its new path. Current commit gate is pending.
+Review ownership commit caa4b63 passed gate 54205: 69 AgentRig Rust tests, 692 selected Python tests in 511.91 seconds, review crate tests and all configured checks.
 
-Support contract commit 48ee237 passed gate 37688 (terminal 0): 32 Rust tests, 491 selected Python tests in 502.72 seconds and all configured checks. Review tests skipped. Current review ownership passes review-test (44496 terminal 0), including MCP tool and argument behavior, candidate release build (56058), three native delegation MCP consumers in 0.65 seconds, review Clippy and git diff --check. Probe .tmp/p009-review-composition.json reports three missing scaffold contracts and no other findings. Review commit gate is pending. The argument schema moved unchanged; no stale references to schemas/arguments.json or review/src/mcp.rs remain under tooling or Ledger.
+Final Rust composition commit ce97ff7 passed gate 64164 (terminal 0): seven Rust tests, 252 selected Python tests in 426.87 seconds and all configured checks. Review tests skipped. Candidate build, Clippy, memory and eleven focused gate consumers passed before that commit.
 
-Root composition commit 87a9f85 passed gate 89940 (terminal 0): 92 Rust tests, 251 selected Python tests in 29.29 seconds and all configured checks. Review tests skipped. This supersedes its pending gate below. Current composition/jobs/evidence contracts pass the focused Rust probe .tmp/p009-support-contracts.json with six missing contracts and no other findings; no behavior code changed. Remaining Rust contracts are review/src, review/src/mcp, review/src/vcs, scaffold, scaffold/gate and scaffold/upgrade.
+Probe .tmp/p009-scaffold-composition.json exits 0 with no findings across the configured Rust source roots. This probe still has source-extension selection and does not prove full maintained-tree coverage.
 
-Current root composition VAC preserves the standalone entry body and binary name through an explicit Cargo target at lint/standalone.rs. Both frontend consumers pass 56 native portable/architecture cases after candidate build; Clippy passes (9515 terminal 0). Probe .tmp/p009-root-owner.json reports nine missing Rust contracts and no other findings. Commit gate is pending. P010 planning commit ee20457 passed its selected gate with 23 Python configuration cases; implementation remains pending.
+Current explicit Python imports: all 698 native tests collect; 63 architecture, delegation MCP and State cases pass in 0.98 seconds (89072). Mypy passes all 51 configured sources after the reported duplicate-module correction. Ruff import sorting fixed seven findings; formatting left 48 files unchanged.
 
-Memory/commands commit 98f2d73 passed its required gate (66273 terminal 0): 418 Python tests in 465.01 seconds, seven selected Rust tests and all other configured checks. Review tests were skipped as unrelated. Its architecture probe had six cycles and 15 missing contracts.
-
-Current installation extraction passes five existing Rust receipt/recovery tests (94018). Twenty focused native setup preservation, conflicts, post-preview edits, upgrade and rollback cases passed in 39.39 seconds (13981). Two legacy-init rejection cases passed in 8.49 seconds after the final constant-owner correction (53603). Configuration, structural lint and git diff --check pass.
-
-Installation commit 041f5a0 passed gate 66711 (terminal 0): 418 Python cases in 466.02 seconds, 92 Rust tests and all other configured checks including review. No integration has run.
-
-Current setup input change passes 29 native package/composed-preview consumers in 18.92 seconds (7893), structural lint and git diff --check. Self-analysis .tmp/p009-setup-input.json reports three cycles, 14 missing contracts and no other findings. Direct input-to-setup coupling is removed; a longer representative through package generation remains within the existing package/setup cycle. Do not claim the entire input dependency graph is acyclic. Initial gate 93759 failed Clippy on the now-unused parent manifest import; removing that alias passed the reported staged Clippy rerun (83558). Normal commit retry is pending.
-
-Setup input commit 055accf passed its normal retry (13122 terminal 0): 226 Python tests in 104.56 seconds, seven selected Rust tests and all other configured checks. Review tests were skipped. This supersedes the pending retry above.
-
-Current saved-plan ownership passes Clippy (20636), 34 native release/configuration update and recovery cases in 60.63 seconds (13750), structural lint and git diff --check. Self-analysis .tmp/p009-configuration-owner.json reports two remaining package/setup cycle paths, 13 missing Rust contracts and no other findings. The upgrade/configuration cycle is removed. Current commit gate remains pending.
-
-Saved-plan commit 5b98a57 passed gate 43397 (terminal 0): 239 Python tests in 113.10 seconds, seven Rust tests and all other configured checks. Review tests skipped. This supersedes its pending gate above.
-
-Current initialization ownership passes Clippy (87034), 90 native setup/package cases in 49.52 seconds (74711), structural lint and git diff --check. Self-analysis .tmp/p009-package-owner.json has zero cycles, 11 missing Rust contracts and no other findings. Existing native client discovery, diagnostics and lint catalog calls are explicitly included in the new package boundary. Current commit gate is pending.
+Probe .tmp/p009-python-qualified.json reports only 12 missing contracts and no unresolved local imports, compared with the prior 69 unresolved imports. Initial commit gate 90717 failed Ruff because local and exported configurations classified tooling imports differently. Explicit known-first-party tooling and the configured import sorter corrected 33 findings; the required staged Ruff retry passed. Normal commit retry is pending.
 
 ## Blockers
 
-P010 is planned separately at the user's request: malformed configuration blocks diagnostic reads and corrective edits through hooks, and the outer error hides the YAML cause. Reproduced with read and apply_patch events in an isolated candidate fixture; voxel-rust was not modified. Ledger/Plan/010.md defines recovery without discarding edits or bypassing normal verification. Implementation remains pending.
+No current operational blocker. Preserve the full P009 scope, behavior, permissions and maintained-source coverage.
 
-No current operational blocker. Keep the full P009 scope and preserve behavior, permissions and maintained-source coverage.
-
-Root agentrig.yaml is strictly decoded; setup configuration packages do not imply live root package support. A failed root-package extraction blocked all hooks until the user restored flattened checks. Do not retry that unsupported extraction or change the development pin as a workaround. Configuration is now valid at 500 nonblank lines without changing thresholds.
+Live agentrig.yaml is strict and does not support setup configuration packages at its root. Do not retry root package extraction or change the installed development pin as a workaround. The root file currently has 500 nonblank lines; do not weaken thresholds.
 
 ## Next action
 
-Finish scaffold composition through its required commit gate. Then broaden architecture coverage to maintained tests, documentation and resources and repair misplaced test ownership. The Rust probe is clean, but source extensions currently narrow its coverage; this is not full P009 acceptance. Resolve local Python imports with explicit actual package ownership rather than marking them external. Enable the checked rule only with its full justified scope and complete required integration.
+Finish the explicit Python import VAC through its required commit gate. Then colocate behavior tests with their actual feature/module owners, keeping shared test environment fixtures with their real owner and resolving measured coupling rather than widening permissions.
 
-Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
+Remaining Rust review tests are under review/tests: Cargo can preserve their current target names with explicit relocated paths. Shared support/mod.rs and critic.py have consumers in execution/harness tests and native test_review.py. Inspect those consumers before moving them. Other tests already have explicit targets colocated with config, response and snapshot.
 
-Enable expanded architecture policy in the checked lint configuration, verify four-language consumers and both binaries, and complete full P009 acceptance before integration through feature-merge. Retain the feature branch. Do not hide cycles with aliases, widen permissions to silence findings, create arbitrary folders, or claim focused checks prove full acceptance.
+Native Python tests still live under tooling/tests/native. Moving them requires updating exact configured check targets, invariant oracles and decision application links, fixture discovery and __file__-relative resource paths. Read matching memory skills before updates. Preserve actual test collection and executable coverage.
+
+Broaden architecture coverage to maintained tests, docs and resources with explicit justified generated/service/third-party exclusions and exact descriptions. Canonical skills live under tooling/worker/assets/skills; symlinks are skipped. Enable the rule in checked lint.yaml, verify both binaries and all four languages, complete full P009 acceptance and integrate through feature-merge while retaining the branch. A clean Rust probe alone is not completion.

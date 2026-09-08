@@ -9,7 +9,15 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from support import file_contents, invoke, project, update_config, vcs_backend, vcs_executable
+
+from tooling.tests.native.scaffold.support import (
+    file_contents,
+    invoke,
+    project,
+    update_config,
+    vcs_backend,
+    vcs_executable,
+)
 
 
 def memory(root: Path) -> Path:

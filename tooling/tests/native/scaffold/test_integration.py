@@ -8,7 +8,8 @@ from pathlib import Path
 
 import pytest
 import yaml
-from support import file_contents, git, invoke, update_config
+
+from tooling.tests.native.scaffold.support import file_contents, git, invoke, update_config
 
 
 @dataclass(frozen=True)
@@ -392,7 +393,7 @@ def test_shared_package_prepares_independent_python_and_rust_consumers(
 
 
 def installed_hg_consumer(worker: Path, root: Path, vcs: str) -> Path:
-    from test_git import hg, initialize_mercurial
+    from tooling.tests.native.scaffold.test_git import hg, initialize_mercurial
 
     hg(root, "init")
     hg(root, "branch", "trunk")
@@ -449,7 +450,7 @@ def consumer_just(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
 def test_installed_mercurial_delivery_recovers_failed_integration(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, vcs: str
 ) -> None:
-    from test_git import hg
+    from tooling.tests.native.scaffold.test_git import hg
 
     binary = installed_hg_consumer(worker, tmp_path, vcs)
     bootstrap = consumer_just(tmp_path, "feature-merge")
