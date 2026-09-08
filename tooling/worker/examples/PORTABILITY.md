@@ -51,7 +51,7 @@ That P004 acceptance covered Linux, local packages and the Codex frontend. Ready
 executables still require the documented host tools, model authentication and
 working bubblewrap/systemd support. That delivery supplied no remote registry,
 extra OS/frontend or automatic patch merge. Release publication is separate from local
-feature integration. See [P004 delivery](../../../Ledger/Plan/004.md) and Git for
+feature integration. See [P004 delivery](../../../Ledger/Archive/Plan/004.md) and Git for
 the final gate and integration state.
 
 ## P008 native skill discovery

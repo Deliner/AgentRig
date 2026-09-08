@@ -163,6 +163,8 @@ hooks:
   routes:
   - include: [Ledger/Plan.md, 'Ledger/Plan/**/*.md']
     skill: .agents/skills/edit-plan/SKILL.md
+  - include: [Ledger/Archive/Plan.md, 'Ledger/Archive/Plan/**/*.md']
+    skill: .agents/skills/edit-plan/SKILL.md
   - include: [Ledger/Backlog.md, 'Ledger/Backlog/**/*.md']
     skill: .agents/skills/edit-backlog/SKILL.md
   - include: [Ledger/Decisions.md, 'Ledger/Decisions/**/*.md']

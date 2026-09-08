@@ -2,38 +2,30 @@
 
 ## Focus
 
-Fix the new context-drift audit findings under the user's explicit maintenance instruction: truthful State freshness, visible reminder failures, compatible Claude transcript observations and comparable repeated reviews.
+Apply the user's current-session Plan policy and retain future ideas in unordered Backlog.
 
 ## Workspace
 
-Branch: feature/context-drift-fixes
+Branch: feature/session-plan-backlog
 
-Revision: 72e2520
+Revision: f6cd86efbae8ec501759f0c250b9bd4b76e300d7
 
-Started from clean master b3b2563, which includes the Backlog delivery and memory test-selection correction. Previous feature/workflow-quality-plan is retained at 36b7823. Installed runtime remains pinned to 9aee4ae; candidate checks exercise the fixes.
+Started from clean master f6cd86efbae8ec501759f0c250b9bd4b76e300d7, which merged and published the context-drift fixes. The retained feature/context-drift-fixes branch is at 211716e. Installed development runtime remains pinned independently to 9aee4ae.
 
 ## Progress
 
-Five Terra low auditors identified the maintenance scope: false branch-only State freshness, silently lost reminders, incompatible Claude transcript accounting and repeated reviews using changed criteria. Each issue now has a focused behavioral regression; Claude's actual record format was also observed with the installed client.
+The current maintenance VAC moves all seven former pending outcomes P010-P016 into B001-B007, preserving requirements and source context without delivery priority. Completed P001-P009 are preserved under Archive/Plan.md and Archive/Plan/, with current application/navigation links updated. Plan is empty because no deferred product feature was selected for execution.
 
-Commit e272ab5 makes branch-only State unverified while retaining stale for observed branch/revision differences. Its Git/Mercurial regression exercises another commit on the same branch and a branch mismatch.
-
-Commit 72e2520 reports reminder failures through additionalContext while preserving memory guidance and ordinary editing. Repairing the storage path restores the existing schedule. Disabled reminders do not initialize storage. Transcript observations accept Claude assistant/message.usage alongside Codex token_count, counting input plus cache creation/read and excluding output tokens.
-
-The current VAC rejects previous reports with different prompts, visible/contract path selections or normative file content before launching critics. Model/timeout changes and reordered equivalent path lists remain permitted. Existing late-finding and repair behavior is preserved. Repeated-review regressions now share continuation.rs beside their owner, with explicit Cargo registration and architecture inventory.
-
-P010-P016 retain their existing pending outcomes and dependencies; this bounded maintenance does not claim their full acceptance. Backlog remains delivered. The detailed audit is a local ignored artifact at .cache/audits/2026-09-08-context-drift.md.
+Canonical planning, Backlog and execution skills, repository guidance and generated consumer instructions now distinguish current execution from future ideas and hypotheses. D031 records the user's policy and supersedes the old future queue semantics. The user corrected retirement to automatic archival: the agent rotates completed outcomes through edit-plan without another confirmation. Archive uses the existing Plan format; memory-check validates both collections and references.
 
 ## Verification
 
-State freshness passed 12 focused tests and the e272ab5 staged gate: seven native and 209 selected Python scenarios. Reminder fixes passed 40 focused scenarios and the 72e2520 gate: two native and 117 selected Python scenarios. Installed Claude Code 2.1.201 against a temporary loopback API with a synthetic key produced a real assistant/message.usage record with input/cache-creation/cache-read counts 10/20/70; no model API spending. The sanitized observation is .cache/audits/claude-transcript-observation.json.
-
-Three new repeated-review regressions first failed on the old implementation with unexpected PASS. After correction, all seven continuation and eleven execution tests passed with real bubblewrap and deterministic critic fixtures. The initial commit gate caught the missing continuation.rs Rust root in lint.yaml; registering it resolved the incomplete analysis and the staged lint retry passed. The third commit gate and full integration remain pending.
+The preceding context-drift task passed its full integration gate at f6cd86e; those results are historical. For this VAC, all seven new archive regressions first failed on the old checker. After implementation, 48 focused Plan/Backlog scenarios passed, followed by two Codex/Claude archive-guidance and setup-preservation scenarios. Candidate memory-check, rustfmt and all three updated skill validators passed. A direct comparison preserved all nine completed cards (adjusting relative links) and the full acceptance text in seven Backlog cards. The current commit and full integration gates remain pending.
 
 ## Blockers
 
-None. Mercurial is provided by the configured test environment, although it was absent from the ordinary shell PATH used by the audit reproduction.
+None.
 
 ## Next action
 
-Inspect and commit the repeated-review VAC through the affected gate, then run full feature integration and publish the verified refs. Preserve the retained branch and the independently pinned installed runtime. Reconcile this pre-commit snapshot with Git and check evidence on resumption.
+Inspect and commit the completed Plan/Backlog/Archive VAC through the affected gate, then integrate with the full gate and publish the verified refs. Preserve the retained feature branch and independently pinned runtime. Reconcile this pre-commit snapshot with Git and check evidence on resumption.

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import pytest
@@ -7,6 +8,7 @@ import pytest
 from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, memory, project
 
 # DECISION: D012
+# DECISION: D031
 
 Rows = list[tuple[int, str, str]]
 
@@ -156,3 +158,90 @@ def test_blocker_followup_and_resume_lifecycle(worker: Path, tmp_path: Path) -> 
     for rows in states:
         write_plan(tmp_path, rows)
         assert invoke(worker, tmp_path, "memory-check").returncode == 0
+
+
+def archive_plan(root: Path) -> Path:
+    memory_root = root / "Ledger"
+    archive = memory_root / "Archive"
+    archive.mkdir()
+    (memory_root / "Plan.md").rename(archive / "Plan.md")
+    (memory_root / "Plan").rename(archive / "Plan")
+    return archive
+
+
+def test_current_plan_can_depend_on_archived_delivery(worker: Path, tmp_path: Path) -> None:
+    write_plan(tmp_path, [(1, "complete", "-"), (2, "complete", "P001")])
+    archive = archive_plan(tmp_path)
+    before = {p: p.read_bytes() for p in archive.rglob("*.md")}
+    write_plan(tmp_path, [(3, "active", "P002")])
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 0, result.stderr
+    assert before == {p: p.read_bytes() for p in archive.rglob("*.md")}
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    [
+        ("Plan.md", "| complete |", "| active |", "Archive requires completed"),
+        ("Plan/001.md", "## Acceptance", "## Unexpected", "sections must be"),
+        ("Plan.md", "| complete | - |", "| complete | P002 |", "prerequisite"),
+    ],
+)
+def test_archived_plan_rejects_invalid_records(
+    worker: Path, tmp_path: Path, mutation: tuple[str, str, str, str]
+) -> None:
+    relative, old, new, expected = mutation
+    write_plan(tmp_path, [(1, "complete", "-")])
+    archive = archive_plan(tmp_path)
+    write_plan(tmp_path, [(2, "active", "P001")])
+    path = archive / relative
+    path.write_text(path.read_text().replace(old, new))
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert expected in result.stderr
+
+
+@pytest.mark.parametrize("missing", ["Plan.md", "Plan/001.md"])
+def test_archive_reports_missing_index_or_card(worker: Path, tmp_path: Path, missing: str) -> None:
+    write_plan(tmp_path, [(1, "complete", "-")])
+    archive = archive_plan(tmp_path)
+    write_plan(tmp_path, [])
+    (archive / missing).unlink()
+    assert invoke(worker, tmp_path, "memory-check").returncode == 2
+
+
+def test_plan_cannot_reuse_an_archived_id(worker: Path, tmp_path: Path) -> None:
+    write_plan(tmp_path, [(1, "complete", "-")])
+    archive_plan(tmp_path)
+    write_plan(tmp_path, [(1, "active", "-")])
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2
+    assert "duplicate ID across Plan and Archive" in result.stderr
+
+
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
+def test_archive_guidance_and_setup_preserve_history(
+    worker: Path, tmp_path: Path, frontend: str
+) -> None:
+    options = ["--frontend", frontend, "--memory", "Ledger", "--skills", "guides"]
+    result = invoke(worker, tmp_path, "init", *options)
+    assert result.returncode == 0, result.stderr
+    write_plan(tmp_path, [(1, "complete", "-")])
+    archive = archive_plan(tmp_path)
+    write_plan(tmp_path, [])
+    before = {p: p.read_bytes() for p in archive.rglob("*.md")}
+    assert invoke(worker, tmp_path, "memory-check").returncode == 0
+    for path in before:
+        event = dict(
+            hook_event_name="PreToolUse",
+            tool_name="Write",
+            tool_input={"file_path": str(path)},
+            cwd=str(tmp_path),
+        )
+        output = invoke(worker, tmp_path, "hook", input=json.dumps(event))
+        assert output.returncode == 0, output.stderr
+        guidance = json.loads(output.stdout)["hookSpecificOutput"]
+        assert str(tmp_path / "guides/edit-plan/SKILL.md") in guidance["additionalContext"]
+        assert "permissionDecision" not in guidance
+    assert invoke(worker, tmp_path, "setup").returncode == 0
+    assert before == {p: p.read_bytes() for p in archive.rglob("*.md")}

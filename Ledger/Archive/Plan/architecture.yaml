@@ -1,0 +1,16 @@
+purpose: Retain completed outcomes, acceptance and observed delivery evidence
+files:
+  architecture.yaml: Archived outcome card inventory
+  001.md: "Isolated review MCP"
+  002.md: "Portable worker capabilities and setup"
+  003.md: "# P003"
+  004.md: "# P004"
+  005.md: "# P005"
+  006.md: "Directory architecture contracts and lint"
+  007.md: "Extensible version control support"
+  008.md: "Selectable agent harnesses"
+  009.md: "Complete architecture maps and feature ownership"
+directories: {}
+allow: []
+deny: []
+public: []

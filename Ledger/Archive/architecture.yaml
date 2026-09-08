@@ -1,0 +1,9 @@
+purpose: Preserve completed delivery records outside the current execution scope
+files:
+  architecture.yaml: Archive index and detail directory responsibilities
+  Plan.md: Index of completed Plan outcomes with original identities and evidence
+directories:
+  Plan: Completed outcome cards in the original Plan format
+allow: []
+deny: []
+public: []

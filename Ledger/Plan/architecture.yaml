@@ -1,22 +1,6 @@
-purpose: Define feature capabilities, acceptance and delivery context
+purpose: Describe only outcomes selected for current execution
 files:
-  architecture.yaml: Detail file inventory and knowledge responsibility map
-  001.md: "Capability and acceptance for: Isolated review MCP"
-  002.md: "Capability and acceptance for: Portable worker capabilities and setup"
-  003.md: "Capability and acceptance for: Discoverable lint and managed delegation"
-  004.md: "Capability and acceptance for: Composable AgentRig environments"
-  005.md: "Capability and acceptance for: Stable development and public distribution"
-  006.md: "Capability and acceptance for: Directory architecture contracts and lint"
-  007.md: "Capability and acceptance for: Extensible version control support"
-  008.md: "Capability and acceptance for: Selectable agent harnesses"
-  009.md: "Capability and acceptance for: Complete architecture maps and feature ownership"
-  010.md: "Capability and acceptance for: Recoverable configuration errors"
-  011.md: "Capability and acceptance for: Coordinated hooks and timely architecture guidance"
-  012.md: "Capability and acceptance for: Cohesive AgentRig ownership and reliable development flows"
-  013.md: "Capability and acceptance for: Complete lint coverage and executable language evaluations"
-  014.md: "Capability and acceptance for: Explainable and verifiable consumer workflows"
-  015.md: "Capability and acceptance for: Git-backed component catalog and shared environment constructor"
-  016.md: "Capability and acceptance for: Scoped Rust boundary types and named values"
+  architecture.yaml: Current Plan detail inventory
 directories: {}
 allow: []
 deny: []

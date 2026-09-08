@@ -7,7 +7,7 @@ description: Deliver or resume an authorized product feature through verified at
 
 Run `just resume` to observe Git operations, State revision and the latest check evidence; reconcile those facts before choosing the next step. An unfinished check is not proof that a process is still running. Read agentrig.yaml for paths and Git base/prefix, then the configured State and Plan, the active feature detail if present, applicable decisions and invariants, and Git state. Reconcile State's recorded task, current VAC, verification, blockers, and next action against the actual branch, diff, and recent commits; a crash can leave it stale. Follow explicit superseding decisions. Treat Feature, User capability, and Acceptance as the result contract; the executing agent chooses architecture and implementation. A feature may be a substantial MVP capability or an observable improvement such as optimization.
 
-At most one feature is active. If none is active, use an already authorized delivery instruction to select a ready pending feature or resume a paused one; otherwise report the current state and stop. Row order expresses intended priority, not independent authorization. Do not invent more work merely to keep the Plan active.
+Plan contains only outcomes explicitly selected for execution now in the current session or resumed task. At most one feature is active. If none is active, use an existing current delivery instruction to select its ready pending entry or resume its paused one; otherwise stop. Backlog is an unordered collection of future ideas and hypotheses, never an automatic execution queue. A request to save or plan something for later belongs there. Context reset or interruption alone does not cancel current authorized work.
 
 Keep product implementation in the configured source locations. Change worker policy or tooling only when explicitly requested or when delivery cannot satisfy the existing contract without it. Record decisions only for genuine durable contextual choices, and invariants only for must-hold behavior with an executable configured test oracle.
 
@@ -29,16 +29,18 @@ Classify an obstacle against current acceptance:
 
 - A technical difficulty within the current contract stays inside the feature. Change the implementation or next VAC.
 - A necessary independent prerequisite pauses the current feature and goes before it in delivery order. Add its ID to the paused feature's Depends on.
-- A justified follow-up goes after the current feature while current delivery continues. Add a dependency on the current feature only if its outcome is actually required.
-- New instructions from the user or an authorized manager may add several pending features during work. Record their source and requested outcomes, keeping one active feature. Do not interrupt the current VAC unless the instruction changes priority or makes that VAC obsolete.
+- An improvement outside current acceptance goes to Backlog, without delivery priority. Put it in Plan only when explicitly selected for execution now.
+- New instructions may select additional outcomes for the current session. Record that scope and actual prerequisites, keeping one active feature. Requests to remember future work go to Backlog. Do not interrupt the current VAC unless the instruction changes current scope or makes that VAC obsolete.
 
-New entries require a current requirement, observed constraint, or authorized instruction. Keep stable IDs, outcome-based details, and the reason/source in Delivery. Do not turn every implementation step into a feature or split solely because work is large.
+New Plan entries require selection for current execution or a prerequisite necessary for that accepted scope. Keep stable IDs, outcome-based details and the reason/source in Delivery. An observed opportunity alone belongs in Backlog. Do not turn every implementation step into a feature or split solely because work is large.
 
-When work reveals a concrete improvement outside current acceptance that is not authorized for planning, use edit-backlog to retain the idea and its context, then resume the task. Recording an idea does not expand delivery scope. Work needed for current acceptance must still be completed or reported as a blocker.
+When work reveals an improvement or hypothesis outside current acceptance, use edit-backlog to retain it and its context, then resume the task. Recording an idea does not expand delivery scope. Work needed for current acceptance must still be completed or reported as a blocker.
 
 If later work is required for current acceptance, the current feature remains incomplete. Perform that work inside it or explicitly revise the result contract under the user's authorization. Do not silently shrink acceptance to manufacture completion.
 
 ## Pause and hand off
+
+The steps below apply to a temporary prerequisite handoff within selected current work. If execution is deferred to a later task, use edit-backlog to preserve requirements, progress, blocker, retained branch and resumption condition, then remove the Plan row/detail and reconcile dependencies. Preserve unfinished work; interruption alone is not deferral.
 
 1. Inspect the current diff. Finish and verify the current VAC if it remains useful, or discard only its own uncommitted changes. Do not reset the branch's verified commits, delete its branch, or discard unrelated work.
 2. In a separate plan-only VAC, set the current feature to paused, record the concrete blocker, retained branch and condition for resumption in Delivery, and add the necessary prerequisite before it. Activate the prerequisite if its own dependencies are complete and delivery is authorized; otherwise leave zero active features. Commit only the relevant Plan index and detail changes and note that commit's hash.
@@ -55,8 +57,8 @@ Reassess retained VACs against the new prerequisite and current acceptance. Depe
 
 ## Complete and integrate
 
-Verify the feature's observable acceptance, then record the actual checks and results in Delivery and mark it complete. Unmet acceptance remains required work. Leaving zero active features is valid; activate another existing feature only under an authorized delivery instruction.
+Verify observable acceptance and record actual checks and results in Delivery, the relevant VAC and State. Apply edit-plan to automatically rotate completed rows and cards into Archive in the final VAC, preserving IDs, acceptance, evidence and live links. Current work may reference completed archived prerequisites. Unmet acceptance remains required work. An empty Plan is valid; start another outcome only when explicitly selected for current execution.
 
 Commit the completion state and run `just feature-merge`. It rebases divergent work onto current configured base branch, verifies the integrated candidate, and merges without flattening feature commits. Keep the feature branch. After conflicts or rebase, reconcile Plan state and re-verify the affected result.
 
-Plan changes, VACs, and product completion have different boundaries: adding future work does not complete it, a passing VAC does not prove full feature acceptance, and a complete feature is delivered to the configured base branch only after integration succeeds.
+Plan changes, VACs and product completion have different boundaries: saving an idea does not authorize execution, a passing VAC does not prove full acceptance, and delivery reaches the configured base branch only after integration succeeds. The final VAC can archive completed Plan entries; failed integration remains current work recorded in State, not a reason to claim completion.

@@ -5,7 +5,7 @@ files:
   test_resume.py: Reconcile recorded State and native or opaque repository observations
   test_revision_history.py: Preserve committed decision history across revision and merge-parent checks
   test_memory.py: Validate markers, document layout and preserved committed decision history
-  test_plan.py: Validate outcome delivery records, dependencies and lifecycle transitions
+  test_plan.py: Validate current and archived outcomes, references and delivery transitions
   test_backlog.py: Validate idea records, portable guidance and preservation across setup
   test_state.py: Validate required recovery sections and tolerate reconcilable recorded Git facts
 directories: {}
