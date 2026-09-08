@@ -10,7 +10,7 @@ from typing import Any
 import pytest
 
 from tooling.tests.native.scaffold.test_gate import GATE
-from tooling.tests.native.scaffold.test_memory import committed_memory, memory
+from tooling.worker.src.scaffold.memory.tests.consumer import committed_memory, memory
 from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,

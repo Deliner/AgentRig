@@ -8,6 +8,7 @@ from pathlib import Path
 import pytest
 import yaml
 
+from tooling.worker.src.scaffold.memory.tests.consumer import memory
 from tooling.worker.src.scaffold.testing.consumer import (
     CONFIG,
     file_contents,
@@ -396,8 +397,6 @@ def test_private_worktree_inventory_controls_lint_and_check_selection(
 
 
 def test_private_resume_accepts_opaque_recorded_revisions(worker: Path, tmp_path: Path) -> None:
-    from tooling.tests.native.scaffold.test_memory import memory
-
     project(tmp_path, CONFIG + GATE)
     notes = memory(tmp_path)
     state = notes / "State.md"

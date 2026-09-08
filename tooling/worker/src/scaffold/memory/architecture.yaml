@@ -7,8 +7,10 @@ files:
   oracles.rs: Bind invariant markers to configured executable test discovery
   resume.rs: Combine recorded State with current repository, job and check observations
   source.rs: Inspect supported source syntax for decision and invariant markers
-directories: {}
+directories:
+  tests: Memory, plan and State behavior scenarios and shared memory fixtures
 allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/commands/mod.rs
   - tooling/worker/src/scaffold/evidence/mod.rs
@@ -19,4 +21,4 @@ allow:
   - tooling/worker/review/src/config/yaml.rs
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
-public: [mod.rs, format.rs, resume.rs]
+public: [mod.rs, format.rs, resume.rs, tests/consumer.py]

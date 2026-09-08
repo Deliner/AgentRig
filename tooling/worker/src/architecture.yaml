@@ -35,5 +35,6 @@ allow:
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
 public:
+  - scaffold/memory/tests/consumer.py
   - scaffold/testing/consumer.py
   - lib.rs

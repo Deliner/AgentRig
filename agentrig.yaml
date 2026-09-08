@@ -178,7 +178,7 @@ oracles:
   I001:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_decision_source_markers
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_decision_source_markers
   I002:
     check: test
     runner: pytest
@@ -186,7 +186,7 @@ oracles:
   I003:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_committed_decisions_checked_against_staged_memory
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_committed_decisions_checked_against_staged_memory
   I004:
     check: test
     runner: pytest
@@ -206,11 +206,11 @@ oracles:
   I008:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_repository_layout_and_detail_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_repository_layout_and_detail_contract
   I009:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_plan.py::test_plan_delivery_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_plan.py::test_plan_delivery_contract
   I010:
     check: test
     runner: pytest
@@ -218,7 +218,7 @@ oracles:
   I011:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_state.py::test_state_recovery_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_state.py::test_state_recovery_contract
   I012:
     check: test
     runner: pytest
@@ -329,7 +329,7 @@ checks:
     - tooling/worker/src/lint/languages/tests/test_language.py
     - tooling/worker/src/lint/languages/tests/test_language_delivery.py
     - tooling/tests/native/scaffold/test_strict.py
-    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
     - tooling/worker/src/delegate/**
     - tooling/worker/src/environment/**
@@ -370,21 +370,21 @@ checks:
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
     - tooling/tests/native/scaffold/test_hooks.py
-    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
     - tooling/tests/native/scaffold/test_package.py
-    - tooling/tests/native/scaffold/test_plan.py
+    - tooling/worker/src/scaffold/memory/tests/test_plan.py
     - tooling/tests/native/scaffold/test_reminders.py
     - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_state.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/memory/**
     targets:
-    - tooling/tests/native/scaffold/test_memory.py
-    - tooling/tests/native/scaffold/test_plan.py
-    - tooling/tests/native/scaffold/test_state.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_plan.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/tests/native/scaffold/test_feedback.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_package.py
@@ -394,7 +394,7 @@ checks:
     - tooling/worker/src/scaffold/commands/**
     targets:
     - tooling/tests/native/scaffold/test_commands.py
-    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
     - tooling/worker/src/scaffold/upgrade/tests
@@ -407,7 +407,7 @@ checks:
     - tooling/tests/native/scaffold/test_git.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_feedback.py
-    - tooling/tests/native/scaffold/test_state.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
   - include:
     - tooling/worker/src/hooks/**
     targets:
@@ -425,7 +425,7 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/tests/native/scaffold/test_hooks.py
-    - tooling/tests/native/scaffold/test_state.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
@@ -433,7 +433,7 @@ checks:
     targets:
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
     - tooling/tests/native/scaffold/test_integration.py
     targets:
