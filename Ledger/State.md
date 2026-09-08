@@ -2,36 +2,34 @@
 
 ## Focus
 
-P009 is implemented and integrated into master. Preserve its full checked architecture policy and await the next authorized task; P010 remains pending.
+Integrate all latest planning changes into master and publish master to GitHub, as explicitly requested. No pending product feature is being implemented or marked complete.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: 8cadcb4
+Revision: 75ed8ad
 
-The full feature was integrated by merge 8cadcb4467bb98d9ee1c7a4a15c39716fe38bc7e. The retained feature branch was fast-forwarded to that merge before this documentation-only recovery update. Installed runtime 9aee4ae remains pinned. No merge or rebase is in progress.
+Master and origin/master are 7277aa7. The feature and origin/feature/architecture-ownership are 75ed8ad before this recovery-note commit. Fetch found no remote divergence; the worktree was clean and no merge/rebase was in progress. Installed runtime 9aee4ae remains pinned.
 
 ## Progress
 
-Strict architecture contracts cover maintained source, colocated behavior tests, documentation, examples, canonical resources, Ledger and root configuration. Dependency extensions do not limit inventories. Measured boundaries and cycles remain enforced, with unsupported source forms reported explicitly.
+P009 remains complete. P010 configuration recovery remains pending and first in delivery order. P011 records architecture skills, aggregation of simultaneous hook outcomes, deduplication, scoped requirements, explicit conflicts and retry behavior. P012 records feature/shared ownership and the audited configuration, VCS, build, test-selection and recovery issues. New details are registered in the architecture inventory.
 
-Feature-owned tests reside with their implementations; shared fixtures do not import test scenarios. Memory skills have one canonical owner with unchanged installed names and bodies, and compatibility links retain client paths.
+The latest instruction authorizes integrating and pushing these plans, not implementing the pending features. Audit evidence and limitations are summarized in P012 Delivery. No new decision or invariant is claimed by recording planned acceptance.
 
-The repository lint command invokes the candidate through the existing build adapter; installed runtime still orchestrates hooks and gates under D027. The checked rule passes across the full maintained tree.
+P011 now also records same-cause diagnostic grouping and ordinary hook interaction tests. The user's simplicity constraint excludes skill-read tracking, error-repetition counters and a separate agent-evaluation system.
+
+P013 records Python, TypeScript, Rust, JavaScript, Go, Java and Kotlin coverage for all existing rules, with a dedicated tooling/worker/evals/ environment. Evaluations exercise actual lint diagnostics on valid, violating and repaired examples; they are product tests, not a separate agent-evaluation system. Implementation remains pending.
 
 ## Verification
 
-Full integration command 83682 completed with exit 0: 94 Rust tests, all 701 Python tests in 706.91 seconds, review tests and all other configured checks. Stored checks.json records selective=false, staged=false, status=completed and code=0 for the verified feature revision 2dc2061; all fifteen check results are zero. Merge 8cadcb4 contains that revision and retained its feature branch. Post-merge cleanup reported no errors.
-
-Focused architecture run 58636 passed 149 cases, including real Rust/Python/JavaScript/TypeScript consumers and both binaries. Direct repository outputs agree with no architecture or error-level findings. There are 33 nonblocking structural size warnings. Consumer skill byte/name parity and setup/resource behavior were verified before integration.
-
-The requirement-by-requirement acceptance record is in Plan/009.md. This final memory change records observed results without changing product behavior or verification policy.
+Both planning commits 7721e83 and 75ed8ad passed their staged gates, including 23 smoke tests each, and were pushed successfully. Full integration verification is still required by the current merge request; no success is claimed in advance.
 
 ## Blockers
 
-None. P010 configuration-repair recovery remains a separate pending feature, not unfinished P009 scope.
+None for planning. All future product outcomes remain pending.
 
 ## Next action
 
-Preserve the clean retained feature branch and the integrated P009 result. Await authorization for subsequent product work; do not activate P010 automatically. Use Git and check evidence to reconcile this recorded integration on the next resume.
+Commit this factual recovery update, run just feature-merge with the full gate, retain the feature branch and push master and the retained branch without force. Use Git and stored check evidence to determine whether integration/publication has subsequently completed; this note precedes those operations. Pending delivery order remains P010, P011, P012, P013.

@@ -11,6 +11,9 @@ files:
   008.md: "Capability and acceptance for: Selectable agent harnesses"
   009.md: "Capability and acceptance for: Complete architecture maps and feature ownership"
   010.md: "Capability and acceptance for: Recoverable configuration errors"
+  011.md: "Capability and acceptance for: Coordinated hooks and timely architecture guidance"
+  012.md: "Capability and acceptance for: Cohesive AgentRig ownership and reliable development flows"
+  013.md: "Capability and acceptance for: Complete lint coverage and executable language evaluations"
 directories: {}
 allow: []
 deny: []
