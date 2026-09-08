@@ -3,6 +3,7 @@ files:
   architecture.yaml: Lint module responsibilities and public consumer boundary
   mod.rs: Evaluation orchestration, scalar findings and configured diagnostic output
   cli.rs: Embedded and standalone command arguments and rule discovery output
+  standalone.rs: Standalone lint executable entry and process exit reporting
   explain.rs: Explain why a configured rule selects or excludes a target
   rules.rs: Preserve public rule paths while forwarding to definitions and catalogue owners
 directories:

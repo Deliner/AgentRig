@@ -7,6 +7,10 @@ license = "MIT"
 repository = "https://github.com/Deliner/AgentRig"
 description = "Portable environments for agent-native development"
 
+[[bin]]
+name = "agentrig-lint"
+path = "src/lint/standalone.rs"
+
 [workspace]
 members = ["review"]
 default-members = ["."]

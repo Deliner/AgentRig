@@ -1,0 +1,37 @@
+purpose: Compose portable agent development capabilities into the AgentRig library and command line
+files:
+  architecture.yaml: Capability composition inventory and external dependency boundary
+  lib.rs: Public library module declarations
+  main.rs: AgentRig command dispatch and process entry
+  util.rs: Existing public compatibility exports of helpers owned by other modules
+directories:
+  arguments: Shared command argument extraction
+  composition: Resolve reusable configuration packages and their overrides
+  delegate: Run configured delegated tasks and recover their results
+  diagnostics: Render failures and actionable repair guidance
+  environment: Configure and invoke agent client hooks and MCP services
+  hooks: Decode agent events and enforce configured execution guidance
+  jobs: Track and control owned process lifetimes and output
+  lint: Inspect source measurements and architecture contracts through both frontends
+  paths: Resolve filesystem paths consistently across capabilities
+  resources: Resolve resource origins and content
+  scaffold: Prepare and maintain configured project workflows
+allow:
+  - tooling/worker/assets/skills/**
+  - tooling/worker/review/config/**
+  - tooling/worker/review/prompts/**
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/config/credentials.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/execution/sandbox/mod.rs
+  - tooling/worker/review/src/execution/broker.rs
+  - tooling/worker/review/src/cli.rs
+  - tooling/worker/review/src/mcp/protocol.rs
+  - tooling/worker/review/src/response/mod.rs
+  - tooling/worker/review/src/snapshot/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public:
+  - lib.rs
