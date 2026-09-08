@@ -2,21 +2,21 @@
 
 ## Focus
 
-Record P013 after P012: all current AgentRig rules for seven languages, delivered with a dedicated executable evaluation environment. Keep the plan published under the user's existing GitHub instruction. No product feature is active.
+Integrate all latest planning changes into master and publish master to GitHub, as explicitly requested. No pending product feature is being implemented or marked complete.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: 7721e83
+Revision: 75ed8ad
 
-Master and origin/master are 7277aa7. The feature and origin/feature/architecture-ownership were both 7721e83 before this planning change. The previous commit and push succeeded; Git was clean. Installed runtime 9aee4ae remains pinned.
+Master and origin/master are 7277aa7. The feature and origin/feature/architecture-ownership are 75ed8ad before this recovery-note commit. Fetch found no remote divergence; the worktree was clean and no merge/rebase was in progress. Installed runtime 9aee4ae remains pinned.
 
 ## Progress
 
 P009 remains complete. P010 configuration recovery remains pending and first in delivery order. P011 records architecture skills, aggregation of simultaneous hook outcomes, deduplication, scoped requirements, explicit conflicts and retry behavior. P012 records feature/shared ownership and the audited configuration, VCS, build, test-selection and recovery issues. New details are registered in the architecture inventory.
 
-The latest instruction authorizes committing and pushing these plans and existing history, not implementing the pending features. Audit evidence and limitations are summarized in P012 Delivery. No new decision or invariant is claimed by recording planned acceptance.
+The latest instruction authorizes integrating and pushing these plans, not implementing the pending features. Audit evidence and limitations are summarized in P012 Delivery. No new decision or invariant is claimed by recording planned acceptance.
 
 P011 now also records same-cause diagnostic grouping and ordinary hook interaction tests. The user's simplicity constraint excludes skill-read tracking, error-repetition counters and a separate agent-evaluation system.
 
@@ -24,7 +24,7 @@ P013 records Python, TypeScript, Rust, JavaScript, Go, Java and Kotlin coverage 
 
 ## Verification
 
-Commit 7721e83 passed the staged gate, including 23 smoke tests, and published refs were verified against GitHub. The P013 planning change has not yet passed its commit gate. No full suite is claimed for planning or future implementation.
+Both planning commits 7721e83 and 75ed8ad passed their staged gates, including 23 smoke tests each, and were pushed successfully. Full integration verification is still required by the current merge request; no success is claimed in advance.
 
 ## Blockers
 
@@ -32,4 +32,4 @@ None for planning. All future product outcomes remain pending.
 
 ## Next action
 
-Commit the P013 planning change through the normal hook and push the retained feature branch. Verify Git for publication status. Await implementation authorization; delivery order is P010, P011, P012, P013.
+Commit this factual recovery update, run just feature-merge with the full gate, retain the feature branch and push master and the retained branch without force. Use Git and stored check evidence to determine whether integration/publication has subsequently completed; this note precedes those operations. Pending delivery order remains P010, P011, P012, P013.
