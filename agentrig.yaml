@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -182,7 +182,7 @@ oracles:
   I002:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_integration.py::test_independent_project_delivery
+    target: tooling/worker/src/scaffold/testing/test_delivery.py::test_independent_project_delivery
   I003:
     check: test
     runner: pytest
@@ -198,7 +198,7 @@ oracles:
   I006:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_git.py::test_staged_commit_preserves_unstaged_work
+    target: tooling/worker/src/scaffold/git/tests/test_git.py::test_staged_commit_preserves_unstaged_work
   I007:
     check: test
     runner: pytest
@@ -214,7 +214,7 @@ oracles:
   I010:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_git.py::test_divergent_rebase_preserves_merge_history
+    target: tooling/worker/src/scaffold/git/tests/test_git.py::test_divergent_rebase_preserves_merge_history
   I011:
     check: test
     runner: pytest
@@ -242,11 +242,11 @@ oracles:
   I018:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_feedback.py::test_evidence_tracks_content_and_partial_checks
+    target: tooling/worker/src/scaffold/evidence/tests/test_evidence.py::test_evidence_tracks_content_and_partial_checks
   I019:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_real_conflict
+    target: tooling/worker/src/scaffold/memory/tests/test_resume.py::test_resume_observes_real_conflict
   I020:
     check: test
     runner: pytest
@@ -363,39 +363,30 @@ checks:
     - tooling/worker/src/jobs/**
     - tooling/worker/review/src/vcs/**
     - tooling/worker/review/src/config/yaml.rs
-    - tooling/tests/native/scaffold/**
+    - tooling/worker/src/scaffold/testing/**
     - tooling/worker/src/scaffold/upgrade/tests/**
     targets:
-    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
-    - tooling/worker/src/scaffold/commands/tests/test_commands.py
-    - tooling/worker/src/scaffold/config/tests/test_configuration.py
-    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
-    - tooling/tests/native/scaffold/test_feedback.py
-    - tooling/tests/native/scaffold/test_gate.py
-    - tooling/tests/native/scaffold/test_git.py
+    - tooling/worker/src/scaffold/package/setup/tests
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/memory/tests
+    - tooling/worker/src/scaffold/git/tests
+    - tooling/worker/src/scaffold/gate/tests
     - tooling/worker/src/hooks/tests/test_hooks.py
-    - tooling/worker/src/scaffold/memory/tests/test_memory.py
-    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
-    - tooling/worker/src/scaffold/package/tests/test_doctor.py
-    - tooling/worker/src/scaffold/package/tests/test_manifest.py
-    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
-    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
-    - tooling/worker/src/scaffold/memory/tests/test_plan.py
+    - tooling/worker/src/scaffold/package/tests
     - tooling/worker/src/hooks/tests/test_reminders.py
-    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
-    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
-    - tooling/worker/src/scaffold/memory/tests/test_state.py
-    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/memory/**
     targets:
-    - tooling/worker/src/scaffold/memory/tests/test_memory.py
-    - tooling/worker/src/scaffold/memory/tests/test_plan.py
-    - tooling/worker/src/scaffold/memory/tests/test_state.py
-    - tooling/tests/native/scaffold/test_feedback.py
-    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/worker/src/scaffold/memory/tests
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/git/tests/test_mercurial.py
+    - tooling/worker/src/scaffold/gate/tests
+    - tooling/worker/src/scaffold/git/tests/test_private.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
     - tooling/worker/src/scaffold/package/setup/tests/test_client.py
     - tooling/worker/src/scaffold/package/tests/test_doctor.py
     - tooling/worker/src/scaffold/package/tests/test_manifest.py
@@ -406,32 +397,36 @@ checks:
     - tooling/worker/src/scaffold/process.rs
     - tooling/worker/src/scaffold/commands/**
     targets:
-    - tooling/worker/src/scaffold/commands/tests/test_commands.py
-    - tooling/worker/src/scaffold/config/tests/test_configuration.py
-    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
-    - tooling/tests/native/scaffold/test_gate.py
-    - tooling/tests/native/scaffold/test_git.py
+    - tooling/worker/src/scaffold/memory/tests/test_resume.py
+    - tooling/worker/src/scaffold/gate/tests/test_gate.py
+    - tooling/worker/src/scaffold/git/tests/test_private.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
+    - tooling/worker/src/scaffold/git/tests/test_git.py
     - tooling/worker/src/scaffold/upgrade/tests
   - include:
-    - tooling/worker/src/scaffold/git.rs
+    - tooling/worker/src/scaffold/git/**
     - tooling/worker/src/scaffold/gate.rs
     - tooling/worker/src/scaffold/gate/**
     - tooling/worker/src/scaffold/evidence/**
     targets:
-    - tooling/tests/native/scaffold/test_git.py
-    - tooling/tests/native/scaffold/test_gate.py
-    - tooling/tests/native/scaffold/test_feedback.py
+    - tooling/worker/src/scaffold/git/tests
+    - tooling/worker/src/scaffold/memory/tests/test_resume.py
+    - tooling/worker/src/scaffold/gate/tests
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/memory/tests/test_revision_history.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
   - include:
     - tooling/worker/src/hooks/**
     targets:
     - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/hooks/tests/test_reminders.py
-    - tooling/worker/src/scaffold/commands/tests/test_commands.py
-    - tooling/worker/src/scaffold/config/tests/test_configuration.py
-    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
-    - tooling/tests/native/scaffold/test_git.py
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
+    - tooling/worker/src/scaffold/git/tests/test_git.py
   - include:
     - tooling/worker/src/scaffold/package/**
     - tooling/worker/src/scaffold/{receipt,installation}/**
@@ -440,12 +435,10 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
     - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/package/setup/tests/test_client.py
-    - tooling/worker/src/scaffold/package/tests/test_doctor.py
-    - tooling/worker/src/scaffold/package/tests/test_manifest.py
+    - tooling/worker/src/scaffold/package/tests
     - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
     - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
-    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
     - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/scaffold/memory/tests/test_state.py
     - tooling/worker/src/scaffold/upgrade/tests
@@ -458,9 +451,9 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
   - include:
-    - tooling/tests/native/scaffold/test_integration.py
+    - tooling/worker/src/scaffold/testing/test_delivery.py
     targets:
-    - tooling/tests/native/scaffold/test_integration.py
+    - tooling/worker/src/scaffold/testing/test_delivery.py
   - include:
     - tooling/worker/review/src/**
     - tooling/worker/review/src/test_cli.py

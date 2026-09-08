@@ -1,0 +1,11 @@
+purpose: Verify working, staged and revision check selection and diagnostics
+files:
+  architecture.yaml: Responsibilities, inventory and dependency boundary
+  test_gate.py: Selected check execution, staged inputs, warnings and actionable reruns
+  test_revision.py: Exact revision inputs, check evidence and invalid selection rejection
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
+deny: []
+public: []

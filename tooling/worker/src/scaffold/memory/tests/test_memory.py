@@ -10,10 +10,11 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.memory.tests.consumer import committed_memory, memory
+from tooling.worker.src.scaffold.memory.tests.consumer import committed_memory
 from tooling.worker.src.scaffold.testing.consumer import (
     file_contents,
     invoke,
+    memory,
     project,
     update_config,
 )

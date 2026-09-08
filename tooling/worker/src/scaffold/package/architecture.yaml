@@ -43,4 +43,4 @@ allow:
   - tooling/worker/review/prompts/**
   - tooling/worker/review/src/execution/sandbox/mod.rs
 deny: []
-public: [setup/tests/consumer.py, mod.rs, adapters.rs, manifest.rs, doctor.rs, setup/mod.rs, setup/init.rs, setup/registration.rs]
+public: [mod.rs, adapters.rs, manifest.rs, doctor.rs, setup/mod.rs, setup/init.rs, setup/registration.rs]

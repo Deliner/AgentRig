@@ -4,8 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.memory.tests.consumer import memory
-from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
+from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, memory, project
 
 # DECISION: D012
 

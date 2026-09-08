@@ -10,8 +10,6 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.scaffold.test_feedback import commit as revision_commit
-from tooling.tests.native.scaffold.test_feedback import evidence, repository, resumed, revision
 from tooling.worker.src.scaffold.commands.tests.consumer import (
     background_id,
     require_user_systemd,
@@ -19,6 +17,16 @@ from tooling.worker.src.scaffold.commands.tests.consumer import (
 )
 from tooling.worker.src.scaffold.testing.consumer import git as git_result
 from tooling.worker.src.scaffold.testing.consumer import invoke, update_config, vcs_backend
+from tooling.worker.src.scaffold.testing.repository import commit as revision_commit
+from tooling.worker.src.scaffold.testing.repository import (
+    evidence,
+    feature_repository,
+    hg,
+    initialize_mercurial,
+    repository,
+    resumed,
+    revision,
+)
 
 
 def git(root: Path, *args: str) -> str:
@@ -306,10 +314,6 @@ def test_mercurial_transaction_rejects_a_check_that_mutates_its_export(
     assert source.read_text() == "value = 2\n"
 
 
-def hg(root: Path, *args: str) -> str:
-    return subprocess.check_output(["hg", *args], cwd=root, text=True).strip()
-
-
 @pytest.mark.parametrize("vcs", ["hg", "private"])
 def test_mercurial_setup_registers_native_hooks_and_checks_commits(
     worker: Path, tmp_path: Path, vcs: str
@@ -340,23 +344,6 @@ def test_mercurial_setup_registers_native_hooks_and_checks_commits(
     before = (tmp_path / ".hg/hgrc").read_bytes()
     assert invoke(worker, tmp_path, "setup").returncode == 0
     assert (tmp_path / ".hg/hgrc").read_bytes() == before
-
-
-def initialize_mercurial(worker: Path, root: Path) -> None:
-    result = invoke(
-        worker,
-        root,
-        "init",
-        "--vcs",
-        "mercurial",
-        "--base",
-        "trunk",
-        "--prefix",
-        "task/",
-        "--service",
-        "rig space",
-    )
-    assert result.returncode == 0, result.stderr
 
 
 def test_mercurial_setup_preserves_custom_hook_registration(worker: Path, tmp_path: Path) -> None:
@@ -411,19 +398,6 @@ def test_vcs_selection_preserves_legacy_git_and_rejects_conflicts(
     result = invoke(worker, tmp_path, "setup")
     assert result.returncode == 2 and "does not match" in result.stderr
     assert not (tmp_path / ".git").exists()
-
-
-def feature_repository(root: Path, vcs: str) -> str:
-    repository(root, vcs)
-    using_git = vcs == "git"
-    update_config(
-        root / "agentrig.yaml",
-        git={
-            "backend": "git" if using_git else "mercurial",
-            "base": "trunk" if using_git else "default",
-        },
-    )
-    return revision_commit(root, vcs)
 
 
 @pytest.mark.parametrize("vcs", ["git", "hg"])

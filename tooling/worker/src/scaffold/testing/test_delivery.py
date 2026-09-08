@@ -10,6 +10,7 @@ import pytest
 import yaml
 
 from tooling.worker.src.scaffold.testing.consumer import file_contents, git, invoke, update_config
+from tooling.worker.src.scaffold.testing.repository import hg, initialize_mercurial
 
 
 @dataclass(frozen=True)
@@ -94,7 +95,7 @@ class Consumer:
         assert result.returncode == 0, result.stderr
         assert self.binary.read_bytes() == worker.read_bytes()
         example = (
-            Path(__file__).parents[3]
+            Path(__file__).parents[4]
             / "worker/examples"
             / self.layout.language
             / self.layout.paths.source
@@ -322,7 +323,7 @@ def composed_consumer(worker: Path, directory: Path, language: str) -> Path:
     assert file_contents(target) == {}
     installed = invoke(worker, target, "setup", "--config", str(path))
     assert installed.returncode == 0, installed.stdout + installed.stderr
-    example = Path(__file__).parents[3] / "worker/examples" / language
+    example = Path(__file__).parents[4] / "worker/examples" / language
     example /= {"python": "application", "rust": "crates/engine"}[language]
     shutil.copytree(
         example,
@@ -393,7 +394,6 @@ def test_shared_package_prepares_independent_python_and_rust_consumers(
 
 
 def installed_hg_consumer(worker: Path, root: Path, vcs: str) -> Path:
-    from tooling.tests.native.scaffold.test_git import hg, initialize_mercurial
 
     hg(root, "init")
     hg(root, "branch", "trunk")
@@ -406,7 +406,7 @@ def installed_hg_consumer(worker: Path, root: Path, vcs: str) -> Path:
     private = vcs == "private"
     if private:
         adapter = root / "vcs_adapter.py"
-        shutil.copy2(Path(__file__).parents[3] / "worker/examples/external_vcs.py", adapter)
+        shutil.copy2(Path(__file__).parents[4] / "worker/examples/external_vcs.py", adapter)
         update_config(
             root / "agentrig.yaml", vcs={"backend": {"command": ["python3", "-B", str(adapter)]}}
         )
@@ -450,7 +450,6 @@ def consumer_just(root: Path, *args: str) -> subprocess.CompletedProcess[str]:
 def test_installed_mercurial_delivery_recovers_failed_integration(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, vcs: str
 ) -> None:
-    from tooling.tests.native.scaffold.test_git import hg
 
     binary = installed_hg_consumer(worker, tmp_path, vcs)
     bootstrap = consumer_just(tmp_path, "feature-merge")

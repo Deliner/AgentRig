@@ -1,0 +1,13 @@
+purpose: Verify native and private VCS feature delivery and transaction guards
+files:
+  architecture.yaml: Responsibilities, inventory and dependency boundary
+  test_git.py: Native feature starts, rebase, commit guards and owned cleanup
+  test_mercurial.py: Failed checks, mutated inputs and conflict recovery during Mercurial integration
+  test_private.py: Private VCS feature starts and exact opaque transaction revision guards
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
+  - tooling/worker/src/scaffold/commands/tests/consumer.py
+deny: []
+public: []

@@ -3,38 +3,12 @@ from pathlib import Path
 
 from tooling.worker.src.scaffold.testing.consumer import (
     invoke,
+    memory,
     project,
     update_config,
     vcs_backend,
     vcs_executable,
 )
-
-
-def memory(root: Path) -> Path:
-    path = root / "notes"
-    path.mkdir()
-    for name, headers in [
-        ("Plan", "ID | Status | Depends on | Feature | User capability"),
-        ("Decisions", "ID | Decision | Applies in"),
-        ("Invariants", "ID | Invariant | Enforced by"),
-    ]:
-        (path / f"{name}.md").write_text(f"# {name}\n\n| {headers} |\n")
-        (path / name).mkdir()
-    (path / "State.md").write_text(
-        "# State\n\n"
-        + "\n\n".join(
-            f"## {section}\n\nNone."
-            for section in [
-                "Focus",
-                "Workspace",
-                "Progress",
-                "Verification",
-                "Blockers",
-                "Next action",
-            ]
-        )
-    )
-    return path
 
 
 def committed_memory(worker: Path, tmp_path: Path, vcs: str = "git") -> Path:

@@ -10,6 +10,7 @@ files:
 directories:
   tests: Memory, plan and State behavior scenarios and shared memory fixtures
 allow:
+  - tooling/worker/src/scaffold/testing/repository.py
   - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/commands/mod.rs
@@ -21,4 +22,4 @@ allow:
   - tooling/worker/review/src/config/yaml.rs
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
-public: [mod.rs, format.rs, resume.rs, tests/consumer.py]
+public: [mod.rs, format.rs, resume.rs]

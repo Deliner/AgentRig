@@ -3,8 +3,11 @@ files:
   architecture.yaml: Verification gate responsibilities and dependency boundary
   mod.rs: Prepare checked snapshots, dispatch checks and produce actionable failures
   selection.rs: Map changed paths to configured affected check targets
-directories: {}
+directories:
+  tests: Verify check execution and source selection
 allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/scaffold/commands/mod.rs

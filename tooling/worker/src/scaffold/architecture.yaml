@@ -2,8 +2,8 @@ purpose: Prepare and maintain project development workflows from the configured 
 files:
   architecture.yaml: Project workflow composition and public entry boundary
   mod.rs: Dispatch project commands and expose configured hook command guidance
-  git.rs: Coordinate feature branches, integration and Git commit and reference guards
 directories:
+  git: Coordinate feature branches, checked integration and VCS transaction guards
   testing: Construct shared configured consumer projects for workflow behavior tests
   commands: Execute configured commands through owned process tracking
   config: Load project execution context and validate configured readiness
@@ -48,9 +48,6 @@ allow:
   - tooling/worker/src/resources/mod.rs
 deny: []
 public:
-  - commands/tests/consumer.py
-  - package/setup/tests/consumer.py
-  - memory/tests/consumer.py
   - testing/consumer.py
   - mod.rs
   - config/mod.rs

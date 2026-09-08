@@ -40,4 +40,4 @@ allow:
   - tooling/worker/src/scaffold/package/doctor.rs
   - tooling/worker/src/scaffold/package/template.rs
 deny: []
-public: [mod.rs, init.rs, registration.rs, tests/consumer.py]
+public: [mod.rs, init.rs, registration.rs]

@@ -3,8 +3,11 @@ files:
   architecture.yaml: Verification evidence inventory and consumer boundary
   mod.rs: Persist check outcomes and report freshness and repeated failures
   content.rs: Fingerprint checked files, revisions and VCS indexes
-directories: {}
+directories:
+  tests: Verify verification evidence and observed input freshness
 allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/diagnostics/mod.rs

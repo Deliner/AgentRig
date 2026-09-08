@@ -1,0 +1,10 @@
+purpose: Verify that check evidence describes the actual observed project inputs
+files:
+  architecture.yaml: Responsibilities, inventory and dependency boundary
+  test_evidence.py: Content freshness, partial checks, repeated reports and interrupted attempts
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
+deny: []
+public: []

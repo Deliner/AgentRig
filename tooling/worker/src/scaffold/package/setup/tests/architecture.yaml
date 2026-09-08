@@ -3,6 +3,7 @@ files:
   architecture.yaml: Setup capability test responsibilities and fixture dependencies
   harness.py: Set consumer Claude preferences and verify installed hook and MCP services
   consumer.py: Construct declarative and delegated consumer environments for setup and workflow tests
+  test_vcs.py: Resolve private VCS adapters relative to the consumer during setup preview
   test_setup.py: Repeat and preview configured installations while preserving existing resources
   test_wizard.py: Interactive initialization choices, preview consistency and parity with declarative init
   test_client.py: Client model and API reference generation and invalid setting preservation
@@ -14,4 +15,4 @@ allow:
   - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/review/testing/consumer.py
 deny: []
-public: [consumer.py]
+public: []
