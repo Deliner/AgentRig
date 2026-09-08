@@ -4,8 +4,10 @@ files:
   mod.rs: Review tool discovery, argument validation and runner dispatch
   arguments.json: Input schema owned by the review MCP tools
   protocol.rs: Shared MCP session initialization and JSON-RPC transport used by review and delegation
+  tests.rs: Verify tool discovery and argument rejection through the public server
 directories: {}
 allow:
+  - tooling/worker/review/testing/mod.rs
   - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/run/mod.rs
   - tooling/worker/review/src/run/report.rs

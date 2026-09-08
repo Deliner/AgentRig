@@ -283,12 +283,14 @@ fn module(source: &mut Source<'_>, node: Node<'_>) {
     if let Some(name) = node.child_by_field_name("name") {
         let mut path = scope(source, node);
         path.push(compact(source.text(name)));
+        let file = attributes::module_path(source, node);
         record(
             source,
             node,
             Target::RustModule {
                 path,
                 inline: node.child_by_field_name("body").is_some(),
+                file,
             },
         );
     }

@@ -4,8 +4,10 @@ files:
   mod.rs: Run requests, frozen inputs, reviewer scheduling and lifecycle completion
   previous.rs: Previous-report validation and repeated-review omission checks
   report.rs: Aggregate verdicts, report schema and evidence persistence
-directories: {}
+directories:
+  tests: Exercise complete review runs and public entry points with isolated fixtures
 allow:
+  - tooling/worker/review/testing/mod.rs
   - tooling/worker/review/src/artifacts/**
   - tooling/worker/review/src/config/**
   - tooling/worker/review/src/execution/**

@@ -14,7 +14,8 @@ files:
   observation.rs: Observe branch and revision state across backends
   registration.rs: Validate and install project VCS settings and hooks
   source.rs: Select native or external repository sources
-directories: {}
+directories:
+  tests: Verify backend behavior, registrations and integration with real repository consumers
 allow: []
 deny: []
-public: [mod.rs, external.rs]
+public: [mod.rs, external.rs, tests/native_fixture.rs, tests/external_fixture.rs]

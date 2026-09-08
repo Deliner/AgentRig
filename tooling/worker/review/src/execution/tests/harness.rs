@@ -1,3 +1,4 @@
+#[path = "../../../testing/mod.rs"]
 mod support;
 use serde_json::{Value, json};
 use std::fs;

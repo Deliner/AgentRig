@@ -13,7 +13,8 @@ directories:
   run: Orchestrate review requests and aggregate reports
   snapshot: Freeze and validate review source inputs
   vcs: Access native and private version control implementations
-allow: []
+allow:
+  - tooling/worker/review/testing/mod.rs
 deny: []
 public:
   - lib.rs

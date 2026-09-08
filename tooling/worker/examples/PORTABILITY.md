@@ -13,7 +13,7 @@ behavior rather than treating generated configuration alone as integration proof
 
 | Requirement | Current evidence |
 | --- | --- |
-| Strict YAML across capabilities | Shared codec and [YAML tests](../review/tests/yaml.rs); native root/lint/delegate validation rejects legacy format, duplicate/unknown keys, wrong types and unsupported capabilities. |
+| Strict YAML across capabilities | Shared codec and [YAML tests](../review/src/config/yaml_tests.rs); native root/lint/delegate validation rejects legacy format, duplicate/unknown keys, wrong types and unsupported capabilities. |
 | Reusable packages and deterministic resolution | [Composition tests](../src/composition/tests.rs) cover scoped imports, stable identities, explicit overrides, versions, cycles, named lists, transitive paths and provenance. Setup verifies configuration/resource digests before applying. |
 | Complete configuration inspection | `test_inspection_validates_and_exposes_all_selected_configurations` in [capability tests](../../tests/native/scaffold/test_capabilities.py) verifies effective settings, nested provenance, overrides, credential references and unchanged target files. |
 | Independent consumers and portable lint | `test_shared_package_prepares_independent_python_and_rust_consumers` in [integration tests](../../tests/native/scaffold/test_integration.py) installs external declarations with shared-package overrides and distinct service paths, deletes sources, runs installed gates, repeats setup and runs a separate copied linter's discovery/example/explain/check commands. |

@@ -5,8 +5,10 @@ files:
   broker.rs: Parent-owned validation attempts and stop-hook feedback over a Unix socket
   reviewer.rs: Reviewer process lifecycle, deadlines, validated outcomes and retained diagnostics
 directories:
+  tests: Verify reviewer harness and broker behavior through public consumers
   sandbox: Harness executable discovery, credentials and isolated filesystem configuration
 allow:
+  - tooling/worker/review/testing/mod.rs
   - tooling/worker/review/src/config/**
   - tooling/worker/review/src/response/**
 deny: []

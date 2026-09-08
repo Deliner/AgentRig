@@ -60,3 +60,26 @@ def test_module_declaration_preserves_boundaries_without_inventing_use_cycles(
     }[case]
     assert code == bool(expected), findings
     assert [item["message"].split(":")[0].split(" src/")[0] for item in findings] == expected
+
+
+@pytest.mark.parametrize("standalone", [False, True])
+def test_explicit_module_path_outside_crate_directory_keeps_boundaries(
+    worker: Path, tmp_path: Path, standalone: bool
+) -> None:
+    config = CONFIG.replace("EXTENSION", ".rs").replace("ROOTS", "[src/lib.rs]")
+    config = config.replace("[src, 'src/**']", "[src, 'src/**', shared, 'shared/**']")
+    prepare(tmp_path, config)
+    shared = tmp_path / "shared"
+    shared.mkdir()
+    (shared / "api.rs").write_text("pub fn value() -> i32 { 42 }\n")
+    (tmp_path / "src/lib.rs").write_text(
+        '#[path = "../shared/api.rs"] mod shared;\npub fn run() -> i32 { shared::value() }\n'
+    )
+    contract(tmp_path / "src", allow="['shared/api.rs']")
+    contract(shared, public="['api.rs']")
+    binary = worker.with_name("agentrig-lint") if standalone else worker
+    assert lint(binary, tmp_path) == (0, [])
+    contract(shared, public="[]")
+    code, findings = lint(binary, tmp_path)
+    assert code == 1
+    assert any("private access" in item["message"] for item in findings)

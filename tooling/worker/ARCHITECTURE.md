@@ -135,8 +135,12 @@ proof; remaining coverage is part of P006 delivery.
   serde callback attributes retain their function-path dependencies; naming
   metadata remains opaque. Unknown serde forms fail explicitly. `#[cfg(test)]`
   includes test code in the measured graph alongside ordinary code.
-  `#[path]`, block-local modules and unresolved lexical/wildcard bindings require
-  further analysis. Other conditional and unknown attributes report incomplete
+  Literal, unescaped `#[path = "file.rs"]` declarations on file-level external
+  modules resolve relative to the declaring source file; raw string literals are
+  supported. Missing, escaping, duplicate and multiply declared source paths fail.
+  Paths on inline modules or their children, computed paths, block-local modules
+  and unresolved lexical/wildcard bindings require further analysis.
+  Other conditional and unknown attributes report incomplete
   expansion, including inner attributes.
   Known nonexpanding metadata (`allow`, `warn`, `deny`, `forbid`, `doc`, `inline`,
   `cold`, `must_use`, `deprecated`, `repr`, `non_exhaustive`, `test`, `ignore`,

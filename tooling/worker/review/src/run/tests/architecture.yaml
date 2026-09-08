@@ -1,0 +1,13 @@
+purpose: Verify complete review runs and their public entry points using isolated consumer fixtures
+files:
+  architecture.yaml: Review run behavior test responsibilities and dependencies
+  execution.rs: Verify complete review reports, retries, cleanup and source preservation
+directories: {}
+allow:
+  - tooling/worker/review/src/run/mod.rs
+  - tooling/worker/review/src/run/report.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/testing/mod.rs
+deny: []
+public: []

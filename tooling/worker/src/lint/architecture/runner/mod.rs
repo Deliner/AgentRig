@@ -38,7 +38,7 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         .architecture
         .as_ref()
         .expect("validated architecture settings");
-    let rust_sources = analysis::rust_sources(&root, &files, settings);
+    let rust_sources = analysis::rust_sources(&root, &files);
     let (resolvers, mut issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
     let (contracts, contract_issues) = Contracts::load(&root, &scope.directories);
     issues.extend(contract_issues);

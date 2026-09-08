@@ -1,4 +1,6 @@
+#[path = "../../../testing/mod.rs"]
 mod support;
+use std::{fs, os::unix::fs::PermissionsExt, process::Command};
 use support::Fixture;
 
 fn hg(root: &std::path::Path, args: &[&str]) {
@@ -310,36 +312,7 @@ fn scope_rejection_is_persisted_before_any_model_runs() {
 }
 
 #[test]
-fn mcp_lists_configured_tools_and_validates_arguments() {
-    use review_runner::mcp::Server;
-    use serde_json::json;
-    let fixture = Fixture::new("pass");
-    let mut server = Server::new(&fixture.0.path().join("config.yaml")).unwrap();
-    let init = server.message(json!({"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25"}})).unwrap();
-    assert_eq!(
-        init["result"]["capabilities"]["tools"]["listChanged"],
-        false
-    );
-    let list = server
-        .message(json!({"jsonrpc":"2.0","id":2,"method":"tools/list"}))
-        .unwrap();
-    assert_eq!(list["result"]["tools"][0]["name"], "review_code");
-    assert_eq!(
-        list["result"]["tools"][0]["inputSchema"]["additionalProperties"],
-        false
-    );
-    let rejected = server.message(json!({"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"review_code","arguments":{"root":".","base":"HEAD","candidate":"HEAD","tool":"override"}}})).unwrap();
-    assert_eq!(rejected["error"]["code"], -32602);
-    assert!(
-        server
-            .message(json!({"jsonrpc":"2.0","method":"notifications/initialized"}))
-            .is_none()
-    );
-}
-
-#[test]
 fn failed_report_storage_retains_emergency_evidence() {
-    use std::{fs, process::Command};
     let fixture = Fixture::new("pass");
     fixture.run(None);
     let root = fixture.0.path();
@@ -393,7 +366,6 @@ fn late_blocked_checks_require_the_same_omission_explanation() {
 
 #[test]
 fn cleanup_failure_is_reported_separately_and_preserves_the_report() {
-    use std::{fs, os::unix::fs::PermissionsExt};
     let fixture = Fixture::new("cleanup");
     let output = fixture.invoke(None);
     assert!(output.status.success());

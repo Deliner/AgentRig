@@ -5,13 +5,29 @@ use tree_sitter::Node;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Target {
-    RustPath { path: String, scope: Vec<String> },
+    RustPath {
+        path: String,
+        scope: Vec<String>,
+    },
     RustMacro(RustMacro),
-    RustDerive { path: String, scope: Vec<String> },
-    RustModule { path: Vec<String>, inline: bool },
+    RustDerive {
+        path: String,
+        scope: Vec<String>,
+    },
+    RustModule {
+        path: Vec<String>,
+        inline: bool,
+        file: Option<String>,
+    },
     PythonModule(String),
-    PythonFrom { module: String, names: Vec<String> },
-    JavaScriptModule { path: String, loader: Loader },
+    PythonFrom {
+        module: String,
+        names: Vec<String>,
+    },
+    JavaScriptModule {
+        path: String,
+        loader: Loader,
+    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]

@@ -5,7 +5,7 @@ files:
   credentials.rs: Credential reference schema and harness-specific validation
   yaml.rs: Strict YAML decoding, encoding and actionable schema errors
   tests.rs: Configuration loading and invalid input behavior tests
-  yaml_tests.rs: YAML syntax, scalar typing and file error behavior tests
+  yaml_tests.rs: YAML syntax, scalar typing, backend selection and file error behavior tests
 directories: {}
 allow:
   - tooling/worker/review/src/response/contract.rs

@@ -295,6 +295,7 @@ fn compiled_consumer_uses_the_resolved_files() {
 fn compile_and_run(files: &[(&str, &str)]) {
     let project = tempfile::tempdir().unwrap();
     for (file, text) in files {
+        fs::create_dir_all(project.path().join(file).parent().unwrap()).unwrap();
         fs::write(project.path().join(file), text).unwrap();
     }
     let output = Command::new("rustc")
@@ -313,4 +314,71 @@ fn compile_and_run(files: &[(&str, &str)]) {
             .unwrap()
             .success()
     );
+}
+
+#[test]
+fn literal_module_paths_match_compiler_file_and_child_resolution() {
+    let files = [
+        (
+            "main.rs",
+            "#[path = r#\"fixtures/shared.rs\"#] mod shared; mod app; fn main() { assert_eq!(app::value(), 42); }",
+        ),
+        ("fixtures/shared.rs", "pub mod nested;"),
+        ("fixtures/nested.rs", "pub fn value() -> i32 { 42 }"),
+        (
+            "app.rs",
+            "#[allow(dead_code)] #[path = \"fixtures/../other.rs\"] mod other; pub fn value() -> i32 { other::value() }",
+        ),
+        (
+            "other.rs",
+            "pub fn value() -> i32 { crate::shared::nested::value() }",
+        ),
+    ];
+    let sources = sources(&files);
+    let resolver = Rust::new(
+        Path::new("main.rs"),
+        &sources,
+        &BTreeSet::new(),
+        &BTreeMap::new(),
+    )
+    .unwrap();
+    for (name, file) in [
+        ("shared::nested::value", "fixtures/nested.rs"),
+        ("app::other::value", "other.rs"),
+    ] {
+        assert_eq!(
+            resolver
+                .resolve(Path::new("main.rs"), &path(name))
+                .unwrap()
+                .files,
+            expected(file)
+        );
+    }
+    compile_and_run(&files);
+}
+
+#[test]
+fn invalid_or_ambiguous_module_paths_remain_incomplete() {
+    for declaration in [
+        "#[path = \"missing.rs\"] mod item;",
+        "#[path = \"../outside.rs\"] mod item;",
+        "#[path = \"/absolute.rs\"] mod item;",
+        "#[path = \"lib.rs\"] mod recursive;",
+        "#[path = \"item.rs\"] #[path = \"other.rs\"] mod item;",
+        "#[path = concat!(\"item\", \".rs\")] mod item;",
+        "#[path = \"item.rs\"] mod item {}",
+        "mod inline { #[path = \"item.rs\"] mod item; }",
+    ] {
+        let sources = sources(&[("lib.rs", declaration), ("item.rs", "")]);
+        assert!(
+            Rust::new(
+                Path::new("lib.rs"),
+                &sources,
+                &BTreeSet::new(),
+                &BTreeMap::new()
+            )
+            .is_err(),
+            "{declaration}"
+        );
+    }
 }

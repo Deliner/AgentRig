@@ -28,20 +28,10 @@ pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, Refe
         .collect()
 }
 
-pub fn rust_sources(
-    root: &Path,
-    files: &BTreeSet<PathBuf>,
-    settings: &Settings,
-) -> BTreeMap<PathBuf, References> {
+pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, References> {
     let rust_files = files
         .iter()
-        .filter(|path| {
-            let rust = path.extension().is_some_and(|ext| ext == "rs");
-            rust && settings
-                .rust_roots
-                .iter()
-                .any(|root| root.parent().is_some_and(|parent| path.starts_with(parent)))
-        })
+        .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
         .cloned()
         .collect();
     extract(root, &rust_files)

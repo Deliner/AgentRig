@@ -1,28 +1,8 @@
-use review_runner::{
-    config, snapshot,
-    vcs::{Backend, FileKind, Kind, Repository, external::Adapter},
-};
+pub mod external_fixture;
+use external_fixture::{commit, contents, example, revisions};
+use review_runner::vcs::{Backend, FileKind, Kind, external::Adapter};
 use serde_json::{Value, json};
-use std::{
-    collections::BTreeMap,
-    fs,
-    os::unix::{ffi::OsStrExt, fs::PermissionsExt},
-    path::{Path, PathBuf},
-    process::Command,
-};
-
-fn example() -> Adapter {
-    // Cached tests can outlive the exported source tree where they were compiled.
-    let script = PathBuf::from(std::env::var_os("CARGO_MANIFEST_DIR").unwrap())
-        .join("../examples/external_vcs.py");
-    Adapter {
-        command: vec![
-            "python3".into(),
-            "-B".into(),
-            script.to_str().unwrap().into(),
-        ],
-    }
-}
+use std::{fs, os::unix::fs::PermissionsExt, path::Path};
 
 #[test]
 fn configured_initialization_preserves_files_and_repeated_repository_state() {
@@ -64,68 +44,6 @@ fn private_initialization_preserves_existing_committed_and_mismatched_repositori
     assert!(backend.initialize(git.path(), "trunk").is_err());
     assert_eq!(contents(git.path()), before);
     assert!(!git.path().join(".hg").exists());
-}
-
-fn hg(root: &Path, args: &[&str]) {
-    let output = Command::new("hg")
-        .args(args)
-        .current_dir(root)
-        .env("HGPLAIN", "1")
-        .env("HGRCPATH", "")
-        .env("HGRCSKIPREPO", "1")
-        .output()
-        .unwrap();
-    assert!(
-        output.status.success(),
-        "{}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-}
-
-fn commit(root: &Path) -> String {
-    hg(root, &["addremove"]);
-    hg(root, &["commit", "-m", "fixture", "-u", "Test"]);
-    Repository::new(root, Kind::Mercurial).resolve(".").unwrap()
-}
-
-fn contents(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
-    let mut files = BTreeMap::new();
-    for entry in fs::read_dir(root).unwrap() {
-        let entry = entry.unwrap();
-        let kind = entry.file_type().unwrap();
-        let directory = kind.is_dir();
-        if directory {
-            files.extend(contents(&entry.path()));
-            continue;
-        }
-        let symlink = kind.is_symlink();
-        let bytes = if symlink {
-            fs::read_link(entry.path())
-                .unwrap()
-                .as_os_str()
-                .as_bytes()
-                .to_vec()
-        } else {
-            fs::read(entry.path()).unwrap()
-        };
-        files.insert(entry.path(), bytes);
-    }
-    files
-}
-
-fn revisions(root: &Path) -> (String, String) {
-    hg(root, &["init"]);
-    let adapter = example();
-    assert_eq!(adapter.head(root).unwrap(), None);
-    fs::write(root.join("binary"), [0, 255, 10]).unwrap();
-    fs::write(root.join("old name"), "before").unwrap();
-    std::os::unix::fs::symlink("old name", root.join("link")).unwrap();
-    let base = commit(root);
-    fs::rename(root.join("old name"), root.join("new name")).unwrap();
-    fs::write(root.join("binary"), [0, 255, 20]).unwrap();
-    let candidate = commit(root);
-    fs::write(root.join("new name"), "uncommitted").unwrap();
-    (base, candidate)
 }
 
 #[test]
@@ -202,44 +120,6 @@ fn private_commit_context_requires_a_branch_and_boolean_merge_state() {
             .unwrap(),
         ("task/example".into(), false)
     );
-}
-
-#[test]
-fn configured_external_source_uses_shared_snapshot_visibility_and_file_restrictions() {
-    let directory = tempfile::tempdir().unwrap();
-    let root = directory.path();
-    let (base, candidate) = revisions(root);
-    let output = tempfile::tempdir().unwrap();
-    let mut scope = config::Repository {
-        vcs: Backend::External(example()),
-        visible_paths: vec!["binary".into(), "*name".into()],
-        contract_paths: vec!["new name".into()],
-    };
-    let before = contents(root);
-    let result = snapshot::prepare(
-        root,
-        (&base, &candidate),
-        &scope,
-        &output.path().join("valid"),
-    )
-    .unwrap();
-    assert_eq!(result.candidate, candidate);
-    assert_eq!(
-        fs::read(output.path().join("valid/new name")).unwrap(),
-        b"before"
-    );
-    scope.visible_paths = vec!["binary".into()];
-    assert!(snapshot::check_boundary(root, &base, &candidate, &scope).is_err());
-    scope.visible_paths = vec!["**".into()];
-    let error = snapshot::prepare(
-        root,
-        (&base, &candidate),
-        &scope,
-        &output.path().join("symlink"),
-    )
-    .unwrap_err();
-    assert!(error.to_string().contains("symlink or submodule"));
-    assert_eq!(contents(root), before);
 }
 
 #[test]
@@ -321,28 +201,6 @@ fn external_revision_export_resolves_opaque_ids_and_rejects_unsafe_trees() {
             .source(root.path())
             .export_revision("tip")
             .is_err()
-    );
-}
-
-#[test]
-fn backend_selection_preserves_native_yaml_and_rejects_invalid_external_declarations() {
-    let native: Backend = config::yaml::decode("mercurial").unwrap();
-    assert_eq!(serde_json::to_value(native).unwrap(), json!("mercurial"));
-    let invalid: Backend = config::yaml::decode("command: []").unwrap();
-    assert!(invalid.validate().is_err());
-    assert!(serde_json::from_str::<Backend>(r#"{"command":[],"command":[]}"#).is_err());
-    for yaml in [
-        "unknown",
-        "command: python3",
-        "command: [python3]\nextra: true",
-    ] {
-        assert!(config::yaml::decode::<Backend>(yaml).is_err());
-    }
-    let root = tempfile::tempdir().unwrap();
-    let backend = Backend::External(reply(json!({"version": 1, "result": "revision-42"})));
-    assert_eq!(
-        backend.source(root.path()).resolve("tip").unwrap(),
-        "revision-42"
     );
 }
 
@@ -491,4 +349,14 @@ fn read_adapter_cannot_write_and_unsupported_operations_are_explicit() {
     let error = adapter.resolve(root.path(), "tip").unwrap_err().to_string();
     assert!(error.contains("does not support resolve"));
     assert!(Adapter { command: vec![] }.validate().is_err());
+}
+
+#[test]
+fn selected_external_backend_resolves_through_its_adapter() {
+    let root = tempfile::tempdir().unwrap();
+    let backend = Backend::External(reply(json!({"version": 1, "result": "revision-42"})));
+    assert_eq!(
+        backend.source(root.path()).resolve("tip").unwrap(),
+        "revision-42"
+    );
 }

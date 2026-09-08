@@ -261,14 +261,14 @@ Mercurial using only Python's standard library and the `hg` executable. It impor
 no AgentRig code. It is an example of the boundary, not a proprietary VCS or a
 second native implementation shipped for ordinary Mercurial consumers.
 
-`tests/external_vcs.rs` invokes this separate process against real Mercurial
+`src/vcs/tests/external_vcs.rs` invokes this separate process against real Mercurial
 revisions, including binary files, symlinks, renames and a dirty working tree.
 It compares every repository file, including metadata, before and after reads.
 Other cases reject malformed replies, invalid versions and types, unsafe paths,
 duplicate entries and invalid file kinds; a process attempting to overwrite a
 working file fails and the original bytes remain unchanged.
 
-`tests/registration.rs` registers the external Mercurial hook, invokes it through
+`src/vcs/tests/registration.rs` registers the external Mercurial hook, invokes it through
 a real native commit, preserves custom configuration and checks repeat registration,
 both managed-setting conflicts, invalid descriptions and false success replies.
 That hook is a test fixture; installed delivery is exercised separately below.

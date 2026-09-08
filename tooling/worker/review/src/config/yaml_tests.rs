@@ -1,5 +1,9 @@
-use review_runner::config::yaml;
+use review_runner::{
+    config::{self, yaml},
+    vcs::{Backend, Kind},
+};
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 use std::{collections::BTreeMap, fs};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq)]
@@ -80,4 +84,29 @@ fn file_errors_identify_source_and_do_not_read_toml_as_configuration() {
     .unwrap();
     let error = format!("{:#}", yaml::read::<Config>(&path).unwrap_err());
     assert!(error.contains("settings.yaml") && error.contains("thresholds.functions"));
+}
+
+#[test]
+fn repository_yaml_selects_backend_and_rejects_unknown_systems() {
+    let yaml = "vcs: mercurial\nvisible_paths: ['src/**']\ncontract_paths: []\n";
+    let scope: config::Repository = config::yaml::decode(yaml).unwrap();
+    assert_eq!(scope.vcs, Kind::Mercurial.into());
+    let invalid = yaml.replace("mercurial", "unknown");
+    assert!(config::yaml::decode::<config::Repository>(&invalid).is_err());
+}
+
+#[test]
+fn backend_selection_preserves_native_yaml_and_rejects_invalid_external_declarations() {
+    let native: Backend = config::yaml::decode("mercurial").unwrap();
+    assert_eq!(serde_json::to_value(native).unwrap(), json!("mercurial"));
+    let invalid: Backend = config::yaml::decode("command: []").unwrap();
+    assert!(invalid.validate().is_err());
+    assert!(serde_json::from_str::<Backend>(r#"{"command":[],"command":[]}"#).is_err());
+    for yaml in [
+        "unknown",
+        "command: python3",
+        "command: [python3]\nextra: true",
+    ] {
+        assert!(config::yaml::decode::<Backend>(yaml).is_err());
+    }
 }

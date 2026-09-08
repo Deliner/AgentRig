@@ -22,6 +22,46 @@ path = "src/response/tests.rs"
 name = "snapshot"
 path = "src/snapshot/tests.rs"
 
+[[test]]
+name = "broker"
+path = "src/execution/tests/broker.rs"
+
+[[test]]
+name = "harness"
+path = "src/execution/tests/harness.rs"
+
+[[test]]
+name = "execution"
+path = "src/run/tests/execution.rs"
+
+[[test]]
+name = "external_vcs"
+path = "src/vcs/tests/external_vcs.rs"
+
+[[test]]
+name = "private_integration"
+path = "src/vcs/tests/private_integration.rs"
+
+[[test]]
+name = "registration"
+path = "src/vcs/tests/registration.rs"
+
+[[test]]
+name = "vcs"
+path = "src/vcs/tests/vcs.rs"
+
+[[test]]
+name = "mcp"
+path = "src/mcp/tests.rs"
+
+[[test]]
+name = "snapshot_native"
+path = "src/snapshot/native_tests.rs"
+
+[[test]]
+name = "snapshot_external"
+path = "src/snapshot/external_tests.rs"
+
 [dependencies]
 anyhow = "1"
 serde = { version = "1", features = ["derive"] }

@@ -53,11 +53,13 @@ fn rust_inline_scopes_and_module_declarations_retain_resolution_context() {
         [
             Target::RustModule {
                 path: vec!["app".into()],
-                inline: true
+                inline: true,
+                file: None,
             },
             Target::RustModule {
                 path: vec!["app".into(), "nested".into()],
-                inline: false
+                inline: false,
+                file: None,
             },
             Target::RustPath {
                 path: "super::domain::Api".into(),
@@ -254,7 +256,7 @@ fn unsupported_dependency_forms_are_located_and_reported() {
         ("a.js", "import './\\u0061.js';"),
         ("a.py", "importlib.import_module('.x', package)"),
         ("a.rs", "include!(\"module.rs\");"),
-        ("a.rs", "#[path = \"other.rs\"] mod a;"),
+        ("a.rs", "mod inline { #[path = \"other.rs\"] mod a; }"),
         ("a.rs", "macro_rules! make { () => { use crate::hidden; } }"),
     ] {
         let result = parse(path, source);

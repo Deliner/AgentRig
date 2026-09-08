@@ -23,7 +23,7 @@ def resources(root: Path) -> None:
     (root / "prompt.md").write_text("Check the assigned requirement.")
     (root / "auth").mkdir()
     (root / "auth/auth.json").write_text("{}")
-    source = Path(__file__).parents[2] / "worker/review/tests/support/critic.py"
+    source = Path(__file__).parents[2] / "worker/review/testing/critic.py"
     (root / "codex").write_bytes(source.read_bytes())
     (root / "codex").chmod(0o755)
     (root / "codex-code-mode-host").write_text("unused")
