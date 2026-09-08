@@ -1,0 +1,9 @@
+purpose: Verify invalid runtime and execution settings are rejected before project operations
+files:
+  architecture.yaml: Behavior test responsibilities and fixture dependencies
+  test_configuration.py: Runtime version, schema and process setting validation diagnostics
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public: []

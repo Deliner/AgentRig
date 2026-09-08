@@ -1,0 +1,9 @@
+purpose: Resolve existing symbolic links and normalize paths that may have a not-yet-created tail
+files:
+  architecture.yaml: Path resolution responsibilities and public boundary
+  mod.rs: Component resolution with bounded symbolic-link traversal
+  tests.rs: Missing tails, link-relative parent traversal, absolute links and cycles
+directories: {}
+allow: []
+deny: []
+public: [mod.rs]

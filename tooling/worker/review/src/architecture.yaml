@@ -1,0 +1,41 @@
+purpose: Compose isolated review execution and its shared configuration, artifact and VCS capabilities
+files:
+  architecture.yaml: Review library composition and public capability boundary
+  lib.rs: Public review capability modules and compatibility exports
+  main.rs: Standalone review command entry and failure exit status
+  test_cli.py: Embedded review CLI execution and MCP registration behavior tests
+  cli.rs: Dispatch review configuration, execution and MCP commands
+directories:
+  artifacts: Validate and persist review artifacts and shared JSON records
+  config: Decode review configuration, credentials and YAML documents
+  execution: Run isolated reviewers and validate their responses
+  mcp: Serve review tools and shared protocol sessions
+  response: Validate reviewer response contracts and findings
+  run: Orchestrate review requests and aggregate reports
+  snapshot: Freeze and validate review source inputs
+  vcs: Access native and private version control implementations
+allow:
+  - tooling/worker/review/testing/consumer.py
+  - tooling/worker/review/testing/mod.rs
+deny: []
+public:
+  - lib.rs
+  - cli.rs
+  - artifacts/mod.rs
+  - artifacts/json.rs
+  - config/mod.rs
+  - config/credentials.rs
+  - config/yaml.rs
+  - execution/mod.rs
+  - execution/broker.rs
+  - execution/reviewer.rs
+  - execution/sandbox/mod.rs
+  - mcp/mod.rs
+  - mcp/protocol.rs
+  - response/mod.rs
+  - response/contract.rs
+  - run/mod.rs
+  - run/report.rs
+  - snapshot/mod.rs
+  - vcs/mod.rs
+  - vcs/external.rs

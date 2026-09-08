@@ -2,7 +2,7 @@ use super::{
     model::{Journal, Plan},
     review, storage,
 };
-use crate::scaffold::package::manifest;
+use crate::scaffold::receipt as manifest;
 use anyhow::{Context as _, Result, ensure};
 use std::{
     fs,
@@ -16,19 +16,7 @@ pub struct Operation {
 }
 impl Operation {
     pub fn open(root: &Path) -> Result<Self> {
-        let directory = storage::directory(root)?.join("operation");
-        let journal: Journal = serde_json::from_slice(&fs::read(directory.join("journal.json"))?)?;
-        ensure!(journal.version == 1, "unsupported upgrade journal");
-        let bytes = fs::read(directory.join("plan.json"))?;
-        ensure!(
-            manifest::checksum(&bytes) == journal.plan_sha256,
-            "saved upgrade plan changed"
-        );
-        let plan: Plan = serde_json::from_slice(&bytes)?;
-        ensure!(
-            Path::new(&plan.project) == root,
-            "operation belongs to another project"
-        );
+        let (directory, plan, journal) = crate::scaffold::recovery::load(root)?;
         Ok(Self {
             directory,
             plan,

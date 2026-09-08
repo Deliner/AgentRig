@@ -1,0 +1,17 @@
+purpose: Validate delegate task contracts and prepare immutable inputs and verified result artifacts
+files:
+  architecture.yaml: Task input and result responsibilities and dependency boundary
+  mod.rs: Task schema, contract validation and input preparation entry points
+  files.rs: Visible file input copying and snapshot metadata
+  result.rs: Result schema and artifact validation
+  tests.rs: Input snapshot, visibility and result contract behavior tests
+directories: {}
+allow:
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/response/mod.rs
+  - tooling/worker/review/src/snapshot/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

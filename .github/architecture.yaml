@@ -1,0 +1,8 @@
+purpose: Configure hosted verification of repository changes
+files:
+  architecture.yaml: Hosted automation inventory
+directories:
+  workflows: Executable continuous integration workflows
+allow: []
+deny: []
+public: []

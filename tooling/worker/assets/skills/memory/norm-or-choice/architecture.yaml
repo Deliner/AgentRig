@@ -1,0 +1,8 @@
+purpose: "Distinguish contextual choices from executable invariant predicates"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to distinguish contextual choices from executable invariant predicates"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

@@ -1,0 +1,8 @@
+purpose: Compose the Rust consumer from its build packages
+files:
+  architecture.yaml: Consumer package inventory and boundaries
+directories:
+  engine: Minimal independently testable consumer crate
+allow: []
+deny: []
+public: []

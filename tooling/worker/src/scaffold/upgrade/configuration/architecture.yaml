@@ -1,0 +1,21 @@
+purpose: Plan configuration updates and preserve user client settings within the shared update recovery format
+files:
+  architecture.yaml: Configuration update responsibilities and dependency boundary
+  mod.rs: Compare desired settings and resource ownership and save the configuration update plan
+  claude.rs: Merge Claude Code preferences and managed server and hook settings
+  hooks.rs: Preserve custom hook groups while replacing managed registrations
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/scaffold/installation/mod.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
+  - tooling/worker/src/scaffold/recovery/model.rs
+  - tooling/worker/src/scaffold/recovery/storage.rs
+  - tooling/worker/src/scaffold/recovery/report.rs
+  - tooling/worker/src/scaffold/package/mod.rs
+  - tooling/worker/src/scaffold/package/adapters.rs
+  - tooling/worker/src/scaffold/package/setup/mod.rs
+  - tooling/worker/src/scaffold/package/setup/registration.rs
+deny: []
+public: [mod.rs]

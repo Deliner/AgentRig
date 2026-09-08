@@ -3,13 +3,12 @@ mod apply;
 mod configuration;
 mod external;
 pub(super) mod migration;
-mod model;
+use super::recovery::model;
 mod operation;
 mod plan;
-pub(crate) mod recovery;
+pub(crate) use super::recovery::{self, storage};
 pub(super) mod release;
 mod review;
-pub(crate) mod storage;
 
 use anyhow::{Result, bail};
 use std::path::Path;

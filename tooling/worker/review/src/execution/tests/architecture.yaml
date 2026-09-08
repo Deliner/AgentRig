@@ -1,0 +1,15 @@
+purpose: Verify reviewer harness isolation and parent-owned format correction behavior
+files:
+  architecture.yaml: Execution behavior test responsibilities and dependencies
+  broker.rs: Verify successful corrections and exhaustion through the broker socket
+  harness.rs: Verify Codex and Claude isolation, credentials and shared response validation
+directories: {}
+allow:
+  - tooling/worker/review/src/execution/broker.rs
+  - tooling/worker/review/src/response/mod.rs
+  - tooling/worker/review/src/response/contract.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/testing/mod.rs
+deny: []
+public: []

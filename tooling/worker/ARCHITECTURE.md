@@ -29,12 +29,20 @@ Add a rule to the existing lint YAML; skill paths use the normal `skill_root`:
 
 The target is a directory; `extensions` selects its immediate source files.
 Include both a parent and its descendants when both are in scope. Every selected
-directory containing selected sources, directly or below it, requires a contract.
-Directories with no selected source are skipped. Use `.` to select the project
+directory requires a contract, including documentation and resource directories.
+Inventory coverage is independent of source extensions. Use `.` to select the project
 root. Exclusions use the existing glob semantics; exclude a subtree with both its
 directory and descendant pattern. Selected-source exclusions do not remove files
 from dependency resolution. Resolution uses Git tracked/unignored files, or regular
 non-symlink files in a non-Git project. Git-ignored targets cannot be resolved.
+
+Discovery retains empty directories, so an empty selected directory still needs
+its contract, with or without a VCS. Native backends inspect physical directories
+using their own ignore rules; parents of visible tracked files remain visible.
+Private adapters supply the `working-directories` operation alongside their file
+inventory. VCS metadata and symlink directories are skipped. The structural
+`directory-entries` metric retains its file-derived counts; architecture coverage
+also includes directories with no selected files.
 
 `architecture` and explicit source extensions are required. `python_root` defaults
 to the project root. `rust_roots` lists the actual crate roots and is required when
@@ -44,6 +52,13 @@ permission globs. Rust defaults to `std`, `core`, `alloc`; the other lists defau
 to empty. Locally resolved Python and anchored Rust paths cannot be hidden by an
 external declaration. JavaScript bare package names require an external declaration;
 local package aliases are not yet resolved.
+
+For multiple local Rust crates, add `rust_crates`, mapping each import name to
+its root file, also listed in `rust_roots`. For example,
+`rust_crates: {catalog: crates/catalog/src/lib.rs}` makes `catalog::api` resolve
+against that crate's declared modules. Local mappings take precedence over
+external declarations and produce file edges subject to the same contracts.
+Unknown local macro expansion remains incomplete analysis.
 
 `level: warning` reports findings without a failing exit status; `error` exits 1.
 Thresholds and overrides are not applicable. Configuration errors exit 2.
@@ -57,13 +72,24 @@ Each required `architecture.yaml` is strict YAML:
 
 ```yaml
 purpose: Orders application service
+files:
+  architecture.yaml: Directory responsibilities and boundaries
+  api.py: Public entry for the orders scenario
+directories:
+  tests: Behavior checks owned by orders
 allow: ['src/catalog/api.py', 'src/storage/**']
 deny: ['src/storage/private/**']
 public: [api.py]
 ```
 
-`purpose` must be nonempty. All other fields default to empty lists; unknown fields
-are errors. `allow` and `deny` match project-relative target file paths for outbound
+`purpose` must be nonempty and occupy one logical line. `files` registers immediate
+filenames with nonempty responsibility descriptions, including architecture.yaml.
+`directories` separately describes immediate child directories, each with its own
+contract. Every in-scope entry must be registered. Names are literal, not globs;
+stale entries and wrong file/directory kinds are errors. Existing P006 contracts
+must acquire these maps; absent maps are empty and missing entries are reported.
+Descriptions guide placement; lint cannot prove their semantic agreement with code.
+Unknown fields are errors. `allow` and `deny` match project-relative target file paths for outbound
 dependencies. Deny takes precedence. `public` matches paths relative to this
 directory for inbound dependencies. Dependencies inside the same boundary need no
 permission. Every crossed enclosing contract applies; a child cannot open its
@@ -72,21 +98,50 @@ regular files inside the project.
 
 Cycles use actual resolved edges and report source evidence. Checks include sibling
 subsystem boundaries even when opposite edges connect different nested directories.
-An allowed edge still participates in cycle detection.
+An allowed use dependency still participates in cycle detection.
+
+Rust module declarations (`mod child;` and inline module ownership) describe
+composition, not use of a child's items. Their resolved targets still undergo
+allow/deny/public checks, but these declaration edges alone do not participate
+in cycles. Imports, calls, type references and reexports remain use dependencies.
+This lets a child use a parent-owned type without inventing a reverse use edge
+merely because Rust requires the parent to declare the child module.
 
 ## Current source analysis
 
 Tree-sitter extracts references without executing project code. Malformed syntax,
 unresolved references and recognized unsupported forms produce incomplete-analysis
 findings at the configured severity. This is not a compiler or a full static-analysis
-proof; remaining coverage is part of P006 delivery.
+proof; unsupported forms remain explicit incomplete-analysis findings.
 
 - **Rust 2018+**: explicit crate roots, declared `name.rs`/`name/mod.rs` and inline
   modules, `crate`/`self`/`super`, module-level imports and aliases, qualified item
   paths and public item facades. Missing/ambiguous module files and alias cycles
-  fail. Macro invocations/definitions, `#[path]`, block-local modules and unresolved
-  lexical/wildcard bindings require further analysis. Derive, conditional and
-  unknown attributes report incomplete expansion, including inner attributes.
+  fail. `Self` paths retain the enclosing impl/trait owner. Generic paths with
+  one explicit inline trait bound retain that bound; unbounded or ambiguous
+  parameters and unsupported local bindings remain incomplete. Observed standard
+  prelude names (`String`, `Vec`, `Default`, `Option`, `Into`) and primitive paths
+  resolve only when syntactic declarations/imports do not shadow them.
+  Known standard expression macros and imported `anyhow::{anyhow,bail,ensure}`
+  and `serde_json::json` retain explicit paths inside their token arguments,
+  including nested calls; strings and comments remain opaque. Macro imports are
+  resolved before accepting the namespace. Unknown macros, definitions, source
+  `include!`, ambiguous wildcard origins, block-local macro imports and declarations
+  inside macro arguments report incomplete analysis. General expansion is not
+  implemented. Static unescaped `include_str!` and `include_bytes!` literals
+  produce resource-file edges, including imported aliases; missing, ignored,
+  escaping or dynamically constructed targets fail analysis.
+  Standard derives and `serde::{Serialize,Deserialize}` are supported. Supported
+  serde callback attributes retain their function-path dependencies; naming
+  metadata remains opaque. Unknown serde forms fail explicitly. `#[cfg(test)]`
+  includes test code in the measured graph alongside ordinary code.
+  Literal, unescaped `#[path = "file.rs"]` declarations on file-level external
+  modules resolve relative to the declaring source file; raw string literals are
+  supported. Missing, escaping, duplicate and multiply declared source paths fail.
+  Paths on inline modules or their children, computed paths, block-local modules
+  and unresolved lexical/wildcard bindings require further analysis.
+  Other conditional and unknown attributes report incomplete
+  expansion, including inner attributes.
   Known nonexpanding metadata (`allow`, `warn`, `deny`, `forbid`, `doc`, `inline`,
   `cold`, `must_use`, `deprecated`, `repr`, `non_exhaustive`, `test`, `ignore`,
   `should_panic`, `track_caller`) remains supported. Compiler expansion and build
@@ -117,7 +172,7 @@ permissions to silence findings does not establish the intended architecture.
 
 ## Executable consumer verification
 
-`tooling/tests/native/lint/test_architecture_behavior.py` compiles or executes
+`tooling/worker/src/lint/architecture/tests/test_architecture_behavior.py` compiles or executes
 independent Rust, Python, JavaScript and TypeScript consumers before and after
 replacing private access with an existing public API. The result stays `7`, the
 directory contracts remain byte-for-byte unchanged, and both lint binaries agree
@@ -125,3 +180,32 @@ on the violation and repair without changing consumer files. These tests use
 Rust 1.98.1, Python 3.12.3 and Node 22.22.3. TypeScript execution uses Node's
 `--experimental-strip-types` with explicit `.ts` imports and type annotations;
 it verifies runtime behavior, not TypeScript compiler type checking.
+
+## AgentRig repository coverage
+
+The checked `tooling/worker/lint.yaml` enables architecture at error severity for
+`.` and `**`: maintained source, colocated tests, root configuration, Ledger,
+documentation, examples and canonical resources. Language extensions select
+dependency extraction only; every discovered file remains in the inventory.
+Explicit exclusions cover Git metadata, build and dependency caches, virtual
+environments, temporary probes and generated review runtime/report directories.
+Native VCS ignore rules also apply. No maintained source or documentation tree
+is excluded to avoid architecture findings.
+
+Each actual Rust crate and integration-test root is listed, including the
+independent Rust example. Python uses the repository import root. External names
+describe standard libraries and installed dependencies; local modules remain
+subject to analysis and all crossed contracts.
+
+`just lint` and the gate's lint command invoke the candidate through the existing
+build adapter: the pinned runtime predates required Rust module-path analysis.
+The installed runtime still orchestrates commands, hooks, snapshots and gates.
+Use `just check --only lint` for the configured check; use `just candidate
+lint-config-check` to validate the candidate policy implementation.
+
+Canonical memory guidance lives under `assets/skills/memory`. Flat symlink aliases
+preserve existing client and hook instruction paths; source embedding uses the
+canonical files, and installed skill names remain flat. Discovery skips symlink
+aliases and inventories each canonical body once. Descriptions and permissions
+do not by themselves prove semantic ownership; the repair skill and review must
+still assess the actual responsibility and consumers.

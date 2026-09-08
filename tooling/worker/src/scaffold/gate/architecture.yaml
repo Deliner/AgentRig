@@ -1,0 +1,22 @@
+purpose: Execute configured checks against working, staged or revision inputs and record their results
+files:
+  architecture.yaml: Verification gate responsibilities and dependency boundary
+  mod.rs: Prepare checked snapshots, dispatch checks and produce actionable failures
+  selection.rs: Map changed paths to configured affected check targets
+directories:
+  tests: Verify check execution and source selection
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/commands/mod.rs
+  - tooling/worker/src/scaffold/evidence/mod.rs
+  - tooling/worker/src/scaffold/memory/mod.rs
+  - tooling/worker/src/lint/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/src/lint/inventory/mod.rs
+  - tooling/worker/src/diagnostics/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

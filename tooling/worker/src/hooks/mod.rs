@@ -5,13 +5,14 @@
 // DECISION: D011
 // DECISION: D003
 // DECISION: D019
-pub mod git;
 mod guard;
+pub mod input;
 mod reminder;
 mod transcript;
 
+use self::input::text;
+use crate::paths::resolve;
 use crate::scaffold::config::Context;
-use crate::util::{resolve, text};
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, path::Path};
@@ -59,11 +60,11 @@ pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
         bail!("expected a hook event object");
     }
     let recovering = text(event, "hook_event_name") == "SessionStart"
-        && crate::scaffold::upgrade::recovery::configuration_pending(root)?;
+        && crate::scaffold::recovery::configuration_pending(root)?;
     if recovering {
         return Ok(Some(context(
             "SessionStart",
-            &crate::scaffold::upgrade::recovery::guidance(root)?,
+            &crate::scaffold::recovery::guidance(root)?,
         )));
     }
     let configured = Context::load_for(root, true)?;
@@ -82,7 +83,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     let full = format!(
         "{}\n{}",
         full_refresh(configured),
-        crate::scaffold::upgrade::recovery::guidance(root)?
+        crate::scaffold::recovery::guidance(root)?
     );
     let message = format!(
         "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
@@ -132,7 +133,7 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
     let reminder = match &configured.config.hooks.reminder {
         Some(path) => reminder::before_at(
             event,
-            &crate::util::object(&configured.path(path)?),
+            &input::object(&configured.path(path)?),
             &configured
                 .path(&configured.config.paths.runtime)?
                 .join("reminders"),

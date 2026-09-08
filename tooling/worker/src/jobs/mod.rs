@@ -1,3 +1,4 @@
+use std::fs::OpenOptions;
 mod background;
 pub mod cleanup;
 mod identity;
@@ -77,7 +78,7 @@ impl Job {
             .to_string_lossy()
             .into_owned();
         let owner = owner().unwrap_or_else(|| run_id.clone());
-        let branch = crate::util::git(project, &["branch", "--show-current"])
+        let branch = review_runner::vcs::git_context(project, &["branch", "--show-current"])
             .ok()
             .filter(|value| !value.is_empty());
         let record = Record {
@@ -143,7 +144,6 @@ impl Job {
         storage::save(&self.directory, &self.record)
     }
     fn open_logs(&self) -> Result<(std::fs::File, std::fs::File)> {
-        use std::fs::OpenOptions;
         let open = |name: &str| {
             OpenOptions::new()
                 .create_new(true)

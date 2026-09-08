@@ -1,37 +1,10 @@
 // DECISION: D024
 // DECISION: D023
 use super::{Files, config::Config};
+use crate::scaffold::receipt::{Entry, Manifest, Ownership, checksum};
 use anyhow::Result;
-use serde::{Deserialize, Serialize};
-use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone, Deserialize, Serialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub enum Ownership {
-    Runtime,
-    Asset,
-    Configuration,
-    Editable,
-    Memory,
-}
-#[derive(Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Entry {
-    pub sha256: String,
-    pub ownership: Ownership,
-    pub executable: bool,
-}
-#[derive(Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-pub struct Manifest {
-    pub manifest_version: u32,
-    pub package_version: String,
-    pub config_schema: u32,
-    pub files: BTreeMap<String, Entry>,
-    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
-    pub local: BTreeMap<String, Option<String>>,
-}
 pub fn installed(files: &Files, config: &Config) -> Result<Vec<u8>> {
     let files = files
         .iter()
@@ -54,9 +27,6 @@ pub fn installed(files: &Files, config: &Config) -> Result<Vec<u8>> {
         local: BTreeMap::new(),
     };
     Ok(serde_json::to_vec_pretty(&manifest)?)
-}
-pub fn checksum(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
 }
 pub fn executable(path: &str) -> bool {
     std::path::Path::new(path)

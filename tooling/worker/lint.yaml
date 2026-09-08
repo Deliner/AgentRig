@@ -99,3 +99,123 @@ rules:
   error: 4
   warning_skill: .agents/skills/reduce-parameters/SKILL.md
   error_skill: .agents/skills/reduce-parameters/SKILL.md
+
+# Full maintained-tree inventory; dependency extensions do not limit file coverage.
+- architecture:
+    external:
+      rust:
+      - alloc
+      - anyhow
+      - core
+      - fs2
+      - globset
+      - jsonschema
+      - libc
+      - regex
+      - serde
+      - serde_json
+      - serde_path_to_error
+      - serde_yaml_ng
+      - sha2
+      - shell_words
+      - signal_hook
+      - std
+      - tempfile
+      - toml
+      - toml_edit
+      - tree_sitter
+      - tree_sitter_bash
+      - tree_sitter_javascript
+      - tree_sitter_python
+      - tree_sitter_rust
+      - tree_sitter_typescript
+      - yaml_rust2
+      python:
+      - __future__
+      - argparse
+      - collections
+      - contextlib
+      - copy
+      - dataclasses
+      - datetime
+      - hashlib
+      - io
+      - itertools
+      - json
+      - os
+      - pathlib
+      - platform
+      - pytest
+      - re
+      - select
+      - shlex
+      - shutil
+      - signal
+      - statistics
+      - subprocess
+      - sys
+      - tarfile
+      - tempfile
+      - time
+      - tomllib
+      - typing
+      - yaml
+    rust_crates:
+      agentrig: tooling/worker/src/lib.rs
+      review_runner: tooling/worker/review/src/lib.rs
+    rust_roots:
+    - tooling/worker/examples/rust/crates/engine/src/lib.rs
+    - tooling/worker/src/lib.rs
+    - tooling/worker/src/main.rs
+    - tooling/worker/src/lint/standalone.rs
+    - tooling/worker/review/src/lib.rs
+    - tooling/worker/review/src/main.rs
+    - tooling/worker/review/src/config/tests.rs
+    - tooling/worker/review/src/config/yaml_tests.rs
+    - tooling/worker/review/src/response/tests.rs
+    - tooling/worker/review/src/snapshot/tests.rs
+    - tooling/worker/review/src/snapshot/native_tests.rs
+    - tooling/worker/review/src/snapshot/external_tests.rs
+    - tooling/worker/review/src/mcp/tests.rs
+    - tooling/worker/review/src/execution/tests/broker.rs
+    - tooling/worker/review/src/execution/tests/harness.rs
+    - tooling/worker/review/src/run/tests/execution.rs
+    - tooling/worker/review/src/vcs/tests/external_vcs.rs
+    - tooling/worker/review/src/vcs/tests/private_integration.rs
+    - tooling/worker/review/src/vcs/tests/registration.rs
+    - tooling/worker/review/src/vcs/tests/vcs.rs
+    python_root: .
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  - .js
+  - .jsx
+  - .mjs
+  - .cjs
+  - .ts
+  - .tsx
+  - .mts
+  - .cts
+  id: architecture
+  include:
+  - .
+  - '**'
+  kind: directory-architecture
+  level: error
+  target: directory
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  exclude:
+  - .tmp
+  - .tmp/**
+  - .mypy_cache
+  - .mypy_cache/**
+  - .pytest_cache
+  - .pytest_cache/**
+  - .ruff_cache
+  - .ruff_cache/**
+  - tooling/worker/review/runtime
+  - tooling/worker/review/runtime/**
+  - tooling/worker/review/reports
+  - tooling/worker/review/reports/**

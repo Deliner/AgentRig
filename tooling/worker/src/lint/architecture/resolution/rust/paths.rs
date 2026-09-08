@@ -1,6 +1,32 @@
-use super::*;
+use super::{Located, Query, Rust};
+use crate::lint::architecture::resolution::Resolved;
+use anyhow::{Context, Result, bail, ensure};
+use std::{collections::BTreeSet, path::Path};
 
 impl Rust<'_> {
+    pub(super) fn path_result(
+        &self,
+        source: &Path,
+        path: &str,
+        scope: &[String],
+    ) -> Result<Resolved> {
+        ensure!(
+            self.modules.contains_key(scope),
+            "Rust module scope is unresolved"
+        );
+        let mut query = Query {
+            source,
+            visiting: BTreeSet::new(),
+        };
+        match self.path(scope, path, &mut query)? {
+            Located::Module(module) | Located::Item(module) => self.module_result(&module),
+            Located::External(path) => Ok(Resolved {
+                files: BTreeSet::new(),
+                external: Some(path),
+            }),
+        }
+    }
+
     pub(super) fn path(
         &self,
         scope: &[String],

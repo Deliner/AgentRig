@@ -1,0 +1,15 @@
+purpose: Verify native and private version control behavior against real repository consumers
+files:
+  architecture.yaml: VCS behavior test inventory and dependencies
+  vcs.rs: Verify native repository observation, export and worktree preservation
+  external_vcs.rs: Verify private adapter protocol validation and repository preservation
+  private_integration.rs: Verify private integration guards and completion behavior
+  registration.rs: Verify generated registrations, installed hooks and conflict preservation
+  native_fixture.rs: Build native repositories and committed revisions for VCS and snapshot tests
+  external_fixture.rs: Build private adapter repositories and inspect preserved worktrees
+directories: {}
+allow:
+  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/review/src/vcs/external.rs
+deny: []
+public: [native_fixture.rs, external_fixture.rs]

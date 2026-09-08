@@ -1,4 +1,5 @@
 pub mod architecture;
+pub mod catalog;
 pub mod cli;
 // DECISION: D007
 pub mod config;
@@ -8,30 +9,16 @@ pub mod languages;
 pub mod rules;
 mod selection;
 
+pub use crate::diagnostics::lint::Diagnostic;
+use crate::diagnostics::lint::print_diagnostic;
 use anyhow::Result;
 use config::globs;
-use serde::Serialize;
 use std::{collections::HashMap, fs, path::Path};
 
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
 const CONFIG_SKILL: &str = "repair (set config_skill in the lint configuration)";
-#[derive(Serialize)]
-pub struct Diagnostic {
-    rule: String,
-    path: String,
-    level: String,
-    actual: Option<u64>,
-    limit: Option<u64>,
-    skill: String,
-    message: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    line: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    symbol: Option<String>,
-    rerun: String,
-}
 #[derive(Default)]
 struct Evaluation {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
@@ -99,7 +86,7 @@ fn structural_measurement(
                     .filter(|line| !line.trim().is_empty())
                     .count() as u64
             }),
-        rules::Kind::DirectoryEntries => Some(inventory.directories[selected.path].len() as u64),
+        rules::Kind::DirectoryEntries => Some(inventory.file_entries(selected.path) as u64),
         _ => unreachable!("validated by rule registry"),
     })
 }
@@ -308,26 +295,5 @@ fn configuration_skill(path: &Path) -> Option<String> {
             )
         }
         None => Some(skill.into()),
-    }
-}
-fn print_diagnostic(item: &Diagnostic) {
-    println!(
-        "{}",
-        crate::diagnostics::Guidance {
-            level: &item.level,
-            id: &item.rule,
-            location: &format_location(item),
-            message: &item.message,
-            skill: &item.skill,
-            rerun: &item.rerun,
-        }
-    );
-}
-
-fn format_location(item: &Diagnostic) -> String {
-    match (&item.line, &item.symbol) {
-        (Some(line), Some(symbol)) => format!("{}:{line} ({symbol})", item.path),
-        (Some(line), None) => format!("{}:{line}", item.path),
-        _ => item.path.clone(),
     }
 }

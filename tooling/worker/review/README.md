@@ -151,7 +151,7 @@ Critics receive the candidate snapshot, base diff, manifest, contract and schema
 the separate CLI home are private to one role. No other critic or package source
 directory is mounted. Network access is retained for model requests.
 
-The shared [response schema](schemas/response.json) and validator enforce exact
+The shared [response schema](src/response/response.json) and validator enforce exact
 run/role/candidate/contract identities and assigned requirement coverage. FAIL
 needs evidence, finding and minimal_fix. Use repository-relative `path:line`
 evidence so repeated review can identify unchanged files. Observations are

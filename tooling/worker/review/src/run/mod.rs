@@ -1,13 +1,13 @@
 mod previous;
 pub mod report;
 use crate::{
+    artifacts::digest,
     config::{self, Config},
-    contract, digest,
     execution::{
         reviewer::{self, Task},
         sandbox::{self, Layout},
     },
-    response::{self, Expected},
+    response::{self, Expected, contract},
     snapshot,
 };
 use anyhow::{Context, Result};

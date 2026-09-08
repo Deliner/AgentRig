@@ -1,0 +1,11 @@
+purpose: Verify scoped delegated code delivery while preserving consumer repositories
+files:
+  architecture.yaml: Delegated code behavior test inventory and dependencies
+  test_delegate_code.py: Scoped code changes, mandatory checks and original checkout preservation
+  test_delegate_vcs.py: Native and private VCS code delegation with exact revision scope
+directories: {}
+allow:
+  - tooling/worker/src/delegate/testing/consumer.py
+  - tooling/worker/src/delegate/testing/mcp.py
+deny: []
+public: []

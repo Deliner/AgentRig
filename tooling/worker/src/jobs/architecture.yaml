@@ -1,0 +1,20 @@
+purpose: Track and control owned process execution, lifetime, resource limits and captured output
+files:
+  architecture.yaml: Process ownership inventory and consumer boundary
+  mod.rs: Job records, execution lifecycle and status command orchestration
+  background.rs: Launch and adopt persistent jobs within owned scopes
+  cleanup.rs: Clean completed or abandoned jobs according to owner and lifetime
+  identity.rs: Observe process identity and resource usage without confusing reused process IDs
+  logs.rs: Read retained job output and report truncation
+  process.rs: Execute child processes with signal forwarding and exit status handling
+  report.rs: Summarize recorded command durations and outcomes
+  scope.rs: Create and observe systemd scopes and their resource constraints
+  stop.rs: Cancel owned jobs and signal their process containment
+  storage.rs: Create job directories and persist and retrieve records
+  streams.rs: Drain child streams and retain captured output
+directories: {}
+allow:
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs, process.rs, report.rs, cleanup.rs]

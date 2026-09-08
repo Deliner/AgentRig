@@ -22,23 +22,21 @@ commands:
   write:
     argv: []
     accepts_args: true
-    read_only: false
   build:
     argv:
     - tooling/worker/build
     - --version
-    accepts_args: false
-    read_only: false
   candidate:
     argv:
     - tooling/worker/build
     accepts_args: true
-    read_only: false
+  lint:
+    argv: [tooling/worker/build, lint]
+    accepts_args: true
   release:
     argv:
     - bash
     - tooling/distribution/release.sh
-    read_only: false
   rustfmt:
     argv:
     - cargo
@@ -47,8 +45,6 @@ commands:
     - --manifest-path
     - tooling/worker/Cargo.toml
     - --check
-    accepts_args: false
-    read_only: false
   clippy:
     argv:
     - cargo
@@ -60,8 +56,6 @@ commands:
     - --
     - -D
     - warnings
-    accepts_args: false
-    read_only: false
   rust-test:
     argv:
     - cargo
@@ -71,8 +65,8 @@ commands:
     - tooling/worker/Cargo.toml
     - --locked
     - --lib
-    accepts_args: false
-    read_only: false
+    - --
+    accepts_args: true
   test:
     argv:
     - uv
@@ -86,7 +80,6 @@ commands:
     - --rootdir
     - .
     accepts_args: true
-    read_only: false
   ruff-format:
     argv:
     - uv
@@ -99,8 +92,6 @@ commands:
     - --check
     - --config
     - tooling/pyproject.toml
-    accepts_args: false
-    read_only: false
   ruff:
     argv:
     - uv
@@ -112,22 +103,8 @@ commands:
     - check
     - --config
     - tooling/pyproject.toml
-    accepts_args: false
-    read_only: false
   mypy:
-    argv:
-    - uv
-    - run
-    - --locked
-    - --project
-    - tooling
-    - mypy
-    - --config-file
-    - tooling/pyproject.toml
-    - tooling/tests
-    - tooling/worker/examples
-    accepts_args: false
-    read_only: false
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -139,23 +116,10 @@ commands:
     - --config
     - tooling/pyproject.toml
     - .
-    accepts_args: false
-    read_only: false
   vulture:
-    argv:
-    - uv
-    - run
-    - --locked
-    - --project
-    - tooling
-    - vulture
-    - --min-confidence
-    - '100'
-    - tooling/tests
-    - tooling/worker/examples
-    accepts_args: false
-    read_only: false
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/review/src", "tooling/worker/review/testing/consumer.py", "tooling/worker/examples"]
   review-test:
+    accepts_args: true
     argv:
     - uv
     - run
@@ -193,72 +157,6 @@ commands:
     - tooling/worker/run
     - review
     accepts_args: true
-    read_only: false
-checks:
-- id: build
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: build
-- id: lint
-  kind: lint
-  skill: .agents/skills/repair/SKILL.md
-- id: memory
-  kind: memory
-  skill: .agents/skills/repair/SKILL.md
-- id: rustfmt
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: rustfmt
-- id: clippy
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: clippy
-- id: rust-test
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: rust-test
-- id: ruff-format
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: ruff-format
-- id: ruff
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: ruff
-- id: mypy
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: mypy
-- id: test
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: test
-- id: typos
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: typos
-- id: vulture
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: vulture
-- id: review-test
-  kind: command
-  command: review-test
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
-- id: review-clippy
-  kind: command
-  command: review-clippy
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
-- id: review-rustfmt
-  kind: command
-  command: review-rustfmt
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
 hooks:
   reminder: .agents/skills/complexity-discipline/context-reminder.json
   discipline_skill: .agents/skills/complexity-discipline/SKILL.md
@@ -283,76 +181,317 @@ oracles:
   I001:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_decision_source_markers
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_decision_source_markers
   I002:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_integration.py::test_independent_project_delivery
+    target: tooling/worker/src/scaffold/testing/test_delivery.py::test_independent_project_delivery
   I003:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_committed_decisions_checked_against_staged_memory
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_committed_decisions_checked_against_staged_memory
   I004:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills
+    target: tooling/worker/src/lint/tests/test_lint.py::test_native_lint_thresholds_and_skills
   I005:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_hooks.py::test_shell_guard_rejects_bypass
+    target: tooling/worker/src/hooks/tests/test_hooks.py::test_shell_guard_rejects_bypass
   I006:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_git.py::test_staged_commit_preserves_unstaged_work
+    target: tooling/worker/src/scaffold/git/tests/test_git.py::test_staged_commit_preserves_unstaged_work
   I007:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
+    target: tooling/worker/src/hooks/tests/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
   I008:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_memory.py::test_repository_layout_and_detail_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_memory.py::test_repository_layout_and_detail_contract
   I009:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_plan.py::test_plan_delivery_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_plan.py::test_plan_delivery_contract
   I010:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_git.py::test_divergent_rebase_preserves_merge_history
+    target: tooling/worker/src/scaffold/git/tests/test_git.py::test_divergent_rebase_preserves_merge_history
   I011:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_state.py::test_state_recovery_contract
+    target: tooling/worker/src/scaffold/memory/tests/test_state.py::test_state_recovery_contract
   I012:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_hooks.py::test_ledger_edit_guidance
+    target: tooling/worker/src/hooks/tests/test_hooks.py::test_ledger_edit_guidance
   I014:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_lint.py::test_invalid_config_is_actionable
+    target: tooling/worker/src/lint/tests/test_lint.py::test_invalid_config_is_actionable
   I015:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_language.py::test_language_conditions
+    target: tooling/worker/src/lint/languages/tests/test_language.py::test_language_conditions
   I016:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_config_check.py::test_config_rejects_unsupported_language
+    target: tooling/worker/src/lint/config/tests/test_config_check.py::test_config_rejects_unsupported_language
   I017:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_strict.py::test_strict_defaults_block_delivery
+    target: tooling/worker/src/scaffold/package/tests/test_lint_defaults.py::test_strict_defaults_block_delivery
   I018:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_feedback.py::test_evidence_tracks_content_and_partial_checks
+    target: tooling/worker/src/scaffold/evidence/tests/test_evidence.py::test_evidence_tracks_content_and_partial_checks
   I019:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_feedback.py::test_resume_observes_real_conflict
+    target: tooling/worker/src/scaffold/memory/tests/test_resume.py::test_resume_observes_real_conflict
   I020:
     check: test
     runner: pytest
-    target: tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership
+    target: tooling/worker/src/scaffold/package/tests/test_manifest.py::test_installation_manifest_records_ownership
+
+checks:
+- id: build
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: build
+- id: lint
+  kind: command
+  command: lint
+  skill: .agents/skills/repair/SKILL.md
+- id: memory
+  kind: memory
+  skill: .agents/skills/repair/SKILL.md
+- id: rustfmt
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rustfmt
+- id: clippy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: clippy
+- id: rust-test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rust-test
+  affected:
+  - {include: ['**'], targets: []}
+  - include: [agentrig.yaml, 'tooling/worker/Cargo.*', tooling/worker/src/lib.rs, tooling/worker/src/main.rs, tooling/worker/src/util.rs]
+    targets: ['::']
+  - include: ['tooling/worker/src/lint/**']
+    targets: ['lint::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/scaffold/**']
+    targets: ['scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/hooks/**']
+    targets: ['hooks::']
+  - include: ['tooling/worker/src/delegate/**', 'tooling/worker/src/environment/**', 'tooling/worker/src/jobs/**']
+    targets: ['delegate::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/composition/**']
+    targets: ['composition::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/src/resources/**']
+    targets: ['resources::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/src/paths/**']
+    targets: ['paths::', 'resources::', 'delegate::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/arguments/**']
+    targets: ['arguments::', 'lint::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/review/**']
+    targets: ['lint::', 'delegate::', 'scaffold::']
+- id: ruff-format
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff-format
+- id: ruff
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff
+- id: mypy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: mypy
+- id: test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: test
+  # Commit checks use affected groups plus smoke tests; merge runs everything.
+  affected:
+  - include: ['**']
+    targets: [tooling/worker/src/lint/config/tests/test_config_check.py]
+  - include:
+    - tooling/worker/src/lint/**
+    - tooling/worker/src/arguments/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
+    targets:
+    - tooling/worker/src/lint/tests
+    - tooling/worker/src/lint/inventory/tests
+    - tooling/worker/src/lint/architecture/tests
+    - tooling/worker/src/lint/languages/tests/test_language.py
+    - tooling/worker/src/lint/languages/tests/test_language_delivery.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
+  - include:
+    - tooling/worker/src/delegate/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/**
+    targets:
+    - tooling/worker/src/delegate/code/tests/test_delegate_code.py
+    - tooling/worker/src/delegate/config/tests/test_delegate_config.py
+    - tooling/worker/src/delegate/run/tests/test_delegate_mcp.py
+    - tooling/worker/src/delegate/run/tests/test_delegate_run.py
+    - tooling/worker/src/delegate/code/tests/test_delegate_vcs.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
+    - tooling/worker/src/scaffold/upgrade/tests
+  - include:
+    # Shared configuration and dispatch affect every scaffold consumer.
+    - tooling/worker/src/scaffold/mod.rs
+    - tooling/worker/src/scaffold/config/**
+    - tooling/worker/src/scaffold/settings/**
+    - tooling/worker/src/paths/**
+    - tooling/worker/src/arguments/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
+    - tooling/worker/src/scaffold/testing/**
+    - tooling/worker/src/scaffold/upgrade/tests/**
+    targets:
+    - tooling/worker/src/scaffold/package/setup/tests
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/memory/tests
+    - tooling/worker/src/scaffold/git/tests
+    - tooling/worker/src/scaffold/gate/tests
+    - tooling/worker/src/hooks/tests/test_hooks.py
+    - tooling/worker/src/scaffold/package/tests
+    - tooling/worker/src/hooks/tests/test_reminders.py
+    - tooling/worker/src/scaffold/upgrade/tests
+    - tooling/distribution/tests/test_launcher.py
+  - include:
+    - tooling/worker/src/scaffold/memory/**
+    targets:
+    - tooling/worker/src/scaffold/memory/tests
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/git/tests/test_mercurial.py
+    - tooling/worker/src/scaffold/gate/tests
+    - tooling/worker/src/scaffold/git/tests/test_private.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests/test_doctor.py
+    - tooling/worker/src/scaffold/package/tests/test_manifest.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
+  - include:
+    - tooling/worker/src/scaffold/commands.rs
+    - tooling/worker/src/scaffold/process.rs
+    - tooling/worker/src/scaffold/commands/**
+    targets:
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
+    - tooling/worker/src/scaffold/memory/tests/test_resume.py
+    - tooling/worker/src/scaffold/gate/tests/test_gate.py
+    - tooling/worker/src/scaffold/git/tests/test_private.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
+    - tooling/worker/src/scaffold/git/tests/test_git.py
+    - tooling/worker/src/scaffold/upgrade/tests
+  - include:
+    - tooling/worker/src/scaffold/git/**
+    - tooling/worker/src/scaffold/gate.rs
+    - tooling/worker/src/scaffold/gate/**
+    - tooling/worker/src/scaffold/evidence/**
+    targets:
+    - tooling/worker/src/scaffold/git/tests
+    - tooling/worker/src/scaffold/memory/tests/test_resume.py
+    - tooling/worker/src/scaffold/gate/tests
+    - tooling/worker/src/scaffold/package/setup/tests/test_vcs.py
+    - tooling/worker/src/scaffold/evidence/tests
+    - tooling/worker/src/scaffold/memory/tests/test_revision_history.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
+  - include:
+    - tooling/worker/src/hooks/**
+    targets:
+    - tooling/worker/src/hooks/tests/test_hooks.py
+    - tooling/worker/src/hooks/tests/test_reminders.py
+    - tooling/worker/src/scaffold/commands/tests
+    - tooling/worker/src/scaffold/config/tests
+    - tooling/worker/src/scaffold/git/tests/test_git.py
+  - include:
+    - tooling/worker/src/scaffold/package/**
+    - tooling/worker/src/scaffold/{receipt,installation}/**
+    - tooling/worker/src/scaffold/recovery/**
+    targets:
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_client.py
+    - tooling/worker/src/scaffold/package/tests
+    - tooling/worker/src/scaffold/package/setup/tests/test_layout.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
+    - tooling/worker/src/hooks/tests/test_hooks.py
+    - tooling/worker/src/scaffold/memory/tests/test_state.py
+    - tooling/worker/src/scaffold/upgrade/tests
+    - tooling/distribution/tests/test_launcher.py
+  - include:
+    - tooling/worker/src/scaffold/upgrade/**
+    targets:
+    - tooling/worker/src/scaffold/upgrade/tests
+    - tooling/worker/src/scaffold/package/setup/tests/test_setup.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_wizard.py
+    - tooling/worker/src/scaffold/memory/tests/test_memory.py
+  - include:
+    - tooling/worker/src/scaffold/testing/test_delivery.py
+    - tooling/worker/examples/**
+    targets:
+    - tooling/worker/src/scaffold/testing/test_delivery.py
+  - include:
+    - tooling/worker/review/src/**
+    - tooling/worker/review/src/test_cli.py
+    targets:
+    - tooling/worker/review/src/test_cli.py
+    - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
+- id: typos
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: typos
+- id: vulture
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: vulture
+- id: review-test
+  kind: command
+  command: review-test
+  affected:
+  - {include: ['**'], targets: []}
+  - include: [agentrig.yaml, 'tooling/worker/review/**']
+    targets: ['--']
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-clippy
+  kind: command
+  command: review-clippy
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-rustfmt
+  kind: command
+  command: review-rustfmt
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md

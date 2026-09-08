@@ -1,11 +1,8 @@
-use super::super::{
-    config::Config,
-    package::manifest::{self, Manifest},
-};
+use super::super::{config::Config, package::manifest, receipt::Manifest};
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, fs, path::Path, process::Command};
 
-pub const FROM: &str = "0.2.0";
+pub const FROM: &str = crate::scaffold::settings::LEGACY_VERSION;
 pub const TO: &str = "0.3.0";
 pub fn version(binary: &Path) -> Result<String> {
     let output = Command::new(binary)

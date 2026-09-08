@@ -1,0 +1,18 @@
+purpose: Prepare isolated delegate execution environments for Codex and Claude Code
+files:
+  architecture.yaml: Sandbox responsibilities and dependency boundary
+  mod.rs: Sandbox layout, command construction, mounts and prompt preparation
+  claude.rs: Claude configuration and structured response handling
+  configuration.rs: Codex configuration and credential projection
+  resources.rs: Frozen skill and helper program resources
+  tests.rs: Filesystem isolation, resource freezing and harness behavior tests
+directories: {}
+allow:
+  - tooling/worker/src/delegate/code/mod.rs
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/src/environment/mod.rs
+  - tooling/worker/src/environment/hooks.rs
+  - tooling/worker/src/resources/mod.rs
+  - tooling/worker/review/src/execution/sandbox/mod.rs
+deny: []
+public: [mod.rs]

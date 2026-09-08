@@ -473,7 +473,7 @@ current and full_gate_passed. Current requires matching revision and content plu
 recorded completion; staged evidence also requires the same index. Native index
 identity is captured before export, then the staged configuration selects the
 backend for checks and subsequent comparisons. An invalid unstaged YAML file does
-not replace staged settings. A passing selected check never sets full_gate_passed.
+not replace staged settings. A passing selected check or [selective test run](CHECKS.md) never sets full_gate_passed.
 After a commit changes the revision, matching content remains visible separately;
 do not confuse content equality with a check executed against the new revision.
 Missing evidence is absent; unreadable or malformed evidence is unavailable,

@@ -3,9 +3,12 @@ pub mod config;
 mod evidence;
 mod gate;
 mod git;
+pub(crate) mod installation;
 mod memory;
 mod package;
-mod process;
+pub(crate) mod receipt;
+pub(crate) mod recovery;
+pub(crate) mod settings;
 pub(crate) mod upgrade;
 
 use anyhow::{Result, bail};
@@ -39,8 +42,8 @@ pub fn owns(command: &str) -> bool {
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
-        "init" => return package::init(root, args),
-        "setup" => return package::setup(root, args),
+        "init" => return package::setup::init(root, args),
+        "setup" => return package::setup::run(root, args),
         "config-inspect" => return package::setup::inspect(root, args),
         "upgrade" => return upgrade::run(root, args),
         "guard-commit" => return guard_commit(root, args),
@@ -64,7 +67,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
     );
     if jobs {
-        return agentrig::jobs::cli(&context.path(&context.config.paths.runtime)?, command, args);
+        return crate::jobs::cli(&context.path(&context.config.paths.runtime)?, command, args);
     }
     match command {
         "job-start" => commands::background(&context, args),
@@ -110,7 +113,7 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
         .unwrap_or(root);
     let context = config::Context::load(tree)?;
     let reference = snapshot.as_ref().map(|(_, revision)| revision.as_str());
-    crate::hooks::git::guard_commit_with(root, &context.config.vcs, reference)
+    git::guard_commit_with(root, &context.config.vcs, reference)
 }
 
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
@@ -139,7 +142,7 @@ fn configured_command(context: &config::Context, command: &str, args: &[String])
     match command {
         "doctor" => package::doctor(context),
         "config-check" => config_check(context),
-        "guard-reference" => crate::hooks::git::guard_reference_with(
+        "guard-reference" => git::guard_reference_with(
             root,
             args.first().map(String::as_str).unwrap_or(""),
             &git.base,

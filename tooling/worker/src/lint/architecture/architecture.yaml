@@ -1,0 +1,27 @@
+purpose: Validate directory responsibilities and enforce boundaries and cycles over resolved source dependencies
+files:
+  architecture.yaml: Architecture analysis responsibilities and dependency boundary
+  mod.rs: Resolved dependency and issue records with contract-check composition
+  policy.rs: Strict directory contracts and enclosing allow, deny and public boundaries
+  inventory.rs: Exact file and child-directory responsibility coverage checks
+  graph.rs: Cycle detection over measured directory dependencies
+  tests.rs: Contract validation, boundary enforcement and measured cycle behavior
+directories:
+  tests: Exercise architecture inventories and boundaries through four-language CLI consumers
+  resolution: Resolve extracted references to concrete project source files
+  runner: Combine configured scope, extraction, resolution and actionable findings
+  source: Extract located dependency references from supported syntax
+allow:
+  - tooling/worker/src/lint/testing/consumer.py
+  - tooling/worker/src/lint/catalog/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/src/lint/inventory/mod.rs
+  - tooling/worker/src/lint/selection/mod.rs
+  - tooling/worker/src/lint/rules/architecture.rs
+  - tooling/worker/src/lint/rules/kind.rs
+  - tooling/worker/src/lint/languages/mod.rs
+  - tooling/worker/src/lint/languages/registry.rs
+  - tooling/worker/src/diagnostics/lint.rs
+  - tooling/worker/review/src/config/yaml.rs
+deny: []
+public: [mod.rs, runner/mod.rs, source/mod.rs]

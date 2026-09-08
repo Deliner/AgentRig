@@ -1,0 +1,8 @@
+purpose: "Maintain outcome capabilities, acceptance and delivery priority"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to maintain outcome capabilities, acceptance and delivery priority"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

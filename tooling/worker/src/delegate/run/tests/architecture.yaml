@@ -1,0 +1,11 @@
+purpose: Verify delegate lifecycle and MCP operations through isolated consumer projects
+files:
+  architecture.yaml: Delegate execution behavior test inventory and dependencies
+  test_delegate_run.py: Harness execution, verified results, artifacts, cancellation and cleanup scenarios
+  test_delegate_mcp.py: MCP discovery, validation, reconnect and result retrieval scenarios
+directories: {}
+allow:
+  - tooling/worker/src/delegate/testing/consumer.py
+  - tooling/worker/src/delegate/testing/mcp.py
+deny: []
+public: []

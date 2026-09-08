@@ -1,0 +1,17 @@
+purpose: Define feature capabilities, acceptance and delivery context
+files:
+  architecture.yaml: Detail file inventory and knowledge responsibility map
+  001.md: "Capability and acceptance for: Isolated review MCP"
+  002.md: "Capability and acceptance for: Portable worker capabilities and setup"
+  003.md: "Capability and acceptance for: Discoverable lint and managed delegation"
+  004.md: "Capability and acceptance for: Composable AgentRig environments"
+  005.md: "Capability and acceptance for: Stable development and public distribution"
+  006.md: "Capability and acceptance for: Directory architecture contracts and lint"
+  007.md: "Capability and acceptance for: Extensible version control support"
+  008.md: "Capability and acceptance for: Selectable agent harnesses"
+  009.md: "Capability and acceptance for: Complete architecture maps and feature ownership"
+  010.md: "Capability and acceptance for: Recoverable configuration errors"
+directories: {}
+allow: []
+deny: []
+public: []

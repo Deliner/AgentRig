@@ -22,7 +22,7 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
-    let capability = agentrig::jobs::capability();
+    let capability = crate::jobs::capability();
     println!("process scope capability: {capability}");
     let required = context.config.processes.foreground
         == super::super::config::Containment::Systemd

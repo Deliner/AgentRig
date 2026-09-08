@@ -1,0 +1,14 @@
+purpose: Load a validated project context while accounting for an unfinished supported update
+files:
+  architecture.yaml: Context loading responsibilities and compatibility boundary
+  mod.rs: Canonical project root, recovery-aware validation and existing configuration exports
+directories:
+  tests: Verify invalid runtime and execution settings are rejected before project operations
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/settings/capabilities.rs
+  - tooling/worker/src/scaffold/settings/client.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
+deny: []
+public: [mod.rs]

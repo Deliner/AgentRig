@@ -1,4 +1,4 @@
-use super::{Loader, Source, Target};
+use super::model::{Loader, Source, Target};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {

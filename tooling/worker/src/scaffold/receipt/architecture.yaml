@@ -1,0 +1,10 @@
+purpose: Define installation receipt data shared by setup, reconciliation and release updates
+files:
+  architecture.yaml: Receipt schema ownership and dependency boundary
+  mod.rs: Persisted ownership, file metadata and local override types with shared checksums
+  tests.rs: Legacy receipt compatibility, local deletion semantics and strict field parsing
+directories: {}
+allow:
+  - tooling/worker/review/src/artifacts/mod.rs
+deny: []
+public: [mod.rs]

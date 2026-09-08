@@ -1,0 +1,12 @@
+purpose: Resolve reusable configuration packages with explicit overrides and source provenance
+files:
+  architecture.yaml: Package composition inventory and consumer boundary
+  mod.rs: Resolve package graphs and expose composed configuration and origins
+  merge.rs: Merge configuration values and validate explicit overrides
+  source.rs: Decode package declarations and validate imported identities
+  tests.rs: Behavioral tests for composition conflicts, reuse, cycles and provenance
+directories: {}
+allow:
+  - tooling/worker/review/src/config/yaml.rs
+deny: []
+public: [mod.rs]

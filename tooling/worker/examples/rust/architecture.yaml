@@ -1,0 +1,9 @@
+purpose: Provide an independently installable Rust consumer example
+files:
+  architecture.yaml: Rust consumer inventory and boundaries
+  .gitignore: Exclude generated Rust consumer state from version control
+directories:
+  crates: Consumer build packages
+allow: []
+deny: []
+public: []

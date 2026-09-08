@@ -1,0 +1,8 @@
+purpose: Verify candidate rebuilds and stable runtime dispatch through isolated repository fixtures
+files:
+  architecture.yaml: Distribution behavior test inventory
+  test_launcher.py: Content-sensitive rebuilds and installed runtime behavior during candidate failure
+directories: {}
+allow: []
+deny: []
+public: []

@@ -1,0 +1,8 @@
+purpose: Demonstrate a Python executable invariant in a consumer source directory
+files:
+  architecture.yaml: Application inventory and boundaries
+  test_sample.py: Minimal doubling assertion available as a configured invariant oracle
+directories: {}
+allow: []
+deny: []
+public: []

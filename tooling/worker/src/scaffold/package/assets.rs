@@ -8,19 +8,19 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "edit-decisions",
-        include_str!("../../../assets/skills/edit-decisions/SKILL.md"),
+        include_str!("../../../assets/skills/memory/edit-decisions/SKILL.md"),
     ),
     (
         "edit-invariants",
-        include_str!("../../../assets/skills/edit-invariants/SKILL.md"),
+        include_str!("../../../assets/skills/memory/edit-invariants/SKILL.md"),
     ),
     (
         "edit-plan",
-        include_str!("../../../assets/skills/edit-plan/SKILL.md"),
+        include_str!("../../../assets/skills/memory/edit-plan/SKILL.md"),
     ),
     (
         "edit-state",
-        include_str!("../../../assets/skills/edit-state/SKILL.md"),
+        include_str!("../../../assets/skills/memory/edit-state/SKILL.md"),
     ),
     (
         "execute-plan-feature",
@@ -32,7 +32,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "norm-or-choice",
-        include_str!("../../../assets/skills/norm-or-choice/SKILL.md"),
+        include_str!("../../../assets/skills/memory/norm-or-choice/SKILL.md"),
     ),
     (
         "reduce-parameters",

@@ -1,0 +1,10 @@
+purpose: Observe installed file identity and permissions and persist replacement contents durably
+files:
+  architecture.yaml: Installed file responsibilities and shared consumer boundary
+  mod.rs: Serializable file state, confined observation and atomic durable replacement
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+deny: []
+public: [mod.rs]

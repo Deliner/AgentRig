@@ -1,0 +1,19 @@
+purpose: Verify architecture inventories and dependency boundaries through real four-language CLI consumers
+files:
+  architecture.yaml: Architecture behavior test responsibilities and consumer dependencies
+  test_architecture.py: Shared architecture consumer construction and baseline dependency scenarios
+  test_architecture_attributes.py: Rust attribute dependencies and unsupported attribute diagnostics
+  test_architecture_behavior.py: Real consumer execution and public boundary repair parity
+  test_architecture_bindings.py: Rust binding, alias and reexport dependency scenarios
+  test_architecture_crates.py: Local Rust crate identity and cross-crate consumer resolution
+  test_architecture_incomplete.py: Explicit diagnostics for unsupported and unresolved dependencies
+  test_architecture_inventory.py: Exact file and directory inventories including source-free trees
+  test_architecture_macros.py: Rust macro dependency extraction and provenance scenarios
+  test_architecture_module_wiring.py: Rust module declaration and literal path boundary scenarios
+  test_architecture_resources.py: Static source resource references and scoped dependencies
+  test_architecture_vcs_directories.py: Native and private VCS directory inventory parity
+directories: {}
+allow:
+  - tooling/worker/src/lint/testing/consumer.py
+deny: []
+public: []

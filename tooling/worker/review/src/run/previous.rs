@@ -1,5 +1,5 @@
 use super::{Report, Request};
-use crate::{digest, snapshot};
+use crate::{artifacts::digest, snapshot};
 use anyhow::{Context, Result, ensure};
 use std::fs;
 

@@ -1,0 +1,8 @@
+purpose: Run AgentRig verification in hosted continuous integration
+files:
+  architecture.yaml: Continuous integration workflow inventory
+  ci.yml: Bootstrap and verify repository revisions on GitHub Actions
+directories: {}
+allow: []
+deny: []
+public: []

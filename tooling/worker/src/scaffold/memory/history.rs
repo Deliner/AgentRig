@@ -82,12 +82,10 @@ fn prior_memory(
                 .context("committed agentrig.yaml schema")?;
         return Ok(prior.paths.memory);
     }
-    let legacy = super::super::upgrade::migration::LEGACY_FILE;
+    let legacy = super::super::recovery::LEGACY_FILE;
     let migrated = tree.contains_key(legacy);
     if migrated {
-        return super::super::upgrade::migration::historical_memory(&committed(
-            repository, revision, legacy,
-        )?);
+        return historical_memory(&committed(repository, revision, legacy)?);
     }
     Ok(context.config.paths.memory.clone())
 }
@@ -109,4 +107,14 @@ fn preserve(
         old.id
     );
     Ok(())
+}
+
+fn historical_memory(source: &str) -> Result<String> {
+    let value: toml::Value = toml::from_str(source)?;
+    Ok(value
+        .get("paths")
+        .and_then(|paths| paths.get("memory"))
+        .and_then(toml::Value::as_str)
+        .context("committed legacy paths.memory required")?
+        .into())
 }

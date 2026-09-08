@@ -1,0 +1,11 @@
+purpose: Verify configured command execution and the lifecycle of its owned jobs
+files:
+  architecture.yaml: Behavior test responsibilities and fixture dependencies
+  consumer.py: Start configured background jobs and observe readiness for command and delivery scenarios
+  test_jobs.py: Configured job identity, signals, scopes, logs and selective cleanup
+  test_commands.py: Command catalog execution and sandboxed read behavior
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public: [consumer.py]

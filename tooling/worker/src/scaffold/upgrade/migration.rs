@@ -1,8 +1,9 @@
-use crate::scaffold::config::{self, Config};
+use crate::scaffold::config::Config;
+use crate::scaffold::receipt::{Entry, Ownership, checksum};
 use anyhow::{Context as _, Result};
 use std::{collections::BTreeMap, fs, path::Path};
 
-pub const LEGACY_FILE: &str = "worker.toml";
+pub use crate::scaffold::recovery::LEGACY_FILE;
 pub const MANIFEST: &str = ".worker/manifest.json";
 
 // Legacy parsing belongs to explicit conversion and historical/recovery metadata,
@@ -13,40 +14,14 @@ pub fn configuration(root: &Path) -> Result<Config> {
     Ok(config)
 }
 
-pub fn recovery_runtime(root: &Path) -> Result<String> {
-    let legacy = root.join(LEGACY_FILE).is_file();
-    if legacy {
-        let source = fs::read_to_string(root.join(LEGACY_FILE))?;
-        let value: toml::Value = toml::from_str(&source)?;
-        Ok(value
-            .get("paths")
-            .and_then(|paths| paths.get("runtime"))
-            .and_then(toml::Value::as_str)
-            .context("paths.runtime required for upgrade recovery")?
-            .into())
-    } else {
-        Ok(config::read(root)?.paths.runtime)
-    }
-}
-
-pub fn historical_memory(source: &str) -> Result<String> {
-    let value: toml::Value = toml::from_str(source)?;
-    Ok(value
-        .get("paths")
-        .and_then(|paths| paths.get("memory"))
-        .and_then(toml::Value::as_str)
-        .context("committed legacy paths.memory required")?
-        .into())
-}
-
 pub struct Resources {
     pub converted: BTreeMap<String, Vec<u8>>,
-    pub imported: agentrig::resources::Bundle,
+    pub imported: crate::resources::Bundle,
 }
 
 pub fn resources(root: &Path, config: &Config) -> Result<Resources> {
     let mut files = BTreeMap::new();
-    let mut imported = agentrig::resources::Bundle::new(&config.paths.service);
+    let mut imported = crate::resources::Bundle::new(&config.paths.service);
     if let Some(review) = &config.capabilities.review {
         review_resources(root, &review.config, &mut files, &mut imported)?;
     }
@@ -65,10 +40,10 @@ pub fn resources(root: &Path, config: &Config) -> Result<Resources> {
 fn delegate_resources(
     root: &Path,
     path: &str,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<Vec<u8>> {
     let source = toml::from_str(&fs::read_to_string(root.join(path))?)?;
-    let mut config = agentrig::delegate::config::resolve(&root.join(path), source)?;
+    let mut config = crate::delegate::config::resolve(&root.join(path), source)?;
     for profile in config.profiles.values_mut() {
         profile.prompt = relocate(root, path, &profile.prompt, imported)?.into();
         for skill in &mut profile.environment.skills {
@@ -85,7 +60,7 @@ fn relocate(
     root: &Path,
     config: &str,
     resource: &Path,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<String> {
     let target = match resource.strip_prefix(root) {
         Ok(path) => path
@@ -108,7 +83,7 @@ fn review_resources(
     root: &Path,
     path: &str,
     files: &mut BTreeMap<String, Vec<u8>>,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<()> {
     let mut value: toml::Value = toml::from_str(&fs::read_to_string(root.join(path))?)?;
     review_prompts(root, path, &mut value, imported)?;
@@ -123,7 +98,7 @@ fn review_resources(
         let project = reference
             .as_str()
             .context("project_config must be a path")?;
-        let absolute = crate::util::resolve(&root.join(path).parent().unwrap().join(project))?;
+        let absolute = crate::paths::resolve(&root.join(path).parent().unwrap().join(project))?;
         let target = match absolute.strip_prefix(root) {
             Ok(relative) => {
                 let name = relative
@@ -148,7 +123,7 @@ fn review_prompts(
     root: &Path,
     path: &str,
     value: &mut toml::Value,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<()> {
     let reviewers = value
         .get_mut("reviewers")
@@ -170,7 +145,7 @@ fn review_prompts(
 fn project_yaml(
     root: &Path,
     path: &str,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<Vec<u8>> {
     let mut value: toml::Value = toml::from_str(&fs::read_to_string(root.join(path))?)?;
     let contract = value
@@ -185,7 +160,7 @@ fn portable_reference(
     root: &Path,
     config: &str,
     value: &mut toml::Value,
-    imported: &mut agentrig::resources::Bundle,
+    imported: &mut crate::resources::Bundle,
 ) -> Result<()> {
     let resource = review_runner::config::resource(
         &root.join(config),
@@ -198,7 +173,7 @@ fn portable_reference(
     Ok(())
 }
 
-fn import_project(path: &Path, imported: &mut agentrig::resources::Bundle) -> Result<String> {
+fn import_project(path: &Path, imported: &mut crate::resources::Bundle) -> Result<String> {
     let mut value: toml::Value = toml::from_str(std::str::from_utf8(&imported.read(path)?)?)?;
     let contract = value
         .get_mut("review")
@@ -221,7 +196,7 @@ fn import_project(path: &Path, imported: &mut agentrig::resources::Bundle) -> Re
 }
 
 fn from_config(root: &Path, config: &str, target: &str) -> Result<String> {
-    let config = crate::util::resolve(&root.join(config))?;
+    let config = crate::paths::resolve(&root.join(config))?;
     let parent = config.parent().context("configuration parent required")?;
     let depth = parent.strip_prefix(root)?.components().count();
     let prefix: std::path::PathBuf = std::iter::repeat_n("..", depth).collect();
@@ -229,8 +204,7 @@ fn from_config(root: &Path, config: &str, target: &str) -> Result<String> {
 }
 
 impl Resources {
-    pub fn register(&self, manifest: &mut crate::scaffold::package::manifest::Manifest) {
-        use crate::scaffold::package::manifest::{Entry, Ownership, checksum};
+    pub fn register(&self, manifest: &mut crate::scaffold::receipt::Manifest) {
         for (path, bytes) in &self.converted {
             manifest.files.insert(
                 super::release::lint_path(path),

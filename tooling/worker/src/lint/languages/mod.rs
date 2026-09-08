@@ -1,7 +1,7 @@
 mod python;
 mod registry;
 mod rust;
-use super::rules::Kind;
+use super::rules::kind::Kind;
 pub use registry::{HANDLERS, handler};
 
 use anyhow::{Context, Result};

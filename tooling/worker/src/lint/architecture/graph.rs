@@ -9,6 +9,9 @@ type Adjacency<'a> = BTreeMap<PathBuf, BTreeMap<PathBuf, &'a Dependency>>;
 pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
     let mut graph: Adjacency<'_> = BTreeMap::new();
     for edge in dependencies {
+        if edge.module_declaration {
+            continue;
+        }
         add_edge(&mut graph, edge);
     }
     let mut traversal = Traversal {

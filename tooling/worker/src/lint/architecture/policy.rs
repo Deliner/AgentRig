@@ -14,8 +14,12 @@ pub const FILENAME: &str = "architecture.yaml";
 
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
-struct Declaration {
+pub(super) struct Declaration {
     purpose: String,
+    #[serde(default)]
+    pub files: BTreeMap<String, String>,
+    #[serde(default)]
+    pub directories: BTreeMap<String, String>,
     #[serde(default)]
     allow: Vec<String>,
     #[serde(default)]
@@ -25,6 +29,7 @@ struct Declaration {
 }
 
 struct Policy {
+    declaration: Declaration,
     allow: GlobSet,
     deny: GlobSet,
     public: GlobSet,
@@ -35,6 +40,23 @@ pub struct Contracts {
 }
 
 impl Contracts {
+    pub fn check_inventory(
+        &self,
+        root: &Path,
+        inventory: &crate::lint::inventory::Inventory,
+    ) -> Vec<Issue> {
+        let mut issues = Vec::new();
+        for (directory, policy) in &self.policies {
+            issues.extend(super::inventory::check(
+                root,
+                directory,
+                &policy.declaration,
+                inventory,
+            ));
+        }
+        issues
+    }
+
     /// Directory paths are project-relative; the root is represented by `.`.
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {
         let mut contracts = Self {
@@ -86,13 +108,14 @@ fn load(root: &Path, directory: &Path) -> Result<Policy> {
     );
     let declaration: Declaration = review_runner::config::yaml::read(&path)?;
     ensure!(
-        !declaration.purpose.trim().is_empty(),
-        "purpose must describe the directory responsibility"
+        !declaration.purpose.trim().is_empty() && !declaration.purpose.contains(['\n', '\r']),
+        "purpose must describe the directory responsibility on one nonempty line"
     );
     Ok(Policy {
         allow: globs(&declaration.allow)?,
         deny: globs(&declaration.deny)?,
         public: globs(&declaration.public)?,
+        declaration,
     })
 }
 

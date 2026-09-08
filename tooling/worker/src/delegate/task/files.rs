@@ -1,6 +1,10 @@
 use super::{Profile, Request};
 use anyhow::{Result, ensure};
-use review_runner::{config::globs, digest, response::read_regular, snapshot::safe_path};
+use review_runner::{
+    artifacts::{digest, read_regular},
+    config::globs,
+    snapshot::safe_path,
+};
 use std::{
     collections::BTreeMap,
     fs,

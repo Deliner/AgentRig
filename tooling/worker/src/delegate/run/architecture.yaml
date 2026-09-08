@@ -1,0 +1,26 @@
+purpose: Execute delegate jobs and expose their lifecycle, verified results and cleanup outcomes
+files:
+  architecture.yaml: Delegate execution responsibilities and dependency boundary
+  mod.rs: Job lifecycle, preparation, status and command entry points
+  execution.rs: Executor invocation, scoped patch production and requested checks
+  report.rs: Artifact collection, final reports and interrupted cleanup recovery
+  mcp.rs: MCP adapter for delegate lifecycle operations
+  start.json: Input schema for the delegate_start MCP operation
+directories:
+  tests: Verify delegate lifecycle, results and MCP behavior
+allow:
+  - tooling/worker/src/delegate/testing/consumer.py
+  - tooling/worker/src/delegate/testing/mcp.py
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/src/delegate/code/mod.rs
+  - tooling/worker/src/delegate/task/mod.rs
+  - tooling/worker/src/delegate/sandbox/mod.rs
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/jobs/process.rs
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/execution/sandbox/mod.rs
+  - tooling/worker/review/src/mcp/protocol.rs
+deny: []
+public: [mod.rs, mcp.rs]

@@ -1,0 +1,8 @@
+purpose: Verify strict lint configuration and supported target selection through both CLI entrypoints
+files:
+  architecture.yaml: Configuration behavior test inventory and dependencies
+  test_config_check.py: Invalid rule, selector, language and syntax-independent configuration scenarios
+directories: {}
+allow: [tooling/worker/src/lint/testing/consumer.py]
+deny: []
+public: []

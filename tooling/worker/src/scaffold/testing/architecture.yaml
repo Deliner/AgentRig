@@ -1,0 +1,10 @@
+purpose: Construct configured consumer projects and invoke their workflow commands for behavior tests
+files:
+  architecture.yaml: Shared workflow fixture inventory and public consumer boundary
+  repository.py: Construct checked VCS repositories and observe revisions and workflow evidence
+  test_delivery.py: Deliver independent and composed consumer projects through installed commands
+  consumer.py: Seed project policy and empty memory, select VCS adapters and invoke or observe commands
+directories: {}
+allow: []
+deny: []
+public: [consumer.py, repository.py]

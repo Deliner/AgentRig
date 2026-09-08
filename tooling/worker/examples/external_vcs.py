@@ -262,6 +262,32 @@ def paths(data: bytes) -> list[str]:
     return data.decode().rstrip("\0").split("\0") if data else []
 
 
+def working_directories(arguments: dict[str, Any]) -> list[str]:
+    assert not arguments
+    known = {parent for file in working_files({}) for parent in Path(file).parents}
+    output = []
+    pending = [Path(".")]
+    while pending:
+        parent = pending.pop()
+        for path in parent.iterdir():
+            skip = path.name in {".git", ".hg"} or path.is_symlink() or not path.is_dir()
+            if skip:
+                continue
+            hidden = path not in known and ignored_directory(path)
+            if hidden:
+                continue
+            output.append(path.as_posix())
+            pending.append(path)
+    return sorted(output)
+
+
+def ignored_directory(path: Path) -> bool:
+    value = hg("debugignore", "--", path.as_posix()).decode()
+    hidden = value.startswith(f"{path} is ignored\n")
+    assert hidden or value == f"{path} is not ignored\n", "invalid ignore response"
+    return hidden
+
+
 def diff(arguments: dict[str, Any]) -> str:
     return hg("diff", "--git", "--rev", arguments["base"], "--rev", arguments["candidate"]).decode()
 
@@ -284,6 +310,7 @@ OPERATIONS: dict[str, Callable[[dict[str, Any]], Any]] = {
     "read": read,
     "changed-paths": changed_paths,
     "working-files": working_files,
+    "working-directories": working_directories,
     "diff": diff,
 }
 

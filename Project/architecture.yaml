@@ -1,0 +1,8 @@
+purpose: Reserve consumer project material separately from portable worker implementation
+files:
+  architecture.yaml: Consumer project area inventory
+  README.md: Explain consumer ownership and its relationship to the worker
+directories: {}
+allow: []
+deny: []
+public: []

@@ -1,0 +1,8 @@
+purpose: "Maintain observable predicates linked to exact executable oracles"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to maintain observable predicates linked to exact executable oracles"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

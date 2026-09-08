@@ -1,0 +1,11 @@
+purpose: Prepare isolated agent harness execution with explicit credentials and filesystem mounts
+files:
+  architecture.yaml: Sandbox responsibilities and public isolation boundary
+  mod.rs: Shared sandbox layout, runtime mounts and Codex execution configuration
+  claude.rs: Claude executable discovery, credentials and execution configuration
+directories: {}
+allow:
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/credentials.rs
+deny: []
+public: [mod.rs]

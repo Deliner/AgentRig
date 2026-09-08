@@ -27,6 +27,7 @@ fn edge(source: &str, target: &str) -> Dependency {
         source: source.into(),
         target: target.into(),
         line: 7,
+        module_declaration: false,
     }
 }
 

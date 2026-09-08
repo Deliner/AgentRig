@@ -1,0 +1,14 @@
+purpose: Resolve Rust references through declared crate modules, aliases and supported macro origins
+files:
+  architecture.yaml: Rust resolution responsibilities and dependency boundary
+  mod.rs: Crate ownership, resolution context and reference dispatch
+  tree.rs: Declared module tree construction and module file selection
+  paths.rs: Scoped path lookup, aliases, imported bindings and external names
+  macros.rs: Known macro and derive origins and embedded resource dependencies
+  tests.rs: Module and alias resolution, incomplete forms and compiled consumer comparisons
+directories: {}
+allow:
+  - tooling/worker/src/lint/architecture/resolution/mod.rs
+  - tooling/worker/src/lint/architecture/source/mod.rs
+deny: []
+public: [mod.rs]

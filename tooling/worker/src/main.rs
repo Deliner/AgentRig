@@ -1,8 +1,8 @@
+use std::{os::unix::process::CommandExt, process::Command};
 // DECISION: D020
-mod hooks;
-mod scaffold;
 
-use agentrig::{diagnostics, lint, util};
+use agentrig::arguments::take_option;
+use agentrig::{diagnostics, hooks, lint, scaffold};
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::{
@@ -10,7 +10,6 @@ use std::{
     io::{self, Read},
     path::{Path, PathBuf},
 };
-use util::take_option;
 
 // DECISION: D015
 // DECISION: D016
@@ -46,7 +45,6 @@ fn run() -> Result<i32> {
 }
 fn run_environment(root: &Path, args: &[String], kind: &str) -> Result<i32> {
     use anyhow::Context as _;
-    use std::{os::unix::process::CommandExt, process::Command};
     anyhow::ensure!(args.len() == 1, "{kind} NAME");
     let context = scaffold::config::Context::load(root)?;
     let mut environment = context.config.environment;
@@ -95,7 +93,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     let initializing = command == "init";
     let interactive = initializing && args.iter().any(|arg| arg == "--interactive");
     if interactive {
-        return util::resolve(&env::current_dir()?.join(root));
+        return agentrig::paths::resolve(&env::current_dir()?.join(root));
     }
     if initializing {
         std::fs::create_dir_all(&root)?;

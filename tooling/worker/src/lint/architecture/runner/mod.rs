@@ -2,8 +2,8 @@ mod analysis;
 mod scope;
 
 use super::{Contracts, Issue, source::References};
+use crate::diagnostics::lint::Diagnostic;
 use crate::lint::{
-    Diagnostic,
     config::{Rule, globs},
     inventory::{self, Inventory},
 };
@@ -24,7 +24,7 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
 
 pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
     let scope = Scope::new(rule, inventory)?;
-    let empty = scope.files.is_empty();
+    let empty = scope.directories.is_empty();
     if empty {
         return Ok(Vec::new());
     }
@@ -38,21 +38,11 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         .architecture
         .as_ref()
         .expect("validated architecture settings");
-    let rust_files = files
-        .iter()
-        .filter(|path| {
-            let rust = path.extension().is_some_and(|ext| ext == "rs");
-            rust && settings
-                .rust_roots
-                .iter()
-                .any(|root| root.parent().is_some_and(|parent| path.starts_with(parent)))
-        })
-        .cloned()
-        .collect();
-    let rust_sources = analysis::extract(&root, &rust_files);
+    let rust_sources = analysis::rust_sources(&root, &files);
     let (resolvers, mut issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
     let (contracts, contract_issues) = Contracts::load(&root, &scope.directories);
     issues.extend(contract_issues);
+    issues.extend(contracts.check_inventory(&root, &scope.inventory));
     let sources = analysis::extract(&root, &scope.files);
     let (edges, source_issues) = dependencies(&resolvers, sources);
     issues.extend(source_issues);

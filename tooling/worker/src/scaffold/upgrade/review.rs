@@ -37,7 +37,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Plan> {
 }
 
 fn approve(
-    manifest: &mut crate::scaffold::package::manifest::Manifest,
+    manifest: &mut crate::scaffold::receipt::Manifest,
     name: &str,
     change: &Change,
     kept: bool,

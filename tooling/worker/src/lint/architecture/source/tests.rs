@@ -1,4 +1,5 @@
 use super::{Loader, Reference, References, Target, extract};
+use crate::lint::{catalog as rules, languages};
 use std::path::Path;
 
 fn parse(path: &str, text: &str) -> References {
@@ -52,11 +53,13 @@ fn rust_inline_scopes_and_module_declarations_retain_resolution_context() {
         [
             Target::RustModule {
                 path: vec!["app".into()],
-                inline: true
+                inline: true,
+                file: None,
             },
             Target::RustModule {
                 path: vec!["app".into(), "nested".into()],
-                inline: false
+                inline: false,
+                file: None,
             },
             Target::RustPath {
                 path: "super::domain::Api".into(),
@@ -85,7 +88,6 @@ fn rust_comments_raw_identifiers_and_generic_arguments_preserve_paths() {
 
 #[test]
 fn scalar_rules_do_not_claim_javascript_or_typescript_measurements() {
-    use crate::lint::{languages, rules};
     for path in ["a.js", "a.ts", "a.tsx"] {
         assert!(
             languages::parse(Path::new(path), "let n = 1;")
@@ -254,7 +256,7 @@ fn unsupported_dependency_forms_are_located_and_reported() {
         ("a.js", "import './\\u0061.js';"),
         ("a.py", "importlib.import_module('.x', package)"),
         ("a.rs", "include!(\"module.rs\");"),
-        ("a.rs", "#[path = \"other.rs\"] mod a;"),
+        ("a.rs", "mod inline { #[path = \"other.rs\"] mod a; }"),
         ("a.rs", "macro_rules! make { () => { use crate::hidden; } }"),
     ] {
         let result = parse(path, source);

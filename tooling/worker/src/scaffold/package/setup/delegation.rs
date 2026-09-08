@@ -15,7 +15,7 @@ pub fn configure(
     let Some(capability) = &config.capabilities.delegation else {
         return disabled(document);
     };
-    let profiles: agentrig::delegate::config::Config =
+    let profiles: crate::delegate::config::Config =
         review_runner::config::yaml::decode(&super::source(root, files, &capability.config)?)?;
     table(&mut document["mcp_servers"], "mcp_servers")?;
     let server = &mut document["mcp_servers"]["worker_delegation"];
@@ -54,7 +54,7 @@ fn disabled(document: &DocumentMut) -> Result<()> {
     Ok(())
 }
 
-fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array {
+fn environment(config: &crate::delegate::config::Config) -> toml_edit::Array {
     let mut names = BTreeSet::from([
         "DELEGATE_CODEX_BIN",
         "WORKER_OWNER",
@@ -63,10 +63,7 @@ fn environment(config: &agentrig::delegate::config::Config) -> toml_edit::Array 
         "CODEX_SESSION_ID",
     ]);
     for profile in config.profiles.values() {
-        let claude = matches!(
-            profile.frontend,
-            agentrig::environment::Frontend::ClaudeCode
-        );
+        let claude = matches!(profile.frontend, crate::environment::Frontend::ClaudeCode);
         if claude {
             names.insert("DELEGATE_CLAUDE_BIN");
         }

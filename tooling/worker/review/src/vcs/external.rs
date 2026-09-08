@@ -104,6 +104,10 @@ impl Adapter {
         paths(self.call(root, "working-files", json!({}))?)
     }
 
+    pub fn working_directories(&self, root: &Path) -> Result<Vec<String>> {
+        paths(self.call(root, "working-directories", json!({}))?)
+    }
+
     pub fn diff(&self, root: &Path, revisions: (&str, &str)) -> Result<String> {
         self.call(root, "diff", boundary(revisions))
     }

@@ -1,0 +1,8 @@
+purpose: "Repair directory ownership, inventories and dependency boundaries"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to repair directory ownership, inventories and dependency boundaries"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

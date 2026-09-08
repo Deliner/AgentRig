@@ -1,0 +1,14 @@
+purpose: Demonstrate independent AgentRig consumers and measure their installed behavior
+files:
+  architecture.yaml: Example inventory and dependency boundaries
+  README.md: Instructions for installing and exercising independent consumers
+  LATENCY.md: Observed standalone process timings and measurement conditions
+  PORTABILITY.md: Recorded portable delivery acceptance and supporting checks
+  measure.py: Measure installed hook and lint process latency in fresh consumers
+  external_vcs.py: Demonstrate the private VCS protocol using an independent Mercurial adapter
+directories:
+  python: Independent Python consumer source and checks
+  rust: Independent Rust consumer crate and checks
+allow: []
+deny: []
+public: [external_vcs.py]

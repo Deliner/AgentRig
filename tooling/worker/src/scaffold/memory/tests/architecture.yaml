@@ -1,0 +1,15 @@
+purpose: Verify project memory contracts, committed decision history and plan and recovery records
+files:
+  architecture.yaml: Memory behavior test responsibilities and shared fixture boundary
+  consumer.py: Construct committed decision baselines for memory history scenarios
+  test_resume.py: Reconcile recorded State and native or opaque repository observations
+  test_revision_history.py: Preserve committed decision history across revision and merge-parent checks
+  test_memory.py: Validate markers, document layout and preserved committed decision history
+  test_plan.py: Validate outcome delivery records, dependencies and lifecycle transitions
+  test_state.py: Validate required recovery sections and tolerate reconcilable recorded Git facts
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/testing/repository.py
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public: []

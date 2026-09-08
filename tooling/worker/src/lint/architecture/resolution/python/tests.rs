@@ -1,6 +1,12 @@
-use super::*;
-use crate::lint::architecture::source;
-use std::{fs, process::Command};
+use super::{Python, module_parts};
+use crate::lint::architecture::source::{self, Target};
+use anyhow::{Result, ensure};
+use std::{
+    collections::BTreeSet,
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 
 fn files(paths: &[&str]) -> BTreeSet<PathBuf> {
     paths.iter().map(PathBuf::from).collect()

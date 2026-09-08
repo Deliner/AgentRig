@@ -8,7 +8,7 @@ pub(super) fn prepare(source: &mut Source, config: &mut Config) -> Result<()> {
     let Some(path) = source.path("/capabilities/delegation/config", &capability.config)? else {
         return Ok(());
     };
-    let mut delegation: agentrig::delegate::config::Config = source.configuration(&path)?;
+    let mut delegation: crate::delegate::config::Config = source.configuration(&path)?;
     for (name, profile) in &mut delegation.profiles {
         let address = format!("/profiles/{name}");
         let prompt = source.resource(&path, &format!("{address}/prompt"), &profile.prompt)?;

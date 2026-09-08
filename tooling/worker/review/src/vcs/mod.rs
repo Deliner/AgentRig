@@ -1,5 +1,6 @@
 //! VCS-owned revision and file operations shared by delivery consumers.
 mod branches;
+mod directories;
 mod export;
 pub mod external;
 mod generation;
@@ -11,6 +12,7 @@ mod observation;
 mod registration;
 mod source;
 pub use generation::{Generated, Generation};
+pub use git::context_text as git_context;
 pub use observation::Observation;
 pub use registration::Settings;
 pub use source::{Backend, Source};
@@ -163,6 +165,23 @@ impl<'a> Repository<'a> {
             Kind::Mercurial => mercurial::working_files(self.root),
         }?;
         paths(&bytes)
+    }
+
+    pub fn staged_changes(&self) -> Result<Vec<String>> {
+        match self.kind {
+            Kind::Git => paths(&git::run(
+                self.root,
+                &[
+                    "diff",
+                    "--cached",
+                    "--name-only",
+                    "--no-renames",
+                    "-z",
+                    "--",
+                ],
+            )?),
+            Kind::Mercurial => anyhow::bail!("Mercurial has no staging index"),
+        }
     }
 
     pub fn staged_files(&self) -> Result<Vec<String>> {

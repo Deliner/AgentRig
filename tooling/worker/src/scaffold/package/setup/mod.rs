@@ -1,3 +1,6 @@
+mod init;
+mod wizard;
+pub use init::run as init;
 mod delegation;
 mod environment;
 mod input;
@@ -5,7 +8,7 @@ mod preview;
 mod reconcile;
 pub(crate) mod registration;
 mod report;
-use super::{Config, Files, config, manifest};
+use super::{Config, Files, config, source};
 use anyhow::{Result, ensure};
 use std::{fs, path::Path};
 
@@ -26,7 +29,7 @@ pub fn inspect(root: &Path, args: &[String]) -> Result<i32> {
 }
 
 pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
-    super::reject_legacy(root)?;
+    init::reject_legacy(root)?;
     let mut prepared = input::external(root, path)?;
     let current = config::read(root)?;
     ensure!(
@@ -46,7 +49,8 @@ pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
 
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let mut args = args.to_vec();
-    let external = crate::util::take_option(&mut args, "--config")?.map(std::path::PathBuf::from);
+    let external =
+        crate::arguments::take_option(&mut args, "--config")?.map(std::path::PathBuf::from);
     let preview = args == ["--preview"];
     ensure!(
         args.is_empty() || preview,
@@ -68,14 +72,14 @@ pub(super) fn prepare(
     config: &Config,
     files: Files,
 ) -> Result<reconcile::Installation> {
-    super::reject_legacy(root)?;
+    init::reject_legacy(root)?;
     ensure!(
         config.runtime == config::VERSION,
         "setup needs the pinned runtime; use upgrade for a release change"
     );
     let installed = root.join(config::FILE).is_file();
     if installed {
-        crate::scaffold::upgrade::recovery::guard(root)?;
+        crate::scaffold::recovery::guard(root)?;
     }
     let mut installation =
         reconcile::Installation::prepare(root, files, &config.paths.service_path("manifest.json"))?;
@@ -94,13 +98,6 @@ pub(super) fn print_preview(
         serde_json::to_string_pretty(&report::prepared(root, config, installation)?)?
     );
     Ok(())
-}
-
-pub(super) fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
-    match files.get(path) {
-        Some(bytes) => Ok(std::str::from_utf8(bytes)?.into()),
-        None => Ok(fs::read_to_string(config::relative(root, path)?)?),
-    }
 }
 
 pub(super) fn install(

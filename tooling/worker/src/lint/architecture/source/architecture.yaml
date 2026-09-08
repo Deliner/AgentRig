@@ -1,0 +1,16 @@
+purpose: Extract located dependency references from supported source languages before module resolution
+files:
+  architecture.yaml: Extraction responsibilities and handler boundaries
+  mod.rs: Language dispatch and malformed syntax reporting with the public extraction API
+  javascript.rs: JavaScript and TypeScript import and loader extraction
+  python.rs: Python import and static loader extraction
+  tests.rs: Cross-language extraction behavior and source location tests
+directories:
+  model: Shared reference records and source context used by language handlers
+  rust: Rust syntax extraction and path normalization
+allow:
+  - tooling/worker/src/lint/architecture/mod.rs
+  - tooling/worker/src/lint/languages/**
+  - tooling/worker/src/lint/catalog/mod.rs
+deny: []
+public: [mod.rs, model/mod.rs]

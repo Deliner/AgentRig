@@ -1,0 +1,19 @@
+purpose: Coordinate VCS feature branches, checked integration and commit guards
+files:
+  architecture.yaml: Responsibilities, inventory and dependency boundary
+  mod.rs: Coordinate feature starts, checked branch integration and native transaction guards
+directories:
+  tests: Feature delivery and native or private transaction behavior scenarios
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/gate/mod.rs
+  - tooling/worker/src/scaffold/evidence/mod.rs
+  - tooling/worker/src/scaffold/commands/tests/consumer.py
+  - tooling/worker/src/scaffold/testing/consumer.py
+  - tooling/worker/src/scaffold/testing/repository.py
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/jobs/process.rs
+  - tooling/worker/src/jobs/cleanup.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

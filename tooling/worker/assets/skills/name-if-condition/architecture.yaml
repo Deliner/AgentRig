@@ -1,0 +1,8 @@
+purpose: "Repair unnamed branch conditions while preserving their meaning"
+files:
+  architecture.yaml: "Resource responsibility map and public installation boundary"
+  SKILL.md: "Canonical agent instructions to repair unnamed branch conditions while preserving their meaning"
+directories: {}
+allow: []
+deny: []
+public: ["SKILL.md"]

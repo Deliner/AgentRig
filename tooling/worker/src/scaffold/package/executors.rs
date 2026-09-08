@@ -9,7 +9,7 @@ pub(super) fn configured(
 ) -> Result<BTreeMap<&'static str, Frontend>> {
     let mut selected = BTreeMap::new();
     if let Some(review) = &config.capabilities.review {
-        let source = super::setup::source(root, files, &review.config)?;
+        let source = super::source(root, files, &review.config)?;
         let review: review_runner::config::Config = review_runner::config::yaml::decode(&source)?;
         for reviewer in review.reviewers.values() {
             match reviewer.frontend.as_str() {
@@ -19,8 +19,8 @@ pub(super) fn configured(
         }
     }
     if let Some(delegation) = &config.capabilities.delegation {
-        let source = super::setup::source(root, files, &delegation.config)?;
-        let delegation: agentrig::delegate::config::Config =
+        let source = super::source(root, files, &delegation.config)?;
+        let delegation: crate::delegate::config::Config =
             review_runner::config::yaml::decode(&source)?;
         for profile in delegation.profiles.values() {
             match profile.frontend {

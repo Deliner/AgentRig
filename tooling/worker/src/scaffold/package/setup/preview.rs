@@ -27,7 +27,7 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
     if let Some(delegation) = &config.capabilities.delegation {
         let existing = !files.contains_key(&delegation.config);
         if existing {
-            let resolved = agentrig::delegate::config::load(&root.join(&delegation.config))?;
+            let resolved = crate::delegate::config::load(&root.join(&delegation.config))?;
             put(
                 preview.path(),
                 &delegation.config,
@@ -62,7 +62,7 @@ fn environment(root: &Path, preview: &Path) -> Result<()> {
 }
 
 fn bundle(root: &Path, config: &Config, files: &Files) -> Result<()> {
-    let receipt: super::manifest::Manifest =
+    let receipt: crate::scaffold::receipt::Manifest =
         serde_json::from_slice(&files[&config.paths.service_path("manifest.json")])?;
     for (name, bytes) in files {
         put(root, name, bytes)?;
@@ -116,7 +116,7 @@ fn lint(root: &Path, preview: &Path, path: &str) -> Result<()> {
     )
 }
 fn resource(root: &Path, preview: &Path, path: &Path) -> Result<PathBuf> {
-    let resolved = crate::util::resolve(path)?;
+    let resolved = crate::paths::resolve(path)?;
     let exists = resolved.is_file();
     if exists {
         return Ok(resolved);

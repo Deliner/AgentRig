@@ -92,7 +92,7 @@ Repository policy and newly installed defaults block all three language rules: n
 
 Syntax diagnostics add a 1-based line and symbol to the existing JSON fields; text output renders file:line (symbol). Each finding points to name-if-condition, refactor-long-function or reduce-parameters. No automatic code transformation is performed.
 
-The registry in src/lint/rules.rs declares supported kinds, targets and actual handlers. To add a rule, implement its measurements, validation, behavioral tests and repair skill. To support another language, add its grammar and handler, update supported extensions and registry metadata together, and test its syntax against the existing rule semantics. The extension point is compiled Rust code; there is no dynamic plugin lifecycle. Rust macros are opaque token trees, and Python decorator aliases or generated declarations require semantic tooling beyond these handlers.
+The registry in src/lint/catalog/mod.rs declares supported kinds, targets and actual handlers. To add a rule, implement its measurements, validation, behavioral tests and repair skill. To support another language, add its grammar and handler, update supported extensions and registry metadata together, and test its syntax against the existing rule semantics. The extension point is compiled Rust code; there is no dynamic plugin lifecycle. Rust macros are opaque token trees, and Python decorator aliases or generated declarations require semantic tooling beyond these handlers.
 
 Parser APIs and grammars: [Tree-sitter](https://docs.rs/tree-sitter/0.26.13/tree_sitter/), [Rust grammar](https://docs.rs/tree-sitter-rust/0.24.2/tree_sitter_rust/), [Python grammar](https://docs.rs/tree-sitter-python/0.25.0/tree_sitter_python/).
 
@@ -102,7 +102,7 @@ The pre-commit hook checks the actual exported Git index, including its Rust sou
 
 Each checks entry in agentrig.yaml names its repair skill. The shared gate preserves original tool output and reports that skill, the selected scope and an executable retry command on failure; structural findings use their rule-specific skills. `just check --only CHECK_ID` retries one stage without replacing the full commit/merge gates. See [recovery and check evidence](SCAFFOLD.md#memory-and-recovery) for resume freshness and repeated-failure feedback.
 
-Native integration tests under tooling/tests/native execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
+Native integration tests colocated with feature owners under tooling/worker execute the built binary. They assert native hook responses and state transitions directly and exercise configuration, selectors, thresholds, diagnostics and staged inventories. Existing Git branch/VAC tests use the native guards.
 
 Lint, review and delegate configuration share the strict YAML codec in review/src/config/yaml.rs. Selectors follow [globset semantics](https://docs.rs/globset/latest/globset/). Builds use Cargo's [locked dependency mode](https://doc.rust-lang.org/cargo/commands/cargo-build.html).
 

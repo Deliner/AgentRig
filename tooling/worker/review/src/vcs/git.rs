@@ -2,6 +2,16 @@ use super::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
+/// Query Git using the invoking process environment, including hook repository context.
+pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
+    let output = Command::new("git").args(args).current_dir(root).output()?;
+    let failed = !output.status.success();
+    if failed {
+        bail!("{}", String::from_utf8_lossy(&output.stderr));
+    }
+    Ok(String::from_utf8(output.stdout)?.trim().into())
+}
+
 pub(super) fn branch_name(value: &str) -> bool {
     !value.is_empty()
         && value != "HEAD"
@@ -163,4 +173,75 @@ pub(super) fn tree(root: &Path, revision: &str) -> Result<BTreeMap<String, Entry
         );
     }
     Ok(entries)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{context_text, run};
+    use std::{path::Path, process::Command};
+
+    fn initialize(root: &Path, branch: &str) {
+        assert!(
+            Command::new("git")
+                .args(["init", "-q", "-b", branch])
+                .arg(root)
+                .env_remove("GIT_DIR")
+                .env_remove("GIT_WORK_TREE")
+                .status()
+                .unwrap()
+                .success()
+        );
+    }
+
+    #[test]
+    fn query_inherits_repository_context() {
+        if let Ok(root) = std::env::var("AGENTRIG_TEST_GIT_CONTEXT_ROOT") {
+            let args = ["branch", "--show-current"];
+            assert_eq!(context_text(Path::new(&root), &args).unwrap(), "inherited");
+            assert_eq!(
+                String::from_utf8(run(Path::new(&root), &args).unwrap())
+                    .unwrap()
+                    .trim(),
+                "local"
+            );
+            return;
+        }
+        let root = tempfile::tempdir().unwrap();
+        let inherited = tempfile::tempdir().unwrap();
+        for (path, branch) in [(root.path(), "local"), (inherited.path(), "inherited")] {
+            initialize(path, branch);
+        }
+        let output = Command::new(std::env::current_exe().unwrap())
+            .args([
+                "--exact",
+                "vcs::git::tests::query_inherits_repository_context",
+            ])
+            .env("AGENTRIG_TEST_GIT_CONTEXT_ROOT", root.path())
+            .env("GIT_DIR", inherited.path().join(".git"))
+            .env("GIT_WORK_TREE", inherited.path())
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}\n{}",
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+
+    #[test]
+    fn query_failure_preserves_git_stderr() {
+        let root = tempfile::tempdir().unwrap();
+        let args = ["--not-an-agentrig-option"];
+        let expected = Command::new("git")
+            .args(args)
+            .current_dir(root.path())
+            .output()
+            .unwrap();
+        assert!(!expected.status.success());
+        assert_eq!(
+            context_text(root.path(), &args).unwrap_err().to_string(),
+            String::from_utf8_lossy(&expected.stderr)
+        );
+    }
 }

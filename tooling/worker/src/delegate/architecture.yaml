@@ -1,0 +1,35 @@
+purpose: Compose managed delegation from profile configuration, task contracts, isolated execution and scoped code changes
+files:
+  architecture.yaml: Delegation module responsibilities and enclosing dependency boundary
+  mod.rs: Delegation module exports and direct CLI routing
+directories:
+  testing: Construct delegate consumers and shared RPC clients for behavior tests
+  code: Isolated code workspace and validated patch generation
+  config: Delegate profile schema and resource validation
+  run: Job lifecycle, execution, reports and MCP adapter
+  sandbox: Harness configuration and isolated execution environment
+  task: Task input preparation and result contract verification
+allow:
+  - tooling/worker/src/environment/mod.rs
+  - tooling/worker/src/environment/hooks.rs
+  - tooling/worker/src/resources/mod.rs
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/jobs/process.rs
+  - tooling/worker/review/src/artifacts/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/response/mod.rs
+  - tooling/worker/review/src/snapshot/mod.rs
+  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/review/src/execution/sandbox/mod.rs
+  - tooling/worker/review/src/mcp/protocol.rs
+deny: []
+public:
+  - mod.rs
+  - code/mod.rs
+  - config/mod.rs
+  - run/mod.rs
+  - run/mcp.rs
+  - sandbox/mod.rs
+  - task/mod.rs

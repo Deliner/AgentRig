@@ -1,8 +1,12 @@
+pub mod arguments;
 pub mod composition;
 pub mod delegate;
 pub mod diagnostics;
 pub mod environment;
+pub mod hooks;
 pub mod jobs;
 pub mod lint;
+pub mod paths;
 pub mod resources;
+pub mod scaffold;
 pub mod util;

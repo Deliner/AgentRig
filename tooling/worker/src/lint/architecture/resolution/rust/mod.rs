@@ -1,12 +1,13 @@
 //! Declared Rust module trees and source paths for Rust 2018 or later.
 //! Compiler expansion and block-local imported-name lookup remain explicit limits.
+mod macros;
 mod paths;
 #[cfg(test)]
 mod tests;
 mod tree;
 
 use super::Resolved;
-use crate::lint::architecture::source::{Reference, References, Target};
+use crate::lint::architecture::source::{References, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -31,7 +32,8 @@ struct Query<'a> {
 
 pub struct Rust<'a> {
     sources: &'a BTreeMap<PathBuf, References>,
-    external: &'a BTreeSet<String>,
+    external: BTreeSet<String>,
+    local: BTreeSet<String>,
     modules: BTreeMap<Vec<String>, Module>,
     files: BTreeMap<PathBuf, Vec<String>>,
     items: BTreeSet<Vec<String>>,
@@ -39,6 +41,10 @@ pub struct Rust<'a> {
 }
 
 impl<'a> Rust<'a> {
+    pub fn is_root(&self, path: &Path) -> bool {
+        self.files.get(path).is_some_and(Vec::is_empty)
+    }
+
     pub fn contains_source(&self, path: &Path) -> bool {
         self.files.contains_key(path)
     }
@@ -46,7 +52,8 @@ impl<'a> Rust<'a> {
     pub fn new(
         root: &Path,
         sources: &'a BTreeMap<PathBuf, References>,
-        external: &'a BTreeSet<String>,
+        external: &BTreeSet<String>,
+        local: &BTreeMap<String, PathBuf>,
     ) -> Result<Self> {
         ensure!(
             sources.contains_key(root),
@@ -55,7 +62,8 @@ impl<'a> Rust<'a> {
         );
         let mut resolver = Self {
             sources,
-            external,
+            external: external.iter().chain(local.keys()).cloned().collect(),
+            local: local.keys().cloned().collect(),
             modules: BTreeMap::new(),
             files: BTreeMap::new(),
             items: BTreeSet::new(),
@@ -73,6 +81,7 @@ impl<'a> Rust<'a> {
         while let Some(file) = pending.pop() {
             pending.extend(resolver.load(&file)?);
         }
+        resolver.validate_expansions()?;
         Ok(resolver)
     }
 
@@ -82,6 +91,10 @@ impl<'a> Rust<'a> {
             .get(source)
             .context("source is not in the declared crate module tree")?;
         match target {
+            Target::RustMacro(call) => self.macro_result(source, call),
+            Target::RustDerive { path, scope } => {
+                self.derive_result(source, path, &joined(base, scope))
+            }
             Target::RustModule { path, .. } => {
                 let key = joined(base, path);
                 let module = self
@@ -94,22 +107,7 @@ impl<'a> Rust<'a> {
                 })
             }
             Target::RustPath { path, scope } => {
-                let scope = joined(base, scope);
-                ensure!(
-                    self.modules.contains_key(&scope),
-                    "Rust module scope is unresolved"
-                );
-                let mut query = Query {
-                    source,
-                    visiting: BTreeSet::new(),
-                };
-                match self.path(&scope, path, &mut query)? {
-                    Located::Module(module) | Located::Item(module) => self.module_result(&module),
-                    Located::External(path) => Ok(Resolved {
-                        files: BTreeSet::new(),
-                        external: Some(path),
-                    }),
-                }
+                self.path_result(source, path, &joined(base, scope))
             }
             _ => bail!("not a Rust module reference"),
         }

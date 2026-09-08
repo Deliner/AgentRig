@@ -1,0 +1,9 @@
+purpose: Construct isolated delegate consumers and RPC clients shared by lifecycle and code scenarios
+files:
+  architecture.yaml: Delegate fixture responsibilities and public test interface
+  consumer.py: Seed fake harness projects, select clients and observe terminal delegate results
+  mcp.py: Open delegate MCP sessions and exchange initialized tool requests
+directories: {}
+allow: []
+deny: []
+public: [consumer.py, mcp.py]

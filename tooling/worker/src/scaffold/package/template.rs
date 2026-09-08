@@ -189,6 +189,7 @@ fn checks(source: &str, repair: &str) -> Vec<Check> {
             include: vec!["**".into()],
             skill: repair.to_owned(),
             warning: false,
+            affected: Vec::new(),
         },
         Check {
             id: "memory".into(),
@@ -197,6 +198,7 @@ fn checks(source: &str, repair: &str) -> Vec<Check> {
             include: vec!["**".into()],
             skill: repair.to_owned(),
             warning: false,
+            affected: Vec::new(),
         },
         Check {
             id: "tests".into(),
@@ -205,6 +207,7 @@ fn checks(source: &str, repair: &str) -> Vec<Check> {
             include: vec![format!("{source}/**")],
             skill: repair.to_owned(),
             warning: false,
+            affected: Vec::new(),
         },
     ]
 }

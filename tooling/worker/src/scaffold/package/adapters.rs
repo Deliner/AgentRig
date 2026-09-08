@@ -65,10 +65,9 @@ pub fn registration(config: &Config, root_command: &str) -> Result<Vec<u8>> {
         "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [handler.clone()]}],
         "PreToolUse": [{"matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write", "hooks": [handler]}]
     }});
-    let custom =
-        agentrig::environment::hooks::configuration(&config.environment.hooks, |name, _| {
-            environment_command(&config.paths.service, "hook", name, root_command)
-        });
+    let custom = crate::environment::hooks::configuration(&config.environment.hooks, |name, _| {
+        environment_command(&config.paths.service, "hook", name, root_command)
+    });
     for (event, groups) in custom.as_object().unwrap() {
         value["hooks"]
             .as_object_mut()

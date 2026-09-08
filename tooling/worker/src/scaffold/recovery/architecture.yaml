@@ -1,0 +1,15 @@
+purpose: Persist, validate and describe saved update plans, payloads and recovery progress
+files:
+  architecture.yaml: Saved update state responsibilities and dependency boundary
+  mod.rs: Locate recovery data, verify journal and plan integrity and report pending work
+  model.rs: Persisted update plans, file transitions and progress journal schemas
+  storage.rs: Save and validate payloads and restore their recorded file state
+  report.rs: Describe saved plan actions and produce content and permission differences
+  tests.rs: Saved-plan integrity, project identity and recovery phase behavior
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/scaffold/installation/mod.rs
+deny: []
+public: [mod.rs, model.rs, storage.rs, report.rs]

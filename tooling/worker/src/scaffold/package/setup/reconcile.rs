@@ -1,5 +1,6 @@
-use super::{Files, config, manifest};
-use crate::scaffold::upgrade::storage::{self, State};
+use super::{Files, config};
+use crate::scaffold::installation::{self as storage, State};
+use crate::scaffold::receipt as manifest;
 use anyhow::{Result, ensure};
 use manifest::{Manifest, Ownership};
 use std::{
