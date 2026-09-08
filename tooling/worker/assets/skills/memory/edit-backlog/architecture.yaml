@@ -1,7 +1,7 @@
-purpose: Capture concrete future improvements without changing the current delivery scope
+purpose: Agree feature meaning and acceptance before saving Backlog cards
 files:
   architecture.yaml: Resource responsibility map and public installation boundary
-  SKILL.md: Canonical guidance for proactive idea capture and deliberate Plan promotion
+  SKILL.md: Canonical chat agreement, scoped requirements and acceptance handoff guidance
 directories: {}
 allow: []
 deny: []

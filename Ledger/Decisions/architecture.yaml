@@ -32,6 +32,7 @@ files:
   029.md: "Context and rationale for: Apply the flat-memory registry size exemption to Plan."
   030.md: "Context and rationale for: Apply flat-memory registry size policy to Backlog."
   031.md: "Context and rationale for current execution Plan and unordered Backlog"
+  032.md: "Context and rationale for chat-agreed feature contracts and autonomous delivery"
 directories: {}
 allow: []
 deny: []
