@@ -1,0 +1,14 @@
+purpose: Record verification attempts and establish whether their results still match project inputs
+files:
+  architecture.yaml: Verification evidence inventory and consumer boundary
+  mod.rs: Persist check outcomes and report freshness and repeated failures
+  content.rs: Fingerprint checked files, revisions and VCS indexes
+directories: {}
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/diagnostics/mod.rs
+  - tooling/worker/review/src/artifacts/json.rs
+  - tooling/worker/review/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

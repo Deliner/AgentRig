@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: ee20457
+Revision: 87a9f85
 
-Installed runtime 9aee4ae remains pinned. Initialization ownership and the separate pending P010 plan are committed. Current VAC colocates the standalone lint executable with lint and registers root Rust composition. The current Rust probe has no measured cycles.
+Installed runtime 9aee4ae remains pinned. Root composition and standalone lint ownership are committed. Current VAC registers the existing composition, jobs and verification evidence owners. The current Rust probe has no measured cycles.
 
 ## Progress
 
@@ -29,6 +29,8 @@ Commit test selection correction is accepted as 546b6d4. Python groups follow sc
 Initialization now belongs to setup/init.rs and setup/wizard.rs. Package generation no longer calls setup; executors read prepared or installed resources through the package owner. CLI dispatch reaches setup's init/run entry points directly. Collision checks, creation permissions, generated-bundle validation, confirmation and cancellation bodies are preserved. New package and setup contracts register exact files, child roles and existing external consumers.
 
 ## Verification
+
+Root composition commit 87a9f85 passed gate 89940 (terminal 0): 92 Rust tests, 251 selected Python tests in 29.29 seconds and all configured checks. Review tests skipped. This supersedes its pending gate below. Current composition/jobs/evidence contracts pass the focused Rust probe .tmp/p009-support-contracts.json with six missing contracts and no other findings; no behavior code changed. Remaining Rust contracts are review/src, review/src/mcp, review/src/vcs, scaffold, scaffold/gate and scaffold/upgrade.
 
 Current root composition VAC preserves the standalone entry body and binary name through an explicit Cargo target at lint/standalone.rs. Both frontend consumers pass 56 native portable/architecture cases after candidate build; Clippy passes (9515 terminal 0). Probe .tmp/p009-root-owner.json reports nine missing Rust contracts and no other findings. Commit gate is pending. P010 planning commit ee20457 passed its selected gate with 23 Python configuration cases; implementation remains pending.
 
@@ -58,7 +60,7 @@ Root agentrig.yaml is strictly decoded; setup configuration packages do not impl
 
 ## Next action
 
-Initialization ownership is committed as 1d09d99: gate 20913 finished successfully, with 418 Python tests in 463.78 seconds and the configured checks passing; unrelated review tests skipped. This supersedes the pending gate recorded above. Finish root composition through its required commit gate, then complete the remaining nine Rust contracts without introducing cycles or arbitrary directory splits. Missing inventories and broader coverage still prevent full acceptance.
+Initialization ownership is committed as 1d09d99: gate 20913 finished successfully, with 418 Python tests in 463.78 seconds and the configured checks passing; unrelated review tests skipped. This supersedes the pending gate recorded above. Finish composition/jobs/evidence contracts through their required commit gate, then complete the remaining six Rust contracts without introducing cycles or arbitrary directory splits. Missing inventories and broader coverage still prevent full acceptance.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 
