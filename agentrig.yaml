@@ -22,23 +22,18 @@ commands:
   write:
     argv: []
     accepts_args: true
-    read_only: false
   build:
     argv:
     - tooling/worker/build
     - --version
-    accepts_args: false
-    read_only: false
   candidate:
     argv:
     - tooling/worker/build
     accepts_args: true
-    read_only: false
   release:
     argv:
     - bash
     - tooling/distribution/release.sh
-    read_only: false
   rustfmt:
     argv:
     - cargo
@@ -47,8 +42,6 @@ commands:
     - --manifest-path
     - tooling/worker/Cargo.toml
     - --check
-    accepts_args: false
-    read_only: false
   clippy:
     argv:
     - cargo
@@ -60,8 +53,6 @@ commands:
     - --
     - -D
     - warnings
-    accepts_args: false
-    read_only: false
   rust-test:
     argv:
     - cargo
@@ -71,8 +62,8 @@ commands:
     - tooling/worker/Cargo.toml
     - --locked
     - --lib
-    accepts_args: false
-    read_only: false
+    - --
+    accepts_args: true
   test:
     argv:
     - uv
@@ -86,7 +77,6 @@ commands:
     - --rootdir
     - .
     accepts_args: true
-    read_only: false
   ruff-format:
     argv:
     - uv
@@ -99,8 +89,6 @@ commands:
     - --check
     - --config
     - tooling/pyproject.toml
-    accepts_args: false
-    read_only: false
   ruff:
     argv:
     - uv
@@ -112,8 +100,6 @@ commands:
     - check
     - --config
     - tooling/pyproject.toml
-    accepts_args: false
-    read_only: false
   mypy:
     argv:
     - uv
@@ -126,8 +112,6 @@ commands:
     - tooling/pyproject.toml
     - tooling/tests
     - tooling/worker/examples
-    accepts_args: false
-    read_only: false
   typos:
     argv:
     - uv
@@ -139,8 +123,6 @@ commands:
     - --config
     - tooling/pyproject.toml
     - .
-    accepts_args: false
-    read_only: false
   vulture:
     argv:
     - uv
@@ -153,9 +135,8 @@ commands:
     - '100'
     - tooling/tests
     - tooling/worker/examples
-    accepts_args: false
-    read_only: false
   review-test:
+    accepts_args: true
     argv:
     - uv
     - run
@@ -193,152 +174,6 @@ commands:
     - tooling/worker/run
     - review
     accepts_args: true
-    read_only: false
-checks:
-- id: build
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: build
-- id: lint
-  kind: lint
-  skill: .agents/skills/repair/SKILL.md
-- id: memory
-  kind: memory
-  skill: .agents/skills/repair/SKILL.md
-- id: rustfmt
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: rustfmt
-- id: clippy
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: clippy
-- id: rust-test
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: rust-test
-- id: ruff-format
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: ruff-format
-- id: ruff
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: ruff
-- id: mypy
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: mypy
-- id: test
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: test
-  # Commit checks use affected groups plus smoke tests; merge runs everything.
-  affected:
-  - include: ['**']
-    targets:
-    - tooling/tests/native/test_config_check.py
-  - include:
-    - tooling/worker/src/lint/**
-    - tooling/worker/src/arguments/**
-    - tooling/worker/review/src/vcs/**
-    - tooling/worker/review/src/config/yaml.rs
-    - tooling/tests/native/lint/**
-    - tooling/tests/native/test_lint.py
-    - tooling/tests/native/test_language*.py
-    - tooling/tests/native/test_config_check.py
-    targets:
-    - tooling/tests/native/lint
-    - tooling/tests/native/test_lint.py
-    - tooling/tests/native/test_language.py
-    - tooling/tests/native/test_language_delivery.py
-    - tooling/tests/native/test_config_check.py
-    - tooling/tests/native/scaffold/test_strict.py
-    - tooling/tests/native/scaffold/test_memory.py
-  - include:
-    - tooling/worker/src/delegate/**
-    - tooling/worker/src/environment/**
-    - tooling/worker/src/composition/**
-    - tooling/worker/src/resources.rs
-    - tooling/worker/src/resources/**
-    - tooling/worker/src/jobs/**
-    - tooling/worker/review/src/**
-    - tooling/tests/native/test_delegate*.py
-    targets:
-    - tooling/tests/native/test_delegate_code.py
-    - tooling/tests/native/test_delegate_config.py
-    - tooling/tests/native/test_delegate_mcp.py
-    - tooling/tests/native/test_delegate_run.py
-    - tooling/tests/native/test_delegate_vcs.py
-    - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_capabilities.py
-    - tooling/tests/native/upgrades
-  - include:
-    - tooling/worker/src/scaffold/**
-    - tooling/worker/src/paths/**
-    - tooling/worker/src/arguments/**
-    - tooling/worker/src/hooks/**
-    - tooling/worker/src/environment/**
-    - tooling/worker/src/composition/**
-    - tooling/worker/src/resources.rs
-    - tooling/worker/src/resources/**
-    - tooling/worker/src/jobs/**
-    - tooling/worker/review/src/vcs/**
-    - tooling/worker/review/src/config/yaml.rs
-    - tooling/tests/native/scaffold/**
-    - tooling/tests/native/upgrades/**
-    targets:
-    - tooling/tests/native/scaffold/test_capabilities.py
-    - tooling/tests/native/scaffold/test_commands.py
-    - tooling/tests/native/scaffold/test_feedback.py
-    - tooling/tests/native/scaffold/test_gate.py
-    - tooling/tests/native/scaffold/test_git.py
-    - tooling/tests/native/scaffold/test_hooks.py
-    - tooling/tests/native/scaffold/test_memory.py
-    - tooling/tests/native/scaffold/test_package.py
-    - tooling/tests/native/scaffold/test_plan.py
-    - tooling/tests/native/scaffold/test_reminders.py
-    - tooling/tests/native/scaffold/test_setup.py
-    - tooling/tests/native/scaffold/test_state.py
-    - tooling/tests/native/scaffold/test_strict.py
-    - tooling/tests/native/upgrades
-    - tooling/tests/native/test_launcher.py
-  - include:
-    - tooling/tests/native/scaffold/test_integration.py
-    targets:
-    - tooling/tests/native/scaffold/test_integration.py
-  - include:
-    - tooling/worker/review/src/**
-    - tooling/tests/native/test_review.py
-    targets:
-    - tooling/tests/native/test_review.py
-    - tooling/tests/native/scaffold/test_capabilities.py
-- id: typos
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: typos
-- id: vulture
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: vulture
-- id: review-test
-  kind: command
-  command: review-test
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
-- id: review-clippy
-  kind: command
-  command: review-clippy
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
-- id: review-rustfmt
-  kind: command
-  command: review-rustfmt
-  include:
-  - tooling/worker/review/**
-  skill: .agents/skills/repair/SKILL.md
 hooks:
   reminder: .agents/skills/complexity-discipline/context-reminder.json
   discipline_skill: .agents/skills/complexity-discipline/SKILL.md
@@ -436,3 +271,231 @@ oracles:
     check: test
     runner: pytest
     target: tooling/tests/native/scaffold/test_package.py::test_installation_manifest_records_ownership
+
+checks:
+- id: build
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: build
+- id: lint
+  kind: lint
+  skill: .agents/skills/repair/SKILL.md
+- id: memory
+  kind: memory
+  skill: .agents/skills/repair/SKILL.md
+- id: rustfmt
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rustfmt
+- id: clippy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: clippy
+- id: rust-test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: rust-test
+  affected:
+  - {include: ['**'], targets: []}
+  - include: [agentrig.yaml, 'tooling/worker/Cargo.*', tooling/worker/src/lib.rs, tooling/worker/src/main.rs, tooling/worker/src/util.rs]
+    targets: ['::']
+  - include: ['tooling/worker/src/lint/**']
+    targets: ['lint::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/scaffold/**']
+    targets: ['scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/hooks/**']
+    targets: ['hooks::']
+  - include: ['tooling/worker/src/delegate/**', 'tooling/worker/src/environment/**', 'tooling/worker/src/jobs/**']
+    targets: ['delegate::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/composition/**']
+    targets: ['composition::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/src/resources/**']
+    targets: ['resources::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/src/paths/**']
+    targets: ['paths::', 'resources::', 'delegate::', 'scaffold::', 'hooks::']
+  - include: ['tooling/worker/src/arguments/**']
+    targets: ['arguments::', 'lint::', 'delegate::', 'scaffold::']
+  - include: ['tooling/worker/review/**']
+    targets: ['lint::', 'delegate::', 'scaffold::']
+- id: ruff-format
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff-format
+- id: ruff
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: ruff
+- id: mypy
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: mypy
+- id: test
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: test
+  # Commit checks use affected groups plus smoke tests; merge runs everything.
+  affected:
+  - include: ['**']
+    targets:
+    - tooling/tests/native/test_config_check.py
+  - include:
+    - tooling/worker/src/lint/**
+    - tooling/worker/src/arguments/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
+    - tooling/tests/native/lint/**
+    - tooling/tests/native/test_lint.py
+    - tooling/tests/native/test_language*.py
+    - tooling/tests/native/test_config_check.py
+    targets:
+    - tooling/tests/native/lint
+    - tooling/tests/native/test_lint.py
+    - tooling/tests/native/test_language.py
+    - tooling/tests/native/test_language_delivery.py
+    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/tests/native/scaffold/test_memory.py
+  - include:
+    - tooling/worker/src/delegate/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/**
+    - tooling/tests/native/test_delegate*.py
+    targets:
+    - tooling/tests/native/test_delegate_code.py
+    - tooling/tests/native/test_delegate_config.py
+    - tooling/tests/native/test_delegate_mcp.py
+    - tooling/tests/native/test_delegate_run.py
+    - tooling/tests/native/test_delegate_vcs.py
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/tests/native/upgrades
+  - include:
+    # Shared configuration and dispatch affect every scaffold consumer.
+    - tooling/worker/src/scaffold/mod.rs
+    - tooling/worker/src/scaffold/config/**
+    - tooling/worker/src/scaffold/settings/**
+    - tooling/worker/src/paths/**
+    - tooling/worker/src/arguments/**
+    - tooling/worker/src/environment/**
+    - tooling/worker/src/composition/**
+    - tooling/worker/src/resources.rs
+    - tooling/worker/src/resources/**
+    - tooling/worker/src/jobs/**
+    - tooling/worker/review/src/vcs/**
+    - tooling/worker/review/src/config/yaml.rs
+    - tooling/tests/native/scaffold/**
+    - tooling/tests/native/upgrades/**
+    targets:
+    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/tests/native/scaffold/test_feedback.py
+    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/tests/native/scaffold/test_git.py
+    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/tests/native/scaffold/test_package.py
+    - tooling/tests/native/scaffold/test_plan.py
+    - tooling/tests/native/scaffold/test_reminders.py
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_state.py
+    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/tests/native/upgrades
+    - tooling/tests/native/test_launcher.py
+  - include:
+    - tooling/worker/src/scaffold/memory/**
+    targets:
+    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/tests/native/scaffold/test_plan.py
+    - tooling/tests/native/scaffold/test_state.py
+    - tooling/tests/native/scaffold/test_feedback.py
+    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/tests/native/scaffold/test_package.py
+  - include:
+    - tooling/worker/src/scaffold/commands.rs
+    - tooling/worker/src/scaffold/process.rs
+    - tooling/worker/src/scaffold/commands/**
+    targets:
+    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/tests/native/scaffold/test_memory.py
+    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/tests/native/scaffold/test_git.py
+    - tooling/tests/native/upgrades
+  - include:
+    - tooling/worker/src/scaffold/git.rs
+    - tooling/worker/src/scaffold/gate.rs
+    - tooling/worker/src/scaffold/gate/**
+    - tooling/worker/src/scaffold/evidence/**
+    targets:
+    - tooling/tests/native/scaffold/test_git.py
+    - tooling/tests/native/scaffold/test_gate.py
+    - tooling/tests/native/scaffold/test_feedback.py
+    - tooling/tests/native/scaffold/test_state.py
+  - include:
+    - tooling/worker/src/hooks/**
+    targets:
+    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/tests/native/scaffold/test_reminders.py
+    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/tests/native/scaffold/test_git.py
+  - include:
+    - tooling/worker/src/scaffold/package/**
+    - tooling/worker/src/scaffold/receipt/**
+    - tooling/worker/src/scaffold/recovery/**
+    targets:
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_package.py
+    - tooling/tests/native/scaffold/test_capabilities.py
+    - tooling/tests/native/scaffold/test_strict.py
+    - tooling/tests/native/scaffold/test_hooks.py
+    - tooling/tests/native/scaffold/test_state.py
+    - tooling/tests/native/upgrades
+    - tooling/tests/native/test_launcher.py
+  - include:
+    - tooling/worker/src/scaffold/upgrade/**
+    targets:
+    - tooling/tests/native/upgrades
+    - tooling/tests/native/scaffold/test_setup.py
+    - tooling/tests/native/scaffold/test_memory.py
+  - include:
+    - tooling/tests/native/scaffold/test_integration.py
+    targets:
+    - tooling/tests/native/scaffold/test_integration.py
+  - include:
+    - tooling/worker/review/src/**
+    - tooling/tests/native/test_review.py
+    targets:
+    - tooling/tests/native/test_review.py
+    - tooling/tests/native/scaffold/test_capabilities.py
+- id: typos
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: typos
+- id: vulture
+  kind: command
+  skill: .agents/skills/repair/SKILL.md
+  command: vulture
+- id: review-test
+  kind: command
+  command: review-test
+  affected:
+  - {include: ['**'], targets: []}
+  - include: [agentrig.yaml, 'tooling/worker/review/**']
+    targets: ['--']
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-clippy
+  kind: command
+  command: review-clippy
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md
+- id: review-rustfmt
+  kind: command
+  command: review-rustfmt
+  include:
+  - tooling/worker/review/**
+  skill: .agents/skills/repair/SKILL.md

@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: ad73ab9
+Revision: fe035eb
 
-Installed runtime 9aee4ae remains available. Shared receipt ownership is committed. The current VAC separates project settings, validated recovery-state reading and context loading while preserving config::Context and configuration exports. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae remains available. Settings and validated recovery-state ownership are committed. Pending changes move legacy memory parsing into history and command process execution into commands, with two architecture contracts and the D005 owner link. User-requested refinement of commit check selection is also uncommitted. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -36,11 +36,17 @@ Current settings/recovery split passes all-target compilation and Clippy (98679)
 
 ## Blockers
 
-No current blocker. Preserve behavior, permissions and maintained-source coverage.
+Configuration access is restored: the user added commands.review-test.accepts_args and restored checks to the root configuration. config-check and structural lint pass. Command false defaults now have one owner in the runtime schema, and catchall smoke selection owns its previously duplicated target. The configuration has 500 nonblank lines; thresholds and test selection semantics are preserved.
+
+The failed extraction exposed a real distinction: setup composes configuration packages, but settings::read decodes the live agentrig.yaml directly into Config. Root packages is unsupported. The unused tooling/checks.yaml extraction has been removed. Hook errors hid the schema cause behind the generic agentrig.yaml-required context and prevented both reads and repairs; preserve this recovery evidence.
 
 ## Next action
 
-Commit settings/recovery ownership through the affected gate. Then repair the eight remaining cycles in scaffold memory, package/setup and update generation and add missing contracts. The graph checks both direct owners and crossed enclosing boundaries; nesting shared state under update execution would restore the cycle. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
+Commit the user's check-selection correction independently, preserving the unfinished memory/commands source VAC. The settings/recovery commit is fe035eb; the earlier Verification paragraph describes its pre-commit checks. Pending memory/commands changes passed 41 native cases in the preceding work session. The saved self-analysis .tmp/p009-memory-commands.json has six package/setup/update cycles and 15 missing contracts; broader P009 acceptance remains unfinished.
+
+Current selection verification: eight existing staged/full/merge scenarios passed; six isolated probes using the repository maps verified memory, hooks, docs, Rust and review selection and unfiltered full checks. The configured Rust command accepts multiple libtest filters: scaffold:: plus hooks:: ran seven tests successfully and filtered out 85. Review changes retain the normal full crate command using the trailing -- separator; unrelated source changes skip review tests. These checks do not prove the pending commit gate or integration passed.
+
+After the selection correction passes its staged gate, commit the preserved source work through the required hook. Do not retry root package extraction. Continue with the six package/setup/update cycles and missing architecture coverage. The graph checks direct owners and crossed enclosing boundaries. Preserve util compatibility exports and actual consumers; do not hide cycles through aliases.
 
 The user requires affected commit tests plus a fast baseline, with the full suite only on merge. Repository catchall smoke selection prevents automatic full fallback, but current groups remain coarse and expensive. Refine selection against actual consumers; pytest targets must not overlap whole files/directories with contained nodes, because that can silently narrow collection. Required hooks remain authoritative.
 
