@@ -1,0 +1,40 @@
+purpose: Initialize, preview and install configured agent environments while preserving existing consumer resources
+files:
+  architecture.yaml: Installation workflow responsibilities and dependency boundary
+  mod.rs: Dispatch setup, validate update inputs and coordinate preview and application
+  init.rs: Create a new environment after collision and generated bundle validation
+  wizard.rs: Collect interactive initialization settings and confirm the previewed installation
+  delegation.rs: Register the configured delegate profiles and environment with the client
+  environment.rs: Register configured programs and MCP servers
+  preview.rs: Validate the prospective installed configuration without applying it
+  reconcile.rs: Preserve local resource ownership and reject changes since preparation
+  registration.rs: Merge configured managed services with existing client preferences
+  report.rs: Describe prospective changes, resources and required executor configuration
+directories:
+  input: Prepare and verify composed configurations and their declared resources
+allow:
+  - tooling/worker/src/scaffold/config/mod.rs
+  - tooling/worker/src/scaffold/settings/mod.rs
+  - tooling/worker/src/scaffold/receipt/mod.rs
+  - tooling/worker/src/scaffold/installation/mod.rs
+  - tooling/worker/src/scaffold/recovery/mod.rs
+  - tooling/worker/src/arguments/mod.rs
+  - tooling/worker/src/paths/mod.rs
+  - tooling/worker/src/composition/mod.rs
+  - tooling/worker/src/resources/mod.rs
+  - tooling/worker/src/environment/mod.rs
+  - tooling/worker/src/environment/hooks.rs
+  - tooling/worker/src/delegate/config/mod.rs
+  - tooling/worker/src/lint/config/mod.rs
+  - tooling/worker/review/src/config/mod.rs
+  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/scaffold/package/mod.rs
+  - tooling/worker/src/scaffold/package/adapters.rs
+  - tooling/worker/src/scaffold/package/manifest.rs
+  - tooling/worker/src/scaffold/package/claude.rs
+  - tooling/worker/src/scaffold/package/executors.rs
+  - tooling/worker/src/scaffold/package/doctor.rs
+  - tooling/worker/src/scaffold/package/template.rs
+deny: []
+public: [mod.rs, init.rs, registration.rs]

@@ -42,8 +42,8 @@ pub fn owns(command: &str) -> bool {
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
-        "init" => return package::init(root, args),
-        "setup" => return package::setup(root, args),
+        "init" => return package::setup::init(root, args),
+        "setup" => return package::setup::run(root, args),
         "config-inspect" => return package::setup::inspect(root, args),
         "upgrade" => return upgrade::run(root, args),
         "guard-commit" => return guard_commit(root, args),

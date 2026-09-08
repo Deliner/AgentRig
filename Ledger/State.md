@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 055accf
+Revision: 5b98a57
 
-Installed runtime 9aee4ae remains pinned. Setup input ownership is committed. Current VAC moves shared saved-plan storage and reporting into recovery and colocates configuration planning with its client merge handlers, removing its dependency on upgrade orchestration.
+Installed runtime 9aee4ae remains pinned. Shared saved-plan ownership is committed. Current VAC moves initialization and its wizard into setup, keeps prepared/installed resource reading with package generation, and records both architecture boundaries. The current Rust probe has no measured cycles.
 
 ## Progress
 
@@ -26,6 +26,8 @@ Current recovery/storage.rs preserves payload checksums, atomic JSON persistence
 
 Commit test selection correction is accepted as 546b6d4. Python groups follow scaffold behavior ownership; Rust uses existing libtest module filters; unrelated review tests skip. Shared configuration and dispatch still select broad consumer groups. Full integration checks remain unfiltered. Explicit false command defaults are owned by the runtime schema and catchall smoke coverage is not duplicated.
 
+Initialization now belongs to setup/init.rs and setup/wizard.rs. Package generation no longer calls setup; executors read prepared or installed resources through the package owner. CLI dispatch reaches setup's init/run entry points directly. Collision checks, creation permissions, generated-bundle validation, confirmation and cancellation bodies are preserved. New package and setup contracts register exact files, child roles and existing external consumers.
+
 ## Verification
 
 Memory/commands commit 98f2d73 passed its required gate (66273 terminal 0): 418 Python tests in 465.01 seconds, seven selected Rust tests and all other configured checks. Review tests were skipped as unrelated. Its architecture probe had six cycles and 15 missing contracts.
@@ -40,6 +42,10 @@ Setup input commit 055accf passed its normal retry (13122 terminal 0): 226 Pytho
 
 Current saved-plan ownership passes Clippy (20636), 34 native release/configuration update and recovery cases in 60.63 seconds (13750), structural lint and git diff --check. Self-analysis .tmp/p009-configuration-owner.json reports two remaining package/setup cycle paths, 13 missing Rust contracts and no other findings. The upgrade/configuration cycle is removed. Current commit gate remains pending.
 
+Saved-plan commit 5b98a57 passed gate 43397 (terminal 0): 239 Python tests in 113.10 seconds, seven Rust tests and all other configured checks. Review tests skipped. This supersedes its pending gate above.
+
+Current initialization ownership passes Clippy (87034), 90 native setup/package cases in 49.52 seconds (74711), structural lint and git diff --check. Self-analysis .tmp/p009-package-owner.json has zero cycles, 11 missing Rust contracts and no other findings. Existing native client discovery, diagnostics and lint catalog calls are explicitly included in the new package boundary. Current commit gate is pending.
+
 ## Blockers
 
 No current operational blocker. Keep the full P009 scope and preserve behavior, permissions and maintained-source coverage.
@@ -48,7 +54,7 @@ Root agentrig.yaml is strictly decoded; setup configuration packages do not impl
 
 ## Next action
 
-Commit the saved-plan ownership VAC through the required staged hook. Then repair the remaining package/setup cycle with complete ownership moves. Package mixes wizard orchestration and generated-file access with bundle generation; doctor and Claude configuration also have shared registration validation. Separate actual shared owners rather than only changing directory paths.
+Commit initialization ownership through the required staged hook. Then complete the remaining Rust contracts without introducing cycles or arbitrary directory splits. The expanded Rust probe currently measures no cycles, but missing inventories and broader coverage still prevent full acceptance.
 
 Complete missing Rust contracts and architecture coverage across maintained tests, docs and resources. The Python probe .tmp/p009-python.yaml still reports 69 unresolved local test imports and 12 missing contracts; inspect actual local import behavior rather than treating local code as external. Canonical skills live under tooling/worker/assets/skills; discovery skips symlinks.
 

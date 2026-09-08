@@ -1,4 +1,5 @@
-use super::{Config, config, setup, template};
+use super::super::{self as package, template};
+use super::{Config, config};
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
@@ -13,20 +14,20 @@ pub fn run(root: &Path) -> Result<i32> {
     let Some((root, config)) = selection(root)? else {
         return cancelled();
     };
-    let installation = setup::prepare(&root, &config, super::bundle(&root, &config)?)?;
+    let installation = super::prepare(&root, &config, package::bundle(&root, &config)?)?;
     println!(
         "Configuration for {}:\n{}",
         root.display(),
         review_runner::config::yaml::encode(&config)?
     );
-    setup::print_preview(&root, &config, &installation)?;
+    super::print_preview(&root, &config, &installation)?;
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
         return cancelled();
     };
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
         std::fs::create_dir_all(&root)?;
-        setup::install(&root, &config, &installation)
+        super::install(&root, &config, &installation)
     } else {
         cancelled()
     }
