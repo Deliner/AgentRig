@@ -16,6 +16,7 @@ files:
   013.md: "Capability and acceptance for: Complete lint coverage and executable language evaluations"
   014.md: "Capability and acceptance for: Explainable and verifiable consumer workflows"
   015.md: "Capability and acceptance for: Git-backed component catalog and shared environment constructor"
+  016.md: "Capability and acceptance for: Scoped Rust boundary types and named values"
 directories: {}
 allow: []
 deny: []
