@@ -15,6 +15,7 @@ files:
   012.md: "Capability and acceptance for: Cohesive AgentRig ownership and reliable development flows"
   013.md: "Capability and acceptance for: Complete lint coverage and executable language evaluations"
   014.md: "Capability and acceptance for: Explainable and verifiable consumer workflows"
+  015.md: "Capability and acceptance for: Git-backed component catalog and shared environment constructor"
 directories: {}
 allow: []
 deny: []

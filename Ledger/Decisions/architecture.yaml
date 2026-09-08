@@ -29,6 +29,7 @@ files:
   026.md: "Context and rationale for: Use strict YAML for AgentRig configuration without runtime format fallback; migrate legacy settings explicitly."
   027.md: "Context and rationale for: Develop AgentRig using an explicitly pinned installed runtime while testing candidate source independently."
   028.md: "Context and rationale for: Constrain measured source dependencies with directory-owned YAML contracts and enforce each crossed architectural boundary."
+  029.md: "Context and rationale for: Apply the flat-memory registry size exemption to Plan."
 directories: {}
 allow: []
 deny: []

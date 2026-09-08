@@ -59,6 +59,8 @@ rules:
   exclude:
   - Ledger/Decisions
   - Ledger/Invariants
+  # DECISION: D029 -- memory requires a flat indexed Plan/NNN.md registry.
+  - Ledger/Plan
   warning: 10
   error: 15
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md
