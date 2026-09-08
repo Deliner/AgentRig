@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.test_lint import CONFIG, prepare
+from tooling.worker.src.lint.testing.consumer import CONFIG, prepare
 
 
 def inventory_project(root: Path, vcs: str) -> None:

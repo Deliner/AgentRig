@@ -3,9 +3,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from tooling.tests.native.lint.test_architecture import CONFIG, contract
-from tooling.tests.native.lint.test_architecture_behavior import parity
-from tooling.tests.native.test_lint import prepare
+from tooling.worker.src.lint.architecture.tests.test_architecture import CONFIG, contract
+from tooling.worker.src.lint.architecture.tests.test_architecture_behavior import parity
+from tooling.worker.src.lint.testing.consumer import prepare
 
 
 def documents(root: Path) -> Path:

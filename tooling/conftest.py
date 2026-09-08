@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-ROOT = Path(__file__).parents[3]
+ROOT = Path(__file__).parents[1]
 
 
 @pytest.fixture(scope="session")

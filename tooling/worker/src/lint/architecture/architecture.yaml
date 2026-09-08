@@ -7,10 +7,12 @@ files:
   graph.rs: Cycle detection over measured directory dependencies
   tests.rs: Contract validation, boundary enforcement and measured cycle behavior
 directories:
+  tests: Exercise architecture inventories and boundaries through four-language CLI consumers
   resolution: Resolve extracted references to concrete project source files
   runner: Combine configured scope, extraction, resolution and actionable findings
   source: Extract located dependency references from supported syntax
 allow:
+  - tooling/worker/src/lint/testing/consumer.py
   - tooling/worker/src/lint/catalog/mod.rs
   - tooling/worker/src/lint/config/mod.rs
   - tooling/worker/src/lint/inventory/mod.rs

@@ -35,3 +35,4 @@ allow:
 deny: []
 public:
   - lib.rs
+  - lint/testing/consumer.py

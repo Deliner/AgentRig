@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.lint.test_architecture import consumer, contract
-from tooling.tests.native.test_lint import lint
+from tooling.worker.src.lint.architecture.tests.test_architecture import consumer, contract
+from tooling.worker.src.lint.testing.consumer import lint
 
 
 @pytest.mark.parametrize(

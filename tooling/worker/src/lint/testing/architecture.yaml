@@ -1,0 +1,8 @@
+purpose: Construct isolated lint consumers and invoke their configured CLI diagnostics
+files:
+  architecture.yaml: Shared lint consumer fixture inventory and public boundary
+  consumer.py: Seed lint policy and skills and read lint and explanation diagnostics
+directories: {}
+allow: []
+deny: []
+public: [consumer.py]

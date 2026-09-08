@@ -4,8 +4,12 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.lint.test_architecture import consumer, contract, snapshot
-from tooling.tests.native.test_lint import lint
+from tooling.worker.src.lint.architecture.tests.test_architecture import (
+    consumer,
+    contract,
+    snapshot,
+)
+from tooling.worker.src.lint.testing.consumer import lint
 
 
 def private_consumer(root: Path, language: str) -> tuple[Path, str]:

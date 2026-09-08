@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.test_lint import CONFIG, prepare
+from tooling.worker.src.lint.testing.consumer import CONFIG, prepare
 
 
 @pytest.mark.parametrize("git_repository", [False, True])

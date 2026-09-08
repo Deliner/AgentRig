@@ -101,17 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv:
-    - uv
-    - run
-    - --locked
-    - --project
-    - tooling
-    - mypy
-    - --config-file
-    - tooling/pyproject.toml
-    - tooling/tests
-    - tooling/worker/examples
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint/architecture/tests", "tooling/worker/src/lint/testing", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -124,17 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv:
-    - uv
-    - run
-    - --locked
-    - --project
-    - tooling
-    - vulture
-    - --min-confidence
-    - '100'
-    - tooling/tests
-    - tooling/worker/examples
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint/architecture/tests", "tooling/worker/src/lint/testing", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -336,8 +316,7 @@ checks:
   # Commit checks use affected groups plus smoke tests; merge runs everything.
   affected:
   - include: ['**']
-    targets:
-    - tooling/tests/native/test_config_check.py
+    targets: [tooling/tests/native/test_config_check.py]
   - include:
     - tooling/worker/src/lint/**
     - tooling/worker/src/arguments/**
@@ -349,6 +328,7 @@ checks:
     - tooling/tests/native/test_config_check.py
     targets:
     - tooling/tests/native/lint
+    - tooling/worker/src/lint/architecture/tests
     - tooling/tests/native/test_lint.py
     - tooling/tests/native/test_language.py
     - tooling/tests/native/test_language_delivery.py

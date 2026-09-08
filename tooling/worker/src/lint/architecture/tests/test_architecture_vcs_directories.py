@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.lint.test_architecture import contract, snapshot
-from tooling.tests.native.lint.test_architecture_inventory import documents
+from tooling.worker.src.lint.architecture.tests.test_architecture import contract, snapshot
+from tooling.worker.src.lint.architecture.tests.test_architecture_inventory import documents
 
 
 def repository(root: Path, backend: str) -> list[str]:
@@ -16,7 +16,7 @@ def repository(root: Path, backend: str) -> list[str]:
     ignore = root / (".gitignore" if git else ".hgignore")
     ignore.write_text("ignored/\n" if git else "syntax: glob\nignored\n")
     if private:
-        adapter = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+        adapter = Path(__file__).resolve().parents[4] / "examples/external_vcs.py"
         selection = root / "vcs.yaml"
         selection.write_text(json.dumps({"command": ["python3", "-B", str(adapter)]}))
         return ["--vcs-config", str(selection)]

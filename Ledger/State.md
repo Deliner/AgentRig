@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: 9b903a2
+Revision: a371fd0
 
-Installed runtime 9aee4ae remains pinned. Current staged VAC colocates review behavior tests with execution, run, MCP, configuration, snapshot and VCS. Shared review consumer Fixture/critic.py lives in review/testing; native/external repository fixtures stay with VCS. The same VAC adds literal Rust module path resolution required by these shared fixtures. Initial commit gate failed only at review-rustfmt; formatting is corrected and the normal commit retry is next.
+Installed runtime 9aee4ae remains pinned. Review test ownership and literal Rust module paths are committed as a371fd0. Current unfinished VAC moves 11 architecture Python test files into tooling/worker/src/lint/architecture/tests and the shared worker fixture into tooling/conftest.py. Imports, private VCS example path, D019 application link, mypy/Vulture inputs and affected test targets follow the moves. No commit gate is running.
 
 ## Progress
 
@@ -23,6 +23,13 @@ Review tests now belong to their actual behavior owners. MCP scenario moved from
 P010 is separately planned and pending. Its recorded candidate reproduction confirms malformed configuration blocks diagnostic read and repair events with a misleading generic message. Do not implement it instead of P009 or touch voxel-rust.
 
 ## Verification
+
+Latest Python ownership verification: common prepare/lint/explain helpers now live in lint/testing/consumer.py, with exact public boundaries for existing external test consumers. Architecture tests import this fixture instead of old test modules. Session 71401 exited 0: 224 affected architecture/scalar/configuration/explanation consumers passed in 17.64 seconds. Ruff passes, mypy passes 52 sources, memory check 83189 passed. Ruff-format found one trailing blank line in the new fixture; formatter corrected it. Combined Rust/Python probe .tmp/p009-combined.yaml has no new dependency/access/cycle findings: remaining findings are 12 preexisting missing contracts and two incomplete-root findings for the newly included Rust example. Full maintained-tree acceptance is still pending.
+
+
+Commit retry 71837 exited 0 and created a371fd0: 73 Rust tests, 694 selected Python tests in 525.07 seconds, all review tests and every configured check passed. Initial formatting failure below is resolved.
+
+Current architecture Python relocation: 149 tests passed in 10.94 seconds (37794 terminal 0); complete pytest collection reports 701 cases (5360 terminal 0); mypy passes all 51 sources. Exact new test contract and parent child responsibility added. Full Python architecture analysis has not yet been rerun with the new source paths.
 
 Commit gate 44819 terminated with exit 1 at review-rustfmt after passing 73 Rust tests, 694 selected Python tests in 544.37 seconds, all review behavior tests and other configured checks. Formatting the main Cargo manifest had not formatted the separate review crate. Explicit cargo fmt for tooling/worker/review/Cargo.toml corrected the listed files; focused just check --only review-rustfmt --staged now passes. This is not a successful commit; normal retry remains required.
 
@@ -40,7 +47,7 @@ No operational blocker. Preserve behavior, architectural permissions and the ful
 
 ## Next action
 
-Inspect and stage this cohesive review test ownership/literal-path VAC, run its normal commit hook and fix any reported findings. Keep mandatory affected commit checks and reserve full integration gate for merge. Update State with actual outcome. Do not restart a quiet live gate.
+Finish current architecture Python test relocation VAC through its normal commit gate. Shared lint CLI fixtures now have their own owner and all existing consumers point there. Combined source analysis confirms repaired enclosing boundaries. Include State, D019 application-link migration, command/check paths, moved conftest and 11 architecture test files, fixture consumers and exact contracts. The review VAC is already accepted. Continue remaining test ownership and full maintained-tree inventory after this VAC, including the example Rust crate root in final analysis configuration.
 
 Then colocate native Python behavior tests with responsible features, updating exact check targets, invariant oracle bindings, decision application links, fixture discovery and __file__ resource paths. Read matching memory skills before those edits.
 

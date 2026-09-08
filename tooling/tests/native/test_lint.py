@@ -1,46 +1,12 @@
 from __future__ import annotations
 
-import json
-import shutil
 import subprocess
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 # DECISION: D016
-ROOT = Path(__file__).parents[3]
-SKILL = ".agents/skills/refactor-large-file/SKILL.md"
-CONFIG = f"""version: 1
-config_skill: ".agents/skills/repair/SKILL.md"
-
-rules:
-  - id: "source"
-    kind: "nonblank-lines"
-    target: "file"
-    include: ["src/**"]
-    extensions: [".rs", ".py", ".ts"]
-    warning: 3
-    error: 5
-    warning_skill: "{SKILL}"
-    error_skill: "{SKILL}"
-"""
-
-
-def prepare(root: Path, config: str = CONFIG) -> None:
-    shutil.copytree(ROOT / ".agents/skills", root / ".agents/skills")
-    (root / "src").mkdir()
-    (root / "lint.yaml").write_text(config, encoding="utf-8")
-
-
-def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
-    output = subprocess.run(
-        [str(worker), "lint", "--root", str(root), "--config", "lint.yaml", "--json"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    return output.returncode, json.loads(output.stdout)
+from tooling.worker.src.lint.testing.consumer import CONFIG, SKILL, lint, prepare
 
 
 @pytest.mark.parametrize(

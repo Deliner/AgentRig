@@ -1,22 +1,9 @@
-import json
 import subprocess
 from pathlib import Path
-from typing import Any
 
 import pytest
 
-from tooling.tests.native.test_lint import CONFIG, lint, prepare
-
-
-def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
-    result = subprocess.run(
-        [str(worker), "lint-explain", path, "--root", str(root), "--config", "lint.yaml", "--json"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    value: dict[str, Any] = json.loads(result.stdout)
-    return value
+from tooling.worker.src.lint.testing.consumer import CONFIG, explain, lint, prepare
 
 
 @pytest.mark.parametrize("standalone", [False, True])

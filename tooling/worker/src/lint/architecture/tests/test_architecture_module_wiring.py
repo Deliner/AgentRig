@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.lint.test_architecture import CONFIG, contract
-from tooling.tests.native.test_lint import lint, prepare
+from tooling.worker.src.lint.architecture.tests.test_architecture import CONFIG, contract
+from tooling.worker.src.lint.testing.consumer import lint, prepare
 
 
 def consumer(root: Path, case: str) -> None:
