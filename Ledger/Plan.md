@@ -22,3 +22,5 @@ Add a prerequisite before a paused feature when a separate outcome is necessary.
 | [P008](Plan/008.md) | complete | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |
 | [P009](Plan/009.md) | complete | P006 | Complete architecture maps and feature ownership | Maintain checked file/directory responsibilities and dependency boundaries, and apply them to AgentRig itself. |
 | [P010](Plan/010.md) | pending | P005 | Recoverable configuration errors | Diagnose and repair invalid worker configuration without hook deadlock or discarding unfinished project edits. |
+| [P011](Plan/011.md) | pending | P008, P009, P010 | Coordinated hooks and timely architecture guidance | Receive relevant architectural skills before edits and coherent guidance when multiple hook requirements overlap or conflict. |
+| [P012](Plan/012.md) | pending | P011 | Cohesive AgentRig ownership and reliable development flows | Maintain feature-owned code with explicit shared boundaries and correct the cross-capability omissions identified in the repository audit. |
