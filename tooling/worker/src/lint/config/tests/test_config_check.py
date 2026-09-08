@@ -7,8 +7,7 @@ from typing import Any
 
 import pytest
 
-from tooling.tests.native.test_language import configure
-from tooling.worker.src.lint.testing.consumer import CONFIG, lint, prepare
+from tooling.worker.src.lint.testing.consumer import CONFIG, configure, lint, prepare
 
 # DECISION: D018
 

@@ -83,7 +83,7 @@ def private_inventory(root: Path) -> tuple[Path, list[str]]:
     prepare(policy, 'skill_root: "."\n' + CONFIG)
     consumer = root / "consumer"
     inventory_project(consumer, "hg")
-    script = Path(__file__).resolve().parents[3] / "worker/examples/external_vcs.py"
+    script = Path(__file__).resolve().parents[4] / "examples/external_vcs.py"
     selected = policy / "vcs.yaml"
     selected.write_text(json.dumps({"command": ["python3", "-B", str(script)]}))
     return consumer, [

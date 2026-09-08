@@ -3,8 +3,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from tooling.tests.native.test_language import configure
-from tooling.worker.src.lint.testing.consumer import lint
+from tooling.worker.src.lint.testing.consumer import configure, lint
 
 
 def test_staged_language_source_and_policy(worker: Path, tmp_path: Path) -> None:

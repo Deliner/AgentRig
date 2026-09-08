@@ -5,8 +5,10 @@ files:
   registry.rs: Grammar and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, function lengths and parameter measurements
   rust.rs: Rust conditions, function lengths and parameter measurements
-directories: {}
+directories:
+  tests: Verify language measurements and delivery enforcement
 allow:
+  - tooling/worker/src/lint/testing/consumer.py
   - tooling/worker/src/lint/rules/kind.rs
 deny: []
 public: [mod.rs, registry.rs]

@@ -49,3 +49,12 @@ def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
     )
     value: dict[str, Any] = json.loads(result.stdout)
     return value
+
+
+def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
+    config = (
+        CONFIG.replace("nonblank-lines", kind)
+        .replace('extensions: [".rs", ".py", ".ts"]', 'extensions: [".rs", ".py", ".pyi"]')
+        .replace("warning: 3\n    error: 5", thresholds.replace("\n", "\n    "))
+    )
+    prepare(root, config)

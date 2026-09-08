@@ -4,18 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.lint.testing.consumer import CONFIG, lint, prepare
+from tooling.worker.src.lint.testing.consumer import configure, lint
 
 # DECISION: D017
-
-
-def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
-    config = (
-        CONFIG.replace("nonblank-lines", kind)
-        .replace('extensions: [".rs", ".py", ".ts"]', 'extensions: [".rs", ".py", ".pyi"]')
-        .replace("warning: 3\n    error: 5", thresholds.replace("\n", "\n    "))
-    )
-    prepare(root, config)
 
 
 @pytest.mark.parametrize(

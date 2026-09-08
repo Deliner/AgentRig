@@ -7,6 +7,7 @@ files:
   explain.rs: Explain why a configured rule selects or excludes a target
   rules.rs: Preserve public rule paths while forwarding to definitions and catalogue owners
 directories:
+  tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   testing: Build isolated lint CLI consumers shared across rule behavior tests
   architecture: Check responsibility inventories and measured dependency boundaries
   catalog: Describe implemented rule and language capabilities
@@ -23,7 +24,6 @@ allow:
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
 public:
-  - testing/consumer.py
   - mod.rs
   - cli.rs
   - explain.rs

@@ -1,0 +1,10 @@
+purpose: Verify composed lint CLI diagnostics and portable consumer behavior
+files:
+  architecture.yaml: Lint CLI behavior test responsibilities and dependencies
+  test_lint.py: Threshold, override, invalid configuration and staged snapshot diagnostics
+  test_lint_explain.py: Effective selection explanations and diagnostic consistency
+  test_lint_portable.py: Standalone and embedded linter portability scenarios
+directories: {}
+allow: [tooling/worker/src/lint/testing/consumer.py]
+deny: []
+public: []

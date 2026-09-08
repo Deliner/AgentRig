@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint/architecture/tests", "tooling/worker/src/lint/testing", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint/architecture/tests", "tooling/worker/src/lint/testing", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -190,7 +190,7 @@ oracles:
   I004:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_lint.py::test_native_lint_thresholds_and_skills
+    target: tooling/worker/src/lint/tests/test_lint.py::test_native_lint_thresholds_and_skills
   I005:
     check: test
     runner: pytest
@@ -226,15 +226,15 @@ oracles:
   I014:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_lint.py::test_invalid_config_is_actionable
+    target: tooling/worker/src/lint/tests/test_lint.py::test_invalid_config_is_actionable
   I015:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_language.py::test_language_conditions
+    target: tooling/worker/src/lint/languages/tests/test_language.py::test_language_conditions
   I016:
     check: test
     runner: pytest
-    target: tooling/tests/native/test_config_check.py::test_config_rejects_unsupported_language
+    target: tooling/worker/src/lint/config/tests/test_config_check.py::test_config_rejects_unsupported_language
   I017:
     check: test
     runner: pytest
@@ -316,22 +316,18 @@ checks:
   # Commit checks use affected groups plus smoke tests; merge runs everything.
   affected:
   - include: ['**']
-    targets: [tooling/tests/native/test_config_check.py]
+    targets: [tooling/worker/src/lint/config/tests/test_config_check.py]
   - include:
     - tooling/worker/src/lint/**
     - tooling/worker/src/arguments/**
     - tooling/worker/review/src/vcs/**
     - tooling/worker/review/src/config/yaml.rs
-    - tooling/tests/native/lint/**
-    - tooling/tests/native/test_lint.py
-    - tooling/tests/native/test_language*.py
-    - tooling/tests/native/test_config_check.py
     targets:
-    - tooling/tests/native/lint
+    - tooling/worker/src/lint/tests
+    - tooling/worker/src/lint/inventory/tests
     - tooling/worker/src/lint/architecture/tests
-    - tooling/tests/native/test_lint.py
-    - tooling/tests/native/test_language.py
-    - tooling/tests/native/test_language_delivery.py
+    - tooling/worker/src/lint/languages/tests/test_language.py
+    - tooling/worker/src/lint/languages/tests/test_language_delivery.py
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/tests/native/scaffold/test_memory.py
   - include:

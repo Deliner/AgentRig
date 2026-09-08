@@ -2,8 +2,10 @@ purpose: Load strict lint configuration and validate rule selection, severity an
 files:
   architecture.yaml: Configuration responsibilities and dependency boundary
   mod.rs: YAML schema, configuration validation and shared selector and guidance validation
-directories: {}
+directories:
+  tests: Verify lint configuration validation through both CLI entrypoints
 allow:
+  - tooling/worker/src/lint/testing/consumer.py
   - tooling/worker/src/lint/catalog/mod.rs
   - tooling/worker/src/lint/rules/kind.rs
   - tooling/worker/src/lint/rules/descriptor.rs

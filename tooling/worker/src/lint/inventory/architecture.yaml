@@ -2,8 +2,10 @@ purpose: Collect maintained files and directories consistently from versioned an
 files:
   architecture.yaml: Inventory responsibilities and dependency boundary
   mod.rs: Source discovery, exclusions, directory inventory and structural entry counting
-directories: {}
+directories:
+  tests: Verify native and private repository inventory through the CLI
 allow:
+  - tooling/worker/src/lint/testing/consumer.py
   - tooling/worker/review/src/vcs/mod.rs
 deny: []
 public: [mod.rs]

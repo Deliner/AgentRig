@@ -1,0 +1,9 @@
+purpose: Verify language-specific measurements and enforcement through real lint consumers
+files:
+  architecture.yaml: Language behavior test responsibilities and dependencies
+  test_language.py: Rust and Python condition, function and parameter measurement scenarios
+  test_language_delivery.py: Configured enforcement and repair guidance for language measurements
+directories: {}
+allow: [tooling/worker/src/lint/testing/consumer.py]
+deny: []
+public: []

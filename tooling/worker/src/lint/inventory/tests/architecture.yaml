@@ -1,0 +1,8 @@
+purpose: Verify maintained source inventory through native and private version control consumers
+files:
+  architecture.yaml: Repository inventory test responsibilities and dependencies
+  test_inventory_vcs.py: Git, Mercurial and private inventory parity and failure behavior
+directories: {}
+allow: [tooling/worker/src/lint/testing/consumer.py]
+deny: []
+public: []

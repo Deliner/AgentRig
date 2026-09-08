@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: a371fd0
+Revision: ca3d4eb
 
-Installed runtime 9aee4ae remains pinned. Review test ownership and literal Rust module paths are committed as a371fd0. Current unfinished VAC moves 11 architecture Python test files into tooling/worker/src/lint/architecture/tests and the shared worker fixture into tooling/conftest.py. Imports, private VCS example path, D019 application link, mypy/Vulture inputs and affected test targets follow the moves. No commit gate is running.
+Installed runtime 9aee4ae remains pinned. Architecture Python test ownership is committed as ca3d4eb. Current unfinished VAC relocates the seven remaining lint test files into config/tests, languages/tests, inventory/tests and lint/tests. Shared configure now lives in lint/testing/consumer.py. Exact oracle paths, invariant links/details, decision application links and command selectors follow the same test bodies. Temporary external public exposure of the common fixture is removed now that all consumers belong to lint. No commit gate is running.
 
 ## Progress
 
@@ -23,6 +23,10 @@ Review tests now belong to their actual behavior owners. MCP scenario moved from
 P010 is separately planned and pending. Its recorded candidate reproduction confirms malformed configuration blocks diagnostic read and repair events with a misleading generic message. Do not implement it instead of P009 or touch voxel-rust.
 
 ## Verification
+
+Commit 88878 exited 0 and created ca3d4eb: 94 Rust tests, 253 selected Python tests in 29.84 seconds, review tests and all configured checks passed.
+
+Current remaining lint test relocation: session 83095 exited 0 with 224 tests passing in 17.67 seconds; mypy passes 52 sources; Ruff and memory check 46711 pass. All four moved invariant oracles executed as part of these tests. Shared configure and fixture consumers preserve behavior. Combined Rust/Python probe reports no new access or cycle findings; outstanding older contracts and the example Rust root still need final coverage. Removed evacuated tooling/tests/native/lint after verifying it contained only generated pyc caches. A trailing blank line after configure was corrected by the formatter.
 
 Latest Python ownership verification: common prepare/lint/explain helpers now live in lint/testing/consumer.py, with exact public boundaries for existing external test consumers. Architecture tests import this fixture instead of old test modules. Session 71401 exited 0: 224 affected architecture/scalar/configuration/explanation consumers passed in 17.64 seconds. Ruff passes, mypy passes 52 sources, memory check 83189 passed. Ruff-format found one trailing blank line in the new fixture; formatter corrected it. Combined Rust/Python probe .tmp/p009-combined.yaml has no new dependency/access/cycle findings: remaining findings are 12 preexisting missing contracts and two incomplete-root findings for the newly included Rust example. Full maintained-tree acceptance is still pending.
 
@@ -47,7 +51,7 @@ No operational blocker. Preserve behavior, architectural permissions and the ful
 
 ## Next action
 
-Finish current architecture Python test relocation VAC through its normal commit gate. Shared lint CLI fixtures now have their own owner and all existing consumers point there. Combined source analysis confirms repaired enclosing boundaries. Include State, D019 application-link migration, command/check paths, moved conftest and 11 architecture test files, fixture consumers and exact contracts. The review VAC is already accepted. Continue remaining test ownership and full maintained-tree inventory after this VAC, including the example Rust crate root in final analysis configuration.
+Inspect and stage the current remaining-lint-test ownership VAC, run the normal commit hook and resolve actual findings. Include exact oracle/application links and configured test/type-check targets. All lint Python tests now live with their capabilities; do not leave duplicate directory/file pytest selections. Then continue scaffold, delegation, upgrade and distribution test ownership and maintained docs/resources coverage.
 
 Then colocate native Python behavior tests with responsible features, updating exact check targets, invariant oracle bindings, decision application links, fixture discovery and __file__ resource paths. Read matching memory skills before those edits.
 
