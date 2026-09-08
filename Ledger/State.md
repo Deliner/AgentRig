@@ -2,15 +2,15 @@
 
 ## Focus
 
-Publish the recorded P011/P012 plan and existing local development history to GitHub, as requested by the user. No product feature is active.
+Record P013 after P012: all current AgentRig rules for seven languages, delivered with a dedicated executable evaluation environment. Keep the plan published under the user's existing GitHub instruction. No product feature is active.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: bca476a
+Revision: 7721e83
 
-Master is 7277aa7. Git was clean before this uncommitted planning change; no merge or rebase is in progress. Installed runtime 9aee4ae remains pinned. Resume reported the previous State revision stale; current Git takes precedence.
+Master and origin/master are 7277aa7. The feature and origin/feature/architecture-ownership were both 7721e83 before this planning change. The previous commit and push succeeded; Git was clean. Installed runtime 9aee4ae remains pinned.
 
 ## Progress
 
@@ -20,9 +20,11 @@ The latest instruction authorizes committing and pushing these plans and existin
 
 P011 now also records same-cause diagnostic grouping and ordinary hook interaction tests. The user's simplicity constraint excludes skill-read tracking, error-repetition counters and a separate agent-evaluation system.
 
+P013 records Python, TypeScript, Rust, JavaScript, Go, Java and Kotlin coverage for all existing rules, with a dedicated tooling/worker/evals/ environment. Evaluations exercise actual lint diagnostics on valid, violating and repaired examples; they are product tests, not a separate agent-evaluation system. Implementation remains pending.
+
 ## Verification
 
-The latest P011 scope clarification passed just check --only memory (PASS [memory], exit 0), before this factual verification-note update. The preceding planning change also passed just lint with 33 existing nonblocking size warnings. No full suite was run for planning; earlier P009 full-suite evidence does not verify future implementation.
+Commit 7721e83 passed the staged gate, including 23 smoke tests, and published refs were verified against GitHub. The P013 planning change has not yet passed its commit gate. No full suite is claimed for planning or future implementation.
 
 ## Blockers
 
@@ -30,4 +32,4 @@ None for planning. All future product outcomes remain pending.
 
 ## Next action
 
-Commit the five planning files through the normal pre-commit hook, then push master and feature/architecture-ownership to origin without force. Fetch confirmed master is ahead by 119 commits and behind by zero. Commit and push results are not yet recorded here; verify Git for publication status. Await implementation authorization; delivery order is P010, P011, P012.
+Commit the P013 planning change through the normal hook and push the retained feature branch. Verify Git for publication status. Await implementation authorization; delivery order is P010, P011, P012, P013.
