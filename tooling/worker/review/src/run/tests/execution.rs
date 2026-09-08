@@ -222,66 +222,6 @@ fn timeout_is_a_reported_technical_failure() {
 }
 
 #[test]
-fn repeated_review_requires_explanations_for_new_unchanged_findings() {
-    let fixture = Fixture::new("pass");
-    let first = fixture.run(None);
-    let previous = fixture.0.path().join(format!(
-        "reports/{}.json",
-        first["run_id"].as_str().unwrap()
-    ));
-    fixture.mode("fail");
-    let rejected = fixture.run(Some(&previous));
-    assert_eq!(rejected["verdict"], "BLOCKED");
-    assert!(
-        rejected["roles"][0]["technical_error"]
-            .as_str()
-            .unwrap()
-            .contains("late finding")
-    );
-    fixture.mode("late");
-    let accepted = fixture.run(Some(&previous));
-    assert_eq!(accepted["verdict"], "FAIL");
-    assert_eq!(accepted["repair_diff"], "");
-}
-#[test]
-fn repairs_keep_original_base_and_recheck_closed_requirements() {
-    let fixture = Fixture::new("fail");
-    let first = fixture.run(None);
-    let root = fixture.0.path();
-    let previous = root.join(format!(
-        "reports/{}.json",
-        first["run_id"].as_str().unwrap()
-    ));
-    std::fs::write(root.join("repo/src/value.py"), "value = 2\n").unwrap();
-    support::git(&root.join("repo"), &["add", "."]);
-    support::git(
-        &root.join("repo"),
-        &[
-            "-c",
-            "user.name=Test",
-            "-c",
-            "user.email=test@example.com",
-            "commit",
-            "-qm",
-            "repair",
-        ],
-    );
-    fixture.mode("pass");
-    let repaired = fixture.run(Some(&previous));
-    assert_eq!(repaired["verdict"], "PASS");
-    assert_eq!(repaired["snapshot"]["base"], first["snapshot"]["base"]);
-    assert!(
-        repaired["repair_diff"]
-            .as_str()
-            .unwrap()
-            .contains("+value = 2")
-    );
-    assert_ne!(
-        repaired["snapshot"]["candidate"],
-        first["snapshot"]["candidate"]
-    );
-}
-#[test]
 fn scope_rejection_is_persisted_before_any_model_runs() {
     let fixture = Fixture::new("pass");
     let root = fixture.0.path().join("repo");
@@ -340,28 +280,6 @@ fn failed_report_storage_retains_emergency_evidence() {
     assert_eq!(report["verdict"], "BLOCKED");
     assert!(report["roles"][0]["raw_response"].is_string());
     assert!(!runtime.join("reviewers/first/codex/auth.json").exists());
-}
-
-#[test]
-fn late_blocked_checks_require_the_same_omission_explanation() {
-    let fixture = Fixture::new("pass");
-    let first = fixture.run(None);
-    let previous = fixture.0.path().join(format!(
-        "reports/{}.json",
-        first["run_id"].as_str().unwrap()
-    ));
-    fixture.mode("blocked");
-    let rejected = fixture.run(Some(&previous));
-    assert!(
-        rejected["roles"][0]["technical_error"]
-            .as_str()
-            .unwrap()
-            .contains("late finding")
-    );
-    fixture.mode("late-blocked");
-    let accepted = fixture.run(Some(&previous));
-    assert_eq!(accepted["verdict"], "BLOCKED");
-    assert!(accepted["roles"][0]["technical_error"].is_null());
 }
 
 #[test]

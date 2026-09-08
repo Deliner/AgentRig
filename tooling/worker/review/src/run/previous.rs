@@ -1,7 +1,7 @@
 use super::{Report, Request};
 use crate::{artifacts::digest, snapshot};
 use anyhow::{Context, Result, ensure};
-use std::fs;
+use std::{collections::BTreeSet, fs};
 
 pub fn prepare(
     request: &Request,
@@ -13,14 +13,7 @@ pub fn prepare(
     };
     let bytes = fs::read(path)?;
     let previous: Report = serde_json::from_slice(&bytes)?;
-    ensure!(
-        previous.schema_version == 1 && previous.tool == request.tool,
-        "previous report belongs to another tool or schema"
-    );
-    ensure!(
-        previous.contract_digest == report.contract_digest,
-        "previous contract differs; start a new review boundary explicitly"
-    );
+    same_criteria(&previous, report)?;
     same_source(request, &previous, scope)?;
     let old = previous
         .snapshot
@@ -34,12 +27,42 @@ pub fn prepare(
         old.base == current.base,
         "re-review must retain the original base"
     );
+    same_contract_files(old, current)?;
     let source = scope.vcs.source(&request.root);
     source.resolve(&old.candidate)?;
     report.previous_report_digest = Some(digest(&bytes));
     snapshot::check_boundary(&request.root, &old.candidate, &current.candidate, scope)?;
     report.repair_diff = Some(source.diff(&old.candidate, &current.candidate)?);
     Ok(Some(previous))
+}
+
+fn same_criteria(previous: &Report, current: &Report) -> Result<()> {
+    ensure!(
+        previous.schema_version == current.schema_version && previous.tool == current.tool,
+        "previous report belongs to another tool or schema"
+    );
+    ensure!(
+        previous.contract_digest == current.contract_digest,
+        "previous contract differs; start a new review boundary explicitly"
+    );
+    ensure!(
+        previous.prompts == current.prompts,
+        "previous reviewer prompts differ; start a new review boundary explicitly"
+    );
+    Ok(())
+}
+
+fn same_contract_files(previous: &snapshot::Snapshot, current: &snapshot::Snapshot) -> Result<()> {
+    let unchanged = previous.contract_paths == current.contract_paths
+        && previous.contract_paths.iter().all(|path| {
+            previous.manifest.get(path).map(|entry| &entry.sha256)
+                == current.manifest.get(path).map(|entry| &entry.sha256)
+        });
+    ensure!(
+        unchanged,
+        "previous normative files differ; start a new review boundary explicitly"
+    );
+    Ok(())
 }
 
 fn same_source(
@@ -58,6 +81,15 @@ fn same_source(
             .matches_previous(&request.root, (&repository.vcs, &root)),
         "previous review used another VCS source; start a new review boundary explicitly"
     );
+    for (before, after) in [
+        (&repository.visible_paths, &scope.visible_paths),
+        (&repository.contract_paths, &scope.contract_paths),
+    ] {
+        ensure!(
+            before.iter().collect::<BTreeSet<_>>() == after.iter().collect::<BTreeSet<_>>(),
+            "previous repository scope differs; start a new review boundary explicitly"
+        );
+    }
     Ok(())
 }
 pub fn validate(report: &mut Report, previous: Option<&Report>) -> Result<()> {

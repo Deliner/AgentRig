@@ -184,6 +184,7 @@ rules:
     - tooling/worker/review/src/execution/tests/broker.rs
     - tooling/worker/review/src/execution/tests/harness.rs
     - tooling/worker/review/src/run/tests/execution.rs
+    - tooling/worker/review/src/run/tests/continuation.rs
     - tooling/worker/review/src/vcs/tests/external_vcs.rs
     - tooling/worker/review/src/vcs/tests/private_integration.rs
     - tooling/worker/review/src/vcs/tests/registration.rs

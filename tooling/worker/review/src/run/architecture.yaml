@@ -2,7 +2,7 @@ purpose: Orchestrate reproducible multi-reviewer runs and persist aggregate revi
 files:
   architecture.yaml: Review run responsibilities and public orchestration boundary
   mod.rs: Run requests, frozen inputs, reviewer scheduling and lifecycle completion
-  previous.rs: Previous-report validation and repeated-review omission checks
+  previous.rs: Validate comparable review criteria, source identity and repeated-review omissions
   report.rs: Aggregate verdicts, report schema and evidence persistence
 directories:
   tests: Exercise complete review runs and public entry points with isolated fixtures
