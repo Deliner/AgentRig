@@ -1,0 +1,9 @@
+purpose: Define machine-readable requirements assessed by shipped review tools
+files:
+  architecture.yaml: Review contract inventory and installed resource boundary
+  code.json: Requirements for assessing implementation changes
+  research.json: Requirements for assessing research results
+directories: {}
+allow: []
+deny: []
+public: [code.json, research.json]

@@ -1,0 +1,10 @@
+purpose: Define the assessment responsibilities of shipped review critics
+files:
+  architecture.yaml: Critic prompt inventory and installed resource boundary
+  correctness.md: Instructions for assessing behavior and validation of code changes
+  methodology.md: Instructions for assessing research methods and evidence
+  requirements.md: Instructions for checking requested outcomes against submitted work
+directories: {}
+allow: []
+deny: []
+public: [correctness.md, methodology.md, requirements.md]

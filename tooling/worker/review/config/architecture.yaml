@@ -1,0 +1,10 @@
+purpose: Configure shipped review tools and their project and response contracts
+files:
+  architecture.yaml: Review configuration inventory and installed resource boundary
+  review.yaml: Default critic selection and exposed review tools
+directories:
+  contracts: Machine-readable acceptance contracts for review responses
+  projects: Input visibility and contract bindings for review scenarios
+allow: []
+deny: []
+public: [review.yaml, contracts/code.json, contracts/research.json, projects/code.yaml, projects/research.yaml]

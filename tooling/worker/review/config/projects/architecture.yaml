@@ -1,0 +1,9 @@
+purpose: Bind review scenarios to their visible inputs and machine contracts
+files:
+  architecture.yaml: Review project profile inventory and installed resource boundary
+  code.yaml: Source visibility and contract selection for code review
+  research.yaml: Document visibility and contract selection for research review
+directories: {}
+allow: []
+deny: []
+public: [code.yaml, research.yaml]

@@ -1,0 +1,39 @@
+purpose: Deliver isolated review execution with reusable VCS access and shipped critic resources
+files:
+  architecture.yaml: Review module inventory and public integration boundaries
+  .gitignore: Exclude generated review runtime state and reports
+  Cargo.toml: Review library, executable and behavioral test build targets
+  README.md: Review configuration and execution guide
+  COMPATIBILITY.md: Observed frontend compatibility and isolation verification
+  EXTERNAL_VCS.md: Private version control adapter protocol and integration contract
+directories:
+  config: Shipped review tools, project profiles and machine contracts
+  prompts: Shipped critic assessment instructions
+  src: Review execution and reusable supporting capabilities
+  testing: Shared review consumer and critic process fixtures
+allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
+deny: []
+public:
+  - src/lib.rs
+  - src/cli.rs
+  - src/artifacts/json.rs
+  - src/artifacts/mod.rs
+  - src/config/credentials.rs
+  - src/config/mod.rs
+  - src/config/yaml.rs
+  - src/execution/sandbox/mod.rs
+  - src/execution/broker.rs
+  - src/mcp/protocol.rs
+  - src/response/mod.rs
+  - src/snapshot/mod.rs
+  - src/vcs/mod.rs
+  - testing/consumer.py
+  - config/review.yaml
+  - config/contracts/code.json
+  - config/contracts/research.json
+  - config/projects/code.yaml
+  - config/projects/research.yaml
+  - prompts/correctness.md
+  - prompts/methodology.md
+  - prompts/requirements.md
