@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: cdc9c17
+Revision: ac6f314
 
-Installed runtime 9aee4ae remains pinned. Current unfinished VAC moves the existing upgrade test package into tooling/worker/src/scaffold/upgrade/tests. The predecessor fixture retains the fixed revision and WORKER_SOURCE_ROOT override; relative repository/example paths, D024 application link and configured command/check targets follow the moves. No commit gate has started for this VAC yet.
+Installed runtime 9aee4ae remains pinned. Current unfinished VAC moves test_launcher.py to tooling/distribution/tests and adds exact distribution and test contracts. Configured mypy/Vulture inputs and affected test targets follow the unchanged test body. No commit gate has started for this VAC yet.
 
 ## Progress
 
@@ -26,6 +26,10 @@ P010 is separately planned and pending for malformed-configuration hook deadlock
 
 ## Verification
 
+Upgrade ownership commit ac6f314 passed gate 91109: 94 Rust tests, 418 selected Python tests in 457.35 seconds, review tests and all configured checks.
+
+Current distribution relocation passes 5 launcher tests in 0.31 seconds, mypy on 54 sources, memory check 74340 and git diff --check. Candidate lint with .tmp/p009-distribution.yaml returns [] over the whole distribution directory, including documents/scripts. Explicit extensions [.py] select dependency analysis only; inventory coverage is independent of source extensions, confirmed in ARCHITECTURE.md and runner inventory handling. An initial probe without extensions was correctly rejected as invalid configuration and was corrected.
+
 Delegate ownership commit cdc9c17 passed gate 32828: 94 Rust tests, 217 selected Python tests in 127.08 seconds, all review tests and other configured checks.
 
 Current upgrade relocation passes 34 tests in 51.57 seconds (91276 terminal 0), mypy on 54 sources, Ruff, formatting, memory check 4281 and git diff --check. Combined probe has no new dependency findings; ten older missing contracts and the two example Rust root findings remain.
@@ -34,7 +38,7 @@ Latest committed VAC 9c645e2 passed normal gate 72033: 94 Rust tests, 253 select
 
 Current delegation relocation passes 73 tests in 38.09 seconds (89216 terminal 0), mypy across 54 sources, Ruff, formatting, memory check 35550, structural lint and git diff --check. No commit or integration proof yet for these changes.
 
-Combined Rust/Python probe .tmp/p009-combined.yaml reports no new access/cycle/unresolved import findings. Remaining findings are 11 older missing contracts under tooling/tests and examples plus two incomplete-root findings for the Rust example. This probe covers source extensions and is not full maintained-tree acceptance. Main checked tooling/worker/lint.yaml still does not enable architecture.
+Combined Rust/Python probe .tmp/p009-combined.yaml reports no new access/cycle/unresolved import findings. Remaining findings are 11 older missing contracts under tooling/tests and examples plus two incomplete-root findings for the Rust example. This probe has partial include paths and is not full maintained-tree acceptance; its source extensions do not narrow inventory coverage. Main checked tooling/worker/lint.yaml still does not enable architecture.
 
 ## Blockers
 
@@ -42,7 +46,7 @@ No operational blocker. Preserve behavior, exact oracles, permissions and full m
 
 ## Next action
 
-Inspect and stage the upgrade test ownership VAC, commit through the normal hook and resolve actual findings. Keep the current VAC isolated until accepted. Resume a live gate by its process handle; do not restart a quiet process. Delegate and lint test ownership VACs are already accepted.
+Inspect and stage the distribution ownership VAC and commit through the normal hook. Then move review CLI tests to their actual owner; its two Claude setup helpers used by test_capabilities.py belong with setup, not review. Keep current VAC isolated until accepted; resume a live gate by its process handle. Upgrade, delegate and lint test ownership VACs are already accepted.
 
 Then colocate remaining native Python tests: scaffold behavior with commands/gate/hooks/memory/package/setup owners, upgrades with upgrade, launcher with distribution and review CLI consumers with review. Shared helpers must remain with actual owners. Update configured check targets, invariant oracles, decision application links, fixture discovery and __file__ paths; read matching memory skills first. Existing scaffold helpers have actual feedback/gate/Git cycles that need ownership repair, not exclusion.
 

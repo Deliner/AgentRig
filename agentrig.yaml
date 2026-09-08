@@ -101,7 +101,7 @@ commands:
     - --config
     - tooling/pyproject.toml
   mypy:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
   typos:
     argv:
     - uv
@@ -114,7 +114,7 @@ commands:
     - tooling/pyproject.toml
     - .
   vulture:
-    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
+    argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/tests", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/delegate", "tooling/worker/src/scaffold/upgrade", "tooling/worker/examples"]
   review-test:
     accepts_args: true
     argv:
@@ -378,7 +378,7 @@ checks:
     - tooling/tests/native/scaffold/test_state.py
     - tooling/tests/native/scaffold/test_strict.py
     - tooling/worker/src/scaffold/upgrade/tests
-    - tooling/tests/native/test_launcher.py
+    - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/memory/**
     targets:
@@ -427,7 +427,7 @@ checks:
     - tooling/tests/native/scaffold/test_hooks.py
     - tooling/tests/native/scaffold/test_state.py
     - tooling/worker/src/scaffold/upgrade/tests
-    - tooling/tests/native/test_launcher.py
+    - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/src/scaffold/upgrade/**
     targets:

@@ -1,0 +1,14 @@
+purpose: Build distributable AgentRig releases and install the verified development runtime
+files:
+  architecture.yaml: Distribution responsibilities and source inventory
+  README.md: Clean clone setup and verified runtime development instructions
+  RELEASE.md: Release preparation, acceptance and publication instructions
+  about.toml: Third-party license policy consumed by cargo-about
+  bootstrap.sh: Install the pinned verified revision for repository development
+  release.sh: Build and assemble portable release artifacts
+  stable.txt: Exact verified revision used by development runtime dispatch
+directories:
+  tests: Verify candidate rebuilds and independence of the installed runtime
+allow: []
+deny: []
+public: []
