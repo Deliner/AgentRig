@@ -1,14 +1,14 @@
 ---
 name: edit-backlog
 description: >
-  Capture concrete improvement ideas in project Backlog. Use proactively when
-  work reveals a useful code, architecture or tooling improvement outside the
-  current task, or when the user asks to save an idea for later.
+  Capture future ideas, improvements and hypotheses in project Backlog. Use
+  proactively when one occurs outside current work or the user asks to save
+  or plan something for later.
 ---
 
 # Capture an idea without changing the task
 
-When a concrete improvement occurs to you during work, use this skill while its
+When an improvement, observation or hypothesis occurs during work, use this skill while its
 context is fresh. Recording an idea in a writable project is authorized without
 asking the user to repeat it or approve the note. This does not authorize its
 implementation, promotion to Plan, or extra investigation. In a read-only role,
@@ -40,6 +40,14 @@ Resume the current task after recording. Do not search for more ideas merely to
 fill the Backlog. Work required by current acceptance remains in the current
 task; saving a note must not defer a necessary fix or conceal a blocker.
 
-Backlog is not an execution queue. Only promote an idea under an instruction
-authorizing planning, using edit-plan and linking the resulting PNNN from its
-card. Keep the original context so the idea is not lost after promotion.
+Backlog has no execution order or priority; IDs only identify cards. A request to
+save or plan an idea for later belongs here. Only promote an idea when explicitly
+selected for execution now, using edit-plan and linking the resulting PNNN from
+its card. Retain original context; when the Plan entry is completed, replace its
+live link with the Archive card. Do not treat a saved hypothesis as a
+verified defect or a commitment to implement it.
+
+When current work is explicitly deferred, retain its requirements, actual
+progress, blocker, branch and resumption condition here before removing its Plan
+entry. Reconcile related Plan dependencies and live links together. A context
+reset or interruption alone is not a decision to defer the task.

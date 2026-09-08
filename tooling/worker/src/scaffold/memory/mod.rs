@@ -86,20 +86,43 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
         reject_unindexed(memory, "Backlog", &HashSet::new())
     }
 }
+// DECISION: D031
 fn plan(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Plan.md"), 'P')?;
-    details(context, memory, &rows, "Plan")?;
+    let mut rows = plan_rows(context, memory)?;
+    let archive = memory.join("Archive");
+    let archived = archive.join("Plan.md").try_exists()?;
+    if archived {
+        let completed = plan_rows(context, &archive)?;
+        ensure!(
+            completed.iter().all(|row| row.cells[1] == "complete"),
+            "Archive requires completed Plan outcomes"
+        );
+        rows.extend(completed);
+    } else {
+        reject_unindexed(&archive, "Plan", &HashSet::new())?;
+    }
     ensure!(
         rows.iter().filter(|row| row.cells[1] == "active").count() <= 1,
         "Plan has multiple active features"
     );
     let index: HashMap<_, _> = rows.iter().map(|row| (row.id.as_str(), row)).collect();
+    ensure!(
+        index.len() == rows.len(),
+        "duplicate ID across Plan and Archive"
+    );
     let mut graph = HashMap::new();
     for row in &rows {
-        plan_status(row, memory)?;
         graph.insert(row.id.as_str(), dependencies(row, &index)?);
     }
     acyclic(&graph)
+}
+fn plan_rows(context: &Context, memory: &Path) -> Result<Vec<Row>> {
+    let rows = table(&memory.join("Plan.md"), 'P')?;
+    details(context, memory, &rows, "Plan")?;
+    for row in &rows {
+        plan_status(row, memory)?;
+    }
+    Ok(rows)
 }
 fn plan_status(row: &Row, memory: &Path) -> Result<()> {
     let status = row.cells[1].as_str();

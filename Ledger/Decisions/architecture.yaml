@@ -31,6 +31,7 @@ files:
   028.md: "Context and rationale for: Constrain measured source dependencies with directory-owned YAML contracts and enforce each crossed architectural boundary."
   029.md: "Context and rationale for: Apply the flat-memory registry size exemption to Plan."
   030.md: "Context and rationale for: Apply flat-memory registry size policy to Backlog."
+  031.md: "Context and rationale for current execution Plan and unordered Backlog"
 directories: {}
 allow: []
 deny: []

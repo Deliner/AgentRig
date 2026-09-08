@@ -2,8 +2,8 @@ purpose: "Maintain durable project knowledge and factual recovery context"
 files:
   architecture.yaml: "Resource responsibility map and public installation boundary"
 directories:
-  edit-backlog: "Capture concrete improvement ideas without authorizing new delivery"
-  edit-plan: "Maintain outcome capabilities, acceptance and delivery priority"
+  edit-backlog: "Capture future ideas and hypotheses without execution priority"
+  edit-plan: "Maintain scope and acceptance selected for current execution"
   edit-state: "Maintain factual recovery context and a concrete next action"
   edit-decisions: "Preserve contextual choices and their current application links"
   edit-invariants: "Maintain observable predicates linked to exact executable oracles"
