@@ -440,7 +440,7 @@ checks:
     - tooling/worker/src/scaffold/package/setup/tests/test_resources.py
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
     - tooling/worker/src/hooks/tests/test_hooks.py
-    - tooling/worker/src/scaffold/memory/tests/test_state.py
+    - tooling/worker/src/scaffold/memory/tests
     - tooling/worker/src/scaffold/upgrade/tests
     - tooling/distribution/tests/test_launcher.py
   - include:

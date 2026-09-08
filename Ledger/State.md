@@ -8,9 +8,9 @@ Deliver the explicitly requested Backlog and proactive edit-backlog skill as a c
 
 Branch: feature/workflow-quality-plan
 
-Revision: 7cc25f7
+Revision: 02be4b2
 
-Master and origin/master are 9a41db9. Feature/workflow-quality-plan and its remote were both 7cc25f7 before this change; P014-P016 planning updates were committed and pushed. The worktree was clean, with no merge or rebase in progress. Installed runtime 9aee4ae remains pinned; candidate tests build current sources.
+Master and origin/master are 9a41db9. Feature/workflow-quality-plan is 02be4b2; its remote remains 7cc25f7 before Backlog publication. The main Backlog change is committed. Installed runtime 9aee4ae remains pinned; candidate tests build current sources.
 
 ## Progress
 
@@ -30,9 +30,11 @@ P016 records two Rust rules with YAML-selected scopes: forbidden types at public
 
 Backlog.md and Backlog/ provide an empty idea registry with stable BNNN cards. The canonical edit-backlog skill supports proactive capture, deduplication, brief context and returning to the task; it cannot authorize implementation or defer required acceptance. Scaffold assets, generated instructions, memory validation, memory ownership and existing hook routes include Backlog. Older consumers without Backlog remain compatible; setup preserves recorded ideas. D030 applies the existing exact flat-registry size policy to Backlog. No new dispatcher, reminder counter or model service is introduced.
 
+Actual collection exposed an existing overlap problem: passing the memory test directory and test_state.py together selected only seven State cases. The follow-up corrects the package impact group to select the directory consistently. Broader overlap evidence is recorded in P012 rather than duplicated as a new Backlog idea or expanded into an unrelated selection-engine rewrite.
+
 ## Verification
 
-Previous integration 9a41db9 passed the full gate. Planning commit 7cc25f7 passed its staged gate with 23 smoke tests and was pushed. For Backlog, 30 focused candidate tests passed: valid/broken/missing records, Codex and Claude Code hook guidance, setup preservation and manifest ownership. The skill validator and config-check passed. Current changes still require the staged gate and full integration; these focused results do not establish either.
+Previous integration 9a41db9 passed the full gate. Backlog commit 02be4b2 passed its staged gate: 94 native worker tests, 349 selected Python scenarios and the selected review suite. Thirty focused candidate scenarios independently covered Backlog, both harness routes and manifest ownership; skill validation, config-check, candidate memory-check and repaired staged lint also passed. The overlap reproduction means the staged Python set alone did not cover all intended memory tests. Corrected directory-only collection finds 82 memory scenarios including all ten Backlog cases. The follow-up commit gate and full integration remain pending.
 
 ## Blockers
 
@@ -40,4 +42,4 @@ None for the requested Backlog maintenance. All future Plan outcomes remain pend
 
 ## Next action
 
-Inspect and commit the cohesive Backlog change through the normal staged gate, then run full feature integration and publish verified refs while retaining a clean feature branch. Await separate implementation authorization for P010-P016. This snapshot precedes those commit/integration/publication actions; reconcile their results from Git and check evidence on resume.
+Verify actual collection after the impact-map correction, commit that focused correction, then run full feature integration and publish verified refs while retaining a clean feature branch. Await separate implementation authorization for P010-P016. This snapshot precedes those commit/integration/publication actions; reconcile their results from Git and check evidence on resume.
