@@ -10,9 +10,12 @@ import pytest
 from tooling.worker.src.scaffold.testing.consumer import invoke, project
 
 
+@pytest.mark.parametrize("frontend", ["codex", "claude-code"])
 # INVARIANT: I007
-def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path: Path) -> None:
-    common = configured_session(worker, tmp_path)
+def test_portable_reminder_schedule_retry_and_compaction(
+    worker: Path, tmp_path: Path, frontend: str
+) -> None:
+    common = configured_session(worker, tmp_path, frontend)
     scratch = tmp_path / ".scratch"
     transcript = scratch / "transcript.jsonl"
     start = {**common, "hook_event_name": "SessionStart"}
@@ -29,7 +32,7 @@ def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path:
         "tool_input": {"file_path": "notes/State.md"},
     }
     for count, expected in SCHEDULE:
-        append_tokens(transcript, count)
+        append_tokens(transcript, count, frontend)
         result = invoke(worker, tmp_path, "hook", input=json.dumps(edit))
         assert_reminder(result, expected)
     saved = next((scratch / "state/reminders").glob("*.json"))
@@ -47,11 +50,42 @@ def test_portable_reminder_schedule_retry_and_compaction(worker: Path, tmp_path:
 
 def test_no_configured_discipline_does_not_invent_a_skill(worker: Path, tmp_path: Path) -> None:
     project(tmp_path)
+    (tmp_path / ".runtime").write_text("occupied")
     result = invoke(worker, tmp_path, "hook", input=json.dumps({"hook_event_name": "SessionStart"}))
     assert result.returncode == 0
     assert "notes/State.md" in result.stdout
     assert ".agents/" not in result.stdout
     assert "FULL_REFRESH_REQUIRED" not in result.stdout
+    assert "Context reminders unavailable" not in result.stdout
+
+
+@pytest.mark.parametrize("path", ["src/example.rs", "notes/State.md"])
+def test_reminder_storage_failure_is_visible_and_recovers(
+    worker: Path, tmp_path: Path, path: str
+) -> None:
+    common = configured_session(worker, tmp_path)
+    scratch = tmp_path / ".scratch"
+    runtime = scratch / "state"
+    runtime.write_text("occupied")
+    append_tokens(scratch / "transcript.jsonl", 300)
+    event = {
+        **common,
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Edit",
+        "tool_input": {"file_path": path},
+    }
+    result = invoke(worker, tmp_path, "hook", input=json.dumps(event))
+    assert result.returncode == 0
+    output = json.loads(result.stdout)["hookSpecificOutput"]
+    assert "permissionDecision" not in output
+    assert "Context reminders unavailable" in output["additionalContext"]
+    assert str(runtime / "reminders") in output["additionalContext"]
+    assert ("guides/edit-state/SKILL.md" in result.stdout) == (path == "notes/State.md")
+    runtime.unlink()
+    recovered = invoke(worker, tmp_path, "hook", input=json.dumps(event))
+    assert recovered.returncode == 0
+    assert "FULL_REFRESH_REQUIRED" in recovered.stdout
+    assert "Context reminders unavailable" not in recovered.stdout
 
 
 @pytest.mark.parametrize(
@@ -132,10 +166,9 @@ SCHEDULE: list[tuple[int, str | None]] = [
 ]
 
 
-def configured_session(worker: Path, tmp_path: Path) -> dict[str, Any]:
-    assert (
-        invoke(worker, tmp_path, "init", "--memory", "notes", "--skills", "guides").returncode == 0
-    )
+def configured_session(worker: Path, tmp_path: Path, frontend: str = "codex") -> dict[str, Any]:
+    options = ["--memory", "notes", "--skills", "guides", "--frontend", frontend]
+    assert invoke(worker, tmp_path, "init", *options).returncode == 0
     config = tmp_path / "agentrig.yaml"
     config.write_text(
         config.read_text()
@@ -159,11 +192,25 @@ def configured_session(worker: Path, tmp_path: Path) -> dict[str, Any]:
     return common
 
 
-def append_tokens(transcript: Path, count: int) -> None:
+def append_tokens(transcript: Path, count: int, frontend: str = "codex") -> None:
     record = {
         "type": "event_msg",
         "payload": {"type": "token_count", "info": {"last_token_usage": {"input_tokens": count}}},
     }
+    using_claude = frontend == "claude-code"
+    if using_claude:
+        # Claude Code 2.1.201 writes these usage fields; output tokens are not context input.
+        record = {
+            "type": "assistant",
+            "message": {
+                "usage": {
+                    "input_tokens": count // 2,
+                    "cache_creation_input_tokens": count // 4,
+                    "cache_read_input_tokens": count - count // 2 - count // 4,
+                    "output_tokens": 10000,
+                }
+            },
+        }
     with transcript.open("a") as stream:
         stream.write(json.dumps(record) + "\n")
 

@@ -140,6 +140,8 @@ def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) ->
     assert "memory/State.md" in result.stdout
     assert "FULL_REFRESH_REQUIRED" in result.stdout
     assert "session reminder state" in result.stderr
+    assert "Context reminders unavailable" in result.stdout
+    assert str(tmp_path / ".agentrig/runtime/reminders") in result.stdout
 
 
 def test_hook_requires_project_configuration(worker: Path, tmp_path: Path) -> None:
