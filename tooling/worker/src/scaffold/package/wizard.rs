@@ -36,7 +36,7 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
     let Some(target) = ask("Project directory", &root.to_string_lossy())? else {
         return Ok(None);
     };
-    let root = agentrig::paths::resolve(&std::env::current_dir()?.join(target))?;
+    let root = crate::paths::resolve(&std::env::current_dir()?.join(target))?;
     ensure!(
         !root.join(config::FILE).exists(),
         "project already has agentrig.yaml; use setup or upgrade"

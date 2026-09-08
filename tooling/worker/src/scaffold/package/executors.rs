@@ -20,7 +20,7 @@ pub(super) fn configured(
     }
     if let Some(delegation) = &config.capabilities.delegation {
         let source = super::setup::source(root, files, &delegation.config)?;
-        let delegation: agentrig::delegate::config::Config =
+        let delegation: crate::delegate::config::Config =
             review_runner::config::yaml::decode(&source)?;
         for profile in delegation.profiles.values() {
             match profile.frontend {

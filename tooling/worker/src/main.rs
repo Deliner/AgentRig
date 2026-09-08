@@ -1,10 +1,8 @@
 use std::{os::unix::process::CommandExt, process::Command};
 // DECISION: D020
-mod hooks;
-mod scaffold;
 
 use agentrig::arguments::take_option;
-use agentrig::{diagnostics, lint, util};
+use agentrig::{diagnostics, hooks, lint, scaffold};
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::{

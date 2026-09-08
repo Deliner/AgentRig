@@ -48,18 +48,18 @@ fn checked(context: &Context) -> Result<i32> {
 }
 
 fn execute_vcs(command: &mut Command) -> Result<i32> {
-    let output = agentrig::jobs::process::execute(command, false, None)?;
+    let output = crate::jobs::process::execute(command, false, None)?;
     Ok(super::process::exit_code(&output))
 }
 
 fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
-    let identified = agentrig::jobs::owner().is_some();
+    let identified = crate::jobs::owner().is_some();
     let anonymous = !identified;
     if anonymous {
         return Ok(0);
     }
     let result =
-        agentrig::jobs::cleanup::run(&context.path(&context.config.paths.runtime)?, Some(feature));
+        crate::jobs::cleanup::run(&context.path(&context.config.paths.runtime)?, Some(feature));
     match result {
         Ok(report) => {
             let failed = report["errors"]

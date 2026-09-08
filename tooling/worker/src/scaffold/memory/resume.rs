@@ -24,7 +24,7 @@ pub fn run(context: &Context) -> Result<()> {
     let snapshot = snapshot(&state, branch, &recorded);
     let mut report = json!({"state": state, "plan": plan, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "upgrade": crate::scaffold::upgrade::recovery::journal(&context.root)?, "checks": evidence::resume(context),
-        "jobs": agentrig::jobs::list(&context.path(&context.config.paths.runtime)?)?});
+        "jobs": crate::jobs::list(&context.path(&context.config.paths.runtime)?)?});
     let legacy_git = report["vcs"]["backend"] == "git";
     if legacy_git {
         report["git"] = report["vcs"].clone();

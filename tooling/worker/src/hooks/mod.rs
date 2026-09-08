@@ -6,12 +6,13 @@
 // DECISION: D003
 // DECISION: D019
 mod guard;
+pub mod input;
 mod reminder;
 mod transcript;
 
+use self::input::text;
+use crate::paths::resolve;
 use crate::scaffold::config::Context;
-use crate::util::text;
-use agentrig::paths::resolve;
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::{collections::BTreeSet, path::Path};
@@ -132,7 +133,7 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
     let reminder = match &configured.config.hooks.reminder {
         Some(path) => reminder::before_at(
             event,
-            &crate::util::object(&configured.path(path)?),
+            &input::object(&configured.path(path)?),
             &configured
                 .path(&configured.config.paths.runtime)?
                 .join("reminders"),

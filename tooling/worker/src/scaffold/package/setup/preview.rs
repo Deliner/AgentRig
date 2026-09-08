@@ -27,7 +27,7 @@ pub fn validate(root: &Path, config: &Config, files: &Files) -> Result<()> {
     if let Some(delegation) = &config.capabilities.delegation {
         let existing = !files.contains_key(&delegation.config);
         if existing {
-            let resolved = agentrig::delegate::config::load(&root.join(&delegation.config))?;
+            let resolved = crate::delegate::config::load(&root.join(&delegation.config))?;
             put(
                 preview.path(),
                 &delegation.config,
@@ -116,7 +116,7 @@ fn lint(root: &Path, preview: &Path, path: &str) -> Result<()> {
     )
 }
 fn resource(root: &Path, preview: &Path, path: &Path) -> Result<PathBuf> {
-    let resolved = agentrig::paths::resolve(path)?;
+    let resolved = crate::paths::resolve(path)?;
     let exists = resolved.is_file();
     if exists {
         return Ok(resolved);

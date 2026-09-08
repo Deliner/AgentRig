@@ -1,7 +1,7 @@
 mod capabilities;
 mod client;
 mod validation;
-pub use agentrig::environment::Frontend;
+pub use crate::environment::Frontend;
 pub use capabilities::{Capabilities, Resource};
 pub use client::{Agent, Api};
 // DECISION: D005
@@ -32,9 +32,9 @@ pub struct Config {
     pub capabilities: Capabilities,
     #[serde(
         default,
-        skip_serializing_if = "agentrig::environment::Environment::is_empty"
+        skip_serializing_if = "crate::environment::Environment::is_empty"
     )]
-    pub environment: agentrig::environment::Environment,
+    pub environment: crate::environment::Environment,
     #[serde(default, alias = "git")]
     pub vcs: Vcs,
     #[serde(default)]
@@ -89,7 +89,7 @@ pub struct Command {
     #[serde(default)]
     pub read_only: bool,
     #[serde(default)]
-    pub lifetime: agentrig::jobs::Lifetime,
+    pub lifetime: crate::jobs::Lifetime,
 }
 #[derive(Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -201,7 +201,7 @@ pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
             && !path.components().any(|c| matches!(c, Component::ParentDir)),
         "path must stay relative to project: {value}"
     );
-    let resolved = agentrig::paths::resolve(&root.join(path))?;
+    let resolved = crate::paths::resolve(&root.join(path))?;
     ensure!(resolved.starts_with(root), "path escapes project: {value}");
     Ok(resolved)
 }

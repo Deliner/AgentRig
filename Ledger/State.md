@@ -8,46 +8,34 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: b77e5fd
+Revision: aeb8c5b
 
-Installed runtime 9aee4ae is available. Contextual Git query ownership is committed in b77e5fd. The current P009 VAC consolidates commit/reference guards into the existing scaffold/git.rs delivery owner and removes scaffold's dependency on hooks. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae remains available. Git query ownership and delivery guard consolidation are committed. The current VAC compiles hooks and scaffold in the library, moves optional JSON input helpers into hooks/input.rs and adds the hook directory contract. P009 acceptance and integration remain pending.
 
 ## Progress
 
-Inventory, repair guidance, Rust binding analysis, delegation/environment/review ownership and declaration/use cycle correction are committed. Standard Rust module declarations remain subject to access checks but no longer manufacture use cycles. Calls, imports, type references and reexports retain cycle checks.
+Expanded inventories, repair guidance, four-language dependency analysis and measured Rust binding fixes are committed. Standard module declarations retain access checks without manufacturing use cycles. Calls, imports, type references and reexports retain cycle checks.
 
-Extraction model/context, rule identities and atomic JSON persistence have independent owners with preserved public paths. Commit checks use affected groups plus configuration smoke tests, never automatic full fallback; merge remains full.
+Delegation, environment, review, lint configuration/discovery, resource bundles, arguments and paths have cohesive owners and contracts. Static lint definitions remain independent of the sibling catalogue that composes language handlers. Contextual Git queries retain inherited environment and raw error semantics separately from the isolated VCS runner. Branch guards now belong with scaffold delivery.
 
-Lint configuration, inventory and selection now own their implementations in separate modules. The catalogue composes static rule definitions with language capabilities as a sibling owner; it must not live inside the static rules boundary, which language handlers depend on. Architecture settings belong with rule definitions, and rules.rs preserves explicit public exports. Existing Rust module paths, CLI and YAML behavior remain unchanged. Current decision application links follow relocated marked owners. Six new contracts describe these owners and the lint/architecture parents with exact inventories and public dependencies.
+Current hook input helpers preserve util::object and util::text compatibility exports. Hook/scaffold references now use crate paths inside the library; main imports the same services through agentrig. No duplicated module compilation or path attributes were introduced. Other util exports remain compatibility aliases.
 
 ## Verification
 
-Commit d4f1a21 passed its selective gate (27399 exited 0): 493 Python cases in 526.72 seconds plus configured Rust and other checks. Its wide affected set covered delegation, jobs, setup and evidence; it did not run the full suite. Pytest selection uses nonoverlapping whole targets after a measured file/node overlap was corrected. Full-merge behavior remains unchanged.
+Commit b77e5fd passed its selective gate: 692 Python cases in 546.88 seconds plus Rust and other checks. Commit aeb8c5b passed its selective retry (95600 exited 0): 418 Python cases in 592.39 seconds plus all other configured checks. Its earlier unchanged review test timeout did not recur in the focused retry or final commit gate.
 
-Commit e042b69 passed the selective gate (4296 exited 0): 251 Python cases in 31.90 seconds plus configured Rust and other checks. It removed three lint cycles without adding new ones.
+Current library ownership compiles with cargo check --all-targets (14845). Two colocated hook input tests pass, covering missing/malformed/non-object state and string/default field behavior. All 35 hook/reminder native cases pass (12592, 1.19 seconds). Structural lint has no errors.
 
-Commit 66e5dc7 passed its selective gate (58310 exited 0). Resolver implementations and their tests share owners; all resolver/runner directories now have contracts. Its self-analysis reported 29 cycles and 18 missing contracts.
-
-Commit 8d4990c passed its selective gate (16954 exited 0): 491 Python cases in 588.90 seconds and configured Rust checks. It removed two root/delegation cycles, leaving 27 cycles and 18 missing contracts.
-
-Commit dece9c0 passed its selective gate (80052 exited 0): 617 Python cases in 514.16 seconds and configured Rust checks. It removed the lint/root cycle, leaving 26 cycles and 18 missing contracts.
-
-Shared path ownership was committed in eaee21b through the selective gate (89697 exited 0): 418 Python cases in 506.78 seconds plus configured Rust and other checks. Its self-analysis left 25 cycles and 18 missing contracts.
-
-Current Git ownership preserves inherited GIT_DIR/GIT_WORK_TREE, trimmed UTF-8 output and raw Git stderr failures; the existing isolated VCS runner retains its separate environment semantics. Hooks and jobs call the VCS owner directly. Two colocated Rust tests pass after extracting repository setup into a helper; structural lint reports no errors. Two native command/rebase tests pass (75400, 14.67 seconds). Candidate self-analysis in .tmp/p009-git-owner.json removes the root/delegate/run/jobs/root cycle without new cycles, leaving 24 cycles and 18 missing contracts. Commit verification is pending.
-
-Git query ownership was committed in b77e5fd after correcting inline test placement. The retry (32967 exited 0) passed 692 Python cases in 546.88 seconds, Rust tests, Clippy and all other configured checks.
-
-Current delivery guard consolidation keeps the original function bodies, updates their two scaffold callers and migrates D019's current application link. Three Git/Mercurial consumer cases pass (47203, 55.97 seconds). The existing divergent-rebase test now also attempts deletion of the integrated feature and verifies that the guard rejects it and preserves the reference; this updated case passes separately (34988, 2.46 seconds). Structural lint reports no errors. Candidate self-analysis in .tmp/p009-delivery-guards.json removes the hooks/scaffold/hooks cycle without new cycles or other findings, leaving 23 cycles and 18 missing contracts. Commit verification remains pending.
-
-The first delivery guard commit attempt (88068 exited 1) passed 418 Python cases in 552.59 seconds, then failed the unchanged review execution case external_review_and_repair_preserve_revision_scope_and_workspace with a timeout before role launch. The complete staged review-test retry (93691 exited 0) passed without code changes. Commit retry remains pending; this is not a completed VAC.
+Candidate self-analysis (90973, .tmp/p009-hook-services.json) removes nine root-related cycles without adding cycles or other findings, leaving 14 cycles and 17 missing contracts. Hook inventory and permissions pass. Current commit verification remains pending.
 
 ## Blockers
 
-No current blocker. Preserve permissions and maintained-source coverage.
+No current blocker. Preserve behavior, permissions and maintained-source coverage.
 
 ## Next action
 
-Commit delivery guard consolidation through the affected gate, then continue remaining contracts and utility/scaffold ownership. The user reiterated that full checks belong only on merge; current affected groups are coarse and shared VCS changes select most Python groups. Refine selection against actual consumers without replacing the mandatory gate with an ad hoc subset. Hook object/text helpers are hook-owned. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
+Finish reviewing and commit hook service/library ownership through the affected gate. Then repair remaining scaffold cycles and missing contracts, using actual owners and consumers. util.rs contains only compatibility reexports; preserve their public paths when completing the root inventory. Do not create arbitrary buckets or hide cycles through aliases.
 
-Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.
+The user requires affected commit tests plus a fast baseline, with the full suite only on merge. Repository catchall smoke selection prevents automatic full fallback, but current groups remain coarse and expensive. Refine selection against actual consumers; pytest targets must not overlap whole files/directories with contained nodes, because that can silently narrow collection. Required hooks remain authoritative.
+
+Complete architecture coverage across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Discovery skips symlinks; canonical skills are under tooling/worker/assets/skills. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

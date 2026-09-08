@@ -1,6 +1,6 @@
 // DECISION: D006
+use super::input::{object, text};
 use super::transcript;
-use crate::util::{object, text};
 use anyhow::{Context, Result};
 use fs2::FileExt;
 use serde_json::{Value, json};

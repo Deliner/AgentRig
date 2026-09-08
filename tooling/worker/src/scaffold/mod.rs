@@ -64,7 +64,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
     );
     if jobs {
-        return agentrig::jobs::cli(&context.path(&context.config.paths.runtime)?, command, args);
+        return crate::jobs::cli(&context.path(&context.config.paths.runtime)?, command, args);
     }
     match command {
         "job-start" => commands::background(&context, args),

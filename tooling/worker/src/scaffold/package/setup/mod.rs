@@ -47,7 +47,7 @@ pub(crate) fn update(root: &Path, path: &Path) -> Result<(Config, Files)> {
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let mut args = args.to_vec();
     let external =
-        agentrig::arguments::take_option(&mut args, "--config")?.map(std::path::PathBuf::from);
+        crate::arguments::take_option(&mut args, "--config")?.map(std::path::PathBuf::from);
     let preview = args == ["--preview"];
     ensure!(
         args.is_empty() || preview,

@@ -4,7 +4,7 @@ mod lint;
 mod review;
 
 use super::{Config, Files, config, manifest};
-use agentrig::{composition, resources};
+use crate::{composition, resources};
 use anyhow::{Context, Result, ensure};
 use std::{
     fs,
