@@ -10,13 +10,13 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.scaffold.test_commands import (
+from tooling.tests.native.scaffold.test_feedback import commit as revision_commit
+from tooling.tests.native.scaffold.test_feedback import evidence, repository, resumed, revision
+from tooling.worker.src.scaffold.commands.tests.consumer import (
     background_id,
     require_user_systemd,
     wait_for_background_output,
 )
-from tooling.tests.native.scaffold.test_feedback import commit as revision_commit
-from tooling.tests.native.scaffold.test_feedback import evidence, repository, resumed, revision
 from tooling.worker.src.scaffold.testing.consumer import git as git_result
 from tooling.worker.src.scaffold.testing.consumer import invoke, update_config, vcs_backend
 

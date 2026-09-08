@@ -48,6 +48,7 @@ allow:
   - tooling/worker/src/resources/mod.rs
 deny: []
 public:
+  - commands/tests/consumer.py
   - package/setup/tests/consumer.py
   - memory/tests/consumer.py
   - testing/consumer.py

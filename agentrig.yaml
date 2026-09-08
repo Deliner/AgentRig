@@ -367,7 +367,9 @@ checks:
     - tooling/worker/src/scaffold/upgrade/tests/**
     targets:
     - tooling/worker/src/scaffold/package/setup/tests/test_capabilities.py
-    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/worker/src/scaffold/commands/tests/test_commands.py
+    - tooling/worker/src/scaffold/config/tests/test_configuration.py
+    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
     - tooling/tests/native/scaffold/test_feedback.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
@@ -404,7 +406,9 @@ checks:
     - tooling/worker/src/scaffold/process.rs
     - tooling/worker/src/scaffold/commands/**
     targets:
-    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/worker/src/scaffold/commands/tests/test_commands.py
+    - tooling/worker/src/scaffold/config/tests/test_configuration.py
+    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
     - tooling/worker/src/scaffold/memory/tests/test_memory.py
     - tooling/tests/native/scaffold/test_gate.py
     - tooling/tests/native/scaffold/test_git.py
@@ -424,7 +428,9 @@ checks:
     targets:
     - tooling/worker/src/hooks/tests/test_hooks.py
     - tooling/worker/src/hooks/tests/test_reminders.py
-    - tooling/tests/native/scaffold/test_commands.py
+    - tooling/worker/src/scaffold/commands/tests/test_commands.py
+    - tooling/worker/src/scaffold/config/tests/test_configuration.py
+    - tooling/worker/src/scaffold/commands/tests/test_jobs.py
     - tooling/tests/native/scaffold/test_git.py
   - include:
     - tooling/worker/src/scaffold/package/**

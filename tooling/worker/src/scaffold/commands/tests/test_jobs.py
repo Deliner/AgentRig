@@ -8,63 +8,12 @@ from typing import Any
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
-
-
-def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path)
-    assert invoke(worker, tmp_path, "config-check").returncode == 0
-    result = invoke(worker, tmp_path, "run", "echo", "--", "a b", "$(no-shell)", input="input data")
-    assert result.returncode == 0, result.stderr
-    assert "['a b', '$(no-shell)']" in result.stdout
-    assert "input data" in result.stdout
-    assert result.stderr == "stderr\n"
-    assert invoke(worker, tmp_path, "run", "fail").returncode == 23
-    records = json.loads(invoke(worker, tmp_path, "jobs").stdout)
-    assert sorted(record["exit_code"] for record in records) == [0, 23]
-    assert not (tmp_path / ".runtime/commands.jsonl").exists()
-    assert "fail 1 1" in invoke(worker, tmp_path, "report").stdout
-    assert invoke(worker, tmp_path, "run", "unknown").returncode == 2
-    assert invoke(worker, tmp_path, "run", "fail", "extra").returncode == 2
-
-
-@pytest.mark.parametrize(
-    ("old", "new"),
-    [
-        ('runtime: "0.3.0"', 'runtime: "9.0.0"'),
-        ("version: 1", "version: 7"),
-        ("paths:", '\nprocesses:\n  foreground: "unknown"\npaths:\n\n'),
-        ('memory: "notes"', 'memory: "../outside"'),
-        ("read_only: true", 'read_only: "true"'),
-        ("accepts_args: true", "accept_arg: true"),
-        ('skills: "guides"', 'skills: "/outside"'),
-        ('base: "trunk"', 'base: "bad branch"'),
-        ('base: "trunk"', 'base: "topic.lock"'),
-        ('prefix: "task/"', 'prefix: "trunk"'),
-        ('prefix: "task/"', 'prefix: "task//"'),
-        ("read_only: true", 'read_only: true\nlifetime: "forever"'),
-    ],
+from tooling.worker.src.scaffold.commands.tests.consumer import (
+    background_id,
+    require_user_systemd,
+    wait_for_background_output,
 )
-def test_configuration_errors(worker: Path, tmp_path: Path, old: str, new: str) -> None:
-    assert old in CONFIG
-    project(tmp_path, CONFIG.replace(old, new))
-    result = invoke(worker, tmp_path, "config-check")
-    assert result.returncode == 2
-    assert "ACTION:" in result.stderr
-
-
-def test_read_isolation(worker: Path, tmp_path: Path) -> None:
-    project(tmp_path)
-    target = tmp_path / "src/protected"
-    target.write_text("original")
-    result = invoke(
-        worker, tmp_path, "run", "read", "--", "sh", "-c", "echo replaced > src/protected"
-    )
-    assert result.returncode != 0
-    assert target.read_text() == "original"
-    result = invoke(worker, tmp_path, "run", "read", "--", "cat", "src/protected")
-    assert result.returncode == 0, result.stderr
-    assert result.stdout == "original"
+from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
 
 
 def test_signal_reaches_child(worker: Path, tmp_path: Path) -> None:
@@ -214,13 +163,6 @@ def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -
     assert (directory / "stderr.log").read_bytes() == result.stderr
 
 
-def background_id(worker: Path, root: Path, command: str = "wait") -> str:
-    result = invoke(worker, root, "job-start", command)
-    assert result.returncode == 0, result.stderr
-    identifier: str = json.loads(result.stdout)["run_id"]
-    return identifier
-
-
 def test_foreground_scope_preserves_input_and_streams(worker: Path, tmp_path: Path) -> None:
     require_user_systemd()
     project(tmp_path, CONFIG + '\nprocesses:\n  foreground: "systemd"\n')
@@ -314,30 +256,6 @@ def test_foreground_scope_cancels_detached_descendant(
         cleanup = invoke(worker, tmp_path, "job-cleanup")
         assert cleanup.returncode == 0, cleanup.stderr
         process.wait(timeout=5)
-
-
-def require_user_systemd() -> None:
-    result = subprocess.run(
-        ["systemctl", "--user", "show", "--property=Version"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    unavailable = result.returncode != 0
-    if unavailable:
-        pytest.skip("background scope integration requires a systemd user manager")
-
-
-def wait_for_background_output(worker: Path, root: Path, identifier: str) -> None:
-    deadline = time.monotonic() + 5
-    while time.monotonic() < deadline:
-        result = invoke(worker, root, "job-logs", identifier)
-        assert result.returncode == 0, result.stderr
-        ready = "ready" in json.loads(result.stdout)["stdout"]["text"]
-        if ready:
-            return
-        time.sleep(0.01)
-    raise AssertionError("background child did not produce readiness output")
 
 
 def test_background_ownership_and_descendant_cleanup(

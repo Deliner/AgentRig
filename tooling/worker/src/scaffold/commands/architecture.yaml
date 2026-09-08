@@ -3,11 +3,13 @@ files:
   architecture.yaml: Command execution responsibilities and consumer boundary
   mod.rs: Catalog arguments, foreground/background execution and job reporting
   process.rs: Read-only sandbox commands and tracked subprocess execution
-directories: {}
+directories:
+  tests: Configured execution, managed job lifecycle and shared command fixtures
 allow:
+  - tooling/worker/src/scaffold/testing/consumer.py
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/jobs/mod.rs
   - tooling/worker/src/jobs/process.rs
   - tooling/worker/src/jobs/report.rs
 deny: []
-public: [mod.rs, process.rs]
+public: [mod.rs, process.rs, tests/consumer.py]
