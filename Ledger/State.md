@@ -8,9 +8,9 @@ Deliver active P009: complete architecture maps and feature/module ownership acr
 
 Branch: feature/architecture-ownership
 
-Revision: dece9c0
+Revision: eaee21b
 
-Installed runtime 9aee4ae is available. Shared argument ownership is committed in dece9c0. The current P009 VAC moves shared path resolution from mixed util.rs to paths/mod.rs with colocated behavior tests and an exact contract. P009 acceptance and integration remain pending.
+Installed runtime 9aee4ae is available. Shared path ownership is committed in eaee21b. The current P009 VAC moves inherited-context Git queries from util.rs to the existing review VCS owner, preserving the compatibility export and behavior. P009 acceptance and integration remain pending.
 
 ## Progress
 
@@ -32,7 +32,11 @@ Commit 8d4990c passed its selective gate (16954 exited 0): 491 Python cases in 5
 
 Commit dece9c0 passed its selective gate (80052 exited 0): 617 Python cases in 514.16 seconds and configured Rust checks. It removed the lint/root cycle, leaving 26 cycles and 18 missing contracts.
 
-Current path ownership preserves util::resolve as an explicit compatibility export; hooks, configuration, memory, setup and migration use the actual owner. The resolver still permits missing tails and leaves project-boundary enforcement to callers. Three path tests pass (24586), covering normalization, relative/absolute links, dangling links and cycles. Five hook/interactive setup cases pass in 5.96 seconds (97934). Candidate self-analysis (92241, .tmp/p009-paths-owner.json) removes one root/hooks/scaffold/memory/upgrade/root cycle without new cycles or other findings, leaving 25 cycles and 18 missing contracts. Scaffold's affected map covers paths/**. Final selective commit verification remains pending.
+Shared path ownership was committed in eaee21b through the selective gate (89697 exited 0): 418 Python cases in 506.78 seconds plus configured Rust and other checks. Its self-analysis left 25 cycles and 18 missing contracts.
+
+Current Git ownership preserves inherited GIT_DIR/GIT_WORK_TREE, trimmed UTF-8 output and raw Git stderr failures; the existing isolated VCS runner retains its separate environment semantics. Hooks and jobs call the VCS owner directly. Two colocated Rust tests pass after extracting repository setup into a helper; structural lint reports no errors. Two native command/rebase tests pass (75400, 14.67 seconds). Candidate self-analysis in .tmp/p009-git-owner.json removes the root/delegate/run/jobs/root cycle without new cycles, leaving 24 cycles and 18 missing contracts. Commit verification is pending.
+
+The first Git ownership commit attempt (47542) ran 692 Python cases successfully in 550.15 seconds and passed Rust behavior tests, then failed review-clippy because the inline test module preceded production items. The test block is now last in the file, with unchanged contents; the exact staged review-clippy retry passes. The commit is still pending and requires its configured gate again.
 
 ## Blockers
 
@@ -40,6 +44,6 @@ No current blocker. Preserve permissions and maintained-source coverage.
 
 ## Next action
 
-Commit shared path ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. Hook object/text helpers are hook-owned; Git queries belong with the VCS owner. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
+Commit Git query ownership through the affected gate, then continue remaining contracts and utility/scaffold ownership. The user reiterated that full checks belong only on merge; current affected groups are coarse and shared VCS changes select most Python groups. Refine selection against actual consumers without replacing the mandatory gate with an ad hoc subset. Hook object/text helpers are hook-owned. Hooks and scaffold currently compile in the binary, while util.rs belongs to the library: account for that boundary when preserving public consumers rather than introducing duplicated implementations or unsupported path attributes. Preserve behavior and do not create another mixed shared bucket. Integration still requires the full gate.
 
 Then continue worker lint/scaffold ownership and measured dependency repairs. Complete inventory and dependency checks across maintained source/tests/docs/resources and justify service/generated/third-party exclusions. The Python probe in .tmp/p009-python.yaml reports 69 unresolved local test imports and 12 missing contracts; assess explicit package imports before adding resolver modes. Existing discovery skips symlinks; canonical skills live under tooling/worker/assets/skills rather than the .agents/skills alias. Enable expanded checked policy, verify full P009 acceptance and integrate with feature-merge, retaining the branch.

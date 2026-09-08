@@ -12,6 +12,7 @@ mod observation;
 mod registration;
 mod source;
 pub use generation::{Generated, Generation};
+pub use git::context_text as git_context;
 pub use observation::Observation;
 pub use registration::Settings;
 pub use source::{Backend, Source};

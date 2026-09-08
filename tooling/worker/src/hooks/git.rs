@@ -1,6 +1,6 @@
 // DECISION: D019
-use crate::util::git;
 use anyhow::Result;
+use review_runner::vcs::git_context as git;
 use std::{
     io::{self, Read},
     path::Path,

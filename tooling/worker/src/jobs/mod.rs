@@ -78,7 +78,7 @@ impl Job {
             .to_string_lossy()
             .into_owned();
         let owner = owner().unwrap_or_else(|| run_id.clone());
-        let branch = crate::util::git(project, &["branch", "--show-current"])
+        let branch = review_runner::vcs::git_context(project, &["branch", "--show-current"])
             .ok()
             .filter(|value| !value.is_empty());
         let record = Record {
