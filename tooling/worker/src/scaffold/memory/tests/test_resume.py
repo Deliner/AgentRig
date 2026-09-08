@@ -44,6 +44,22 @@ def test_resume_resolves_state_revision(worker: Path, tmp_path: Path, vcs: str) 
     assert value["state_revision"]["head_changed"] is True
 
 
+@pytest.mark.parametrize("vcs", ["git", "hg"])
+def test_resume_does_not_verify_branch_only_state(worker: Path, tmp_path: Path, vcs: str) -> None:
+    repository(tmp_path, vcs)
+    initial = resumed(worker, tmp_path)
+    state = tmp_path / "notes/State.md"
+    state.write_text(state.read_text() + f"\nBranch: {initial['vcs']['branch']}\n")
+    assert resumed(worker, tmp_path)["snapshot"] == "unverified"
+    commit(tmp_path, vcs)
+    result = resumed(worker, tmp_path)
+    assert result["vcs"]["revision"] != initial["vcs"]["revision"]
+    assert result["snapshot"] == "unverified"
+    assert result["state_revision"]["head_changed"] is None
+    state.write_text(state.read_text().replace("Branch: ", "Branch: another-"))
+    assert resumed(worker, tmp_path)["snapshot"] == "stale"
+
+
 @pytest.mark.parametrize("operation", ["merge", "rebase"])
 # INVARIANT: I019
 def test_resume_observes_real_conflict(worker: Path, tmp_path: Path, operation: str) -> None:
