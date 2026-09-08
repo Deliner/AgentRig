@@ -5,13 +5,17 @@ from pathlib import Path
 
 import pytest
 
-from tooling.tests.native.test_delegate_code import SCRIPT, code_consumer, code_request
-from tooling.tests.native.test_delegate_run import call, consumer, terminal
+from tooling.worker.src.delegate.code.tests.test_delegate_code import (
+    SCRIPT,
+    code_consumer,
+    code_request,
+)
+from tooling.worker.src.delegate.testing.consumer import call, consumer, terminal
 
 
 def backend(external: bool) -> str | dict[str, list[str]]:
     if external:
-        script = Path(__file__).resolve().parents[2] / "worker/examples/external_vcs.py"
+        script = Path(__file__).resolve().parents[4] / "examples/external_vcs.py"
         return {"command": ["python3", "-B", str(script)]}
     return "mercurial"
 

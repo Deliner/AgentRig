@@ -3,7 +3,8 @@ files:
   architecture.yaml: Profile configuration inventory and dependency boundary
   mod.rs: Configuration schema, profile types and resource resolution entry points
   validation.rs: Profile, frontend and credential validation
-directories: {}
+directories:
+  tests: Verify delegate profile validation through the CLI
 allow:
   - tooling/worker/src/environment/mod.rs
   - tooling/worker/review/src/config/mod.rs

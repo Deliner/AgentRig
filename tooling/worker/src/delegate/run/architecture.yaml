@@ -6,8 +6,11 @@ files:
   report.rs: Artifact collection, final reports and interrupted cleanup recovery
   mcp.rs: MCP adapter for delegate lifecycle operations
   start.json: Input schema for the delegate_start MCP operation
-directories: {}
+directories:
+  tests: Verify delegate lifecycle, results and MCP behavior
 allow:
+  - tooling/worker/src/delegate/testing/consumer.py
+  - tooling/worker/src/delegate/testing/mcp.py
   - tooling/worker/src/delegate/config/mod.rs
   - tooling/worker/src/delegate/code/mod.rs
   - tooling/worker/src/delegate/task/mod.rs

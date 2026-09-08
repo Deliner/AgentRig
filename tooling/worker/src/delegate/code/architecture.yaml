@@ -3,8 +3,11 @@ files:
   architecture.yaml: Responsibility inventory and public dependency boundary for delegate code changes
   mod.rs: Workspace creation, patch generation and validation of changed files
   tests.rs: Behavioral checks for snapshot preservation, write scope, binary patches and executable modes
-directories: {}
+directories:
+  tests: Verify scoped code delivery and version control preservation
 allow:
+  - tooling/worker/src/delegate/testing/consumer.py
+  - tooling/worker/src/delegate/testing/mcp.py
   - tooling/worker/review/src/artifacts/mod.rs
   - tooling/worker/review/src/config/mod.rs
   - tooling/worker/review/src/snapshot/mod.rs

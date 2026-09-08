@@ -3,6 +3,7 @@ files:
   architecture.yaml: Delegation module responsibilities and enclosing dependency boundary
   mod.rs: Delegation module exports and direct CLI routing
 directories:
+  testing: Construct delegate consumers and shared RPC clients for behavior tests
   code: Isolated code workspace and validated patch generation
   config: Delegate profile schema and resource validation
   run: Job lifecycle, execution, reports and MCP adapter

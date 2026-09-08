@@ -2,57 +2,44 @@
 
 ## Focus
 
-Deliver active P009: complete architecture maps and feature/module ownership across maintained AgentRig source, tests, documentation and resources. Full acceptance and integration remain unfinished.
+Deliver active P009: complete architecture maps and feature/module ownership across maintained AgentRig source, tests, documentation and resources. Acceptance and integration remain unfinished.
 
 ## Workspace
 
 Branch: feature/architecture-ownership
 
-Revision: ca3d4eb
+Revision: 9c645e2
 
-Installed runtime 9aee4ae remains pinned. Architecture Python test ownership is committed as ca3d4eb. Current unfinished VAC relocates the seven remaining lint test files into config/tests, languages/tests, inventory/tests and lint/tests. Shared configure now lives in lint/testing/consumer.py. Exact oracle paths, invariant links/details, decision application links and command selectors follow the same test bodies. Temporary external public exposure of the common fixture is removed now that all consumers belong to lint. No commit gate is running.
+Installed runtime 9aee4ae remains pinned. Current unfinished VAC colocates five delegate Python test files with run, code and config; shared consumer construction and MCP clients live in delegate/testing. No commit gate has started for this VAC yet.
 
 ## Progress
 
-Expanded exact inventories, repair guidance, four-language dependency analysis and Rust binding fixes are committed. Module declarations retain access checks without manufacturing use cycles; actual imports, calls, types and reexports retain cycle checks.
+Expanded exact inventories, repair guidance, four-language dependency analysis and Rust binding fixes are committed. Literal file-level Rust module paths are supported with explicit unsupported-form diagnostics and compiler parity tests.
 
-Rust capabilities have directory contracts. Python tests import local modules by full paths; pytest retains its default import mode with the repository import root. Native Python test colocation and broader maintained-tree coverage are still pending.
+Review tests now belong to execution, run, MCP, configuration, snapshot and VCS. Repository fixture builders stay with VCS; common review fixtures live in review/testing. Reverse VCS-to-config/snapshot and run-to-MCP test dependencies were removed.
 
-Review tests now belong to their actual behavior owners. MCP scenario moved from run; YAML selection scenarios moved from VCS to configuration; snapshot scenarios moved from VCS to snapshot. Native/external repository builders are shared from vcs/tests with explicit public file boundaries. VCS no longer depends on configuration or snapshot. All 54 original relocated test names remain; the mixed external YAML/adapter scenario retains YAML assertions under its original name and adapter resolution under a new VCS test name.
+All lint Python tests now live beside architecture, config, languages, inventory or composed CLI behavior. Shared consumer setup lives in lint/testing. Common pytest worker selection lives in tooling/conftest.py and preserves WORKER_BINARY behavior. Exact oracle paths and decision application links follow the original test bodies. No external exposure of lint test fixtures remains after their consumers moved into lint.
 
-P010 is separately planned and pending. Its recorded candidate reproduction confirms malformed configuration blocks diagnostic read and repair events with a misleading generic message. Do not implement it instead of P009 or touch voxel-rust.
+Current delegate moves preserve scenario bodies: test_delegate_run.py and test_delegate_mcp.py under run/tests; test_delegate_code.py and test_delegate_vcs.py under code/tests; test_delegate_config.py under config/tests. Shared helpers extracted from old run/MCP test modules now live in delegate/testing/consumer.py and mcp.py. Imports, example adapter path, command inputs and affected test targets follow the moves. Exact contracts describe all four new directories.
+
+P010 is separately planned and pending for malformed-configuration hook deadlock. Do not implement it instead of P009 or touch voxel-rust.
 
 ## Verification
 
-Commit 88878 exited 0 and created ca3d4eb: 94 Rust tests, 253 selected Python tests in 29.84 seconds, review tests and all configured checks passed.
+Latest committed VAC 9c645e2 passed normal gate 72033: 94 Rust tests, 253 selected Python tests, review tests and all configured checks. Prior ca3d4eb passed gate 88878: 94 Rust tests, 253 Python tests in 29.84 seconds, review tests and all checks. Review ownership a371fd0 passed retry 71837: 73 Rust tests and 694 Python tests in 525.07 seconds plus review and other checks.
 
-Current remaining lint test relocation: session 83095 exited 0 with 224 tests passing in 17.67 seconds; mypy passes 52 sources; Ruff and memory check 46711 pass. All four moved invariant oracles executed as part of these tests. Shared configure and fixture consumers preserve behavior. Combined Rust/Python probe reports no new access or cycle findings; outstanding older contracts and the example Rust root still need final coverage. Removed evacuated tooling/tests/native/lint after verifying it contained only generated pyc caches. A trailing blank line after configure was corrected by the formatter.
+Current delegation relocation passes 73 tests in 38.09 seconds (89216 terminal 0), mypy across 54 sources, Ruff, formatting, memory check 35550, structural lint and git diff --check. No commit or integration proof yet for these changes.
 
-Latest Python ownership verification: common prepare/lint/explain helpers now live in lint/testing/consumer.py, with exact public boundaries for existing external test consumers. Architecture tests import this fixture instead of old test modules. Session 71401 exited 0: 224 affected architecture/scalar/configuration/explanation consumers passed in 17.64 seconds. Ruff passes, mypy passes 52 sources, memory check 83189 passed. Ruff-format found one trailing blank line in the new fixture; formatter corrected it. Combined Rust/Python probe .tmp/p009-combined.yaml has no new dependency/access/cycle findings: remaining findings are 12 preexisting missing contracts and two incomplete-root findings for the newly included Rust example. Full maintained-tree acceptance is still pending.
-
-
-Commit retry 71837 exited 0 and created a371fd0: 73 Rust tests, 694 selected Python tests in 525.07 seconds, all review tests and every configured check passed. Initial formatting failure below is resolved.
-
-Current architecture Python relocation: 149 tests passed in 10.94 seconds (37794 terminal 0); complete pytest collection reports 701 cases (5360 terminal 0); mypy passes all 51 sources. Exact new test contract and parent child responsibility added. Full Python architecture analysis has not yet been rerun with the new source paths.
-
-Commit gate 44819 terminated with exit 1 at review-rustfmt after passing 73 Rust tests, 694 selected Python tests in 544.37 seconds, all review behavior tests and other configured checks. Formatting the main Cargo manifest had not formatted the separate review crate. Explicit cargo fmt for tooling/worker/review/Cargo.toml corrected the listed files; focused just check --only review-rustfmt --staged now passes. This is not a successful commit; normal retry remains required.
-
-Latest temporary Rust architecture probe, just candidate lint --config .tmp/p009-self.yaml --json, exited 0 with [] after adding MCP and both snapshot test roots. This supersedes the earlier 24/244 findings. Scope covers configured Rust roots plus review fixtures, not full P009 maintained-tree acceptance.
-
-Focused review checks passed: session 59927 had 14 execution + 1 MCP; 66365 had 6 YAML + 10 native VCS + 13 external VCS before snapshot relocation; final session 65255 had 8 native VCS + 12 external VCS + 2 native snapshot + 1 external snapshot. The only relocation compile error was a missing Path and unused hg import, both corrected. Clippy sessions 47772 and 60593 exited 0. Both native test_review.py consumers passed in 0.14 seconds. git diff --check passed; original relocated scenario-name audit found no missing names.
-
-Literal Rust path support previously passed 25 source/resolver tests with compiler parity (8540) and 12 native module-wiring cases across both binaries (44462). Supports literal file-level external modules including raw unescaped strings and sibling paths in discovered sources; unsupported forms stay explicit. Source inventory does not assume modules lie below the crate root parent.
-
-HEAD 9b903a2 normal commit gate 25008 passed: 696 selected Python tests in 661.42 seconds and all configured checks, Rust/review skipped. This proves that prior commit, not the current unfinished VAC. No full integration gate has run for P009.
+Combined Rust/Python probe .tmp/p009-combined.yaml reports no new access/cycle/unresolved import findings. Remaining findings are 11 older missing contracts under tooling/tests and examples plus two incomplete-root findings for the Rust example. This probe covers source extensions and is not full maintained-tree acceptance. Main checked tooling/worker/lint.yaml still does not enable architecture.
 
 ## Blockers
 
-No operational blocker. Preserve behavior, architectural permissions and the full maintained-tree scope. Root agentrig.yaml is strict and does not support setup configuration packages; do not extract packages into its root or update the installed pin as a workaround.
+No operational blocker. Preserve behavior, exact oracles, permissions and full maintained-tree scope. Root agentrig.yaml is strict; do not extract unsupported configuration packages or update the installed pin as a workaround.
 
 ## Next action
 
-Inspect and stage the current remaining-lint-test ownership VAC, run the normal commit hook and resolve actual findings. Include exact oracle/application links and configured test/type-check targets. All lint Python tests now live with their capabilities; do not leave duplicate directory/file pytest selections. Then continue scaffold, delegation, upgrade and distribution test ownership and maintained docs/resources coverage.
+Inspect and stage the delegate test ownership VAC, commit through the normal hook and resolve actual findings. Keep the current VAC isolated until accepted. Resume a live gate by its recorded process handle; do not restart a quiet process.
 
-Then colocate native Python behavior tests with responsible features, updating exact check targets, invariant oracle bindings, decision application links, fixture discovery and __file__ resource paths. Read matching memory skills before those edits.
+Then colocate remaining native Python tests: scaffold behavior with commands/gate/hooks/memory/package/setup owners, upgrades with upgrade, launcher with distribution and review CLI consumers with review. Shared helpers must remain with actual owners. Update configured check targets, invariant oracles, decision application links, fixture discovery and __file__ paths; read matching memory skills first. Existing scaffold helpers have actual feedback/gate/Git cycles that need ownership repair, not exclusion.
 
-Broaden architecture coverage to maintained tests, docs and resources with explicit justified service/generated/third-party exclusions and exact responsibilities. Canonical skills live under tooling/worker/assets/skills; symlinks are skipped. Enable architecture in checked tooling/worker/lint.yaml, verify both binaries and all four languages, complete full P009 acceptance and integrate through feature-merge while retaining the branch. A clean Rust probe alone is not completion.
+Broaden architecture to maintained tests, docs and resources with explicit justified service/generated/third-party exclusions and exact descriptions. Configure the example Rust crate root and all maintained language roots; canonical skills live under tooling/worker/assets/skills and symlinks are skipped. Enable architecture in checked lint.yaml, verify both binaries and all four languages, complete full P009 acceptance and integrate through feature-merge while retaining the branch. A clean subset probe alone is not completion.

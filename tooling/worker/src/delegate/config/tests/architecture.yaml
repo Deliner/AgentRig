@@ -1,0 +1,8 @@
+purpose: Verify delegate profile declarations and actionable CLI validation failures
+files:
+  architecture.yaml: Delegate configuration behavior test inventory
+  test_delegate_config.py: Profile schema, frontend, resource, scope and credential validation scenarios
+directories: {}
+allow: []
+deny: []
+public: []
