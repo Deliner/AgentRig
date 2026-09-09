@@ -2,47 +2,60 @@
 
 ## Focus
 
-Implement the user's agreed feature-card skill workflow, then demonstrate a
-revised existing Backlog card in chat without saving that draft before approval.
+Commit the approved Backlog cards and drafting skill, integrate through the
+configured full gate, and push master to GitHub as explicitly requested.
 
 ## Workspace
 
-Branch: feature/agreed-feature-cards
+Branch: feature/backlog-card-review
 
-Revision: 349f366c1c35277702e7a43f1fda0edee23f7646
+Revision: 129632b85a489e6ca1b89d64cbc1da24f2882fcb
 
-Started from clean master after reconciling the preceding Plan/Archive task with
-merge 349f366. The installed development runtime remains pinned to 9aee4ae.
+Base: master. Remote: origin (Deliner/AgentRig). Fetch completed.
+Installed development runtime remains pinned to 9aee4ae.
 
 ## Progress
 
-The current maintenance VAC updates edit-backlog as the canonical owner of chat
-drafts, explicit agreement, sourced business requirements, scope restraint and
-observable acceptance. Plan and execution guidance reference the agreed Backlog
-contract and allow autonomous completion of selected sets. D032 records the
-policy successor; repository and shipped consumer instructions agree.
+The current VAC contains approved B001 recovery behavior (K1-K8), B002 hook
+coordination (K1-K14), B003 architectural outcomes (K1-K5), their index/inventory,
+and the selected drafting skill. Plan is empty; this maintenance instruction
+does not authorize implementing Backlog features.
 
-All seven existing Backlog cards remain unchanged. B001 is selected only for a
-chat drafting exercise after delivery of this skill change, not implementation
-or persistence of a revised card. Plan remains empty. No runtime agreement
-enforcement or automatic reviewer was introduced.
+B002 preserves one configured requirement order, rejects cyclic/contradictory
+ordering before application, and retains any hook's required stop.
+B003 describes desired structural properties and preserved behavior, excluding
+the previous bundle of independent audit fixes and prescribed relocations.
+
+The user approved B in the latest A/B/C comparison: mutation 3, outcome
+distinguishability. Its drafting body is embedded verbatim in canonical
+edit-backlog. Agreement, saving and autonomous Plan handoff remain in place.
+Draft-only file restrictions do not prevent approved saves.
+
+Experiments remain local, ignored artifacts. Latest comparison and report:
+.tmp/card-structures-20260909/abc-three-cards/index.html and report.md.
+Nine isolated runs compared exact mutations 1/3/4 on B004/B006/B007.
+Earlier rounds remain under .tmp/card-structures-20260909/,
+.tmp/skill-isolation-20260909/ and .tmp/backlog-ab-20260908/.
+Generated answers do not replace approved cards. No secrets are published.
 
 ## Verification
 
-The candidate built and memory-check passed. All 10 existing Backlog tests passed,
-including Codex and Claude Code installation, hook guidance and preservation.
-Rustfmt, all three changed skill validators and git diff --check passed.
-Git diff confirms no changes under Ledger/Backlog/. The affected commit gate and
-full integration gate have not yet run for this VAC.
+Canonical skill validator, candidate build/memory-check and git diff --check
+passed before integration. The selected drafting body and preserved workflow
+sections were checked exactly. Experiments verified frozen inputs, isolated
+reads, completed distinct sessions, exact outputs and the 1000-word limit.
+Their HTML previews were inspected. These are bounded observations, not
+guarantees of generalization or proof that Backlog features are implemented.
+
+Commit gate and full integration gate are pending for this VAC. Historical
+merge 129632b belongs to the preceding feature-card delivery.
 
 ## Blockers
 
-None for the authorized skill maintenance. A revised B001 may be saved only
-after the user approves the version displayed in chat.
+None.
 
 ## Next action
 
-Commit the inspected maintenance VAC through the affected gate, integrate with
-the full gate, and retain the feature branch. Then present the B001 business
-behavior and acceptance draft in chat. Reconcile this pre-commit snapshot with
-Git and check evidence before resuming after an interruption.
+Stage the seven reviewed files, commit through pre-commit, run just feature-merge,
+then push master and the retained feature branch. Confirm origin/master matches
+local master and finish with a clean retained feature branch.

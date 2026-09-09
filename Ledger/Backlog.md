@@ -10,9 +10,9 @@ B001-B007 preserve former P010-P016. Earlier requirements and related ideas are 
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B001](Backlog/001.md) | Recoverable configuration errors | Repair invalid configuration without losing unfinished edits. |
-| [B002](Backlog/002.md) | Coordinated hooks and timely architecture guidance | Receive coherent architecture guidance when hooks overlap or conflict. |
-| [B003](Backlog/003.md) | Cohesive AgentRig ownership and reliable development flows | Keep change scope narrow and development flows reliable. |
+| [B001](Backlog/001.md) | Исправление конфигурации без блокировки агента | Исправлять конфигурацию в текущей сессии без потери изменений. |
+| [B002](Backlog/002.md) | Согласованная работа хуков и понятные инструкции агенту | Понимать результат действия, требования хуков и управление их поведением. |
+| [B003](Backlog/003.md) | Структура проекта, отражающая смысл его возможностей | Находить нужное поведение и сохранять изменения локальными. |
 | [B004](Backlog/004.md) | Complete lint coverage and executable language evaluations | Verify real rule coverage across all seven requested languages. |
 | [B005](Backlog/005.md) | Explainable and verifiable consumer workflows | Understand effective workflows and recover interrupted consumer operations. |
 | [B006](Backlog/006.md) | Git-backed component catalog and shared environment constructor | Reuse versioned components across developer, reviewer and adviser environments. |

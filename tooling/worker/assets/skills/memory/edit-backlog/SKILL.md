@@ -32,77 +32,53 @@ A future idea may stay short. Elaborate only cards selected for discussion or
 upcoming execution. Offer unrelated ideas without stopping authorized work to
 seek approval; keep an unapproved draft in chat and continue the current task.
 
-## Preserve meaning and limit scope
+## Draft the report — approved B
 
-Describe business behavior: who acts, when, what they do and what they receive.
-The user does not choose code patterns, layers, modules or other implementation
-details. Ask about observable consequences only when an unresolved choice changes
-the required result. Reuse answers already supplied.
+The user approved B from the A/B/C comparison: mutation 3, outcome
+distinguishability. The following instructions govern drafting in chat.
+The later save and handoff sections govern authorized file changes.
 
-Every required behavior, constraint and acceptance criterion needs a basis in
-the user's request, an agreed clarification or an applicable project contract.
-Keep the source or short faithful wording in Context; attribute any additional
-basis next to the affected rule. Preserve the user's terms through delivery and
-acceptance. Explain terms only where ambiguity affects behavior. Label proposed
-examples and agent interpretations as unconfirmed until agreed.
+Построй рапорт вокруг различий, существенных для приёмки. Читатель должен
+понимать не только желаемое свойство, но и почему похожего результата
+может быть недостаточно.
 
-Do not invent mandatory inputs, validation, limits, normalization, formats,
-fallbacks, options or side effects. Each addition needs a concrete basis above
-or a necessary technical condition for the agreed behavior to work. Convention,
-possible usefulness and extra confidence are insufficient. Technical necessity
-does not authorize a new user-visible restriction. Discard unsupported additions
-instead of asking the user to approve every imagined precaution. Preserve
-existing applicable constraints.
+Сначала установи, какое изменение требуется и какие исходные ограничения
+нельзя потерять. Для каждого результата мысленно сопоставь:
+— требование выполнено;
+— внешне похожее состояние, в котором нарушено именно это требование.
+Выводи лишь такие различия, которые следуют из исходника. Не придумывай
+сценарии отказа и новые гарантии ради выразительного контраста.
 
-Expose consequential ambiguity through concrete different outcomes; do not guess
-the user's answer. The agent owns internal implementation choices and selects
-the simplest sufficient solution.
+Каждый основной пункт рапорта содержит требуемое состояние или поведение
+и проверяемый признак его достижения. Если исходник уже содержит приёмку,
+сохрани её смысл и идентификаторы. Пример допустим только как заменяемая
+иллюстрация существующего различия, без новых правил.
 
-## Card format and acceptance
+Различай эффект и способ: выполнение предложенного действия не доказывает
+достижения эффекта. Средство становится условием приёмки только при прямом
+основании. Не выбирай внутреннее устройство за исполнителя и не превращай
+его работу в пользовательскую функцию.
 
-Keep the existing Context, Proposal and Expected benefit sections so the shown
-body can be saved without another translation or memory schema. Use this content
-for an elaborated feature, omitting inapplicable optional fields:
+Дай название и коротко изложи смысл изменения. Затем изложи основные
+пункты как прямые обязательства; общие границы и существенное неизвестное
+помести в конце. Не выдавай анализ альтернатив и ход рассуждения.
 
-```markdown
-# Title
+Проверь, что контрасты не усилили исходный запрос, частные примеры не сузили
+общее требование, а наблюдения прошлого не стали новыми обязательствами.
+Если желаемую границу определить нельзя, назови именно этот пробел.
+Отсутствующие сведения о текущем состоянии отдели от решения пользователя.
 
-## Context
+Выведи только законченный рапорт на русском. Не более 1000 слов во всём итоговом сообщении, включая заголовки и таблицы; счёт по пробельным символам. Реализацию не начинай, файлы не изменяй.
 
-**Original request and basis:** The user's problem, request and relevant sources.
-**Terms:** Clarify only terms with consequential ambiguity.
+## Repository card envelope
 
-## Proposal
-
-**User journey:** Actor and starting situation -> action -> observable result.
-
-| ID | Situation / action | Expected observable result |
-| --- | --- | --- |
-| K1 | A concrete reproducible case | What distinguishes success from failure |
-
-**Agreed constraints:** Only established boundaries and requirements.
-**Open questions:** Unresolved behavior, or None.
-**Dependencies:** Established feature prerequisites, if any.
-
-## Expected benefit
-
-What capability or improvement the user receives and why it matters.
-```
-
-The scenario table is the acceptance contract, with stable local criterion IDs.
-Do not maintain a separately paraphrased behavior specification. Include a full
-representative journey and, where actual ambiguity exists, a contrasting case
-that separates the intended behavior from a similar wrong result. Use concrete
-sample inputs, outputs or documents where helpful; an example does not authorize
-inventing general rules.
-
-Criteria must be reproducible and observable without the original chat. Avoid
-undefined claims such as "correct", "convenient" or "reliable". Explain guarantees
-through their trigger, required circumstances and visible result. An agent
-instruction and a runtime operation provide different guarantees; do not silently
-substitute them. Failure cases must follow established requirements or credible
-observed failures, not an invented exhaustive catalogue. Technical verification
-methods belong to the implementing or checking agent.
+Keep Context, Proposal and Expected benefit in the shown card so saving does
+not require rewriting its meaning or changing the memory schema. Context retains
+the user's request and applicable basis; Proposal contains the report's
+obligations, acceptance, boundaries and material unknowns; Expected benefit
+states the intended benefit. Preserve existing criterion IDs. The former
+mandatory scenario-table and journey template is replaced by the approved
+report instructions above.
 
 ## Save the agreed version
 
