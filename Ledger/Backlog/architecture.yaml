@@ -1,9 +1,9 @@
 purpose: Retain future ideas, hypotheses and context without execution priority
 files:
   architecture.yaml: Idea card inventory and responsibility map
-  001.md: "Recoverable configuration errors"
-  002.md: "Coordinated hooks and timely architecture guidance"
-  003.md: "Cohesive AgentRig ownership and reliable development flows"
+  001.md: "Исправление конфигурации без блокировки агента"
+  002.md: "Согласованная работа хуков и понятные инструкции агенту"
+  003.md: "Структура проекта, отражающая смысл его возможностей"
   004.md: "Complete lint coverage and executable language evaluations"
   005.md: "Explainable and verifiable consumer workflows"
   006.md: "Git-backed component catalog and shared environment constructor"
