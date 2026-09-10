@@ -10,6 +10,7 @@ files:
   007.md: "Extensible version control support"
   008.md: "Selectable agent harnesses"
   009.md: "Complete architecture maps and feature ownership"
+  017.md: Sequential Backlog audit for deterministic anchors, quality and necessary complexity
 directories: {}
 allow: []
 deny: []

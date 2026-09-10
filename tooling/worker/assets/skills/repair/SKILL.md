@@ -3,7 +3,42 @@ name: repair
 description: Repair reported configuration or verification failures.
 ---
 
-Read the reported rule/check, source location and original tool output. Use config-check for settings, lint-rules for supported targets/languages, and doctor for installation problems. Apply the named skill, correct the cause and execute the reported RERUN command; where shell operations require Just, use `just run write -- <RERUN command>`. For a gate check, `just check --only CHECK_ID` repeats that stage; preserve `--staged` when reported. Preserve behavior, selector intent and user work; do not raise thresholds or exclude files merely to pass. New rules need implemented measurements, declared capabilities, behavioral tests and repair guidance. Numeric warning must be below error. Directory-entries rejects extensions; directory-architecture requires explicit source extensions and architecture settings. Unsupported selected languages are configuration errors.
+# Correct the cause while preserving the governing requirement
 
+A successful repair changes the cause of failure, not the definition of success.
 
-If the same failure recurs after applying the skill, compare the actual output with the attempted repair. `just report` shows consecutive failures of a check and the guidance presented; it does not establish that a skill was read or that failures share a cause. When the instruction or diagnostic caused the mistake, correct its canonical source and verify the previously failing scenario. Keep that evidence in the current VAC context and commit, without another registry or mandatory checkpoint. Do not change guidance just because an unrelated failure has the same check ID.
+1. Read the original finding, its location and the operation that produced it.
+   Distinguish a failed check from unavailable or incomplete verification.
+2. Identify the authoritative owner of the violated condition and applicable
+   repair guidance. Preserve required behavior, user work and selection intent.
+3. Make the smallest correction at that owner. Rerun the failed operation in the
+   same relevant scope and compare its actual result with the original finding.
+4. Stop when that failure is resolved and the affected contract is verified.
+
+Do not weaken a threshold, selector or expected result to obtain success.
+The same check identifier or another failure does not prove the same cause.
+A repeated failure requires reassessing the attempted correction against the
+new evidence, not accumulating workarounds.
+
+## Project failure or guidance failure
+
+When evidence shows that the instruction or diagnostic itself caused the error,
+correct its canonical source within the authorized scope and verify the
+previously failing situation. Record that evidence in the current VAC and commit;
+do not create another registry or mandatory checkpoint. An unrelated failure
+does not justify changing the guidance.
+
+## Runtime binding
+
+Use config-check for settings, lint-rules for implemented capabilities and doctor
+for installation problems. Apply the named skill and execute the reported RERUN
+command through the repository's configured shell adapter. For a gate check,
+use just check --only CHECK_ID and preserve --staged when reported. just report
+shows consecutive failures and delivered guidance, not proof of reading or a
+shared cause.
+
+When repairing lint configuration: a numeric warning is below error;
+directory-entries rejects extensions; directory-architecture requires explicit
+source extensions and architecture settings; unsupported selected languages are
+configuration errors. When authorized work adds a rule, implemented measurements,
+declared capabilities, behavioral verification and repair guidance are required.

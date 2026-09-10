@@ -3,8 +3,28 @@ name: reduce-parameters
 description: Simplify function, method or constructor inputs reported by parameter-count without hiding dependencies.
 ---
 
-Read the declaration and call sites; fix syntax first if parsing failed. The rule counts declared inputs, including optional and variadic parameters, while excluding method receivers. Constructors are checked through Python __init__/__new__ and Rust associated functions; call-site argument counts and generated constructors are not inferred.
+# Preserve explicit meaning while reducing inputs
 
-Remove redundant inputs or group values only when they already describe one meaningful concept. Keep explicit dependencies and update callers, defaults and external compatibility together. Do not introduce an untyped bag, variadic signature or new class solely to hide the count.
+Reduce independently supplied information without hiding dependencies or
+changing what callers can express.
 
-Preserve evaluation order and behavior. Rerun just lint and relevant caller tests; apply complexity-discipline before adding an abstraction.
+1. Read the declaration and consumers. Establish each input's meaning,
+   dependency and role in the observable contract.
+2. Remove information already derivable without changing behavior. Combine
+   values only when they already belong to one concept with a shared purpose;
+   co-occurrence in a call does not establish that relationship.
+3. Preserve explicit dependencies, evaluation order, defaults and external
+   compatibility. Update the affected callers together.
+
+A smaller signature is insufficient if unrelated inputs were hidden inside a
+container, variadic channel or new type. Apply complexity-discipline before
+adding an abstraction. Stop when the limit is met without concealing obligations
+and relevant caller checks confirm preserved behavior.
+
+## Rule binding
+
+Fix syntax first if parsing failed. The rule counts declared inputs, including
+optional and variadic parameters, excluding method receivers. Constructors are
+checked through Python __init__/__new__ and Rust associated functions; call-site
+counts and generated constructors are not inferred. Rerun the reported lint
+check and relevant caller tests.

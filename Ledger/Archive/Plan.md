@@ -15,3 +15,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P007](Plan/007.md) | complete | P005 | Extensible version control support | Use AgentRig with Git and another VCS, and connect a private implementation without publishing its code. |
 | [P008](Plan/008.md) | complete | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |
 | [P009](Plan/009.md) | complete | P006 | Complete architecture maps and feature ownership | Maintain checked file/directory responsibilities and dependency boundaries, and apply them to AgentRig itself. |
+| [P017](Plan/017.md) | complete | - | Последовательный аудит B001–B016 по детерминированным якорям и сложности | Согласовать обвязку, которая повышает качество разработки и не отвлекает агента лишними процедурами. |
