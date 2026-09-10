@@ -6,44 +6,79 @@ description: >
   existing card or preparing features for autonomous Plan execution.
 ---
 
-# Agree the outcome before saving or executing
+# Preserve intent from proposal to acceptance
 
-Use proactively for concrete ideas outside current work and when the user asks
-to prepare or revise a feature. Read the configured Backlog and relevant Plan
-entries to avoid duplicates and preserve context. Distinguish historical
-observations, current evidence and hypotheses. Do not investigate merely to fill
-a card or revive rejected ideas without new evidence or instruction.
+A recorded outcome must retain the user's meaning across drafting, agreement,
+storage and execution. More detail is useful only when it removes ambiguity
+without adding behavior. Apply proactively to concrete out-of-scope ideas and
+when asked to prepare or revise a feature.
 
-## Draft in chat
+Read the configured Backlog and relevant Plan entries to avoid duplicates and
+preserve context. Distinguish current evidence, historical observations and
+hypotheses. Do not investigate merely to fill a card or revive a rejected idea
+without new evidence or instruction.
 
-Keep new cards and proposed requirement changes in chat until the user explicitly
-approves saving the shown version. Discussing or preparing a card, praise for an
-idea, silence and elapsed time are not approval. An explicit instruction to save
-an already shown version is sufficient; no special phrase or second confirmation
-is required. Do not save unapproved drafts in State or another file instead.
+## Agree before saving
 
-Show the complete current card in the user's language. After revisions, also show
-the substantive difference: previous behavior -> new behavior -> consequence.
-Do not reinterpret the approved content while saving. Already authorized
-mechanical link, ID and delivery-evidence updates do not reopen agreement on
-unchanged requirements.
+Show the complete current card in the user's language. After revision, explain
+the substantive difference in behavior and consequence. Keep drafts in chat
+until the user explicitly approves saving the shown version. Praise, discussion,
+silence and elapsed time are not approval; a save instruction for the shown
+version is sufficient without a special phrase or second confirmation.
 
-A future idea may stay short. Elaborate only cards selected for discussion or
-upcoming execution. Offer unrelated ideas without stopping authorized work to
-seek approval; keep an unapproved draft in chat and continue the current task.
+Do not save an unapproved draft in State or another file. Do not reinterpret an
+approved contract during saving or reopen unchanged agreement for authorized
+mechanical link, identity or evidence updates. Future ideas may stay brief;
+elaborate those selected for discussion or upcoming execution. Offer unrelated
+ideas without stopping authorized work to seek agreement, then continue the task.
 
-## Draft the report — approved B
+## Draft the report
 
-The user approved B from the A/B/C comparison: mutation 3, outcome
-distinguishability. The following instructions govern drafting in chat.
-The later save and handoff sections govern authorized file changes.
+The reasoning instructions below govern drafting only. Their prohibition on
+file edits and implementation does not restrict an authorized save under the
+following sections.
 
-Построй рапорт вокруг различий, существенных для приёмки. Читатель должен
-понимать не только желаемое свойство, но и почему похожего результата
-может быть недостаточно.
+Передай намерение через конкретный функционал и наблюдаемое поведение.
+Читатель должен понять, как пользоваться будущим результатом и совпадает ли
+его поведение с запросом, без чтения кода и пояснений автора. Общие свойства,
+гарантии и средства контроля не заменяют описания доступных возможностей.
 
-Сначала установи, какое изменение требуется и какие исходные ограничения
-нельзя потерять. Для каждого результата мысленно сопоставь:
+Сначала установи требуемое изменение, его область и сохраняемые ограничения.
+До перечисления действий определи, чем пользователь должен управлять:
+отдельными элементами, их совокупностями, отношениями и состояниями.
+По запросу и действующим правилам восстанови необходимый цикл использования,
+а не только основной успешный путь или прямо названные действия.
+
+Мысленно проверь полноту управления: как узнать доступное и текущее,
+прочитать нужное, добавить, изменить или убрать элемент и связанные сведения;
+как выбрать текущий элемент, изменить порядок и связи, приостановить,
+продолжить, переключить или завершить работу, если это входит в её смысл.
+Это вопросы к требуемому результату, а не обязательный набор функций.
+Для необходимого действия укажи доступную операцию, сохраняемый существующий
+способ либо существенный пробел. Не считай отсутствие действия в примерах
+его исключением из заявленной области. Если прежний способ запрещается,
+его необходимые возможности должны оставаться доступны через новый.
+
+Явно перечисли в карточке необходимые действия и автоматические реакции.
+Объединяй операции только при одинаковом наблюдаемом поведении; общая формула
+не должна скрывать различающиеся переходы, условия или последствия.
+Для каждого действия раскрой:
+кто или что запускает → какие сведения и условия нужны → что происходит
+и меняется → какой результат получает пользователь → какие ограничения
+и значимые отказы предусмотрены. Если пользователь управляет поведением,
+покажи, что он выбирает или настраивает и как это влияет на результат.
+
+Описывай поведение продукта, а не работу по его реализации. Доступные
+операции, их входы и наблюдаемые результаты относятся к функционалу;
+не исключай их как внутренние детали. Не придумывай дополнительные действия,
+параметры, проверки или отказы ради полноты формы. Неизвестное, влияющее
+на поведение, обозначь явно. Не дублируй описание действия отдельным каталогом
+и повторным пересказом в критериях.
+
+Переносимой остаётся схема рассуждения; конкретную карточку описывай
+в понятиях запроса. Не обезличивай функционал ради абстрактности.
+
+Для каждого результата мысленно сопоставь:
 — требование выполнено;
 — внешне похожее состояние, в котором нарушено именно это требование.
 Выводи лишь такие различия, которые следуют из исходника. Не придумывай
@@ -60,8 +95,15 @@ The later save and handoff sections govern authorized file changes.
 его работу в пользовательскую функцию.
 
 Дай название и коротко изложи смысл изменения. Затем изложи основные
-пункты как прямые обязательства; общие границы и существенное неизвестное
+пункты как прямые обязательства о доступном поведении; общие границы и существенное неизвестное
 помести в конце. Не выдавай анализ альтернатив и ход рассуждения.
+
+Проверь, можно ли пройти необходимый цикл по описанным операциям:
+получить нужные сведения, выполнить изменения и требуемые переходы,
+увидеть результат и проверить выполнение запроса. Пропущенная необходимая
+операция — пробел карточки, а не деталь, которую исполнитель должен изобрести.
+Если описаны только свойства, гарантии или средства контроля, а функционал
+приходится угадывать, карточка не готова.
 
 Проверь, что контрасты не усилили исходный запрос, частные примеры не сузили
 общее требование, а наблюдения прошлого не стали новыми обязательствами.
@@ -70,59 +112,45 @@ The later save and handoff sections govern authorized file changes.
 
 Выведи только законченный рапорт на русском. Не более 1000 слов во всём итоговом сообщении, включая заголовки и таблицы; счёт по пробельным символам. Реализацию не начинай, файлы не изменяй.
 
-## Repository card envelope
+## Save the same contract
 
-Keep Context, Proposal and Expected benefit in the shown card so saving does
-not require rewriting its meaning or changing the memory schema. Context retains
-the user's request and applicable basis; Proposal contains the report's
-obligations, acceptance, boundaries and material unknowns; Expected benefit
-states the intended benefit. Preserve existing criterion IDs. The former
-mandatory scenario-table and journey template is replaced by the approved
-report instructions above.
-
-## Save the agreed version
+Keep Context, Proposal and Expected benefit in the shown card: request and basis;
+obligations, acceptance, boundaries and material unknowns; intended benefit.
+Preserve criterion IDs.
 
 Read paths.memory in agentrig.yaml. Maintain Backlog.md with
-ID | Idea | Expected benefit rows and Backlog/NNN.md cards. Allocate a stable
-unused BNNN from index and cards; never renumber other ideas. Preserve an existing
-card's identity and agreed context. Save the approved body with only necessary
-ID/navigation metadata, update index and applicable architecture inventories
-together, and use the existing memory check. Ordinary editing does not require
-just write. Do not copy secrets or full transcripts. Report failed saves.
+ID | Idea | Expected benefit and Backlog/NNN.md cards. Allocate an unused stable
+BNNN from index and cards; never renumber other ideas. Save the approved body
+with only necessary identity/navigation metadata, updating index and architecture
+inventories together. Use the existing memory check and report failed saves.
+Ordinary editing needs no just write. Do not copy secrets or transcripts.
 
-Backlog has no execution priority. Saving is not implementation authorization.
-Existing saved ideas are not automatically agreed for delivery under this
-process; refine selected cards in chat before changing their contract.
-This is a skill-guided policy, not a new approval registry or proof of
-machine-verified understanding.
+Backlog order is not priority or authorization. Existing saved ideas are not
+automatically agreed for delivery. Agreement remains a conversational workflow,
+not a new registry or proof of machine-verified understanding.
 
-## Hand off and check the same contract
+## Execute and verify the agreed result
 
-All new product outcomes pass through Backlog before Plan. Promote only cards
-with agreed behavior and acceptance, resolved behavior-changing questions, and
-execution and order selected by the user. Use edit-plan and execute-plan-feature.
-One instruction to execute a selected set authorizes the whole set; do not ask
-again before each card. Plan still covers current or resumed work, and Backlog
-is not an automatic queue.
+All new product outcomes pass through Backlog before Plan. Promotion requires
+agreed behavior and acceptance, resolved behavior-changing questions, and the
+user's selection of execution and order. Use edit-plan and execute-plan-feature.
+One instruction authorizes the selected set without repeated per-card permission.
 
-Plan references the agreed Backlog contract rather than maintaining a second
-independently rewritten specification. Preserve wording and criterion IDs; use
-existing Git history to identify the agreed version for delivery and review.
-Saving a card or changing its status does not establish user agreement.
-Do not change acceptance to fit the implementation.
+Plan references the accepted contract and criterion IDs instead of maintaining
+a paraphrase. Use Git history to identify the agreed version. Neither a saved
+file nor a status change proves agreement; do not adjust acceptance to fit the
+implementation.
 
-For acceptance by the executor, a subagent or a reviewer, provide the agreed
-card version, implementation/artifacts and means to exercise the scenarios.
-Use delegation or review only under existing authorization and workflow.
-Report each criterion as met, violated or not verified, with concrete evidence.
-Not verified is not success. Passing implementation-authored tests alone does
-not establish all criteria. Also inspect new rejection conditions, transformations,
-formats and side effects against agreed scope. The verifier follows the same
-contract and applicable project rules without inventing feature requirements.
-Do not claim that a review covered criteria outside its scope.
+Provide the executor or verifier with that version, implementation/artifacts and
+means to exercise its scenarios. Delegate or review only under existing
+authorization. Report each criterion as met, violated or not verified with
+evidence. Unverified is not success; implementation-authored passing tests alone
+do not establish every criterion. Check new rejection conditions, transformations,
+formats and side effects against scope. Do not invent requirements or claim
+review of criteria outside the review's actual scope.
 
-Keep required work in the current task. For explicit deferral, preserve its
-requirements, progress, blocker, branch and resume condition before removing it
-from Plan, and reconcile dependencies. Preserve source context and delivery links;
-replace live Plan links with Archive links on completion. Interruption alone is
-not deferral. Follow edit-plan for automatic completed-card archival.
+Keep work required by current acceptance in the task. On explicit deferral,
+preserve requirements, progress, blocker, branch and resumption condition before
+removing live Plan entries and reconciling dependencies. Preserve source context
+and delivery links; replace live links with Archive links on completion through
+edit-plan. Interruption alone is not deferral.

@@ -3,10 +3,33 @@ name: name-if-condition
 description: Give inline boolean branch conditions a meaningful name when named-if-condition reports a finding.
 ---
 
-Read the reported location and condition. If parsing failed, repair syntax first.
+# Make the decision predicate explicit
 
-Extract the complete boolean expression immediately before its evaluation and name the reason for branching: should_retry, has_capacity, can_publish. Preserve short-circuiting, evaluation order, side effects and bindings; do not hoist an elif expression above earlier branches.
+The name must express the state established by the predicate and its relevance
+to the selected behavior. Introducing an identifier alone is insufficient.
 
-The rule accepts a name or a named field path, with optional parentheses. Calls, comparisons, negation, indexing and boolean combinations need a name. A simple Rust if let retains its bindings; a let chain requires restructuring without losing them. Python conditional expressions and comprehension filters are checked too: use a small named helper or explicit loop only when needed to preserve lazy evaluation.
+1. Read the condition and the behavior selected by each outcome. Establish
+   exactly what the condition proves in this context.
+2. Name that meaning at the same scope and strength as the evidence. Do not
+   claim broader permission, validity or guarantees. Derive domain vocabulary
+   from the actual owner and consumers; do not invent rules to justify a name.
+3. Extract the complete predicate at its original evaluation point. Preserve
+   short-circuiting, order, side effects, bindings and conditional evaluation.
+4. Compare name, expression and selected behavior. A generic truth label or
+   restatement of the comparison is insufficient when it conceals why this
+   state selects this behavior.
 
-Do not replace expressions with vague names such as condition or flag merely to satisfy syntax. The parser cannot judge names or prove Python values are bool. Rerun just lint and the relevant behavior check.
+Stop when the meaning is explicit, the finding is resolved and affected behavior
+is preserved. Do not add an abstraction merely to name a value.
+Apply complexity-discipline.
+
+## Rule binding
+
+Repair syntax first when analysis failed. The rule accepts a name or named field
+path, optionally parenthesized; calls, comparisons, negation, indexing and
+combinations require a name. Rust if-let keeps its bindings; let chains retain
+theirs when restructured. Python conditional expressions and comprehension
+filters retain lazy evaluation; use a named helper or explicit loop only when
+needed. Do not hoist an elif predicate above earlier branches. The parser cannot
+judge meaning or prove Python values are bool. Rerun the reported lint check
+and relevant behavior check.

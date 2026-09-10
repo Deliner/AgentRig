@@ -3,18 +3,63 @@ name: edit-plan
 description: Maintain outcomes and acceptance explicitly selected for execution now; send future ideas to Backlog.
 ---
 
-# Keep Plan limited to current execution
+# Keep current execution tied to the agreed outcome
 
-Read the configured Plan, Backlog and State and reconcile them with Git and the current instruction. Plan holds only work explicitly selected for execution now in the current session or resumed task. Use edit-backlog for chat agreement before saving a new idea or changing its requirements. Every new product outcome must have an agreed Backlog source before entering Plan. Recording for later does not select implementation. Do not automatically take the next Backlog card. Explicit maintenance remains independently authorized.
+A plan selects work to execute now; recording an idea does not select it.
+Preserve the agreed result, acceptance and authorization across planning,
+delivery, interruption and archival.
 
-Keep stable PNNN IDs, Status, Depends on, Feature and User capability columns. Details contain Feature, User capability and Acceptance; paused/complete entries require Delivery with blocker/resumption context or observed verification. Reference the agreed Backlog card from Feature and Acceptance, retaining its criterion IDs and wording instead of maintaining a second paraphrased contract. Record its agreed Git revision with the source reference when committed so delivery and review can recover the accepted text. User capability retains the agreed benefit. Preserve agent ownership of implementation choices.
+## Select and continue
 
-Use row order only to sequence the selected current work. Promotion requires agreed behavior and acceptance, resolved behavior-changing questions, and the user's selection of execution and order. An instruction to execute a selected set authorizes all its ready cards without repeated questions or permission requests. Pending means selected for this session, active means being delivered, paused means temporarily blocked within that work, and complete means verified acceptance ready for automatic archival. At most one entry is active; an empty Plan is valid. An interruption or context reset does not discard an unfinished authorized task.
+Read configured Plan, Backlog and State; reconcile them with Git and the current
+instruction. Every new product outcome requires an agreed Backlog source through
+edit-backlog. Promotion requires agreed behavior and acceptance, resolved
+behavior-changing questions and the user's selection of execution and order.
+Do not take another Backlog item automatically. Explicit maintenance is
+independently authorized.
 
-Dependencies may refer to current Plan or completed Archive rows and remain acyclic; active/complete entries require completed prerequisites. Do not restore archived rows into Plan just to reference them. For prerequisites, follow execute-plan-feature within the accepted scope; a new product outcome cannot bypass Backlog agreement by being labelled a prerequisite. If work is deferred, preserve its requirements, blocker, branch and resume condition in Backlog before removing its Plan row/detail and reconciling remaining dependencies.
+Reference the same accepted contract instead of paraphrasing it into a second
+specification. Preserve criterion IDs, wording and the executor's ownership of
+implementation choices. One instruction to execute a selected set authorizes all
+ready items without repeated permission. Interruption or context reset does not
+cancel unfinished authorized work.
 
-Automatically rotate completed outcomes in the final VAC without asking for another confirmation. Use the configured memory directory's Archive/Plan.md index and Archive/Plan/NNN.md cards, keeping the same Plan columns, original PNNN IDs, acceptance and Delivery evidence. Create the archive when first needed. Preserve each card and its index row there before removing its live Plan entry; a different existing record with the same ID is a conflict, never an overwrite.
+Dependencies must justify execution order, not introduce unrelated outcomes.
+Use execute-plan-feature for delivery and prerequisites; a new product outcome
+cannot bypass agreement by being called a prerequisite. Work necessary for
+current acceptance cannot be deferred merely to claim completion.
 
-Update relative links for the new card location, Backlog provenance, current application links and architecture inventories. Current Plan dependencies can refer to completed archived IDs. Run memory-check after rotation. Archive is readable history, not an execution queue; it retains completed results rather than discarding them. Allocate new IDs across Plan, Archive and existing Backlog references, never reusing an old identity.
+## Defer or complete without losing meaning
 
-Use edit-backlog to draft observations, improvements and hypotheses outside current acceptance in chat; save only the approved version and resume the task. Required current work cannot be deferred merely to claim completion. Use execute-plan-feature for verification and integration.
+If execution is explicitly deferred, preserve requirements, progress, blocker,
+branch and resumption condition in Backlog before removing the current entry
+and reconciling dependencies. Interruption alone is not deferral.
+
+Archive completed outcomes automatically in the final VAC without another
+confirmation. Preserve identity, acceptance and actual delivery evidence before
+removing the live entry. A conflicting archived identity must not be overwritten.
+Completed history is not an execution queue.
+
+## Repository binding
+
+Keep ID, Status, Depends on, Feature and User capability columns and stable PNNN
+IDs. Details contain Feature, User capability and Acceptance; paused/complete
+entries require Delivery with blocker/resumption context or observed verification.
+Feature and Acceptance reference the agreed Backlog card; retain its agreed Git
+revision when committed. User capability retains the agreed benefit.
+
+Row order sequences selected work. Pending is selected, active is being delivered,
+paused is temporarily blocked and complete has verified acceptance ready for
+archival. At most one item is active; an empty Plan is valid. Dependencies may
+reference current or archived outcomes, remain acyclic, and must be complete
+before dependent items become active/complete.
+
+Use the configured memory directory's Archive/Plan.md and Archive/Plan/NNN.md,
+with the same columns, IDs, acceptance and Delivery. Create them when needed.
+Do not restore archived entries merely to reference them or reuse their IDs;
+allocate identities across Plan, Archive and Backlog references.
+
+Update relative links, provenance, current application links and architecture
+inventories; run memory-check after rotation. Use edit-backlog for out-of-scope
+ideas, save only agreed drafts and resume authorized work. Use
+execute-plan-feature for verification and integration.
