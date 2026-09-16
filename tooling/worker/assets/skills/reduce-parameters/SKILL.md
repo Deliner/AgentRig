@@ -8,6 +8,11 @@ description: Simplify function, method or constructor inputs reported by paramet
 Reduce independently supplied information without hiding dependencies or
 changing what callers can express.
 
+Keep contracts with their owner and dependencies directed toward the stable
+contract. If the repair changes ownership or a public boundary, apply
+[refactor-large-directory](../refactor-large-directory/SKILL.md). A new wrapper
+or shared location requires a responsibility beyond reducing the parameter count.
+
 1. Read the declaration and consumers. Establish each input's meaning,
    dependency and role in the observable contract.
 2. Remove information already derivable without changing behavior. Combine

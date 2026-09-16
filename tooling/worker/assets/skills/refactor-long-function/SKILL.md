@@ -8,6 +8,12 @@ description: Reduce functions, methods or closures reported by function-lines wh
 Make the operation understandable through meaningful responsibilities while
 resolving the reported size violation.
 
+Keep extracted behavior with its responsibility and reason to change. A local
+extraction stays local unless it exposes a separate responsibility. If the repair
+changes ownership or a public boundary, apply
+[refactor-large-directory](../refactor-large-directory/SKILL.md); its semantic
+roles do not require layering every operation.
+
 1. Read the operation and callers. Establish the observable contract, sequence,
    state dependencies, failure behavior and return behavior.
 2. Identify a cohesive part whose purpose can be understood independently and
