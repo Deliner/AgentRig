@@ -1,6 +1,12 @@
 purpose: Describe only outcomes selected for current execution
 files:
   architecture.yaml: Current Plan detail inventory
+  018.md: Selected B001 configuration recovery outcome and acceptance source
+  019.md: Selected B003 project structure outcome and acceptance dependencies
+  020.md: Selected B006 environment constructor outcome and agreed edit control
+  021.md: Selected B002 hook coordination outcome and shared mechanism
+  022.md: Selected B012 verification reminder and telemetry uncertainty
+  023.md: Selected B013 workflow recovery outcome and context dependencies
 directories: {}
 allow: []
 deny: []

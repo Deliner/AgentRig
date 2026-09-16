@@ -10,7 +10,7 @@ directories:
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
   reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
-  refactor-large-directory: "Repair directory ownership, inventories and dependency boundaries"
+  refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   repair: "Diagnose and repair configuration and verification failures"
