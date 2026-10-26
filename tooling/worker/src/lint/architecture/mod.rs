@@ -1,4 +1,3 @@
-//! Directory contracts and checks over resolved source dependencies.
 mod graph;
 mod inventory;
 mod policy;
@@ -13,13 +12,11 @@ use std::path::PathBuf;
 pub use super::rules::architecture::Settings;
 pub use policy::Contracts;
 
-/// A source dependency resolved to normalized project-relative paths.
 #[derive(Clone, Debug)]
 pub struct Dependency {
     pub source: PathBuf,
     pub target: PathBuf,
     pub line: usize,
-    /// Rust module ownership declarations still undergo boundary checks.
     pub module_declaration: bool,
 }
 
@@ -41,7 +38,6 @@ impl Issue {
 }
 
 impl Contracts {
-    /// Check measured edges; permission declarations are never graph edges.
     pub fn check(&self, dependencies: &[Dependency]) -> Vec<Issue> {
         let mut issues = Vec::new();
         for edge in dependencies {

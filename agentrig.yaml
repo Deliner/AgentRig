@@ -264,7 +264,7 @@ checks:
   kind: command
   skill: .agents/skills/repair/SKILL.md
   command: test
-  # Commit checks use affected groups plus smoke tests; merge runs everything.
+  # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
   affected:
   - include: ['**']
     targets: [tooling/worker/src/lint/config/tests/test_config_check.py]

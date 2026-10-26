@@ -10,7 +10,7 @@ use std::{
 pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
     let entries = repository.tree(revision)?;
-    let mut links = Vec::new();
+    let mut links_after_contents = Vec::new();
     for (name, entry) in entries {
         validate_path(&name)?;
         ensure!(
@@ -21,7 +21,7 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
         fs::create_dir_all(path.parent().expect("exported path has a parent"))?;
         let bytes = repository.read(revision, &name)?;
         match entry.kind {
-            FileKind::Symlink => links.push((path, bytes)),
+            FileKind::Symlink => links_after_contents.push((path, bytes)),
             FileKind::File | FileKind::Executable => {
                 fs::write(&path, bytes)?;
                 let mode = match entry.kind {
@@ -33,8 +33,7 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
             FileKind::Submodule => unreachable!("rejected before reading"),
         }
     }
-    // Create links last so tree entries cannot write through a link outside the export.
-    for (path, target) in links {
+    for (path, target) in links_after_contents {
         std::os::unix::fs::symlink(OsStr::from_bytes(&target), path)?;
     }
     Ok(directory)

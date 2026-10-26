@@ -78,9 +78,8 @@ fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> 
 }
 fn backlog(context: &Context, memory: &Path) -> Result<()> {
     let path = memory.join("Backlog.md");
-    // Existing consumers may not have adopted Backlog yet.
-    let present = path.try_exists()?;
-    if present {
+    let adopted = path.try_exists()?;
+    if adopted {
         details(context, memory, &table(&path, 'B')?, "Backlog")
     } else {
         reject_unindexed(memory, "Backlog", &HashSet::new())

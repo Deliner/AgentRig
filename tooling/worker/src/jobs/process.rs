@@ -56,7 +56,6 @@ pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> R
 fn forward_signals(mut signals: Signals, pid: i32, group: bool) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         for signal in signals.forever() {
-            // The PID belongs to the unreaped child while forwarding is active.
             unsafe {
                 libc::kill(if group { -pid } else { pid }, signal);
             }

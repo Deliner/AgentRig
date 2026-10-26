@@ -21,7 +21,6 @@ pub fn changes(root: &Path, staged: bool, base: Option<&str>) -> Result<Option<V
     Ok(Some(changes.into_iter().map(PathBuf::from).collect()))
 }
 
-/// None retains the full command; an empty selection skips its test targets.
 pub fn targets(check: &Check, changes: Option<&[PathBuf]>) -> Result<Option<Vec<String>>> {
     let Some(changes) = changes else {
         return Ok(None);

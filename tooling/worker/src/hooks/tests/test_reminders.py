@@ -199,7 +199,6 @@ def append_tokens(transcript: Path, count: int, frontend: str = "codex") -> None
     }
     using_claude = frontend == "claude-code"
     if using_claude:
-        # Claude Code 2.1.201 writes these usage fields; output tokens are not context input.
         record = {
             "type": "assistant",
             "message": {

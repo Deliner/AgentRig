@@ -137,7 +137,6 @@ fn all() -> Vec<String> {
 pub fn read(root: &Path) -> Result<Config> {
     crate::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))
 }
-// Resolve existing ancestors too: symlinks must not escape the selected project tree.
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
     ensure!(

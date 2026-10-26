@@ -110,7 +110,6 @@ def test_staged_files_and_config_are_isolated(worker: Path, tmp_path: Path) -> N
     source = root / "src/example.rs"
     source.write_text("line\n" * 6, encoding="utf-8")
     subprocess.run(["git", "add", "."], cwd=root, check=True)
-    # Make the worktree pass; the staged snapshot must still fail.
     source.write_text("line\n", encoding="utf-8")
     (root / "lint.yaml").write_text(CONFIG.replace("error: 5", "error: 50"), encoding="utf-8")
     assert lint(worker, root)[0] == 0

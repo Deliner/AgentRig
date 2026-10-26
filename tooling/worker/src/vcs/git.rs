@@ -2,7 +2,6 @@ use super::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
-/// Query Git using the invoking process environment, including hook repository context.
 pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
     let output = Command::new("git").args(args).current_dir(root).output()?;
     let failed = !output.status.success();

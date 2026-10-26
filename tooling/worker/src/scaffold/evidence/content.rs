@@ -94,7 +94,6 @@ fn walk(root: &Path, parent: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
     Ok(())
 }
 
-// Bootstrap only: the staged declaration is unavailable until the native index is exported.
 pub fn native_index(root: &Path) -> Result<String> {
     let repository =
         Repository::discover(root)?.context("a VCS repository is required for --staged")?;

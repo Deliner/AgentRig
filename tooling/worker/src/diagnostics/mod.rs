@@ -104,12 +104,11 @@ fn executable() -> std::path::PathBuf {
     if available {
         return observed;
     }
-    // Linux marks a replaced running executable as deleted; rerun its installed successor.
-    observed
+    let installed_successor = observed
         .file_name()
         .and_then(|name| name.to_str())
         .and_then(|name| name.strip_suffix(" (deleted)"))
         .map(|name| observed.with_file_name(name))
-        .filter(|path| path.is_file())
-        .unwrap_or(observed)
+        .filter(|path| path.is_file());
+    installed_successor.unwrap_or(observed)
 }

@@ -28,8 +28,6 @@ pub fn read_document<T: DeserializeOwned>(path: &Path) -> Result<(T, String)> {
 
 pub fn decode<T: DeserializeOwned>(source: &str) -> Result<T> {
     syntax(source)?;
-    // Decode to a value first: mappings reject duplicate keys, and typed scalar
-    // values prevent string coercion during the subsequent schema check.
     let value: Value = serde_yaml_ng::from_str(source)?;
     values(&value)?;
     let value = serde_json::to_value(value)?;

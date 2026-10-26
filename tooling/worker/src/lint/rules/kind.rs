@@ -1,4 +1,3 @@
-//! Rule identity and its stable serialized spelling, independent of language handlers.
 use serde::{Deserialize, Serialize};
 use std::fmt;
 

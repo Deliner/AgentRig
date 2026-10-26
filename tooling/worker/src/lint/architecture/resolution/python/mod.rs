@@ -1,8 +1,3 @@
-//! Static Python resolution under one explicit import root. Runtime import hooks,
-//! path mutations and native/zip modules are outside this resolver's coverage.
-//! Targets are .py files; a .pyi stub is not treated as a runtime module.
-//! Namespace-only access and ambiguous package members return errors until their
-//! directory boundaries and initializer exports can be represented explicitly.
 #[cfg(test)]
 mod tests;
 
@@ -26,7 +21,6 @@ struct Module {
 }
 
 impl<'a> Python<'a> {
-    /// Files come from the normalized project inventory, including files outside lint scope.
     pub fn new(
         root: &Path,
         files: &'a BTreeSet<PathBuf>,

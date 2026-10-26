@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: d55e0a63efbc2c1d3624e8568d079304f92c1efa
+Revision: f5be8c912ed521997bea901dddfbce6d65632f01
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 0d1fe6d, installed by `just bootstrap` under .cache/development. A stray
@@ -28,16 +28,17 @@ Claude Code hook registration (4330b7c), affected-only merge tests under
 line-width and forbidden-file rule kinds with condense-markdown under
 [D036](Decisions/036.md) (09a0c97), the comment-reference kind with
 replace-comment under [D037](Decisions/037.md) (0d1fe6d), and the runtime pin
-to 0d1fe6d (d55e0a6). This VAC configures the D036 markdown-size,
-markdown-width and markdown-placement rules in tooling/worker/lint.yaml and
-condenses AGENTS.md and the README files to fit. The D037 comment rule is not
-configured yet. Plan P018–P023 predates this direction and is not reconciled.
+to 0d1fe6d (d55e0a6), and the D036 Markdown rules with condensed README and
+AGENTS.md files (f5be8c9). This VAC configures the D037 comments rule in
+tooling/worker/lint.yaml and removes or replaces by names every comment and
+docstring it reported (42 findings). Plan P018–P023 predates this direction
+and is not reconciled.
 
 ## Verification
 
 `just check` on 0d1fe6d passed: 68 Rust tests, 421 pytest tests and every
-static check. For this VAC, `just lint` reports no errors and no Markdown
-findings, and memory-check passes.
+static check. For this VAC, `just lint` reports no errors; rustfmt, Clippy and
+affected tests run in the commit gate.
 
 ## Blockers
 
@@ -48,5 +49,6 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Configure the D037 comment rule in tooling/worker/lint.yaml and replace or
-delete the existing comments and docstrings it reports.
+Start the layout from Requests.md: record a decision for the modular
+`.agentrig/` configuration, the Just recipe directory and initialization code
+under Project, then move them in separate VACs.

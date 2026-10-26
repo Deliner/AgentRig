@@ -265,7 +265,6 @@ fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnost
     })
 }
 fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
-    // Resolve guidance independently of rule validation, including invalid rules.
     let skill = configuration_skill(path).unwrap_or_else(|| CONFIG_SKILL.to_owned());
     Diagnostic {
         rule: "configuration".into(),

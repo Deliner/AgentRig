@@ -1,4 +1,3 @@
-//! Atomically replace a JSON artifact after serialization and file synchronization.
 use anyhow::Result;
 use std::path::Path;
 

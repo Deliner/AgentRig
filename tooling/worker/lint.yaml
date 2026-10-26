@@ -136,6 +136,19 @@ rules:
   error: 4
   warning_skill: .agents/skills/reduce-parameters/SKILL.md
   error_skill: .agents/skills/reduce-parameters/SKILL.md
+# DECISION: D037
+- id: comments
+  kind: comment-reference
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/replace-comment/SKILL.md
+  error_skill: .agents/skills/replace-comment/SKILL.md
 
 # Full maintained-tree inventory; dependency extensions do not limit file coverage.
 - architecture:

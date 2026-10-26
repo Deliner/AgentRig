@@ -1,4 +1,3 @@
-//! Syntax references, before filesystem/module resolution.
 mod python;
 mod rust;
 #[cfg(test)]

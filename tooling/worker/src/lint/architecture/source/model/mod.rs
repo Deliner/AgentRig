@@ -1,4 +1,3 @@
-//! Shared syntax reference records and extraction context for language handlers.
 use crate::lint::{architecture::Issue, languages};
 use std::path::Path;
 use tree_sitter::Node;

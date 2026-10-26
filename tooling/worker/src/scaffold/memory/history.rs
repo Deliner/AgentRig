@@ -12,7 +12,6 @@ fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<
     Ok(String::from_utf8(bytes)?)
 }
 pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<()> {
-    // A standalone tree or an unborn repository has no committed memory baseline.
     let Some(repository) = crate::vcs::Repository::discover(root)? else {
         return Ok(());
     };

@@ -146,7 +146,6 @@ impl<'a> Repository<'a> {
         git::export_index(self.root)
     }
 
-    /// Export all committed project inputs, preserving symlinks and executable bits.
     pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {
         let revision = self.resolve(reference)?;
         export::revision(self, &revision)

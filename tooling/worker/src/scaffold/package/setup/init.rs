@@ -59,8 +59,6 @@ fn check_collisions(root: &Path, files: &Files) -> Result<()> {
     Ok(())
 }
 fn validate_bundle(files: &Files) -> Result<()> {
-    // Validate generated files through the same loader before touching the consumer.
-    // This also detects a generated file being another generated file's parent.
     let preview = tempfile::tempdir()?;
     let root = preview.path().canonicalize()?;
     for (path, contents) in files {

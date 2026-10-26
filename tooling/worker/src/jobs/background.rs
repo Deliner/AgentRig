@@ -35,7 +35,6 @@ impl Job {
             }
             std::thread::sleep(Duration::from_millis(20));
         }
-        // A slow observation does not authorize starting a second process.
         Ok(self.record.run_id)
     }
     fn spawn_launcher(&mut self, executable: &Path) -> Result<std::process::Child> {

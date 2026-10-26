@@ -1,5 +1,3 @@
-//! Declared Rust module trees and source paths for Rust 2018 or later.
-//! Compiler expansion and block-local imported-name lookup remain explicit limits.
 mod macros;
 mod paths;
 #[cfg(test)]

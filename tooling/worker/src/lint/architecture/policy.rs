@@ -57,7 +57,6 @@ impl Contracts {
         issues
     }
 
-    /// Directory paths are project-relative; the root is represented by `.`.
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {
         let mut contracts = Self {
             policies: BTreeMap::new(),

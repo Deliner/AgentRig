@@ -175,7 +175,6 @@ fn forwarded(args: &[String]) -> &[String] {
     args.strip_prefix(&["--".to_owned()]).unwrap_or(args)
 }
 
-// The hook and executor validate the same command ID and argument contract.
 pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec<String>> {
     match argv.get(1).map(String::as_str).unwrap_or("list") {
         "run" => {

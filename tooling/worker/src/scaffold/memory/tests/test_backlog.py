@@ -93,7 +93,6 @@ def test_backlog_rejects_broken_records(
 def test_backlog_reports_lost_links(worker: Path, tmp_path: Path, missing: str) -> None:
     project(tmp_path)
     notes = memory(tmp_path)
-    # A pre-Backlog consumer remains valid without an index or any idea cards.
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
     card = write_idea(notes)
     index = notes / "Backlog.md"

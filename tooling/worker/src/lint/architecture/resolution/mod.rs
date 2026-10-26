@@ -1,4 +1,3 @@
-//! Resolve references against the source inventory without executing project code.
 pub mod python;
 pub mod rust;
 

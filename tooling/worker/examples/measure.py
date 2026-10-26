@@ -1,5 +1,3 @@
-"""Measure standalone consumer process latency without compiling worker."""
-
 import argparse
 import datetime
 import json
@@ -70,7 +68,9 @@ def main() -> None:
 
 
 def arguments() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description="Measure standalone consumer process latency without compiling worker."
+    )
     parser.add_argument("--worker", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--samples", type=int, default=50)

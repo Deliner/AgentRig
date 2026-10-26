@@ -90,7 +90,6 @@ def test_committed_decisions_checked_against_staged_memory(worker: Path, tmp_pat
         "committed decision identity cannot change"
         in invoke(worker, tmp_path, "memory-check").stderr
     )
-    # Refactoring changes current ownership without mutating historical rationale.
     (tmp_path / "src/lib.rs").rename(tmp_path / "src/moved.rs")
     index.write_text(old_index.replace("src/lib.rs", "src/moved.rs"))
     assert invoke(worker, tmp_path, "memory-check").returncode == 0

@@ -50,13 +50,12 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             );
         }
         "conditional_expression" => {
-            // The grammar orders consequence, condition, alternative (comments are extras).
             let mut cursor = node.walk();
-            let test = node
+            let mut operands = node
                 .named_children(&mut cursor)
-                .filter(|child| !child.is_extra())
-                .nth(1)
-                .expect("parsed conditional expression");
+                .filter(|child| !child.is_extra());
+            let _consequence = operands.next();
+            let test = operands.next().expect("parsed conditional expression");
             condition(node, test, output);
         }
         "if_clause" => {

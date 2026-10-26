@@ -29,8 +29,8 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         return Ok(Vec::new());
     }
     let root = root.canonicalize()?;
-    // Selection exclusions limit findings, not the existence of dependency targets.
-    let files: BTreeSet<_> = inventory::collect(&root, &globs(&[])?)?
+    let no_exclusions = globs(&[])?;
+    let files: BTreeSet<_> = inventory::collect(&root, &no_exclusions)?
         .files
         .into_iter()
         .collect();
