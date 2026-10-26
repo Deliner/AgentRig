@@ -17,6 +17,7 @@ pub struct Options<'a> {
     staged: bool,
     only: Option<&'a str>,
     revision: Option<&'a str>,
+    base: Option<&'a str>,
 }
 
 pub fn arguments(args: &[String]) -> Result<Options<'_>> {
@@ -50,11 +51,11 @@ pub fn arguments(args: &[String]) -> Result<Options<'_>> {
     );
     Ok(options)
 }
-pub fn run(root: &Path, staged: bool) -> Result<i32> {
+pub fn branch(root: &Path, base: &str) -> Result<i32> {
     selected(
         root,
         Options {
-            staged,
+            base: Some(base),
             ..Options::default()
         },
     )
@@ -106,7 +107,7 @@ fn execute_checks(
     options: &Options<'_>,
 ) -> Result<i32> {
     let files = files(context)?;
-    let changes = selection::changes(root, options.staged)?;
+    let changes = selection::changes(root, options.staged, options.base)?;
     for check in context
         .config
         .checks

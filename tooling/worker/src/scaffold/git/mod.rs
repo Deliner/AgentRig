@@ -1,5 +1,6 @@
 // DECISION: D010
 // DECISION: D019
+// DECISION: D035
 use super::{config::Context, gate};
 use crate::vcs::git_context as git;
 use anyhow::{Result, ensure};
@@ -32,11 +33,11 @@ pub fn merge(context: &Context) -> Result<i32> {
 }
 
 fn checked(context: &Context) -> Result<i32> {
-    let code = gate::run(&context.root, false)?;
+    let code = gate::branch(&context.root, &context.config.git.base)?;
     let passed = code == 0;
     if passed {
         ensure!(
-            super::evidence::resume(context)["full_gate_passed"] == true,
+            super::evidence::resume(context)["current"] == true,
             "checked merge inputs changed; preserve the native operation and retry after repairing the checks"
         );
     }

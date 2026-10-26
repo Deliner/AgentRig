@@ -71,8 +71,8 @@ Lint uses strict YAML and compiled Rust/Python handlers; see [rule semantics](RE
 ## Delivery and memory
 
 `feature-start` requires the base branch, a clean tree and no pending merge or rebase. `feature-merge`
-rebases a divergent feature, requires a full passing gate on unchanged inputs and merges into the base
-with an explicit merge commit. The pre-commit hook runs `guard-commit` and `check --staged`; checks
+rebases a divergent feature, requires a passing gate with tests affected by the branch on unchanged
+inputs and merges into the base with an explicit merge commit. The pre-commit hook runs `guard-commit` and `check --staged`; checks
 select [affected tests](CHECKS.md). The latest gate attempt is stored in `paths.runtime/checks.json`.
 
 Memory holds Plan, Backlog, Decisions, Invariants and State. Decision links to Rust, Python or shell

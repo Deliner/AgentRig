@@ -35,6 +35,7 @@ files:
   032.md: "Context and rationale for chat-agreed feature contracts and autonomous delivery"
   033.md: "Context and rationale for: Retire capabilities outside the lint-first target state and keep Git-only delivery."
   034.md: "Context and rationale for: Contain jobs with process groups and sandbox read-only commands per platform."
+  035.md: "Context and rationale for: Select affected tests for the whole branch at feature merge."
 directories: {}
 allow: []
 deny: []

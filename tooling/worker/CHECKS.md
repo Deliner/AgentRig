@@ -1,7 +1,8 @@
-# Selective commit tests
+# Selective commit and merge tests
 
 Command checks run their full configured command by default. A check may declare
-`affected` groups to append selected test targets during `check --staged`:
+`affected` groups to append selected test targets during `check --staged` and
+the gate invoked by `feature-merge`:
 
 ```yaml
 commands:
@@ -22,9 +23,11 @@ checks:
         targets: []
 ```
 
-Groups match project-relative staged paths against the previous commit. Added
-and deleted paths participate; renames include both old and new paths. Unstaged
-changes do not select groups. The map itself comes from the exported index.
+On commit, groups match project-relative staged paths against the previous
+commit; unstaged changes do not select groups and the map comes from the
+exported index. On merge, after any rebase, they match every path changed
+between the configured base branch and the feature HEAD. Added and deleted
+paths participate; renames include both old and new paths.
 
 If every changed path matches at least one group, the union of target strings is
 appended to the command as literal arguments, with duplicates removed. Targets
@@ -37,16 +40,18 @@ require no tests. Any unmatched changed path retains the full command. Leave
 shared components, test infrastructure and other broadly affecting paths unmapped
 when the full suite is required. No groups also retains the full command.
 
-`check`, `check --revision REV` and the gate invoked by `feature-merge` run full
-commands. Other checks, including lint, memory and formatting, retain their
-existing behavior. `include` still controls whether a check applies to the
-project inventory; it is not a changed-path selector.
+`check` and `check --revision REV` run full commands. Other checks, including
+lint, memory and formatting, always run in full. `include` still controls
+whether a check applies to the project inventory; it is not a changed-path
+selector.
 
 The console prints `SELECT [check-id]` and the selected target arguments.
 Saved check evidence sets `selective: true` whenever a command is narrowed or
 skipped by this map. Such a result never sets `full_gate_passed`, even when it
 passes. An unmatched-path fallback can establish full evidence. The normal
 staged rerun command applies the same staged map to the current index.
+`feature-merge` integrates when its selected gate passes on unchanged inputs;
+it does not require `full_gate_passed`.
 
 The command must accept arguments. Group include lists must be nonempty valid
 globs, and each target must be a nonempty, NUL-free string. Invalid maps fail
@@ -58,9 +63,10 @@ configuration test file, alongside its affected feature groups. Thus every commi
 has a selection: an unknown path runs smoke tests rather than the full suite.
 All lint source paths select lint consumers, including strict defaults and memory
 syntax checks. Scaffold changes select scaffold and initialization tests; the long complete-project integration scenarios
-are selected on commit when their test file or independent examples change. Merge runs all
-configured tests. Keep feature mappings current when ownership moves; smoke-only
-verification does not establish that every affected behavior was tested.
+are selected when their test file or independent examples change. Merge selects
+the same groups for the whole branch. Keep feature mappings current when
+ownership moves; smoke-only verification does not establish that every affected
+behavior was tested. Run `just check` for the full suite.
 
 Keep pytest targets nonoverlapping: use the same whole-file or whole-directory
 target in every group that needs it. Passing both a file and a node ID inside it

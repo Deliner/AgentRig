@@ -100,7 +100,7 @@ def affected_change(tmp_path: Path, case: str) -> None:
 @pytest.mark.parametrize(
     "case", ["edit", "delete", "rename", "unknown", "docs", "unstaged", "full", "merge"]
 )
-def test_staged_groups_preserve_full_fallback_and_full_gate(
+def test_affected_groups_select_commit_and_merge_targets(
     worker: Path, tmp_path: Path, case: str
 ) -> None:
     affected_project(tmp_path)
@@ -111,7 +111,6 @@ def test_staged_groups_preserve_full_fallback_and_full_gate(
         "rename": ["tests/a", "tests/b", "tests/shared"],
         "unknown": [],
         "full": [],
-        "merge": [],
     }
     docs = case == "docs"
     if docs:
@@ -122,7 +121,7 @@ def test_staged_groups_preserve_full_fallback_and_full_gate(
             in result.stdout
         )
     record = json.loads((tmp_path / ".runtime/checks.json").read_text())
-    assert record["selective"] == (case not in {"unknown", "full", "merge"})
+    assert record["selective"] == (case not in {"unknown", "full"})
     report = invoke(worker, tmp_path, "report")
     assert report.returncode == 0, report.stderr
     evidence = json.loads(report.stdout.split("Check evidence: ", 1)[1].splitlines()[0])
