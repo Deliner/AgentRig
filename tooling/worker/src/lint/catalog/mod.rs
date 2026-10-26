@@ -10,6 +10,8 @@ use std::path::Path;
 // DECISION: D018
 pub const ALL: &[Kind] = &[
     Kind::NonblankLines,
+    Kind::LineWidth,
+    Kind::ForbiddenFile,
     Kind::DirectoryEntries,
     Kind::FunctionLines,
     Kind::ParameterCount,

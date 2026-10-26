@@ -10,7 +10,7 @@ pub struct Descriptor {
 }
 pub enum Parameters {
     Thresholds { warning: Option<u64>, error: u64 },
-    Level,
+    Level { violation: &'static str },
 }
 impl Parameters {
     pub fn describe(&self) -> Value {
@@ -18,14 +18,14 @@ impl Parameters {
             Self::Thresholds { .. } => {
                 json!({"type": "thresholds", "warning": "optional nonnegative integer", "error": "optional nonnegative integer", "constraint": "at least one threshold; warning < error; finding when actual > threshold", "overrides": "ordered; last matching value wins"})
             }
-            Self::Level => {
+            Self::Level { .. } => {
                 json!({"type": "policy", "level": ["warning", "error"], "constraint": "level required; thresholds and overrides forbidden"})
             }
         }
     }
     pub fn apply(&self, value: &mut Value) {
         match self {
-            Self::Level => value["level"] = json!("error"),
+            Self::Level { .. } => value["level"] = json!("error"),
             Self::Thresholds { warning, error } => {
                 value["error"] = json!(error);
                 if let Some(warning) = warning {
@@ -39,6 +39,8 @@ impl Kind {
     pub fn descriptor(self) -> &'static Descriptor {
         match self {
             Self::NonblankLines => &NONBLANKLINES,
+            Self::LineWidth => &LINEWIDTH,
+            Self::ForbiddenFile => &FORBIDDENFILE,
             Self::DirectoryEntries => &DIRECTORYENTRIES,
             Self::NamedIfCondition => &NAMEDIFCONDITION,
             Self::FunctionLines => &FUNCTIONLINES,
@@ -57,12 +59,34 @@ const NONBLANKLINES: Descriptor = Descriptor {
         error: 500,
     },
 };
+// DECISION: D036
+const LINEWIDTH: Descriptor = Descriptor {
+    default_id: "line-width",
+    target: "file",
+    metric: "characters per line, one finding per line over a threshold; non-UTF-8 files skipped",
+    skill: "condense-markdown",
+    parameters: Parameters::Thresholds {
+        warning: None,
+        error: 120,
+    },
+};
+const FORBIDDENFILE: Descriptor = Descriptor {
+    default_id: "forbidden-file",
+    target: "file",
+    metric: "every selected file is a finding, regardless of content",
+    skill: "condense-markdown",
+    parameters: Parameters::Level {
+        violation: "file is not allowed here; move needed content to its owner and delete the file",
+    },
+};
 const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     default_id: "architecture",
     target: "directory",
     metric: "architecture.yaml contracts against resolved source dependencies: allow/deny, public boundaries and cycles; incomplete analysis is a finding",
     skill: "refactor-large-directory",
-    parameters: Parameters::Level,
+    parameters: Parameters::Level {
+        violation: "architecture contract is violated",
+    },
 };
 
 const DIRECTORYENTRIES: Descriptor = Descriptor {
@@ -81,7 +105,9 @@ const NAMEDIFCONDITION: Descriptor = Descriptor {
     target: "file",
     metric: "one named value per boolean if condition; Rust if-let bindings excluded; named field paths accepted",
     skill: "name-if-condition",
-    parameters: Parameters::Level,
+    parameters: Parameters::Level {
+        violation: "if condition must be one named value; give the branch reason a name",
+    },
 };
 
 const FUNCTIONLINES: Descriptor = Descriptor {

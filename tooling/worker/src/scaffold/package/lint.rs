@@ -1,4 +1,5 @@
 // DECISION: D021
+// DECISION: D036
 use crate::lint::rules;
 use anyhow::Result;
 use serde_json::json;
@@ -8,7 +9,14 @@ pub fn template(settings: &super::Config) -> Result<String> {
     let sources = &settings.paths.sources;
     let rules: Vec<_> = rules::ALL
         .iter()
-        .filter(|kind| **kind != rules::Kind::DirectoryArchitecture)
+        .filter(|kind| {
+            !matches!(
+                kind,
+                rules::Kind::DirectoryArchitecture
+                    | rules::Kind::LineWidth
+                    | rules::Kind::ForbiddenFile
+            )
+        })
         .map(|kind| rules::example(*kind, skills, sources))
         .collect();
     let config = json!({

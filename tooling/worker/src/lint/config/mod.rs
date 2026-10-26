@@ -187,8 +187,11 @@ impl Rule {
         Ok(())
     }
     fn validate_severity(&self) -> Result<()> {
-        let named_condition = matches!(self.kind.descriptor().parameters, rules::Parameters::Level);
-        if named_condition {
+        let policy = matches!(
+            self.kind.descriptor().parameters,
+            rules::Parameters::Level { .. }
+        );
+        if policy {
             let invalid_level = self.level.is_none()
                 || self.warning.is_some()
                 || self.error.is_some()

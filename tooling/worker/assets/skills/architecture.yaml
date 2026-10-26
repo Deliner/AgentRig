@@ -6,6 +6,7 @@ files:
   architecture.yaml: "Resource responsibility map and public installation boundary"
 directories:
   complexity-discipline: "Keep implementation and workflow complexity within current requirements"
+  condense-markdown: "Keep README and AGENTS.md within limits and other Markdown out of Project"
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
   reduce-parameters: "Reduce excessive function inputs without hiding dependencies"

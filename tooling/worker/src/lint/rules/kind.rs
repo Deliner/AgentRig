@@ -6,6 +6,8 @@ use std::fmt;
 #[serde(rename_all = "kebab-case")]
 pub enum Kind {
     NonblankLines,
+    LineWidth,
+    ForbiddenFile,
     DirectoryEntries,
     NamedIfCondition,
     FunctionLines,

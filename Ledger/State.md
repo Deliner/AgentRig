@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: 8910f1f24033bbf2273872c282af9c7eb1b3c4a2
+Revision: b4741c642cca9bc591fad41f190b3bbd523ce27b
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 8910f1f, installed by `just bootstrap` under .cache/development. A stray
@@ -23,23 +23,28 @@ guard-reference refuses its deletion.
 
 Committed: removal under [D033](Decisions/033.md) (da71c68), macOS port under
 [D034](Decisions/034.md) (10fbe31), runtime pin and macOS flock (6a06206),
-Claude Code hook registration (4330b7c), and affected-only merge tests under
-[D035](Decisions/035.md) (8910f1f). This VAC pins the runtime to 8910f1f, so
-`just feature-merge` selects tests for the whole branch. Plan P018–P023
-predates this direction and is not reconciled yet.
+Claude Code hook registration (4330b7c), affected-only merge tests under
+[D035](Decisions/035.md) (8910f1f) and its runtime pin (b4741c6). This VAC
+implements the lint side of [D036](Decisions/036.md): line-width and
+forbidden-file rule kinds and the condense-markdown skill. The repository
+rules are not configured yet. Plan P018–P023 predates this direction and is
+not reconciled yet.
 
 ## Verification
 
-`just check` on 8910f1f passed: 64 Rust tests, 419 pytest tests and every
-static check. `just bootstrap` installed 8910f1f.
+Candidate rustfmt, Clippy and 66 Rust tests pass, including the new
+line-width and forbidden-file tests; lint and package pytest pass (220);
+candidate lint has no errors and memory-check passes.
 
 ## Blockers
 
-None. Commits go through the pre-commit hook. memory-check runs oracles that
-record jobs, so it cannot run inside `just read`.
+The installed hook validates tooling/worker/lint.yaml on every event, so rules
+of a new kind can be configured only after the runtime that knows the kind is
+pinned and installed. Otherwise the hook rejects every edit, including the
+revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the pin, then add the Markdown size, width and placement rules with a
-condensing skill, and the comment rule allowing only decision and invariant
-references.
+Commit, pass `just check`, then pin and bootstrap in one command. Then add the
+markdown-size, markdown-width and markdown-placement rules and condense README
+and AGENTS.md files to fit.

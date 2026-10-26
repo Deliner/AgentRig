@@ -8,6 +8,8 @@ pub mod inventory;
 pub mod languages;
 pub mod rules;
 mod selection;
+#[cfg(test)]
+mod tests;
 
 pub use crate::diagnostics::lint::Diagnostic;
 use crate::diagnostics::lint::print_diagnostic;
@@ -57,32 +59,47 @@ fn scalar_findings(
             }
             syntax_findings(rule, &selected, &analyses[path], output)?;
         } else {
-            let Some(actual) = structural_measurement(root, rule, &selected, inventory)? else {
-                continue;
-            };
-            if let Some(item) = finding(rule, &selected, actual)? {
-                output.push(item);
+            for (line, actual) in structural_measurements(root, rule, &selected, inventory)? {
+                if let Some(mut item) = finding(rule, &selected, actual)? {
+                    item.line = line;
+                    output.push(item);
+                }
             }
         }
     }
     Ok(())
 }
-fn structural_measurement(
+// DECISION: D036
+fn structural_measurements(
     root: &Path,
     rule: &config::Rule,
     selected: &selection::Selected<'_>,
     inventory: &inventory::Inventory,
-) -> Result<Option<u64>> {
+) -> Result<Vec<(Option<usize>, u64)>> {
+    let text = || -> Result<Option<String>> {
+        Ok(String::from_utf8(fs::read(root.join(selected.path))?).ok())
+    };
     Ok(match rule.kind {
-        rules::Kind::NonblankLines => String::from_utf8(fs::read(root.join(selected.path))?)
-            .ok()
+        rules::Kind::NonblankLines => text()?
+            .map(|source| {
+                let count = source
+                    .lines()
+                    .filter(|line| !line.trim().is_empty())
+                    .count();
+                vec![(None, count as u64)]
+            })
+            .unwrap_or_default(),
+        rules::Kind::LineWidth => text()?
             .map(|source| {
                 source
                     .lines()
-                    .filter(|line| !line.trim().is_empty())
-                    .count() as u64
-            }),
-        rules::Kind::DirectoryEntries => Some(inventory.file_entries(selected.path) as u64),
+                    .enumerate()
+                    .map(|(index, line)| (Some(index + 1), line.chars().count() as u64))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        rules::Kind::ForbiddenFile => vec![(None, 1)],
+        rules::Kind::DirectoryEntries => vec![(None, inventory.file_entries(selected.path) as u64)],
         _ => unreachable!("validated by rule registry"),
     })
 }
@@ -144,9 +161,10 @@ fn finding(
             _ => return Ok(None),
         }
     };
-    let message = match limit {
-        Some(limit) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
-        None => "if condition must be one named value; give the branch reason a name".into(),
+    let message = match (limit, &rule.kind.descriptor().parameters) {
+        (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
+        (None, rules::Parameters::Level { violation }) => (*violation).into(),
+        (None, rules::Parameters::Thresholds { .. }) => unreachable!("thresholds report a limit"),
     };
     let blocking = level == "error";
     Ok(Some(Diagnostic {
