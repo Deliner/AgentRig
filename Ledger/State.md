@@ -12,40 +12,33 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: da71c68874c16c8c190966aef89419763605fd2e
+Revision: 10fbe31618730cc343a0af3d2868cb4d37f10dec
 
-The machine is macOS (Darwin 25.5.0). The pinned runtime 9aee4ae predates the
-port and the `git` configuration key, so the installed hooks and gate still
-cannot run here. A stray branch feature/init-probe at a14f284 remains from an
-install probe; guard-reference refuses its deletion.
+The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins the
+port commit and `just bootstrap` installed it under .cache/development. A stray
+branch feature/init-probe at a14f284 remains from an install probe;
+guard-reference refuses its deletion.
 
 ## Progress
 
-The removal VAC under [D033](Decisions/033.md) is committed as da71c68. The
-macOS port under [D034](Decisions/034.md) is ready to commit: process groups
-replace systemd scopes, job identity uses /proc on Linux and proc_pidinfo on
-macOS, read-only commands use sandbox-exec on macOS, init validates its
-preview through a canonical temporary path, and CI and release packaging
-cover macOS arm64. The Rust analyzer now measures cfg branches over test and
-target-platform predicates. Plan P018–P023 predates this direction and is not
-reconciled yet.
+The removal under [D033](Decisions/033.md) is commit da71c68 and the macOS
+port under [D034](Decisions/034.md) is commit 10fbe31. This VAC pins the
+runtime to 10fbe31 and adds flock to macOS prerequisites and CI. Plan
+P018–P023 predates this direction and is not reconciled yet.
 
 ## Verification
 
-On the port content before commit: cargo fmt and clippy -D warnings are clean,
-64 Rust tests pass, the Linux branches pass clippy for x86_64-unknown-linux-gnu
-in an isolated crate, candidate lint reports no errors, config-check and
-memory-check pass, ruff, mypy, typos and vulture pass, and pytest gives 419
-passed on macOS with the default /var TMPDIR and no leaked job processes.
-Linux runtime behavior is not yet exercised; CI will do that.
+The installed runtime ran `check --staged` on this VAC on macOS: lint, memory,
+rustfmt, clippy, ruff, mypy, typos, vulture and the selected config-check
+tests passed in about 20 seconds. Before the port commit, the full pytest
+suite gave 419 passed on macOS. Linux runtime behavior awaits CI.
 
 ## Blockers
 
-The user authorized commits without the pre-commit hook until the gate works
-on macOS. feature-merge still needs the full gate.
+None. The gate runs on macOS, so commits go through the pre-commit hook again.
 
 ## Next action
 
-Commit the port, pin stable.txt to it, run `just bootstrap`, and verify the
-installed hooks, `just check` and Claude Code and Codex hook registration on
-macOS. Then make feature-merge run only affected tests.
+Verify agent hook registration for Claude Code and Codex in this repository on
+macOS, then make feature-merge run only affected tests instead of the full
+suite.
