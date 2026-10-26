@@ -1,0 +1,9 @@
+purpose: Connect the Claude Code development client to the installed worker hooks
+files:
+  architecture.yaml: Claude Code integration inventory
+  CLAUDE.md: Import the shared repository instructions into Claude Code
+  settings.json: Forward Claude Code session and tool events to the installed worker hook
+directories: {}
+allow: []
+deny: []
+public: []

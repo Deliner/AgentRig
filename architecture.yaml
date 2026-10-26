@@ -9,7 +9,8 @@ files:
   justfile: Thin command adapters to the configured runtime
 directories:
   .agents: Expose canonical agent skills to the development client
-  .codex: Register the development client hooks and MCP services
+  .claude: Register the Claude Code development client hooks
+  .codex: Register the Codex development client hooks
   .githooks: Dispatch repository commit and reference guards
   .github: Configure hosted continuous integration
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
