@@ -14,6 +14,6 @@ allow:
   - tooling/worker/src/jobs/mod.rs
   - tooling/worker/src/jobs/process.rs
   - tooling/worker/src/jobs/cleanup.rs
-  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/vcs/mod.rs
 deny: []
 public: [mod.rs]

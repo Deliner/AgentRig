@@ -4,7 +4,6 @@
 # DECISION: D010
 # DECISION: D003
 import json
-import shlex
 import subprocess
 from pathlib import Path
 
@@ -16,14 +15,10 @@ from tooling.worker.src.scaffold.commands.tests.consumer import (
     wait_for_background_output,
 )
 from tooling.worker.src.scaffold.testing.consumer import git as git_result
-from tooling.worker.src.scaffold.testing.consumer import invoke, update_config, vcs_backend
+from tooling.worker.src.scaffold.testing.consumer import invoke, update_config
 from tooling.worker.src.scaffold.testing.repository import commit as revision_commit
 from tooling.worker.src.scaffold.testing.repository import (
-    evidence,
     feature_repository,
-    hg,
-    initialize_mercurial,
-    repository,
     resumed,
     revision,
 )
@@ -245,190 +240,31 @@ def background_commands(root: Path) -> None:
     )
 
 
-def mercurial_gate(worker: Path, root: Path, command: str = "exit 0") -> None:
-    repository(root, "hg")
-    config = root / "agentrig.yaml"
-    config.write_text(config.read_text().replace("exit 23", command))
-    (root / "src/other.py").write_text("other = 1\n")
-    subprocess.run(["hg", "add", "src/other.py"], cwd=root, check=True, capture_output=True)
-    revision_commit(root, "hg")
-    (root / ".hg/hgrc").write_text(
-        "[hooks]\npretxncommit.agentrig = "
-        + shlex.quote(str(worker))
-        + " check --root "
-        + shlex.quote(str(root))
-        + ' --revision "$HG_NODE"\n'
-    )
-
-
-def hg_commit(root: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        ["hg", "commit", "-m", "candidate", "-u", "Test", "src/value.py"],
-        cwd=root,
-        text=True,
-        capture_output=True,
-        check=False,
-        timeout=30,
-    )
-
-
-def test_mercurial_transaction_gate_rolls_back_failures_and_preserves_unselected_work(
-    worker: Path, tmp_path: Path
-) -> None:
-    mercurial_gate(worker, tmp_path)
-    base = revision(tmp_path, "hg")
-    source = tmp_path / "src/value.py"
-    source.write_text("line\n" * 61)
-    unrelated = tmp_path / "src/other.py"
-    unrelated.write_text("unselected\n" * 61)
-    failed = hg_commit(tmp_path)
-    assert failed.returncode != 0, failed.stdout + failed.stderr
-    assert "exceeds 60" in failed.stdout
-    assert revision(tmp_path, "hg") == base
-    assert evidence(tmp_path)["code"] == 1
-    assert source.read_text() == "line\n" * 61
-    source.write_text("value = 2\n")
-    passed = hg_commit(tmp_path)
-    assert passed.returncode == 0, passed.stdout + passed.stderr
-    committed = revision(tmp_path, "hg")
-    assert committed != base
-    record = evidence(tmp_path)
-    assert record["revision"] == committed and record["status"] == "completed"
-    assert record["code"] == 0 and record["only"] is None
-    assert unrelated.read_text() == "unselected\n" * 61
-    selected = subprocess.check_output(["hg", "cat", "-r", committed, "src/other.py"], cwd=tmp_path)
-    assert selected == b"other = 1\n"
-
-
-def test_mercurial_transaction_rejects_a_check_that_mutates_its_export(
-    worker: Path, tmp_path: Path
-) -> None:
-    mercurial_gate(worker, tmp_path, "echo changed > src/value.py")
-    base = revision(tmp_path, "hg")
-    source = tmp_path / "src/value.py"
-    source.write_text("value = 2\n")
-    result = hg_commit(tmp_path)
-    assert result.returncode != 0, result.stdout + result.stderr
-    assert revision(tmp_path, "hg") == base
-    assert evidence(tmp_path)["status"] == "inputs-changed"
-    assert source.read_text() == "value = 2\n"
-
-
-@pytest.mark.parametrize("vcs", ["hg", "private"])
-def test_mercurial_setup_registers_native_hooks_and_checks_commits(
-    worker: Path, tmp_path: Path, vcs: str
-) -> None:
-    initialize_mercurial(worker, tmp_path)
-    update_config(tmp_path / "agentrig.yaml", vcs={"backend": vcs_backend(vcs)})
-    preview = invoke(worker, tmp_path, "setup", "--preview")
-    assert preview.returncode == 0, preview.stderr
-    assert json.loads(preview.stdout)["registrations"]["vcs"]["backend"] == vcs_backend(vcs)
-    assert not (tmp_path / ".hg").exists() and not (tmp_path / ".git").exists()
-    result = invoke(worker, tmp_path, "setup")
-    assert result.returncode == 0, result.stdout + result.stderr
-    assert hg(tmp_path, "branch") == "trunk"
-    assert "pretxncommit.agentrig" in (tmp_path / ".hg/hgrc").read_text()
-    assert "hg root" in (tmp_path / ".codex/hooks.json").read_text()
-    assert not (tmp_path / ".git").exists()
-    (tmp_path / "src").mkdir()
-    (tmp_path / "src/test_sample.py").write_text("def test_value():\n    assert 1 == 1\n")
-    hg(tmp_path, "add")
-    denied = subprocess.run(
-        ["hg", "commit", "-m", "base", "-u", "Test"], cwd=tmp_path, capture_output=True, text=True
-    )
-    assert denied.returncode != 0 and "direct commits" in denied.stderr
-    hg(tmp_path, "branch", "task/bootstrap")
-    hg(tmp_path, "commit", "-m", "bootstrap", "-u", "Test")
-    assert invoke(worker, tmp_path, "doctor").returncode == 0
-    assert "runtime" not in hg(tmp_path, "status", "--unknown")
-    before = (tmp_path / ".hg/hgrc").read_bytes()
-    assert invoke(worker, tmp_path, "setup").returncode == 0
-    assert (tmp_path / ".hg/hgrc").read_bytes() == before
-
-
-def test_mercurial_setup_preserves_custom_hook_registration(worker: Path, tmp_path: Path) -> None:
-    hg(tmp_path, "init")
-    hgrc = tmp_path / ".hg/hgrc"
-    existing = "[ui]\nusername = Test\n[hooks]\npretxncommit.custom = true\n"
-    hgrc.write_text(existing)
-    ignore = tmp_path / ".hgignore"
-    ignore.write_text("syntax: glob\nuser-generated/**\n")
-    assert invoke(worker, tmp_path, "init", "--vcs", "mercurial").returncode == 0
-    assert hgrc.read_text().startswith(existing)
-    assert (
-        ignore.read_text()
-        == "syntax: glob\nuser-generated/**\n\ninclude:.agentrig/hooks.hgignore\n"
-    )
-    assert hg(tmp_path, "config", "hooks.pretxncommit.custom") == "true"
-    with hgrc.open("a") as stream:
-        stream.write("\n[hooks]\npretxncommit.agentrig = false\n")
-    before = hgrc.read_bytes()
-    result = invoke(worker, tmp_path, "setup", "--preview")
-    assert result.returncode == 2 and "existing registration preserved" in result.stderr
-    assert hgrc.read_bytes() == before
-
-
-def test_mercurial_review_defaults_select_the_native_repository(
-    worker: Path, tmp_path: Path
-) -> None:
-    result = invoke(worker, tmp_path, "init", "--vcs", "mercurial", "--review", "true")
-    assert result.returncode == 0, result.stderr
-    for name in ["code", "research"]:
-        source = (tmp_path / f".agentrig/review/config/projects/{name}.yaml").read_text()
-        assert "vcs: mercurial" in source
-    result = invoke(worker, tmp_path, "review", "config-check")
-    assert result.returncode == 0, result.stderr
-
-
-def test_vcs_selection_preserves_legacy_git_and_rejects_conflicts(
-    worker: Path, tmp_path: Path
-) -> None:
-    assert invoke(worker, tmp_path, "init").returncode == 0
-    path = tmp_path / "agentrig.yaml"
-    canonical = path.read_text()
-    assert "vcs:" in canonical
-    path.write_text(canonical.replace("vcs:", "git:").replace("  backend: git\n", ""))
-    assert invoke(worker, tmp_path, "config-check").returncode == 0
-    path.write_text(canonical + "\ngit:\n  base: other\n  prefix: task/\n")
-    assert invoke(worker, tmp_path, "config-check").returncode == 2
-    path.write_text(canonical.replace("backend: git", "backend: unknown"))
-    assert invoke(worker, tmp_path, "config-check").returncode == 2
-    path.write_text(canonical)
-    hg(tmp_path, "init")
-    result = invoke(worker, tmp_path, "setup")
-    assert result.returncode == 2 and "does not match" in result.stderr
-    assert not (tmp_path / ".git").exists()
-
-
-@pytest.mark.parametrize("vcs", ["git", "hg"])
 def test_native_feature_start_preserves_parent_and_rejects_existing_branch(
-    worker: Path, tmp_path: Path, vcs: str
+    worker: Path, tmp_path: Path
 ) -> None:
-    base = feature_repository(tmp_path, vcs)
+    base = feature_repository(tmp_path)
     result = invoke(worker, tmp_path, "feature-start", "product")
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "task/product"
-    assert revision(tmp_path, vcs) == base
+    assert revision(tmp_path) == base
     assert resumed(worker, tmp_path)["vcs"]["branch"] == "task/product"
     assert invoke(worker, tmp_path, "feature-start", "another").returncode == 2
     (tmp_path / "src/value.py").write_text("value = 2\n")
-    candidate = revision_commit(tmp_path, vcs)
-    using_git = vcs == "git"
-    args = ["switch", "trunk"] if using_git else ["update", "--rev", base]
-    subprocess.run([vcs, *args], cwd=tmp_path, capture_output=True, check=True)
+    candidate = revision_commit(tmp_path)
+    git(tmp_path, "switch", "trunk")
     result = invoke(worker, tmp_path, "feature-start", "product")
     assert result.returncode == 2 and "exists" in result.stderr
-    assert revision(tmp_path, vcs) == base
+    assert revision(tmp_path) == base
     assert (tmp_path / "src/value.py").read_text() == "value = 1\n"
     assert candidate != base
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
 @pytest.mark.parametrize("change", ["modified", "untracked", "invalid-name"])
 def test_native_feature_start_rejects_pending_changes_and_invalid_names(
-    worker: Path, tmp_path: Path, vcs: str, change: str
+    worker: Path, tmp_path: Path, change: str
 ) -> None:
-    base = feature_repository(tmp_path, vcs)
+    base = feature_repository(tmp_path)
     path = tmp_path / "src/value.py"
     modified = change == "modified"
     untracked = change == "untracked"
@@ -440,75 +276,8 @@ def test_native_feature_start_rejects_pending_changes_and_invalid_names(
     before = path.read_bytes()
     result = invoke(worker, tmp_path, "feature-start", "bad:name" if invalid else "product")
     assert result.returncode == 2, result.stderr
-    assert revision(tmp_path, vcs) == base
+    assert revision(tmp_path) == base
     assert not resumed(worker, tmp_path)["vcs"]["branch"].startswith("task/")
     assert path.read_bytes() == before
     if untracked:
         assert (tmp_path / "pending.txt").read_text() == "preserve me\n"
-
-
-def test_mercurial_feature_start_honors_hooks_and_native_names(
-    worker: Path, tmp_path: Path
-) -> None:
-    base = feature_repository(tmp_path, "hg")
-    hgrc = tmp_path / ".hg/hgrc"
-    hgrc.write_text("[hooks]\npre-branch.reject = false\n")
-    result = invoke(worker, tmp_path, "feature-start", "with spaces")
-    assert result.returncode == 2 and "pre-branch.reject" in result.stderr
-    assert resumed(worker, tmp_path)["vcs"]["branch"] == "default"
-    hgrc.write_text("[hooks]\npre-branch.reject = true\n")
-    result = invoke(worker, tmp_path, "feature-start", "with spaces")
-    assert result.returncode == 0, result.stderr
-    assert hg(tmp_path, "branch") == "task/with spaces"
-    assert revision(tmp_path, "hg") == base
-
-
-def test_mercurial_feature_start_rejects_pending_merge_with_clean_files(
-    worker: Path, tmp_path: Path
-) -> None:
-    base = feature_repository(tmp_path, "hg")
-    assert invoke(worker, tmp_path, "feature-start", "side").returncode == 0
-    hg(tmp_path, "commit", "-m", "named branch", "-u", "Test")
-    side = revision(tmp_path, "hg")
-    hg(tmp_path, "update", "--rev", base)
-    hg(tmp_path, "merge", "--rev", side)
-    assert hg(tmp_path, "status") == ""
-    result = invoke(worker, tmp_path, "feature-start", "product")
-    assert result.returncode == 2 and "pending VCS operation" in result.stderr
-    observed = resumed(worker, tmp_path)["vcs"]
-    assert observed["merge_in_progress"]
-    assert observed["branch"] == "default"
-
-
-def test_mercurial_integration_preserves_empty_feature_branch(worker: Path, tmp_path: Path) -> None:
-    base = feature_repository(tmp_path, "hg")
-    assert invoke(worker, tmp_path, "feature-start", "empty").returncode == 0
-    result = invoke(worker, tmp_path, "feature-merge")
-    assert result.returncode == 2 and "no committed changes" in result.stderr
-    assert hg(tmp_path, "branch") == "task/empty"
-    assert revision(tmp_path, "hg") == base
-
-
-@pytest.mark.parametrize("obstacle", ["dirty", "multiple-heads"])
-def test_mercurial_integration_preserves_unready_repository(
-    worker: Path, tmp_path: Path, obstacle: str
-) -> None:
-    feature_repository(tmp_path, "hg")
-    assert invoke(worker, tmp_path, "feature-start", "product").returncode == 0
-    source = tmp_path / "src/value.py"
-    source.write_text("value = 2\n")
-    candidate = revision_commit(tmp_path, "hg")
-    multiple_heads = obstacle == "multiple-heads"
-    if multiple_heads:
-        hg(tmp_path, "update", "--rev", "0")
-        source.write_text("value = 3\n")
-        revision_commit(tmp_path, "hg")
-        hg(tmp_path, "update", "--rev", candidate)
-    else:
-        source.write_text("value = 4\n")
-    before = source.read_bytes()
-    result = invoke(worker, tmp_path, "feature-merge")
-    assert result.returncode == 2, result.stdout + result.stderr
-    assert revision(tmp_path, "hg") == candidate
-    assert hg(tmp_path, "branch") == "task/product"
-    assert source.read_bytes() == before

@@ -1,4 +1,4 @@
-use super::super::{Files, bundle, config, manifest, template};
+use super::super::{Config, Files, bundle, config, template};
 use super::wizard;
 use anyhow::{Result, ensure};
 use std::{
@@ -12,13 +12,21 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     if interactive {
         return wizard::run(root);
     }
-    reject_legacy(root)?;
     let options = template::options(root, args)?;
     let config = template::config(&options);
-    let files = bundle(root, &config)?;
-    check_collisions(root, &files)?;
-    // Check native hook ownership before creating any files.
-    let repository = config.vcs.backend.repository(root)?;
+    let files = bundle(&config)?;
+    prepare(root, &config, &files)?;
+    install(root, &config, &files)?;
+    println!(
+        "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
+        options["language"],
+        config::VERSION
+    );
+    Ok(0)
+}
+pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()> {
+    check_collisions(root, files)?;
+    let repository = crate::vcs::Repository::discover(root)?;
     if let Some(repository) = &repository {
         repository.validate_registration(&config.paths.service_path("hooks"))?;
         let existing = repository.hook_registration()?;
@@ -27,24 +35,7 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
             "existing VCS hook registration={existing}; init will not replace it"
         );
     }
-    validate_bundle(&files)?;
-    install(root, &files)?;
-    if let Some(repository) = repository {
-        repository.register_hooks(&config.paths.service_path("hooks"))?;
-    }
-    println!(
-        "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
-        options["language"],
-        config::VERSION
-    );
-    Ok(0)
-}
-pub(super) fn reject_legacy(root: &Path) -> Result<()> {
-    ensure!(
-        !root.join(crate::scaffold::recovery::LEGACY_FILE).exists(),
-        "legacy installation requires explicit upgrade; existing configuration preserved"
-    );
-    Ok(())
+    validate_bundle(files)
 }
 fn check_collisions(root: &Path, files: &Files) -> Result<()> {
     for path in files.keys() {
@@ -79,9 +70,9 @@ fn validate_bundle(files: &Files) -> Result<()> {
     config::Context::load(preview.path())?;
     Ok(())
 }
-fn install(root: &Path, files: &Files) -> Result<()> {
+pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()> {
     for (path, contents) in files {
-        let executable = manifest::executable(path);
+        let executable = executable(path);
         let path = config::relative(root, path)?;
         fs::create_dir_all(path.parent().unwrap())?;
         let mut file = OpenOptions::new()
@@ -94,5 +85,12 @@ fn install(root: &Path, files: &Files) -> Result<()> {
             fs::set_permissions(&path, fs::Permissions::from_mode(0o755))?;
         }
     }
-    Ok(())
+    crate::vcs::initialize(root, &config.git.base)?;
+    fs::create_dir_all(config::relative(root, &config.paths.runtime)?)?;
+    crate::vcs::Repository::new(root).register_hooks(&config.paths.service_path("hooks"))
+}
+fn executable(path: &str) -> bool {
+    Path::new(path)
+        .components()
+        .any(|component| component.as_os_str() == "bin" || component.as_os_str() == "hooks")
 }

@@ -1,18 +1,16 @@
-use super::super::config::{self, Check, CheckKind, Command, Config, Hooks, Paths, Route, Vcs};
+use super::super::config::{self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route};
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
-        ("review", "false"),
         ("source", "src"),
         ("memory", "memory"),
         ("skills", ".agentrig/skills"),
         ("service", ".agentrig"),
         ("base", "main"),
         ("prefix", "feature/"),
-        ("vcs", "git"),
         ("frontend", "codex"),
     ]
     .into_iter()
@@ -20,7 +18,7 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--vcs git|mercurial] [--frontend codex|claude-code] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX] [--review true|false]"
+        "init [--language python|rust] [--frontend codex|claude-code] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -43,18 +41,10 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
         ["codex", "claude-code"].contains(&options["frontend"].as_str()),
         "init --frontend expects codex or claude-code"
     );
-    ensure!(
-        ["git", "mercurial"].contains(&options["vcs"].as_str()),
-        "init --vcs expects git or mercurial"
-    );
     let language = options["language"].as_str();
     ensure!(
         ["python", "rust"].contains(&language),
         "init supports python or rust"
-    );
-    ensure!(
-        ["true", "false"].contains(&options["review"].as_str()),
-        "init --review expects true or false"
     );
     for key in ["source", "memory", "skills", "service"] {
         config::relative(root, &options[key])?;
@@ -70,11 +60,9 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             "claude-code" => config::Frontend::ClaudeCode,
             _ => config::Frontend::Codex,
         },
-        environment: Default::default(),
-        agent: None,
         version: 1,
         processes: Default::default(),
-        capabilities: capabilities(options),
+        capabilities: Default::default(),
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
@@ -85,7 +73,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             lint: format!("{service}/lint.yaml"),
             runtime: format!("{service}/runtime"),
         },
-        vcs: vcs(options),
+        git: git(options),
         commands: commands(options),
         checks: checks(&options["source"], &repair),
         hooks: Hooks {
@@ -96,24 +84,10 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         oracles: BTreeMap::new(),
     }
 }
-fn vcs(options: &Options<'_>) -> Vcs {
-    Vcs {
-        backend: match options["vcs"].as_str() {
-            "mercurial" => review_runner::vcs::Kind::Mercurial,
-            _ => review_runner::vcs::Kind::Git,
-        }
-        .into(),
+fn git(options: &Options<'_>) -> Git {
+    Git {
         base: options["base"].clone(),
         prefix: options["prefix"].clone(),
-    }
-}
-fn capabilities(options: &Options<'_>) -> config::Capabilities {
-    config::Capabilities {
-        lint: true,
-        delegation: None,
-        review: (options["review"] == "true").then(|| config::Resource {
-            config: format!("{}/review/config/review.yaml", options["service"]),
-        }),
     }
 }
 
@@ -226,8 +200,6 @@ pub(super) fn justfile(config: &Config) -> String {
         ("report", "report", false),
         ("feature-start", "feature-start", true),
         ("feature-merge", "feature-merge", false),
-        ("upgrade", "upgrade", true),
-        ("setup", "setup", true),
         ("lint", "lint", true),
         ("lint-config-check", "lint-config-check", true),
         ("lint-rule", "lint-rule", true),
@@ -238,8 +210,6 @@ pub(super) fn justfile(config: &Config) -> String {
         ("job-start", "job-start", true),
         ("job-stop", "job-stop", true),
         ("job-cleanup", "job-cleanup", true),
-        ("review", "review", true),
-        ("delegate", "delegate", true),
     ] {
         source.push_str(&format!(
             "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @{binary} {command} --root .{}\n\n",

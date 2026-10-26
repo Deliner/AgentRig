@@ -19,7 +19,6 @@ files:
   017.md: "Predicate and oracle for: Installed Rust/Python language defaults block unnamed conditions, functions above 40 nonblank lines and signatures above 4 inputs; boundary values pass."
   018.md: "Predicate and oracle for: Changed source or executable mode invalidates current check evidence, and a selected passing check never claims a full passing gate."
   019.md: "Predicate and oracle for: Resume reports real merge and rebase conflicts without modifying repository contents."
-  020.md: "Predicate and oracle for: A new installation records correct shipped checksums, executable flags and ownership while retaining the baseline after user edits."
 directories: {}
 allow: []
 deny: []

@@ -65,7 +65,7 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let context = Context::load(tree)?;
     if options.staged {
-        context.config.vcs.backend.source(root).index_entries()?;
+        crate::vcs::Repository::new(root).index_entries()?;
     }
     ensure!(
         only.is_none_or(|id| context.config.checks.iter().any(|check| check.id == id)),
@@ -91,11 +91,7 @@ fn prepare(
         return Ok((Some(export(root)?), Input::Index(index)));
     }
     if let Some(reference) = options.revision {
-        let config = config::read(root)?;
-        let repository = config
-            .vcs
-            .backend
-            .repository_source(root)?
+        let repository = crate::vcs::Repository::discover(root)?
             .ok_or_else(|| anyhow::anyhow!("revision checking requires a VCS repository"))?;
         let revision = repository.resolve(reference)?;
         let snapshot = repository.export_revision(&revision)?;
@@ -109,7 +105,7 @@ fn execute_checks(
     attempt: &mut super::evidence::Attempt,
     options: &Options<'_>,
 ) -> Result<i32> {
-    let files = files(context, root)?;
+    let files = files(context)?;
     let changes = selection::changes(root, options.staged)?;
     for check in context
         .config
@@ -176,7 +172,6 @@ fn run_check(
             &context.root,
             &context.path(&context.config.paths.lint)?,
             rerun,
-            inventory_source(context, source.0)?.as_ref(),
         ),
         CheckKind::Memory => super::memory::check_with_history(context, source.0, source.1),
     }
@@ -215,7 +210,7 @@ fn checked(
     (code, broken)
 }
 fn export(root: &Path) -> Result<tempfile::TempDir> {
-    let repository = review_runner::vcs::Repository::discover(root)?
+    let repository = crate::vcs::Repository::discover(root)?
         .ok_or_else(|| anyhow::anyhow!("index export requires a VCS repository"))?;
     let directory = repository.export_index()?;
     ensure!(
@@ -224,28 +219,12 @@ fn export(root: &Path) -> Result<tempfile::TempDir> {
     );
     Ok(directory)
 }
-fn inventory_source<'a>(
-    context: &'a Context,
-    origin: &Path,
-) -> Result<Option<review_runner::vcs::Source<'a>>> {
-    let exported = context.root != origin;
-    if exported {
-        return Ok(None);
-    }
-    context.config.vcs.backend.repository_source(&context.root)
-}
-
-pub fn files(context: &Context, origin: &Path) -> Result<Vec<PathBuf>> {
+pub fn files(context: &Context) -> Result<Vec<PathBuf>> {
     let excludes = vec![
         ".git".into(),
         ".git/**".into(),
         context.config.paths.runtime.clone(),
         format!("{}/**", context.config.paths.runtime),
     ];
-    Ok(inventory::collect_source(
-        &context.root,
-        &globs(&excludes)?,
-        inventory_source(context, origin)?.as_ref(),
-    )?
-    .files)
+    Ok(inventory::collect(&context.root, &globs(&excludes)?)?.files)
 }

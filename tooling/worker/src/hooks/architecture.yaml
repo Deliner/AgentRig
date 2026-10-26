@@ -16,6 +16,5 @@ allow:
   - tooling/worker/src/lint/config/mod.rs
   - tooling/worker/src/scaffold/mod.rs
   - tooling/worker/src/scaffold/config/mod.rs
-  - tooling/worker/src/scaffold/recovery/mod.rs
 deny: []
 public: [mod.rs, input.rs]

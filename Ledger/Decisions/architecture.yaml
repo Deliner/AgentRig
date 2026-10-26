@@ -33,6 +33,7 @@ files:
   030.md: "Context and rationale for: Apply flat-memory registry size policy to Backlog."
   031.md: "Context and rationale for current execution Plan and unordered Backlog"
   032.md: "Context and rationale for chat-agreed feature contracts and autonomous delivery"
+  033.md: "Context and rationale for: Retire capabilities outside the lint-first target state and keep Git-only delivery."
 directories: {}
 allow: []
 deny: []

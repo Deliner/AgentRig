@@ -10,6 +10,6 @@ allow:
   - tooling/worker/src/lint/rules/kind.rs
   - tooling/worker/src/lint/rules/descriptor.rs
   - tooling/worker/src/lint/rules/architecture.rs
-  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/src/yaml/mod.rs
 deny: []
 public: [mod.rs]

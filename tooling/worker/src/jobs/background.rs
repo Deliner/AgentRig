@@ -49,7 +49,7 @@ impl Job {
                 return Err(error.into());
             }
         };
-        review_runner::artifacts::json::save(
+        crate::artifacts::json::save(
             &self.directory.join("launcher.json"),
             &Identity::read(child.id()).ok(),
         )?;

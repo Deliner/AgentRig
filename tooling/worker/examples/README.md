@@ -1,10 +1,5 @@
 # Independent scaffold examples
 
-The separate [external VCS example](external_vcs.py) exercises the implemented
-[private read protocol](../review/EXTERNAL_VCS.md) over Mercurial without importing
-AgentRig. Review and delegation select it through their `vcs` configuration;
-private project setup and delivery writes remain pending.
-
 These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
 
 For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux, Git, Just and bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.
@@ -43,7 +38,6 @@ Generated defaults enforce named conditions, function length and parameter limit
 
 ```sh
 .agentrig/bin/agentrig --version
-just setup
 just config-check
 just resume
 just run test
@@ -83,32 +77,3 @@ Run `memory-check` to validate the link and discover the exact test target. Run 
 The native scaffold integration tests exercise both installations with their own source/memory/skills paths, branch names, severity settings and oracles. They also reject an unsupported shell-language selector, repair it through configuration, exercise real Git hooks, and show that an unrelated source marker or missing test target cannot validate an invariant.
 
 See [observed latency](LATENCY.md) for first-process and repeated-process measurements and the reproducible measurement command.
-
-
-## Enable isolated review
-
-Add the review capability to the consumer's agentrig.yaml:
-
-```yaml
-capabilities:
-  review:
-    config: .agentrig/review/config/review.yaml
-```
-
-Run `just setup`. It installs the stock review resources and review-project skill,
-registers MCP, and checks dependencies. Adapt the installed project visibility
-patterns to `application/**` or `crates/engine/**` for these examples. Edit the
-machine contract, reviewer selection, models and prompts for the desired review;
-then run `just review config-check`. Commit the intended candidate and call the
-configured MCP tool with the consumer root and the base/candidate Git boundary.
-
-Codex authentication stays outside the project. Supply CODEX_HOME and, when
-needed, REVIEW_CODEX_BIN in the environment from which the MCP client starts.
-Restart the MCP connection after changing its tool configuration. Repeated setup
-preserves settings and reports conflicting adapters instead of overwriting them.
-
-The separate `agentrig-lint --root OTHER_PROJECT --config POLICY --json` command
-needs no worker installation in OTHER_PROJECT. See the
-[lint guide](../README.md) for external repair-skill resources.
-See [portable delivery verification](PORTABILITY.md) for the observed setup,
-real MCP review, update and rollback scenario.

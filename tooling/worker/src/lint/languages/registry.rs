@@ -1,3 +1,4 @@
+// DECISION: D033
 use super::{Measurement, python, rust};
 use crate::lint::rules::kind::Kind;
 use std::path::Path;
@@ -37,30 +38,6 @@ pub const HANDLERS: &[Handler] = &[
         ],
         grammar: || tree_sitter_python::LANGUAGE.into(),
         inspect: Some(python::inspect),
-    },
-    Handler {
-        name: "javascript",
-        title: "JavaScript",
-        extensions: &[".js", ".jsx", ".mjs", ".cjs"],
-        rules: &[Kind::DirectoryArchitecture],
-        grammar: || tree_sitter_javascript::LANGUAGE.into(),
-        inspect: None,
-    },
-    Handler {
-        name: "typescript",
-        title: "TypeScript",
-        extensions: &[".ts", ".mts", ".cts"],
-        rules: &[Kind::DirectoryArchitecture],
-        grammar: || tree_sitter_typescript::LANGUAGE_TYPESCRIPT.into(),
-        inspect: None,
-    },
-    Handler {
-        name: "tsx",
-        title: "TSX",
-        extensions: &[".tsx"],
-        rules: &[Kind::DirectoryArchitecture],
-        grammar: || tree_sitter_typescript::LANGUAGE_TSX.into(),
-        inspect: None,
     },
 ];
 pub fn handler(path: &Path) -> Option<&'static Handler> {

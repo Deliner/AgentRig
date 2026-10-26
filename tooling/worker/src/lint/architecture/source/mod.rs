@@ -1,5 +1,4 @@
 //! Syntax references, before filesystem/module resolution.
-mod javascript;
 mod python;
 mod rust;
 #[cfg(test)]
@@ -9,7 +8,7 @@ pub(crate) mod model;
 use crate::lint::languages;
 use anyhow::{Context, Result};
 use model::Source;
-pub use model::{Loader, Reference, References, RustImport, RustItem, RustMacro, Target};
+pub use model::{Reference, References, RustImport, RustItem, RustMacro, Target};
 use std::path::Path;
 use tree_sitter::Node;
 
@@ -30,8 +29,7 @@ pub fn extract(path: &Path, text: &str) -> Result<References> {
     while let Some(node) = pending.pop() {
         let descend = match handler.name {
             "rust" => rust::inspect(&mut source, node),
-            "python" => python::inspect(&mut source, node),
-            _ => javascript::inspect(&mut source, node),
+            _ => python::inspect(&mut source, node),
         };
         if descend {
             let mut cursor = node.walk();

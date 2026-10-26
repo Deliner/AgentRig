@@ -38,8 +38,7 @@ pub fn rerun(root: &Path, args: &[String]) -> String {
 pub fn failure(error: &anyhow::Error) -> String {
     let (root, args) = invocation();
     let command = args.first().map(String::as_str).unwrap_or("worker");
-    let config =
-        review_runner::config::yaml::read::<serde_json::Value>(&root.join("agentrig.yaml")).ok();
+    let config = crate::yaml::read::<serde_json::Value>(&root.join("agentrig.yaml")).ok();
     let skill = repair_skill(config.as_ref(), command);
     let binary = executable();
     let rerun = shell_words::join(

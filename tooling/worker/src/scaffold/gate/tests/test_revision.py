@@ -4,9 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import (
-    invoke,
-)
+from tooling.worker.src.scaffold.testing.consumer import invoke
 from tooling.worker.src.scaffold.testing.repository import (
     commit,
     evidence,
@@ -16,15 +14,14 @@ from tooling.worker.src.scaffold.testing.repository import (
 )
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg", "private"])
 def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
-    worker: Path, tmp_path: Path, vcs: str
+    worker: Path, tmp_path: Path
 ) -> None:
-    repository(tmp_path, vcs)
-    base = revision(tmp_path, vcs)
+    repository(tmp_path)
+    base = revision(tmp_path)
     source = tmp_path / "src/value.py"
     source.write_text("line\n" * 61)
-    candidate = commit(tmp_path, vcs)
+    candidate = commit(tmp_path)
     source.write_text("value = 1\n")
     lint = tmp_path / "lint.yaml"
     lint.write_text(lint.read_text().replace("error: 60", "error: 100"))
@@ -47,22 +44,21 @@ def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
     assert not checks["revision_matches"] and not checks["full_gate_passed"]
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg", "private"])
 def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_exports(
-    worker: Path, tmp_path: Path, vcs: str
+    worker: Path, tmp_path: Path
 ) -> None:
-    repository(tmp_path, vcs)
-    base = revision(tmp_path, vcs)
+    repository(tmp_path)
+    base = revision(tmp_path)
     assert invoke(worker, tmp_path, "check", "--revision", base).returncode == 23
     assert evidence(tmp_path)["code"] == 23
     config = tmp_path / "agentrig.yaml"
     config.write_text(config.read_text().replace("exit 23", "exit 0"))
-    passing = commit(tmp_path, vcs)
+    passing = commit(tmp_path)
     result = invoke(worker, tmp_path, "check", "--revision", passing)
     assert result.returncode == 0, result.stderr
     assert resumed(worker, tmp_path)["checks"]["full_gate_passed"]
     config.write_text(config.read_text().replace("exit 0", "echo changed > src/value.py"))
-    changing = commit(tmp_path, vcs)
+    changing = commit(tmp_path)
     result = invoke(worker, tmp_path, "check", "--revision", changing)
     assert result.returncode == 2, result.stdout + result.stderr
     assert "checked revision inputs changed" in result.stderr

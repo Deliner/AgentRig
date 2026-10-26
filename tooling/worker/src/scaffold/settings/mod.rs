@@ -1,12 +1,9 @@
 mod capabilities;
-mod client;
 mod validation;
-pub use crate::environment::Frontend;
-pub use capabilities::{Capabilities, Resource};
-pub use client::{Agent, Api};
+pub use capabilities::Capabilities;
 // DECISION: D005
+pub use crate::vcs::Settings as Git;
 use anyhow::{Context as _, Result, ensure};
-pub use review_runner::vcs::Settings as Vcs;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
@@ -15,14 +12,11 @@ use std::{
 
 pub const FILE: &str = "agentrig.yaml";
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
-pub const LEGACY_VERSION: &str = "0.2.0";
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
     #[serde(default)]
     pub frontend: Frontend,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub agent: Option<Agent>,
     pub version: u32,
     pub runtime: String,
     pub config_skill: String,
@@ -31,13 +25,8 @@ pub struct Config {
     pub processes: Processes,
     #[serde(default)]
     pub capabilities: Capabilities,
-    #[serde(
-        default,
-        skip_serializing_if = "crate::environment::Environment::is_empty"
-    )]
-    pub environment: crate::environment::Environment,
-    #[serde(default, alias = "git")]
-    pub vcs: Vcs,
+    #[serde(default)]
+    pub git: Git,
     #[serde(default)]
     pub commands: BTreeMap<String, Command>,
     #[serde(default)]
@@ -71,6 +60,13 @@ fn service() -> String {
 pub struct Processes {
     #[serde(default)]
     pub foreground: Containment,
+}
+#[derive(Clone, Copy, Default, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Frontend {
+    #[default]
+    Codex,
+    ClaudeCode,
 }
 #[derive(Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -154,9 +150,7 @@ fn all() -> Vec<String> {
 }
 
 pub fn read(root: &Path) -> Result<Config> {
-    review_runner::config::yaml::read(&root.join(FILE)).with_context(|| {
-        format!("{FILE} required; use explicit upgrade for legacy worker.toml, no format fallback")
-    })
+    crate::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))
 }
 // Resolve existing ancestors too: symlinks must not escape the selected project tree.
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {

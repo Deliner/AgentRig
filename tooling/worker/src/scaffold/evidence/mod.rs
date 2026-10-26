@@ -79,7 +79,7 @@ impl Attempt {
             revision_export: selected.is_some(),
             revision: match selected {
                 Some(revision) => Some(revision),
-                None => content::head(context, origin)?,
+                None => content::head(origin)?,
             },
             fingerprint: String::new(),
             staged: index_fingerprint.is_some(),
@@ -140,15 +140,13 @@ impl Attempt {
         let fingerprint = self.record.fingerprint(context, origin)?;
         let revision = match self.exported_revision() {
             Some(revision) => Some(revision.to_owned()),
-            None => content::head(context, origin)?,
+            None => content::head(origin)?,
         };
         let index_matches = self
             .record
             .index_fingerprint
             .as_ref()
-            .map(|saved| {
-                content::index(&context.config.vcs.backend, origin).map(|current| current == *saved)
-            })
+            .map(|saved| content::index(origin).map(|current| current == *saved))
             .transpose()?;
         let stable = fingerprint == self.record.fingerprint
             && revision == self.record.revision
@@ -166,7 +164,7 @@ impl Attempt {
     fn save(&self) -> Result<()> {
         let directory = self.path.parent().expect("runtime file parent");
         fs::create_dir_all(directory)?;
-        review_runner::artifacts::json::save(&self.path, &self.record)
+        crate::artifacts::json::save(&self.path, &self.record)
     }
 }
 fn read(path: &Path) -> Result<Option<Record>> {
@@ -189,17 +187,14 @@ fn observed(context: &Context) -> Result<Value> {
     let Some(record) = read(&path)? else {
         return Ok(json!({"status": "absent"}));
     };
-    let revision = content::head(context, &context.root)?;
+    let revision = content::head(&context.root)?;
     let worktree = content::fingerprint(context, &context.root, false)?;
     let revision_matches = revision.is_some() && revision == record.revision;
     let content_matches = worktree == record.fingerprint;
     let index_matches = record
         .index_fingerprint
         .as_ref()
-        .map(|saved| {
-            content::index(&context.config.vcs.backend, &context.root)
-                .map(|current| current == *saved)
-        })
+        .map(|saved| content::index(&context.root).map(|current| current == *saved))
         .transpose()?;
     let current = revision_matches
         && content_matches

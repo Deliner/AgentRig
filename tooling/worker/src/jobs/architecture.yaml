@@ -14,7 +14,7 @@ files:
   streams.rs: Drain child streams and retain captured output
 directories: {}
 allow:
-  - tooling/worker/review/src/artifacts/json.rs
-  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/artifacts/json.rs
+  - tooling/worker/src/vcs/mod.rs
 deny: []
 public: [mod.rs, process.rs, report.rs, cleanup.rs]

@@ -11,7 +11,7 @@ allow:
   - tooling/worker/src/scaffold/config/mod.rs
   - tooling/worker/src/scaffold/settings/mod.rs
   - tooling/worker/src/diagnostics/mod.rs
-  - tooling/worker/review/src/artifacts/json.rs
-  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/artifacts/json.rs
+  - tooling/worker/src/vcs/mod.rs
 deny: []
 public: [mod.rs]

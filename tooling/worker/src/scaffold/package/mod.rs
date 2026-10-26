@@ -2,22 +2,19 @@ pub(super) mod adapters;
 mod assets;
 mod claude;
 mod doctor;
-mod executors;
 mod lint;
-pub(super) mod manifest;
-mod review;
 pub(super) mod setup;
 mod template;
 use super::config::{self, Config};
 use anyhow::{Result, ensure};
 pub use doctor::run as doctor;
-use std::{collections::BTreeMap, fs, path::Path};
+use std::{collections::BTreeMap, fs};
 type Files = BTreeMap<String, Vec<u8>>;
-fn bundle(root: &Path, config: &Config) -> Result<Files> {
+fn bundle(config: &Config) -> Result<Files> {
     let mut files = guidance(config);
     files.insert(
         config::FILE.into(),
-        review_runner::config::yaml::encode(config)?.into_bytes(),
+        crate::yaml::encode(config)?.into_bytes(),
     );
     for (name, source) in assets::memory() {
         files.insert(
@@ -26,17 +23,12 @@ fn bundle(root: &Path, config: &Config) -> Result<Files> {
         );
     }
     add_policy(&mut files, config)?;
-    add_runtime(root, &mut files, config)?;
-    review::bundle(&mut files, config)?;
-    files.insert(
-        config.paths.service_path("manifest.json"),
-        manifest::installed(&files, config)?,
-    );
+    add_runtime(&mut files, config)?;
     Ok(files)
 }
 
 pub(super) fn guidance(config: &Config) -> Files {
-    let mut files: Files = assets::skills(config)
+    let mut files: Files = assets::skills()
         .into_iter()
         .map(|(name, source)| {
             (
@@ -67,11 +59,11 @@ fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
     }
     Ok(())
 }
-fn add_runtime(root: &Path, files: &mut Files, config: &Config) -> Result<()> {
-    let generated = adapters::generated(root, config)?;
+fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
+    let generated = adapters::generated(config)?;
     files.insert(
         config.paths.service_path(".gitignore"),
-        b"runtime/\n/inputs/runtime/\n/inputs/reports/\n".to_vec(),
+        b"runtime/\n".to_vec(),
     );
     files.insert(
         config.paths.service_path("bin/agentrig"),
@@ -103,11 +95,4 @@ fn client_files(files: &mut Files, config: &Config, root_command: &str) -> Resul
         config::Frontend::ClaudeCode => claude::bundle(files, config, root_command)?,
     }
     Ok(())
-}
-
-fn source(root: &Path, files: &Files, path: &str) -> Result<String> {
-    match files.get(path) {
-        Some(bytes) => Ok(std::str::from_utf8(bytes)?.into()),
-        None => Ok(fs::read_to_string(config::relative(root, path)?)?),
-    }
 }

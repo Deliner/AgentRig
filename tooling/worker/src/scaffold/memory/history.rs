@@ -1,11 +1,11 @@
 // DECISION: D020
-use super::super::config::{Config, Context, FILE};
+use super::super::config::{Context, FILE};
 use super::format;
+use crate::vcs::{Entry, Repository};
 use anyhow::{Context as _, Result, ensure};
-use review_runner::vcs::{Entry, Source};
 use std::{collections::BTreeMap, fs, path::Path};
 
-fn committed(repository: &Source<'_>, revision: &str, path: &str) -> Result<String> {
+fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<String> {
     let bytes = repository
         .read(revision, path)
         .with_context(|| format!("cannot read committed memory {path}"))?;
@@ -13,7 +13,7 @@ fn committed(repository: &Source<'_>, revision: &str, path: &str) -> Result<Stri
 }
 pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<()> {
     // A standalone tree or an unborn repository has no committed memory baseline.
-    let Some(repository) = context.config.vcs.backend.repository_source(root)? else {
+    let Some(repository) = crate::vcs::Repository::discover(root)? else {
         return Ok(());
     };
     let revisions = match candidate {
@@ -26,7 +26,7 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
     Ok(())
 }
 
-fn check_revision(context: &Context, repository: &Source<'_>, revision: &str) -> Result<()> {
+fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str) -> Result<()> {
     let tree = repository.tree(revision)?;
     let prior_memory = prior_memory(context, repository, revision, &tree)?;
     let index = format!("{}/Decisions.md", prior_memory);
@@ -58,7 +58,7 @@ fn check_revision(context: &Context, repository: &Source<'_>, revision: &str) ->
 }
 
 fn committed_table(
-    repository: &Source<'_>,
+    repository: &Repository<'_>,
     revision: &str,
     path: &str,
 ) -> Result<Vec<format::Row>> {
@@ -71,21 +71,18 @@ fn committed_table(
 
 fn prior_memory(
     context: &Context,
-    repository: &Source<'_>,
+    repository: &Repository<'_>,
     revision: &str,
     tree: &BTreeMap<String, Entry>,
 ) -> Result<String> {
-    let current = tree.contains_key(FILE);
-    if current {
-        let prior: Config =
-            review_runner::config::yaml::decode(&committed(repository, revision, FILE)?)
-                .context("committed agentrig.yaml schema")?;
-        return Ok(prior.paths.memory);
-    }
-    let legacy = super::super::recovery::LEGACY_FILE;
-    let migrated = tree.contains_key(legacy);
-    if migrated {
-        return historical_memory(&committed(repository, revision, legacy)?);
+    let configured = tree.contains_key(FILE);
+    if configured {
+        let prior: serde_json::Value = crate::yaml::decode(&committed(repository, revision, FILE)?)
+            .context("committed agentrig.yaml")?;
+        return Ok(prior["paths"]["memory"]
+            .as_str()
+            .context("committed paths.memory required")?
+            .into());
     }
     Ok(context.config.paths.memory.clone())
 }
@@ -107,14 +104,4 @@ fn preserve(
         old.id
     );
     Ok(())
-}
-
-fn historical_memory(source: &str) -> Result<String> {
-    let value: toml::Value = toml::from_str(source)?;
-    Ok(value
-        .get("paths")
-        .and_then(|paths| paths.get("memory"))
-        .and_then(toml::Value::as_str)
-        .context("committed legacy paths.memory required")?
-        .into())
 }

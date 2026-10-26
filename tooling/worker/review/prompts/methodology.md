@@ -1,1 +1,0 @@
-Check the assigned methodological requirements against the supplied evidence. Distinguish claims from measurements and assumptions. Report concrete unsupported conclusions with repository-relative evidence and the smallest corrective action.

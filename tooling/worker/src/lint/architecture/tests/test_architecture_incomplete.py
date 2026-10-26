@@ -20,17 +20,6 @@ from tooling.worker.src.lint.testing.consumer import lint
             "python: [importlib]",
         ),
         ("py", 'load = __import__\nvalue = load("b.api")\n', "python: []"),
-        ("js", 'const load = require;\nmodule.exports = load("../b/api.js");\n', "javascript: []"),
-        (
-            "js",
-            'import {createRequire} from "node:module";\nconst load = createRequire(import.meta.url);\nload("../b/api.js");\n',
-            "javascript: ['node:module']",
-        ),
-        (
-            "ts",
-            'import {createRequire as factory} from "node:module";\nconst load = factory(import.meta.url);\nload("../b/api.js");\n',
-            "javascript: ['node:module']",
-        ),
         ("rs", "#[generated]\npub fn run() -> i32 { 7 }\n", "rust: [std]"),
         (
             "rs",

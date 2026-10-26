@@ -22,6 +22,6 @@ allow:
   - tooling/worker/src/lint/languages/mod.rs
   - tooling/worker/src/lint/languages/registry.rs
   - tooling/worker/src/diagnostics/lint.rs
-  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/src/yaml/mod.rs
 deny: []
 public: [mod.rs, runner/mod.rs, source/mod.rs]

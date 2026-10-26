@@ -3,13 +3,9 @@ pub mod config;
 mod evidence;
 mod gate;
 mod git;
-pub(crate) mod installation;
 mod memory;
 mod package;
-pub(crate) mod receipt;
-pub(crate) mod recovery;
 pub(crate) mod settings;
-pub(crate) mod upgrade;
 
 use anyhow::{Result, bail};
 use std::path::Path;
@@ -18,7 +14,6 @@ pub fn owns(command: &str) -> bool {
     matches!(
         command,
         "config-check"
-            | "config-inspect"
             | "run"
             | "commands"
             | "report"
@@ -28,9 +23,7 @@ pub fn owns(command: &str) -> bool {
             | "feature-start"
             | "feature-merge"
             | "init"
-            | "setup"
             | "doctor"
-            | "upgrade"
             | "jobs"
             | "job-status"
             | "job-logs"
@@ -43,25 +36,14 @@ pub fn owns(command: &str) -> bool {
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "init" => return package::setup::init(root, args),
-        "setup" => return package::setup::run(root, args),
-        "config-inspect" => return package::setup::inspect(root, args),
-        "upgrade" => return upgrade::run(root, args),
         "guard-commit" => return guard_commit(root, args),
-        "resume" if upgrade::recovery::configuration_pending(root)? => {
-            return resume_upgrade(root, args);
-        }
         "check" => {
             return gate::selected(root, gate::arguments(args)?);
         }
         _ => {}
     }
     validate_arguments(command, args)?;
-    let delivery = matches!(command, "guard-commit" | "feature-merge");
-    if delivery {
-        upgrade::recovery::guard(root)?;
-    }
-    let recovery = matches!(command, "run" | "resume" | "commands");
-    let context = config::Context::load_for(root, recovery)?;
+    let context = config::Context::load(root)?;
     let jobs = matches!(
         command,
         "jobs" | "job-status" | "job-logs" | "job-stop" | "job-cleanup"
@@ -75,45 +57,13 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
         _ => configured_command(&context, command, args),
     }
 }
-fn resume_upgrade(root: &Path, args: &[String]) -> Result<i32> {
-    validate_arguments("resume", args)?;
-    println!(
-        "{}",
-        serde_json::json!({
-            "snapshot": "unavailable",
-            "upgrade": upgrade::recovery::journal(root)?,
-            "guidance": upgrade::recovery::guidance(root)?,
-        })
-    );
-    Ok(0)
-}
 fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
-    upgrade::recovery::guard(root)?;
-    let reference = match args {
-        [] => None,
-        [flag, revision] if flag == "--revision" => Some(revision.as_str()),
-        _ => bail!("guard-commit [--revision REV]"),
-    };
-    let snapshot = match reference {
-        Some(revision) => {
-            let config = config::read(root)?;
-            let repository = config
-                .vcs
-                .backend
-                .repository_source(root)?
-                .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
-            let revision = repository.resolve(revision)?;
-            Some((repository.export_revision(&revision)?, revision))
-        }
-        None => None,
-    };
-    let tree = snapshot
-        .as_ref()
-        .map(|(snapshot, _)| snapshot.path())
-        .unwrap_or(root);
-    let context = config::Context::load(tree)?;
-    let reference = snapshot.as_ref().map(|(_, revision)| revision.as_str());
-    git::guard_commit_with(root, &context.config.vcs, reference)
+    let unexpected = !args.is_empty();
+    if unexpected {
+        bail!("guard-commit takes no arguments");
+    }
+    let context = config::Context::load(root)?;
+    git::guard_commit(root, &context.config.git)
 }
 
 fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
@@ -138,7 +88,7 @@ fn validate_arguments(command: &str, args: &[String]) -> Result<()> {
 }
 fn configured_command(context: &config::Context, command: &str, args: &[String]) -> Result<i32> {
     let root = &context.root;
-    let git = &context.config.vcs;
+    let git = &context.config.git;
     match command {
         "doctor" => package::doctor(context),
         "config-check" => config_check(context),
@@ -241,7 +191,6 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
                 "one Just recipe is required; this recipe takes no arguments"
             );
         }
-        "upgrade" => upgrade::arguments(forwarded(&argv[2..]))?,
         "check" => {
             gate::arguments(forwarded(&argv[2..]))?;
         }
@@ -249,9 +198,8 @@ pub fn hook_commands(context: &config::Context, argv: Vec<String>) -> Result<Vec
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "review" | "setup"
-        | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start" | "job-cleanup"
-        | "delegate" => {}
+        "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "jobs" | "job-status"
+        | "job-logs" | "job-stop" | "job-start" | "job-cleanup" => {}
         name => {
             commands::argv(context, name, forwarded(&argv[2..]))?;
         }

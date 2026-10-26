@@ -44,7 +44,6 @@ def contract(directory: Path, allow: str = "[]", public: str = "['*']") -> None:
 
 def consumer(root: Path, language: str) -> tuple[Path, Path]:
     rust = language == "rs"
-    python = language == "py"
     config = CONFIG.replace("EXTENSION", f".{language}").replace(
         "ROOTS", "[src/lib.rs]" if rust else "[]"
     )
@@ -57,19 +56,16 @@ def consumer(root: Path, language: str) -> tuple[Path, Path]:
         (root / "src/lib.rs").write_text("pub mod a; pub mod b;\n")
         source.write_text("pub fn run() -> i32 { crate::b::value() }\n")
         target.write_text("pub fn value() -> i32 { 7 }\n")
-    elif python:
+    else:
         source.write_text("from b.api import value\ndef run():\n    return value()\n")
         target.write_text("def value():\n    return 7\n")
-    else:
-        source.write_text('import { value } from "../b/api.js";\nexport const run = value;\n')
-        target.write_text("export const value = () => 7;\n")
     contract(root / "src", public="['**']")
     contract(root / "src/a", "['src/b/**']")
     contract(root / "src/b")
     return source, target
 
 
-@pytest.mark.parametrize("client", product(["rs", "py", "js", "ts"], [False, True]))
+@pytest.mark.parametrize("client", product(["rs", "py"], [False, True]))
 @pytest.mark.parametrize("violation", ["valid", "missing", "forbidden", "private", "cycle"])
 def test_architecture_cli_contracts(
     worker: Path, tmp_path: Path, client: tuple[str, bool], violation: str
@@ -90,8 +86,6 @@ def test_architecture_cli_contracts(
         back = {
             "rs": "pub fn unused() -> i32 { crate::a::run() }\n",
             "py": "from a.api import run\n",
-            "js": 'import { run } from "../a/api.js";\n',
-            "ts": 'import { run } from "../a/api.js";\n',
         }
         target.write_text(target.read_text() + back[language])
     binary = worker.with_name("agentrig-lint") if standalone else worker
@@ -179,9 +173,9 @@ def test_architecture_discovery_and_directory_explanation(worker: Path, tmp_path
     )
     rows = {item["kind"]: item for item in json.loads(catalog.stdout)}
     row = rows["directory-architecture"]
-    assert set(row["languages"]) == {"rust", "python", "javascript", "typescript", "tsx"}
+    assert set(row["languages"]) == {"rust", "python"}
     assert row["target"] == "directory" and row["parameters"]["type"] == "policy"
-    assert set(row["architecture"]["resolution"]) == {"rust", "python", "javascript", "typescript"}
+    assert set(row["architecture"]["resolution"]) == {"rust", "python"}
     selected = explain(worker, tmp_path, "src/a")["rules"][0]
     assert selected["selected"] and selected["extensions"] == [".py"]
     assert selected["architecture"]["python_root"] == "src"

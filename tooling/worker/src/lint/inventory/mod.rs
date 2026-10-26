@@ -23,19 +23,8 @@ impl Inventory {
     }
 }
 pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
-    collect_source(root, exclude, None)
-}
-
-pub fn collect_source(
-    root: &Path,
-    exclude: &GlobSet,
-    source: Option<&review_runner::vcs::Source<'_>>,
-) -> Result<Inventory> {
-    let (files, directory_paths) = if let Some(source) = source {
-        let files = source.working_files()?;
-        let directories = source.working_directories(&files)?;
-        (files, directories)
-    } else if let Some(repository) = review_runner::vcs::Repository::discover(root)? {
+    let (files, directory_paths) = if let Some(repository) = crate::vcs::Repository::discover(root)?
+    {
         let files = repository.working_files()?;
         let directories = repository.working_directories(&files)?;
         (files, directories)

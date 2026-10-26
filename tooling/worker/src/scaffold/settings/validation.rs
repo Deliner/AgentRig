@@ -1,4 +1,4 @@
-use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, name, relative};
+use super::{Check, CheckKind, Command, Config, Hooks, VERSION, name, relative};
 use crate::lint::config::{globs, skill};
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -7,7 +7,7 @@ use std::{collections::HashSet, fs};
 impl Config {
     pub(crate) fn validate(&self, root: &Path) -> Result<()> {
         self.validate_structure(root)?;
-        self.capabilities.validate(root, &self.checks)?;
+        self.capabilities.validate(&self.checks)?;
         if self.capabilities.lint {
             crate::lint::config::load(root, &relative(root, &self.paths.lint)?)
                 .context("paths.lint")?;
@@ -23,23 +23,10 @@ impl Config {
         );
         skill(root, &self.config_skill).context("config_skill")?;
         self.validate_paths(root)?;
-        if let Some(agent) = &self.agent {
-            agent.validate(self.frontend)?;
-        }
-        self.vcs.validate()?;
+        self.git.validate()?;
         self.validate_commands(root)?;
         self.validate_checks(root)?;
         self.hooks.validate(root)?;
-        self.environment
-            .clone()
-            .resolve(&root.join(FILE))
-            .context("environment")?;
-        for name in self.environment.mcp_servers.keys() {
-            ensure!(
-                !matches!(name.as_str(), "worker_review" | "worker_delegation"),
-                "environment.mcp_servers.{name} is reserved by AgentRig"
-            );
-        }
         self.validate_oracles()?;
         Ok(())
     }

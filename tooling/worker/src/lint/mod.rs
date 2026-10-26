@@ -24,12 +24,8 @@ struct Evaluation {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
     output: Vec<Diagnostic>,
 }
-fn evaluate(
-    root: &Path,
-    config: &config::Config,
-    source: Option<&review_runner::vcs::Source<'_>>,
-) -> Result<Vec<Diagnostic>> {
-    let inventory = inventory::collect_source(root, &globs(&config.exclude)?, source)?;
+fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
+    let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
     let mut evaluation = Evaluation::default();
     for rule in &config.rules {
         let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
@@ -174,7 +170,6 @@ struct Output<'a> {
     json: bool,
     validate_only: bool,
     rerun: Option<&'a str>,
-    source: Option<&'a review_runner::vcs::Source<'a>>,
 }
 pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
     run_output(
@@ -184,16 +179,10 @@ pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<
             json,
             validate_only,
             rerun: None,
-            source: None,
         },
     )
 }
-pub fn check(
-    root: &Path,
-    path: &Path,
-    rerun: &str,
-    source: Option<&review_runner::vcs::Source<'_>>,
-) -> Result<i32> {
+pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
     run_output(
         root,
         path,
@@ -201,12 +190,11 @@ pub fn check(
             json: false,
             validate_only: false,
             rerun: Some(rerun),
-            source,
         },
     )
 }
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
-    let result = analyze(root, path, output.validate_only, output.source);
+    let result = analyze(root, path, output.validate_only);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
@@ -241,15 +229,10 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
 }
-fn analyze(
-    root: &Path,
-    path: &Path,
-    validate_only: bool,
-    source: Option<&review_runner::vcs::Source<'_>>,
-) -> Result<Vec<Diagnostic>> {
+fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnostic>> {
     config::load(root, path).and_then(|config| {
         if validate_only {
-            let inventory = inventory::collect_source(root, &globs(&config.exclude)?, source)?;
+            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
                 selection::select(rule, &inventory)?;
                 let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
@@ -259,7 +242,7 @@ fn analyze(
             }
             Ok(Vec::new())
         } else {
-            evaluate(root, &config, source)
+            evaluate(root, &config)
         }
     })
 }
@@ -281,7 +264,7 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
 }
 fn configuration_skill(path: &Path) -> Option<String> {
     let source = fs::read_to_string(path).ok()?;
-    let value: serde_json::Value = review_runner::config::yaml::decode(&source).ok()?;
+    let value: serde_json::Value = crate::yaml::decode(&source).ok()?;
     let skill = value.get("config_skill")?.as_str()?;
     match value.get("skill_root").and_then(serde_json::Value::as_str) {
         Some(root) => {

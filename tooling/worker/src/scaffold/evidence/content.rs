@@ -1,6 +1,6 @@
 use super::super::config::Context as Project;
+use crate::vcs::Repository;
 use anyhow::{Context, Result};
-use review_runner::vcs::{Backend, Repository};
 use sha2::{Digest, Sha256};
 use std::{
     fs,
@@ -12,16 +12,12 @@ pub fn fingerprint(context: &Project, origin: &Path, staged: bool) -> Result<Str
     fingerprint_paths(
         &context.root,
         &context.config.paths.runtime,
-        paths(context, origin, staged)?,
+        paths(origin, staged)?,
     )
 }
 
 pub fn revision_fingerprint(context: &Project, origin: &Path, revision: &str) -> Result<String> {
-    let repository = context
-        .config
-        .vcs
-        .backend
-        .repository_source(origin)?
+    let repository = crate::vcs::Repository::discover(origin)?
         .context("revision checking requires a VCS repository")?;
     let paths = repository
         .tree(revision)?
@@ -71,8 +67,8 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn paths(context: &Project, root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
-    if let Some(repository) = context.config.vcs.backend.repository_source(root)? {
+fn paths(root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
+    if let Some(repository) = crate::vcs::Repository::discover(root)? {
         let files = if staged {
             repository.staged_files()?
         } else {
@@ -105,19 +101,15 @@ pub fn native_index(root: &Path) -> Result<String> {
     Ok(format!("{:x}", Sha256::digest(repository.index_entries()?)))
 }
 
-pub fn index(backend: &Backend, root: &Path) -> Result<String> {
+pub fn index(root: &Path) -> Result<String> {
     Ok(format!(
         "{:x}",
-        Sha256::digest(backend.source(root).index_entries()?)
+        Sha256::digest(Repository::new(root).index_entries()?)
     ))
 }
 
-pub fn head(context: &Project, root: &Path) -> Result<Option<String>> {
-    Ok(context
-        .config
-        .vcs
-        .backend
-        .repository_source(root)?
+pub fn head(root: &Path) -> Result<Option<String>> {
+    Ok(crate::vcs::Repository::discover(root)?
         .map(|repository| repository.head())
         .transpose()?
         .flatten())

@@ -2,7 +2,6 @@ purpose: Extract located dependency references from supported source languages b
 files:
   architecture.yaml: Extraction responsibilities and handler boundaries
   mod.rs: Language dispatch and malformed syntax reporting with the public extraction API
-  javascript.rs: JavaScript and TypeScript import and loader extraction
   python.rs: Python import and static loader extraction
   tests.rs: Cross-language extraction behavior and source location tests
 directories:

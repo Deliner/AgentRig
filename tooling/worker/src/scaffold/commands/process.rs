@@ -5,12 +5,6 @@ use std::{
     process::{Command, Output},
 };
 
-pub fn run(root: &Path, argv: &[String], read_only: bool) -> Result<i32> {
-    Ok(exit_code(&execute(root, argv, read_only, false)?))
-}
-pub fn execute(root: &Path, argv: &[String], read_only: bool, capture: bool) -> Result<Output> {
-    tracked(root, argv, (read_only, capture), None)
-}
 pub fn tracked(
     root: &Path,
     argv: &[String],

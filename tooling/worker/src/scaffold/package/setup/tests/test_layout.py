@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import file_contents, invoke, update_config
+from tooling.worker.src.scaffold.testing.consumer import file_contents, invoke
 
 
 @pytest.mark.parametrize("case", ["invalid-glob", "file-parent", "generated-parent"])
@@ -62,7 +62,6 @@ def test_custom_service_executes_installed_adapters(
     )
     assert blocked.returncode != 0
     assert "feature" in blocked.stderr
-    assert (tmp_path / service / "manifest.json").is_file()
     assert (tmp_path / service / "runtime/reminders").is_dir()
 
 
@@ -73,14 +72,4 @@ def test_invalid_service_leaves_consumer_untouched(
     before = file_contents(tmp_path)
     result = invoke(worker, tmp_path, "init", "--service", service)
     assert result.returncode == 2
-    assert file_contents(tmp_path) == before
-
-
-def test_setup_cannot_silently_relocate_an_installation(worker: Path, tmp_path: Path) -> None:
-    assert invoke(worker, tmp_path, "init").returncode == 0
-    update_config(tmp_path / "agentrig.yaml", paths={"service": "replacement"})
-    before = file_contents(tmp_path)
-    result = invoke(worker, tmp_path, "setup")
-    assert result.returncode == 2
-    assert "setup conflict" in result.stderr
     assert file_contents(tmp_path) == before

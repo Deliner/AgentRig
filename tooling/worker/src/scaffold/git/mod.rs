@@ -1,8 +1,8 @@
 // DECISION: D010
 // DECISION: D019
 use super::{config::Context, gate};
+use crate::vcs::git_context as git;
 use anyhow::{Result, ensure};
-use review_runner::vcs::git_context as git;
 use std::{
     io::{self, Read},
     path::Path,
@@ -10,10 +10,8 @@ use std::{
 };
 
 pub fn start(context: &Context, name: &str) -> Result<i32> {
-    let settings = &context.config.vcs;
-    let repository = settings
-        .backend
-        .repository_source(&context.root)?
+    let settings = &context.config.git;
+    let repository = crate::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
     let branch = repository.start_feature(settings, name)?;
     println!("{branch}");
@@ -21,10 +19,8 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
 }
 
 pub fn merge(context: &Context) -> Result<i32> {
-    let settings = &context.config.vcs;
-    let repository = settings
-        .backend
-        .repository_source(&context.root)?
+    let settings = &context.config.git;
+    let repository = crate::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
     let (feature, code) = repository.integrate(settings, || checked(context), execute_vcs)?;
     let passed = code == 0;
@@ -81,16 +77,10 @@ fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
 }
 
 // DECISION: D015
-pub fn guard_commit_with(
-    root: &Path,
-    settings: &review_runner::vcs::Settings,
-    revision: Option<&str>,
-) -> Result<i32> {
-    let repository = settings
-        .backend
-        .repository_source(root)?
+pub fn guard_commit(root: &Path, settings: &crate::vcs::Settings) -> Result<i32> {
+    let repository = crate::vcs::Repository::discover(root)?
         .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
-    let (branch, merge) = repository.commit_context(revision)?;
+    let (branch, merge) = repository.commit_context()?;
     let base = settings.base.as_str();
     let prefix = settings.prefix.as_str();
     let permitted = branch.starts_with(prefix) || (branch == base && merge);

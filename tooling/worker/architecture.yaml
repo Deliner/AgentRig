@@ -14,7 +14,6 @@ files:
 directories:
   assets: Canonical resources embedded in installed environments
   examples: Independent consumer projects and portable usage demonstrations
-  review: Isolated review capability and reusable VCS services
   src: AgentRig library, executable entry points and feature implementations
 allow: []
 deny: []

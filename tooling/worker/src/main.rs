@@ -1,4 +1,3 @@
-use std::{os::unix::process::CommandExt, process::Command};
 // DECISION: D020
 
 use agentrig::arguments::take_option;
@@ -31,11 +30,7 @@ fn run() -> Result<i32> {
         return scaffold::run(&root, &command, &args);
     }
     match command.as_str() {
-        "config-resolve" => agentrig::composition::cli(&root, &args),
-        "environment-hook" | "environment-mcp" => run_environment(&root, &args, &command),
         "hook" => hook(&root),
-        "review" => run_review(&root, args),
-        "delegate" => run_delegate(&root, args),
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => lint::cli::discovery(&command, &args),
         _ => bail!(
@@ -43,38 +38,8 @@ fn run() -> Result<i32> {
         ),
     }
 }
-fn run_environment(root: &Path, args: &[String], kind: &str) -> Result<i32> {
-    use anyhow::Context as _;
-    anyhow::ensure!(args.len() == 1, "{kind} NAME");
-    let context = scaffold::config::Context::load(root)?;
-    let mut environment = context.config.environment;
-    environment.resolve(&root.join(scaffold::config::FILE))?;
-    let hook = kind == "environment-hook";
-    let (program, argv, variables) = if hook {
-        let handler = environment
-            .hooks
-            .get(&args[0])
-            .context("unknown environment hook")?;
-        (&handler.program, &handler.args, Default::default())
-    } else {
-        let server = environment
-            .mcp_servers
-            .get(&args[0])
-            .context("unknown environment MCP server")?;
-        (
-            &server.program,
-            &server.args,
-            agentrig::environment::resolve_references(&server.env)?,
-        )
-    };
-    let mut command = Command::new(&environment.programs[program]);
-    command.args(argv).envs(variables).current_dir(root);
-    // The frontend owns this hook/MCP process and its stdio; preserve that lifetime.
-    Err(command.exec().into())
-}
 fn immediate(command: &str) -> Option<Result<i32>> {
     Some(match command {
-        "review-hook" => review_runner::execution::broker::hook().map(|()| 0),
         "--version" => {
             println!("agentrig {}", scaffold::config::VERSION);
             Ok(0)
@@ -102,27 +67,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     println!(
-        "init --interactive [--root PATH]: choose settings, inspect YAML and setup preview, then confirm installation"
-    );
-    println!(
-        "setup [--config CONFIG_YAML] --preview: inspect prepared file changes, registrations and dependencies without installing"
-    );
-    println!("config-resolve CONFIG_YAML: inspect composed values, package digests and provenance");
-    println!(
-        "config-inspect CONFIG_YAML: validate and inspect the complete prepared AgentRig configuration and its sources without installation"
-    );
-    println!("environment-hook NAME | environment-mcp NAME: execute a configured frontend handler");
-    println!(
-        "lint | lint-config-check | lint-explain PATH: --vcs-config FILE selects a native or private Backend YAML declaration"
-    );
-    println!(
-        "upgrade plan --config CONFIG_YAML: review an explicit configuration/resource update using the existing apply and rollback workflow"
-    );
-    println!(
-        "delegate config-check CONFIG | mcp CONFIG | start CONFIG REQUEST | status RUN_ID | result RUN_ID | cancel RUN_ID\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]"
-    );
-    println!(
-        "agentrig (Linux)\nreview config-check CONFIG | review run CONFIG REQUEST_JSON | review mcp CONFIG\nupgrade plan RELEASE_EXECUTABLE | upgrade apply PLAN | upgrade rollback\ninit | setup | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --vcs git|mercurial, --source, --memory, --skills, --service, --base, --prefix and --review true|false."
+        "agentrig\ninit [--interactive] | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix."
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -161,56 +106,6 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         return lint::explain::run(root, &config, args);
     }
     lint::cli::execute(root, &config, args, command == "lint-config-check")
-}
-fn run_review(root: &Path, mut args: Vec<String>) -> Result<i32> {
-    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
-        || matches!(args.as_slice(), [command, _] if command == "run");
-    if configured {
-        let context = scaffold::config::Context::load(root)?;
-        let review = context.config.capabilities.review.as_ref().ok_or_else(|| {
-            anyhow::anyhow!("review is not enabled; configure capabilities.review.config")
-        })?;
-        args.insert(
-            1,
-            context.path(&review.config)?.to_string_lossy().into_owned(),
-        );
-    }
-    for argument in args.iter_mut().skip(1) {
-        *argument = root.join(&*argument).to_string_lossy().into_owned();
-    }
-    review_runner::cli::run(&args).map(|()| 0)
-}
-fn run_delegate(root: &Path, mut args: Vec<String>) -> Result<i32> {
-    let configured = matches!(args.as_slice(), [command] if matches!(command.as_str(), "mcp" | "config-check"))
-        || matches!(args.as_slice(), [command, _] if command == "start");
-    if configured {
-        let context = scaffold::config::Context::load(root)?;
-        let delegation = context
-            .config
-            .capabilities
-            .delegation
-            .as_ref()
-            .ok_or_else(|| {
-                anyhow::anyhow!(
-                    "delegation is not enabled; configure capabilities.delegation.config"
-                )
-            })?;
-        args.insert(
-            1,
-            context
-                .path(&delegation.config)?
-                .to_string_lossy()
-                .into_owned(),
-        );
-    }
-    let direct = args
-        .first()
-        .is_some_and(|command| matches!(command.as_str(), "config-check" | "_execute"));
-    if direct {
-        return agentrig::delegate::cli(root, &args);
-    }
-    let context = scaffold::config::Context::load(root)?;
-    agentrig::delegate::run::cli(root, &context.path(&context.config.paths.runtime)?, &args)
 }
 fn main() {
     let code = match run() {

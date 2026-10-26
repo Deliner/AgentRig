@@ -4,8 +4,6 @@ use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
 
 pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
-    let mut args = args.to_vec();
-    let selected = super::cli::selection(root, &mut args)?;
     let (path, flags) = args
         .split_first()
         .ok_or_else(|| anyhow::anyhow!("lint-explain PATH [--json]"))?;
@@ -17,12 +15,7 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     let path = path.as_path();
     let config = config::load(root, config_path)?;
     let excluded = config::globs(&config.exclude)?;
-    let source = selected
-        .as_ref()
-        .map(|(_, backend)| backend.repository_source(root))
-        .transpose()?
-        .flatten();
-    let inventory = inventory::collect_source(root, &excluded, source.as_ref())?;
+    let inventory = inventory::collect(root, &excluded)?;
     let global = excluded.is_match(path);
     let mut rows = Vec::new();
     for rule in &config.rules {

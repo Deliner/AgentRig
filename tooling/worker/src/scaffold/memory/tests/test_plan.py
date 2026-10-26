@@ -220,9 +220,7 @@ def test_plan_cannot_reuse_an_archived_id(worker: Path, tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("frontend", ["codex", "claude-code"])
-def test_archive_guidance_and_setup_preserve_history(
-    worker: Path, tmp_path: Path, frontend: str
-) -> None:
+def test_archive_guidance_preserves_history(worker: Path, tmp_path: Path, frontend: str) -> None:
     options = ["--frontend", frontend, "--memory", "Ledger", "--skills", "guides"]
     result = invoke(worker, tmp_path, "init", *options)
     assert result.returncode == 0, result.stderr
@@ -243,5 +241,4 @@ def test_archive_guidance_and_setup_preserve_history(
         guidance = json.loads(output.stdout)["hookSpecificOutput"]
         assert str(tmp_path / "guides/edit-plan/SKILL.md") in guidance["additionalContext"]
         assert "permissionDecision" not in guidance
-    assert invoke(worker, tmp_path, "setup").returncode == 0
     assert before == {p: p.read_bytes() for p in archive.rglob("*.md")}

@@ -30,7 +30,7 @@ def write_idea(notes: Path) -> Path:
 
 
 @pytest.mark.parametrize("frontend", ["codex", "claude-code"])
-def test_backlog_delivery_and_preservation(worker: Path, tmp_path: Path, frontend: str) -> None:
+def test_backlog_delivery_and_guidance(worker: Path, tmp_path: Path, frontend: str) -> None:
     result = invoke(
         worker,
         tmp_path,
@@ -48,7 +48,6 @@ def test_backlog_delivery_and_preservation(worker: Path, tmp_path: Path, fronten
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
     skill = tmp_path / "guides/edit-backlog/SKILL.md"
     assert skill.is_file()
-    plan = (notes / "Plan.md").read_bytes()
     card = write_idea(notes)
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
     event = dict(
@@ -62,12 +61,6 @@ def test_backlog_delivery_and_preservation(worker: Path, tmp_path: Path, fronten
     guidance = json.loads(output.stdout)["hookSpecificOutput"]
     assert str(skill) in guidance["additionalContext"]
     assert "permissionDecision" not in guidance
-    before = {path: path.read_bytes() for path in [notes / "Backlog.md", card, skill]}
-    result = invoke(worker, tmp_path, "setup")
-    assert result.returncode == 0, result.stderr
-    assert all(path.read_bytes() == content for path, content in before.items())
-    assert (notes / "Plan.md").read_bytes() == plan
-    assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 
 @pytest.mark.parametrize(

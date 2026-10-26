@@ -14,10 +14,9 @@ from tooling.worker.src.scaffold.testing.consumer import (
 from tooling.worker.src.scaffold.testing.repository import repository, resumed
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
 # INVARIANT: I018
-def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path, vcs: str) -> None:
-    repository(tmp_path, vcs)
+def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path) -> None:
+    repository(tmp_path)
     assert resumed(worker, tmp_path)["checks"]["status"] == "absent"
     assert invoke(worker, tmp_path, "check", "--only", "lint").returncode == 0
     checks = resumed(worker, tmp_path)["checks"]
@@ -31,36 +30,6 @@ def test_evidence_tracks_content_and_partial_checks(worker: Path, tmp_path: Path
     assert resumed(worker, tmp_path)["checks"]["current"]
     source.chmod(0o755)
     assert not resumed(worker, tmp_path)["checks"]["current"]
-
-
-def test_mercurial_evidence_tracks_revision_and_excludes_metadata(
-    worker: Path, tmp_path: Path
-) -> None:
-    repository(tmp_path, "hg")
-    assert invoke(worker, tmp_path, "check", "--only", "lint").returncode == 0
-    expected = subprocess.check_output(
-        ["hg", "log", "-r", ".", "-T", "{node}"], cwd=tmp_path, text=True
-    )
-    assert resumed(worker, tmp_path)["checks"]["last_run"]["revision"] == expected
-    (tmp_path / ".hg/extra-metadata").write_text("not source")
-    (tmp_path / "src/ignored.py").write_text("ignored\n")
-    assert resumed(worker, tmp_path)["checks"]["current"]
-    source = tmp_path / "src/value.py"
-    source.write_text("value = 2\n")
-    subprocess.run(
-        ["hg", "commit", "-m", "advance", "-u", "Test"],
-        cwd=tmp_path,
-        capture_output=True,
-        check=True,
-    )
-    source.write_text("value = 1\n")
-    checks = resumed(worker, tmp_path)["checks"]
-    assert checks["worktree_matches"]
-    assert not checks["revision_matches"]
-    assert not checks["current"]
-    result = invoke(worker, tmp_path, "check", "--staged")
-    assert result.returncode == 2
-    assert "Mercurial has no staging index" in result.stderr
 
 
 def test_staged_evidence_does_not_verify_unstaged_source(worker: Path, tmp_path: Path) -> None:

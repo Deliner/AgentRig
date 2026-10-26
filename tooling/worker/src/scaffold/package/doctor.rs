@@ -24,13 +24,11 @@ pub fn run(context: &Context) -> Result<i32> {
     let mut failed = !installed_binary(context);
     let capability = crate::jobs::capability();
     println!("process scope capability: {capability}");
-    let required = context.config.processes.foreground
-        == super::super::config::Containment::Systemd
-        || context.config.capabilities.delegation.is_some();
+    let required =
+        context.config.processes.foreground == super::super::config::Containment::Systemd;
     failed |= required && capability["available"] != true;
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
-    failed |= !executor_dependencies(context)?;
     failed |= !vcs_registration(context)?;
     failed |= !match context.config.frontend {
         super::config::Frontend::Codex => codex_registration(context)?,
@@ -95,10 +93,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .config
         .commands
         .values()
-        .any(|command| command.read_only)
-        || context.config.vcs.backend != review_runner::vcs::Kind::Git.into()
-        || context.config.capabilities.review.is_some()
-        || context.config.capabilities.delegation.is_some();
+        .any(|command| command.read_only);
     if read_only {
         let probe = Command::new("bwrap")
             .args(["--ro-bind", "/", "/", "--unshare-all", "--", "true"])
@@ -113,24 +108,17 @@ fn sandbox_availability(context: &Context) -> bool {
     !failed
 }
 fn vcs_registration(context: &Context) -> Result<bool> {
-    let registered = context
-        .config
-        .vcs
-        .backend
-        .source(&context.root)
+    let registered = crate::vcs::Repository::new(&context.root)
         .hooks_registered(&context.config.paths.service_path("hooks"))?;
     let registered = registered
-        && super::adapters::vcs_hooks(&context.root, &context.config)?
+        && super::adapters::vcs_hooks(&context.config)?
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)
-                    && fs::read(context.root.join(path)).is_ok_and(|actual| {
-                        actual == *contents || super::manifest::approved(context, path, &actual)
-                    })
+                    && fs::read(context.root.join(path)).is_ok_and(|actual| actual == *contents)
             });
     println!(
-        "{} hooks: {}",
-        context.config.vcs.backend.executable(),
+        "git hooks: {}",
         if registered {
             "registered"
         } else {
@@ -170,7 +158,7 @@ pub(super) fn hooks_registered(
 ) -> Result<bool> {
     let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
         &context.config,
-        &super::adapters::generated(&context.root, &context.config)?.root_command,
+        &super::adapters::generated(&context.config)?.root_command,
     )?)?;
     Ok(configured.is_some_and(|value| {
         expected["hooks"]
@@ -187,39 +175,4 @@ pub(super) fn hooks_registered(
                 })
             })
     }))
-}
-
-fn executor_dependencies(context: &Context) -> Result<bool> {
-    let mut success = true;
-    for (variable, frontend) in
-        super::executors::configured(&context.root, &context.config, &Default::default())?
-    {
-        success &= native_executor(context, variable, frontend);
-    }
-    Ok(success)
-}
-fn native_executor(context: &Context, variable: &str, frontend: super::config::Frontend) -> bool {
-    let codex = matches!(frontend, super::config::Frontend::Codex);
-    let native = match frontend {
-        super::config::Frontend::Codex => {
-            review_runner::execution::sandbox::native_codex_from(variable)
-        }
-        super::config::Frontend::ClaudeCode => {
-            review_runner::execution::sandbox::native_claude_from(variable)
-        }
-    };
-    let available = native.as_ref().is_ok_and(|path| {
-        available(&path.to_string_lossy(), &context.root)
-            && (!codex || path.with_file_name("codex-code-mode-host").is_file())
-    });
-    let client = frontend.name();
-    println!(
-        "{variable} {client} executor: {}",
-        if available {
-            "available"
-        } else {
-            "MISSING; install the selected native client (including Codex's code-mode host) or set the indicated variable"
-        }
-    );
-    available
 }

@@ -106,7 +106,7 @@ fn load(root: &Path, directory: &Path) -> Result<Policy> {
         path.canonicalize()?.starts_with(root.canonicalize()?),
         "contract escapes project root"
     );
-    let declaration: Declaration = review_runner::config::yaml::read(&path)?;
+    let declaration: Declaration = crate::yaml::read(&path)?;
     ensure!(
         !declaration.purpose.trim().is_empty() && !declaration.purpose.contains(['\n', '\r']),
         "purpose must describe the directory responsibility on one nonempty line"

@@ -14,7 +14,7 @@ pub fn create(runtime: &Path) -> Result<PathBuf> {
         .keep())
 }
 pub fn save(directory: &Path, record: &Record) -> Result<()> {
-    review_runner::artifacts::json::save(&directory.join("record.json"), record)
+    crate::artifacts::json::save(&directory.join("record.json"), record)
 }
 pub fn load(runtime: &Path, id: &str) -> Result<Record> {
     ensure!(

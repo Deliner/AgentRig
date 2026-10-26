@@ -114,7 +114,7 @@ pub fn skill(root: &Path, value: &str) -> Result<()> {
     Ok(())
 }
 pub fn load(root: &Path, path: &Path) -> Result<Config> {
-    let mut config: Config = review_runner::config::yaml::read(path)?;
+    let mut config: Config = crate::yaml::read(path)?;
     let external = config
         .skill_root
         .as_ref()

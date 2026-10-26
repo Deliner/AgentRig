@@ -11,31 +11,22 @@ description = "Portable environments for agent-native development"
 name = "agentrig-lint"
 path = "src/lint/standalone.rs"
 
-[workspace]
-members = ["review"]
-default-members = ["."]
-resolver = "3"
-
 [dependencies]
-review-runner = { path = "review" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_path_to_error = "0.1"
-toml = "1"
-toml_edit = "0.25"
 globset = "0.4"
-regex = "1"
 sha2 = "0.10"
 fs2 = "0.4"
 tempfile = "3"
 shell-words = "1"
 anyhow = "1"
-jsonschema = { version = "0.33", default-features = false }
+toml = "1"
+serde_yaml_ng = "0.10"
+yaml-rust2 = { version = "0.11", default-features = false }
 tree-sitter = "0.26"
 tree-sitter-rust = "0.24"
 tree-sitter-python = "0.25"
 signal-hook = "0.3"
 libc = "0.2"
 tree-sitter-bash = "0.25.1"
-tree-sitter-javascript = "0.25"
-tree-sitter-typescript = "0.23"

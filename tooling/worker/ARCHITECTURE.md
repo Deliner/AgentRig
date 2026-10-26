@@ -14,7 +14,7 @@ Add a rule to the existing lint YAML; skill paths use the normal `skill_root`:
   target: directory
   include: [src, 'src/**']
   exclude: ['src/generated', 'src/generated/**']
-  extensions: [.rs, .py, .js, .ts, .tsx]
+  extensions: [.rs, .py]
   level: error
   architecture:
     python_root: src
@@ -22,7 +22,6 @@ Add a rule to the existing lint YAML; skill paths use the normal `skill_root`:
     external:
       rust: [std, core, alloc]
       python: [json]
-      javascript: ['node:fs', react]
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
 ```
@@ -37,21 +36,19 @@ from dependency resolution. Resolution uses Git tracked/unignored files, or regu
 non-symlink files in a non-Git project. Git-ignored targets cannot be resolved.
 
 Discovery retains empty directories, so an empty selected directory still needs
-its contract, with or without a VCS. Native backends inspect physical directories
-using their own ignore rules; parents of visible tracked files remain visible.
-Private adapters supply the `working-directories` operation alongside their file
-inventory. VCS metadata and symlink directories are skipped. The structural
+its contract, with or without Git. Git projects inspect physical directories
+using Git ignore rules; parents of visible tracked files remain visible.
+Git metadata and symlink directories are skipped. The structural
 `directory-entries` metric retains its file-derived counts; architecture coverage
 also includes directories with no selected files.
 
 `architecture` and explicit source extensions are required. `python_root` defaults
 to the project root. `rust_roots` lists the actual crate roots and is required when
-Rust sources are selected; use `[]` for other languages. No Cargo or tsconfig
+Rust sources are selected; use `[]` for other languages. No Cargo
 discovery is implied. External names are explicit module/package prefixes, not
 permission globs. Rust defaults to `std`, `core`, `alloc`; the other lists default
 to empty. Locally resolved Python and anchored Rust paths cannot be hidden by an
-external declaration. JavaScript bare package names require an external declaration;
-local package aliases are not yet resolved.
+external declaration.
 
 For multiple local Rust crates, add `rust_crates`, mapping each import name to
 its root file, also listed in `rust_roots`. For example,
@@ -153,18 +150,6 @@ proof; unsupported forms remain explicit incomplete-analysis findings.
   incomplete binding/data-flow analysis. Initializer export analysis and runtime
   search-path modification are not implemented. `.pyi` can be parsed but is not a
   runtime target fallback.
-- **JavaScript** (`.js`, `.jsx`, `.mjs`, `.cjs`): static import/export and literal
-  `import()`, `require()` and `require.resolve()`. Node imports require exact files;
-  require searches Node extensions and relative package main/index. Dynamic strings,
-  encoded paths and unsupported package resolution fail. Loader values and the
-  `module`/`node:module` factory API report incomplete analysis; their alias and
-  factory bindings are not inferred.
-- **TypeScript** (`.ts`, `.tsx`, `.mts`, `.cts`): the same extraction plus type imports,
-  exports and import-equals. Resolution uses the implemented bundler substitutions
-  and relative package types/typings/main. NodeNext, tsconfig path aliases, module
-  suffixes and package typesVersions are not implemented; typesVersions and ambiguous
-  package fallback report errors. Do not treat this mode as validation of a different
-  TypeScript resolution configuration.
 
 Use the linked `refactor-large-directory` skill to repair responsibility, dependency
 direction or public access. Moving files into arbitrary buckets or widening
@@ -173,13 +158,11 @@ permissions to silence findings does not establish the intended architecture.
 ## Executable consumer verification
 
 `tooling/worker/src/lint/architecture/tests/test_architecture_behavior.py` compiles or executes
-independent Rust, Python, JavaScript and TypeScript consumers before and after
+independent Rust and Python consumers before and after
 replacing private access with an existing public API. The result stays `7`, the
 directory contracts remain byte-for-byte unchanged, and both lint binaries agree
 on the violation and repair without changing consumer files. These tests use
-Rust 1.98.1, Python 3.12.3 and Node 22.22.3. TypeScript execution uses Node's
-`--experimental-strip-types` with explicit `.ts` imports and type annotations;
-it verifies runtime behavior, not TypeScript compiler type checking.
+Rust 1.98.1 and Python 3.12.3.
 
 ## AgentRig repository coverage
 
@@ -188,8 +171,8 @@ The checked `tooling/worker/lint.yaml` enables architecture at error severity fo
 documentation, examples and canonical resources. Language extensions select
 dependency extraction only; every discovered file remains in the inventory.
 Explicit exclusions cover Git metadata, build and dependency caches, virtual
-environments, temporary probes and generated review runtime/report directories.
-Native VCS ignore rules also apply. No maintained source or documentation tree
+environments and temporary probes.
+Git ignore rules also apply. No maintained source or documentation tree
 is excluded to avoid architecture findings.
 
 Each actual Rust crate and integration-test root is listed, including the

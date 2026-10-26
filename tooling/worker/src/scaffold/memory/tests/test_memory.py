@@ -158,33 +158,10 @@ def test_repository_layout_and_detail_contract(worker: Path, tmp_path: Path) -> 
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 
-def test_yaml_adoption_preserves_legacy_memory_history(worker: Path, tmp_path: Path) -> None:
-    notes = committed_memory(worker, tmp_path)
-    config = tmp_path / "agentrig.yaml"
-    current = config.read_text()
-    config.unlink()
-    legacy = tmp_path / "worker.toml"
-    legacy.write_text('[paths]\nmemory = "notes"\n')
-    for args in [("add", "-A"), ("commit", "-qm", "legacy memory location")]:
-        subprocess.run(["git", *args], cwd=tmp_path, check=True)
-    legacy.unlink()
-    config.write_text(current)
-    update_config(config, paths={"memory": "relocated"})
-    relocated = tmp_path / "relocated"
-    notes.rename(relocated)
-    assert invoke(worker, tmp_path, "memory-check").returncode == 0
-    index = relocated / "Decisions.md"
-    index.write_text(index.read_text().replace("| Choice |", "| Changed choice |"))
-    result = invoke(worker, tmp_path, "memory-check")
-    assert result.returncode == 2
-    assert "committed decision identity cannot change" in result.stderr
-
-
-@pytest.mark.parametrize("vcs", ["git", "hg"])
 def test_native_history_preserves_decisions_in_worktree_and_gate(
-    worker: Path, tmp_path: Path, vcs: str
+    worker: Path, tmp_path: Path
 ) -> None:
-    notes = committed_memory(worker, tmp_path, vcs)
+    notes = committed_memory(worker, tmp_path)
     index = notes / "Decisions.md"
     detail = notes / "Decisions/001.md"
     original_index = index.read_text()
@@ -205,11 +182,8 @@ def test_native_history_preserves_decisions_in_worktree_and_gate(
         assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 
-@pytest.mark.parametrize("vcs", ["git", "hg"])
-def test_native_history_keeps_committed_memory_location(
-    worker: Path, tmp_path: Path, vcs: str
-) -> None:
-    notes = committed_memory(worker, tmp_path, vcs)
+def test_native_history_keeps_committed_memory_location(worker: Path, tmp_path: Path) -> None:
+    notes = committed_memory(worker, tmp_path)
     config = tmp_path / "agentrig.yaml"
     update_config(config, paths={"memory": "relocated"})
     notes.rename(tmp_path / "relocated")

@@ -14,11 +14,7 @@ from tooling.worker.src.lint.testing.consumer import lint
 
 def private_consumer(root: Path, language: str) -> tuple[Path, str]:
     source, api = consumer(root, language)
-    typescript = language == "ts"
     rust = language == "rs"
-    if typescript:
-        source.write_text(source.read_text().replace("api.js", "api.ts"))
-        api.write_text("export const value = (): number => 7;\n")
     original = source.read_text()
     private = api.with_name(f"private.{language}")
     api.rename(private)
@@ -28,20 +24,14 @@ def private_consumer(root: Path, language: str) -> tuple[Path, str]:
         entry = root / "src/lib.rs"
         entry.write_text(entry.read_text() + "fn main() { std::process::exit(a::run()); }\n")
     else:
-        facades = {
-            "py": "from b.private import value\n",
-            "js": 'export { value } from "./private.js";\n',
-            "ts": 'export { value } from "./private.ts";\n',
-        }
-        api.write_text(facades[language])
-        source.write_text(original.replace("b.api", "b.private").replace("b/api.", "b/private."))
+        api.write_text("from b.private import value\n")
+        source.write_text(original.replace("b.api", "b.private"))
     contract(root / "src/b", public=f"['{api.name}']")
     return source, original
 
 
 def run_consumer(root: Path, language: str) -> str:
     rust = language == "rs"
-    python = language == "py"
     if rust:
         binary = root.parent / "consumer-bin"
         subprocess.run(
@@ -52,23 +42,14 @@ def run_consumer(root: Path, language: str) -> str:
         )
         result = subprocess.run([str(binary)], capture_output=True, text=True, check=False)
         return str(result.returncode)
-    if python:
-        command = [
-            "python3",
-            "-I",
-            "-B",
-            "-c",
-            "import sys; sys.path.insert(0, sys.argv[1]); from a.api import run; print(run())",
-            str(root / "src"),
-        ]
-    else:
-        command = [
-            "node",
-            "--experimental-strip-types",
-            "--input-type=module",
-            "-e",
-            f'import {{ run }} from "./src/a/api.{language}"; console.log(run());',
-        ]
+    command = [
+        "python3",
+        "-I",
+        "-B",
+        "-c",
+        "import sys; sys.path.insert(0, sys.argv[1]); from a.api import run; print(run())",
+        str(root / "src"),
+    ]
     return subprocess.run(
         command, cwd=root, capture_output=True, text=True, check=True
     ).stdout.strip()
@@ -87,7 +68,7 @@ def parity(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     return results[0]
 
 
-@pytest.mark.parametrize("language", ["rs", "py", "js", "ts"])
+@pytest.mark.parametrize("language", ["rs", "py"])
 def test_public_api_repair_preserves_real_consumer_behavior(
     worker: Path, tmp_path: Path, language: str
 ) -> None:

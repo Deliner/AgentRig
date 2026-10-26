@@ -20,8 +20,8 @@ allow:
   - tooling/worker/src/arguments/mod.rs
   - tooling/worker/src/diagnostics/mod.rs
   - tooling/worker/src/diagnostics/lint.rs
-  - tooling/worker/review/src/config/yaml.rs
-  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/yaml/mod.rs
+  - tooling/worker/src/vcs/mod.rs
 deny: []
 public:
   - mod.rs

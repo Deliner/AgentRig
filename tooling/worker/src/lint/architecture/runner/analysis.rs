@@ -1,11 +1,6 @@
 use super::super::{
     Dependency, Issue, Settings,
-    resolution::{
-        Resolved,
-        javascript::{JavaScript, Mode},
-        python::Python,
-        rust::Rust,
-    },
+    resolution::{Resolved, python::Python, rust::Rust},
     source::{self, References, Target},
 };
 use anyhow::{Result, ensure};
@@ -55,8 +50,6 @@ pub struct Resolvers<'a> {
     root: &'a Path,
     files: &'a BTreeSet<PathBuf>,
     python: Python<'a>,
-    javascript: JavaScript<'a>,
-    typescript: JavaScript<'a>,
     rust: Vec<Rust<'a>>,
     crates: &'a BTreeMap<String, PathBuf>,
 }
@@ -86,13 +79,6 @@ impl<'a> Resolvers<'a> {
                 root,
                 files,
                 python: Python::new(&settings.python_root, files, &settings.external.python)?,
-                javascript: JavaScript::new(root, files, &settings.external.javascript, Mode::Node),
-                typescript: JavaScript::new(
-                    root,
-                    files,
-                    &settings.external.javascript,
-                    Mode::TypeScriptBundler,
-                ),
                 rust,
                 crates: &settings.rust_crates,
             },
@@ -105,17 +91,6 @@ impl<'a> Resolvers<'a> {
             Target::RustMacro(_) => self.rust_macro(path, target),
             Target::PythonModule(_) | Target::PythonFrom { .. } => {
                 self.python.resolve(path, target)
-            }
-            Target::JavaScriptModule { .. } => {
-                let typescript = path
-                    .extension()
-                    .is_some_and(|ext| ["ts", "tsx", "mts", "cts"].iter().any(|item| ext == *item));
-                let resolver = if typescript {
-                    &self.typescript
-                } else {
-                    &self.javascript
-                };
-                resolver.resolve(path, target)
             }
             _ => self.rust(path, target),
         }?;

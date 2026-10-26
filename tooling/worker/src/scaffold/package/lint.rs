@@ -17,5 +17,5 @@ pub fn template(settings: &super::Config) -> Result<String> {
         "exclude": [".git/**", settings.paths.service_path("bin/**"), format!("{}/**", settings.paths.runtime), "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
         "rules": rules,
     });
-    review_runner::config::yaml::encode(&config)
+    crate::yaml::encode(&config)
 }

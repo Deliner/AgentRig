@@ -5,6 +5,6 @@ files:
   lint.rs: Serializable lint findings and their text locations and rendering
 directories: {}
 allow:
-  - tooling/worker/review/src/config/yaml.rs
+  - tooling/worker/src/yaml/mod.rs
 deny: []
 public: [mod.rs, lint.rs]

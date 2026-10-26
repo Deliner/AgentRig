@@ -59,29 +59,11 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../../../assets/skills/repair/SKILL.md"),
     ),
 ];
-pub fn skills(config: &super::Config) -> BTreeMap<&'static str, String> {
-    let mut skills: BTreeMap<_, _> = SKILLS
+pub fn skills() -> BTreeMap<&'static str, String> {
+    SKILLS
         .iter()
         .map(|(name, source)| (*name, (*source).to_owned()))
-        .collect();
-    for (capability, name, source) in [
-        (
-            &config.capabilities.review,
-            "review-project",
-            include_str!("../../../assets/skills/review-project/SKILL.md"),
-        ),
-        (
-            &config.capabilities.delegation,
-            "delegate-task",
-            include_str!("../../../assets/skills/delegate-task/SKILL.md"),
-        ),
-    ] {
-        let enabled = capability.is_some();
-        if enabled {
-            skills.insert(name, source.to_owned());
-        }
-    }
-    skills
+        .collect()
 }
 pub fn memory() -> BTreeMap<&'static str, String> {
     let mut files = BTreeMap::new();
@@ -117,16 +99,8 @@ pub fn memory() -> BTreeMap<&'static str, String> {
 // DECISION: D031
 // DECISION: D032
 pub fn instructions(config: &super::Config) -> String {
-    let mut instructions = format!(
-        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration is agentrig.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nUse edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards into Archive/Plan.md and Archive/Plan/. Required work remains in the current task.\n\nUse just run read -- COMMAND for inspection and just run write -- COMMAND for authorized changes. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n\nReview, when enabled in agentrig.yaml, uses the configured MCP tools or just review. Source changes and acceptance remain the calling workflow's responsibility.\n",
+    format!(
+        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration is agentrig.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nUse edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards into Archive/Plan.md and Archive/Plan/. Required work remains in the current task.\n\nUse just run read -- COMMAND for inspection and just run write -- COMMAND for authorized changes. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n",
         config.paths.service, config.paths.memory, config.paths.memory, config.paths.skills
-    );
-    let delegation = config.capabilities.delegation.is_some();
-    if delegation {
-        instructions.push_str(&format!(
-            "\nFor delegated tasks, read {}/delegate-task/SKILL.md and use the configured worker_delegation MCP tools or just delegate. Keep run_id and owner when recovering the task.\n",
-            config.paths.skills
-        ));
-    }
-    instructions
+    )
 }

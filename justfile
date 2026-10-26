@@ -68,14 +68,6 @@ feature-start *args:
 feature-merge:
     @tooling/worker/run feature-merge
 
-# What: invoke upgrade; Why: plan, apply or recover a scaffold update.
-upgrade *args:
-    @tooling/worker/run upgrade "$@"
-
-# What: invoke the shared review runner; Why: use the same review contract from Just and MCP.
-review *args:
-    @tooling/worker/run run review -- "$@"
-
 # What: describe a lint rule; Why: inspect supported parameters and valid examples.
 lint-rule *args:
     @tooling/worker/run lint-rule "$@"
@@ -107,7 +99,3 @@ job-stop *args:
 # What: clean completed work's runs; Why: retain other owners and shared services.
 job-cleanup *args:
     @tooling/worker/run job-cleanup "$@"
-
-# What: configure delegated workers; Why: validate executor profiles before execution.
-delegate *args:
-    @tooling/worker/run delegate "$@"

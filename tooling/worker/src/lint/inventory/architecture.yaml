@@ -6,6 +6,6 @@ directories:
   tests: Verify native and private repository inventory through the CLI
 allow:
   - tooling/worker/src/lint/testing/consumer.py
-  - tooling/worker/review/src/vcs/mod.rs
+  - tooling/worker/src/vcs/mod.rs
 deny: []
 public: [mod.rs]

@@ -1,5 +1,4 @@
-use super::super::{self as package, template};
-use super::{Config, config};
+use super::super::{self as package, Config, config, template};
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
@@ -14,20 +13,24 @@ pub fn run(root: &Path) -> Result<i32> {
     let Some((root, config)) = selection(root)? else {
         return cancelled();
     };
-    let installation = super::prepare(&root, &config, package::bundle(&root, &config)?)?;
+    let files = package::bundle(&config)?;
+    super::init::prepare(&root, &config, &files)?;
     println!(
-        "Configuration for {}:\n{}",
+        "Configuration for {}:\n{}\nFiles:\n{}",
         root.display(),
-        review_runner::config::yaml::encode(&config)?
+        crate::yaml::encode(&config)?,
+        files.keys().cloned().collect::<Vec<_>>().join("\n")
     );
-    super::print_preview(&root, &config, &installation)?;
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
         return cancelled();
     };
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
+        super::init::prepare(&root, &config, &files)?;
         std::fs::create_dir_all(&root)?;
-        super::install(&root, &config, &installation)
+        super::init::install(&root, &config, &files)?;
+        println!("Installed the worker environment. Authentication remains separate.");
+        super::super::doctor(&config::Context::load(&root)?)
     } else {
         cancelled()
     }
@@ -40,22 +43,11 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
     let root = crate::paths::resolve(&std::env::current_dir()?.join(target))?;
     ensure!(
         !root.join(config::FILE).exists(),
-        "project already has agentrig.yaml; use setup or upgrade"
+        "project already has agentrig.yaml"
     );
     let Some(mut config) = project_config(&root)? else {
         return Ok(None);
     };
-    let Some(delegation) = ask(
-        "Delegate profiles YAML, relative to project; empty disables",
-        "",
-    )?
-    else {
-        return Ok(None);
-    };
-    let enabled = !delegation.is_empty();
-    if enabled {
-        config.capabilities.delegation = Some(config::Resource { config: delegation });
-    }
     let Some(checks) = ask(
         "Checks, comma-separated: lint,memory,tests",
         "lint,memory,tests",
@@ -77,8 +69,6 @@ fn project_config(root: &Path) -> Result<Option<Config>> {
         ("skills", "Skills directory"),
         ("base", "Base branch"),
         ("prefix", "Feature branch prefix"),
-        ("review", "Enable review: true/false"),
-        ("vcs", "Version control: git/mercurial"),
         ("frontend", "Agent client: codex/claude-code"),
     ] {
         let default = match key {

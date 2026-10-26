@@ -1,8 +1,8 @@
 // DECISION: D013
 // DECISION: D022
 use super::super::{config::Context, evidence};
+use crate::vcs::Repository;
 use anyhow::Result;
-use review_runner::vcs::Source;
 use serde_json::{Value, json};
 use std::fs;
 
@@ -10,25 +10,17 @@ pub fn run(context: &Context) -> Result<()> {
     let memory = context.path(&context.config.paths.memory)?;
     let state = fs::read_to_string(memory.join("State.md"))?;
     let plan = fs::read_to_string(memory.join("Plan.md"))?;
-    let repository = context
-        .config
-        .vcs
-        .backend
-        .repository_source(&context.root)?;
-    let observed = repository.as_ref().map(Source::observe).transpose()?;
+    let repository = crate::vcs::Repository::discover(&context.root)?;
+    let observed = repository.as_ref().map(Repository::observe).transpose()?;
     let branch = observed.as_ref().map_or("", |value| value.branch.as_str());
     let revision = observed
         .as_ref()
         .map_or("", |value| value.revision.as_str());
     let recorded = recorded_revision(repository.as_ref(), &state, revision);
     let snapshot = snapshot(&state, branch, &recorded);
-    let mut report = json!({"state": state, "plan": plan, "vcs": observed,
-        "snapshot": snapshot, "state_revision": recorded, "upgrade": crate::scaffold::recovery::journal(&context.root)?, "checks": evidence::resume(context),
+    let report = json!({"state": state, "plan": plan, "vcs": observed,
+        "snapshot": snapshot, "state_revision": recorded, "checks": evidence::resume(context),
         "jobs": crate::jobs::list(&context.path(&context.config.paths.runtime)?)?});
-    let legacy_git = report["vcs"]["backend"] == "git";
-    if legacy_git {
-        report["git"] = report["vcs"].clone();
-    }
     println!("{report}");
     Ok(())
 }
@@ -38,7 +30,7 @@ fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {
         .find_map(|line| line.strip_prefix(prefix))
         .map(|value| value.trim().trim_matches('`'))
 }
-fn recorded_revision(repository: Option<&Source<'_>>, state: &str, current: &str) -> Value {
+fn recorded_revision(repository: Option<&Repository<'_>>, state: &str, current: &str) -> Value {
     let saved = claim(state, "Revision: ");
     let resolved = saved.and_then(|saved| repository?.resolve(saved).ok());
     let changed = resolved

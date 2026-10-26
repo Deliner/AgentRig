@@ -24,10 +24,6 @@ pub enum Target {
         module: String,
         names: Vec<String>,
     },
-    JavaScriptModule {
-        path: String,
-        loader: Loader,
-    },
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -35,12 +31,6 @@ pub struct RustMacro {
     pub path: String,
     pub scope: Vec<String>,
     pub literal: Option<String>,
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Loader {
-    Import,
-    Require,
 }
 
 #[derive(Debug, PartialEq, Eq)]

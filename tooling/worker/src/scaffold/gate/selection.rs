@@ -8,7 +8,7 @@ use std::{
 
 pub fn changes(root: &Path, staged: bool) -> Result<Option<Vec<PathBuf>>> {
     if staged {
-        let repository = review_runner::vcs::Repository::discover(root)?
+        let repository = crate::vcs::Repository::discover(root)?
             .context("staged test selection requires a repository")?;
         return Ok(Some(
             repository
