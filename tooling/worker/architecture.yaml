@@ -9,7 +9,6 @@ files:
   SCAFFOLD.md: Project configuration, installation and delivery workflow guide
   build: Build the candidate worker for development verification
   run: Dispatch commands to the pinned installed runtime
-  lint.yaml: Checked repository lint policy and repair guidance
   rust-toolchain.toml: Rust toolchain selected for reproducible development
 directories:
   assets: Canonical resources embedded in installed environments

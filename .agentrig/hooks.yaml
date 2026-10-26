@@ -1,0 +1,15 @@
+reminder: .agents/skills/complexity-discipline/context-reminder.json
+discipline_skill: .agents/skills/complexity-discipline/SKILL.md
+routes:
+- include: [Ledger/Plan.md, 'Ledger/Plan/**/*.md']
+  skill: .agents/skills/edit-plan/SKILL.md
+- include: [Ledger/Archive/Plan.md, 'Ledger/Archive/Plan/**/*.md']
+  skill: .agents/skills/edit-plan/SKILL.md
+- include: [Ledger/Backlog.md, 'Ledger/Backlog/**/*.md']
+  skill: .agents/skills/edit-backlog/SKILL.md
+- include: [Ledger/Decisions.md, 'Ledger/Decisions/**/*.md']
+  skill: .agents/skills/edit-decisions/SKILL.md
+- include: [Ledger/Invariants.md, 'Ledger/Invariants/**/*.md']
+  skill: .agents/skills/edit-invariants/SKILL.md
+- include: [Ledger/State.md, 'Ledger/State/**/*.md']
+  skill: .agents/skills/edit-state/SKILL.md

@@ -24,7 +24,7 @@ notes](tooling/distribution/RELEASE.md).
 
 To develop AgentRig, start with [repository instructions](AGENTS.md), run `just bootstrap` once, then `just resume`. The
 bootstrap installs a verified development revision; `just candidate ...` separately builds the product being edited. See
-[development and distribution](tooling/distribution/README.md). [agentrig.yaml](agentrig.yaml) owns paths, commands,
+[development and distribution](tooling/distribution/README.md). [.agentrig](.agentrig) owns paths, commands,
 checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run
 catalog commands with `just run NAME -- ARGS`.
 

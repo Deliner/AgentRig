@@ -1,0 +1,103 @@
+read:
+  argv: []
+  accepts_args: true
+  read_only: true
+write:
+  argv: []
+  accepts_args: true
+build:
+  argv:
+  - tooling/worker/build
+  - --version
+candidate:
+  argv:
+  - tooling/worker/build
+  accepts_args: true
+lint:
+  argv: [tooling/worker/build, lint]
+  accepts_args: true
+release:
+  argv:
+  - bash
+  - tooling/distribution/release.sh
+rustfmt:
+  argv:
+  - cargo
+  - +1.98.1
+  - fmt
+  - --manifest-path
+  - tooling/worker/Cargo.toml
+  - --check
+clippy:
+  argv:
+  - cargo
+  - +1.98.1
+  - clippy
+  - --manifest-path
+  - tooling/worker/Cargo.toml
+  - --locked
+  - --
+  - -D
+  - warnings
+rust-test:
+  argv:
+  - cargo
+  - +1.98.1
+  - test
+  - --manifest-path
+  - tooling/worker/Cargo.toml
+  - --locked
+  - --lib
+  - --
+  accepts_args: true
+test:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - pytest
+  - -c
+  - tooling/pyproject.toml
+  - --rootdir
+  - .
+  accepts_args: true
+ruff-format:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - ruff
+  - format
+  - --check
+  - --config
+  - tooling/pyproject.toml
+ruff:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - ruff
+  - check
+  - --config
+  - tooling/pyproject.toml
+mypy:
+  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/examples"]
+typos:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - typos
+  - --config
+  - tooling/pyproject.toml
+  - .
+vulture:
+  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/conftest.py", "tooling/distribution/tests", "tooling/worker/src/lint", "tooling/worker/src/scaffold", "tooling/worker/src/hooks", "tooling/worker/examples"]

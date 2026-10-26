@@ -170,7 +170,7 @@ Rust 1.98.1 and Python 3.12.3.
 
 ## AgentRig repository coverage
 
-The checked `tooling/worker/lint.yaml` enables architecture at error severity for
+The checked `.agentrig/lint.yaml` enables architecture at error severity for
 `.` and `**`: maintained source, colocated tests, root configuration, Ledger,
 documentation, examples and canonical resources. Language extensions select
 dependency extraction only; every discovered file remains in the inventory.

@@ -12,7 +12,7 @@ maintenance instructions independently authorize tooling work; they do not autho
 features. This repository develops the portable worker itself. Worker capabilities, including lint, belong under
 tooling/worker; Project is reserved for consumer examples, and repository memory is Ledger. D025 supersedes D008 for
 ownership in this repository. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are
-owned by agentrig.yaml.
+owned by the .agentrig/ modules.
 
 ## Commands and verification
 
@@ -31,7 +31,7 @@ change. Commit through .githooks/pre-commit, which runs the configured exported-
 plus smoke tests. Do not substitute the full test suite for unmapped commit paths; maintain the impact map instead.
 Never bypass the hook. Avoid repeating the gate immediately before the same commit unless needed for diagnosis. Finish
 on a clean feature branch with `just feature-merge`, which runs the tests affected by the whole branch; retain the
-branch after integration. Branch policy comes from agentrig.yaml; never commit directly to its configured base.
+branch after integration. Branch policy comes from .agentrig/git.yaml; never commit directly to its configured base.
 
 ## Memory and skills
 
