@@ -1,18 +1,18 @@
-purpose: Track and control owned process execution, lifetime, resource limits and captured output
+purpose: Track and control owned process execution, lifetime, process groups and captured output
 files:
   architecture.yaml: Process ownership inventory and consumer boundary
   mod.rs: Job records, execution lifecycle and status command orchestration
-  background.rs: Launch and adopt persistent jobs within owned scopes
+  background.rs: Launch and adopt persistent jobs as process group leaders
   cleanup.rs: Clean completed or abandoned jobs according to owner and lifetime
-  identity.rs: Observe process identity and resource usage without confusing reused process IDs
+  group.rs: Observe, signal and recognize owned process groups by their leader identity
   logs.rs: Read retained job output and report truncation
   process.rs: Execute child processes with signal forwarding and exit status handling
   report.rs: Summarize recorded command durations and outcomes
-  scope.rs: Create and observe systemd scopes and their resource constraints
-  stop.rs: Cancel owned jobs and signal their process containment
+  stop.rs: Cancel owned jobs and signal their process group
   storage.rs: Create job directories and persist and retrieve records
   streams.rs: Drain child streams and retain captured output
-directories: {}
+directories:
+  identity: Observe process identity and resource usage on Linux and macOS without confusing reused process IDs
 allow:
   - tooling/worker/src/artifacts/json.rs
   - tooling/worker/src/vcs/mod.rs

@@ -1,12 +1,11 @@
 use std::fs::OpenOptions;
 mod background;
 pub mod cleanup;
+mod group;
 mod identity;
 mod logs;
 pub mod process;
 pub mod report;
-mod scope;
-pub use scope::capability;
 mod stop;
 pub use stop::run as cancel;
 mod storage;
@@ -27,11 +26,6 @@ pub enum Lifetime {
     #[default]
     Task,
     Shared,
-}
-#[derive(Default, Deserialize, Serialize)]
-pub struct Limits {
-    pub memory_bytes: Option<u64>,
-    pub max_processes: Option<u64>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -54,15 +48,13 @@ pub struct Record {
     #[serde(default)]
     pub duration_seconds: Option<f64>,
     #[serde(default)]
-    pub scope: Option<scope::Scope>,
+    pub group: Option<Identity>,
     #[serde(default)]
     pub read_only: bool,
     #[serde(default)]
     pub lifetime: Lifetime,
     #[serde(default)]
     pub background: bool,
-    #[serde(default)]
-    pub limits: Limits,
 }
 pub struct Job {
     directory: PathBuf,
@@ -98,11 +90,10 @@ impl Job {
             child: None,
             process_group: false,
             duration_seconds: None,
-            scope: None,
+            group: None,
             read_only: false,
             lifetime: Lifetime::Task,
             background: false,
-            limits: Limits::default(),
         };
         Self::registered(directory, record)
     }
@@ -119,10 +110,6 @@ impl Job {
         self.record.argv = argv.into();
         self.record.read_only = read_only;
         self.record.lifetime = lifetime;
-        self.save()
-    }
-    pub fn limits(&mut self, limits: Limits) -> Result<()> {
-        self.record.limits = limits;
         self.save()
     }
     pub fn directory(&self) -> &Path {
@@ -245,40 +232,29 @@ fn observe_once(runtime: &Path, record: &Record) -> Result<Value> {
     );
     value["leader_resources"] = json!(child);
     value["containment"] = json!("process-group; detached descendants are not contained");
-    scoped(runtime, record, value)
-}
-fn scoped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
-    if let Some(scope) = &record.scope {
-        let observed = match scope.observe() {
-            Ok(observed) => observed,
-            Err(error) => {
-                value["state"] = json!("unverified");
-                value["observation_error"] = json!(error.to_string());
-                return Ok(value);
-            }
-        };
-        let populated = observed["populated"] == true;
-        let launching = scope.invocation.is_none()
-            && background::launcher_live(&runtime.join("jobs").join(&record.run_id))?;
-        let stopped = runtime
-            .join("jobs")
-            .join(&record.run_id)
-            .join("stop-requested")
-            .exists();
-        value["state"] = json!(match (populated, stopped, record.finished) {
-            (false, true, None) if launching => "stopping",
-            (false, false, None) if launching => "starting-or-finishing",
-            (true, true, _) => "stopping",
-            (true, false, _) => "running",
-            (false, true, _) => "cancelled",
-            (false, false, Some(_)) => "completed",
-            (false, false, None) if record.supervisor.observe().is_some() =>
-                "starting-or-finishing",
-            _ => "interrupted",
-        });
-        value["containment"] = json!("systemd user scope");
-        value["scope_observation"] = observed;
+    let contained = record.background;
+    if contained {
+        return grouped(runtime, record, value);
     }
+    Ok(value)
+}
+fn grouped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
+    let directory = runtime.join("jobs").join(&record.run_id);
+    let populated = record.group.as_ref().is_some_and(group::populated);
+    let launching = record.group.is_none() && background::launcher_live(&directory)?;
+    let stopped = directory.join("stop-requested").exists();
+    value["state"] = json!(match (populated, stopped, record.finished) {
+        (false, true, None) if launching => "stopping",
+        (false, false, None) if launching => "starting-or-finishing",
+        (true, true, _) => "stopping",
+        (true, false, _) => "running",
+        (false, true, _) => "cancelled",
+        (false, false, Some(_)) => "completed",
+        (false, false, None) if record.supervisor.observe().is_some() => "starting-or-finishing",
+        _ => "interrupted",
+    });
+    value["containment"] = json!("process group");
+    value["group_observation"] = json!(record.group.as_ref().map(group::observe));
     Ok(value)
 }
 fn now() -> Result<u64> {

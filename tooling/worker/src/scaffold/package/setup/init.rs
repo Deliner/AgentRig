@@ -62,12 +62,13 @@ fn validate_bundle(files: &Files) -> Result<()> {
     // Validate generated files through the same loader before touching the consumer.
     // This also detects a generated file being another generated file's parent.
     let preview = tempfile::tempdir()?;
+    let root = preview.path().canonicalize()?;
     for (path, contents) in files {
-        let path = config::relative(preview.path(), path)?;
+        let path = config::relative(&root, path)?;
         fs::create_dir_all(path.parent().unwrap())?;
         fs::write(path, contents)?;
     }
-    config::Context::load(preview.path())?;
+    config::Context::load(&root)?;
     Ok(())
 }
 pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()> {

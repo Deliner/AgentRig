@@ -21,7 +21,7 @@ allow:
   - tooling/worker/src/yaml/mod.rs
   - tooling/worker/src/vcs/mod.rs
   - tooling/worker/src/scaffold/memory/format.rs
-  - tooling/worker/src/jobs/mod.rs
+  - tooling/worker/src/scaffold/commands/process.rs
   - tooling/worker/src/diagnostics/mod.rs
   - tooling/worker/src/lint/rules.rs
   - tooling/worker/src/lint/rules/kind.rs

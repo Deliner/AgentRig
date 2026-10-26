@@ -31,7 +31,7 @@ pub fn execute(command: &mut Command, capture: bool, job: Option<&mut Job>) -> R
     if piped {
         command.stdout(Stdio::piped()).stderr(Stdio::piped());
     }
-    let group = !std::io::stdin().is_terminal();
+    let group = forward && !std::io::stdin().is_terminal();
     if group {
         command.process_group(0);
     }

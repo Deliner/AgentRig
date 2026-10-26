@@ -183,37 +183,33 @@ stderr.log beside the run record. Display replaces invalid UTF-8, stored logs do
 not. `report` aggregates these lifecycle records; commands.jsonl is no longer
 written or read. Old completion-only logs remain untouched as historical files.
 
-`just job-start COMMAND -- ARGS` starts a configured command in a distinct
-systemd user scope and returns its run_id. It requires Linux cgroup v2 and a
-working systemd user manager. The process inherits the calling environment,
-freezes the selected argv/cwd/read-only policy, and retains output in the same
-run directory after the caller exits. Launcher errors appear separately in
-job-logs. A delayed launch response does not authorize starting a duplicate.
+`just job-start COMMAND -- ARGS` starts a configured command under a runner that
+leads its own process group and returns its run_id. The process inherits the
+calling environment, freezes the selected argv/cwd/read-only policy, and retains
+output in the same run directory after the caller exits. Launcher errors appear
+separately in job-logs. A delayed launch response does not authorize starting a
+duplicate. Linux identifies processes through /proc and macOS through
+proc_pidinfo; both compare start time and boot identity, never a bare PID.
 
-`just job-stop RUN_ID` requires the recorded owner identity. It checks the scope
-invocation ID, requests graceful stop, then forces remaining processes and
-verifies the recursive cgroup populated state. This includes descendants that
-created a new process session. Cancellation intent survives runner termination;
-logs remain available. Lost access to the user manager reports unverified state,
-not successful completion. Ownership is coordination within a user account,
-not an access-control boundary against that same user's own programs.
+`just job-stop RUN_ID` requires the recorded owner identity. It checks the group
+leader identity, sends SIGTERM to the group, then SIGKILL, and waits until the
+group is empty. Descendants that create a new session or process group escape
+this containment. Cancellation intent survives runner termination; logs remain
+available. Ownership is coordination within a user account, not an
+access-control boundary against that same user's own programs.
 
-Commands default to `lifetime = "task"`; set `lifetime = "shared"` in a command's
-agentrig.yaml table for a service that must outlive task cleanup. `just job-cleanup`
-cleans the current owner's task scopes; `--branch BRANCH` narrows that selection.
+Commands default to `lifetime: task`; set `lifetime: shared` on a command for a
+service that must outlive task cleanup. `just job-cleanup` stops the current
+owner's background task runs; `--branch BRANCH` narrows that selection.
 Successful feature-merge invokes the same cleanup for the merged branch. Shared
-services, other owners, other branches and the active cleanup caller are retained.
-The owner can explicitly stop a shared service with job-stop. Cleanup failures
-are reported after merge as a separate failure with a job-cleanup retry command.
-Without an owner identity, merge does not guess which runs belong to its caller.
+services, other owners, other branches and the active cleanup caller's group are
+retained. The owner can explicitly stop a shared service with job-stop. Cleanup
+failures are reported after merge as a separate failure with a job-cleanup retry
+command. Without an owner identity, merge does not guess which runs belong to
+its caller. Foreground commands forward signals to their own process group;
+cleanup reports unfinished foreground runs for inspection.
 
-Doctor reports whether a real transient user scope can be created, including
-cgroup v2 availability and the backend diagnostic. Background support is optional
-for projects using `[processes] foreground = "process-group"` (the default).
-Select `foreground = "systemd"` to run ordinary commands through the same scope
-runner as background commands, preserving stdin, stdout, stderr and exit status.
-Doctor fails when this selected backend cannot create a scope; execution
-does not silently fall back. The default process-group mode provides
-signal forwarding; cleanup reports unfinished uncontained runs for inspection.
-Nested scope launches remain separately registered under their inherited owner;
-owner cleanup covers them. A single scope stop only covers that scope's cgroup.
+Read-only commands run under bubblewrap on Linux and sandbox-exec on macOS:
+the file system is read-only except a private temporary directory, and the
+network is unavailable. Doctor probes the backend and fails when a configured
+read-only command cannot run.

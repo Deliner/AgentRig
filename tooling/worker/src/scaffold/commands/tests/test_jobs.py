@@ -10,7 +10,6 @@ import pytest
 
 from tooling.worker.src.scaffold.commands.tests.consumer import (
     background_id,
-    require_user_systemd,
     wait_for_background_output,
 )
 from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
@@ -163,47 +162,12 @@ def test_logs_preserve_streams_and_bound_display(worker: Path, tmp_path: Path) -
     assert (directory / "stderr.log").read_bytes() == result.stderr
 
 
-def test_foreground_scope_preserves_input_and_streams(worker: Path, tmp_path: Path) -> None:
-    require_user_systemd()
-    project(tmp_path, CONFIG + '\nprocesses:\n  foreground: "systemd"\n')
-    result = invoke(worker, tmp_path, "run", "echo", "argument", input="input bytes")
-    assert result.returncode == 0, result.stderr
-    assert result.stdout == "['argument']\ninput bytes\n"
-    assert result.stderr == "stderr\n"
-    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
-    assert row["state"] == "completed"
-    assert row["containment"] == "systemd user scope"
-    assert row["scope"]["invocation"]
-    assert row["background"] is False
-    logs = json.loads(invoke(worker, tmp_path, "job-logs", row["run_id"]).stdout)
-    assert logs["stdout"]["text"] == result.stdout
-    assert logs["stderr"]["text"] == result.stderr
-
-
-def test_scope_launcher_exit_does_not_claim_payload_success(
+def test_owner_cleanup_stops_nested_background_run(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    project(tmp_path, CONFIG + '\nprocesses:\n  foreground: "systemd"\n')
-    launcher = tmp_path / "systemd-run"
-    launcher.write_text("#!/bin/sh\nexit 0\n")
-    launcher.chmod(0o755)
-    monkeypatch.setenv("PATH", str(tmp_path) + os.pathsep + os.environ["PATH"])
-    result = invoke(worker, tmp_path, "run", "echo")
-    assert result.returncode == 127
-    assert "failed before adoption" in result.stderr
-    row = json.loads(invoke(worker, tmp_path, "jobs").stdout)[0]
-    assert row["exit_code"] == 127 and row["child"] is None
-    assert "failed before adoption" in row["error"]
-
-
-def test_owner_cleanup_covers_nested_scopes(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    require_user_systemd()
-    monkeypatch.setenv("WORKER_OWNER", "nested-scope-owner")
+    monkeypatch.setenv("WORKER_OWNER", "nested-group-owner")
     nested = [str(worker), "job-start", "--root", str(tmp_path), "wait"]
-    config = 'processes:\n  foreground: "systemd"\n' + CONFIG
-    config += '  wait:\n    argv: ["sleep", "60"]\n  nested:\n    argv: '
+    config = CONFIG + '  wait:\n    argv: ["sleep", "60"]\n  nested:\n    argv: '
     project(tmp_path, config + json.dumps(nested))
     result = invoke(worker, tmp_path, "run", "nested")
     assert result.returncode == 0, result.stderr
@@ -213,56 +177,22 @@ def test_owner_cleanup_covers_nested_scopes(
         records = {row["command"]: row for row in rows}
         parent, child = records["nested"], records["wait"]
         assert child["parent_run"] == parent["run_id"]
-        assert parent["owner"] == child["owner"] == "nested-scope-owner"
-        assert parent["scope"]["unit"] != child["scope"]["unit"]
-        stopped = invoke(worker, tmp_path, "job-stop", parent["run_id"])
-        assert stopped.returncode == 0, stopped.stderr
-        assert (
-            json.loads(invoke(worker, tmp_path, "job-status", identifier).stdout)["state"]
-            == "running"
-        )
+        assert parent["owner"] == child["owner"] == "nested-group-owner"
+        assert child["group"]["pid"] == child["supervisor"]["pid"]
         cleanup = invoke(worker, tmp_path, "job-cleanup")
         assert cleanup.returncode == 0, cleanup.stderr
         assert identifier in json.loads(cleanup.stdout)["stopped"]
         status = json.loads(invoke(worker, tmp_path, "job-status", identifier).stdout)
         assert status["state"] == "cancelled"
-        assert status["scope_observation"]["populated"] is False
+        assert status["group_observation"]["populated"] is False
     finally:
         assert invoke(worker, tmp_path, "job-stop", identifier).returncode == 0
-
-
-def test_foreground_scope_cancels_detached_descendant(
-    worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    require_user_systemd()
-    monkeypatch.setenv("WORKER_OWNER", "foreground-owner")
-    code = "import subprocess,time; subprocess.Popen(['sleep','60'],start_new_session=True); print('ready',flush=True); time.sleep(60)"
-    config = 'processes:\n  foreground: "systemd"\n' + CONFIG + "\n  wait:\n    argv: "
-    project(tmp_path, config + json.dumps(["python3", "-c", code]))
-    process = subprocess.Popen(
-        [str(worker), "run", "--root", str(tmp_path), "wait"],
-        stdin=subprocess.DEVNULL,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
-    try:
-        row = wait_for_job(worker, tmp_path)
-        wait_for_background_output(worker, tmp_path, row["run_id"])
-        stopped = invoke(worker, tmp_path, "job-stop", row["run_id"])
-        assert stopped.returncode == 0, stopped.stderr
-        assert json.loads(stopped.stdout)["scope_observation"]["populated"] is False
-        assert process.wait(timeout=5) != 0
-    finally:
-        cleanup = invoke(worker, tmp_path, "job-cleanup")
-        assert cleanup.returncode == 0, cleanup.stderr
-        process.wait(timeout=5)
 
 
 def test_background_ownership_and_descendant_cleanup(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    require_user_systemd()
-    code = "import subprocess,time; subprocess.Popen(['sleep','60'], start_new_session=True); print('ready',flush=True); time.sleep(60)"
+    code = "import subprocess,time; subprocess.Popen(['sleep','60']); print('ready',flush=True); time.sleep(60)"
     project(tmp_path, CONFIG + "\n  wait:\n    argv: " + json.dumps(["python3", "-c", code]))
     monkeypatch.setenv("WORKER_OWNER", "owner-one")
     first = background_id(worker, tmp_path)
@@ -280,7 +210,7 @@ def test_background_ownership_and_descendant_cleanup(
         assert stopped.returncode == 0, stopped.stderr
         result = json.loads(stopped.stdout)
         assert result["state"] == "cancelled"
-        assert result["scope_observation"]["populated"] is False
+        assert result["group_observation"]["populated"] is False
         assert (
             json.loads(invoke(worker, tmp_path, "job-status", first).stdout)["state"] == "running"
         )
@@ -302,7 +232,6 @@ def test_private_runner_cannot_restart_existing_job(worker: Path, tmp_path: Path
 def test_background_forced_stop_keeps_logs(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    require_user_systemd()
     code = "import signal,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); print('ready',flush=True); time.sleep(60)"
     project(tmp_path, CONFIG + "\n  wait:\n    argv: " + json.dumps(["python3", "-c", code]))
     monkeypatch.setenv("WORKER_OWNER", "forced-stop-owner")
@@ -313,7 +242,7 @@ def test_background_forced_stop_keeps_logs(
         assert result.returncode == 0, result.stderr
         state = json.loads(result.stdout)
         assert state["state"] == "cancelled"
-        assert state["scope_observation"]["populated"] is False
+        assert state["group_observation"]["populated"] is False
         logs = json.loads(invoke(worker, tmp_path, "job-logs", identifier).stdout)
         assert logs["stdout"]["text"] == "ready\n"
     finally:
@@ -324,7 +253,6 @@ def test_background_forced_stop_keeps_logs(
 def test_cleanup_preserves_another_branch(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    require_user_systemd()
     project(tmp_path, CONFIG + '\n  wait:\n    argv: ["sleep", "60"]\n')
     subprocess.run(["git", "init", "-q", "-b", "task/first", str(tmp_path)], check=True)
     monkeypatch.setenv("WORKER_OWNER", "branch-owner")

@@ -1,4 +1,4 @@
-use super::{owner, scope::Scope, storage};
+use super::{group, identity::Identity, owner, storage};
 use anyhow::{Result, ensure};
 use std::{
     fs::OpenOptions,
@@ -12,37 +12,32 @@ pub fn run(runtime: &Path, id: &str) -> Result<()> {
         owner().as_ref() == Some(&record.owner),
         "run belongs to another owner; set WORKER_OWNER to its recorded owner explicitly"
     );
-    let scope = record.scope.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("run has no scope containment; refusing to claim descendant cleanup")
-    })?;
-    let pending = scope.invocation.is_none();
-    if pending {
+    ensure!(
+        record.background,
+        "run has no process group containment; refusing to claim descendant cleanup"
+    );
+    let Some(leader) = &record.group else {
         request(runtime, id)?;
-        let latest = storage::load(runtime, id)?;
-        let adopted = latest
-            .scope
-            .as_ref()
-            .is_some_and(|scope| scope.invocation.is_some());
+        let adopted = storage::load(runtime, id)?.group.is_some();
         if adopted {
             return run(runtime, id);
         }
         return Ok(());
-    }
-    let populated = scope.observe()?["populated"] == true;
-    let already_stopped = !populated;
+    };
+    let already_stopped = !group::populated(leader);
     if already_stopped {
         return Ok(());
     }
     request(runtime, id)?;
-    scope.signal(false)?;
-    let stopped = wait(scope)?;
+    group::signal(leader, false)?;
+    let stopped = wait(leader);
     if stopped {
         return Ok(());
     }
-    scope.signal(true)?;
+    group::signal(leader, true)?;
     ensure!(
-        wait(scope)?,
-        "scope still has live processes after forced termination"
+        wait(leader),
+        "process group still has live processes after forced termination"
     );
     Ok(())
 }
@@ -55,14 +50,14 @@ fn request(runtime: &Path, id: &str) -> Result<()> {
         .sync_all()?;
     Ok(())
 }
-fn wait(scope: &Scope) -> Result<bool> {
+fn wait(leader: &Identity) -> bool {
     let deadline = Instant::now() + Duration::from_secs(3);
     while Instant::now() < deadline {
-        let empty = scope.observe()?["populated"] == false;
+        let empty = !group::populated(leader);
         if empty {
-            return Ok(true);
+            return true;
         }
         std::thread::sleep(Duration::from_millis(50));
     }
-    Ok(false)
+    false
 }

@@ -22,11 +22,6 @@ pub fn run(context: &Context) -> Result<i32> {
         env::consts::OS
     );
     let mut failed = !installed_binary(context);
-    let capability = crate::jobs::capability();
-    println!("process scope capability: {capability}");
-    let required =
-        context.config.processes.foreground == super::super::config::Containment::Systemd;
-    failed |= required && capability["available"] != true;
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
     failed |= !vcs_registration(context)?;
@@ -95,10 +90,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .values()
         .any(|command| command.read_only);
     if read_only {
-        let probe = Command::new("bwrap")
-            .args(["--ro-bind", "/", "/", "--unshare-all", "--", "true"])
-            .output();
-        let works = probe.is_ok_and(|output| output.status.success());
+        let works = super::super::commands::process::sandbox_available();
         println!(
             "read-only backend: {}",
             if works { "available" } else { "UNAVAILABLE" }

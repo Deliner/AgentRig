@@ -2,7 +2,7 @@
 
 These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
 
-For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux, Git, Just and bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.
+For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux or macOS, Git and Just; on Linux they also need bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.
 
 ## Python
 

@@ -10,7 +10,7 @@ from tooling.worker.src.scaffold.testing.consumer import CONFIG, invoke, project
     [
         ('runtime: "0.3.0"', 'runtime: "9.0.0"'),
         ("version: 1", "version: 7"),
-        ("paths:", '\nprocesses:\n  foreground: "unknown"\npaths:\n\n'),
+        ("paths:", '\nfrontend: "unknown"\npaths:\n'),
         ('memory: "notes"', 'memory: "../outside"'),
         ("read_only: true", 'read_only: "true"'),
         ("accepts_args: true", "accept_arg: true"),

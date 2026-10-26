@@ -1,3 +1,4 @@
+// DECISION: D034
 pub use crate::jobs::process::exit_code;
 use anyhow::{Result, ensure};
 use std::{
@@ -13,8 +14,9 @@ pub fn tracked(
 ) -> Result<Output> {
     let (read_only, capture) = options;
     ensure!(!argv.is_empty(), "command requires an executable");
+    let scratch = tempfile::tempdir()?;
     let mut command = if read_only {
-        sandbox(root, argv)?
+        sandbox(root, argv, scratch.path())?
     } else {
         let mut command = Command::new(&argv[0]);
         command.args(&argv[1..]);
@@ -23,11 +25,17 @@ pub fn tracked(
     command.current_dir(root);
     crate::jobs::process::execute(&mut command, capture, job)
 }
-fn sandbox(root: &Path, argv: &[String]) -> Result<Command> {
-    ensure!(
-        cfg!(target_os = "linux"),
-        "read-only execution requires the Linux bwrap backend"
-    );
+pub fn sandbox_available() -> bool {
+    let probe = tempfile::tempdir().and_then(|scratch| {
+        sandbox(Path::new("/"), &["true".into()], scratch.path())
+            .map_err(std::io::Error::other)?
+            .output()
+    });
+    probe.is_ok_and(|output| output.status.success())
+}
+
+#[cfg(target_os = "linux")]
+fn sandbox(root: &Path, argv: &[String], _scratch: &Path) -> Result<Command> {
     let mut command = Command::new("bwrap");
     command.args([
         "--ro-bind",
@@ -40,11 +48,35 @@ fn sandbox(root: &Path, argv: &[String]) -> Result<Command> {
         "--unshare-all",
         "--die-with-parent",
     ]);
-    // Keep projects living in /tmp visible; everywhere remains read-only there.
     let outside_tmp = !root.starts_with("/tmp");
     if outside_tmp {
         command.args(["--tmpfs", "/tmp"]);
     }
     command.arg("--chdir").arg(root).arg("--").args(argv);
     Ok(command)
+}
+
+#[cfg(target_os = "macos")]
+fn sandbox(_root: &Path, argv: &[String], scratch: &Path) -> Result<Command> {
+    let scratch = scratch.canonicalize()?;
+    let profile = format!(
+        "(version 1)(allow default)(deny network*)(deny file-write*)\
+         (allow file-write* (literal \"/dev/null\") (literal \"/dev/zero\") \
+         (literal \"/dev/dtracehelper\") (regex #\"^/dev/tty\") (regex #\"^/dev/fd/\") \
+         (subpath {}))",
+        quoted(&scratch.to_string_lossy())
+    );
+    let mut command = Command::new("/usr/bin/sandbox-exec");
+    command
+        .arg("-p")
+        .arg(profile)
+        .arg("--")
+        .args(argv)
+        .env("TMPDIR", &scratch);
+    Ok(command)
+}
+
+#[cfg(target_os = "macos")]
+fn quoted(value: &str) -> String {
+    format!("\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))
 }

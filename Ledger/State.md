@@ -12,39 +12,40 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: 0fadd080932508723bca9f1dd73df9e70b17568d
+Revision: da71c68874c16c8c190966aef89419763605fd2e
 
-The machine is macOS (Darwin 25.5.0). The pinned runtime 9aee4ae was
-bootstrapped with a canonical TMPDIR, because the /var symlink breaks init
-path checks. A stray branch feature/init-probe at a14f284 remains from an
+The machine is macOS (Darwin 25.5.0). The pinned runtime 9aee4ae predates the
+port and the `git` configuration key, so the installed hooks and gate still
+cannot run here. A stray branch feature/init-probe at a14f284 remains from an
 install probe; guard-reference refuses its deletion.
 
 ## Progress
 
-The removal VAC under [D033](Decisions/033.md) is ready to commit: review and
-its MCP, delegation and its MCP, upgrade with receipt and recovery, setup,
-preview, reconcile and package composition, Mercurial and external VCS, and
-JS/TS/TSX analysis are gone. The VCS layer, YAML codec and artifacts moved
-into tooling/worker/src; the branch policy key is `git`. I020 is retired.
-Plan P018–P023 predates this direction and is not reconciled yet.
+The removal VAC under [D033](Decisions/033.md) is committed as da71c68. The
+macOS port under [D034](Decisions/034.md) is ready to commit: process groups
+replace systemd scopes, job identity uses /proc on Linux and proc_pidinfo on
+macOS, read-only commands use sandbox-exec on macOS, init validates its
+preview through a canonical temporary path, and CI and release packaging
+cover macOS arm64. The Rust analyzer now measures cfg branches over test and
+target-platform predicates. Plan P018–P023 predates this direction and is not
+reconciled yet.
 
 ## Verification
 
-On the removal content before commit: cargo clippy -D warnings and fmt are
-clean, 62 Rust library tests pass, candidate lint over the repository reports
-no errors, config-check passes, ruff, mypy, typos and vulture pass. pytest
-against the candidate gives 376 passed, 38 failed, 6 errors; every failure
-comes from /proc job identity, systemd scopes or the bwrap/doctor sandbox.
+On the port content before commit: cargo fmt and clippy -D warnings are clean,
+64 Rust tests pass, the Linux branches pass clippy for x86_64-unknown-linux-gnu
+in an isolated crate, candidate lint reports no errors, config-check and
+memory-check pass, ruff, mypy, typos and vulture pass, and pytest gives 419
+passed on macOS with the default /var TMPDIR and no leaked job processes.
+Linux runtime behavior is not yet exercised; CI will do that.
 
 ## Blockers
 
-The staged gate and memory-check cannot run on macOS until the port. The user
-authorized commits without the pre-commit hook until the gate works on macOS,
-after build, Rust tests, clippy and applicable pytest. feature-merge still
-needs the full gate.
+The user authorized commits without the pre-commit hook until the gate works
+on macOS. feature-merge still needs the full gate.
 
 ## Next action
 
-Port jobs to macOS: proc_pidinfo identity instead of /proc, process groups
-instead of systemd scopes, sandbox-exec for read-only commands, canonical
-init paths; then repin and bootstrap the runtime and run the gate.
+Commit the port, pin stable.txt to it, run `just bootstrap`, and verify the
+installed hooks, `just check` and Claude Code and Codex hook registration on
+macOS. Then make feature-merge run only affected tests.

@@ -4,7 +4,7 @@ AgentRig is a structural linter for agent-native software development, plus the 
 
 The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects select capabilities through agentrig.yaml and a separate lint configuration; `agentrig-lint` also runs independently against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
 
-Download the Linux x86_64 binaries from [GitHub releases](https://github.com/Deliner/AgentRig/releases). Verify the accompanying SHA-256 file, extract the archive and put `agentrig` and `agentrig-lint` on PATH. The binary release targets Ubuntu 24.04 or compatible glibc 2.39+ systems. Install Git, Just and your project's tools; read-only commands require a read-only sandbox.
+Download the Linux x86_64 or macOS arm64 binaries from [GitHub releases](https://github.com/Deliner/AgentRig/releases). Verify the accompanying SHA-256 file, extract the archive and put `agentrig` and `agentrig-lint` on PATH. The Linux build targets Ubuntu 24.04 or compatible glibc 2.39+ systems. Install Git, Just and your project's tools; read-only commands use bubblewrap on Linux and the built-in sandbox-exec on macOS.
 
 Create an environment with `agentrig init --root ./my-project --interactive` or non-interactively with `agentrig init --root ./my-project`. Run the installed binary's `config-check` and `doctor` from the consumer. Consumer projects use the shipped executable and their own checks; they do not need this repository's Rust build or test suite.
 

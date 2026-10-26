@@ -1,11 +1,10 @@
-use super::{Lifetime, Record, owner, stop, storage};
+use super::{Lifetime, Record, group, owner, stop, storage};
 use anyhow::{Context, Result};
 use serde_json::{Value, json};
-use std::{fs, path::Path};
+use std::path::Path;
 
 pub fn run(runtime: &Path, branch: Option<&str>) -> Result<Value> {
     let owner = owner().context("cleanup requires WORKER_OWNER or an agent session identity")?;
-    let current = fs::read_to_string("/proc/self/cgroup")?;
     let mut stopped = Vec::new();
     let mut retained = Vec::new();
     let mut errors = Vec::new();
@@ -16,11 +15,11 @@ pub fn run(runtime: &Path, branch: Option<&str>) -> Result<Value> {
         if outside {
             continue;
         }
-        let finished = record.scope.is_none() && record.finished.is_some();
+        let finished = !record.background && record.finished.is_some();
         if finished {
             continue;
         }
-        if let Some(reason) = retention(&record, &current) {
+        if let Some(reason) = retention(&record) {
             retained.push(json!({"run_id": record.run_id, "reason": reason}));
             continue;
         }
@@ -33,13 +32,11 @@ pub fn run(runtime: &Path, branch: Option<&str>) -> Result<Value> {
         json!({"owner": owner, "branch": branch, "stopped": stopped, "retained": retained, "errors": errors}),
     )
 }
-fn retention(record: &Record, current: &str) -> Option<&'static str> {
-    match (record.lifetime, &record.scope) {
-        (Lifetime::Shared, _) => Some("shared service"),
-        (_, None) => Some("uncontained run; inspect manually"),
-        (_, Some(scope)) if current.trim().ends_with(&format!("/{}", scope.unit)) => {
-            Some("cleanup caller")
-        }
+fn retention(record: &Record) -> Option<&'static str> {
+    match (record.lifetime, record.background, &record.group) {
+        (Lifetime::Shared, _, _) => Some("shared service"),
+        (_, false, _) => Some("uncontained run; inspect manually"),
+        (_, true, Some(leader)) if group::current(leader) => Some("cleanup caller"),
         _ => None,
     }
 }

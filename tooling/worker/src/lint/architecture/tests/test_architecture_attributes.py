@@ -9,7 +9,9 @@ from tooling.worker.src.lint.architecture.tests.test_architecture_behavior impor
 )
 
 
-@pytest.mark.parametrize("case", ["callback", "label", "unknown", "derive", "alias", "test"])
+@pytest.mark.parametrize(
+    "case", ["callback", "label", "unknown", "derive", "alias", "test", "platform", "feature"]
+)
 def test_rust_attributes_preserve_dependency_evidence(
     worker: Path, tmp_path: Path, case: str
 ) -> None:
@@ -21,6 +23,8 @@ def test_rust_attributes_preserve_dependency_evidence(
         "derive": "#[derive(custom::Debug)] pub struct Value;",
         "alias": "use custom::Debug; #[derive(Debug)] pub struct Value;",
         "test": "#[cfg(test)] mod checks { pub fn run() -> i32 { crate::b::value() } }",
+        "platform": '#[cfg(not(target_os = "none"))] mod checks { pub fn run() -> i32 { crate::b::value() } }',
+        "feature": '#[cfg(feature = "extra")] mod checks { pub fn run() -> i32 { crate::b::value() } }',
     }
     source.write_text(samples[case])
     policy = tmp_path / "lint.yaml"
@@ -31,14 +35,14 @@ def test_rust_attributes_preserve_dependency_evidence(
         )
     )
     code, findings = parity(worker, tmp_path)
-    unsupported = case in {"unknown", "derive", "alias"}
+    unsupported = case in {"unknown", "derive", "alias", "feature"}
     if unsupported:
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
     else:
         assert code == 0, findings
         contract(tmp_path / "src/a")
         code, findings = parity(worker, tmp_path)
-        edge = case in {"callback", "test"}
+        edge = case in {"callback", "test", "platform"}
         assert code == int(edge), findings
         assert all("forbidden" in item["message"] for item in findings)
 

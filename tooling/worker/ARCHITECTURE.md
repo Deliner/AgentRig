@@ -130,8 +130,12 @@ proof; unsupported forms remain explicit incomplete-analysis findings.
   escaping or dynamically constructed targets fail analysis.
   Standard derives and `serde::{Serialize,Deserialize}` are supported. Supported
   serde callback attributes retain their function-path dependencies; naming
-  metadata remains opaque. Unknown serde forms fail explicitly. `#[cfg(test)]`
-  includes test code in the measured graph alongside ordinary code.
+  metadata remains opaque. Unknown serde forms fail explicitly. `#[cfg]` over
+  `test`, `unix`, `windows`, `target_os` or `target_family`, combined with `not`,
+  `any` and `all`, includes that code in the measured graph alongside ordinary
+  code, so every platform's dependencies are measured. Duplicate modules or
+  import bindings under exclusive predicates stay ambiguous and fail; dispatch
+  through distinctly named items instead.
   Literal, unescaped `#[path = "file.rs"]` declarations on file-level external
   modules resolve relative to the declaring source file; raw string literals are
   supported. Missing, escaping, duplicate and multiply declared source paths fail.

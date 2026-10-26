@@ -8,7 +8,7 @@ bootstrap:
 candidate *args:
     @tooling/worker/run run candidate -- "$@"
 
-# What: package candidate binaries and licenses; Why: produce the Linux release through the command catalog.
+# What: package candidate binaries and licenses; Why: produce the platform release through the command catalog.
 release:
     @tooling/worker/run run release
 

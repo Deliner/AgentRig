@@ -11,7 +11,6 @@ import pytest
 
 from tooling.worker.src.scaffold.commands.tests.consumer import (
     background_id,
-    require_user_systemd,
     wait_for_background_output,
 )
 from tooling.worker.src.scaffold.testing.consumer import git as git_result
@@ -196,7 +195,6 @@ def test_staged_commit_preserves_unstaged_work(
 def test_merge_cleans_only_owned_task_runs(
     worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    require_user_systemd()
     root = installed
     assert invoke(worker, root, "feature-start", "jobs").returncode == 0
     background_commands(root)

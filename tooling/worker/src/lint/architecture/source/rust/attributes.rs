@@ -18,7 +18,7 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
         "cfg" => {
             let unsupported = !attribute
                 .child_by_field_name("arguments")
-                .is_some_and(|args| compact(source.text(args)) == "(test)");
+                .is_some_and(|args| super::conditions::supported(&compact(source.text(args))));
             if unsupported {
                 source.unsupported(node, "Rust conditional expansion is not analyzed");
             }

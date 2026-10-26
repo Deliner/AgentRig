@@ -61,7 +61,6 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             _ => config::Frontend::Codex,
         },
         version: 1,
-        processes: Default::default(),
         capabilities: Default::default(),
         runtime: config::VERSION.into(),
         config_skill: repair.clone(),
