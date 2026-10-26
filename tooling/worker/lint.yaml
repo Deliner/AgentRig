@@ -47,6 +47,43 @@ rules:
   error: 500
   warning_skill: .agents/skills/refactor-large-file/SKILL.md
   error_skill: .agents/skills/refactor-large-file/SKILL.md
+# DECISION: D036
+- id: markdown-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  exclude:
+  - Ledger/**
+  error: 70
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
+- id: markdown-width
+  kind: line-width
+  target: file
+  include:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  exclude:
+  - Ledger/**
+  error: 120
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
+- id: markdown-placement
+  kind: forbidden-file
+  target: file
+  include:
+  - Project/**
+  extensions:
+  - .md
+  exclude:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  - '**/SKILL.md'
+  level: error
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
 - id: directory-size
   kind: directory-entries
   target: directory

@@ -1,8 +1,12 @@
 # Independent scaffold examples
 
-These are consumer projects. Copy either `python/` or `rust/` outside the worker repository. Neither contains worker source or depends on its development gate. Supply an absolute path to a built `agentrig` binary as `WORKER_BINARY`; initialization copies that binary and embeds its configuration, memory and skills into the consumer.
+These are consumer projects. Copy either `python/` or `rust/` outside the worker repository and set `WORKER_BINARY` to
+the absolute path of a built `agentrig` binary; initialization copies that binary and embeds its configuration, memory
+and skills into the consumer.
 
-For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both examples use Linux or macOS, Git and Just; on Linux they also need bubblewrap. `doctor` diagnoses executables, sandbox availability and hook registration; it does not install tools.
+For Python, install Python 3 and pytest. For Rust, install Cargo and a Rust compiler supporting edition 2024. Both
+examples use Linux or macOS, Git and Just; on Linux they also need bubblewrap. `doctor` diagnoses executables, sandbox
+availability and hook registration; it does not install tools.
 
 ## Python
 
@@ -29,10 +33,12 @@ git config user.email "example@example.invalid"
 git add .
 git commit -m "Initial example"
 git switch -c change/bootstrap
-"$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies --base release --prefix change/
+"$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies \
+  --base release --prefix change/
 ```
 
-Generated defaults enforce named conditions, function length and parameter limits as errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.agentrig/lint.yaml`.
+Generated defaults enforce named conditions, function length, parameter limits and decision/invariant-only comments as
+errors for both Rust and Python. Project-specific selectors and thresholds remain configurable in `.agentrig/lint.yaml`.
 
 ## Exercise either installation
 
@@ -50,9 +56,12 @@ just feature-merge
 just feature-start next
 ```
 
-`git commit` invokes the staged gate. `feature-merge` checks the integration candidate and retains the bootstrap branch. The initial commit is made before hook installation so bootstrap does not require bypassing an installed guard. Later development uses the configured branch prefix.
+`git commit` runs the staged gate; `feature-merge` checks the integration candidate and retains the bootstrap branch.
+The initial commit precedes hook installation, so bootstrap never bypasses an installed guard.
 
-The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with nonempty `Predicate` and `Oracle` sections. Add to `agentrig.yaml`:
+The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a
+predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with
+nonempty `Predicate` and `Oracle` sections. Add to `agentrig.yaml`:
 
 ```yaml
 oracles:
@@ -72,8 +81,7 @@ oracles:
     target: tests::doubles
 ```
 
-Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery alone does not verify the predicate.
+Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery
+alone does not verify the predicate.
 
-The native scaffold integration tests exercise both installations with their own source/memory/skills paths, branch names, severity settings and oracles. They also reject an unsupported shell-language selector, repair it through configuration, exercise real Git hooks, and show that an unrelated source marker or missing test target cannot validate an invariant.
-
-See [observed latency](LATENCY.md) for first-process and repeated-process measurements and the reproducible measurement command.
+[Observed latency](LATENCY.md) lists first-process and repeated-process measurements and their reproducible command.
