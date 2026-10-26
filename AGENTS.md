@@ -21,10 +21,10 @@ owned by the .agentrig/ modules.
 **Per the user's explicit instruction, agents may edit files directly with editing tools such as `apply_patch`, `Edit`
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
-Invoke shell operations through the justfile recipes (`just --list`). `just list` lists the configured command catalog.
-Use `just read -- ...` for sandboxed shell inspection, `just write -- ...` for authorized shell mutations, and
-`just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately preceding What/Why
-comment.
+Invoke shell operations through the Just recipes grouped under just/ (`just --list`). `just list` lists the configured
+command catalog. Use `just read -- ...` for sandboxed shell inspection, `just write -- ...` for authorized shell
+mutations, and `just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately
+preceding What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
 change. Commit through .agentrig/hooks/pre-commit, which runs the configured exported-index gate with affected test

@@ -5,13 +5,14 @@ files:
   AGENTS.md: Repository development instructions and ownership constraints
   LICENSE: MIT terms for distributing AgentRig
   README.md: Product overview and repository entry points
-  justfile: Thin command adapters to the configured runtime
+  justfile: Just entry point importing the recipe groups
 directories:
   .agentrig: Configure the runtime and dispatch repository Git hooks to it
   .agents: Expose canonical agent skills to the development client
   .claude: Register the Claude Code development client hooks
   .codex: Register the Codex development client hooks
   .github: Configure hosted continuous integration
+  just: Thin command adapters to the configured runtime, grouped by responsibility
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
   Project: Reserve consumer project examples independently of worker implementation
   tooling: Build, distribute and verify the portable worker

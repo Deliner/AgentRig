@@ -23,6 +23,9 @@ rollback step: a changed release is installed into a fresh project.
 and runtime data; individual paths remain configurable. The configuration modules always stay in `.agentrig`. Adapters quote the selected path, including
 spaces and shell metacharacters. Newlines and Just interpolation syntax (`{{`) are rejected.
 
+The root `justfile` only imports recipe groups from `just/`: `commands.just`, `checks.just`, `delivery.just`,
+`lint.just` and `jobs.just`. Each recipe forwards to the installed binary.
+
 `frontend: codex` (default) registers `.codex/hooks.json` and `.codex/config.toml`; `frontend: claude-code`
 registers `.claude/settings.json` and a `CLAUDE.md` that imports the shared `AGENTS.md`.
 

@@ -25,6 +25,7 @@ def test_init_rejects_invalid_layout_before_writing(
     assert file_contents(tmp_path) == before
 
 
+# DECISION: D039
 @pytest.mark.parametrize("language", ["python", "rust"])
 def test_custom_service_executes_installed_adapters(
     worker: Path, tmp_path: Path, language: str

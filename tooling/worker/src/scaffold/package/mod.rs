@@ -68,7 +68,9 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         config.paths.service_path("bin/agentrig"),
         fs::read(std::env::current_exe()?)?,
     );
-    files.insert("justfile".into(), template::justfile(config).into_bytes());
+    for (path, source) in template::justfiles(config) {
+        files.insert(path, source.into_bytes());
+    }
     client_files(files, config, &generated.root_command)?;
     for (path, contents) in generated.files {
         ensure!(

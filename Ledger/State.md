@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: 17fd0916d8f8684117b1ed4a08fa7aca293c3551
+Revision: 2a3b85ce6c200c4d4fa413ab8678f902ef8da4ce
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 3d91c85, installed by `just bootstrap` under .cache/development. A stray
@@ -32,19 +32,20 @@ to 0d1fe6d (d55e0a6), the D036 Markdown rules with condensed README and
 AGENTS.md files (f5be8c9), and the D037 comments rule with its 42 findings
 resolved (c79b35e), and [D038](Decisions/038.md) configuration modules in the
 runtime (3d91c85) with the repository switched to them and 3d91c85 pinned
-(17fd091). This VAC moves the repository Git hooks from .githooks to
-.agentrig/hooks, the location init gives consumers, and registers that path in
-core.hooksPath and bootstrap; the root then has room for the Just recipe
-directory. That work (D039: root justfile importing just/*.just groups, init
-template, decision) is stashed as "just recipe groups (D039)" and passed its
-setup and delivery tests. Plan P018–P023 predates this direction and is not
-reconciled.
+(17fd091), and the repository Git hooks moved to .agentrig/hooks, where init
+places consumer hooks (2a3b85c). This VAC implements [D039](Decisions/039.md):
+the root justfile only imports recipe groups from just/, in this repository
+and in init's template; memory-check treats `.just` links as non-source. Plan
+P018–P023 predates this direction and is not reconciled.
 
 ## Verification
 
 `just check` passed on 3d91c85 (68 Rust, 422 pytest, all static checks).
-For this VAC, core.hooksPath reads .agentrig/hooks, `just lint` reports no
-errors and memory-check passes; the commit gate runs from the new path.
+For this VAC: `just --list` shows all 25 recipes through the imports; a fresh
+candidate init produces the root entry and five groups; the setup and delivery
+tests (30) passed against the candidate; `just lint` reports no errors; the
+candidate memory-check passes, while the installed 3d91c85 warns that it cannot
+inspect `.just` links until the next pin.
 
 ## Blockers
 
@@ -55,6 +56,6 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the hooks move through the hook, then pop the D039 stash, re-point its
-.githooks references, verify and commit it. After that, the source move into
-Project.
+Commit D039 through the hook, then plan the source move into Project with
+dogfooding: hook adapters, bootstrap and the development runtime path all
+name tooling/worker, and D025 reserves Project for consumer examples.

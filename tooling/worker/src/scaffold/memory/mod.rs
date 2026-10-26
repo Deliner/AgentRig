@@ -189,7 +189,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
         for link in links {
             let path = target(&context.root, memory, &link)?;
             let non_source = path.extension().is_some_and(|ext| {
-                ["md", "toml", "json", "yaml", "yml"]
+                ["md", "toml", "json", "yaml", "yml", "just"]
                     .iter()
                     .any(|kind| ext == *kind)
             }) || path.file_name().is_some_and(|name| name == "justfile");
