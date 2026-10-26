@@ -139,7 +139,7 @@ def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) ->
     runtime.rmdir()
     runtime.write_text("occupied")
     result = invoke(worker, tmp_path, "hook", input=json.dumps({"hook_event_name": "SessionStart"}))
-    assert "memory/State.md" in result.stdout
+    assert "Ledger/State.md" in result.stdout
     assert "FULL_REFRESH_REQUIRED" in result.stdout
     assert "session reminder state" in result.stderr
     assert "Context reminders unavailable" in result.stdout

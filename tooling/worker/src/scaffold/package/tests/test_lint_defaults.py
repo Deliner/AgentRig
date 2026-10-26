@@ -25,7 +25,7 @@ def test_strict_defaults_block_delivery(
     worker: Path, tmp_path: Path, language: str, rule: str
 ) -> None:
     assert invoke(worker, tmp_path, "init", "--language", language).returncode == 0
-    source = tmp_path / "src"
+    source = tmp_path / "Project"
     source.mkdir()
     suffix = {"python": "py", "rust": "rs"}[language]
     path = source / f"example.{suffix}"

@@ -4,7 +4,22 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import MODULES, file_contents, invoke
+from tooling.worker.src.scaffold.testing.consumer import (
+    MODULES,
+    file_contents,
+    invoke,
+    read_config,
+)
+
+
+# DECISION: D040
+def test_default_layout_keeps_memory_in_ledger_and_sources_in_project(
+    worker: Path, tmp_path: Path
+) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    paths = read_config(tmp_path)["paths"]
+    assert (paths["memory"], paths["sources"]) == ("Ledger", ["Project/**"])
+    assert (tmp_path / "Ledger/State.md").is_file()
 
 
 @pytest.mark.parametrize("case", ["invalid-glob", "file-parent", "generated-parent"])

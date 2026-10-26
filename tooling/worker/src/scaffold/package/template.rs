@@ -2,11 +2,12 @@ use super::super::config::{self, Check, CheckKind, Command, Config, Git, Hooks, 
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
+// DECISION: D040
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
-        ("source", "src"),
-        ("memory", "memory"),
+        ("source", "Project"),
+        ("memory", "Ledger"),
         ("skills", ".agentrig/skills"),
         ("service", ".agentrig"),
         ("base", "main"),

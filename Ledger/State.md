@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: 2a3b85ce6c200c4d4fa413ab8678f902ef8da4ce
+Revision: a6f79b60352acae081235a0f3930ba436b44cc59
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 3d91c85, installed by `just bootstrap` under .cache/development. A stray
@@ -33,19 +33,17 @@ AGENTS.md files (f5be8c9), and the D037 comments rule with its 42 findings
 resolved (c79b35e), and [D038](Decisions/038.md) configuration modules in the
 runtime (3d91c85) with the repository switched to them and 3d91c85 pinned
 (17fd091), and the repository Git hooks moved to .agentrig/hooks, where init
-places consumer hooks (2a3b85c). This VAC implements [D039](Decisions/039.md):
-the root justfile only imports recipe groups from just/, in this repository
-and in init's template; memory-check treats `.just` links as non-source. Plan
-P018–P023 predates this direction and is not reconciled.
+places consumer hooks (2a3b85c), and Just recipe groups under just/ per
+[D039](Decisions/039.md) (a6f79b6). This VAC implements
+[D040](Decisions/040.md): init defaults memory to Ledger and sources to
+Project. Plan P018–P023 predates this direction and is not reconciled.
 
 ## Verification
 
 `just check` passed on 3d91c85 (68 Rust, 422 pytest, all static checks).
-For this VAC: `just --list` shows all 25 recipes through the imports; a fresh
-candidate init produces the root entry and five groups; the setup and delivery
-tests (30) passed against the candidate; `just lint` reports no errors; the
-candidate memory-check passes, while the installed 3d91c85 warns that it cannot
-inspect `.just` links until the next pin.
+For this VAC the full pytest suite (423) passed against the candidate. The
+installed 3d91c85 memory-check warns that it cannot inspect `.just` links
+until the next pin; the candidate's passes.
 
 ## Blockers
 

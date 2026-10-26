@@ -15,8 +15,8 @@ lint accepts an external root and policy without installing worker files there. 
 `agentrig init --root CONSUMER` copies its running executable and bundled assets into the consumer and
 pins the package version in the generated configuration. It rejects collisions before writing, creates a
 Git repository on the configured base when none exists and registers the Git hooks through
-`core.hooksPath`. Options select `--language python|rust`, `--frontend codex|claude-code`, `--source`,
-`--memory`, `--skills`, `--service`, `--base` and `--prefix`. There is no separate setup, update or
+`core.hooksPath`. Options select `--language python|rust`, `--frontend codex|claude-code`, `--source`
+(default `Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There is no separate setup, update or
 rollback step: a changed release is installed into a fresh project.
 
 `paths.service` defaults to `.agentrig` and holds the binary, Git hooks, skills, lint settings, reminders

@@ -127,7 +127,7 @@ def test_partial_and_truncated_transcripts_recover(worker: Path, tmp_path: Path)
         **common,
         "hook_event_name": "PreToolUse",
         "tool_name": "Edit",
-        "tool_input": {"path": "memory/State.md"},
+        "tool_input": {"path": "Ledger/State.md"},
     }
     record = json.dumps(
         {

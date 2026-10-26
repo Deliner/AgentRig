@@ -40,6 +40,7 @@ files:
   037.md: "Context and rationale for: Allow only decision and invariant references as source comments."
   038.md: "Context and rationale for: Keep project configuration in single-responsibility modules under .agentrig."
   039.md: "Context and rationale for: Keep Just recipes in grouped files under just/."
+  040.md: "Context and rationale for: Initialize memory in Ledger and sources in Project by default."
 directories: {}
 allow: []
 deny: []
