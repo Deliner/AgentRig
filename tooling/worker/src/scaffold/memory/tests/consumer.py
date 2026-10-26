@@ -1,17 +1,15 @@
 import subprocess
 from pathlib import Path
 
-from tooling.worker.src.scaffold.testing.consumer import invoke, memory, project
+from tooling.worker.src.scaffold.testing.consumer import invoke, memory, project, update_config
 
 
 def committed_memory(worker: Path, tmp_path: Path) -> Path:
     project(tmp_path)
     path = memory(tmp_path)
-    config = tmp_path / "agentrig.yaml"
-    with config.open("a") as stream:
-        stream.write(
-            '\nchecks:\n- id: "memory"\n  kind: "memory"\n  skill: "guides/repair/SKILL.md"\n'
-        )
+    update_config(
+        tmp_path, checks=[{"id": "memory", "kind": "memory", "skill": "guides/repair/SKILL.md"}]
+    )
     index = path / "Decisions.md"
     index.write_text(
         index.read_text() + "| [D001](Decisions/001.md) | Choice | [code](../src/lib.rs) |\n"

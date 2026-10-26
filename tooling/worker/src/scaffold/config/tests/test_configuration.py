@@ -28,3 +28,13 @@ def test_configuration_errors(worker: Path, tmp_path: Path, old: str, new: str) 
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "ACTION:" in result.stderr
+
+
+# DECISION: D038
+def test_project_module_rejects_another_module_section(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    path = tmp_path / ".agentrig/project.yaml"
+    path.write_text(path.read_text() + "commands: {}\n")
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2
+    assert "move commands to .agentrig/commands.yaml" in result.stderr

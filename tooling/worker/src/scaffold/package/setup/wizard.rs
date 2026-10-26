@@ -43,7 +43,8 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
     let root = crate::paths::resolve(&std::env::current_dir()?.join(target))?;
     ensure!(
         !root.join(config::FILE).exists(),
-        "project already has agentrig.yaml"
+        "project already has {}",
+        config::FILE
     );
     let Some(mut config) = project_config(&root)? else {
         return Ok(None);

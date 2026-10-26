@@ -77,7 +77,7 @@ fn prior_memory(
     let configured = tree.contains_key(FILE);
     if configured {
         let prior: serde_json::Value = crate::yaml::decode(&committed(repository, revision, FILE)?)
-            .context("committed agentrig.yaml")?;
+            .with_context(|| format!("committed {FILE}"))?;
         return Ok(prior["paths"]["memory"]
             .as_str()
             .context("committed paths.memory required")?

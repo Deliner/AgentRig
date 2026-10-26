@@ -6,8 +6,9 @@ recovery state, durable decisions, executable invariants and Git delivery. Deter
 quality; model judgments remain probabilistic.
 
 The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects
-select capabilities through agentrig.yaml and a separate lint configuration; `agentrig-lint` also runs independently
-against external projects. See [consumer setup and configuration](tooling/worker/SCAFFOLD.md).
+select capabilities through configuration modules in `.agentrig/`, including a separate lint configuration;
+`agentrig-lint` also runs independently against external projects. See
+[consumer setup and configuration](tooling/worker/SCAFFOLD.md).
 
 Download the Linux x86_64 or macOS arm64 binaries from [GitHub releases](https://github.com/Deliner/AgentRig/releases).
 Verify the accompanying SHA-256 file, extract the archive and put `agentrig` and `agentrig-lint` on PATH. The Linux

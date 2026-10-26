@@ -118,7 +118,7 @@ Keep Context, Proposal and Expected benefit in the shown card: request and basis
 obligations, acceptance, boundaries and material unknowns; intended benefit.
 Preserve criterion IDs.
 
-Read paths.memory in agentrig.yaml. Maintain Backlog.md with
+Read paths.memory in .agentrig/project.yaml. Maintain Backlog.md with
 ID | Idea | Expected benefit and Backlog/NNN.md cards. Allocate an unused stable
 BNNN from index and cards; never renumber other ideas. Save the approved body
 with only necessary identity/navigation metadata, updating index and architecture

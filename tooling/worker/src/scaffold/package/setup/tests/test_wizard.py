@@ -5,11 +5,12 @@ import time
 from pathlib import Path
 
 import pytest
-import yaml
 
 from tooling.worker.src.scaffold.testing.consumer import (
+    MODULES,
     file_contents,
     invoke,
+    read_config,
 )
 
 QUESTIONS = 11
@@ -38,7 +39,8 @@ def test_interactive_init_matches_declarative_init(
     ordinary = tmp_path / "ordinary"
     ordinary.mkdir()
     assert invoke(worker, ordinary, "init", "--language", language).returncode == 0
-    for name in ["agentrig.yaml", "AGENTS.md", "justfile", ".codex/config.toml"]:
+    modules = [f".agentrig/{name}.yaml" for name in ("project", *MODULES)]
+    for name in [*modules, "AGENTS.md", "justfile", ".codex/config.toml"]:
         assert (target / name).read_bytes() == (ordinary / name).read_bytes(), name
     assert "Configuration for" in result.stdout
     assert invoke(target / ".agentrig/bin/agentrig", target, "config-check").returncode == 0
@@ -79,7 +81,7 @@ def test_interactive_selects_layout_client_and_checks(worker: Path, tmp_path: Pa
     answers[10] = "yes"
     result = interactive(worker, tmp_path, answers)
     assert result.returncode == 0, result.stdout + result.stderr
-    config = yaml.safe_load((tmp_path / "agentrig.yaml").read_text())
+    config = read_config(tmp_path)
     assert config["paths"]["service"] == "wizard rig"
     assert config["paths"]["skills"] == "wizard rig/skills"
     assert config["paths"]["memory"] == "notes"
@@ -121,7 +123,7 @@ def test_interactive_preserves_changes_after_preview(worker: Path, tmp_path: Pat
             assert b"collision" in errors
             assert note.read_text() == "User change after preview.\n"
             assert not (tmp_path / ".git").exists()
-            assert not (tmp_path / "agentrig.yaml").exists()
+            assert not (tmp_path / ".agentrig/project.yaml").exists()
         finally:
             alive = process.poll() is None
             if alive:

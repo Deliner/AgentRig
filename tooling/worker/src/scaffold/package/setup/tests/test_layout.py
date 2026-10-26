@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from tooling.worker.src.scaffold.testing.consumer import file_contents, invoke
+from tooling.worker.src.scaffold.testing.consumer import MODULES, file_contents, invoke
 
 
 @pytest.mark.parametrize("case", ["invalid-glob", "file-parent", "generated-parent"])
@@ -33,7 +33,8 @@ def test_custom_service_executes_installed_adapters(
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     result = invoke(worker, tmp_path, "init", "--language", language, "--service", service)
     assert result.returncode == 0, result.stderr
-    assert not (tmp_path / ".agentrig").exists()
+    modules = {f"{name}.yaml" for name in ("project", *MODULES)}
+    assert {path.name for path in (tmp_path / ".agentrig").iterdir()} == modules
     assert not (tmp_path / ".worker").exists()
     installed = tmp_path / service / "bin/agentrig"
     assert invoke(installed, tmp_path, "doctor").returncode == 0

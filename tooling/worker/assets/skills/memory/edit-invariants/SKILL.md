@@ -23,5 +23,5 @@ than reporting verification.
 
 Keep stable INNN IDs and Predicate/Oracle details. Link the test function and
 place INVARIANT: INNN before its declaration. Configure the exact runner target
-and check in agentrig.yaml, including class/module scope. Verify discovery and
+and check in .agentrig/oracles.yaml, including class/module scope. Verify discovery and
 execution of that target.

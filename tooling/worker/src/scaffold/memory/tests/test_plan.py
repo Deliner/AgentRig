@@ -14,7 +14,7 @@ Rows = list[tuple[int, str, str]]
 
 
 def write_plan(root: Path, rows: Rows) -> None:
-    uninitialized = not (root / "agentrig.yaml").exists()
+    uninitialized = not (root / ".agentrig/project.yaml").exists()
     if uninitialized:
         project(root, CONFIG.replace('memory: "notes"', 'memory: "Ledger"'))
         memory(root).rename(root / "Ledger")

@@ -183,8 +183,7 @@ def test_native_history_preserves_decisions_in_worktree_and_gate(
 
 def test_native_history_keeps_committed_memory_location(worker: Path, tmp_path: Path) -> None:
     notes = committed_memory(worker, tmp_path)
-    config = tmp_path / "agentrig.yaml"
-    update_config(config, paths={"memory": "relocated"})
+    update_config(tmp_path, paths={"memory": "relocated"})
     notes.rename(tmp_path / "relocated")
     result = invoke(worker, tmp_path, "memory-check")
     assert result.returncode == 0, result.stderr

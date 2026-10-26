@@ -1,6 +1,6 @@
 pub use super::settings::{
     AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git, Hooks,
-    Oracle, Paths, Route, Runner, VERSION, read, relative,
+    Oracle, Paths, Route, Runner, VERSION, files, read, relative,
 };
 use anyhow::{Context as _, Result};
 use std::path::{Path, PathBuf};

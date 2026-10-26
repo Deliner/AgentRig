@@ -38,7 +38,7 @@ pub fn rerun(root: &Path, args: &[String]) -> String {
 pub fn failure(error: &anyhow::Error) -> String {
     let (root, args) = invocation();
     let command = args.first().map(String::as_str).unwrap_or("worker");
-    let config = crate::yaml::read::<serde_json::Value>(&root.join("agentrig.yaml")).ok();
+    let config = crate::yaml::read::<serde_json::Value>(&root.join(".agentrig/project.yaml")).ok();
     let skill = repair_skill(config.as_ref(), command);
     let binary = executable();
     let rerun = shell_words::join(
@@ -95,7 +95,7 @@ fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a
     check_skill
         .or_else(|| config.and_then(|config| config.get("config_skill")))
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("config_skill in agentrig.yaml (repair configuration syntax first)")
+        .unwrap_or("config_skill in .agentrig/project.yaml (repair configuration syntax first)")
 }
 
 fn executable() -> std::path::PathBuf {

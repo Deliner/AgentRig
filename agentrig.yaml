@@ -29,7 +29,7 @@ commands:
     - tooling/worker/build
     accepts_args: true
   lint:
-    argv: [tooling/worker/build, lint]
+    argv: [tooling/worker/build, lint, --config, tooling/worker/lint.yaml]
     accepts_args: true
   release:
     argv:

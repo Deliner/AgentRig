@@ -26,7 +26,7 @@ def affected_project(root: Path) -> None:
         {"include": ["docs/**"], "targets": []},
     ]
     update_config(
-        root / "agentrig.yaml",
+        root,
         commands={
             "test": {
                 "argv": [
@@ -135,10 +135,10 @@ def test_affected_groups_reject_invalid_configuration(
     worker: Path, tmp_path: Path, include: list[str], targets: list[str]
 ) -> None:
     affected_project(tmp_path)
-    path = tmp_path / "agentrig.yaml"
-    config = yaml.safe_load(path.read_text())
-    config["checks"][0]["affected"] = [{"include": include, "targets": targets}]
-    path.write_text(yaml.safe_dump(config))
+    path = tmp_path / ".agentrig/checks.yaml"
+    checks = yaml.safe_load(path.read_text())
+    checks[0]["affected"] = [{"include": include, "targets": targets}]
+    path.write_text(yaml.safe_dump(checks))
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2, result.stdout + result.stderr
     assert "affected" in result.stderr
@@ -178,7 +178,7 @@ def test_staged_git_check_preserves_invalid_unstaged_configuration(
     project(tmp_path, CONFIG + GATE)
     subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
     subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
-    config = tmp_path / "agentrig.yaml"
+    config = tmp_path / ".agentrig/project.yaml"
     config.write_text("invalid: [\n")
     result = invoke(worker, tmp_path, "check", "--staged")
     assert result.returncode == 0, result.stdout + result.stderr
@@ -258,8 +258,8 @@ def test_standalone_failure_has_executable_guidance(
     config_check = command == "config-check"
     catalog_command = command == "run"
     if config_check:
-        config = tmp_path / "agentrig.yaml"
-        config.write_text(config.read_text().replace('command: "fail"', 'command: "unknown"'))
+        config = tmp_path / ".agentrig/checks.yaml"
+        config.write_text(config.read_text().replace("command: fail", "command: unknown"))
     args = ("run", "fail") if catalog_command else (command,)
     result = subprocess.run(
         [str(worker), *args], cwd=tmp_path, capture_output=True, text=True, check=False

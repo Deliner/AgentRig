@@ -216,7 +216,8 @@ fn export(root: &Path) -> Result<tempfile::TempDir> {
     let directory = repository.export_index()?;
     ensure!(
         directory.path().join(config::FILE).is_file(),
-        "stage agentrig.yaml before checking the index"
+        "stage {} before checking the index",
+        config::FILE
     );
     Ok(directory)
 }

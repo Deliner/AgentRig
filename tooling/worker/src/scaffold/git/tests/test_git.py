@@ -41,9 +41,8 @@ def installed(worker: Path, tmp_path: Path) -> Path:
     commit(tmp_path, "shared.txt", "initial\n")
     git(tmp_path, "switch", "-c", "task/bootstrap")
     assert invoke(worker, tmp_path, "init", "--base", "trunk", "--prefix", "task/").returncode == 0
-    config = tmp_path / "agentrig.yaml"
     update_config(
-        config,
+        tmp_path,
         commands={"probe": {"argv": ["sh", "-c", 'test -z "$BLOCK_DELIVERY"']}},
         checks=[
             {
@@ -148,7 +147,7 @@ def test_git_integration_rejects_mutated_gate_inputs(
     root = installed
     assert invoke(worker, root, "feature-start", "mutating-check").returncode == 0
     update_config(
-        root / "agentrig.yaml",
+        root,
         commands={
             "probe": {"argv": ["sh", "-c", 'test -z "$MUTATE_MERGE" || echo changed > product.txt']}
         },
@@ -231,9 +230,8 @@ def test_merge_cleans_only_owned_task_runs(
 
 def background_commands(root: Path) -> None:
     argv = ["python3", "-c", "import time; print('ready',flush=True); time.sleep(60)"]
-    config = root / "agentrig.yaml"
     update_config(
-        config,
+        root,
         commands={"wait": {"argv": argv}, "service": {"argv": argv.copy(), "lifetime": "shared"}},
     )
 

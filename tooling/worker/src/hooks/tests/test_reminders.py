@@ -169,12 +169,12 @@ SCHEDULE: list[tuple[int, str | None]] = [
 def configured_session(worker: Path, tmp_path: Path, frontend: str = "codex") -> dict[str, Any]:
     options = ["--memory", "notes", "--skills", "guides", "--frontend", frontend]
     assert invoke(worker, tmp_path, "init", *options).returncode == 0
-    config = tmp_path / "agentrig.yaml"
-    config.write_text(
-        config.read_text()
-        .replace("runtime: .agentrig/runtime", "runtime: .scratch/state")
-        .replace("reminder: .agentrig/reminder.json", "reminder: .scratch/reminder.json")
-    )
+    for name, before, after in [
+        ("project", "runtime: .agentrig/runtime", "runtime: .scratch/state"),
+        ("hooks", "reminder: .agentrig/reminder.json", "reminder: .scratch/reminder.json"),
+    ]:
+        config = tmp_path / f".agentrig/{name}.yaml"
+        config.write_text(config.read_text().replace(before, after))
     scratch = tmp_path / ".scratch"
     scratch.mkdir()
     (scratch / "reminder.json").write_text(

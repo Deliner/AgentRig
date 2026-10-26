@@ -148,7 +148,7 @@ def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) ->
 
 def test_hook_requires_project_configuration(worker: Path, tmp_path: Path) -> None:
     result = invoke(worker, tmp_path, "hook", input=json.dumps({"hook_event_name": "SessionStart"}))
-    assert "agentrig.yaml" in result.stdout
+    assert ".agentrig/project.yaml" in result.stdout
     assert "deny" in result.stdout
 
 

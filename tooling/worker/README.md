@@ -2,8 +2,8 @@
 
 The Rust runtime owns agent and Git hooks, command execution and jobs, feature integration, memory validation and
 structural lint. Just recipes and the Git, Codex and Claude Code registrations only forward calls to it. Python serves
-behavioral tests and the latency benchmark. Project settings come from agentrig.yaml: see the
-[scaffold guide](SCAFFOLD.md) for its schema, [selective tests](CHECKS.md) for the affected-test map and the
+behavioral tests and the latency benchmark. Project settings come from the `.agentrig/` modules: see the
+[scaffold guide](SCAFFOLD.md) for their schema, [selective tests](CHECKS.md) for the affected-test map and the
 [architecture rule](ARCHITECTURE.md) for directory contracts and analysis limits.
 
 ## Build
@@ -16,7 +16,7 @@ flock must be available.
 
 ## Lint
 
-Lint reads strict YAML version 1: the file agentrig.yaml selects, `--config`, or `lint.yaml` when standalone. Unknown
+Lint reads strict YAML version 1: the file `paths.lint` selects, `--config`, or `lint.yaml` when standalone. Unknown
 fields, duplicate keys, anchors, aliases, tags and merge keys are rejected. A configuration error exits 2 and names the
 repair skill; an error finding exits 1; warnings alone exit 0.
 

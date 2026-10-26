@@ -51,16 +51,41 @@ def project(root: Path, config: str = CONFIG) -> Path:
     skill.parent.mkdir(parents=True)
     skill.write_text("---\nname: repair\ndescription: Fix the reported failing check.\n---\n")
     (root / "src").mkdir()
-    (root / "agentrig.yaml").write_text(config)
+    write_config(root, yaml.safe_load(config))
     (root / "lint.yaml").write_text(LINT)
     return root
 
 
-def update_config(path: Path, **changes: Any) -> None:
-    source = path.read_text()
-    config = yaml.safe_load(source)
+MODULES = ("git", "commands", "checks", "hooks", "oracles")
+
+
+def write_config(root: Path, config: dict[str, Any]) -> None:
+    directory = root / ".agentrig"
+    directory.mkdir(exist_ok=True)
+    identity = dict(config)
+    for section in MODULES:
+        present = section in identity
+        if present:
+            text = yaml.safe_dump(identity.pop(section), sort_keys=False)
+            (directory / f"{section}.yaml").write_text(text)
+    (directory / "project.yaml").write_text(yaml.safe_dump(identity, sort_keys=False))
+
+
+def read_config(root: Path) -> dict[str, Any]:
+    directory = root / ".agentrig"
+    config: dict[str, Any] = yaml.safe_load((directory / "project.yaml").read_text())
+    for section in MODULES:
+        path = directory / f"{section}.yaml"
+        present = path.is_file()
+        if present:
+            config[section] = yaml.safe_load(path.read_text())
+    return config
+
+
+def update_config(root: Path, **changes: Any) -> None:
+    config = read_config(root)
     for key, value in changes.items():
-        current = config.get(key)
+        current: Any = config.get(key)
         mapping = isinstance(current, dict) and isinstance(value, dict)
         sequence = isinstance(current, list) and isinstance(value, list)
         if mapping:
@@ -69,8 +94,7 @@ def update_config(path: Path, **changes: Any) -> None:
             current.extend(value)
         else:
             config[key] = value
-    comments = "\n".join(filter(lambda line: line.startswith("#"), source.splitlines()))
-    path.write_text(comments + "\n" + yaml.safe_dump(config, sort_keys=False))
+    write_config(root, config)
 
 
 def invoke(

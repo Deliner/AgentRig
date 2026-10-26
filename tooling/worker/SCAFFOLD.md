@@ -1,6 +1,6 @@
 # Portable scaffold runtime
 
-The portable entry point is `agentrig.yaml` in the selected project root. The runtime is a Rust binary;
+The portable entry point is the `.agentrig/` configuration in the selected project root. The runtime is a Rust binary;
 consumer projects need their own configured tools, Git, and a read-only sandbox for read-only commands.
 Just is a thin command interface. The consumer does not compile the worker or run its tests.
 
@@ -20,7 +20,7 @@ Git repository on the configured base when none exists and registers the Git hoo
 rollback step: a changed release is installed into a fresh project.
 
 `paths.service` defaults to `.agentrig` and holds the binary, Git hooks, skills, lint settings, reminders
-and runtime data; individual paths remain configurable. Adapters quote the selected path, including
+and runtime data; individual paths remain configurable. The configuration modules always stay in `.agentrig`. Adapters quote the selected path, including
 spaces and shell metacharacters. Newlines and Just interpolation syntax (`{{`) are rejected.
 
 `frontend: codex` (default) registers `.codex/hooks.json` and `.codex/config.toml`; `frontend: claude-code`
@@ -29,7 +29,7 @@ registers `.claude/settings.json` and a `CLAUDE.md` that imports the shared `AGE
 `agentrig init --interactive --root CONSUMER` asks for the project directory, language, service, source,
 memory and skills paths, branch naming, client and checks. Enter accepts defaults. `cancel`, EOF or
 declining the final confirmation leaves the target untouched. The wizard prints the resulting
-`agentrig.yaml` and file list, rechecks collisions after confirmation, installs and runs doctor.
+configuration and file list, rechecks collisions after confirmation, installs and runs doctor.
 
 ## Commands
 
@@ -55,18 +55,20 @@ identify the check, scope, cause, configured repair skill and a shell-quoted RER
 
 ## Configuration
 
-`agentrig.yaml` has schema `version: 1` and an exact `runtime` version. Unknown fields are errors and
-project-relative paths cannot escape the root.
+Configuration is strict YAML in `.agentrig/`; there is no `agentrig.yaml`. The required `project.yaml`
+has schema `version: 1`, an exact `runtime` version, `config_skill`, `paths` (source selectors and
+locations of service files, memory, skills, lint configuration and runtime data) and `capabilities.lint`
+(disabling lint requires removing lint checks from the gate). Each optional module holds one section as
+its whole content; an absent module means an empty section, and `project.yaml` cannot hold one.
 
-- `paths`: source selectors and locations of memory, skills, lint configuration and runtime data.
-- `git`: base branch and feature-branch prefix.
-- `commands.NAME`: `argv`, `cwd`, `accepts_args` and `read_only`.
-- `checks`: ordered IDs, `kind` (`command`, `lint`, `memory`), command, `include`, `skill`, `warning`.
-- `hooks`: file-to-skill routes, reminder schedule and discipline skill.
-- `capabilities.lint`: disabling lint requires removing lint checks from the gate.
-- `oracles.ID`: command check, runner (`pytest` or `cargo`) and exact test target.
+- `git.yaml`: base branch and feature-branch prefix.
+- `commands.yaml`: per name, `argv`, `cwd`, `accepts_args`, `read_only` and `lifetime`.
+- `checks.yaml`: ordered IDs, `kind` (`command`, `lint`, `memory`), command, `include`, `skill`, `warning`.
+- `hooks.yaml`: file-to-skill routes, reminder schedule and discipline skill.
+- `oracles.yaml`: per ID, command check, runner (`pytest` or `cargo`) and exact test target.
 
-Lint uses strict YAML and compiled Rust/Python handlers; see [rule semantics](README.md#rules-and-languages).
+Unknown fields are errors naming their module, and project-relative paths cannot escape the root.
+Lint uses strict YAML and compiled Rust/Python handlers; see [rule semantics](README.md#lint).
 
 ## Delivery and memory
 

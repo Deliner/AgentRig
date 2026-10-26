@@ -51,7 +51,7 @@ def test_revision_gate_evidence_distinguishes_failures_success_and_mutated_expor
     base = revision(tmp_path)
     assert invoke(worker, tmp_path, "check", "--revision", base).returncode == 23
     assert evidence(tmp_path)["code"] == 23
-    config = tmp_path / "agentrig.yaml"
+    config = tmp_path / ".agentrig/commands.yaml"
     config.write_text(config.read_text().replace("exit 23", "exit 0"))
     passing = commit(tmp_path)
     result = invoke(worker, tmp_path, "check", "--revision", passing)

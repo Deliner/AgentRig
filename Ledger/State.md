@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: f5be8c912ed521997bea901dddfbce6d65632f01
+Revision: c79b35e36ec3baf747349ff4c7e88287728baeb7
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 0d1fe6d, installed by `just bootstrap` under .cache/development. A stray
@@ -28,17 +28,20 @@ Claude Code hook registration (4330b7c), affected-only merge tests under
 line-width and forbidden-file rule kinds with condense-markdown under
 [D036](Decisions/036.md) (09a0c97), the comment-reference kind with
 replace-comment under [D037](Decisions/037.md) (0d1fe6d), and the runtime pin
-to 0d1fe6d (d55e0a6), and the D036 Markdown rules with condensed README and
-AGENTS.md files (f5be8c9). This VAC configures the D037 comments rule in
-tooling/worker/lint.yaml and removes or replaces by names every comment and
-docstring it reported (42 findings). Plan P018–P023 predates this direction
-and is not reconciled.
+to 0d1fe6d (d55e0a6), the D036 Markdown rules with condensed README and
+AGENTS.md files (f5be8c9), and the D037 comments rule with its 42 findings
+resolved (c79b35e). This VAC implements [D038](Decisions/038.md) in the
+candidate: configuration modules under `.agentrig/` read and written by the
+runtime, fixtures, skills and guides. The repository itself still uses
+agentrig.yaml, read by the installed 0d1fe6d; its lint command passes
+`--config` because the candidate no longer reads agentrig.yaml. Plan
+P018–P023 predates this direction and is not reconciled.
 
 ## Verification
 
-`just check` on 0d1fe6d passed: 68 Rust tests, 421 pytest tests and every
-static check. For this VAC, `just lint` reports no errors; rustfmt, Clippy and
-affected tests run in the commit gate.
+For this VAC: 68 Rust tests and all 422 pytest tests passed against the
+candidate before the final fixture refactor; `just lint` reports no errors and
+memory-check passes. The commit gate reruns the affected tests.
 
 ## Blockers
 
@@ -49,6 +52,7 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Start the layout from Requests.md: record a decision for the modular
-`.agentrig/` configuration, the Just recipe directory and initialization code
-under Project, then move them in separate VACs.
+Pass `just check` on this commit, then in one command pin it, split
+agentrig.yaml into `.agentrig/` modules, move tooling/worker/lint.yaml to
+`.agentrig/lint.yaml` and run `just bootstrap`; update references and commit.
+After that: the Just recipe directory, then the source move into Project.

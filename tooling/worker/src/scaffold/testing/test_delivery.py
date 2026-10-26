@@ -110,7 +110,7 @@ class Consumer:
         function = "test_doubles" if self.python else "doubles"
         link = "../" + self.test_path.relative_to(self.root).as_posix()
         update_config(
-            self.root / "agentrig.yaml",
+            self.root,
             oracles={"I001": {"check": "tests", "runner": runner, "target": self.oracle}},
         )
         memory = self.root / self.layout.paths.memory
@@ -192,7 +192,7 @@ class Consumer:
         self.test_path.write_text(valid)
 
     def oracle_discovery(self) -> None:
-        config = self.root / "agentrig.yaml"
+        config = self.root / ".agentrig/oracles.yaml"
         valid_config = config.read_text()
         missing = self.oracle.replace("::", "::Missing::", 1)
         config.write_text(valid_config.replace(self.oracle, missing))

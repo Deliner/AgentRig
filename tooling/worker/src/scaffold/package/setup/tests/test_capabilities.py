@@ -9,6 +9,7 @@ from tooling.worker.src.scaffold.testing.consumer import (
     file_contents,
     invoke,
     project,
+    update_config,
 )
 
 
@@ -21,8 +22,8 @@ def test_disabled_lint_requires_consistent_gate(worker: Path, tmp_path: Path) ->
     result = invoke(worker, tmp_path, "lint")
     assert result.returncode == 2
     assert "capabilities.lint is disabled" in result.stderr
-    (tmp_path / "agentrig.yaml").write_text(
-        source + '\nchecks:\n- id: "lint"\n  kind: "lint"\n  skill: "guides/repair/SKILL.md"\n'
+    update_config(
+        tmp_path, checks=[{"id": "lint", "kind": "lint", "skill": "guides/repair/SKILL.md"}]
     )
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
@@ -41,10 +42,12 @@ def test_unknown_capability_is_actionable(worker: Path, tmp_path: Path, capabili
     "replacement", ['version: "1"', "version: 1\nversion: 1", "version: &schema 1"]
 )
 def test_root_yaml_is_strict(worker: Path, tmp_path: Path, replacement: str) -> None:
-    project(tmp_path, CONFIG.replace("version: 1", replacement, 1))
+    project(tmp_path)
+    path = tmp_path / ".agentrig/project.yaml"
+    path.write_text(path.read_text().replace("version: 1", replacement, 1))
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
-    assert "agentrig.yaml" in result.stderr and "ACTION:" in result.stderr
+    assert ".agentrig/project.yaml" in result.stderr and "ACTION:" in result.stderr
 
 
 def test_claude_init_registers_guarded_hooks(worker: Path, tmp_path: Path) -> None:

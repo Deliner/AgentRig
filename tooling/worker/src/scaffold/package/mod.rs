@@ -12,10 +12,9 @@ use std::{collections::BTreeMap, fs};
 type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(config: &Config) -> Result<Files> {
     let mut files = guidance(config);
-    files.insert(
-        config::FILE.into(),
-        crate::yaml::encode(config)?.into_bytes(),
-    );
+    for (path, source) in config::files(config)? {
+        files.insert(path, source.into_bytes());
+    }
     for (name, source) in assets::memory() {
         files.insert(
             format!("{}/{name}.md", config.paths.memory),

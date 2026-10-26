@@ -61,24 +61,22 @@ The initial commit precedes hook installation, so bootstrap never bypasses an in
 
 The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a
 predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with
-nonempty `Predicate` and `Oracle` sections. Add to `agentrig.yaml`:
+nonempty `Predicate` and `Oracle` sections. Write `.agentrig/oracles.yaml`:
 
 ```yaml
-oracles:
-  I001:
-    check: tests
-    runner: pytest
-    target: application/test_sample.py::test_doubles
+I001:
+  check: tests
+  runner: pytest
+  target: application/test_sample.py::test_doubles
 ```
 
 For Rust use `knowledge/Invariants/001.md`, `[doubles](../crates/engine/src/lib.rs)` and:
 
 ```yaml
-oracles:
-  I001:
-    check: tests
-    runner: cargo
-    target: tests::doubles
+I001:
+  check: tests
+  runner: cargo
+  target: tests::doubles
 ```
 
 Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery

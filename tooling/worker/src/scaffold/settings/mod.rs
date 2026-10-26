@@ -10,7 +10,9 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-pub const FILE: &str = "agentrig.yaml";
+// DECISION: D038
+pub const FILE: &str = ".agentrig/project.yaml";
+const MODULES: [&str; 5] = ["git", "commands", "checks", "hooks", "oracles"];
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -134,8 +136,44 @@ fn all() -> Vec<String> {
     vec!["**".into()]
 }
 
+fn module(section: &str) -> String {
+    format!(".agentrig/{section}.yaml")
+}
 pub fn read(root: &Path) -> Result<Config> {
-    crate::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))
+    let mut sections: serde_json::Map<String, serde_json::Value> =
+        crate::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))?;
+    for section in MODULES {
+        let path = module(section);
+        ensure!(
+            !sections.contains_key(section),
+            "{FILE}: move {section} to {path}"
+        );
+        let present = root.join(&path).is_file();
+        if present {
+            sections.insert(section.into(), crate::yaml::read(&root.join(&path))?);
+        }
+    }
+    serde_path_to_error::deserialize(serde_json::Value::Object(sections)).map_err(|error| {
+        let field = error.path().to_string();
+        let section = field.split(['.', '[']).next().unwrap_or_default();
+        let owned = MODULES.contains(&section);
+        let file = if owned { module(section) } else { FILE.into() };
+        anyhow::anyhow!("{file}: {error}")
+    })
+}
+pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
+    let serde_json::Value::Object(mut sections) = serde_json::to_value(config)? else {
+        unreachable!("configuration serializes to a mapping")
+    };
+    let mut files = Vec::new();
+    for section in MODULES {
+        let value = sections
+            .remove(section)
+            .expect("serialized configuration section");
+        files.push((module(section), crate::yaml::encode(&value)?));
+    }
+    files.push((FILE.into(), crate::yaml::encode(&sections)?));
+    Ok(files)
 }
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
