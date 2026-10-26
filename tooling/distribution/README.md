@@ -7,8 +7,8 @@ and excluded from publication.
 
 After cloning the full Git history, install the prerequisites listed in the scaffold guide, Rust 1.98.1 and uv; on macOS
 also install `flock` (for example `brew install flock`). Run `just bootstrap`, then `just resume`. Bootstrap is the
-explicit shell entrypoint available before the worker exists. It registers the repository's .githooks and rejects a
-different existing hooksPath. Repeating it retains the same installation.
+explicit shell entrypoint available before the worker exists. It registers the repository's .agentrig/hooks and rejects
+a different existing hooksPath. Repeating it retains the same installation.
 
 `just candidate --version` builds the current product through tooling/worker/build. Its cache is `.cache/worker`; native
 tests always select the candidate. `just run test -- PATH` performs focused tests. Commits run the configured

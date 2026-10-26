@@ -5,7 +5,7 @@ root="$(cd "$(dirname "$0")/../.." && pwd)"
 read -r revision < "$root/tooling/distribution/stable.txt"
 [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid stable revision' >&2; exit 2; }
 hooks="$(git -C "$root" config --get core.hooksPath || true)"
-[[ -z "$hooks" || "$hooks" == .githooks ]] || { echo "Existing core.hooksPath=$hooks; reconcile it before bootstrap" >&2; exit 2; }
+[[ -z "$hooks" || "$hooks" == .agentrig/hooks ]] || { echo "Existing core.hooksPath=$hooks; reconcile it before bootstrap" >&2; exit 2; }
 cache="$root/.cache/development"
 mkdir -p "$cache"
 exec 9>"$cache/bootstrap.lock"
@@ -13,7 +13,7 @@ flock 9
 installed="$cache/$revision"
 if [[ -d "$installed" ]]; then
     "$installed/.agentrig/bin/agentrig" --version
-    git -C "$root" config core.hooksPath .githooks
+    git -C "$root" config core.hooksPath .agentrig/hooks
     exit 0
 fi
 staging="$(mktemp -d "$cache/.install-XXXXXX")"
@@ -26,4 +26,4 @@ cargo +1.98.1 build --locked --release \
 "$cache/build/release/agentrig" init --root "$staging/environment" --language rust
 mv "$staging/environment" "$installed"
 "$installed/.agentrig/bin/agentrig" --version
-git -C "$root" config core.hooksPath .githooks
+git -C "$root" config core.hooksPath .agentrig/hooks

@@ -1,4 +1,4 @@
-purpose: Configure the runtime for this repository through single-responsibility modules
+purpose: Configure the runtime for this repository and dispatch its Git hooks to it
 files:
   architecture.yaml: Configuration module inventory
   project.yaml: Schema version, runtime version, repair skill and repository paths
@@ -8,7 +8,8 @@ files:
   hooks.yaml: Reminder, discipline skill and memory edit routes
   oracles.yaml: Executable oracles bound to invariants
   lint.yaml: Repository lint policy and repair guidance
-directories: {}
+directories:
+  hooks: Dispatch repository commit and reference guards
 allow: []
 deny: []
 public: []

@@ -7,11 +7,10 @@ files:
   README.md: Product overview and repository entry points
   justfile: Thin command adapters to the configured runtime
 directories:
-  .agentrig: Configure runtime paths, Git policy, commands, checks, hooks, oracles and lint
+  .agentrig: Configure the runtime and dispatch repository Git hooks to it
   .agents: Expose canonical agent skills to the development client
   .claude: Register the Claude Code development client hooks
   .codex: Register the Codex development client hooks
-  .githooks: Dispatch repository commit and reference guards
   .github: Configure hosted continuous integration
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
   Project: Reserve consumer project examples independently of worker implementation
