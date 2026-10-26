@@ -2,8 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from Project.structural_lint.architecture.tests.test_architecture import consumer, contract
+from Project.structural_lint.architecture.tests.test_architecture import consumer
 from Project.structural_lint.architecture.tests.test_architecture_behavior import (
+    assert_back_edge_forms_cycle,
     parity,
     run_consumer,
 )
@@ -11,7 +12,7 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
 
 @pytest.mark.parametrize("form", ["impl", "macro", "trait", "nested", "outside"])
 def test_self_binding_uses_its_lexical_owner(worker: Path, tmp_path: Path, form: str) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     bodies = {
         "impl": "Self::value()",
         "macro": "{ assert_eq!(Self::value(), 7); 7 }",
@@ -41,14 +42,12 @@ def test_self_binding_uses_its_lexical_owner(worker: Path, tmp_path: Path, form:
     entry.write_text(entry.read_text() + "fn main() { std::process::exit(a::run()); }")
     assert run_consumer(tmp_path, "rs") == "7"
     assert parity(worker, tmp_path) == (0, [])
-    contract(tmp_path / "src/a")
-    status, findings = parity(worker, tmp_path)
-    assert status == 1 and any("forbidden" in item["message"] for item in findings)
+    assert_back_edge_forms_cycle(worker, tmp_path, target)
 
 
 @pytest.mark.parametrize("form", ["standard", "import", "generic", "local", "wildcard"])
 def test_prelude_names_preserve_local_bindings(worker: Path, tmp_path: Path, form: str) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     samples = {
         "standard": "pub fn run() -> i32 { let _ = String::new(); let _ = Vec::<u8>::new(); i32::from(7u8) }",
         "import": "use crate::b as String; pub fn run() -> i32 { String::value() }",
@@ -68,9 +67,7 @@ def test_prelude_names_preserve_local_bindings(worker: Path, tmp_path: Path, for
     assert run_consumer(tmp_path, "rs") == "7"
     imported = form == "import"
     if imported:
-        contract(tmp_path / "src/a")
-        status, findings = parity(worker, tmp_path)
-        assert status == 1 and any("forbidden" in item["message"] for item in findings)
+        assert_back_edge_forms_cycle(worker, tmp_path, target)
 
 
 @pytest.mark.parametrize("bound", ["crate::b::Access", "crate::b::Access + Send", ""])
@@ -91,9 +88,7 @@ def test_generic_paths_require_one_explicit_bound(worker: Path, tmp_path: Path, 
         entry = tmp_path / "src/lib.rs"
         entry.write_text(entry.read_text() + "fn main() { std::process::exit(a::run()); }")
         assert run_consumer(tmp_path, "rs") == "7"
-        contract(tmp_path / "src/a")
-        status, findings = parity(worker, tmp_path)
-        assert status == 1 and any("forbidden" in item["message"] for item in findings)
+        assert_back_edge_forms_cycle(worker, tmp_path, target)
     else:
         assert status == 1 and any("incomplete" in item["message"] for item in findings)
 

@@ -1,8 +1,4 @@
 purpose: "Replace non-reference source comments with owned knowledge or clearer code"
 files:
-  architecture.yaml: "Resource responsibility map and public installation boundary"
   SKILL.md: "Canonical agent instructions to move comment knowledge to its owner or delete it"
 directories: {}
-allow: []
-deny: []
-public: ["SKILL.md"]

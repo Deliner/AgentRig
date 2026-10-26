@@ -1,6 +1,5 @@
 purpose: Interpret agent hook events and deliver command guards, edit guidance and context reminders
 files:
-  architecture.yaml: Hook responsibilities and public service boundary
   mod.rs: Dispatch session and tool events using configured project services
   input.rs: Read optional hook state objects and text fields with colocated behavior tests
   guard.rs: Parse the permitted outer shell invocation and validate its Just recipe arguments
@@ -10,13 +9,3 @@ files:
   full-refresh.txt: Instructions emitted when a complete discipline refresh is due
 directories:
   tests: Hook dispatch, edit guidance and reminder scheduling behavior scenarios
-allow:
-  - Project/shared/testing/consumer.py
-  - Project/shared/paths/mod.rs
-  - Project/structural_lint/config/mod.rs
-  - Project/command_runner/mod.rs
-  - Project/change_delivery/gate/mod.rs
-  - Project/shared/arguments/mod.rs
-  - Project/project_config/mod.rs
-deny: []
-public: [mod.rs, input.rs]

@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from Project.structural_lint.architecture.tests.test_architecture import consumer, contract
+from Project.structural_lint.architecture.tests.test_architecture import consumer
 from Project.structural_lint.testing.consumer import lint
 
 
@@ -39,7 +39,6 @@ def test_unanalyzed_loaders_and_attributes_cannot_pass(
     language, source, external = case
     path, _ = consumer(tmp_path, language)
     path.write_text(source)
-    contract(tmp_path / "src/a")
     policy = tmp_path / "lint.yaml"
     policy.write_text(
         policy.read_text().replace(

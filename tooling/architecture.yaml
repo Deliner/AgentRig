@@ -1,11 +1,7 @@
 purpose: Launch, bootstrap, verify and release AgentRig for development of this repository
 files:
-  architecture.yaml: Development tooling inventory
   pyproject.toml: Python verification dependencies and tool configuration
   uv.lock: Locked Python verification dependency versions
 directories:
   distribution: Build releases and install the verified development runtime
   worker: Launch the candidate and the pinned installed runtime
-allow: []
-deny: []
-public: []

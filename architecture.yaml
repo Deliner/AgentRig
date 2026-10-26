@@ -1,6 +1,5 @@
 purpose: Develop and verify portable AgentRig capabilities while preserving project delivery knowledge
 files:
-  architecture.yaml: Repository responsibility map and module boundaries
   .gitignore: Exclude generated caches and temporary development state
   AGENTS.md: Repository development instructions and ownership constraints
   LICENSE: MIT terms for distributing AgentRig
@@ -16,6 +15,3 @@ directories:
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
   Project: Implement, document and verify the portable AgentRig runtime
   tooling: Launch, bootstrap, verify and release AgentRig for development of this repository
-allow: []
-deny: []
-public: []

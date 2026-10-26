@@ -1,8 +1,7 @@
 // DECISION: D028
-use super::{Dependency, Issue};
-use crate::structural_lint::config::globs;
+// DECISION: D043
+use super::Issue;
 use anyhow::{Result, ensure};
-use globset::GlobSet;
 use serde::Deserialize;
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -20,23 +19,10 @@ pub(super) struct Declaration {
     pub files: BTreeMap<String, String>,
     #[serde(default)]
     pub directories: BTreeMap<String, String>,
-    #[serde(default)]
-    allow: Vec<String>,
-    #[serde(default)]
-    deny: Vec<String>,
-    #[serde(default)]
-    public: Vec<String>,
-}
-
-struct Policy {
-    declaration: Declaration,
-    allow: GlobSet,
-    deny: GlobSet,
-    public: GlobSet,
 }
 
 pub struct Contracts {
-    policies: BTreeMap<PathBuf, Policy>,
+    declarations: BTreeMap<PathBuf, Declaration>,
 }
 
 impl Contracts {
@@ -46,11 +32,11 @@ impl Contracts {
         inventory: &crate::structural_lint::inventory::Inventory,
     ) -> Vec<Issue> {
         let mut issues = Vec::new();
-        for (directory, policy) in &self.policies {
+        for (directory, declaration) in &self.declarations {
             issues.extend(super::inventory::check(
                 root,
                 directory,
-                &policy.declaration,
+                declaration,
                 inventory,
             ));
         }
@@ -59,13 +45,15 @@ impl Contracts {
 
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {
         let mut contracts = Self {
-            policies: BTreeMap::new(),
+            declarations: BTreeMap::new(),
         };
         let mut issues = Vec::new();
         for directory in directories {
             match load(root, directory) {
-                Ok(policy) => {
-                    contracts.policies.insert(directory.clone(), policy);
+                Ok(declaration) => {
+                    contracts
+                        .declarations
+                        .insert(directory.clone(), declaration);
                 }
                 Err(error) => issues.push(Issue {
                     path: directory.join(FILENAME),
@@ -76,12 +64,6 @@ impl Contracts {
         }
         (contracts, issues)
     }
-
-    pub(super) fn check_edge(&self, edge: &Dependency, issues: &mut Vec<Issue>) {
-        for (directory, policy) in &self.policies {
-            check_boundary(directory, policy, edge, issues);
-        }
-    }
 }
 
 fn relative(path: &Path) -> bool {
@@ -91,7 +73,7 @@ fn relative(path: &Path) -> bool {
             .all(|part| matches!(part, Component::Normal(_)))
 }
 
-fn load(root: &Path, directory: &Path) -> Result<Policy> {
+fn load(root: &Path, directory: &Path) -> Result<Declaration> {
     ensure!(
         directory == Path::new(".") || relative(directory),
         "invalid directory path"
@@ -110,49 +92,5 @@ fn load(root: &Path, directory: &Path) -> Result<Policy> {
         !declaration.purpose.trim().is_empty() && !declaration.purpose.contains(['\n', '\r']),
         "purpose must describe the directory responsibility on one nonempty line"
     );
-    Ok(Policy {
-        allow: globs(&declaration.allow)?,
-        deny: globs(&declaration.deny)?,
-        public: globs(&declaration.public)?,
-        declaration,
-    })
-}
-
-fn inside(path: &Path, directory: &Path) -> bool {
-    directory == Path::new(".") || path.starts_with(directory)
-}
-
-fn check_boundary(directory: &Path, policy: &Policy, edge: &Dependency, issues: &mut Vec<Issue>) {
-    let source_inside = inside(&edge.source, directory);
-    let target_inside = inside(&edge.target, directory);
-    let outbound = source_inside && !target_inside;
-    let inbound = !source_inside && target_inside;
-    let forbidden =
-        outbound && (!policy.allow.is_match(&edge.target) || policy.deny.is_match(&edge.target));
-    if forbidden {
-        issues.push(Issue::dependency(
-            edge,
-            format!(
-                "forbidden dependency {} -> {} across {} (allow/deny)",
-                edge.source.display(),
-                edge.target.display(),
-                directory.display()
-            ),
-        ));
-    }
-    if inbound {
-        let relative = edge.target.strip_prefix(directory).unwrap();
-        let private = !policy.public.is_match(relative);
-        if private {
-            issues.push(Issue::dependency(
-                edge,
-                format!(
-                    "private access {} -> {} across {} (public)",
-                    edge.source.display(),
-                    edge.target.display(),
-                    directory.display()
-                ),
-            ));
-        }
-    }
+    Ok(declaration)
 }

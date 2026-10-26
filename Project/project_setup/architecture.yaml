@@ -1,6 +1,5 @@
 purpose: Initialize agent environments and inspect their readiness
 files:
-  architecture.yaml: Package generation, readiness and installation feature boundaries
   mod.rs: Generate the environment bundle and read prepared or installed resource contents
   adapters.rs: Generate Git and agent hook adapters
   assets.rs: Ship canonical skills and scaffold memory and agent instructions
@@ -12,25 +11,3 @@ files:
 directories:
   tests: Verify generated lint policy and runtime readiness
   setup: Initialize the configured environment without overwriting consumer files
-allow:
-  - Project/shared/testing/consumer.py
-  - Project/project_config/mod.rs
-  - Project/project_config/settings/mod.rs
-  - Project/shared/arguments/mod.rs
-  - Project/shared/paths/mod.rs
-  - Project/structural_lint/config/mod.rs
-  - Project/shared/yaml/mod.rs
-  - Project/shared/vcs/mod.rs
-  - Project/project_memory/format.rs
-  - Project/command_runner/process.rs
-  - Project/shared/diagnostics/mod.rs
-  - Project/structural_lint/rules.rs
-  - Project/structural_lint/rules/kind.rs
-  - Project/shared/skills/**
-deny: []
-public:
-  - mod.rs
-  - adapters.rs
-  - doctor.rs
-  - setup/mod.rs
-  - setup/init.rs

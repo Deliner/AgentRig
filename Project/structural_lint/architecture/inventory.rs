@@ -28,7 +28,8 @@ pub(super) fn check(
 
 fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -> Vec<String> {
     let mut messages = Vec::new();
-    for name in inventory.directories.get(directory).into_iter().flatten() {
+    let names = inventory.directories.get(directory).into_iter().flatten();
+    for name in names.filter(|name| name.as_str() != super::policy::FILENAME) {
         let path = directory.join(name);
         let path = path.strip_prefix(".").unwrap_or(&path);
         let child_directory = inventory.directories.contains_key(path);

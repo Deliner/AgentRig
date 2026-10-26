@@ -1,9 +1,5 @@
 purpose: Decode and encode strict YAML configuration shared by all capabilities
 files:
-  architecture.yaml: YAML codec responsibilities and public boundary
   mod.rs: Strict YAML decoding with duplicate, anchor and type checks and canonical encoding
   tests.rs: Strict decoding failures and round-trip encoding behavior
 directories: {}
-allow: []
-deny: []
-public: [mod.rs]

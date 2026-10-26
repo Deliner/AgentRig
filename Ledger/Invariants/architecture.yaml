@@ -1,6 +1,5 @@
 purpose: Bind observable repository predicates to exact executable checks
 files:
-  architecture.yaml: Detail file inventory and knowledge responsibility map
   001.md: "Predicate and oracle for: Every linked Rust, Python or shell decision application exists and carries its decision marker."
   002.md: "Predicate and oracle for: Every invariant links an existing test carrying its invariant marker."
   003.md: "Predicate and oracle for: Committed decision identities, statements and details are immutable; current application links point to existing marked owners."
@@ -20,6 +19,3 @@ files:
   018.md: "Predicate and oracle for: Changed source or executable mode invalidates current check evidence, and a selected passing check never claims a full passing gate."
   019.md: "Predicate and oracle for: Resume reports real merge and rebase conflicts without modifying repository contents."
 directories: {}
-allow: []
-deny: []
-public: []

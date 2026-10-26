@@ -1,17 +1,6 @@
 purpose: Record verification attempts and establish whether their results still match project inputs
 files:
-  architecture.yaml: Verification evidence inventory and consumer boundary
   mod.rs: Persist check outcomes and report freshness and repeated failures
   content.rs: Fingerprint checked files, revisions and VCS indexes
 directories:
   tests: Verify verification evidence and observed input freshness
-allow:
-  - Project/shared/testing/consumer.py
-  - Project/shared/testing/repository.py
-  - Project/project_config/mod.rs
-  - Project/project_config/settings/mod.rs
-  - Project/shared/diagnostics/mod.rs
-  - Project/shared/artifacts/json.rs
-  - Project/shared/vcs/mod.rs
-deny: []
-public: [mod.rs]

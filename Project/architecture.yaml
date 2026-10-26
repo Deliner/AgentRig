@@ -1,6 +1,5 @@
 purpose: Implement the portable AgentRig runtime as first-level features with shared support
 files:
-  architecture.yaml: Feature inventory and crate composition
   Cargo.toml: Library and executable build declarations
   Cargo.lock: Locked Rust dependency versions
   README.md: Runtime commands, build and lint rule user guide
@@ -16,7 +15,3 @@ directories:
   project_setup: Initialize agent environments and inspect their readiness
   shared: Repository access, diagnostics, artifacts, skills and test support shared by features
   structural_lint: Inspect source measurements and architecture contracts
-allow: []
-deny: []
-public:
-  - lib.rs

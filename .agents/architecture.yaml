@@ -1,7 +1,3 @@
 purpose: Expose the canonical repository skills to the development client
-files:
-  architecture.yaml: Agent integration inventory with canonical skills reached through a symlink
+files: {}
 directories: {}
-allow: []
-deny: []
-public: []

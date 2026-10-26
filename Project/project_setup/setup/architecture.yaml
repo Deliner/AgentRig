@@ -1,24 +1,7 @@
 purpose: Initialize configured agent environments without overwriting existing consumer files
 files:
-  architecture.yaml: Installation workflow responsibilities and dependency boundary
   mod.rs: Expose declarative initialization
   init.rs: Create a new environment after collision and generated bundle validation
   wizard.rs: Collect interactive initialization settings and confirm the shown installation
 directories:
   tests: Verify declarative and interactive initialization and client settings
-allow:
-  - Project/shared/testing/consumer.py
-  - Project/project_config/mod.rs
-  - Project/project_config/settings/mod.rs
-  - Project/shared/arguments/mod.rs
-  - Project/shared/paths/mod.rs
-  - Project/structural_lint/config/mod.rs
-  - Project/shared/yaml/mod.rs
-  - Project/shared/vcs/mod.rs
-  - Project/project_setup/mod.rs
-  - Project/project_setup/adapters.rs
-  - Project/project_setup/claude.rs
-  - Project/project_setup/doctor.rs
-  - Project/project_setup/template.rs
-deny: []
-public: [mod.rs, init.rs]

@@ -5,6 +5,7 @@ import pytest
 
 from Project.structural_lint.architecture.tests.test_architecture import consumer, contract
 from Project.structural_lint.architecture.tests.test_architecture_behavior import (
+    assert_back_edge_forms_cycle,
     parity,
     run_consumer,
 )
@@ -14,7 +15,7 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
 def test_embedded_resource_edges_preserve_compiled_behavior(
     worker: Path, tmp_path: Path, form: str
 ) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     (tmp_path / "src/b/data.txt").write_text("content")
     expressions = {
         "text": 'include_str!("../b/data.txt")',
@@ -30,12 +31,7 @@ def test_embedded_resource_edges_preserve_compiled_behavior(
     contract(tmp_path / "src/b")
     assert run_consumer(tmp_path, "rs") == "7"
     assert parity(worker, tmp_path) == (0, [])
-    contract(tmp_path / "src/a")
-    code, findings = parity(worker, tmp_path)
-    assert code == 1, findings
-    assert any(
-        "src/b/data.txt" in item["message"] and "forbidden" in item["message"] for item in findings
-    )
+    assert_back_edge_forms_cycle(worker, tmp_path, target)
 
 
 @pytest.mark.parametrize("failure", ["missing", "dynamic", "escape", "ignored"])

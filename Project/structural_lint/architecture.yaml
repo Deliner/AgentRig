@@ -1,6 +1,5 @@
 purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
 files:
-  architecture.yaml: Lint module responsibilities and public consumer boundary
   mod.rs: Evaluation orchestration, scalar findings and configured diagnostic output
   cli.rs: Embedded and standalone command arguments and rule discovery output
   standalone.rs: Standalone lint executable entry and process exit reporting
@@ -16,25 +15,3 @@ directories:
   languages: Parse source syntax and measure language-specific scalar rules
   rules: Define stable rule identities, parameters and architecture settings
   selection: Select targets and compute effective thresholds
-allow:
-  - Project/shared/arguments/mod.rs
-  - Project/shared/diagnostics/mod.rs
-  - Project/shared/diagnostics/lint.rs
-  - Project/shared/yaml/mod.rs
-  - Project/shared/vcs/mod.rs
-deny: []
-public:
-  - mod.rs
-  - cli.rs
-  - explain.rs
-  - rules.rs
-  - catalog/mod.rs
-  - config/mod.rs
-  - inventory/mod.rs
-  - languages/mod.rs
-  - rules/kind.rs
-  - rules/descriptor.rs
-  - rules/architecture.rs
-  - architecture/mod.rs
-  - architecture/runner/mod.rs
-  - architecture/source/mod.rs

@@ -1,7 +1,7 @@
 # Directory architecture lint
 
-`directory-architecture` is an opt-in rule of `agentrig lint` and `agentrig-lint`. It checks measured source
-dependencies against per-directory contracts, not dependencies inferred from the contracts.
+`directory-architecture` is an opt-in rule of `agentrig lint` and `agentrig-lint`. It checks per-directory contracts
+and reports directory cycles in measured source dependencies.
 
 ## Configuration
 
@@ -41,25 +41,18 @@ line, or the contract path, with the repair skill and rerun command.
 ```yaml
 purpose: Orders application service
 files:
-  architecture.yaml: Directory responsibilities and boundaries
   api.py: Public entry for the orders scenario
 directories:
   tests: Behavior checks owned by orders
-allow: ['src/catalog/api.py', 'src/storage/**']
-deny: ['src/storage/private/**']
-public: [api.py]
 ```
 
-`purpose` is one nonempty line. `files` and `directories` register every immediate entry by literal name with a
-nonempty responsibility; stale entries, wrong kinds and unknown fields are errors. Lint cannot prove that descriptions
-agree with the code. `allow` and `deny` match project-relative targets of outbound dependencies, and deny wins.
-`public` matches paths relative to the directory for inbound dependencies. Dependencies within one boundary need no
-permission; every crossed enclosing contract applies, so a child cannot open its parent's private boundary. Patterns
-and contracts cannot leave the project.
+A contract has only `purpose`, `files` and `directories`. `purpose` is one nonempty line. `files` and `directories`
+register every immediate entry except the contract itself by literal name with a nonempty responsibility; stale
+entries, wrong kinds and unknown fields are errors. Lint cannot prove that descriptions agree with the code. Contracts
+cannot leave the project.
 
-Cycles use actual resolved edges, allowed ones included, and report source evidence across sibling subsystems. Rust
-module declarations (`mod child;`) express composition: their targets pass allow, deny and public checks but form no
-cycle, so a child may use a parent-owned type.
+Cycles use actual resolved edges and report source evidence across sibling subsystems. Rust module declarations
+(`mod child;`) express composition and form no cycle, so a child may use a parent-owned type.
 
 ## Analysis limits
 
@@ -75,5 +68,5 @@ unsupported forms are incomplete-analysis findings at the configured level; this
   runtime imports. Ambiguous members, wildcard exports, namespace-only imports and loader aliases fail or are
   incomplete. `.pyi` is parsed but is not a runtime target.
 
-Repair findings with the `refactor-large-directory` skill. Moving files into arbitrary buckets or widening permissions
-to silence findings does not establish the intended architecture.
+Repair findings with the `refactor-large-directory` skill. Moving files into arbitrary buckets to silence findings does
+not establish the intended architecture.

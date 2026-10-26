@@ -1,6 +1,5 @@
 purpose: Validate project memory contracts and report recovery context
 files:
-  architecture.yaml: Memory validation responsibilities and public consumer boundary
   mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks
   format.rs: Memory document sections, tables, links and source target paths
   history.rs: Preserve committed decisions and locate current or legacy historical memory
@@ -10,22 +9,3 @@ files:
 directories:
   tests: Memory, plan and State behavior scenarios and shared memory fixtures
   evidence: Persist check results and determine whether checked inputs remain current
-allow:
-  - Project/shared/testing/repository.py
-  - Project/shared/testing/consumer.py
-  - Project/project_config/mod.rs
-  - Project/command_runner/mod.rs
-  - Project/shared/paths/mod.rs
-  - Project/command_runner/jobs/mod.rs
-  - Project/structural_lint/languages/mod.rs
-  - Project/shared/yaml/mod.rs
-  - Project/shared/vcs/mod.rs
-  - Project/project_config/settings/mod.rs
-  - Project/shared/diagnostics/mod.rs
-  - Project/shared/artifacts/json.rs
-deny: []
-public:
-  - mod.rs
-  - format.rs
-  - resume.rs
-  - evidence/mod.rs

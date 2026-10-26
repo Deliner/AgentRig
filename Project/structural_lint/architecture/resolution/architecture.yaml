@@ -1,11 +1,6 @@
 purpose: Resolve extracted language references into project files or explicitly declared external modules
 files:
-  architecture.yaml: Resolution responsibilities and public language boundaries
   mod.rs: Shared resolution result and project-relative path normalization
 directories:
   python: Python package and module resolution with behavior tests
   rust: Rust module trees, bindings and macro dependency resolution with behavior tests
-allow:
-  - Project/structural_lint/architecture/source/mod.rs
-deny: []
-public: [mod.rs, python/mod.rs, rust/mod.rs]

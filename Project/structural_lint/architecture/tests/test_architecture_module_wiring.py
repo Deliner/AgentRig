@@ -20,19 +20,13 @@ def consumer(root: Path, case: str) -> None:
         "pub mod child;\npub struct Shared;\n" + additions.get(case, "")
     )
     (child / "mod.rs").write_text("pub fn consume(_: crate::Shared) {}\n")
-    contract(root / "src", public="['**']")
-    private = case == "private"
-    forbidden = case == "forbidden"
-    contract(
-        child,
-        allow="[]" if forbidden else "['src/lib.rs']",
-        public="[]" if private else "['mod.rs']",
-    )
+    contract(root / "src")
+    contract(child)
 
 
 @pytest.mark.parametrize("standalone", [False, True])
-@pytest.mark.parametrize("case", ["declaration", "call", "reexport", "private", "forbidden"])
-def test_module_declaration_preserves_boundaries_without_inventing_use_cycles(
+@pytest.mark.parametrize("case", ["declaration", "call", "reexport"])
+def test_module_declaration_does_not_invent_use_cycles(
     worker: Path, tmp_path: Path, standalone: bool, case: str
 ) -> None:
     consumer(tmp_path, case)
@@ -55,15 +49,13 @@ def test_module_declaration_preserves_boundaries_without_inventing_use_cycles(
         "declaration": [],
         "call": ["directory dependency cycle"],
         "reexport": ["directory dependency cycle"],
-        "private": ["private access"],
-        "forbidden": ["forbidden dependency"],
     }[case]
     assert code == bool(expected), findings
     assert [item["message"].split(":")[0].split(" src/")[0] for item in findings] == expected
 
 
 @pytest.mark.parametrize("standalone", [False, True])
-def test_explicit_module_path_outside_crate_directory_keeps_boundaries(
+def test_explicit_module_path_outside_crate_directory_is_measured(
     worker: Path, tmp_path: Path, standalone: bool
 ) -> None:
     config = CONFIG.replace("EXTENSION", ".rs").replace("ROOTS", "[src/lib.rs]")
@@ -75,11 +67,11 @@ def test_explicit_module_path_outside_crate_directory_keeps_boundaries(
     (tmp_path / "src/lib.rs").write_text(
         '#[path = "../shared/api.rs"] mod shared;\npub fn run() -> i32 { shared::value() }\n'
     )
-    contract(tmp_path / "src", allow="['shared/api.rs']")
-    contract(shared, public="['api.rs']")
+    contract(tmp_path / "src")
+    contract(shared)
     binary = worker.with_name("agentrig-lint") if standalone else worker
     assert lint(binary, tmp_path) == (0, [])
-    contract(shared, public="[]")
+    (shared / "api.rs").write_text("pub fn value() -> i32 { 42 }\npub use crate::run as back;\n")
     code, findings = lint(binary, tmp_path)
     assert code == 1
-    assert any("private access" in item["message"] for item in findings)
+    assert any("directory dependency cycle" in item["message"] for item in findings), findings

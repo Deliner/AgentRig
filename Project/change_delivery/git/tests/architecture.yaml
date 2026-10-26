@@ -1,11 +1,4 @@
 purpose: Verify Git feature delivery and transaction guards
 files:
-  architecture.yaml: Responsibilities, inventory and dependency boundary
   test_git.py: Native feature starts, rebase, commit guards and owned cleanup
 directories: {}
-allow:
-  - Project/shared/testing/consumer.py
-  - Project/shared/testing/repository.py
-  - Project/command_runner/tests/consumer.py
-deny: []
-public: []

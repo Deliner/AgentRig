@@ -12,7 +12,7 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
 def test_local_crate_edges_match_compiled_consumers(
     worker: Path, tmp_path: Path, form: str
 ) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     source.write_text(
         {
             "direct": "pub fn run() -> i32 { peer::value() }",
@@ -29,9 +29,14 @@ def test_local_crate_edges_match_compiled_consumers(
     )
     compile_consumer(tmp_path)
     assert parity(worker, tmp_path) == (0, [])
+    (tmp_path / "src/a/part.rs").write_text("pub fn seven() -> i32 { 7 }\n")
+    target.write_text(
+        '#[path = "../a/part.rs"] mod part;\npub fn value() -> i32 { part::seven() }\n'
+    )
     contract(tmp_path / "src/a")
     status, findings = parity(worker, tmp_path)
-    assert status == 1 and any("forbidden" in item["message"] for item in findings)
+    assert status == 1, findings
+    assert any("directory dependency cycle" in item["message"] for item in findings), findings
 
 
 def compile_consumer(tmp_path: Path) -> None:

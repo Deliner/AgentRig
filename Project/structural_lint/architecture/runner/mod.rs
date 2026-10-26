@@ -46,7 +46,7 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     let sources = analysis::extract(&root, &scope.files);
     let (edges, source_issues) = dependencies(&resolvers, sources);
     issues.extend(source_issues);
-    issues.extend(contracts.check(&edges));
+    issues.extend(super::graph::cycles(&edges));
     Ok(issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))

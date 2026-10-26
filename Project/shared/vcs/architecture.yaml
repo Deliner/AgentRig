@@ -1,6 +1,5 @@
 purpose: Provide Git repository observation and controlled changes for delivery workflows
 files:
-  architecture.yaml: Git capability inventory and public boundary
   mod.rs: Repository types, common Git operations and exports
   branches.rs: Validate branch settings and start feature branches
   directories.rs: Discover maintained directories with Git ignore semantics
@@ -11,6 +10,3 @@ files:
   observation.rs: Observe branch and revision state
 directories:
   tests: Verify repository behavior, hook registration and integration with real repositories
-allow: []
-deny: []
-public: [mod.rs, tests/fixture.rs]

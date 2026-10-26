@@ -1,6 +1,5 @@
 purpose: Retain completed outcomes, acceptance and observed delivery evidence
 files:
-  architecture.yaml: Archived outcome card inventory
   001.md: "Isolated review MCP"
   002.md: "Portable worker capabilities and setup"
   003.md: "# P003"
@@ -12,6 +11,3 @@ files:
   009.md: "Complete architecture maps and feature ownership"
   017.md: Sequential Backlog audit for deterministic anchors, quality and necessary complexity
 directories: {}
-allow: []
-deny: []
-public: []

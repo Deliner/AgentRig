@@ -2,8 +2,7 @@
 # Their canonical bodies are inventoried under memory; discovery skips symlink aliases.
 # Installed skill names remain flat through project_setup/assets.rs.
 purpose: "Provide canonical agent guidance for delivery, architectural repair and project memory"
-files:
-  architecture.yaml: "Resource responsibility map and public installation boundary"
+files: {}
 directories:
   complexity-discipline: "Keep implementation and workflow complexity within current requirements"
   condense-markdown: "Keep README and AGENTS.md within limits and other Markdown out of Project"
@@ -16,6 +15,3 @@ directories:
   repair: "Diagnose and repair configuration and verification failures"
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"
-allow: []
-deny: []
-public: ["complexity-discipline/SKILL.md", "execute-plan-feature/SKILL.md", "name-if-condition/SKILL.md", "reduce-parameters/SKILL.md", "refactor-large-directory/SKILL.md", "refactor-large-file/SKILL.md", "refactor-long-function/SKILL.md", "repair/SKILL.md", "replace-comment/SKILL.md", "memory/edit-backlog/SKILL.md", "memory/edit-plan/SKILL.md", "memory/edit-state/SKILL.md", "memory/edit-decisions/SKILL.md", "memory/edit-invariants/SKILL.md", "memory/norm-or-choice/SKILL.md", "complexity-discipline/context-reminder.json"]

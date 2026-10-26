@@ -2,32 +2,8 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-import pytest
-
-from Project.structural_lint.architecture.tests.test_architecture import (
-    consumer,
-    contract,
-    snapshot,
-)
+from Project.structural_lint.architecture.tests.test_architecture import back_edge, snapshot
 from Project.structural_lint.testing.consumer import lint
-
-
-def private_consumer(root: Path, language: str) -> tuple[Path, str]:
-    source, api = consumer(root, language)
-    rust = language == "rs"
-    original = source.read_text()
-    private = api.with_name(f"private.{language}")
-    api.rename(private)
-    if rust:
-        api.write_text("pub mod private; pub use private::value;\n")
-        source.write_text(original.replace("b::value", "b::private::value"))
-        entry = root / "src/lib.rs"
-        entry.write_text(entry.read_text() + "fn main() { std::process::exit(a::run()); }\n")
-    else:
-        api.write_text("from b.private import value\n")
-        source.write_text(original.replace("b.api", "b.private"))
-    contract(root / "src/b", public=f"['{api.name}']")
-    return source, original
 
 
 def run_consumer(root: Path, language: str) -> str:
@@ -68,23 +44,8 @@ def parity(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     return results[0]
 
 
-@pytest.mark.parametrize("language", ["rs", "py"])
-def test_public_api_repair_preserves_real_consumer_behavior(
-    worker: Path, tmp_path: Path, language: str
-) -> None:
-    root = tmp_path / "consumer"
-    root.mkdir()
-    source, repair = private_consumer(root, language)
-    before = snapshot(root)
-    assert run_consumer(root, language) == "7"
-    assert snapshot(root) == before
+def assert_back_edge_forms_cycle(worker: Path, root: Path, target: Path) -> None:
+    back_edge(target, "rs")
     code, findings = parity(worker, root)
-    assert code == 1 and findings
-    assert all("private access" in item["message"] for item in findings), findings
-    source.write_text(repair)
-    assert parity(worker, root) == (0, [])
-    assert run_consumer(root, language) == "7"
-    for path, content in before.items():
-        is_contract = path.endswith("architecture.yaml")
-        if is_contract:
-            assert (root / path).read_bytes() == content
+    assert code == 1, findings
+    assert any("directory dependency cycle" in item["message"] for item in findings), findings

@@ -2,8 +2,11 @@ from pathlib import Path
 
 import pytest
 
-from Project.structural_lint.architecture.tests.test_architecture import consumer, contract
-from Project.structural_lint.architecture.tests.test_architecture_behavior import parity
+from Project.structural_lint.architecture.tests.test_architecture import consumer
+from Project.structural_lint.architecture.tests.test_architecture_behavior import (
+    assert_back_edge_forms_cycle,
+    parity,
+)
 
 
 @pytest.mark.parametrize(
@@ -22,7 +25,7 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
     ],
 )
 def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: str) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     sources = {
         "assert": "pub fn run() -> i32 { assert!(crate::b::value() == 7); 7 }",
         "nested": 'pub fn run() -> i32 { assert_eq!(format!("{}", crate::b::value()), "7"); 7 }',
@@ -49,8 +52,4 @@ def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: s
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
     else:
         assert code == 0, findings
-        contract(tmp_path / "src/a")
-        code, findings = parity(worker, tmp_path)
-        assert code == 1 and any("forbidden dependency" in item["message"] for item in findings), (
-            findings
-        )
+        assert_back_edge_forms_cycle(worker, tmp_path, target)

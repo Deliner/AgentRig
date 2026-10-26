@@ -1,6 +1,5 @@
 purpose: Group the thin Just recipes that forward to the configured runtime by responsibility
 files:
-  architecture.yaml: Recipe group inventory
   development.just: Bootstrap the pinned runtime, invoke the candidate and package releases
   commands.just: List and execute catalog commands, including sandboxed reads and authorized writes
   checks.just: Run the gate and validate configuration
@@ -8,6 +7,3 @@ files:
   lint.just: Run lint and inspect rules, settings and selection
   jobs.just: Start, inspect, stop and clean managed background runs
 directories: {}
-allow: []
-deny: []
-public: []

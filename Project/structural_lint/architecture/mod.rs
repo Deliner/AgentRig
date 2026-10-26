@@ -36,14 +36,3 @@ impl Issue {
         }
     }
 }
-
-impl Contracts {
-    pub fn check(&self, dependencies: &[Dependency]) -> Vec<Issue> {
-        let mut issues = Vec::new();
-        for edge in dependencies {
-            self.check_edge(edge, &mut issues);
-        }
-        issues.extend(graph::cycles(dependencies));
-        issues
-    }
-}

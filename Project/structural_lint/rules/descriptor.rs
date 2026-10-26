@@ -93,7 +93,7 @@ const COMMENTREFERENCE: Descriptor = Descriptor {
 const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     default_id: "architecture",
     target: "directory",
-    metric: "architecture.yaml contracts against resolved source dependencies: allow/deny, public boundaries and cycles; incomplete analysis is a finding",
+    metric: "architecture.yaml inventories and directory cycles in resolved source dependencies; incomplete analysis is a finding",
     skill: "refactor-large-directory",
     parameters: Parameters::Level {
         violation: "architecture contract is violated",

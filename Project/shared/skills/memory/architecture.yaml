@@ -1,6 +1,5 @@
 purpose: "Maintain durable project knowledge and factual recovery context"
-files:
-  architecture.yaml: "Resource responsibility map and public installation boundary"
+files: {}
 directories:
   edit-backlog: "Agree business outcomes in chat and preserve approved Backlog contracts"
   edit-plan: "Maintain scope and acceptance selected for current execution"
@@ -8,6 +7,3 @@ directories:
   edit-decisions: "Preserve contextual choices and their current application links"
   edit-invariants: "Maintain observable predicates linked to exact executable oracles"
   norm-or-choice: "Distinguish contextual choices from executable invariant predicates"
-allow: []
-deny: []
-public: ["edit-backlog/SKILL.md", "edit-plan/SKILL.md", "edit-state/SKILL.md", "edit-decisions/SKILL.md", "edit-invariants/SKILL.md", "norm-or-choice/SKILL.md"]

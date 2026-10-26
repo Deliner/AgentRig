@@ -1,6 +1,5 @@
 purpose: Verify project memory contracts, committed decision history and plan and recovery records
 files:
-  architecture.yaml: Memory behavior test responsibilities and shared fixture boundary
   consumer.py: Construct committed decision baselines for memory history scenarios
   test_resume.py: Reconcile recorded State with Git repository observations
   test_revision_history.py: Preserve committed decision history across revision and merge-parent checks
@@ -9,8 +8,3 @@ files:
   test_backlog.py: Validate idea records and portable edit guidance
   test_state.py: Validate required recovery sections and tolerate reconcilable recorded Git facts
 directories: {}
-allow:
-  - Project/shared/testing/repository.py
-  - Project/shared/testing/consumer.py
-deny: []
-public: []

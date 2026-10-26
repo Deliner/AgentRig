@@ -26,18 +26,21 @@ rules:
 """
 
 
-def contract(directory: Path, allow: str = "[]", public: str = "['*']") -> None:
-    files = {"architecture.yaml": "Directory responsibilities and boundaries"}
+BACK_EDGES = {"rs": "pub use crate::a as back;\n", "py": "import a.api\n"}
+
+
+def contract(directory: Path) -> None:
+    files = {}
     directories = {}
     for path in directory.iterdir():
-        regular = path.is_file()
+        regular = path.is_file() and path.name != "architecture.yaml"
         child = path.is_dir()
         if regular:
             files[path.name] = "Fixture source or resource"
         elif child:
             directories[path.name] = "Fixture child responsibility"
     (directory / "architecture.yaml").write_text(
-        f"purpose: {directory.name} responsibility\nallow: {allow}\npublic: {public}\n"
+        f"purpose: {directory.name} responsibility\n"
         + yaml.safe_dump({"files": files, "directories": directories})
     )
 
@@ -59,35 +62,29 @@ def consumer(root: Path, language: str) -> tuple[Path, Path]:
     else:
         source.write_text("from b.api import value\ndef run():\n    return value()\n")
         target.write_text("def value():\n    return 7\n")
-    contract(root / "src", public="['**']")
-    contract(root / "src/a", "['src/b/**']")
+    contract(root / "src")
+    contract(root / "src/a")
     contract(root / "src/b")
     return source, target
 
 
+def back_edge(target: Path, language: str) -> None:
+    target.write_text(target.read_text() + BACK_EDGES[language])
+
+
 @pytest.mark.parametrize("client", product(["rs", "py"], [False, True]))
-@pytest.mark.parametrize("violation", ["valid", "missing", "forbidden", "private", "cycle"])
+@pytest.mark.parametrize("violation", ["valid", "missing", "cycle"])
 def test_architecture_cli_contracts(
     worker: Path, tmp_path: Path, client: tuple[str, bool], violation: str
 ) -> None:
     language, standalone = client
     _, target = consumer(tmp_path, language)
-    missing, forbidden, private, cycle = [
-        violation == name for name in ["missing", "forbidden", "private", "cycle"]
-    ]
+    missing = violation == "missing"
+    cycle = violation == "cycle"
     if missing:
         (tmp_path / "src/a/architecture.yaml").unlink()
-    elif forbidden:
-        contract(tmp_path / "src/a")
-    elif private:
-        contract(tmp_path / "src/b", public="[]")
     elif cycle:
-        contract(tmp_path / "src/b", "['src/a/**']")
-        back = {
-            "rs": "pub fn unused() -> i32 { crate::a::run() }\n",
-            "py": "from a.api import run\n",
-        }
-        target.write_text(target.read_text() + back[language])
+        back_edge(target, language)
     binary = worker.with_name("agentrig-lint") if standalone else worker
     code, findings = lint(binary, tmp_path)
     valid = violation == "valid"
@@ -101,22 +98,20 @@ def test_architecture_cli_contracts(
 
 
 @pytest.mark.parametrize("standalone", [False, True])
-def test_architecture_warning_scope_and_nonmutation(
+def test_architecture_warning_level_and_nonmutation(
     worker: Path, tmp_path: Path, standalone: bool
 ) -> None:
-    consumer(tmp_path, "py")
-    contract(tmp_path / "src/a")
+    _, target = consumer(tmp_path, "py")
+    back_edge(target, "py")
     policy = tmp_path / "lint.yaml"
-    policy.write_text(
-        "exclude: ['src/b/**']\n" + policy.read_text().replace("level: error", "level: warning")
-    )
+    policy.write_text(policy.read_text().replace("level: error", "level: warning"))
     before = snapshot(tmp_path)
     binary = worker.with_name("agentrig-lint") if standalone else worker
     code, findings = lint(binary, tmp_path)
     assert code == 0 and len(findings) == 1, findings
     assert findings[0]["level"] == "warning"
-    assert "forbidden dependency src/a/api.py -> src/b/api.py" in findings[0]["message"]
-    assert findings[0]["line"] == 1
+    assert "directory dependency cycle: src/a -> src/b -> src/a" in findings[0]["message"]
+    assert findings[0]["path"] == "src/b/api.py" and findings[0]["line"] == 3
     assert before == snapshot(tmp_path)
 
 
@@ -188,7 +183,7 @@ def test_architecture_discovery_and_directory_explanation(worker: Path, tmp_path
     assert code == 1, findings
     assert any(item["path"] == "src/docs/architecture.yaml" for item in findings)
     contract(docs)
-    contract(tmp_path / "src", public="['**']")
+    contract(tmp_path / "src")
     assert lint(worker, tmp_path) == (0, [])
 
 

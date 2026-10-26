@@ -1,6 +1,5 @@
 purpose: Track and control owned process execution, lifetime, process groups and captured output
 files:
-  architecture.yaml: Process ownership inventory and consumer boundary
   mod.rs: Job records, execution lifecycle and status command orchestration
   background.rs: Launch and adopt persistent jobs as process group leaders
   cleanup.rs: Clean completed or abandoned jobs according to owner and lifetime
@@ -13,9 +12,3 @@ files:
   streams.rs: Drain child streams and retain captured output
 directories:
   identity: Observe process identity and resource usage on Linux and macOS without confusing reused process IDs
-allow:
-  - Project/project_config/mod.rs
-  - Project/shared/artifacts/json.rs
-  - Project/shared/vcs/mod.rs
-deny: []
-public: [mod.rs, process.rs, report.rs, cleanup.rs]

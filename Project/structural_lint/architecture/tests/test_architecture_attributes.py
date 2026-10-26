@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from Project.structural_lint.architecture.tests.test_architecture import consumer, contract
+from Project.structural_lint.architecture.tests.test_architecture import back_edge, consumer
 from Project.structural_lint.architecture.tests.test_architecture_behavior import (
     parity,
     run_consumer,
@@ -15,7 +15,7 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
 def test_rust_attributes_preserve_dependency_evidence(
     worker: Path, tmp_path: Path, case: str
 ) -> None:
-    source, _ = consumer(tmp_path, "rs")
+    source, target = consumer(tmp_path, "rs")
     samples = {
         "callback": '#[derive(serde::Deserialize)] pub struct Value { #[serde(default = "crate::b::value")] x: i32 }',
         "label": '#[derive(serde::Deserialize)] pub struct Value { #[serde(rename = "crate::missing::value")] x: i32 }',
@@ -40,11 +40,11 @@ def test_rust_attributes_preserve_dependency_evidence(
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
     else:
         assert code == 0, findings
-        contract(tmp_path / "src/a")
+        back_edge(target, "rs")
         code, findings = parity(worker, tmp_path)
         edge = case in {"callback", "test", "platform"}
         assert code == int(edge), findings
-        assert all("forbidden" in item["message"] for item in findings)
+        assert all("directory dependency cycle" in item["message"] for item in findings)
 
 
 def test_standard_derive_preserves_compiled_consumer(worker: Path, tmp_path: Path) -> None:

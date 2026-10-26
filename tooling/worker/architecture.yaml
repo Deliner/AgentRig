@@ -1,9 +1,5 @@
 purpose: Launch the candidate and the pinned installed runtime for development of this repository
 files:
-  architecture.yaml: Development launcher inventory
   build: Build the candidate from Project for development verification
   run: Dispatch commands to the pinned installed runtime
 directories: {}
-allow: []
-deny: []
-public: []

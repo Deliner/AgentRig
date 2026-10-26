@@ -1,9 +1,5 @@
 purpose: Connect the Codex development client to the installed worker hooks
 files:
-  architecture.yaml: Development client integration inventory
   config.toml: Enable Codex project hooks
   hooks.json: Forward Codex events to the installed worker hook
 directories: {}
-allow: []
-deny: []
-public: []

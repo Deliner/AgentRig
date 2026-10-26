@@ -1,9 +1,5 @@
 purpose: Forward repository commit and reference events to installed runtime guards
 files:
-  architecture.yaml: Git hook adapter inventory
   pre-commit: Invoke the exported index verification gate
   reference-transaction: Enforce configured branch integration policy
 directories: {}
-allow: []
-deny: []
-public: []

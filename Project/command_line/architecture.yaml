@@ -1,28 +1,5 @@
 purpose: Parse agentrig commands and dispatch them to the features that own them
 files:
-  architecture.yaml: Command line inventory and public boundary
   main.rs: AgentRig process entry with hook and lint command dispatch
   mod.rs: Dispatch project workflow commands to their features
 directories: {}
-allow:
-  - Project/agent_hooks/mod.rs
-  - Project/change_delivery/gate/mod.rs
-  - Project/change_delivery/git/mod.rs
-  - Project/command_runner/jobs/mod.rs
-  - Project/command_runner/mod.rs
-  - Project/project_memory/mod.rs
-  - Project/project_memory/resume.rs
-  - Project/project_setup/doctor.rs
-  - Project/project_setup/mod.rs
-  - Project/project_config/mod.rs
-  - Project/project_setup/setup/init.rs
-  - Project/shared/arguments/mod.rs
-  - Project/project_memory/evidence/mod.rs
-  - Project/shared/diagnostics/mod.rs
-  - Project/shared/paths/mod.rs
-  - Project/structural_lint/cli.rs
-  - Project/structural_lint/explain.rs
-  - Project/structural_lint/mod.rs
-deny: []
-public:
-  - mod.rs

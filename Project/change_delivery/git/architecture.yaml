@@ -1,19 +1,5 @@
 purpose: Coordinate VCS feature branches, checked integration and commit guards
 files:
-  architecture.yaml: Responsibilities, inventory and dependency boundary
   mod.rs: Coordinate feature starts, checked branch integration and native transaction guards
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios
-allow:
-  - Project/project_config/mod.rs
-  - Project/change_delivery/gate/mod.rs
-  - Project/project_memory/evidence/mod.rs
-  - Project/command_runner/tests/consumer.py
-  - Project/shared/testing/consumer.py
-  - Project/shared/testing/repository.py
-  - Project/command_runner/jobs/mod.rs
-  - Project/command_runner/jobs/process.rs
-  - Project/command_runner/jobs/cleanup.rs
-  - Project/shared/vcs/mod.rs
-deny: []
-public: [mod.rs]
