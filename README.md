@@ -8,7 +8,7 @@ quality; model judgments remain probabilistic.
 The worker is the product. Reusable capabilities belong under tooling/worker; Project holds consumer examples. Projects
 select capabilities through configuration modules in `.agentrig/`, including a separate lint configuration;
 `agentrig-lint` also runs independently against external projects. See
-[consumer setup and configuration](tooling/worker/SCAFFOLD.md).
+[consumer setup and configuration](tooling/worker/src/scaffold/README.md).
 
 Download the Linux x86_64 or macOS arm64 binaries from [GitHub releases](https://github.com/Deliner/AgentRig/releases).
 Verify the accompanying SHA-256 file, extract the archive and put `agentrig` and `agentrig-lint` on PATH. The Linux
@@ -28,7 +28,8 @@ bootstrap installs a verified development revision; `just candidate ...` separat
 checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run
 catalog commands with `just run NAME -- ARGS`.
 
-- [Scaffold guide](tooling/worker/SCAFFOLD.md): installation, configuration, memory schemas, recovery and Git lifecycle.
+- [Scaffold guide](tooling/worker/src/scaffold/README.md): installation, configuration, memory schemas, recovery and
+  Git lifecycle.
 - [Linter guide](tooling/worker/README.md): rule semantics, languages, selectors, severity and repair skills.
 - [Independent examples](tooling/worker/examples/README.md): Python and Rust consumers and repeatable measurements.
 - [Feature delivery skill](tooling/worker/assets/skills/execute-plan-feature/SKILL.md): VACs, evolving the plan,

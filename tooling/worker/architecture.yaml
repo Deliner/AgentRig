@@ -1,12 +1,9 @@
 purpose: Compose portable AgentRig binaries with their resources, examples and user documentation
 files:
   architecture.yaml: Worker package inventory and capability composition
-  ARCHITECTURE.md: Architecture contract format and measured dependency analysis limits
-  CHECKS.md: Verification selection and commit versus integration checks
   Cargo.toml: Worker library and executable build declarations
   Cargo.lock: Locked Rust dependency versions
   README.md: Worker commands and lint rule user guide
-  SCAFFOLD.md: Project configuration, installation and delivery workflow guide
   build: Build the candidate worker for development verification
   run: Dispatch commands to the pinned installed runtime
   rust-toolchain.toml: Rust toolchain selected for reproducible development

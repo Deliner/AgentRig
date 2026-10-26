@@ -6,6 +6,7 @@ files:
   inventory.rs: Exact file and child-directory responsibility coverage checks
   graph.rs: Cycle detection over measured directory dependencies
   tests.rs: Contract validation, boundary enforcement and measured cycle behavior
+  README.md: Rule configuration, contract format and source analysis limits
 directories:
   tests: Exercise architecture inventories and boundaries through four-language CLI consumers
   resolution: Resolve extracted references to concrete project source files

@@ -12,10 +12,10 @@ a different existing hooksPath. Repeating it retains the same installation.
 
 `just candidate --version` builds the current product through tooling/worker/build. Its cache is `.cache/worker`; native
 tests always select the candidate. `just run test -- PATH` performs focused tests. Commits run the configured
-exported-index gate with [affected test groups](../worker/CHECKS.md) plus smoke tests. Paths outside feature groups
-select only the smoke tests, never an automatic full-suite fallback. `just feature-merge` runs the tests affected by the
-whole branch; `just check` runs the full suite. `tooling/worker/run` performs no compilation. Repository configuration,
-memory and canonical skill sources remain versioned project policy.
+exported-index gate with [affected test groups](../worker/src/scaffold/gate/README.md) plus smoke tests. Paths outside
+feature groups select only the smoke tests, never an automatic full-suite fallback. `just feature-merge` runs the tests
+affected by the whole branch; `just check` runs the full suite. `tooling/worker/run` performs no compilation.
+Repository configuration, memory and canonical skill sources remain versioned project policy.
 
 Repository lint also invokes the candidate through the configured command check,
 because its architecture analysis develops independently of the pinned runtime.

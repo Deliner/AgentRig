@@ -82,4 +82,5 @@ I001:
 Run `memory-check` to validate the link and discover the exact test target. Run `check` to execute the test. Discovery
 alone does not verify the predicate.
 
-[Observed latency](LATENCY.md) lists first-process and repeated-process measurements and their reproducible command.
+`python3 measure.py --worker ABSOLUTE_AGENTRIG --output REPORT.md` measures first and repeated process latency of
+hooks and lint on fresh installations of both examples.

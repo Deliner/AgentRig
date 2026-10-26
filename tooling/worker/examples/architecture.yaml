@@ -2,7 +2,6 @@ purpose: Demonstrate independent AgentRig consumers and measure their installed 
 files:
   architecture.yaml: Example inventory and dependency boundaries
   README.md: Instructions for installing and exercising independent consumers
-  LATENCY.md: Observed standalone process timings and measurement conditions
   measure.py: Measure installed hook and lint process latency in fresh consumers
 directories:
   python: Independent Python consumer source and checks

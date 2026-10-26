@@ -3,8 +3,9 @@
 The Rust runtime owns agent and Git hooks, command execution and jobs, feature integration, memory validation and
 structural lint. Just recipes and the Git, Codex and Claude Code registrations only forward calls to it. Python serves
 behavioral tests and the latency benchmark. Project settings come from the `.agentrig/` modules: see the
-[scaffold guide](SCAFFOLD.md) for their schema, [selective tests](CHECKS.md) for the affected-test map and the
-[architecture rule](ARCHITECTURE.md) for directory contracts and analysis limits.
+[scaffold guide](src/scaffold/README.md) for their schema, [selective tests](src/scaffold/gate/README.md) for the
+affected-test map and the [architecture rule](src/lint/architecture/README.md) for directory contracts and analysis
+limits.
 
 ## Build
 
@@ -62,4 +63,4 @@ escape it. Owners come from WORKER_OWNER, else CODEX_THREAD_ID or CODEX_SESSION_
 successful feature-merge stop the owner's task runs and keep `lifetime: shared` services. Read-only commands run under
 bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary directory and no network.
 
-[Latency measurements](examples/LATENCY.md) come from [their runner](examples/measure.py).
+[measure.py](examples/measure.py) measures first and repeated standalone process latency of a built binary.

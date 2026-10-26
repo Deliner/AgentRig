@@ -12,7 +12,7 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: a6f79b60352acae081235a0f3930ba436b44cc59
+Revision: a580844241e1d81ba265d4b8bea6bbfac81cac12
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 3d91c85, installed by `just bootstrap` under .cache/development. A stray
@@ -34,16 +34,21 @@ resolved (c79b35e), and [D038](Decisions/038.md) configuration modules in the
 runtime (3d91c85) with the repository switched to them and 3d91c85 pinned
 (17fd091), and the repository Git hooks moved to .agentrig/hooks, where init
 places consumer hooks (2a3b85c), and Just recipe groups under just/ per
-[D039](Decisions/039.md) (a6f79b6). This VAC implements
-[D040](Decisions/040.md): init defaults memory to Ledger and sources to
-Project. Plan P018–P023 predates this direction and is not reconciled.
+[D039](Decisions/039.md) (a6f79b6), and init defaults of Ledger memory and
+Project sources per [D040](Decisions/040.md) (a580844). This VAC prepares the
+worker for Project, where [D036](Decisions/036.md) allows only README and
+SKILL Markdown: ARCHITECTURE.md, CHECKS.md and SCAFFOLD.md become READMEs of
+src/lint/architecture, src/scaffold/gate and src/scaffold within 70 lines and
+120 columns, and the stale 0.1.0 LATENCY.md is dropped in favor of its runner.
+tooling/distribution/RELEASE.md, read by release.sh and CI, remains to be
+placed. Plan P018–P023 predates this direction and is not reconciled.
 
 ## Verification
 
-`just check` passed on 3d91c85 (68 Rust, 422 pytest, all static checks).
-For this VAC the full pytest suite (423) passed against the candidate. The
-installed 3d91c85 memory-check warns that it cannot inspect `.just` links
-until the next pin; the candidate's passes.
+`just check` passed on 3d91c85 (68 Rust, 422 pytest, all static checks); the
+full pytest suite (423) passed for a580844. For this VAC `just lint` reports
+no errors and the candidate memory-check passes. The installed 3d91c85
+memory-check warns that it cannot inspect `.just` links until the next pin.
 
 ## Blockers
 
@@ -54,6 +59,8 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit D039 through the hook, then plan the source move into Project with
-dogfooding: hook adapters, bootstrap and the development runtime path all
-name tooling/worker, and D025 reserves Project for consumer examples.
+Commit the guide condensation through the hook. Then move the worker into
+Project with dogfooding: hook adapters, bootstrap, the development runtime
+path, Python imports (tooling.worker.src) and decision links all name
+tooling/worker; D025 reserves Project for consumer examples and needs a
+successor.

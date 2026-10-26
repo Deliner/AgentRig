@@ -2,6 +2,7 @@ purpose: Prepare and maintain project development workflows from the configured 
 files:
   architecture.yaml: Project workflow composition and public entry boundary
   mod.rs: Dispatch project commands and expose configured hook command guidance
+  README.md: Consumer installation, commands, configuration and delivery guide
 directories:
   git: Coordinate feature branches, checked integration and Git commit guards
   testing: Construct shared configured consumer projects for workflow behavior tests
