@@ -12,10 +12,10 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: 4330b7c9937c543354770a119cf8992cb4aaa6d1
+Revision: 8910f1f24033bbf2273872c282af9c7eb1b3c4a2
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-10fbe31, installed by `just bootstrap` under .cache/development. A stray
+8910f1f, installed by `just bootstrap` under .cache/development. A stray
 branch feature/init-probe at a14f284 remains from an install probe;
 guard-reference refuses its deletion.
 
@@ -23,17 +23,15 @@ guard-reference refuses its deletion.
 
 Committed: removal under [D033](Decisions/033.md) (da71c68), macOS port under
 [D034](Decisions/034.md) (10fbe31), runtime pin and macOS flock (6a06206),
-Claude Code hook registration (4330b7c). This VAC implements
-[D035](Decisions/035.md): feature-merge maps `git diff base HEAD` paths
-through the configured affected groups instead of running the full suite;
-`just check` still runs everything. Plan P018–P023 predates this direction and
-is not reconciled yet.
+Claude Code hook registration (4330b7c), and affected-only merge tests under
+[D035](Decisions/035.md) (8910f1f). This VAC pins the runtime to 8910f1f, so
+`just feature-merge` selects tests for the whole branch. Plan P018–P023
+predates this direction and is not reconciled yet.
 
 ## Verification
 
-Candidate gate and git tests pass (43 passed), including merge selection of
-affected targets and full fallback for unmapped paths. The installed runtime
-(10fbe31) still runs the full suite at merge until stable.txt is repinned.
+`just check` on 8910f1f passed: 64 Rust tests, 419 pytest tests and every
+static check. `just bootstrap` installed 8910f1f.
 
 ## Blockers
 
@@ -42,5 +40,6 @@ record jobs, so it cannot run inside `just read`.
 
 ## Next action
 
-Commit this VAC, repin stable.txt to it and bootstrap, then start the
-restructure and the Markdown and comment lint rules.
+Commit the pin, then add the Markdown size, width and placement rules with a
+condensing skill, and the comment rule allowing only decision and invariant
+references.
