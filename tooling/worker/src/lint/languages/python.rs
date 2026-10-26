@@ -1,4 +1,5 @@
-use super::{Measurement, condition, function, text};
+use super::{Measurement, comment, condition, function, text};
+use crate::lint::rules::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -19,8 +20,27 @@ fn method_receiver(node: Node<'_>, source: &str) -> bool {
         .and_then(|block| block.parent())
         .is_some_and(|parent| parent.kind() == "class_definition")
 }
+// DECISION: D037
+fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
+    let mut cursor = node.walk();
+    let mut values = node
+        .named_children(&mut cursor)
+        .filter(|child| !child.is_extra());
+    let lone_string =
+        values.next().is_some_and(|value| value.kind() == "string") && values.next().is_none();
+    if lone_string {
+        output.push(Measurement {
+            kind: Kind::CommentReference,
+            line: node.start_position().row + 1,
+            symbol: "docstring".into(),
+            actual: 1,
+        });
+    }
+}
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
+        "comment" => comment(node, "#", source, output),
+        "expression_statement" => statement(node, output),
         "if_statement" | "elif_clause" => {
             condition(
                 node,

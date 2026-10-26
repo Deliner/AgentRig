@@ -16,6 +16,8 @@ from tooling.worker.src.scaffold.testing.consumer import invoke
         ("rust", "function-size"),
         ("python", "parameters"),
         ("rust", "parameters"),
+        ("python", "comments"),
+        ("rust", "comments"),
     ],
 )
 # INVARIANT: I017
@@ -51,6 +53,7 @@ def examples(language: str) -> dict[str, tuple[str, str]]:
                 "def example():\n" + "    value = 0\n" * 39,
             ),
             "parameters": ("def example(a, b, c, d, e): pass\n", "def example(a, b, c, d): pass\n"),
+            "comments": ("# note\nvalue = 0\n", "# DECISION: D001\nvalue = 0\n"),
         }
     return {
         "named-if": (
@@ -65,4 +68,5 @@ def examples(language: str) -> dict[str, tuple[str, str]]:
             "fn example(a:i32,b:i32,c:i32,d:i32,e:i32) {}\n",
             "fn example(a:i32,b:i32,c:i32,d:i32) {}\n",
         ),
+        "comments": ("/// note\nfn example() {}\n", "// INVARIANT: I001\nfn example() {}\n"),
     }

@@ -58,6 +58,10 @@ const SKILLS: &[(&str, &str)] = &[
         "repair",
         include_str!("../../../assets/skills/repair/SKILL.md"),
     ),
+    (
+        "replace-comment",
+        include_str!("../../../assets/skills/replace-comment/SKILL.md"),
+    ),
 ];
 pub fn skills() -> BTreeMap<&'static str, String> {
     SKILLS

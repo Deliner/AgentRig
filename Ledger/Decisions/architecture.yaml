@@ -37,6 +37,7 @@ files:
   034.md: "Context and rationale for: Contain jobs with process groups and sandbox read-only commands per platform."
   035.md: "Context and rationale for: Select affected tests for the whole branch at feature merge."
   036.md: "Context and rationale for: Limit README and AGENTS.md size and width, and keep other Markdown out of Project."
+  037.md: "Context and rationale for: Allow only decision and invariant references as source comments."
 directories: {}
 allow: []
 deny: []

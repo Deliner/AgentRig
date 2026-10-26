@@ -12,6 +12,7 @@ pub enum Kind {
     NamedIfCondition,
     FunctionLines,
     ParameterCount,
+    CommentReference,
     DirectoryArchitecture,
 }
 impl fmt::Display for Kind {

@@ -45,6 +45,7 @@ impl Kind {
             Self::NamedIfCondition => &NAMEDIFCONDITION,
             Self::FunctionLines => &FUNCTIONLINES,
             Self::ParameterCount => &PARAMETERCOUNT,
+            Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
     }
@@ -77,6 +78,16 @@ const FORBIDDENFILE: Descriptor = Descriptor {
     skill: "condense-markdown",
     parameters: Parameters::Level {
         violation: "file is not allowed here; move needed content to its owner and delete the file",
+    },
+};
+// DECISION: D037
+const COMMENTREFERENCE: Descriptor = Descriptor {
+    default_id: "comments",
+    target: "file",
+    metric: "every comment and lone string statement except an exact DECISION: DNNN or INVARIANT: INNN reference",
+    skill: "replace-comment",
+    parameters: Parameters::Level {
+        violation: "only an exact DECISION: DNNN or INVARIANT: INNN comment is allowed; move the explanation to its owner or delete it",
     },
 };
 const DIRECTORYARCHITECTURE: Descriptor = Descriptor {

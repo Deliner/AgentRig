@@ -1,9 +1,11 @@
-use super::{Measurement, condition, function};
+use super::{Measurement, comment, condition, function};
 use tree_sitter::Node;
 
 // DECISION: D017
+// DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
+        "line_comment" | "block_comment" => comment(node, "//", source, output),
         "if_expression" => {
             let test = node
                 .child_by_field_name("condition")

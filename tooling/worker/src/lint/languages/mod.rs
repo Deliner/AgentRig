@@ -1,6 +1,8 @@
 mod python;
 mod registry;
 mod rust;
+#[cfg(test)]
+mod tests;
 use super::rules::kind::Kind;
 pub use registry::{HANDLERS, handler};
 
@@ -99,6 +101,33 @@ pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measureme
             kind: Kind::NamedIfCondition,
             line: node.start_position().row + 1,
             symbol: "if".into(),
+            actual: 1,
+        });
+    }
+}
+// DECISION: D037
+pub fn comment(node: Node<'_>, marker: &str, source: &str, output: &mut Vec<Measurement>) {
+    let reference = text(node, source)
+        .trim_end()
+        .strip_prefix(marker)
+        .and_then(|body| body.strip_prefix(' '))
+        .and_then(|body| body.split_once(": "))
+        .is_some_and(|(label, id)| {
+            let prefix = match label {
+                "DECISION" => "D",
+                "INVARIANT" => "I",
+                _ => return false,
+            };
+            id.strip_prefix(prefix).is_some_and(|digits| {
+                digits.len() == 3 && digits.bytes().all(|b| b.is_ascii_digit())
+            })
+        });
+    let forbidden = !reference;
+    if forbidden {
+        output.push(Measurement {
+            kind: Kind::CommentReference,
+            line: node.start_position().row + 1,
+            symbol: "comment".into(),
             actual: 1,
         });
     }

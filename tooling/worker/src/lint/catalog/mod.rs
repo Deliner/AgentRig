@@ -16,6 +16,7 @@ pub const ALL: &[Kind] = &[
     Kind::FunctionLines,
     Kind::ParameterCount,
     Kind::NamedIfCondition,
+    Kind::CommentReference,
     Kind::DirectoryArchitecture,
 ];
 pub fn syntax(kind: Kind) -> bool {
