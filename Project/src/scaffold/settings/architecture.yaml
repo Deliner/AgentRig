@@ -1,0 +1,15 @@
+purpose: Define and validate project settings independently of loading recovery state or executing workflows
+files:
+  architecture.yaml: Settings responsibilities and shared schema boundary
+  mod.rs: Strict project schema, version constants, YAML reading and project-relative paths
+  capabilities.rs: Enabled capability declarations and their check consistency
+  validation.rs: Structural validation of paths, commands, checks, hooks and oracles
+directories: {}
+allow:
+  - Project/src/jobs/mod.rs
+  - Project/src/paths/mod.rs
+  - Project/src/lint/config/mod.rs
+  - Project/src/yaml/mod.rs
+  - Project/src/vcs/mod.rs
+deny: []
+public: [mod.rs, capabilities.rs]

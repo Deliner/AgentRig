@@ -1,16 +1,9 @@
-purpose: Compose portable AgentRig binaries with their resources, examples and user documentation
+purpose: Launch the candidate and the pinned installed runtime for development of this repository
 files:
-  architecture.yaml: Worker package inventory and capability composition
-  Cargo.toml: Worker library and executable build declarations
-  Cargo.lock: Locked Rust dependency versions
-  README.md: Worker commands and lint rule user guide
-  build: Build the candidate worker for development verification
+  architecture.yaml: Development launcher inventory
+  build: Build the candidate from Project for development verification
   run: Dispatch commands to the pinned installed runtime
-  rust-toolchain.toml: Rust toolchain selected for reproducible development
-directories:
-  assets: Canonical resources embedded in installed environments
-  examples: Independent consumer projects and portable usage demonstrations
-  src: AgentRig library, executable entry points and feature implementations
+directories: {}
 allow: []
 deny: []
-public: [src/lib.rs]
+public: []

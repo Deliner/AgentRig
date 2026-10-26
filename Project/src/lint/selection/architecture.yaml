@@ -1,0 +1,12 @@
+purpose: Select configured lint targets and compute their effective thresholds and overrides
+files:
+  architecture.yaml: Target selection responsibilities and dependency boundary
+  mod.rs: Inclusion reasons, language compatibility and ordered threshold overrides
+directories: {}
+allow:
+  - Project/src/lint/config/mod.rs
+  - Project/src/lint/inventory/mod.rs
+  - Project/src/lint/catalog/mod.rs
+  - Project/src/lint/rules/kind.rs
+deny: []
+public: [mod.rs]

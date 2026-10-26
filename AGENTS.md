@@ -10,9 +10,8 @@ norm-or-choice for durable policy changes.
 Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit
 maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product
 features. This repository develops the portable worker itself. Worker capabilities, including lint, belong under
-tooling/worker; Project is reserved for consumer examples, and repository memory is Ledger. D025 supersedes D008 for
-ownership in this repository. Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are
-owned by the .agentrig/ modules.
+Project; tooling holds only development launchers and distribution, and repository memory is Ledger (D041). Runtime
+paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by the .agentrig/ modules.
 
 ## Commands and verification
 
@@ -36,7 +35,7 @@ the branch after integration. Branch policy comes from .agentrig/git.yaml; never
 ## Memory and skills
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
-edit-* skill. Their canonical bodies live in tooling/worker/assets/skills and are exposed through .agents/skills. Do not
+edit-* skill. Their canonical bodies live in Project/assets/skills and are exposed through .agents/skills. Do not
 create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the
 relevant skill yourself.
 
@@ -71,5 +70,5 @@ remain reviewable repository files. See tooling/distribution/README.md for clean
 Use `just config-check` for project configuration, `just lint-config-check` for lint settings, and `just lint-rules` for
 actual rule/language capabilities. Apply the reported repair skill. Preserve policy intent; do not weaken thresholds or
 selectors merely to pass. New rules and language handlers require implemented measurements, capability declarations,
-behavioral verification and repair guidance. Consult tooling/worker/README.md for counting semantics and parser limits.
+behavioral verification and repair guidance. Consult Project/README.md for counting semantics and parser limits.
 Rust changes participate in rustfmt, Clippy and native behavioral tests through the configured gate.

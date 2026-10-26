@@ -12,43 +12,40 @@ affected-only tests on feature merge, then layout, lint rules and tests.
 
 Branch: feature/target-state
 
-Revision: a580844241e1d81ba265d4b8bea6bbfac81cac12
+Revision: 5ccd95265bb04cd5fd7cfbd05749c31dfd282979
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 3d91c85, installed by `just bootstrap` under .cache/development. A stray
 branch feature/init-probe at a14f284 remains from an install probe;
-guard-reference refuses its deletion.
+guard-reference refuses its deletion. Agent shells lack cargo and uv on PATH;
+prefix `env PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:...`.
 
 ## Progress
 
-Committed: removal under [D033](Decisions/033.md) (da71c68), macOS port under
-[D034](Decisions/034.md) (10fbe31), runtime pin and macOS flock (6a06206),
-Claude Code hook registration (4330b7c), affected-only merge tests under
-[D035](Decisions/035.md) (8910f1f), its runtime pin (b4741c6), and the
-line-width and forbidden-file rule kinds with condense-markdown under
-[D036](Decisions/036.md) (09a0c97), the comment-reference kind with
-replace-comment under [D037](Decisions/037.md) (0d1fe6d), and the runtime pin
-to 0d1fe6d (d55e0a6), the D036 Markdown rules with condensed README and
-AGENTS.md files (f5be8c9), and the D037 comments rule with its 42 findings
-resolved (c79b35e), and [D038](Decisions/038.md) configuration modules in the
-runtime (3d91c85) with the repository switched to them and 3d91c85 pinned
-(17fd091), and the repository Git hooks moved to .agentrig/hooks, where init
-places consumer hooks (2a3b85c), and Just recipe groups under just/ per
-[D039](Decisions/039.md) (a6f79b6), and init defaults of Ledger memory and
-Project sources per [D040](Decisions/040.md) (a580844). This VAC prepares the
-worker for Project, where [D036](Decisions/036.md) allows only README and
-SKILL Markdown: ARCHITECTURE.md, CHECKS.md and SCAFFOLD.md become READMEs of
-src/lint/architecture, src/scaffold/gate and src/scaffold within 70 lines and
-120 columns, and the stale 0.1.0 LATENCY.md is dropped in favor of its runner.
-tooling/distribution/RELEASE.md, read by release.sh and CI, remains to be
-placed. Plan P018–P023 predates this direction and is not reconciled.
+Committed on this branch: removal [D033](Decisions/033.md), macOS port
+[D034](Decisions/034.md), affected-only merge tests [D035](Decisions/035.md),
+Markdown and comment rules [D036](Decisions/036.md)/[D037](Decisions/037.md),
+.agentrig modules [D038](Decisions/038.md) with 3d91c85 pinned (17fd091),
+hooks under .agentrig/hooks (2a3b85c), Just groups [D039](Decisions/039.md)
+(a6f79b6), Ledger/Project init defaults [D040](Decisions/040.md) (a580844)
+and worker guides condensed into slice READMEs (5ccd952).
+
+This VAC moves the crate, assets, examples and Python harness from tooling
+into Project under [D041](Decisions/041.md), superseding D025's placement.
+tooling keeps worker/build, worker/run and distribution. The launcher test
+builds its candidate through tooling/worker/build instead of the Project
+fixture, which the architecture rule keeps private, and the impact map maps
+tooling/worker and launcher tests to test_launcher.py.
+bootstrap.sh still archives tooling/worker from the pinned 3d91c85.
+RELEASE.md placement and Plan P018–P023 reconciliation remain open.
 
 ## Verification
 
-`just check` passed on 3d91c85 (68 Rust, 422 pytest, all static checks); the
-full pytest suite (423) passed for a580844. For this VAC `just lint` reports
-no errors and the candidate memory-check passes. The installed 3d91c85
-memory-check warns that it cannot inspect `.just` links until the next pin.
+For this VAC: full pytest 422 passed with one missing-fixture error in
+test_launcher.py; after the direct build call tooling/distribution/tests
+passed (5). ruff, ruff-format, mypy, vulture and typos pass; `just lint`
+reports no errors; candidate and installed memory-check, config-check and
+lint-config-check pass. Rust checks run in the commit gate.
 
 ## Blockers
 
@@ -59,8 +56,5 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the guide condensation through the hook. Then move the worker into
-Project with dogfooding: hook adapters, bootstrap, the development runtime
-path, Python imports (tooling.worker.src) and decision links all name
-tooling/worker; D025 reserves Project for consumer examples and needs a
-successor.
+Commit the Project move through the hook. Then pin that revision in one
+command with bootstrap.sh archiving Project and `just bootstrap`.

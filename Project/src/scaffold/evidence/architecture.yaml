@@ -1,0 +1,17 @@
+purpose: Record verification attempts and establish whether their results still match project inputs
+files:
+  architecture.yaml: Verification evidence inventory and consumer boundary
+  mod.rs: Persist check outcomes and report freshness and repeated failures
+  content.rs: Fingerprint checked files, revisions and VCS indexes
+directories:
+  tests: Verify verification evidence and observed input freshness
+allow:
+  - Project/src/scaffold/testing/consumer.py
+  - Project/src/scaffold/testing/repository.py
+  - Project/src/scaffold/config/mod.rs
+  - Project/src/scaffold/settings/mod.rs
+  - Project/src/diagnostics/mod.rs
+  - Project/src/artifacts/json.rs
+  - Project/src/vcs/mod.rs
+deny: []
+public: [mod.rs]

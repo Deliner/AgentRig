@@ -1,8 +1,17 @@
-purpose: Reserve consumer project material separately from portable worker implementation
+purpose: Implement, document and verify the portable AgentRig runtime and its embedded resources
 files:
-  architecture.yaml: Consumer project area inventory
-  README.md: Explain consumer ownership and its relationship to the worker
-directories: {}
+  architecture.yaml: Product inventory and capability composition
+  Cargo.toml: Library and executable build declarations
+  Cargo.lock: Locked Rust dependency versions
+  README.md: Runtime commands, build and lint rule user guide
+  rust-toolchain.toml: Rust toolchain selected for reproducible development
+  conftest.py: Shared pytest candidate binary construction and test environment fixtures
+  pyproject.toml: Python verification dependencies and tool configuration
+  uv.lock: Locked Python verification dependency versions
+directories:
+  assets: Canonical resources embedded in installed environments
+  examples: Independent consumer projects and portable usage demonstrations
+  src: AgentRig library, executable entry points and feature implementations
 allow: []
 deny: []
-public: []
+public: [src/lib.rs]

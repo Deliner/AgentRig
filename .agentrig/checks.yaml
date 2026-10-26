@@ -23,21 +23,21 @@
   command: rust-test
   affected:
   - {include: ['**'], targets: []}
-  - include: ['.agentrig/**', 'tooling/worker/Cargo.*', tooling/worker/src/lib.rs, tooling/worker/src/main.rs, tooling/worker/src/util.rs]
+  - include: ['.agentrig/**', 'Project/Cargo.*', Project/src/lib.rs, Project/src/main.rs, Project/src/util.rs]
     targets: ['::']
-  - include: ['tooling/worker/src/lint/**']
+  - include: ['Project/src/lint/**']
     targets: ['lint::', 'scaffold::', 'hooks::']
-  - include: ['tooling/worker/src/scaffold/**']
+  - include: ['Project/src/scaffold/**']
     targets: ['scaffold::', 'hooks::']
-  - include: ['tooling/worker/src/hooks/**']
+  - include: ['Project/src/hooks/**']
     targets: ['hooks::']
-  - include: ['tooling/worker/src/jobs/**', 'tooling/worker/src/artifacts/**']
+  - include: ['Project/src/jobs/**', 'Project/src/artifacts/**']
     targets: ['jobs::', 'artifacts::', 'scaffold::', 'hooks::']
-  - include: ['tooling/worker/src/paths/**']
+  - include: ['Project/src/paths/**']
     targets: ['paths::', 'scaffold::', 'hooks::']
-  - include: ['tooling/worker/src/arguments/**']
+  - include: ['Project/src/arguments/**']
     targets: ['arguments::', 'lint::', 'scaffold::']
-  - include: ['tooling/worker/src/vcs/**', 'tooling/worker/src/yaml/**', 'tooling/worker/src/diagnostics/**']
+  - include: ['Project/src/vcs/**', 'Project/src/yaml/**', 'Project/src/diagnostics/**']
     targets: ['vcs::', 'yaml::', 'diagnostics::', 'lint::', 'scaffold::', 'hooks::']
 - id: ruff-format
   kind: command
@@ -58,90 +58,95 @@
   # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
   affected:
   - include: ['**']
-    targets: [tooling/worker/src/lint/config/tests/test_config_check.py]
+    targets: [Project/src/lint/config/tests/test_config_check.py]
   - include:
-    - tooling/worker/src/lint/**
-    - tooling/worker/src/arguments/**
-    - tooling/worker/src/vcs/**
-    - tooling/worker/src/yaml/**
+    - Project/src/lint/**
+    - Project/src/arguments/**
+    - Project/src/vcs/**
+    - Project/src/yaml/**
     targets:
-    - tooling/worker/src/lint/tests
-    - tooling/worker/src/lint/inventory/tests
-    - tooling/worker/src/lint/architecture/tests
-    - tooling/worker/src/lint/languages/tests
-    - tooling/worker/src/scaffold/package/tests/test_lint_defaults.py
-    - tooling/worker/src/scaffold/memory/tests/test_memory.py
+    - Project/src/lint/tests
+    - Project/src/lint/inventory/tests
+    - Project/src/lint/architecture/tests
+    - Project/src/lint/languages/tests
+    - Project/src/scaffold/package/tests/test_lint_defaults.py
+    - Project/src/scaffold/memory/tests/test_memory.py
   - include:
-    - tooling/worker/src/scaffold/mod.rs
-    - tooling/worker/src/scaffold/config/**
-    - tooling/worker/src/scaffold/settings/**
-    - tooling/worker/src/paths/**
-    - tooling/worker/src/arguments/**
-    - tooling/worker/src/jobs/**
-    - tooling/worker/src/artifacts/**
-    - tooling/worker/src/vcs/**
-    - tooling/worker/src/yaml/**
-    - tooling/worker/src/scaffold/testing/**
+    - Project/src/scaffold/mod.rs
+    - Project/src/scaffold/config/**
+    - Project/src/scaffold/settings/**
+    - Project/src/paths/**
+    - Project/src/arguments/**
+    - Project/src/jobs/**
+    - Project/src/artifacts/**
+    - Project/src/vcs/**
+    - Project/src/yaml/**
+    - Project/src/scaffold/testing/**
     targets:
-    - tooling/worker/src/scaffold/package/setup/tests
-    - tooling/worker/src/scaffold/commands/tests
-    - tooling/worker/src/scaffold/config/tests
-    - tooling/worker/src/scaffold/evidence/tests
-    - tooling/worker/src/scaffold/memory/tests
-    - tooling/worker/src/scaffold/git/tests
-    - tooling/worker/src/scaffold/gate/tests
-    - tooling/worker/src/scaffold/package/tests
-    - tooling/worker/src/hooks/tests
+    - Project/src/scaffold/package/setup/tests
+    - Project/src/scaffold/commands/tests
+    - Project/src/scaffold/config/tests
+    - Project/src/scaffold/evidence/tests
+    - Project/src/scaffold/memory/tests
+    - Project/src/scaffold/git/tests
+    - Project/src/scaffold/gate/tests
+    - Project/src/scaffold/package/tests
+    - Project/src/hooks/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - tooling/worker/src/scaffold/memory/**
+    - Project/src/scaffold/memory/**
     targets:
-    - tooling/worker/src/scaffold/memory/tests
-    - tooling/worker/src/scaffold/evidence/tests
-    - tooling/worker/src/scaffold/gate/tests
-    - tooling/worker/src/scaffold/package/tests/test_doctor.py
+    - Project/src/scaffold/memory/tests
+    - Project/src/scaffold/evidence/tests
+    - Project/src/scaffold/gate/tests
+    - Project/src/scaffold/package/tests/test_doctor.py
   - include:
-    - tooling/worker/src/scaffold/commands/**
+    - Project/src/scaffold/commands/**
     targets:
-    - tooling/worker/src/scaffold/commands/tests
-    - tooling/worker/src/scaffold/config/tests
-    - tooling/worker/src/scaffold/memory/tests/test_memory.py
-    - tooling/worker/src/scaffold/memory/tests/test_resume.py
-    - tooling/worker/src/scaffold/gate/tests/test_gate.py
-    - tooling/worker/src/scaffold/git/tests/test_git.py
+    - Project/src/scaffold/commands/tests
+    - Project/src/scaffold/config/tests
+    - Project/src/scaffold/memory/tests/test_memory.py
+    - Project/src/scaffold/memory/tests/test_resume.py
+    - Project/src/scaffold/gate/tests/test_gate.py
+    - Project/src/scaffold/git/tests/test_git.py
   - include:
-    - tooling/worker/src/scaffold/git/**
-    - tooling/worker/src/scaffold/gate/**
-    - tooling/worker/src/scaffold/evidence/**
+    - Project/src/scaffold/git/**
+    - Project/src/scaffold/gate/**
+    - Project/src/scaffold/evidence/**
     targets:
-    - tooling/worker/src/scaffold/git/tests
-    - tooling/worker/src/scaffold/gate/tests
-    - tooling/worker/src/scaffold/evidence/tests
-    - tooling/worker/src/scaffold/memory/tests/test_resume.py
-    - tooling/worker/src/scaffold/memory/tests/test_revision_history.py
-    - tooling/worker/src/scaffold/memory/tests/test_state.py
+    - Project/src/scaffold/git/tests
+    - Project/src/scaffold/gate/tests
+    - Project/src/scaffold/evidence/tests
+    - Project/src/scaffold/memory/tests/test_resume.py
+    - Project/src/scaffold/memory/tests/test_revision_history.py
+    - Project/src/scaffold/memory/tests/test_state.py
   - include:
-    - tooling/worker/src/hooks/**
+    - Project/src/hooks/**
     - .agentrig/**
     targets:
-    - tooling/worker/src/hooks/tests
-    - tooling/worker/src/scaffold/commands/tests
-    - tooling/worker/src/scaffold/config/tests
-    - tooling/worker/src/scaffold/git/tests/test_git.py
+    - Project/src/hooks/tests
+    - Project/src/scaffold/commands/tests
+    - Project/src/scaffold/config/tests
+    - Project/src/scaffold/git/tests/test_git.py
   - include:
-    - tooling/worker/src/scaffold/package/**
-    - tooling/worker/assets/**
+    - Project/src/scaffold/package/**
+    - Project/assets/**
     targets:
-    - tooling/worker/src/scaffold/package/setup/tests
-    - tooling/worker/src/scaffold/package/tests
-    - tooling/worker/src/hooks/tests/test_hooks.py
-    - tooling/worker/src/scaffold/memory/tests
+    - Project/src/scaffold/package/setup/tests
+    - Project/src/scaffold/package/tests
+    - Project/src/hooks/tests/test_hooks.py
+    - Project/src/scaffold/memory/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - tooling/worker/src/scaffold/testing/test_delivery.py
-    - tooling/worker/examples/**
+    - Project/src/scaffold/testing/test_delivery.py
+    - Project/examples/**
     targets:
-    - tooling/worker/src/scaffold/testing/test_delivery.py
+    - Project/src/scaffold/testing/test_delivery.py
+  - include:
+    - tooling/worker/**
+    - tooling/distribution/tests/**
+    targets:
+    - tooling/distribution/tests/test_launcher.py
 - id: typos
   kind: command
   skill: .agents/skills/repair/SKILL.md

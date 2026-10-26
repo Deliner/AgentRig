@@ -22,7 +22,7 @@ target="${WORKER_TARGET_DIR:-$root/.cache/worker}"
 cp "$target/release/agentrig" "$target/release/agentrig-lint" "$package/"
 cp LICENSE README.md tooling/distribution/RELEASE.md "$package/"
 cargo about generate --locked --fail --workspace --target "$triple" \
-    --manifest-path tooling/worker/Cargo.toml --config tooling/distribution/about.toml \
+    --manifest-path Project/Cargo.toml --config tooling/distribution/about.toml \
     --format json --output-file "$package/THIRD_PARTY_LICENSES.json"
 git rev-parse HEAD > "$package/REVISION"
 tar -czf "$staging/$name.tar.gz" -C "$staging" "$name"

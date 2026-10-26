@@ -1,0 +1,30 @@
+purpose: Generate agent environment resources and inspect their installed configuration and runtime readiness
+files:
+  architecture.yaml: Package generation, readiness and installation feature boundaries
+  mod.rs: Generate the environment bundle and read prepared or installed resource contents
+  adapters.rs: Generate Git and agent hook adapters
+  assets.rs: Ship canonical skills and scaffold memory and agent instructions
+  claude.rs: Generate, merge and inspect Claude Code client settings
+  doctor.rs: Check installed runtime, hooks, tools and client readiness
+  lint.rs: Generate supported lint rule examples for the consumer
+  template.rs: Interpret scaffold options and generate project configuration and command adapters
+directories:
+  tests: Verify generated lint policy and runtime readiness
+  setup: Initialize the configured environment without overwriting consumer files
+allow:
+  - Project/src/scaffold/testing/consumer.py
+  - Project/src/scaffold/config/mod.rs
+  - Project/src/scaffold/settings/mod.rs
+  - Project/src/arguments/mod.rs
+  - Project/src/paths/mod.rs
+  - Project/src/lint/config/mod.rs
+  - Project/src/yaml/mod.rs
+  - Project/src/vcs/mod.rs
+  - Project/src/scaffold/memory/format.rs
+  - Project/src/scaffold/commands/process.rs
+  - Project/src/diagnostics/mod.rs
+  - Project/src/lint/rules.rs
+  - Project/src/lint/rules/kind.rs
+  - Project/assets/skills/**
+deny: []
+public: [mod.rs, adapters.rs, doctor.rs, setup/mod.rs, setup/init.rs]
