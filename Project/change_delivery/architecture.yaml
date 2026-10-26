@@ -1,0 +1,29 @@
+purpose: Gate commits on selected checks and integrate feature branches
+files:
+  architecture.yaml: Delivery inventory and public boundary
+  mod.rs: Delivery module declarations
+directories:
+  gate: Run checks against selected source snapshots and affected targets
+  git: Coordinate feature branches, checked integration and Git commit guards
+allow:
+  - Project/shared/testing/consumer.py
+  - Project/shared/testing/repository.py
+  - Project/project_config/mod.rs
+  - Project/project_config/settings/mod.rs
+  - Project/command_runner/mod.rs
+  - Project/project_memory/evidence/mod.rs
+  - Project/project_memory/mod.rs
+  - Project/structural_lint/mod.rs
+  - Project/structural_lint/config/mod.rs
+  - Project/structural_lint/inventory/mod.rs
+  - Project/shared/diagnostics/mod.rs
+  - Project/shared/vcs/mod.rs
+  - Project/command_runner/tests/consumer.py
+  - Project/command_runner/jobs/mod.rs
+  - Project/command_runner/jobs/process.rs
+  - Project/command_runner/jobs/cleanup.rs
+deny: []
+public:
+  - mod.rs
+  - gate/mod.rs
+  - git/mod.rs

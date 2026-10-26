@@ -1,0 +1,18 @@
+purpose: Define, load and validate the project configuration that workflow features read
+files:
+  architecture.yaml: Context loading responsibilities and compatibility boundary
+  mod.rs: Canonical project root, recovery-aware validation and existing configuration exports
+directories:
+  tests: Verify invalid runtime and execution settings are rejected before project operations
+  settings: Decode and validate the project configuration schema
+allow:
+  - Project/shared/testing/consumer.py
+  - Project/shared/paths/mod.rs
+  - Project/structural_lint/config/mod.rs
+  - Project/shared/yaml/mod.rs
+  - Project/shared/vcs/mod.rs
+deny: []
+public:
+  - mod.rs
+  - settings/mod.rs
+  - settings/capabilities.rs

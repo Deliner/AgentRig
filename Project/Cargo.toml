@@ -7,9 +7,16 @@ license = "MIT"
 repository = "https://github.com/Deliner/AgentRig"
 description = "Portable environments for agent-native development"
 
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "agentrig"
+path = "command_line/main.rs"
+
 [[bin]]
 name = "agentrig-lint"
-path = "src/lint/standalone.rs"
+path = "structural_lint/standalone.rs"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

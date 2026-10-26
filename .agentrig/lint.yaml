@@ -206,12 +206,12 @@ rules:
       - typing
       - yaml
     rust_crates:
-      agentrig: Project/src/lib.rs
+      agentrig: Project/lib.rs
     rust_roots:
-    - Project/examples/rust/crates/engine/src/lib.rs
-    - Project/src/lib.rs
-    - Project/src/main.rs
-    - Project/src/lint/standalone.rs
+    - Project/shared/testing/examples/rust/crates/engine/src/lib.rs
+    - Project/lib.rs
+    - Project/command_line/main.rs
+    - Project/structural_lint/standalone.rs
     python_root: .
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
   extensions:

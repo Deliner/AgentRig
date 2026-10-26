@@ -4,15 +4,16 @@
 
 Bring the repository toward the user's remembered target state recorded in
 [Requests.md](Requests.md) under "Целевое состояние после утраты истории —
-2026-10-26", including the agent's questions and the user's answers. The user
-told the agent to start work. The order is: removal (D033), macOS port,
-affected-only tests on feature merge, then layout, lint rules and tests.
+2026-10-26". The user rejected Project as the top-level feature: first-level
+features are the entries directly in Project, with two-word names. They asked
+to apply only that and then review the code and project layout
+([D042](Decisions/042.md)). The full B003 revision draft is not agreed.
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: eebff17996a7484e106d55bfb920582c03dfe12f
+Revision: 6c302411a4de7924cee02038bf354561330da904
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 af4beb1, installed by `just bootstrap` under .cache/development. A stray
@@ -25,22 +26,25 @@ prefix `env PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:...`.
 Committed on this branch: removal [D033](Decisions/033.md), macOS port
 [D034](Decisions/034.md), affected-only merge tests [D035](Decisions/035.md),
 Markdown and comment rules [D036](Decisions/036.md)/[D037](Decisions/037.md),
-.agentrig modules [D038](Decisions/038.md) with 3d91c85 pinned (17fd091),
-hooks under .agentrig/hooks (2a3b85c), Just groups [D039](Decisions/039.md)
-(a6f79b6), Ledger/Project init defaults [D040](Decisions/040.md) (a580844),
-worker guides condensed into slice READMEs (5ccd952) and the worker moved
-into Project under [D041](Decisions/041.md), superseding D025's placement
-(af4beb1).
+.agentrig modules [D038](Decisions/038.md), Just groups
+[D039](Decisions/039.md), Ledger/Project init defaults
+[D040](Decisions/040.md), and the worker under Project
+[D041](Decisions/041.md), pinned as af4beb1.
 
-tooling keeps worker/build, worker/run and distribution (with RELEASE.md,
-outside Project, so D036 placement does not apply); bootstrap.sh archives
-Project (eebff17). Plan P018–P023 reconciliation remains open.
+This VAC applies D042. Project holds agent_hooks, change_delivery (gate, git),
+command_line, command_runner (with jobs), project_config (with settings),
+project_memory (with check evidence), project_setup, structural_lint and
+shared (arguments, artifacts, diagnostics, paths, skills, testing with
+examples, vcs, yaml). pyproject.toml and uv.lock moved to tooling; util.rs and
+Project/rust-toolchain.toml were removed. Plan P018–P023 reconciliation
+remains open.
 
 ## Verification
 
-`just check` passed on af4beb1 (68 Rust, 423 pytest, all static checks). After
-`just bootstrap` of af4beb1 the installed config-check, lint-config-check and
-memory-check pass without warnings; the pin commit gate passed.
+The installed af4beb1 `agentrig check` passed on a scratch copy with the same
+restructure: build, lint, memory, rustfmt, clippy, 68 Rust tests, ruff, mypy,
+423 pytest, typos and vulture. In the repository, config-check and
+lint-config-check pass; the commit gate verifies the final contents.
 
 ## Blockers
 
@@ -51,8 +55,7 @@ revert (B001). memory-check cannot run inside `just read`.
 
 ## Next action
 
-Requests part 2 items 9–12 and part 3 (nested features, features/ and shared/,
-two-word first-level names, architecture YAML roles, read-before-edit, test
-placement, blind naming checks) revise B003; a draft was shown in chat and
-awaits the user's agreement under D032 before Backlog, Plan or code changes.
-Independent explicit work meanwhile: faster tests (Python to Rust, coverage).
+Show the user the new Project layout and wait for their review and the rest
+of the feature scheme they recall; the B003 draft awaits agreement under
+D032 before Backlog, Plan or further structure changes. Independent explicit
+work meanwhile: faster tests (Python to Rust, coverage).

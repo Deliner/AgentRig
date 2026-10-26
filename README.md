@@ -5,10 +5,12 @@ configuration, skills and hooks for Codex and Claude Code. The Rust worker suppl
 recovery state, durable decisions, executable invariants and Git delivery. Deterministic checks support development
 quality; model judgments remain probabilistic.
 
-The worker is the product, developed under Project; tooling holds development launchers and distribution. Projects
-select capabilities through configuration modules in `.agentrig/`, including a separate lint configuration;
+The worker is the product: each first-level directory of Project is one feature with a two-word name, and
+Project/shared holds support they share. tooling holds development launchers, distribution and Python verification
+configuration. Projects select capabilities through configuration modules in `.agentrig/`, including a separate lint
+configuration;
 `agentrig-lint` also runs independently against external projects. See
-[consumer setup and configuration](Project/src/scaffold/README.md).
+[consumer setup and configuration](Project/project_setup/README.md).
 
 Download the Linux x86_64 or macOS arm64 binaries from [GitHub releases](https://github.com/Deliner/AgentRig/releases).
 Verify the accompanying SHA-256 file, extract the archive and put `agentrig` and `agentrig-lint` on PATH. The Linux
@@ -28,11 +30,12 @@ bootstrap installs a verified development revision; `just candidate ...` separat
 checks, hook routes and oracle bindings. `just list` lists configured commands; `just --list` lists thin recipes. Run
 catalog commands with `just run NAME -- ARGS`.
 
-- [Scaffold guide](Project/src/scaffold/README.md): installation, configuration, memory schemas, recovery and
+- [Scaffold guide](Project/project_setup/README.md): installation, configuration, memory schemas, recovery and
   Git lifecycle.
 - [Linter guide](Project/README.md): rule semantics, languages, selectors, severity and repair skills.
-- [Independent examples](Project/examples/README.md): Python and Rust consumers and repeatable measurements.
-- [Feature delivery skill](Project/assets/skills/execute-plan-feature/SKILL.md): VACs, evolving the plan,
+- [Independent examples](Project/shared/testing/examples/README.md): Python and Rust consumers and repeatable
+  measurements.
+- [Feature delivery skill](Project/shared/skills/execute-plan-feature/SKILL.md): VACs, evolving the plan,
   blockers and branch handoffs.
 
 Work explicitly selected for execution now and its acceptance live in [Plan](Ledger/Plan.md); future ideas and
@@ -42,7 +45,7 @@ before following it. [Decisions](Ledger/Decisions.md) links current owners and p
 [Invariants](Ledger/Invariants.md) links executable behavior checks. Detailed historical decisions are evidence, not a
 second set of current instructions; the index identifies their successors.
 
-The runtime lives in Project. Skills have one source in Project/assets/skills; .agents/skills is a symlink
+The runtime lives in Project. Skills have one source in Project/shared/skills; .agents/skills is a symlink
 to it, and installed packages embed those same files. Git and agent registrations are thin adapters. The gate runs
 against the actual staged tree at commit and the integration candidate before merge, selecting tests affected by the
 commit or the whole branch. It validates configured contracts and checks; semantic atomicity and acceptance adequacy

@@ -14,7 +14,8 @@ ROOT = Path(__file__).parents[3]
 
 
 @pytest.mark.parametrize(
-    "resource", ["src/main.rs", "src/architecture.yaml", "assets/skills/repair/SKILL.md"]
+    "resource",
+    ["command_line/main.rs", "shared/architecture.yaml", "shared/skills/repair/SKILL.md"],
 )
 def test_launcher_rebuilds_changed_content_even_with_old_mtime(
     tmp_path: Path, resource: str

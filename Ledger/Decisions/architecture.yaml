@@ -42,6 +42,7 @@ files:
   039.md: "Context and rationale for: Keep Just recipes in grouped files under just/."
   040.md: "Context and rationale for: Initialize memory in Ledger and sources in Project by default."
   041.md: "Context and rationale for: Develop the worker under Project and keep only development launchers and distribution under tooling."
+  042.md: "Context and rationale for: Place first-level features with two-word names directly in Project, shared support in Project/shared and Python verification configuration in tooling."
 directories: {}
 allow: []
 deny: []

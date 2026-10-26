@@ -1,0 +1,13 @@
+purpose: Construct configured consumer projects and invoke their workflow commands for behavior tests
+files:
+  architecture.yaml: Shared workflow fixture inventory and public consumer boundary
+  repository.py: Construct checked Git repositories and observe revisions and workflow evidence
+  test_delivery.py: Deliver independent Python and Rust consumer projects through installed commands
+  consumer.py: Seed project policy and empty memory and invoke or observe commands
+directories:
+  examples: Independent consumer projects and portable usage demonstrations
+allow: []
+deny: []
+public:
+  - consumer.py
+  - repository.py

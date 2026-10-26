@@ -23,22 +23,22 @@
   command: rust-test
   affected:
   - {include: ['**'], targets: []}
-  - include: ['.agentrig/**', 'Project/Cargo.*', Project/src/lib.rs, Project/src/main.rs, Project/src/util.rs]
+  - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs']
     targets: ['::']
-  - include: ['Project/src/lint/**']
-    targets: ['lint::', 'scaffold::', 'hooks::']
-  - include: ['Project/src/scaffold/**']
-    targets: ['scaffold::', 'hooks::']
-  - include: ['Project/src/hooks/**']
-    targets: ['hooks::']
-  - include: ['Project/src/jobs/**', 'Project/src/artifacts/**']
-    targets: ['jobs::', 'artifacts::', 'scaffold::', 'hooks::']
-  - include: ['Project/src/paths/**']
-    targets: ['paths::', 'scaffold::', 'hooks::']
-  - include: ['Project/src/arguments/**']
-    targets: ['arguments::', 'lint::', 'scaffold::']
-  - include: ['Project/src/vcs/**', 'Project/src/yaml/**', 'Project/src/diagnostics/**']
-    targets: ['vcs::', 'yaml::', 'diagnostics::', 'lint::', 'scaffold::', 'hooks::']
+  - include: ['Project/structural_lint/**']
+    targets: ['structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/command_line/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']
+    targets: ['command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/agent_hooks/**']
+    targets: ['agent_hooks::']
+  - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
+    targets: ['shared::artifacts::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/shared/paths/**']
+    targets: ['shared::paths::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/shared/arguments/**']
+    targets: ['shared::arguments::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**']
+    targets: ['shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
 - id: ruff-format
   kind: command
   skill: .agents/skills/repair/SKILL.md
@@ -58,90 +58,90 @@
   # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
   affected:
   - include: ['**']
-    targets: [Project/src/lint/config/tests/test_config_check.py]
+    targets: [Project/structural_lint/config/tests/test_config_check.py]
   - include:
-    - Project/src/lint/**
-    - Project/src/arguments/**
-    - Project/src/vcs/**
-    - Project/src/yaml/**
+    - Project/structural_lint/**
+    - Project/shared/arguments/**
+    - Project/shared/vcs/**
+    - Project/shared/yaml/**
     targets:
-    - Project/src/lint/tests
-    - Project/src/lint/inventory/tests
-    - Project/src/lint/architecture/tests
-    - Project/src/lint/languages/tests
-    - Project/src/scaffold/package/tests/test_lint_defaults.py
-    - Project/src/scaffold/memory/tests/test_memory.py
+    - Project/structural_lint/tests
+    - Project/structural_lint/inventory/tests
+    - Project/structural_lint/architecture/tests
+    - Project/structural_lint/languages/tests
+    - Project/project_setup/tests/test_lint_defaults.py
+    - Project/project_memory/tests/test_memory.py
   - include:
-    - Project/src/scaffold/mod.rs
-    - Project/src/scaffold/config/**
-    - Project/src/scaffold/settings/**
-    - Project/src/paths/**
-    - Project/src/arguments/**
-    - Project/src/jobs/**
-    - Project/src/artifacts/**
-    - Project/src/vcs/**
-    - Project/src/yaml/**
-    - Project/src/scaffold/testing/**
+    - Project/command_line/mod.rs
+    - Project/project_config/**
+    - Project/project_config/settings/**
+    - Project/shared/paths/**
+    - Project/shared/arguments/**
+    - Project/command_runner/jobs/**
+    - Project/shared/artifacts/**
+    - Project/shared/vcs/**
+    - Project/shared/yaml/**
+    - Project/shared/testing/**
     targets:
-    - Project/src/scaffold/package/setup/tests
-    - Project/src/scaffold/commands/tests
-    - Project/src/scaffold/config/tests
-    - Project/src/scaffold/evidence/tests
-    - Project/src/scaffold/memory/tests
-    - Project/src/scaffold/git/tests
-    - Project/src/scaffold/gate/tests
-    - Project/src/scaffold/package/tests
-    - Project/src/hooks/tests
+    - Project/project_setup/setup/tests
+    - Project/command_runner/tests
+    - Project/project_config/tests
+    - Project/project_memory/evidence/tests
+    - Project/project_memory/tests
+    - Project/change_delivery/git/tests
+    - Project/change_delivery/gate/tests
+    - Project/project_setup/tests
+    - Project/agent_hooks/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - Project/src/scaffold/memory/**
+    - Project/project_memory/**
     targets:
-    - Project/src/scaffold/memory/tests
-    - Project/src/scaffold/evidence/tests
-    - Project/src/scaffold/gate/tests
-    - Project/src/scaffold/package/tests/test_doctor.py
+    - Project/project_memory/tests
+    - Project/project_memory/evidence/tests
+    - Project/change_delivery/gate/tests
+    - Project/project_setup/tests/test_doctor.py
   - include:
-    - Project/src/scaffold/commands/**
+    - Project/command_runner/**
     targets:
-    - Project/src/scaffold/commands/tests
-    - Project/src/scaffold/config/tests
-    - Project/src/scaffold/memory/tests/test_memory.py
-    - Project/src/scaffold/memory/tests/test_resume.py
-    - Project/src/scaffold/gate/tests/test_gate.py
-    - Project/src/scaffold/git/tests/test_git.py
+    - Project/command_runner/tests
+    - Project/project_config/tests
+    - Project/project_memory/tests/test_memory.py
+    - Project/project_memory/tests/test_resume.py
+    - Project/change_delivery/gate/tests/test_gate.py
+    - Project/change_delivery/git/tests/test_git.py
   - include:
-    - Project/src/scaffold/git/**
-    - Project/src/scaffold/gate/**
-    - Project/src/scaffold/evidence/**
+    - Project/change_delivery/git/**
+    - Project/change_delivery/gate/**
+    - Project/project_memory/evidence/**
     targets:
-    - Project/src/scaffold/git/tests
-    - Project/src/scaffold/gate/tests
-    - Project/src/scaffold/evidence/tests
-    - Project/src/scaffold/memory/tests/test_resume.py
-    - Project/src/scaffold/memory/tests/test_revision_history.py
-    - Project/src/scaffold/memory/tests/test_state.py
+    - Project/change_delivery/git/tests
+    - Project/change_delivery/gate/tests
+    - Project/project_memory/evidence/tests
+    - Project/project_memory/tests/test_resume.py
+    - Project/project_memory/tests/test_revision_history.py
+    - Project/project_memory/tests/test_state.py
   - include:
-    - Project/src/hooks/**
+    - Project/agent_hooks/**
     - .agentrig/**
     targets:
-    - Project/src/hooks/tests
-    - Project/src/scaffold/commands/tests
-    - Project/src/scaffold/config/tests
-    - Project/src/scaffold/git/tests/test_git.py
+    - Project/agent_hooks/tests
+    - Project/command_runner/tests
+    - Project/project_config/tests
+    - Project/change_delivery/git/tests/test_git.py
   - include:
-    - Project/src/scaffold/package/**
-    - Project/assets/**
+    - Project/project_setup/**
+    - Project/shared/skills/**
     targets:
-    - Project/src/scaffold/package/setup/tests
-    - Project/src/scaffold/package/tests
-    - Project/src/hooks/tests/test_hooks.py
-    - Project/src/scaffold/memory/tests
+    - Project/project_setup/setup/tests
+    - Project/project_setup/tests
+    - Project/agent_hooks/tests/test_hooks.py
+    - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - Project/src/scaffold/testing/test_delivery.py
-    - Project/examples/**
+    - Project/shared/testing/test_delivery.py
+    - Project/shared/testing/examples/**
     targets:
-    - Project/src/scaffold/testing/test_delivery.py
+    - Project/shared/testing/test_delivery.py
   - include:
     - tooling/worker/**
     - tooling/distribution/tests/**

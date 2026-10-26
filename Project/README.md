@@ -3,9 +3,9 @@
 The Rust runtime owns agent and Git hooks, command execution and jobs, feature integration, memory validation and
 structural lint. Just recipes and the Git, Codex and Claude Code registrations only forward calls to it. Python serves
 behavioral tests and the latency benchmark. Project settings come from the `.agentrig/` modules: see the
-[scaffold guide](src/scaffold/README.md) for their schema, [selective tests](src/scaffold/gate/README.md) for the
-affected-test map and the [architecture rule](src/lint/architecture/README.md) for directory contracts and analysis
-limits.
+[setup guide](project_setup/README.md) for their schema, [selective tests](change_delivery/gate/README.md) for the
+affected-test map and the [architecture rule](structural_lint/architecture/README.md) for directory contracts and
+analysis limits.
 
 ## Build
 
@@ -39,9 +39,10 @@ fails with its location. Syntax rules reject extensions without a handler. Analy
 macro expansion, decorator alias resolution or generated declarations. Repository policy and installed defaults block
 every language rule. Do not add exceptions to turn the gate green; change policy through a recorded decision.
 
-`src/lint/rules` owns each kind's identity, target, metric, parameters, skill and defaults; the catalog, validation and
-init consume it. `src/lint/languages/registry.rs` binds grammars and inspection functions to extensions and kinds. A
-new rule or language needs its measurement, registration, repair skill, and tests with accepted and rejected examples.
+`structural_lint/rules` owns each kind's identity, target, metric, parameters, skill and defaults; the catalog,
+validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection functions to
+extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests with accepted
+and rejected examples.
 
 The release build also produces `agentrig-lint`, which assesses another project without installing the worker:
 
@@ -63,4 +64,5 @@ escape it. Owners come from WORKER_OWNER, else CODEX_THREAD_ID or CODEX_SESSION_
 successful feature-merge stop the owner's task runs and keep `lifetime: shared` services. Read-only commands run under
 bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary directory and no network.
 
-[measure.py](examples/measure.py) measures first and repeated standalone process latency of a built binary.
+[measure.py](shared/testing/examples/measure.py) measures first and repeated standalone process latency of a
+built binary.

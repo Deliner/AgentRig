@@ -9,9 +9,10 @@ norm-or-choice for durable policy changes.
 
 Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit
 maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product
-features. This repository develops the portable worker itself. Worker capabilities, including lint, belong under
-Project; tooling holds only development launchers and distribution, and repository memory is Ledger (D041). Runtime
-paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by the .agentrig/ modules.
+features. This repository develops the portable worker itself. Worker capabilities, including lint, are first-level
+features placed directly in Project under two-word names, with leaf support in Project/shared; tooling holds the
+development launchers, distribution and Python verification configuration, and repository memory is Ledger (D042).
+Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by the .agentrig/ modules.
 
 ## Commands and verification
 
@@ -35,7 +36,7 @@ the branch after integration. Branch policy comes from .agentrig/git.yaml; never
 ## Memory and skills
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
-edit-* skill. Their canonical bodies live in Project/assets/skills and are exposed through .agents/skills. Do not
+edit-* skill. Their canonical bodies live in Project/shared/skills and are exposed through .agents/skills. Do not
 create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the
 relevant skill yourself.
 

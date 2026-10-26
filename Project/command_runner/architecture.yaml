@@ -1,0 +1,22 @@
+purpose: Run catalog commands in the foreground and as tracked background jobs
+files:
+  architecture.yaml: Command execution responsibilities and consumer boundary
+  mod.rs: Catalog arguments, foreground/background execution and job reporting
+  process.rs: Read-only sandbox commands and tracked subprocess execution
+directories:
+  tests: Configured execution, managed job lifecycle and shared command fixtures
+  jobs: Track and control owned process execution, lifetime, process groups and captured output
+allow:
+  - Project/shared/testing/consumer.py
+  - Project/project_config/mod.rs
+  - Project/shared/artifacts/json.rs
+  - Project/shared/vcs/mod.rs
+deny: []
+public:
+  - mod.rs
+  - process.rs
+  - tests/consumer.py
+  - jobs/mod.rs
+  - jobs/process.rs
+  - jobs/report.rs
+  - jobs/cleanup.rs

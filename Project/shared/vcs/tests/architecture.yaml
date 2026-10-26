@@ -1,0 +1,10 @@
+purpose: Verify Git behavior against real repository consumers
+files:
+  architecture.yaml: Git behavior test inventory and dependencies
+  mod.rs: Verify repository observation, export, hooks and worktree preservation
+  fixture.rs: Build repositories and committed revisions for Git tests
+directories: {}
+allow:
+  - Project/shared/vcs/mod.rs
+deny: []
+public: [mod.rs, fixture.rs]

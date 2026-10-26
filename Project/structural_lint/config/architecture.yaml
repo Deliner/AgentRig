@@ -1,0 +1,15 @@
+purpose: Load strict lint configuration and validate rule selection, severity and repair guidance
+files:
+  architecture.yaml: Configuration responsibilities and dependency boundary
+  mod.rs: YAML schema, configuration validation and shared selector and guidance validation
+directories:
+  tests: Verify lint configuration validation through both CLI entrypoints
+allow:
+  - Project/structural_lint/testing/consumer.py
+  - Project/structural_lint/catalog/mod.rs
+  - Project/structural_lint/rules/kind.rs
+  - Project/structural_lint/rules/descriptor.rs
+  - Project/structural_lint/rules/architecture.rs
+  - Project/shared/yaml/mod.rs
+deny: []
+public: [mod.rs]

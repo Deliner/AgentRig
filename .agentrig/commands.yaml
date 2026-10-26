@@ -56,10 +56,10 @@ test:
   - run
   - --locked
   - --project
-  - Project
+  - tooling
   - pytest
   - -c
-  - Project/pyproject.toml
+  - tooling/pyproject.toml
   - --rootdir
   - .
   accepts_args: true
@@ -69,35 +69,35 @@ ruff-format:
   - run
   - --locked
   - --project
-  - Project
+  - tooling
   - ruff
   - format
   - --check
   - --config
-  - Project/pyproject.toml
+  - tooling/pyproject.toml
 ruff:
   argv:
   - uv
   - run
   - --locked
   - --project
-  - Project
+  - tooling
   - ruff
   - check
   - --config
-  - Project/pyproject.toml
+  - tooling/pyproject.toml
 mypy:
-  argv: ["uv", "run", "--locked", "--project", "Project", "mypy", "--config-file", "Project/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/src/lint", "Project/src/scaffold", "Project/src/hooks", "Project/examples"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
 typos:
   argv:
   - uv
   - run
   - --locked
   - --project
-  - Project
+  - tooling
   - typos
   - --config
-  - Project/pyproject.toml
+  - tooling/pyproject.toml
   - .
 vulture:
-  argv: ["uv", "run", "--locked", "--project", "Project", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/src/lint", "Project/src/scaffold", "Project/src/hooks", "Project/examples"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]

@@ -15,7 +15,7 @@ directories:
   just: Thin command adapters to the configured runtime, grouped by responsibility
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
   Project: Implement, document and verify the portable AgentRig runtime
-  tooling: Launch, bootstrap and release AgentRig for development of this repository
+  tooling: Launch, bootstrap, verify and release AgentRig for development of this repository
 allow: []
 deny: []
 public: []

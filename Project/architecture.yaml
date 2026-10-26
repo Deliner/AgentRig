@@ -1,17 +1,22 @@
-purpose: Implement, document and verify the portable AgentRig runtime and its embedded resources
+purpose: Implement the portable AgentRig runtime as first-level features with shared support
 files:
-  architecture.yaml: Product inventory and capability composition
+  architecture.yaml: Feature inventory and crate composition
   Cargo.toml: Library and executable build declarations
   Cargo.lock: Locked Rust dependency versions
   README.md: Runtime commands, build and lint rule user guide
-  rust-toolchain.toml: Rust toolchain selected for reproducible development
   conftest.py: Shared pytest candidate binary construction and test environment fixtures
-  pyproject.toml: Python verification dependencies and tool configuration
-  uv.lock: Locked Python verification dependency versions
+  lib.rs: Library declarations of the first-level features and shared support
 directories:
-  assets: Canonical resources embedded in installed environments
-  examples: Independent consumer projects and portable usage demonstrations
-  src: AgentRig library, executable entry points and feature implementations
+  agent_hooks: Interpret agent hook events and deliver command guards, edit guidance and context reminders
+  change_delivery: Gate commits on selected checks and integrate feature branches
+  command_line: Parse agentrig commands and dispatch them to the features that own them
+  command_runner: Run catalog commands in the foreground and as tracked background jobs
+  project_config: Define, load and validate the project configuration that workflow features read
+  project_memory: Validate project memory contracts and report recovery context
+  project_setup: Initialize agent environments and inspect their readiness
+  shared: Repository access, diagnostics, artifacts, skills and test support shared by features
+  structural_lint: Inspect source measurements and architecture contracts
 allow: []
 deny: []
-public: [src/lib.rs]
+public:
+  - lib.rs

@@ -1,0 +1,11 @@
+purpose: Verify environment initialization while preserving existing consumer files and client preferences
+files:
+  architecture.yaml: Setup capability test responsibilities and fixture dependencies
+  test_wizard.py: Interactive initialization choices, collision recheck and parity with declarative init
+  test_layout.py: Installation locations, generated adapters and rejected layout changes
+  test_capabilities.py: Capability validation, strict root YAML and Claude Code hook registration
+directories: {}
+allow:
+  - Project/shared/testing/consumer.py
+deny: []
+public: []
