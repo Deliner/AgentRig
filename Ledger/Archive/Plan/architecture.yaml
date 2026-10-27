@@ -16,4 +16,5 @@ files:
   025.md: Comments limited to decision and invariant references and their CLI evals
   024.md: Architecture types of features without nested features and their verification
   026.md: Condition naming skill refined by a fixed blind evaluation of real conditions
+  027.md: Tool registry, route control, compact output and task cleanup with their acceptance
 directories: {}
