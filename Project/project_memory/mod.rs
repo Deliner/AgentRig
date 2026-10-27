@@ -14,6 +14,8 @@ mod source;
 pub use resume::run as resume;
 
 use crate::project_config::Context;
+use crate::shared::paths::patterns::globs;
+use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
 use format::{Row, sections, table, target};
 use std::{
@@ -32,8 +34,32 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     backlog(context, &memory)?;
     decisions(context, &memory)?;
     invariants(context, &memory)?;
+    references(context, &memory)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
+}
+// DECISION: D037
+fn references(context: &Context, memory: &Path) -> Result<()> {
+    let records: HashSet<String> = table(&memory.join("Decisions.md"), 'D')?
+        .into_iter()
+        .chain(table(&memory.join("Invariants.md"), 'I')?)
+        .map(|row| row.id)
+        .collect();
+    let sources = globs(&context.config.paths.sources)?;
+    let files = inventory::collect(&context.root, &globs(&[])?)?.files;
+    for path in files.iter().filter(|path| sources.is_match(path)) {
+        let Some(source) = source::inspect(&context.root.join(path))? else {
+            continue;
+        };
+        for id in source.references() {
+            ensure!(
+                records.contains(id),
+                "{}: {id} is not a recorded decision or invariant",
+                path.display()
+            );
+        }
+    }
+    Ok(())
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> Result<()> {
     let (headings, optional) = format::detail_sections(directory);

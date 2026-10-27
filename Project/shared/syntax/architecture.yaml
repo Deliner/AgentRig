@@ -1,5 +1,5 @@
-purpose: Parse Rust, Python and shell sources into syntax trees selected by file extension
+purpose: Parse Rust, Python and shell sources and recognize exact decision and invariant reference comments
 type: flat
 files:
-  mod.rs: Grammar selection by extension and parsing
+  mod.rs: Grammar selection by extension, parsing and the reference comment format
 directories: {}

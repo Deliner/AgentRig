@@ -62,6 +62,11 @@ impl Source {
                     || functions[0].contains(&format!("// INVARIANT: {id}")))
         })
     }
+    pub fn references(&self) -> impl Iterator<Item = &str> {
+        self.comments
+            .iter()
+            .filter_map(|comment| crate::shared::syntax::reference(comment))
+    }
     pub fn marker(&self, kind: &str, id: &str) -> bool {
         self.comments.contains(&format!("# {kind}: {id}"))
             || self.comments.contains(&format!("// {kind}: {id}"))

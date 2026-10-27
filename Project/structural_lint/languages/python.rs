@@ -39,7 +39,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
 }
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
-        "comment" => comment(node, "#", source, output),
+        "comment" => comment(node, source, output),
         "expression_statement" => statement(node, output),
         "if_statement" | "elif_clause" => {
             condition(

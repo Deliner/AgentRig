@@ -28,13 +28,14 @@ fn rust_accepts_only_exact_decision_and_invariant_references() {
 //DECISION: D001
 // DECISION: D01
 // NOTE: D001
+// SAFETY: the caller checks bounds
 fn run() { let text = \"// not a comment\"; } // trailing
 ";
     let lines: Vec<_> = comment_lines("source.rs", source)
         .into_iter()
         .map(|(line, _)| line)
         .collect();
-    assert_eq!(lines, [3, 4, 5, 6, 7, 8, 9, 10, 11]);
+    assert_eq!(lines, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 }
 
 #[test]
@@ -43,6 +44,8 @@ fn python_rejects_other_comments_and_lone_strings() {
 # DECISION: D001
 # INVARIANT: I002
 # plain
+# type: ignore
+value = 1  # noqa: E501
 text = \"# not a comment\"  # trailing
 def run():
     \"\"\"Documentation.\"\"\"
@@ -54,7 +57,9 @@ def run():
             (1, "docstring".into()),
             (4, "comment".into()),
             (5, "comment".into()),
-            (7, "docstring".into()),
+            (6, "comment".into()),
+            (7, "comment".into()),
+            (9, "docstring".into()),
         ]
     );
 }

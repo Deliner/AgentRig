@@ -91,23 +91,8 @@ pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measureme
     }
 }
 // DECISION: D037
-pub fn comment(node: Node<'_>, marker: &str, source: &str, output: &mut Vec<Measurement>) {
-    let reference = text(node, source)
-        .trim_end()
-        .strip_prefix(marker)
-        .and_then(|body| body.strip_prefix(' '))
-        .and_then(|body| body.split_once(": "))
-        .is_some_and(|(label, id)| {
-            let prefix = match label {
-                "DECISION" => "D",
-                "INVARIANT" => "I",
-                _ => return false,
-            };
-            id.strip_prefix(prefix).is_some_and(|digits| {
-                digits.len() == 3 && digits.bytes().all(|b| b.is_ascii_digit())
-            })
-        });
-    let forbidden = !reference;
+pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();
     if forbidden {
         output.push(Measurement {
             kind: Kind::CommentReference,

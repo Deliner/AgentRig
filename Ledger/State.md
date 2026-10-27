@@ -14,7 +14,7 @@ review runner are assessed by the executor at acceptance
 
 Branch: feature/target-state
 
-Revision: efb49b0ccd0ffa9fcb1d791b7fb3b2ec26e25665
+Revision: 8b8ce49a4fc77926b8cc375fe85f0e5093c231e8
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -30,13 +30,16 @@ P021 delivered [D047](Decisions/047.md) hook coordination, its repository
 routes, grouped lint diagnostics, the merge-boundary review text and the
 `just run` read_only classification; K1–K15 evidence is in its archive card.
 P025 starts from [D037](Decisions/037.md)'s existing comment-reference lint
-rule for Rust and Python. memory-check verifies that decision owners carry
-their marker, but not that a marker in code names an existing record (K2).
+rule for Rust and Python. Its first VAC moves the exact reference format to
+shared/syntax, where lint and memory-check share it; memory-check now reports
+each reference in the configured sources that names no recorded decision or
+invariant (K2). The language tests add tool-directive comments (K1).
 
 ## Verification
 
-c1dde2c and efb49b0 passed the commit gate (99 selected Python tests, Rust
-checks, lint and memory). The archive VAC changes only Ledger records.
+The current VAC passed the project_memory and language Python tests (92),
+the language Rust tests and memory-check on this repository with the
+candidate. 8b8ce49 passed the commit gate.
 
 ## Blockers
 
@@ -44,5 +47,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Check B008 K1–K6 against the D037 rule, starting with K2: report code
-markers that name a missing decision or an invariant without its oracle.
+Commit the K1/K2 VAC, then check the comment finding's text (K3), the
+replace-comment skill (K4, K5) and add CLI evals through the lint and
+memory-check commands (K6).
