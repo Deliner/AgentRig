@@ -5,6 +5,7 @@
 // DECISION: D011
 // DECISION: D003
 // DECISION: D019
+// DECISION: D046
 mod guard;
 pub mod input;
 mod recovery;
@@ -41,6 +42,7 @@ fn paths(event: &Value) -> Vec<String> {
     let patches = [
         payload.as_str(),
         payload["patch"].as_str(),
+        payload["command"].as_str(),
         payload["input"].as_str(),
         payload["patch_text"].as_str(),
     ];

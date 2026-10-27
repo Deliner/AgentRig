@@ -50,6 +50,11 @@ from Project.shared.testing.consumer import invoke
         ),
         (
             "apply_patch",
+            {"command": "*** Begin Patch\n*** Update File: Ledger/Plan.md\n*** End Patch"},
+            ["edit-plan"],
+        ),
+        (
+            "apply_patch",
             {
                 "patch_text": "*** Update File: Project/example.md\n"
                 "+*** Update File: Ledger/Plan.md\n"

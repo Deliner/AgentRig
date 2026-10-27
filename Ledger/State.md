@@ -13,40 +13,41 @@ the removed review runner are assessed by the executor at acceptance
 
 Branch: feature/target-state
 
-Revision: 79ff8be42062b798b203d8ceb631e4bdb15d5513
+Revision: 5a14d47da67970b34e608b0272d005affe7cabea
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-d64607e, installed by `just bootstrap` under .cache/development. A stray
-branch feature/init-probe at a14f284 remains from an install probe;
-guard-reference refuses its deletion. Agent shells lack cargo and uv on PATH;
-prefix `env PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:...` inside
+579474d (D045 recovery), installed by `just bootstrap` under
+.cache/development. A stray branch feature/init-probe at a14f284 remains from
+an install probe; guard-reference refuses its deletion. Agent shells lack
+cargo and uv on PATH; prefix `PATH=/Users/admin/.cargo/bin:...` inside
 `just write --`.
 
 ## Progress
 
-49d36db records the Backlog removal and the new Plan selection. The next
-P018 VAC adds hook configuration recovery ([D045](Decisions/045.md)): with an
-invalid configuration only configuration-source edits and `just config-check`
-pass, every denial carries the full error and repair skill, and validation
-errors name their module file. Consumer acceptance in real Codex and Claude
-Code sessions (K7) is not done yet.
+579474d added hook configuration recovery ([D045](Decisions/045.md)). The
+K7 Codex session exposed two gaps: apply_patch text in `tool_input.command`
+was not read, so the permitted repair edit was denied; and Codex reads only
+through shell, so it repaired blind and lost the test command. The current
+VAC ([D046](Decisions/046.md)) reads that payload key and allows `cat` of
+configuration sources and the repair skill during recovery.
 
 ## Verification
 
-The reproduction in a scratch consumer showed every event denied before the
-change. After it, three new agent_hooks Rust tests pass and the same scratch
-probe shows config edits and `just config-check` allowed, other calls denied
-with the cause, for missing, corrupt, unknown-field, invalid-command,
-invalid-check and broken-lint cases.
+agent_hooks Rust tests (5) and test_hooks.py (29, including the Codex patch
+shape) pass on the working tree. K7 in scratch consumers: Claude Code (haiku,
+D045 candidate) and Codex (gpt-5.6-luna, D046 candidate, hooks trusted via
+`--dangerously-bypass-hook-trust`) each saw the denial, read the skill and
+config, fixed `read.accepts_args`, passed `just config-check`, created
+Project/hello.txt and ran `just list`; Codex restored commands.yaml exactly,
+and the untracked Project/notes.txt survived. guard-commit blocked a commit
+while the consumer configuration was broken.
 
 ## Blockers
 
-None. The installed hook validates .agentrig/lint.yaml with the pinned
-runtime, so new lint settings need a pin first. memory-check cannot run
-inside `just read`.
+None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Pin and bootstrap the recovery runtime, then run the K7 consumer scenario:
-break a module in Codex and Claude Code consumers, let a real session repair
-it with unrelated changes present, and confirm commit checks still apply.
+Commit the D046 VAC, pin and bootstrap it, record K1–K8 evidence in P018 and
+archive it, then start P019 (B003): move `globs`/`skill` out of
+structural_lint::config into shared support.

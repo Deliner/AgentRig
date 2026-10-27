@@ -42,14 +42,17 @@ pub fn command(event: &Value) -> Option<&str> {
         .iter()
         .find_map(|key| event["tool_input"][key].as_str())
 }
-pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
-    let command =
-        command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
+pub fn words(command: &str) -> Result<Vec<String>> {
     let has_outer_control = outer_control(command);
     if has_outer_control {
         bail!("Agent shell commands must be one top-level just invocation.");
     }
-    let argv = shell_words::split(command)?;
+    Ok(shell_words::split(command)?)
+}
+pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
+    let command =
+        command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
+    let argv = words(command)?;
     let not_just = argv
         .first()
         .and_then(|arg| Path::new(arg).file_name())

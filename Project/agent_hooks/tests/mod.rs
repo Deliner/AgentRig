@@ -52,6 +52,11 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
     }
     let patch = "*** Update File: .agentrig/commands.yaml\n*** Add File: Project/x.py\n";
     assert_eq!(reason(&hook(&root, "apply_patch", json!(patch))), denied);
+    let codex = "*** Begin Patch\n*** Update File: .agentrig/commands.yaml\n*** End Patch";
+    assert_eq!(
+        reason(&hook(&root, "apply_patch", json!({"command": codex}))),
+        ""
+    );
     let session = dispatch(&root, &json!({"hook_event_name": "SessionStart"})).unwrap();
     assert_eq!(
         session.unwrap()["hookSpecificOutput"]["additionalContext"],
@@ -60,6 +65,24 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
     fs::write(&commands, valid).unwrap();
     assert_eq!(edit(&root, "Project/main.py"), "");
     assert_eq!(shell(&root, "just run test"), "");
+}
+
+#[test]
+fn invalid_configuration_can_be_read_only_through_cat_of_its_files() {
+    let (_temp, root) = project();
+    fs::write(root.join(".agentrig/commands.yaml"), "read:\n  argv: []\n").unwrap();
+    let read = "cat .agentrig/commands.yaml '.agentrig/skills/repair/SKILL.md'";
+    assert_eq!(shell(&root, read), "");
+    let denied = edit(&root, "Project/main.py");
+    assert!(denied.contains("`cat` of these files and .agentrig/skills/repair/SKILL.md"));
+    for command in [
+        "cat Project/main.py",
+        "cat .agentrig/commands.yaml > Project/main.py",
+        "sed -n 1p .agentrig/commands.yaml",
+        "cat",
+    ] {
+        assert_eq!(shell(&root, command), denied, "{command}");
+    }
 }
 
 #[test]
