@@ -2,6 +2,6 @@ purpose: Represent actionable findings, validate their skill references and rend
 type: flat
 files:
   mod.rs: Shared guidance formatting and command failure recovery instructions
-  lint.rs: Serializable lint findings and their text locations and rendering
+  lint.rs: Serializable lint findings and their text rendering grouped by shared cause
   skills.rs: Validation that configured guidance references a repository SKILL.md
 directories: {}
