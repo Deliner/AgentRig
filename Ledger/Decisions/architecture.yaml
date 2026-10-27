@@ -43,4 +43,5 @@ files:
   041.md: "Context and rationale for: Develop the worker under Project and keep only development launchers and distribution under tooling."
   042.md: "Context and rationale for: Place first-level features with two-word names directly in Project, shared support in Project/shared and Python verification configuration in tooling."
   043.md: "Context and rationale for: Limit directory contracts to purpose, files and directories, with directory cycles as the only dependency finding."
+  044.md: "Context and rationale for: Make features without nested features declare an architecture type with required parts and inward dependencies."
 directories: {}

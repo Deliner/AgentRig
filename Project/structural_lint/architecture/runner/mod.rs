@@ -47,6 +47,8 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     let (edges, source_issues) = dependencies(&resolvers, sources);
     issues.extend(source_issues);
     issues.extend(super::graph::cycles(&edges));
+    let features = settings.feature_root.as_deref();
+    issues.extend(contracts.check_features(features, &scope.inventory, &edges));
     Ok(issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))

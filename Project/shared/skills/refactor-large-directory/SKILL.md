@@ -80,6 +80,13 @@ change in responsibility or contract.
 
 ## Repository binding and completion
 
+Give each feature without nested features the type matching its actual
+structure: flat for files only, layered, hexagonal, onion or clean when its
+parts follow that style, custom otherwise. For a type finding, move code into
+the part that owns it, invert an outward dependency at its owner, or split a
+composite responsibility into nested features. Never change a type merely to
+pass; a different type must describe the code as it is.
+
 Give each scoped directory one line of purpose. Register files other than the
 contract individually with what belongs in each and describe children in the
 separate directories block; each child has its own architecture.yaml contract.
@@ -91,8 +98,8 @@ appropriate; do not require empty entries or ban standard names. When a finding
 may describe module wiring rather than an architectural dependency, inspect the
 measured edge and analyzer semantics before moving code.
 
-Lint enforces the inventory and acyclic measured dependencies; dependency
-direction and public surfaces follow from ownership. Depth, extensive sharing,
+Lint enforces the inventory, acyclic measured dependencies and feature types;
+other dependency direction and public surfaces follow from ownership. Depth, extensive sharing,
 abstraction and asymmetry prompt analysis; they are not violations by themselves.
 Preserve configured hard size limits. Inventory and measured edges are mechanical
 evidence; the meaning of ownership requires inspecting implementation and consumers.

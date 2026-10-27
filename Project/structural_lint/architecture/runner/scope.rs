@@ -34,24 +34,42 @@ impl Scope {
             })
             .cloned()
             .collect();
-        let needs_rust_root = files
-            .iter()
-            .any(|path| path.extension().is_some_and(|ext| ext == "rs"));
-        let settings = rule
-            .architecture
-            .as_ref()
-            .expect("validated architecture settings");
-        ensure!(
-            !needs_rust_root || !settings.rust_roots.is_empty(),
-            "{}: selected Rust sources need architecture.rust_roots",
-            rule.id
-        );
+        validate_roots(rule, &files, &directories)?;
         Ok(Self {
             directories,
             files,
             inventory,
         })
     }
+}
+
+fn validate_roots(
+    rule: &Rule,
+    files: &BTreeSet<PathBuf>,
+    directories: &BTreeSet<PathBuf>,
+) -> Result<()> {
+    let needs_rust_root = files
+        .iter()
+        .any(|path| path.extension().is_some_and(|ext| ext == "rs"));
+    let settings = rule
+        .architecture
+        .as_ref()
+        .expect("validated architecture settings");
+    ensure!(
+        !needs_rust_root || !settings.rust_roots.is_empty(),
+        "{}: selected Rust sources need architecture.rust_roots",
+        rule.id
+    );
+    let unselected_root = settings
+        .feature_root
+        .as_ref()
+        .is_some_and(|root| !directories.contains(root));
+    ensure!(
+        !unselected_root,
+        "{}: architecture.feature_root must be a selected directory",
+        rule.id
+    );
+    Ok(())
 }
 
 fn selected_inventory(

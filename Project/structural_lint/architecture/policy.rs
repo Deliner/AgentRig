@@ -1,6 +1,7 @@
 // DECISION: D028
 // DECISION: D043
-use super::Issue;
+// DECISION: D044
+use super::{Dependency, Issue};
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
@@ -19,6 +20,8 @@ pub(super) struct Declaration {
     pub files: BTreeMap<String, String>,
     #[serde(default)]
     pub directories: BTreeMap<String, String>,
+    #[serde(default, rename = "type")]
+    pub kind: Option<super::features::Kind>,
 }
 
 pub struct Contracts {
@@ -41,6 +44,15 @@ impl Contracts {
             ));
         }
         issues
+    }
+
+    pub fn check_features(
+        &self,
+        root: Option<&Path>,
+        inventory: &crate::structural_lint::inventory::Inventory,
+        edges: &[Dependency],
+    ) -> Vec<Issue> {
+        super::features::check(root, &self.declarations, inventory, edges)
     }
 
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {

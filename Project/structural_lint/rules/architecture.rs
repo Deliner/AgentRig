@@ -1,3 +1,4 @@
+// DECISION: D044
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -12,6 +13,8 @@ pub struct Settings {
     pub rust_roots: Vec<PathBuf>,
     pub rust_crates: BTreeMap<String, PathBuf>,
     pub external: External,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub feature_root: Option<PathBuf>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -33,8 +36,9 @@ impl Default for External {
 impl Settings {
     pub fn describe() -> serde_json::Value {
         serde_json::json!({
-            "contract": "architecture.yaml: single-line purpose, files and directories responsibility maps, allow, deny, public; every selected directory",
-            "selection": "directory include/exclude; explicit extensions select immediate source files; enclosing selected contracts also apply",
+            "contract": "architecture.yaml: single-line purpose, files and directories responsibility maps; type on a feature without nested features; every selected directory",
+            "selection": "directory include/exclude; explicit extensions select immediate source files",
+            "feature_root": "selected directory whose subdirectories are features; untyped features are composite, features without nested features declare flat, layered, hexagonal, onion, clean or custom with required parts and inward dependencies",
             "python_root": "one project-relative import root; default project root",
             "rust_roots": "explicit project-relative crate root files; required for selected Rust sources",
             "rust_crates": "local Rust crate name to a root listed in rust_roots; resolved to measured file edges before external classification",
@@ -51,6 +55,7 @@ impl Settings {
         for path in std::iter::once(&self.python_root)
             .chain(&self.rust_roots)
             .chain(self.rust_crates.values())
+            .chain(&self.feature_root)
         {
             let relative = path
                 .components()

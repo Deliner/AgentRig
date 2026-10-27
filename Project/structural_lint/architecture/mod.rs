@@ -1,3 +1,4 @@
+mod features;
 mod graph;
 mod inventory;
 mod policy;

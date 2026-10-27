@@ -8,7 +8,7 @@ files:
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   testing: Build isolated lint CLI consumers shared across rule behavior tests
-  architecture: Check responsibility inventories and measured dependency boundaries
+  architecture: Check directory contracts, feature types and measured dependency cycles
   catalog: Describe implemented rule and language capabilities
   config: Load and validate strict lint policy and guidance paths
   inventory: Discover maintained files and directories

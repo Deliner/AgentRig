@@ -1,7 +1,7 @@
 # Directory architecture lint
 
 `directory-architecture` is an opt-in rule of `agentrig lint` and `agentrig-lint`. It checks per-directory contracts
-and reports directory cycles in measured source dependencies.
+and feature types and reports directory cycles in measured source dependencies.
 
 ## Configuration
 
@@ -16,6 +16,7 @@ and reports directory cycles in measured source dependencies.
   architecture:
     python_root: src
     rust_roots: [src/lib.rs]
+    feature_root: src
     external:
       rust: [std, core, alloc]
       python: [json]
@@ -32,9 +33,8 @@ the actual crate roots (`[]` without Rust); `rust_crates` maps further local cra
 `{catalog: crates/catalog/src/lib.rs}`, to roots also listed there. External names are module or package prefixes, not
 globs; Rust defaults to `std`, `core` and `alloc`. An external name cannot hide a locally resolved path.
 
-`level: warning` reports without failing; `error` exits 1; configuration errors exit 2. `lint-rules`,
-`lint-config-check` and `lint-explain DIRECTORY` share the registry and selection. Findings carry the source path and
-line, or the contract path, with the repair skill and rerun command.
+`level: warning` reports without failing, `error` exits 1 and configuration errors exit 2. Findings name the source
+line or the contract with the repair skill and rerun command.
 
 ## Directory contracts
 
@@ -46,10 +46,28 @@ directories:
   tests: Behavior checks owned by orders
 ```
 
-A contract has only `purpose`, `files` and `directories`. `purpose` is one nonempty line. `files` and `directories`
-register every immediate entry except the contract itself by literal name with a nonempty responsibility; stale
-entries, wrong kinds and unknown fields are errors. Lint cannot prove that descriptions agree with the code. Contracts
-cannot leave the project.
+A contract has `purpose`, `files`, `directories` and, on a feature without nested features, `type`. `purpose` is one
+nonempty line. `files` and `directories` register every immediate entry except the contract itself by literal name
+with a nonempty responsibility; stale entries, wrong kinds and unknown fields are errors. Contracts stay in the project.
+
+## Feature types
+
+Subdirectories of the optional `feature_root` are features. A feature without `type` is composite: its subdirectories
+except `tests` are features too. A feature with no other subdirectories must declare `type`; `type` anywhere else is
+an error. A typed feature has exactly its type's parts plus an optional `tests`:
+
+| Type | Parts, outer to inner |
+| --- | --- |
+| flat | none |
+| layered | presentation, application, domain, infrastructure |
+| hexagonal | adapters, ports, domain |
+| onion | infrastructure, application, domain |
+| clean | frameworks, adapters, use_cases, entities |
+| custom | any subdirectories, unchecked |
+
+A file in a part may use its own part and inner parts. Files in the feature root may use any part; parts never use
+them, and nothing outside `tests` uses `tests`. Module declarations and dependencies on other features are not
+direction findings, and flat and custom features add no direction rule.
 
 Cycles use actual resolved edges and report source evidence across sibling subsystems. Rust module declarations
 (`mod child;`) express composition and form no cycle, so a child may use a parent-owned type.
@@ -67,6 +85,3 @@ unsupported forms are incomplete-analysis findings at the configured level; this
 - Python: one import root, absolute and relative imports, package initializers, namespace submodules and literal
   runtime imports. Ambiguous members, wildcard exports, namespace-only imports and loader aliases fail or are
   incomplete. `.pyi` is parsed but is not a runtime target.
-
-Repair findings with the `refactor-large-directory` skill. Moving files into arbitrary buckets to silence findings does
-not establish the intended architecture.

@@ -1,8 +1,8 @@
-purpose: Verify architecture inventories and dependency boundaries through real Rust and Python CLI consumers
+purpose: Verify architecture inventories and dependency cycles through real Rust and Python CLI consumers
 files:
   test_architecture.py: Shared architecture consumer construction and baseline dependency scenarios
   test_architecture_attributes.py: Rust attribute dependencies and unsupported attribute diagnostics
-  test_architecture_behavior.py: Real consumer execution and public boundary repair parity
+  test_architecture_behavior.py: Real consumer execution and dependency cycle parity
   test_architecture_bindings.py: Rust binding, alias and reexport dependency scenarios
   test_architecture_crates.py: Local Rust crate identity and cross-crate consumer resolution
   test_architecture_incomplete.py: Explicit diagnostics for unsupported and unresolved dependencies
