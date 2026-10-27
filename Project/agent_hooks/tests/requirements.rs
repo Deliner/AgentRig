@@ -130,6 +130,21 @@ fn contradictory_route_order_is_rejected_until_repaired() {
 }
 
 #[test]
+fn read_only_catalog_commands_carry_no_shell_guidance() {
+    let (_temp, root) = project();
+    let read = json!({"command": "just run read -- git status"});
+    assert_eq!(hook(&root, "Bash", read), Value::Null);
+    let write = hook(
+        &root,
+        "Bash",
+        json!({"command": "just run write -- touch x"}),
+    );
+    let (decision, message) = answer(&write);
+    assert_eq!(decision, "allow");
+    assert!(message.contains("for opaque shell write"), "{message}");
+}
+
+#[test]
 fn vac_check_entry_reminds_state_once_per_context() {
     let (_temp, root) = project();
     let commit = "just run write -- sh -c 'git add -A && git commit -q -m done'";

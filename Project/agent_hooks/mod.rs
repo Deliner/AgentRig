@@ -113,13 +113,16 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
         Ok(args) => args,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
     };
-    let opaque = argv.get(1).is_some_and(|arg| {
-        arg == "run"
-            || configured
-                .config
-                .commands
-                .get(arg)
-                .is_some_and(|command| !command.read_only)
+    let catalog = match argv.get(1).map(String::as_str) {
+        Some("run") => argv.get(2),
+        _ => argv.get(1),
+    };
+    let opaque = catalog.is_some_and(|name| {
+        configured
+            .config
+            .commands
+            .get(name)
+            .is_some_and(|command| !command.read_only)
     });
     let mut found = Vec::new();
     if opaque {
