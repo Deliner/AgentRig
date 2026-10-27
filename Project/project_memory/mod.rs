@@ -33,8 +33,8 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     plan(context, &memory)?;
     backlog(context, &memory)?;
     decisions(context, &memory)?;
-    invariants(context, &memory)?;
     references(context, &memory)?;
+    invariants(context, &memory)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }

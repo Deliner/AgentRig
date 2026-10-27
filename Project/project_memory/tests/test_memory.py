@@ -71,6 +71,7 @@ def test_source_references_name_recorded_entries(worker: Path, tmp_path: Path) -
         identifier = reference.rsplit(" ", 1)[1]
         assert f"src/lib.py: {identifier} is not a recorded" in result.stderr
     source.write_text("value = 1\n")
+    (tmp_path / "src/lib.cpython-313.pyc").write_bytes(b"\xf3\r\r\n")
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 

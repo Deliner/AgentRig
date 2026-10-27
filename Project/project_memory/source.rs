@@ -1,5 +1,5 @@
 // DECISION: D002
-use anyhow::{Result, ensure};
+use anyhow::{Context as _, Result, ensure};
 use std::{
     collections::{HashMap, HashSet},
     fs,
@@ -12,7 +12,10 @@ pub struct Source {
     pub functions: HashMap<String, Vec<HashSet<String>>>,
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
-    let source = fs::read_to_string(path)?;
+    let bytes = fs::read(path).with_context(|| path.display().to_string())?;
+    let Ok(source) = String::from_utf8(bytes) else {
+        return Ok(None);
+    };
     let shebang = source.lines().next().unwrap_or("");
     let shell = path.extension().is_none() && shebang.starts_with("#!") && shebang.contains("sh");
     let parse_path = if shell { Path::new("source.sh") } else { path };
