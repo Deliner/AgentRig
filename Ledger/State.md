@@ -8,14 +8,14 @@ B014. B001, B003, B002, B008 and B009 are complete as
 [P018](Archive/Plan/018.md), [P019](Archive/Plan/019.md),
 [P021](Archive/Plan/021.md), [P025](Archive/Plan/025.md) and
 [P026](Archive/Plan/026.md). P027 (tool registry, [B014](Backlog/014.md)) is
-the remaining pending card. References to the removed review runner are
+the remaining card and is active. References to the removed review runner are
 assessed by the executor at acceptance ([D033](Decisions/033.md)).
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: c67408a1ca266475f80c79c448a3221594acd0f1
+Revision: 5320b7358950ca70a919d0e43ab36c772a552296
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -33,7 +33,9 @@ select_base's combined condition was named by listing its parts (K2 partial).
 Step 4 of the skill now asks for the joint fact; a blind re-run of cases 1,
 4 and 5 passed. Per-case results are in Archive/Plan/026.md. The installed
 runtime (c1dde2c) predates P025's memory-check reference scan, which the
-candidate already has.
+candidate already has. P027 is active with its start rules chosen from
+existing mechanisms: the task is the feature branch and its completion is a
+successful `feature-merge`, which already cleans that branch's runs.
 
 ## Verification
 
@@ -47,7 +49,7 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Start P027: establish B014's start questions (tool and base-invocation
-recognition rules, the task-completion event, the order of saving results
-and cleaning logs) from the current command catalog, hook routes and job
-logs; record them in P027 Delivery, or a blocker if a choice needs the user.
+Implement P027 by VACs on the start rules in its Delivery, beginning with K3:
+configured programs and argument forms for `just read`/`just write`, refusal
+of other programs with the known route, and a temporary-run operation. Keep
+using the installed runtime until the candidate is pinned.
