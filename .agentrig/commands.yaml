@@ -2,9 +2,34 @@ read:
   argv: []
   accepts_args: true
   read_only: true
+  programs:
+    git:
+      subcommands: [status, diff, log, show, rev-parse, branch, ls-files, grep, blame, merge-base, describe, cat-file, ls-tree]
+      deny: [-O, --open-files-in-pager]
+    ls: {}
+    cat: {}
+    head: {}
+    tail: {}
+    wc: {}
+    grep: {}
+    rg: {deny: [--pre]}
+    sed: {}
+    diff: {}
+    stat: {}
+    find: {deny: [-exec, -ok]}
 write:
   argv: []
   accepts_args: true
+  programs:
+    git:
+      subcommands: [add, commit, rm, mv, restore, switch, checkout, stash, cherry-pick, rebase, branch]
+      deny: [--exec, -x]
+    mkdir: {}
+    cp: {}
+    mv: {}
+    rm: {}
+    touch: {}
+    chmod: {}
 build:
   argv:
   - tooling/worker/build

@@ -22,9 +22,10 @@ Runtime paths, Git base/prefix, commands, checks, hook routes and oracle binding
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
 Invoke shell operations through the Just recipes grouped under just/ (`just --list`). `just list` lists the configured
-command catalog. Use `just read -- ...` for sandboxed shell inspection, `just write -- ...` for authorized shell
-mutations, and `just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately
-preceding What/Why comment.
+command catalog. Use `just read -- PROGRAM ...` for sandboxed inspection and `just write -- PROGRAM ...` for shell
+mutations with the programs configured in .agentrig/commands.yaml, `just run NAME -- ...` for catalog commands and
+`just scratch -- TEXT` for temporary code in the branch task area. Recipes are thin adapters and require an
+immediately preceding What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
 change. Commit through .agentrig/hooks/pre-commit, which runs the configured exported-index gate with affected test

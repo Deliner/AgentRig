@@ -15,33 +15,32 @@ assessed by the executor at acceptance ([D033](Decisions/033.md)).
 
 Branch: feature/target-state
 
-Revision: 5320b7358950ca70a919d0e43ab36c772a552296
+Revision: bbedc1a208ef3555a2da8daf27b13eba872e5dc0
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-c1dde2c (D047 hook coordination), installed by `just bootstrap` under
-.cache/development. Change the pin and run bootstrap in one shell command:
-a pin without its install makes every hook fail. A stray branch
-feature/init-probe at a14f284 remains from an install probe; guard-reference
-refuses its deletion. Agent shells lack cargo and uv on PATH;
-prefix `PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
+bbedc1a, installed by bootstrap under .cache/development. Change the pin and
+run bootstrap in one shell command: a pin without its install makes every
+hook fail. A stray branch feature/init-probe at a14f284 remains from an
+install probe; guard-reference refuses its deletion. `just read`/`just
+write` now run only the programs in .agentrig/commands.yaml. Agent shells
+lack cargo on PATH, so commits run through `just scratch -- 'export
+PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 
 ## Progress
 
-P026 ran the K5 set fixed in c67408a: a clean haiku agent without repository
-access applied name-if-condition to seven real conditions. Six passed K1–K4;
-select_base's combined condition was named by listing its parts (K2 partial).
-Step 4 of the skill now asks for the joint fact; a blind re-run of cases 1,
-4 and 5 passed. Per-case results are in Archive/Plan/026.md. The installed
-runtime (c1dde2c) predates P025's memory-check reference scan, which the
-candidate already has. P027 is active with its start rules chosen from
-existing mechanisms: the task is the feature branch and its completion is a
-successful `feature-merge`, which already cleans that branch's runs.
+P027 delivered K3's base and temporary routes: 77860e8 restricts read and
+write to configured programs, subcommands and denied argument forms
+(optional field, because the previous runtime rejected it); bbedc1a adds
+`scratch -- TEXT` with a per-branch task area. The pin to bbedc1a and this
+repository's programs were installed together. Still open in P027: require
+programs for empty argv, K9 compact output, K1/K5 tool placement lint, K2
+registry listing, K4 skill, K6 task-completion cleanup, K7/K8 removal.
 
 ## Verification
 
-A scratch lint consumer with named-if-condition reported all eight original
-inline conditions and accepted every corrected and re-run result. The
-archive VAC changes the skill text and Ledger records only.
+bbedc1a passed the commit gate (77 Rust, 186 Python tests). After
+bootstrap, `just config-check` accepted this repository's configuration
+and `just read -- git status --short` ran through the new base rules.
 
 ## Blockers
 
@@ -49,7 +48,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Implement P027 by VACs on the start rules in its Delivery, beginning with K3:
-configured programs and argument forms for `just read`/`just write`, refusal
-of other programs with the known route, and a temporary-run operation. Keep
-using the installed runtime until the candidate is pinned.
+Require programs for commands with empty argv (validation and its CLI
+assertion), commit through scratch, then continue P027 with K9 compact
+command output.
