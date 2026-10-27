@@ -33,3 +33,28 @@ def test_read_isolation(worker: Path, tmp_path: Path) -> None:
     result = invoke(worker, tmp_path, "run", "read", "--", "cat", "src/protected")
     assert result.returncode == 0, result.stderr
     assert result.stdout == "original"
+
+
+def test_base_programs_and_argument_forms(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    assert invoke(worker, tmp_path, "run", "read", "--", "ls").returncode == 0
+    assert invoke(worker, tmp_path, "run", "write", "--", "touch", "made").returncode == 0
+    assert (tmp_path / "made").is_file()
+    programs = "configured programs: cat, diff, find, git, grep, head, ls, rg, sed, stat, tail, wc."
+    refusals = [
+        (["read", "--", "sh", "-c", "ls"], f"read does not run sh; {programs} Project commands"),
+        (["write", "--", "python3", "-c", "pass"], "write does not run python3; configured"),
+        (["read", "--", "git", "-c", "core.pager=sh", "log"], "read runs git only with: status,"),
+        (
+            ["read", "--", "find", ".", "-exec", "cat", "{}", "+"],
+            "read does not run find with -exec",
+        ),
+        (
+            ["write", "--", "git", "rebase", "--exec", "true", "main"],
+            "does not run git with --exec",
+        ),
+    ]
+    for args, message in refusals:
+        result = invoke(worker, tmp_path, "run", *args)
+        assert result.returncode == 2, args
+        assert message in result.stderr, result.stderr

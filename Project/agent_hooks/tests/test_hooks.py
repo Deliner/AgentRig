@@ -151,6 +151,23 @@ def test_storage_failure_keeps_recovery_context(worker: Path, tmp_path: Path) ->
     assert str(tmp_path / ".agentrig/runtime/reminders") in result.stdout
 
 
+@pytest.mark.parametrize(
+    "command", ["just run write -- sh -c 'git commit -m x'", "just read -- python3 tool.py"]
+)
+def test_shell_base_programs_refuse_wrappers(worker: Path, tmp_path: Path, command: str) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    event = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": command},
+    }
+    result = invoke(worker, tmp_path, "hook", input=json.dumps(event))
+    output = json.loads(result.stdout)["hookSpecificOutput"]
+    assert output["permissionDecision"] == "deny"
+    assert " does not run " in output["permissionDecisionReason"]
+    assert "configured programs: " in output["permissionDecisionReason"]
+
+
 def test_shell_catalog_and_recipe_listing(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init").returncode == 0
     for command in [
@@ -159,7 +176,7 @@ def test_shell_catalog_and_recipe_listing(worker: Path, tmp_path: Path) -> None:
         "just lint-rule function-lines --example",
         "just lint-explain src/example.py --json",
         "just run read -- git status",
-        "just run write -- echo ok",
+        "just run write -- touch ok",
     ]:
         event = {
             "hook_event_name": "PreToolUse",

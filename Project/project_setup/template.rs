@@ -1,5 +1,5 @@
 use crate::project_config::{
-    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route, RouteEvent,
+    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -93,9 +93,84 @@ fn git(options: &Options<'_>) -> Git {
     }
 }
 
+type Programs = &'static [(
+    &'static str,
+    &'static [&'static str],
+    &'static [&'static str],
+)];
+const READ: Programs = &[
+    (
+        "git",
+        &[
+            "status",
+            "diff",
+            "log",
+            "show",
+            "rev-parse",
+            "branch",
+            "ls-files",
+            "grep",
+            "blame",
+            "merge-base",
+            "describe",
+            "cat-file",
+            "ls-tree",
+        ],
+        &["-O", "--open-files-in-pager"],
+    ),
+    ("ls", &[], &[]),
+    ("cat", &[], &[]),
+    ("head", &[], &[]),
+    ("tail", &[], &[]),
+    ("wc", &[], &[]),
+    ("grep", &[], &[]),
+    ("rg", &[], &["--pre"]),
+    ("sed", &[], &[]),
+    ("diff", &[], &[]),
+    ("stat", &[], &[]),
+    ("find", &[], &["-exec", "-ok"]),
+];
+const WRITE: Programs = &[
+    (
+        "git",
+        &[
+            "add",
+            "commit",
+            "rm",
+            "mv",
+            "restore",
+            "switch",
+            "checkout",
+            "stash",
+            "cherry-pick",
+            "rebase",
+            "branch",
+        ],
+        &["--exec", "-x"],
+    ),
+    ("mkdir", &[], &[]),
+    ("cp", &[], &[]),
+    ("mv", &[], &[]),
+    ("rm", &[], &[]),
+    ("touch", &[], &[]),
+    ("chmod", &[], &[]),
+];
+fn programs(table: Programs) -> BTreeMap<String, Program> {
+    let strings = |items: &[&str]| items.iter().map(|item| (*item).into()).collect();
+    table
+        .iter()
+        .map(|(name, subcommands, deny)| {
+            let program = Program {
+                subcommands: strings(subcommands),
+                deny: strings(deny),
+            };
+            ((*name).into(), program)
+        })
+        .collect()
+}
 fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
     let mut commands = BTreeMap::new();
-    for (id, read_only) in [("read", true), ("write", false)] {
+    for (id, read_only, table) in [("read", true, READ), ("write", false, WRITE)] {
         commands.insert(
             id.into(),
             Command {
@@ -104,6 +179,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
                 cwd: ".".into(),
                 accepts_args: true,
                 read_only,
+                programs: programs(table),
             },
         );
     }
@@ -116,6 +192,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             cwd: ".".into(),
             accepts_args: true,
             read_only: false,
+            programs: BTreeMap::new(),
         },
     );
     commands

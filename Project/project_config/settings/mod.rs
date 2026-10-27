@@ -74,6 +74,16 @@ pub struct Command {
     pub read_only: bool,
     #[serde(default)]
     pub lifetime: Lifetime,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub programs: BTreeMap<String, Program>,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Program {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub subcommands: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub deny: Vec<String>,
 }
 #[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

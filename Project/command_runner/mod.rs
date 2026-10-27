@@ -1,9 +1,9 @@
 // DECISION: D005
 pub mod jobs;
 pub(crate) mod sandbox;
-use crate::project_config::Context;
-use anyhow::{Context as _, Result, ensure};
-use std::process::Output;
+use crate::project_config::{Context, Program};
+use anyhow::{Context as _, Result, bail, ensure};
+use std::{collections::BTreeMap, process::Output};
 
 pub fn argv(context: &Context, name: &str, extra: &[String]) -> Result<Vec<String>> {
     let command = context
@@ -17,7 +17,40 @@ pub fn argv(context: &Context, name: &str, extra: &[String]) -> Result<Vec<Strin
     );
     let argv: Vec<_> = command.argv.iter().chain(extra).cloned().collect();
     ensure!(!argv.is_empty(), "command {name} needs argv");
+    permitted(name, &command.programs, &argv)?;
     Ok(argv)
+}
+fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) -> Result<()> {
+    let unrestricted = programs.is_empty();
+    if unrestricted {
+        return Ok(());
+    }
+    let known = programs.keys().cloned().collect::<Vec<_>>().join(", ");
+    let program = programs.get(&argv[0]).with_context(|| {
+        format!(
+            "{name} does not run {}; configured programs: {known}. Project commands: just list",
+            argv[0]
+        )
+    })?;
+    let subcommand = argv.get(1).map_or("", String::as_str);
+    let listed =
+        program.subcommands.is_empty() || program.subcommands.iter().any(|item| item == subcommand);
+    ensure!(
+        listed,
+        "{name} runs {} only with: {}",
+        argv[0],
+        program.subcommands.join(", ")
+    );
+    let denied = argv[1..].iter().find(|arg| {
+        program
+            .deny
+            .iter()
+            .any(|form| arg.starts_with(form.as_str()))
+    });
+    if let Some(arg) = denied {
+        bail!("{name} does not run {} with {arg}", argv[0]);
+    }
+    Ok(())
 }
 pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;

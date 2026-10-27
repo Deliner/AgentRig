@@ -147,7 +147,7 @@ fn read_only_catalog_commands_carry_no_shell_guidance() {
 #[test]
 fn vac_check_entry_reminds_state_once_per_context() {
     let (_temp, root) = project();
-    let commit = "just run write -- sh -c 'git add -A && git commit -q -m done'";
+    let commit = "just run write -- git commit -q -m done";
     let first = hook(&root, "exec_command", json!({"cmd": commit}));
     let (decision, message) = answer(&first);
     assert_eq!(decision, "deny");
@@ -163,7 +163,7 @@ fn vac_check_entry_reminds_state_once_per_context() {
     let write = hook(
         &root,
         "Bash",
-        json!({"command": "just run write -- echo ok"}),
+        json!({"command": "just run write -- touch ok"}),
     );
     assert_eq!(write, Value::Null);
 }

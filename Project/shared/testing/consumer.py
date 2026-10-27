@@ -25,6 +25,7 @@ commands:
   read:
     argv: []
     accepts_args: true
+    programs: {cat: {}, sh: {}}
     read_only: true
 """
 LINT = """version: 1
