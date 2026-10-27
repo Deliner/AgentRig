@@ -1,4 +1,5 @@
 purpose: Coordinate VCS feature branches, checked integration and commit guards
+type: flat
 files:
   mod.rs: Coordinate feature starts, checked branch integration and native transaction guards
 directories:

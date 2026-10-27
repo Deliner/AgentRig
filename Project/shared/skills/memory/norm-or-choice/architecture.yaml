@@ -1,4 +1,5 @@
 purpose: "Distinguish contextual choices from executable invariant predicates"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to distinguish contextual choices from executable invariant predicates"
 directories: {}

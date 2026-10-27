@@ -1,4 +1,5 @@
 purpose: Execute configured checks against working, staged or revision inputs and record their results
+type: flat
 files:
   mod.rs: Prepare checked snapshots, dispatch checks and produce actionable failures
   selection.rs: Map changed paths to configured affected check targets

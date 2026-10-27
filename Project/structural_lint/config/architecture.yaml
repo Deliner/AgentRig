@@ -1,4 +1,5 @@
 purpose: Load strict lint configuration and validate rule selection, severity and repair guidance
+type: flat
 files:
   mod.rs: YAML schema, configuration validation and shared selector and guidance validation
 directories:

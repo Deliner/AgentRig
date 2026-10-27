@@ -1,4 +1,5 @@
 purpose: Define and validate project settings independently of loading recovery state or executing workflows
+type: flat
 files:
   mod.rs: Strict project schema, version constants, YAML reading and project-relative paths
   capabilities.rs: Enabled capability declarations and their check consistency

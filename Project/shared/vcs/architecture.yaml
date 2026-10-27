@@ -1,4 +1,5 @@
 purpose: Provide Git repository observation and controlled changes for delivery workflows
+type: flat
 files:
   mod.rs: Repository types, common Git operations and exports
   branches.rs: Validate branch settings and start feature branches

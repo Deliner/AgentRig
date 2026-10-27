@@ -1,4 +1,5 @@
 purpose: Select configured lint targets and compute their effective thresholds and overrides
+type: flat
 files:
   mod.rs: Inclusion reasons, language compatibility and ordered threshold overrides
 directories: {}

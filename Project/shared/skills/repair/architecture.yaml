@@ -1,4 +1,5 @@
 purpose: "Diagnose and repair configuration and verification failures"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to diagnose and repair configuration and verification failures"
 directories: {}

@@ -1,4 +1,5 @@
 purpose: "Preserve contextual choices and their current application links"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to preserve contextual choices and their current application links"
 directories: {}

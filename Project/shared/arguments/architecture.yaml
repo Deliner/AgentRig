@@ -1,4 +1,5 @@
 purpose: Consume shared command-line options while preserving literal arguments and caller-owned command parsing
+type: flat
 files:
   mod.rs: Extract one named option before the literal argument separator
   tests.rs: Option order, duplicates, separator handling and missing-value behavior

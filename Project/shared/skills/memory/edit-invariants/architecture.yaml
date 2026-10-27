@@ -1,4 +1,5 @@
 purpose: "Maintain observable predicates linked to exact executable oracles"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to maintain observable predicates linked to exact executable oracles"
 directories: {}

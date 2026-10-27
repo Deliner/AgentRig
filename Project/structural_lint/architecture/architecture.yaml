@@ -1,4 +1,5 @@
 purpose: Validate directory contracts, feature types and cycles over resolved source dependencies
+type: custom
 files:
   mod.rs: Resolved dependency and issue records with contract-check composition
   policy.rs: Strict directory contracts with purpose, inventory and feature type

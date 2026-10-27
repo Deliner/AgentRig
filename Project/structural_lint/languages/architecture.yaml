@@ -1,4 +1,5 @@
 purpose: Parse supported source languages and measure scalar rules through registered syntax handlers
+type: flat
 files:
   mod.rs: Shared parsing and scalar measurement traversal with located results
   registry.rs: Grammar and measurement capabilities exposed for supported extensions

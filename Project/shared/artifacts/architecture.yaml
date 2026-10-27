@@ -1,4 +1,5 @@
 purpose: Read, fingerprint and atomically persist shared file artifacts for execution and verification
+type: flat
 files:
   mod.rs: Shared regular-file reading with caller limits and SHA-256 content fingerprints
   json.rs: Atomic JSON serialization and replacement after file synchronization

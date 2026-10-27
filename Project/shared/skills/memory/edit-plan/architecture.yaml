@@ -1,4 +1,5 @@
 purpose: "Maintain scope and acceptance selected for current execution"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to maintain scope and acceptance selected for current execution"
 directories: {}

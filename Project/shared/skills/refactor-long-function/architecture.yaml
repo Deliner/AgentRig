@@ -1,4 +1,5 @@
 purpose: "Simplify oversized functions while preserving observable behavior"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to simplify oversized functions while preserving observable behavior"
 directories: {}

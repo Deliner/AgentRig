@@ -1,4 +1,5 @@
 purpose: Resolve existing symbolic links and normalize paths that may have a not-yet-created tail
+type: flat
 files:
   mod.rs: Component resolution with bounded symbolic-link traversal
   tests.rs: Missing tails, link-relative parent traversal, absolute links and cycles

@@ -213,6 +213,7 @@ rules:
     - Project/command_line/main.rs
     - Project/structural_lint/standalone.rs
     python_root: .
+    feature_root: Project
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
   extensions:
   - .rs

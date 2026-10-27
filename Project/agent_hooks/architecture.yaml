@@ -1,4 +1,5 @@
 purpose: Interpret agent hook events and deliver command guards, edit guidance and context reminders
+type: flat
 files:
   mod.rs: Dispatch session and tool events using configured project services
   input.rs: Read optional hook state objects and text fields with colocated behavior tests

@@ -1,4 +1,5 @@
 purpose: Initialize configured agent environments without overwriting existing consumer files
+type: flat
 files:
   mod.rs: Expose declarative initialization
   init.rs: Create a new environment after collision and generated bundle validation

@@ -1,4 +1,5 @@
 purpose: Track and control owned process execution, lifetime, process groups and captured output
+type: custom
 files:
   mod.rs: Job records, execution lifecycle and status command orchestration
   background.rs: Launch and adopt persistent jobs as process group leaders

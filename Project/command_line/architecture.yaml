@@ -1,4 +1,5 @@
 purpose: Parse agentrig commands and dispatch them to the features that own them
+type: flat
 files:
   main.rs: AgentRig process entry with hook and lint command dispatch
   mod.rs: Dispatch project workflow commands to their features

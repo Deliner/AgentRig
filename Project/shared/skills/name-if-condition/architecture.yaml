@@ -1,4 +1,5 @@
 purpose: "Repair unnamed branch conditions while preserving their meaning"
+type: flat
 files:
   SKILL.md: "Canonical agent instructions to repair unnamed branch conditions while preserving their meaning"
 directories: {}
