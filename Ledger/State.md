@@ -6,8 +6,8 @@ Bring the repository toward the user's remembered target state recorded in
 [Requests.md](Requests.md) under "Целевое состояние после утраты истории —
 2026-10-26". The user agreed and selected [B018](Backlog/018.md) on
 2026-10-27: features without nested features declare an architecture type
-with required parts and inward dependencies ([D044](Decisions/044.md)). This
-VAC completes it as [P024](Archive/Plan/024.md). First-level features in
+with required parts and inward dependencies ([D044](Decisions/044.md)),
+completed as [P024](Archive/Plan/024.md). First-level features in
 Project ([D042](Decisions/042.md)) still await the user's review; the full
 B003 revision draft is not agreed.
 
@@ -15,7 +15,7 @@ B003 revision draft is not agreed.
 
 Branch: feature/target-state
 
-Revision: d4734a47e76b3b01ef181959e6b14b5a6eb902c7
+Revision: 02d3dde824937abf8b0534a30f7e7ed833f743dd
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 d64607e, installed by `just bootstrap` under .cache/development. A stray
@@ -34,20 +34,17 @@ Markdown and comment rules [D036](Decisions/036.md)/[D037](Decisions/037.md),
 [D040](Decisions/040.md), the worker under Project
 [D041](Decisions/041.md), first-level features in Project
 [D042](Decisions/042.md), contracts without permissions
-[D043](Decisions/043.md), feature types in the candidate (d64607e) and its
-pin (d4734a4).
-
-This VAC sets `feature_root: Project`, types 36 leaf features flat and 3
-custom (structural_lint/architecture, shared/testing, command_runner/jobs)
-and archives P024. feature/target-state is not integrated into master. Plan
-P018–P023 reconciliation remains open.
+[D043](Decisions/043.md), feature types (d64607e), their pin (d4734a4) and
+36 flat plus 3 custom leaf features in Project (45624b3). With the user's
+approval feature/target-state was merged into master as 02d3dde and
+fast-forwarded to it; the branch is retained. Plan P018–P023 reconciliation
+remains open.
 
 ## Verification
 
-The d64607e gate passed (45 Rust tests, 252 selected pytest, static checks),
-including 39 architecture Rust tests for classification, parts and direction.
-On this tree the candidate lint reports no errors, and the installed
-lint-config-check and config-check pass. Criterion results are in P024.
+feature-merge verified the integrated candidate with tests affected by the
+whole branch: build, lint, memory, rustfmt, clippy, Rust tests, ruff, mypy,
+341 pytest, typos and vulture passed. B018 criterion results are in P024.
 
 ## Blockers
 
@@ -57,6 +54,5 @@ memory-check cannot run inside `just read`.
 
 ## Next action
 
-Report B018 to the user and ask whether to integrate feature/target-state
-into master with `just feature-merge`; then await their review of the layout
-and the rest of the feature scheme.
+Await the user's review of the Project layout and the rest of the feature
+scheme they recall; continue target-state work on feature/target-state.
