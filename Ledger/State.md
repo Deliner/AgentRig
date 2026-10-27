@@ -14,7 +14,7 @@ executor at acceptance ([D033](Decisions/033.md)).
 
 Branch: feature/target-state
 
-Revision: 603264775fbd5bee6dbca310037ea2220f90481d
+Revision: b4511b9936ae0e0b0eb64772e16b152895489c72
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -47,6 +47,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Fix P026's evaluation set in its Delivery: real conditions from this
-repository with context at a pinned revision and B009 K1–K4 as criteria;
-then apply the skill through a clean agent and review each case.
+Run the K5 evaluation fixed in P026's Delivery: build blind materials for
+the seven cases at b4511b9, have a clean agent apply name-if-condition,
+review each result against B009 K1–K4 and correct gaps in the skill.
