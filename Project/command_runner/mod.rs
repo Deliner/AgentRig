@@ -1,6 +1,7 @@
 // DECISION: D005
 pub mod jobs;
 pub(crate) mod sandbox;
+pub mod scratch;
 use crate::project_config::{Context, Program};
 use anyhow::{Context as _, Result, bail, ensure};
 use std::{collections::BTreeMap, process::Output};

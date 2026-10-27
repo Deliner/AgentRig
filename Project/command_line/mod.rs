@@ -31,6 +31,7 @@ pub fn owns(command: &str) -> bool {
             | "job-stop"
             | "job-cleanup"
             | "_job-run"
+            | "scratch"
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
@@ -58,6 +59,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "job-start" => command_runner::background(&context, args),
         "_job-run" => command_runner::background_run(&context, args),
+        "scratch" => command_runner::scratch::run(&context, args),
         _ => configured_command(&context, command, args),
     }
 }

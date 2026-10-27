@@ -14,6 +14,10 @@ read *args:
 write *args:
     @tooling/worker/run run write "$@"
 
+# What: run temporary code; Why: keep one-off work in its task area with recorded output.
+scratch *args:
+    @tooling/worker/run scratch "$@"
+
 # What: invoke test; Why: use the configured native runtime.
 test *args:
     @tooling/worker/run run test "$@"

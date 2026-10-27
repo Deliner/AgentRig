@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 from Project.shared.testing.consumer import invoke, project
@@ -58,3 +59,23 @@ def test_base_programs_and_argument_forms(worker: Path, tmp_path: Path) -> None:
         result = invoke(worker, tmp_path, "run", *args)
         assert result.returncode == 2, args
         assert message in result.stderr, result.stderr
+
+
+def test_scratch_runs_temporary_code_in_its_task_area(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    probe = ["git", "symbolic-ref", "HEAD", "refs/heads/feature/probe"]
+    subprocess.run(probe, cwd=tmp_path, check=True)
+    text = 'echo found > "$AGENTRIG_SCRATCH/results/out" && pwd'
+    result = invoke(worker, tmp_path, "scratch", "--", text)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == str(tmp_path)
+    area = tmp_path / ".agentrig/runtime/scratch/feature/probe"
+    assert (area / "results/out").read_text() == "found\n"
+    assert invoke(worker, tmp_path, "scratch", "--", "exit 7").returncode == 7
+    records = json.loads(invoke(worker, tmp_path, "jobs").stdout)
+    record = {tuple(record["argv"]): record for record in records}[("sh", "-c", text)]
+    assert (record["command"], record["branch"], record["lifetime"]) == (
+        "scratch",
+        "feature/probe",
+        "task",
+    )

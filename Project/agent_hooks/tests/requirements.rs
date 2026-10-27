@@ -142,6 +142,17 @@ fn read_only_catalog_commands_carry_no_shell_guidance() {
     let (decision, message) = answer(&write);
     assert_eq!(decision, "allow");
     assert!(message.contains("for opaque shell write"), "{message}");
+    let (_fresh, root) = project();
+    let scratch = hook(
+        &root,
+        "Bash",
+        json!({"command": "just scratch -- 'ls && pwd'"}),
+    );
+    let (decision, message) = answer(&scratch);
+    assert_eq!(decision, "allow");
+    assert!(message.contains("for opaque shell write"), "{message}");
+    let empty = hook(&root, "Bash", json!({"command": "just scratch --"}));
+    assert_eq!(answer(&empty), ("deny", "scratch -- TEXT"));
 }
 
 #[test]

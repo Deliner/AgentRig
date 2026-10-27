@@ -34,6 +34,7 @@ Every command accepts `--root PATH`, by default the current directory.
 | `init [--interactive]` | Create configuration, memory, skills, binary and adapters without overwriting files. |
 | `config-check` / `doctor` | Validate configuration; diagnose the runtime, executables, sandbox and hooks. |
 | `commands` / `run NAME -- ARGS` | List or execute the catalog; arguments stay argv elements. |
+| `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate lint settings, list rules. |
 | `check [--staged \| --revision REV] [--only ID]` | Run the [gate](../change_delivery/gate/README.md). |

@@ -282,7 +282,11 @@ type Recipe = (&'static str, &'static str, bool);
 const RECIPES: [(&str, &[Recipe]); 5] = [
     (
         "commands",
-        &[("list", "commands", false), ("run", "run", true)],
+        &[
+            ("list", "commands", false),
+            ("run", "run", true),
+            ("scratch", "scratch", true),
+        ],
     ),
     (
         "checks",

@@ -2,6 +2,7 @@ purpose: Run catalog commands in the foreground and as tracked background jobs
 files:
   mod.rs: Catalog arguments, foreground/background execution and job reporting
   sandbox.rs: Run catalog commands as tracked subprocesses, read-only ones inside the platform sandbox
+  scratch.rs: Run temporary shell scenarios as tracked task jobs with a per-branch task area
 directories:
   tests: Configured execution, managed job lifecycle and shared command fixtures
   jobs: Track and control owned process execution, lifetime, process groups and captured output
