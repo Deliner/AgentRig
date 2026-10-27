@@ -4,17 +4,18 @@
 
 On 2026-10-27 the user deleted unneeded Backlog cards and selected the rest
 for execution: [Plan](Plan.md) orders B001 → B003 → B002 → B008 → B009 →
-B014. B001, B003, B002 and B008 are complete as [P018](Archive/Plan/018.md),
-[P019](Archive/Plan/019.md), [P021](Archive/Plan/021.md) and
-[P025](Archive/Plan/025.md). P026 (condition naming, [B009](Backlog/009.md))
-is active. References to the removed review runner are assessed by the
-executor at acceptance ([D033](Decisions/033.md)).
+B014. B001, B003, B002, B008 and B009 are complete as
+[P018](Archive/Plan/018.md), [P019](Archive/Plan/019.md),
+[P021](Archive/Plan/021.md), [P025](Archive/Plan/025.md) and
+[P026](Archive/Plan/026.md). P027 (tool registry, [B014](Backlog/014.md)) is
+the remaining pending card. References to the removed review runner are
+assessed by the executor at acceptance ([D033](Decisions/033.md)).
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: b4511b9936ae0e0b0eb64772e16b152895489c72
+Revision: c67408a1ca266475f80c79c448a3221594acd0f1
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -26,20 +27,19 @@ prefix `PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
 
 ## Progress
 
-P021 and P025 are archived with per-criterion evidence. P025 shared the
-exact reference format between lint and memory-check, made memory-check
-report references naming no record, added CLI evals and refined
-replace-comment. During P025 the I002 delivery oracle, broken since P021's
-D047 init route, was restored and is now selected for every Project change
-(6032647). Archiving P025 gave Ledger/Archive/Plan sixteen entries;
-[D048](Decisions/048.md) applies D029's flat-registry size exemption to that
-exact directory. P026 changes the existing name-if-condition skill; its K5
-requires a fixed set of real conditions and criteria before evaluation.
+P026 ran the K5 set fixed in c67408a: a clean haiku agent without repository
+access applied name-if-condition to seven real conditions. Six passed K1–K4;
+select_base's combined condition was named by listing its parts (K2 partial).
+Step 4 of the skill now asks for the joint fact; a blind re-run of cases 1,
+4 and 5 passed. Per-case results are in Archive/Plan/026.md. The installed
+runtime (c1dde2c) predates P025's memory-check reference scan, which the
+candidate already has.
 
 ## Verification
 
-6032647 passed the commit gate with test_delivery.py selected (260 Python
-tests). The archive VAC changes only Ledger records.
+A scratch lint consumer with named-if-condition reported all eight original
+inline conditions and accepted every corrected and re-run result. The
+archive VAC changes the skill text and Ledger records only.
 
 ## Blockers
 
@@ -47,6 +47,7 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Run the K5 evaluation fixed in P026's Delivery: build blind materials for
-the seven cases at b4511b9, have a clean agent apply name-if-condition,
-review each result against B009 K1–K4 and correct gaps in the skill.
+Start P027: establish B014's start questions (tool and base-invocation
+recognition rules, the task-completion event, the order of saving results
+and cleaning logs) from the current command catalog, hook routes and job
+logs; record them in P027 Delivery, or a blocker if a choice needs the user.

@@ -15,4 +15,5 @@ files:
   021.md: Coordinated hook requirements and their acceptance in Codex and Claude Code
   025.md: Comments limited to decision and invariant references and their CLI evals
   024.md: Architecture types of features without nested features and their verification
+  026.md: Condition naming skill refined by a fixed blind evaluation of real conditions
 directories: {}
