@@ -1,6 +1,5 @@
 purpose: Describe only outcomes selected for current execution
 files:
-  019.md: Selected B003 project structure outcome and acceptance dependencies
   021.md: Selected B002 hook coordination outcome and shared mechanism
   025.md: Selected B008 comment reference outcome and resolved first languages
   026.md: Selected B009 condition naming skill outcome

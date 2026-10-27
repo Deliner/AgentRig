@@ -11,5 +11,6 @@ files:
   009.md: "Complete architecture maps and feature ownership"
   017.md: Sequential Backlog audit for deterministic anchors, quality and necessary complexity
   018.md: Configuration recovery without blocking the agent and its consumer acceptance
+  019.md: Project structure reflecting capability ownership and its blind review
   024.md: Architecture types of features without nested features and their verification
 directories: {}
