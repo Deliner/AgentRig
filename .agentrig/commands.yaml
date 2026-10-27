@@ -1,4 +1,5 @@
 read:
+  purpose: Inspect files and Git history with configured programs
   argv: []
   accepts_args: true
   read_only: true
@@ -18,6 +19,7 @@ read:
     stat: {}
     find: {deny: [-exec, -ok]}
 write:
+  purpose: Change files and Git state with configured programs
   argv: []
   accepts_args: true
   programs:
@@ -31,21 +33,30 @@ write:
     touch: {}
     chmod: {}
 build:
+  purpose: Build the candidate runtime from Project and print its version
+  doc: Project/README.md#build
   argv:
   - tooling/worker/build
   - --version
 candidate:
+  purpose: Build and run the candidate runtime with the given arguments
+  doc: tooling/distribution/README.md
   argv:
   - tooling/worker/build
   accepts_args: true
 lint:
+  purpose: Lint the repository with the candidate runtime
+  doc: Project/README.md#lint
   argv: [tooling/worker/build, lint]
   accepts_args: true
 release:
+  purpose: Build and assemble portable release artifacts
+  doc: tooling/distribution/RELEASE.md
   argv:
   - bash
   - tooling/distribution/release.sh
 rustfmt:
+  purpose: Check Rust formatting
   argv:
   - cargo
   - +1.98.1
@@ -54,6 +65,7 @@ rustfmt:
   - Project/Cargo.toml
   - --check
 clippy:
+  purpose: Check Rust code with Clippy, denying warnings
   argv:
   - cargo
   - +1.98.1
@@ -65,6 +77,7 @@ clippy:
   - -D
   - warnings
 rust-test:
+  purpose: Run Rust library tests, optionally filtered by test path
   argv:
   - cargo
   - +1.98.1
@@ -75,7 +88,11 @@ rust-test:
   - --lib
   - --
   accepts_args: true
+  output:
+    success: {matching: ["test result:"]}
+    failure: {matching: [FAILED, panicked, "error", "test result:"]}
 test:
+  purpose: Run Python behavior tests, optionally limited to paths
   argv:
   - uv
   - run
@@ -88,7 +105,11 @@ test:
   - --rootdir
   - .
   accepts_args: true
+  output:
+    success: {tail: 1}
+    failure: {matching: [FAILED, ERROR], tail: 1}
 ruff-format:
+  purpose: Check Python formatting
   argv:
   - uv
   - run
@@ -101,6 +122,7 @@ ruff-format:
   - --config
   - tooling/pyproject.toml
 ruff:
+  purpose: Check Python code with Ruff
   argv:
   - uv
   - run
@@ -112,8 +134,10 @@ ruff:
   - --config
   - tooling/pyproject.toml
 mypy:
+  purpose: Type-check Python tests and fixtures
   argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
 typos:
+  purpose: Check spelling across the repository
   argv:
   - uv
   - run
@@ -125,4 +149,5 @@ typos:
   - tooling/pyproject.toml
   - .
 vulture:
+  purpose: Report unused Python code
   argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]

@@ -9,6 +9,9 @@
 - id: memory
   kind: memory
   skill: .agents/skills/repair/SKILL.md
+- id: tools
+  kind: tools
+  skill: .agents/skills/develop-tools/SKILL.md
 - id: rustfmt
   kind: command
   skill: .agents/skills/repair/SKILL.md
