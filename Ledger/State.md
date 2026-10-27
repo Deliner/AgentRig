@@ -4,16 +4,17 @@
 
 On 2026-10-27 the user deleted unneeded Backlog cards and selected the rest
 for execution: [Plan](Plan.md) orders B001 → B003 → B002 → B008 → B009 →
-B014. B001 and B003 are complete as [P018](Archive/Plan/018.md) and
-[P019](Archive/Plan/019.md). P021 (hook coordination, [B002](Backlog/002.md))
-is active. References to the removed review runner are assessed by the
-executor at acceptance ([D033](Decisions/033.md)).
+B014. B001, B003 and B002 are complete as [P018](Archive/Plan/018.md),
+[P019](Archive/Plan/019.md) and [P021](Archive/Plan/021.md). P025 (comment
+references, [B008](Backlog/008.md)) is active. References to the removed
+review runner are assessed by the executor at acceptance
+([D033](Decisions/033.md)).
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: 288f2fd8e4bda64e851c6864ae29a4980118401e
+Revision: efb49b0ccd0ffa9fcb1d791b7fb3b2ec26e25665
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -25,23 +26,17 @@ prefix `PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
 
 ## Progress
 
-P021's first VAC implements [D047](Decisions/047.md): one ordered hook
-response per event, routes with events (edit, shell, check) and optional
-block, per-session delivery of each skill and area, adjacency validation of
-route order, and an init route reminding edit-state at the VAC check entry
-(487dd9c). The repository routes stop the first code edit per directory for
-refactor-large-directory and the first VAC commit per context for edit-state
-(8464a42). Text lint groups findings by shared cause (d73d241), and
-execute-plan-feature states the merge-boundary review (288f2fd). Consumer
-sessions in scratch Codex and Claude Code projects showed blocking, retries,
-merged guidance and the commit reminder (K12). They also showed that
-`just run read` received opaque-write guidance; the current VAC classifies
-`just run` by its catalog command's read_only flag.
+P021 delivered [D047](Decisions/047.md) hook coordination, its repository
+routes, grouped lint diagnostics, the merge-boundary review text and the
+`just run` read_only classification; K1–K15 evidence is in its archive card.
+P025 starts from [D037](Decisions/037.md)'s existing comment-reference lint
+rule for Rust and Python. memory-check verifies that decision owners carry
+their marker, but not that a marker in code names an existing record (K2).
 
 ## Verification
 
-The current VAC passed all 11 agent_hooks Rust tests, including the new
-read-only classification test. Earlier VACs passed the full commit gate.
+c1dde2c and efb49b0 passed the commit gate (99 selected Python tests, Rust
+checks, lint and memory). The archive VAC changes only Ledger records.
 
 ## Blockers
 
@@ -49,4 +44,5 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Archive P021 with K1–K15 evidence and activate P025 (B008).
+Check B008 K1–K6 against the D037 rule, starting with K2: report code
+markers that name a missing decision or an invariant without its oracle.
