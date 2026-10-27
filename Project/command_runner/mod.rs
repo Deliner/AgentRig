@@ -2,9 +2,10 @@
 pub mod jobs;
 pub(crate) mod sandbox;
 pub mod scratch;
+mod summary;
 use crate::project_config::{Context, Program};
 use anyhow::{Context as _, Result, bail, ensure};
-use std::{collections::BTreeMap, process::Output};
+use std::{collections::BTreeMap, path::PathBuf, process::Output};
 
 pub fn argv(context: &Context, name: &str, extra: &[String]) -> Result<Vec<String>> {
     let command = context
@@ -55,8 +56,15 @@ fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) 
 }
 pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
-    match execute(context, name, argv, false) {
-        Ok(output) => Ok(jobs::process::exit_code(&output)),
+    let views = context.config.commands[name].output.as_ref();
+    match logged(context, name, argv, views.is_some()) {
+        Ok((output, log)) => {
+            let code = jobs::process::exit_code(&output);
+            if let Some(views) = views {
+                summary::print(name, views, &output, &log);
+            }
+            Ok(code)
+        }
         Err(error) => {
             eprintln!("{error:#}");
             Ok(127)
@@ -64,6 +72,14 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     }
 }
 pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) -> Result<Output> {
+    logged(context, name, argv, capture).map(|(output, _)| output)
+}
+fn logged(
+    context: &Context,
+    name: &str,
+    argv: Vec<String>,
+    capture: bool,
+) -> Result<(Output, PathBuf)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
     let runtime = context.path(&context.config.paths.runtime)?;
@@ -75,7 +91,7 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),
     )?;
-    result
+    result.map(|output| (output, job.directory().to_owned()))
 }
 pub fn report(context: &Context) -> Result<()> {
     crate::command_runner::jobs::report::print(&context.path(&context.config.paths.runtime)?)

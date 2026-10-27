@@ -54,8 +54,10 @@ data) and `capabilities.lint` (disabling lint requires removing lint checks). Ea
 its whole content; an absent module is an empty section, and `project.yaml` cannot hold one.
 
 - `git.yaml`: base branch and feature-branch prefix.
-- `commands.yaml`: per name, `argv`, `cwd`, `accepts_args`, `read_only`, `lifetime` and `programs`. An empty `argv`
-  (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing `deny` argument prefixes.
+- `commands.yaml`: per name, `argv`, `cwd`, `accepts_args`, `read_only`, `lifetime`, `programs` and `output`. An empty
+  `argv` (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing `deny` argument
+  prefixes. `output` holds `success` and `failure` views of lines containing a `matching` part plus the last `tail`
+  lines; such a run prints only its view, exit status and log directory.
 - `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`), command, `include`, `skill`, `warning` and
   [`affected`](../change_delivery/gate/README.md).
 - `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the

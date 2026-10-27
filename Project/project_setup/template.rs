@@ -1,5 +1,6 @@
 use crate::project_config::{
-    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
+    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, View,
+    Views,
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -180,6 +181,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
                 accepts_args: true,
                 read_only,
                 programs: programs(table),
+                output: None,
             },
         );
     }
@@ -193,9 +195,28 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             accepts_args: true,
             read_only: false,
             programs: BTreeMap::new(),
+            output: Some(test_views(options)),
         },
     );
     commands
+}
+fn test_views(options: &Options<'_>) -> Views {
+    let view = |matching: &[&str], tail| View {
+        matching: matching.iter().map(|part| (*part).into()).collect(),
+        tail,
+    };
+    let python = options["language"] == "python";
+    if python {
+        Views {
+            success: view(&[], 1),
+            failure: view(&["FAILED", "ERROR"], 1),
+        }
+    } else {
+        Views {
+            success: view(&["test result:"], 0),
+            failure: view(&["FAILED", "panicked", "error", "test result:"], 0),
+        }
+    }
 }
 fn test_command(options: &Options<'_>) -> Vec<String> {
     let python = options["language"] == "python";

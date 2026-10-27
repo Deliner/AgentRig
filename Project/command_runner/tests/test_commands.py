@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from Project.shared.testing.consumer import invoke, project
+from Project.shared.testing.consumer import invoke, project, update_config
 
 
 def test_config_and_command_streams(worker: Path, tmp_path: Path) -> None:
@@ -67,6 +67,30 @@ def test_base_programs_and_argument_forms(worker: Path, tmp_path: Path) -> None:
     result = invoke(worker, tmp_path, "config-check")
     assert result.returncode == 2
     assert "commands.read: empty argv requires programs" in result.stderr
+
+
+def test_configured_views_compact_command_output(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    script = (
+        "import sys\nfor n in range(int(sys.argv[2])): print('noise', n)\n"
+        "print('FAILED case')\nprint('done', sys.argv[1])\nsys.exit(int(sys.argv[1]))"
+    )
+    views = {"success": {"tail": 1}, "failure": {"matching": ["FAILED"], "tail": 1}}
+    noisy = {"argv": ["python3", "-c", script], "accepts_args": True, "output": views}
+    update_config(tmp_path, commands={"noisy": noisy})
+
+    def summary(code: str, noise: str) -> tuple[int, list[str], Path]:
+        result = invoke(worker, tmp_path, "run", "noisy", "--", code, noise)
+        *lines, status = result.stdout.splitlines()
+        prefix = f"noisy: exit {result.returncode}; log: "
+        assert status.startswith(prefix), result.stdout
+        return result.returncode, lines, Path(status.removeprefix(prefix))
+
+    code, lines, log = summary("0", "5")
+    assert (code, lines) == (0, ["done 0"])
+    assert summary("0", "500")[:2] == (0, ["done 0"])
+    assert "noise 4\nFAILED case\ndone 0\n" in (log / "stdout.log").read_text()
+    assert summary("3", "500")[:2] == (3, ["FAILED case", "done 3"])
 
 
 def test_scratch_runs_temporary_code_in_its_task_area(worker: Path, tmp_path: Path) -> None:

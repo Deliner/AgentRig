@@ -76,6 +76,24 @@ pub struct Command {
     pub lifetime: Lifetime,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub programs: BTreeMap<String, Program>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<Views>,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Views {
+    #[serde(default)]
+    pub success: View,
+    #[serde(default)]
+    pub failure: View,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct View {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub matching: Vec<String>,
+    #[serde(default)]
+    pub tail: usize,
 }
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
