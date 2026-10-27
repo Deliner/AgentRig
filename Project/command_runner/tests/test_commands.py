@@ -43,7 +43,11 @@ def test_base_programs_and_argument_forms(worker: Path, tmp_path: Path) -> None:
     assert (tmp_path / "made").is_file()
     programs = "configured programs: cat, diff, find, git, grep, head, ls, rg, sed, stat, tail, wc."
     refusals = [
-        (["read", "--", "sh", "-c", "ls"], f"read does not run sh; {programs} Project commands"),
+        (
+            ["read", "--", "sh", "-c", "ls"],
+            f"read does not run sh; {programs} Project commands: just list. Temporary code: just"
+            " scratch -- TEXT",
+        ),
         (["write", "--", "python3", "-c", "pass"], "write does not run python3; configured"),
         (["read", "--", "git", "-c", "core.pager=sh", "log"], "read runs git only with: status,"),
         (
@@ -59,6 +63,10 @@ def test_base_programs_and_argument_forms(worker: Path, tmp_path: Path) -> None:
         result = invoke(worker, tmp_path, "run", *args)
         assert result.returncode == 2, args
         assert message in result.stderr, result.stderr
+    (tmp_path / ".agentrig/commands.yaml").write_text("read:\n  argv: []\n  accepts_args: true\n")
+    result = invoke(worker, tmp_path, "config-check")
+    assert result.returncode == 2
+    assert "commands.read: empty argv requires programs" in result.stderr
 
 
 def test_scratch_runs_temporary_code_in_its_task_area(worker: Path, tmp_path: Path) -> None:

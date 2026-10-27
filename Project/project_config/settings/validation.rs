@@ -65,6 +65,10 @@ impl Config {
                 "commands.{id}: empty argv requires accepts_args"
             );
             ensure!(
+                !command.argv.is_empty() || !command.programs.is_empty(),
+                "commands.{id}: empty argv requires programs"
+            );
+            ensure!(
                 command.argv.first().is_none_or(|s| !s.is_empty()),
                 "commands.{id}: empty executable"
             );

@@ -29,7 +29,7 @@ fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) 
     let known = programs.keys().cloned().collect::<Vec<_>>().join(", ");
     let program = programs.get(&argv[0]).with_context(|| {
         format!(
-            "{name} does not run {}; configured programs: {known}. Project commands: just list",
+            "{name} does not run {}; configured programs: {known}. Project commands: just list. Temporary code: just scratch -- TEXT",
             argv[0]
         )
     })?;
