@@ -11,6 +11,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/complexity-discipline/SKILL.md"),
     ),
     (
+        "develop-tools",
+        include_str!("../shared/skills/develop-tools/SKILL.md"),
+    ),
+    (
         "edit-decisions",
         include_str!("../shared/skills/memory/edit-decisions/SKILL.md"),
     ),

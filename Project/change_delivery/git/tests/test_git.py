@@ -43,7 +43,12 @@ def installed(worker: Path, tmp_path: Path) -> Path:
     assert invoke(worker, tmp_path, "init", "--base", "trunk", "--prefix", "task/").returncode == 0
     update_config(
         tmp_path,
-        commands={"probe": {"argv": ["sh", "-c", 'test -z "$BLOCK_DELIVERY"']}},
+        commands={
+            "probe": {
+                "purpose": "Block delivery on request",
+                "argv": ["sh", "-c", 'test -z "$BLOCK_DELIVERY"'],
+            }
+        },
         checks=[
             {
                 "id": "probe",
@@ -149,7 +154,10 @@ def test_git_integration_rejects_mutated_gate_inputs(
     update_config(
         root,
         commands={
-            "probe": {"argv": ["sh", "-c", 'test -z "$MUTATE_MERGE" || echo changed > product.txt']}
+            "probe": {
+                "purpose": "Mutate a gate input on request",
+                "argv": ["sh", "-c", 'test -z "$MUTATE_MERGE" || echo changed > product.txt'],
+            }
         },
     )
     commit(root, "product.txt", "verified")
@@ -228,11 +236,31 @@ def test_merge_cleans_only_owned_task_runs(
             assert result.returncode == 0, result.stderr
 
 
+def test_merge_keeps_scratch_results_and_removes_temporary_runs(
+    worker: Path, installed: Path
+) -> None:
+    root = installed
+    assert invoke(worker, root, "feature-start", "probe").returncode == 0
+    text = 'echo kept > "$AGENTRIG_SCRATCH/results/out" && echo draft > "$AGENTRIG_SCRATCH/draft"'
+    assert invoke(worker, root, "scratch", "--", text).returncode == 0
+    commit(root, "work.txt", "feature")
+    result = invoke(worker, root, "feature-merge")
+    assert result.returncode == 0, result.stdout + result.stderr
+    area = root / ".agentrig/runtime/scratch/task/probe"
+    assert [path.name for path in area.iterdir()] == ["results"]
+    assert (area / "results/out").read_text() == "kept\n"
+    commands = [record["command"] for record in json.loads(invoke(worker, root, "jobs").stdout)]
+    assert "scratch" not in commands
+
+
 def background_commands(root: Path) -> None:
     argv = ["python3", "-c", "import time; print('ready',flush=True); time.sleep(60)"]
     update_config(
         root,
-        commands={"wait": {"argv": argv}, "service": {"argv": argv.copy(), "lifetime": "shared"}},
+        commands={
+            "wait": {"purpose": "Wait as a task job", "argv": argv},
+            "service": {"purpose": "Wait as a service", "argv": argv.copy(), "lifetime": "shared"},
+        },
     )
 
 

@@ -51,8 +51,8 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
         return Ok(None);
     };
     let Some(checks) = ask(
-        "Checks, comma-separated: lint,memory,tests",
-        "lint,memory,tests",
+        "Checks, comma-separated: lint,memory,tests,tools",
+        "lint,memory,tests,tools",
     )?
     else {
         return Ok(None);
@@ -96,7 +96,7 @@ fn select_checks(config: &mut Config, value: &str) -> Result<()> {
     for name in &selected {
         ensure!(
             config.checks.iter().any(|check| check.id == *name),
-            "unknown check {name}; supported: lint,memory,tests"
+            "unknown check {name}; supported: lint,memory,tests,tools"
         );
     }
     config

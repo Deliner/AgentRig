@@ -29,6 +29,32 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     )?;
     Ok(code)
 }
+pub fn cleanup(context: &Context, branch: &str) -> Result<()> {
+    let runtime = context.path(&context.config.paths.runtime)?;
+    let area = runtime.join("scratch").join(branch);
+    let present = area.is_dir();
+    if present {
+        for entry in fs::read_dir(&area)? {
+            let entry = entry?;
+            let disposable = entry.file_name() != "results";
+            match (disposable, entry.file_type()?.is_dir()) {
+                (false, _) => {}
+                (true, true) => fs::remove_dir_all(entry.path())?,
+                (true, false) => fs::remove_file(entry.path())?,
+            }
+        }
+    }
+    for record in jobs::list(&runtime)? {
+        let finished = record["finished"].is_u64();
+        let owned = record["command"] == "scratch" && record["branch"] == branch;
+        let run = record["run_id"].as_str().unwrap_or_default();
+        let logged = owned && finished;
+        if logged {
+            fs::remove_dir_all(jobs::directory(&runtime, run)?)?;
+        }
+    }
+    Ok(())
+}
 fn area(context: &Context, runtime: &std::path::Path) -> PathBuf {
     let branch = crate::shared::vcs::git_context(&context.root, &["branch", "--show-current"])
         .ok()

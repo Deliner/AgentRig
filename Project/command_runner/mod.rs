@@ -1,5 +1,6 @@
 // DECISION: D005
 pub mod jobs;
+pub mod registry;
 pub(crate) mod sandbox;
 pub mod scratch;
 mod summary;

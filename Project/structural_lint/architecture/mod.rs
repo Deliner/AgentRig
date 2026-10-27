@@ -11,7 +11,7 @@ mod tests;
 use std::path::PathBuf;
 
 pub use super::rules::architecture::Settings;
-pub use policy::Contracts;
+pub use policy::{Contracts, describe};
 
 #[derive(Clone, Debug)]
 pub struct Dependency {

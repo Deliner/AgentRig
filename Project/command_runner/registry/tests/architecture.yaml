@@ -1,0 +1,4 @@
+purpose: Verify the registry listing and the tool check through the CLI
+files:
+  test_registry.py: Listing of active and removed tools and before-merge tool check findings
+directories: {}

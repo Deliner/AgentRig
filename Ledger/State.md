@@ -15,7 +15,7 @@ assessed by the executor at acceptance ([D033](Decisions/033.md)).
 
 Branch: feature/target-state
 
-Revision: bbedc1a208ef3555a2da8daf27b13eba872e5dc0
+Revision: 3cced20c905a58ba381d31e5d843eedb30cafecc
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 bbedc1a, installed by bootstrap under .cache/development. Change the pin and
@@ -28,19 +28,21 @@ PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 
 ## Progress
 
-P027 delivered K3's base and temporary routes: 77860e8 restricts read and
-write to configured programs, subcommands and denied argument forms
-(optional field, because the previous runtime rejected it); bbedc1a adds
-`scratch -- TEXT` with a per-branch task area. The pin to bbedc1a and this
-repository's programs were installed together. Still open in P027: require
-programs for empty argv, K9 compact output, K1/K5 tool placement lint, K2
-registry listing, K4 skill, K6 task-completion cleanup, K7/K8 removal.
+P027 delivered K3 (77860e8, bbedc1a, 4d039cc: configured base programs,
+`scratch -- TEXT`, programs required for empty argv) and K9 (3cced20:
+configured success/failure output views with the log path). The current VAC
+adds the candidate's remaining criteria: catalog `purpose`/`doc`, the
+`.agentrig/tools.yaml` module (recognize, locations, entries, removed), the
+registry listing in `commands`, a `tools` gate check that the staged VAC
+commit skips, the develop-tools skill and merge cleanup of the branch
+scratch area. This repository's configuration does not use them yet: the
+installed bbedc1a rejects the new fields.
 
 ## Verification
 
-bbedc1a passed the commit gate (77 Rust, 186 Python tests). After
-bootstrap, `just config-check` accepted this repository's configuration
-and `just read -- git status --short` ran through the new base rules.
+Before this VAC commit: Clippy and rustfmt clean, candidate lint without
+errors, 77 Rust lib tests and 246 Python tests of the command, delivery,
+setup, config, hooks, memory and launcher groups passed.
 
 ## Blockers
 
@@ -48,6 +50,8 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Require programs for commands with empty argv (validation and its CLI
-assertion), commit through scratch, then continue P027 with K9 compact
-command output.
+Commit the VAC through scratch. Then pin it in one scratch command
+(stable.txt = HEAD, purposes and output views in commands.yaml, the tools
+check in checks.yaml, .agentrig/tools.yaml, bootstrap), commit the pin and
+configuration, run the tools check, record K1–K9 evidence in P027 and
+archive it.

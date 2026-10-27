@@ -112,9 +112,7 @@ fn configured_command(context: &Context, command: &str, args: &[String]) -> Resu
             Ok(0)
         }
         "commands" => {
-            for (name, spec) in &context.config.commands {
-                println!("{name}: {}", spec.argv.join(" "));
-            }
+            command_runner::registry::list(context)?;
             Ok(0)
         }
         "run" => {

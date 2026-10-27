@@ -12,7 +12,7 @@ use std::{
 
 // DECISION: D038
 pub const FILE: &str = ".agentrig/project.yaml";
-const MODULES: [&str; 5] = ["git", "commands", "checks", "hooks", "oracles"];
+const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "oracles", "tools"];
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -35,6 +35,29 @@ pub struct Config {
     pub hooks: Hooks,
     #[serde(default)]
     pub oracles: BTreeMap<String, Oracle>,
+    #[serde(default)]
+    pub tools: Tools,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Tools {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub recognize: Vec<String>,
+    #[serde(default)]
+    pub locations: Vec<String>,
+    #[serde(default)]
+    pub entries: Vec<String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub removed: BTreeMap<String, Removed>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Removed {
+    pub purpose: String,
+    pub reason: String,
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revision: Option<String>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -65,6 +88,10 @@ pub enum Frontend {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Command {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub purpose: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub doc: Option<String>,
     pub argv: Vec<String>,
     #[serde(default = "dot")]
     pub cwd: String,
@@ -116,6 +143,7 @@ pub enum CheckKind {
     Command,
     Lint,
     Memory,
+    Tools,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -186,7 +214,7 @@ fn all() -> Vec<String> {
     vec!["**".into()]
 }
 
-fn module(section: &str) -> String {
+pub fn module(section: &str) -> String {
     format!(".agentrig/{section}.yaml")
 }
 pub fn read(root: &Path) -> Result<Config> {

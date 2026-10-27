@@ -118,11 +118,8 @@ fn execute_checks(
         .iter()
         .filter(|check| options.only.is_none_or(|id| check.id == id))
     {
-        let include = globs(&check.include)?;
-        let applies = files.iter().any(|path| include.is_match(path));
-        let skipped = !applies;
-        if skipped {
-            println!("SKIP [{}]: no selected files", check.id);
+        if let Some(reason) = skip_reason(check, &files, options)? {
+            println!("SKIP [{}]: {reason}", check.id);
             continue;
         }
         let targets = selection::targets(check, changes.as_deref())?;
@@ -142,6 +139,20 @@ fn execute_checks(
     Ok(0)
 }
 
+fn skip_reason(
+    check: &Check,
+    files: &[PathBuf],
+    options: &Options<'_>,
+) -> Result<Option<&'static str>> {
+    let include = globs(&check.include)?;
+    let applies = files.iter().any(|path| include.is_match(path));
+    let commit_of_merge_check = options.staged && check.kind == CheckKind::Tools;
+    Ok(match (applies, commit_of_merge_check) {
+        (false, _) => Some("no selected files"),
+        (true, true) => Some("checked before merge"),
+        (true, false) => None,
+    })
+}
 fn execute_selected(
     context: &Context,
     source: (&Path, &[String]),
@@ -179,6 +190,7 @@ fn run_check(
             rerun,
         ),
         CheckKind::Memory => crate::project_memory::check_with_history(context, source.0, source.1),
+        CheckKind::Tools => command_runner::registry::check::run(context, check, rerun),
     }
 }
 fn checked(

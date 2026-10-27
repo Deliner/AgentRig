@@ -1,6 +1,6 @@
 use crate::project_config::{
-    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, View,
-    Views,
+    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, Tools,
+    View, Views,
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -78,13 +78,23 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         },
         git: git(options),
         commands: commands(options),
-        checks: checks(&options["source"], &repair),
+        checks: checks(&options["source"], skill_root),
         hooks: Hooks {
             routes: routes(&options["memory"], skill_root),
             reminder: Some(format!("{service}/reminder.json")),
             discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
         },
         oracles: BTreeMap::new(),
+        tools: tools(service),
+    }
+}
+fn tools(service: &str) -> Tools {
+    let installed = vec![format!("{service}/bin/*"), format!("{service}/hooks/*")];
+    Tools {
+        recognize: Vec::new(),
+        locations: installed.clone(),
+        entries: installed,
+        removed: BTreeMap::new(),
     }
 }
 fn git(options: &Options<'_>) -> Git {
@@ -170,35 +180,49 @@ fn programs(table: Programs) -> BTreeMap<String, Program> {
         .collect()
 }
 fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
-    let mut commands = BTreeMap::new();
-    for (id, read_only, table) in [("read", true, READ), ("write", false, WRITE)] {
-        commands.insert(
-            id.into(),
-            Command {
-                lifetime: Default::default(),
-                argv: Vec::new(),
-                cwd: ".".into(),
-                accepts_args: true,
-                read_only,
-                programs: programs(table),
-                output: None,
-            },
-        );
+    let base = |purpose, read_only, table| Command {
+        programs: programs(table),
+        ..command(purpose, Vec::new(), read_only)
+    };
+    let test = Command {
+        output: Some(test_views(options)),
+        ..command("Run the project tests", test_command(options), false)
+    };
+    [
+        (
+            "read",
+            base(
+                "Inspect files and Git history with configured programs",
+                true,
+                READ,
+            ),
+        ),
+        (
+            "write",
+            base(
+                "Change files and Git state with configured programs",
+                false,
+                WRITE,
+            ),
+        ),
+        ("test", test),
+    ]
+    .into_iter()
+    .map(|(id, command)| (id.into(), command))
+    .collect()
+}
+fn command(purpose: &str, argv: Vec<String>, read_only: bool) -> Command {
+    Command {
+        purpose: purpose.into(),
+        doc: None,
+        lifetime: Default::default(),
+        argv,
+        cwd: ".".into(),
+        accepts_args: true,
+        read_only,
+        programs: BTreeMap::new(),
+        output: None,
     }
-    let argv = test_command(options);
-    commands.insert(
-        "test".into(),
-        Command {
-            lifetime: Default::default(),
-            argv,
-            cwd: ".".into(),
-            accepts_args: true,
-            read_only: false,
-            programs: BTreeMap::new(),
-            output: Some(test_views(options)),
-        },
-    );
-    commands
 }
 fn test_views(options: &Options<'_>) -> Views {
     let view = |matching: &[&str], tail| View {
@@ -267,36 +291,30 @@ fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
     });
     routes
 }
-fn checks(source: &str, repair: &str) -> Vec<Check> {
+fn checks(source: &str, skill_root: &str) -> Vec<Check> {
+    let skill = |name| format!("{skill_root}/{name}/SKILL.md");
+    let tests = Check {
+        command: Some("test".into()),
+        include: vec![format!("{source}/**")],
+        ..check("tests", CheckKind::Command, skill("repair"))
+    };
     vec![
-        Check {
-            id: "lint".into(),
-            kind: CheckKind::Lint,
-            command: None,
-            include: vec!["**".into()],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
-        Check {
-            id: "memory".into(),
-            kind: CheckKind::Memory,
-            command: None,
-            include: vec!["**".into()],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
-        Check {
-            id: "tests".into(),
-            kind: CheckKind::Command,
-            command: Some("test".into()),
-            include: vec![format!("{source}/**")],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
+        check("lint", CheckKind::Lint, skill("repair")),
+        check("memory", CheckKind::Memory, skill("repair")),
+        tests,
+        check("tools", CheckKind::Tools, skill("develop-tools")),
     ]
+}
+fn check(id: &str, kind: CheckKind, skill: String) -> Check {
+    Check {
+        id: id.into(),
+        kind,
+        command: None,
+        include: vec!["**".into()],
+        skill,
+        warning: false,
+        affected: Vec::new(),
+    }
 }
 type Recipe = (&'static str, &'static str, bool);
 // DECISION: D039
