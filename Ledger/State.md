@@ -4,17 +4,17 @@
 
 On 2026-10-27 the user deleted unneeded Backlog cards and selected the rest
 for execution: [Plan](Plan.md) orders B001 → B003 → B002 → B008 → B009 →
-B014. B001, B003 and B002 are complete as [P018](Archive/Plan/018.md),
-[P019](Archive/Plan/019.md) and [P021](Archive/Plan/021.md). P025 (comment
-references, [B008](Backlog/008.md)) is active. References to the removed
-review runner are assessed by the executor at acceptance
-([D033](Decisions/033.md)).
+B014. B001, B003, B002 and B008 are complete as [P018](Archive/Plan/018.md),
+[P019](Archive/Plan/019.md), [P021](Archive/Plan/021.md) and
+[P025](Archive/Plan/025.md). P026 (condition naming, [B009](Backlog/009.md))
+is active. References to the removed review runner are assessed by the
+executor at acceptance ([D033](Decisions/033.md)).
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: 0d6ce60c02d249622eddd6cf872447d3db681e52
+Revision: 603264775fbd5bee6dbca310037ea2220f90481d
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -26,32 +26,20 @@ prefix `PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
 
 ## Progress
 
-P021 delivered [D047](Decisions/047.md) hook coordination, its repository
-routes, grouped lint diagnostics, the merge-boundary review text and the
-`just run` read_only classification; K1–K15 evidence is in its archive card.
-P025 starts from [D037](Decisions/037.md)'s existing comment-reference lint
-rule for Rust and Python. Its first VAC moves the exact reference format to
-shared/syntax, where lint and memory-check share it; memory-check now reports
-each reference in the configured sources that names no recorded decision or
-invariant (K2). The language tests add tool-directive comments (K1)
-(7955912). The current VAC adds a lint CLI eval of comment forms, data
-text, grouped guidance and the fixed variant (K1, K3, K6) and makes
-replace-comment use norm-or-choice and allow one record for several
-comments (K4).
-
-(1bd1cf8). The reference scan now runs before oracle discovery and skips
-non-UTF-8 files (0d6ce60).
-
-test_delivery.py (the I002 oracle) failed since P021: the D047 init route
-stops a consumer's first `just check`, and the map selected that test only
-for its own changes. The current VAC expects that stop and its retry,
-unsets the inherited CARGO_TARGET_DIR so consumer builds cannot reuse stale
-artifacts from AgentRig's target, and maps Project/** to the test.
+P021 and P025 are archived with per-criterion evidence. P025 shared the
+exact reference format between lint and memory-check, made memory-check
+report references naming no record, added CLI evals and refined
+replace-comment. During P025 the I002 delivery oracle, broken since P021's
+D047 init route, was restored and is now selected for every Project change
+(6032647). Archiving P025 gave Ledger/Archive/Plan sixteen entries;
+[D048](Decisions/048.md) applies D029's flat-registry size exemption to that
+exact directory. P026 changes the existing name-if-condition skill; its K5
+requires a fixed set of real conditions and criteria before evaluation.
 
 ## Verification
 
-test_delivery.py passed for both layouts together with the memory tests
-(81 passed); config-check passed. 0d6ce60 passed the commit gate.
+6032647 passed the commit gate with test_delivery.py selected (260 Python
+tests). The archive VAC changes only Ledger records.
 
 ## Blockers
 
@@ -59,4 +47,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Archive P025 with K1–K6 evidence and start P026 (B009 condition naming).
+Fix P026's evaluation set in its Delivery: real conditions from this
+repository with context at a pinned revision and B009 K1–K4 as criteria;
+then apply the skill through a clean agent and review each case.
