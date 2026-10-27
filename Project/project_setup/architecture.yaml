@@ -10,4 +10,4 @@ files:
   README.md: Consumer installation, commands, configuration and delivery guide
 directories:
   tests: Verify generated lint policy and runtime readiness
-  setup: Initialize the configured environment without overwriting consumer files
+  initialization: Initialize the configured environment without overwriting consumer files

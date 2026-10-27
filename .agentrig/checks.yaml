@@ -87,7 +87,7 @@
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_setup/setup/tests
+    - Project/project_setup/initialization/tests
     - Project/command_runner/tests
     - Project/project_config/tests
     - Project/project_memory/evidence/tests
@@ -136,7 +136,7 @@
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
-    - Project/project_setup/setup/tests
+    - Project/project_setup/initialization/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests/test_hooks.py
     - Project/project_memory/tests

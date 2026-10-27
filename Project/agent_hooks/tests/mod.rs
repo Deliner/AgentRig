@@ -5,7 +5,7 @@ use std::{fs, path::Path};
 fn project() -> (tempfile::TempDir, std::path::PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
-    crate::project_setup::setup::init(&root, &[]).unwrap();
+    crate::project_setup::initialization::init(&root, &[]).unwrap();
     (temp, root)
 }
 

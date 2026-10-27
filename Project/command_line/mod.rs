@@ -35,7 +35,7 @@ pub fn owns(command: &str) -> bool {
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
-        "init" => return project_setup::setup::init(root, args),
+        "init" => return project_setup::initialization::init(root, args),
         "guard-commit" => return guard_commit(root, args),
         "check" => {
             return gate::selected(root, gate::arguments(args)?);

@@ -50,6 +50,7 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the workflow VAC, review unclear names (project_setup/setup,
-command_runner/jobs/identity, project_memory/evidence) and rerun the blind
-name and structure checks against B003 K1–K5.
+Commit the rename of project_setup/setup to project_setup/initialization,
+then rerun the blind name and structure checks against B003 K1–K5.
+project_memory/evidence stays: moving it to change_delivery would create a
+cycle with resume, and it depends on project_config, so it cannot be shared.
