@@ -31,15 +31,17 @@ P019 VAC (B003 K3) gives shared behavior its own owners: glob patterns move to
 shared/paths/patterns.rs, skill reference validation to
 shared/diagnostics/skills.rs and source parsing to shared/syntax, so
 agent_hooks, change_delivery and project_memory no longer reach into
-structural_lint for them. Remaining structural_lint consumers run or
-configure lint. Open: shared/vcs feature-workflow overlap with
-change_delivery/git, unclear names, blind checks.
+structural_lint for them (e921f47). The next VAC moves feature start and
+checked integration from shared/vcs into change_delivery/git/integration.rs,
+their only consumer; shared/vcs keeps repository access with new
+Repository run, command and ancestor methods. Open: unclear names and the
+blind checks.
 
 ## Verification
 
-For the K3 VAC: clippy with -D warnings, candidate `just lint` without errors
-and `just config-check` pass on the working tree; the commit gate runs the
-affected tests. K7 consumer sessions passed in Claude Code and Codex as
+e921f47 passed the full commit gate. For the workflow VAC: clippy with -D
+warnings, candidate `just lint` without errors and
+Project/change_delivery/git/tests (10) pass on the working tree. K7 consumer sessions passed in Claude Code and Codex as
 recorded in P018.
 
 ## Blockers
@@ -48,6 +50,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the K3 VAC, then move feature-branch workflow out of shared/vcs into
-change_delivery/git and rerun the blind name and structure checks against
-B003 K1–K5.
+Commit the workflow VAC, review unclear names (project_setup/setup,
+command_runner/jobs/identity, project_memory/evidence) and rerun the blind
+name and structure checks against B003 K1–K5.

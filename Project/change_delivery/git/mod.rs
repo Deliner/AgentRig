@@ -1,6 +1,7 @@
 // DECISION: D010
 // DECISION: D019
 // DECISION: D035
+mod integration;
 use super::gate;
 use crate::project_config::Context;
 use crate::shared::vcs::git_context as git;
@@ -15,7 +16,7 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     let settings = &context.config.git;
     let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
-    let branch = repository.start_feature(settings, name)?;
+    let branch = integration::start(&repository, settings, name)?;
     println!("{branch}");
     Ok(0)
 }
@@ -24,7 +25,8 @@ pub fn merge(context: &Context) -> Result<i32> {
     let settings = &context.config.git;
     let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
-    let (feature, code) = repository.integrate(settings, || checked(context), execute_vcs)?;
+    let (feature, code) =
+        integration::integrate(&repository, settings, || checked(context), execute_vcs)?;
     let passed = code == 0;
     if passed {
         println!("merged {feature}; branch retained");
