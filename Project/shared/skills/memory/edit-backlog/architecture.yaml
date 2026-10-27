@@ -1,0 +1,5 @@
+purpose: Agree feature meaning and acceptance before saving Backlog cards
+type: flat
+files:
+  SKILL.md: Canonical chat agreement, scoped requirements and acceptance handoff guidance
+directories: {}

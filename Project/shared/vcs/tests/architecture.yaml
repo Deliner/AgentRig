@@ -1,0 +1,5 @@
+purpose: Verify Git behavior against real repository consumers
+files:
+  mod.rs: Verify repository observation, export, hooks and worktree preservation
+  fixture.rs: Build repositories and committed revisions for Git tests
+directories: {}

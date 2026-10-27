@@ -1,0 +1,5 @@
+purpose: Construct isolated lint consumers and invoke their configured CLI diagnostics
+type: flat
+files:
+  consumer.py: Seed lint policy and skills and read lint and explanation diagnostics
+directories: {}

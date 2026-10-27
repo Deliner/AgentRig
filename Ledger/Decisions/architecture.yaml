@@ -1,6 +1,5 @@
 purpose: Preserve contextual rationale for durable repository choices
 files:
-  architecture.yaml: Detail file inventory and knowledge responsibility map
   001.md: "Context and rationale for: Separate contextual decisions from executable invariants."
   002.md: "Context and rationale for: Enforce durable-knowledge links and size policy with one standard-library checker."
   003.md: "Context and rationale for: Block a second agent edit until prior edited contents are committed or reverted."
@@ -33,7 +32,16 @@ files:
   030.md: "Context and rationale for: Apply flat-memory registry size policy to Backlog."
   031.md: "Context and rationale for current execution Plan and unordered Backlog"
   032.md: "Context and rationale for chat-agreed feature contracts and autonomous delivery"
+  033.md: "Context and rationale for: Retire capabilities outside the lint-first target state and keep Git-only delivery."
+  034.md: "Context and rationale for: Contain jobs with process groups and sandbox read-only commands per platform."
+  035.md: "Context and rationale for: Select affected tests for the whole branch at feature merge."
+  036.md: "Context and rationale for: Limit README and AGENTS.md size and width, and keep other Markdown out of Project."
+  037.md: "Context and rationale for: Allow only decision and invariant references as source comments."
+  038.md: "Context and rationale for: Keep project configuration in single-responsibility modules under .agentrig."
+  039.md: "Context and rationale for: Keep Just recipes in grouped files under just/."
+  040.md: "Context and rationale for: Initialize memory in Ledger and sources in Project by default."
+  041.md: "Context and rationale for: Develop the worker under Project and keep only development launchers and distribution under tooling."
+  042.md: "Context and rationale for: Place first-level features with two-word names directly in Project, shared support in Project/shared and Python verification configuration in tooling."
+  043.md: "Context and rationale for: Limit directory contracts to purpose, files and directories, with directory cycles as the only dependency finding."
+  044.md: "Context and rationale for: Make features without nested features declare an architecture type with required parts and inward dependencies."
 directories: {}
-allow: []
-deny: []
-public: []

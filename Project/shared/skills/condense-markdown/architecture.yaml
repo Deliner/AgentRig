@@ -1,0 +1,5 @@
+purpose: "Condense README and AGENTS.md to their limits and keep other Markdown out of Project"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep only the content a Markdown reader needs"
+directories: {}

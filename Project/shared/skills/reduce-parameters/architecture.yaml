@@ -1,0 +1,5 @@
+purpose: "Reduce excessive function inputs without hiding dependencies"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to reduce excessive function inputs without hiding dependencies"
+directories: {}

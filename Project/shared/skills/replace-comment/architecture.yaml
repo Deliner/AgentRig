@@ -1,0 +1,5 @@
+purpose: "Replace non-reference source comments with owned knowledge or clearer code"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move comment knowledge to its owner or delete it"
+directories: {}

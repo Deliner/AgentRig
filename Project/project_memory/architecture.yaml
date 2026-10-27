@@ -1,0 +1,11 @@
+purpose: Validate project memory contracts and report recovery context
+files:
+  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks
+  format.rs: Memory document sections, tables, links and source target paths
+  history.rs: Preserve committed decisions and locate current or legacy historical memory
+  oracles.rs: Bind invariant markers to configured executable test discovery
+  resume.rs: Combine recorded State with current repository, job and check observations
+  source.rs: Inspect supported source syntax for decision and invariant markers
+directories:
+  tests: Memory, plan and State behavior scenarios and shared memory fixtures
+  evidence: Persist check results and determine whether checked inputs remain current

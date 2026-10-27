@@ -1,0 +1,35 @@
+# Gate checks and affected tests
+
+`check` runs the configured checks over the worktree, `--staged` over the exported index and `--revision REV` over a
+commit; `--only ID` selects one check. The pre-commit hook runs `check --staged`, and `feature-merge` runs the gate on
+the integration candidate. Lint, memory and other non-command checks always run in full.
+
+A command check runs its whole command unless it declares `affected` groups:
+
+```yaml
+- id: tests
+  kind: command
+  command: test
+  skill: .agents/skills/repair/SKILL.md
+  affected:
+  - include: [src/lint/**, tests/lint/**]
+    targets: [tests/lint]
+  - include: [src/hooks/**, tests/hooks/**]
+    targets: [tests/hooks]
+  - include: [docs/**]
+    targets: []
+```
+
+On commit, groups match the staged paths against the previous commit; on merge, after any rebase, every path changed
+between the base branch and the feature head. Added, deleted and both sides of renamed paths participate. When every
+changed path matches a group, the deduplicated union of targets is appended to the command as literal arguments,
+interpreted from its working directory, and an empty union skips the command. Any unmatched path, or no groups, keeps
+the full command; `check` and `check --revision` always do. This is an explicit impact map, not dependency or coverage
+analysis: include consumer tests when a change can affect them.
+
+The console prints `SELECT [id]` with the chosen targets. Narrowed or skipped evidence is saved with `selective: true`
+and never sets `full_gate_passed`; `feature-merge` needs only its selected gate to pass on unchanged inputs. The command
+must accept arguments, includes must be nonempty valid globs and targets nonempty NUL-free strings.
+
+Keep pytest targets nonoverlapping: a file together with a node inside it narrows collection to that node, and
+directory and file overlaps can drop cases.

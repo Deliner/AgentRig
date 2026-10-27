@@ -1,0 +1,103 @@
+read:
+  argv: []
+  accepts_args: true
+  read_only: true
+write:
+  argv: []
+  accepts_args: true
+build:
+  argv:
+  - tooling/worker/build
+  - --version
+candidate:
+  argv:
+  - tooling/worker/build
+  accepts_args: true
+lint:
+  argv: [tooling/worker/build, lint]
+  accepts_args: true
+release:
+  argv:
+  - bash
+  - tooling/distribution/release.sh
+rustfmt:
+  argv:
+  - cargo
+  - +1.98.1
+  - fmt
+  - --manifest-path
+  - Project/Cargo.toml
+  - --check
+clippy:
+  argv:
+  - cargo
+  - +1.98.1
+  - clippy
+  - --manifest-path
+  - Project/Cargo.toml
+  - --locked
+  - --
+  - -D
+  - warnings
+rust-test:
+  argv:
+  - cargo
+  - +1.98.1
+  - test
+  - --manifest-path
+  - Project/Cargo.toml
+  - --locked
+  - --lib
+  - --
+  accepts_args: true
+test:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - pytest
+  - -c
+  - tooling/pyproject.toml
+  - --rootdir
+  - .
+  accepts_args: true
+ruff-format:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - ruff
+  - format
+  - --check
+  - --config
+  - tooling/pyproject.toml
+ruff:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - ruff
+  - check
+  - --config
+  - tooling/pyproject.toml
+mypy:
+  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
+typos:
+  argv:
+  - uv
+  - run
+  - --locked
+  - --project
+  - tooling
+  - typos
+  - --config
+  - tooling/pyproject.toml
+  - .
+vulture:
+  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/agent_hooks", "Project/change_delivery", "Project/command_runner", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]

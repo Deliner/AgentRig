@@ -1,0 +1,73 @@
+I001:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_memory.py::test_decision_source_markers
+I002:
+  check: test
+  runner: pytest
+  target: Project/shared/testing/test_delivery.py::test_independent_project_delivery
+I003:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_memory.py::test_committed_decisions_checked_against_staged_memory
+I004:
+  check: test
+  runner: pytest
+  target: Project/structural_lint/tests/test_lint.py::test_native_lint_thresholds_and_skills
+I005:
+  check: test
+  runner: pytest
+  target: Project/agent_hooks/tests/test_hooks.py::test_shell_guard_rejects_bypass
+I006:
+  check: test
+  runner: pytest
+  target: Project/change_delivery/git/tests/test_git.py::test_staged_commit_preserves_unstaged_work
+I007:
+  check: test
+  runner: pytest
+  target: Project/agent_hooks/tests/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
+I008:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_memory.py::test_repository_layout_and_detail_contract
+I009:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_plan.py::test_plan_delivery_contract
+I010:
+  check: test
+  runner: pytest
+  target: Project/change_delivery/git/tests/test_git.py::test_divergent_rebase_preserves_merge_history
+I011:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_state.py::test_state_recovery_contract
+I012:
+  check: test
+  runner: pytest
+  target: Project/agent_hooks/tests/test_hooks.py::test_ledger_edit_guidance
+I014:
+  check: test
+  runner: pytest
+  target: Project/structural_lint/tests/test_lint.py::test_invalid_config_is_actionable
+I015:
+  check: test
+  runner: pytest
+  target: Project/structural_lint/languages/tests/test_language.py::test_language_conditions
+I016:
+  check: test
+  runner: pytest
+  target: Project/structural_lint/config/tests/test_config_check.py::test_config_rejects_unsupported_language
+I017:
+  check: test
+  runner: pytest
+  target: Project/project_setup/tests/test_lint_defaults.py::test_strict_defaults_block_delivery
+I018:
+  check: test
+  runner: pytest
+  target: Project/project_memory/evidence/tests/test_evidence.py::test_evidence_tracks_content_and_partial_checks
+I019:
+  check: test
+  runner: pytest
+  target: Project/project_memory/tests/test_resume.py::test_resume_observes_real_conflict
+

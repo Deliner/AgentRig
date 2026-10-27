@@ -1,0 +1,4 @@
+purpose: Verify Git feature delivery and transaction guards
+files:
+  test_git.py: Native feature starts, rebase, commit guards and owned cleanup
+directories: {}

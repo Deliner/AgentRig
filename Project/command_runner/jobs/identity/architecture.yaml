@@ -1,0 +1,6 @@
+purpose: Identify processes by PID, start time and boot so a reused PID is never trusted
+files:
+  mod.rs: Platform-neutral identity, liveness, replacement and resource observation
+  linux.rs: Read boot identity and process start, state and resources from /proc
+  macos.rs: Read boot time and process start, state and resources through sysctl and proc_pidinfo
+directories: {}

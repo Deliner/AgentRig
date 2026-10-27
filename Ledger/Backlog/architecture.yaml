@@ -1,6 +1,5 @@
 purpose: Retain future ideas, hypotheses and context without execution priority
 files:
-  architecture.yaml: Idea card inventory and responsibility map
   001.md: "Исправление конфигурации без блокировки агента"
   002.md: "Согласованная работа хуков и понятные инструкции агенту"
   003.md: "Структура проекта, отражающая смысл его возможностей"
@@ -18,7 +17,5 @@ files:
   015.md: "Проверка архитектуры на VAC и перед merge"
   016.md: "Приёмка фичи по критериям и результатам проверок"
   017.md: "Управление Ledger через MCP и контролируемое размещение Markdown"
+  018.md: "Архитектурный тип у фич нижнего уровня"
 directories: {}
-allow: []
-deny: []
-public: []

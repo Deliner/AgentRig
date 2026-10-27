@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

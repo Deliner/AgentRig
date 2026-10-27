@@ -1,0 +1,8 @@
+purpose: Extract Rust module and item dependencies with language-specific path normalization
+files:
+  mod.rs: Rust syntax dispatch and normalized path recording with module scope tracking
+  attributes.rs: Dependency-bearing attributes and explicit unsupported attribute findings
+  conditions.rs: Recognize test and target-platform cfg predicates analyzed as unconditional code
+  macros.rs: Supported macro reference extraction and incomplete expansion findings
+  prelude.rs: Prelude and local binding interpretation for extracted Rust paths
+directories: {}

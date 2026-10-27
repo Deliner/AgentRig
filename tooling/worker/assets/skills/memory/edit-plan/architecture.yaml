@@ -1,8 +1,0 @@
-purpose: "Maintain scope and acceptance selected for current execution"
-files:
-  architecture.yaml: "Resource responsibility map and public installation boundary"
-  SKILL.md: "Canonical agent instructions to maintain scope and acceptance selected for current execution"
-directories: {}
-allow: []
-deny: []
-public: ["SKILL.md"]

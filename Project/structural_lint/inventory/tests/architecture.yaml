@@ -1,0 +1,4 @@
+purpose: Verify maintained source inventory through Git consumers
+files:
+  test_inventory_vcs.py: Git tracked and untracked inventory parity across both linters
+directories: {}

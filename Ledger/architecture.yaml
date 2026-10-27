@@ -1,6 +1,5 @@
 purpose: Preserve delivery outcomes, durable choices, executable invariants and current recovery facts
 files:
-  architecture.yaml: Project knowledge inventory and responsibility map
   Plan.md: Outcomes explicitly selected for current execution
   Backlog.md: Unordered future ideas, improvements and hypotheses
   Decisions.md: Immutable decision statements and current application links
@@ -13,6 +12,3 @@ directories:
   Backlog: Idea context, proposals and expected benefits
   Decisions: Historical context and rationale for durable choices
   Invariants: Detailed predicates and exact executable oracle descriptions
-allow: []
-deny: []
-public: []

@@ -1,0 +1,7 @@
+purpose: Record verification attempts and establish whether their results still match project inputs
+type: flat
+files:
+  mod.rs: Persist check outcomes and report freshness and repeated failures
+  content.rs: Fingerprint checked files, revisions and VCS indexes
+directories:
+  tests: Verify verification evidence and observed input freshness

@@ -1,0 +1,238 @@
+# Every rule declares supported target, selectors, thresholds, and repair skills.
+# Validate with just lint-config-check; inspect capabilities with just lint-rules.
+# Every rule accepts enabled: false; include/exclude/extensions select its scope.
+# Supports any selected UTF-8 language, including shell.
+# Supports directories, independent of language; no extensions.
+# DECISION: D021
+# All language rules block delivery; the same defaults are installed in consumers.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+# Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
+version: 1
+config_skill: .agents/skills/repair/SKILL.md
+exclude:
+- .git
+- .git/**
+- .cache
+- .cache/**
+- '**/__pycache__'
+- '**/__pycache__/**'
+- '**/.venv'
+- '**/.venv/**'
+- '**/target'
+- '**/target/**'
+rules:
+- id: file-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .py
+  - .sh
+  - .rs
+  - .go
+  - .c
+  - .h
+  - .cpp
+  - .cs
+  - .java
+  - .json
+  - .md
+  - .toml
+  - .txt
+  - .yaml
+  - .yml
+  warning: 300
+  error: 500
+  warning_skill: .agents/skills/refactor-large-file/SKILL.md
+  error_skill: .agents/skills/refactor-large-file/SKILL.md
+# DECISION: D036
+- id: markdown-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  exclude:
+  - Ledger/**
+  error: 70
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
+- id: markdown-width
+  kind: line-width
+  target: file
+  include:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  exclude:
+  - Ledger/**
+  error: 120
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
+- id: markdown-placement
+  kind: forbidden-file
+  target: file
+  include:
+  - Project/**
+  extensions:
+  - .md
+  exclude:
+  - '**/README.md'
+  - '**/AGENTS.md'
+  - '**/SKILL.md'
+  level: error
+  warning_skill: .agents/skills/condense-markdown/SKILL.md
+  error_skill: .agents/skills/condense-markdown/SKILL.md
+- id: directory-size
+  kind: directory-entries
+  target: directory
+  include:
+  - '**'
+  exclude:
+  - Ledger/Decisions
+  - Ledger/Invariants
+  # DECISION: D029 -- memory requires a flat indexed Plan/NNN.md registry.
+  - Ledger/Plan
+  # DECISION: D030 -- Backlog uses the same flat indexed memory representation.
+  - Ledger/Backlog
+  warning: 10
+  error: 15
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+- id: named-if-condition
+  kind: named-if-condition
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/name-if-condition/SKILL.md
+  error_skill: .agents/skills/name-if-condition/SKILL.md
+- id: function-lines
+  kind: function-lines
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 40
+  warning_skill: .agents/skills/refactor-long-function/SKILL.md
+  error_skill: .agents/skills/refactor-long-function/SKILL.md
+- id: parameter-count
+  kind: parameter-count
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 4
+  warning_skill: .agents/skills/reduce-parameters/SKILL.md
+  error_skill: .agents/skills/reduce-parameters/SKILL.md
+# DECISION: D037
+- id: comments
+  kind: comment-reference
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/replace-comment/SKILL.md
+  error_skill: .agents/skills/replace-comment/SKILL.md
+
+# Full maintained-tree inventory; dependency extensions do not limit file coverage.
+- architecture:
+    external:
+      rust:
+      - alloc
+      - anyhow
+      - core
+      - fs2
+      - globset
+      - libc
+      - serde
+      - serde_json
+      - serde_path_to_error
+      - serde_yaml_ng
+      - sha2
+      - shell_words
+      - signal_hook
+      - std
+      - tempfile
+      - toml
+      - tree_sitter
+      - tree_sitter_bash
+      - tree_sitter_python
+      - tree_sitter_rust
+      - yaml_rust2
+      python:
+      - __future__
+      - argparse
+      - collections
+      - contextlib
+      - copy
+      - dataclasses
+      - datetime
+      - hashlib
+      - io
+      - itertools
+      - json
+      - os
+      - pathlib
+      - platform
+      - pytest
+      - re
+      - select
+      - shlex
+      - shutil
+      - signal
+      - statistics
+      - subprocess
+      - sys
+      - tarfile
+      - tempfile
+      - time
+      - tomllib
+      - typing
+      - yaml
+    rust_crates:
+      agentrig: Project/lib.rs
+    rust_roots:
+    - Project/shared/testing/examples/rust/crates/engine/src/lib.rs
+    - Project/lib.rs
+    - Project/command_line/main.rs
+    - Project/structural_lint/standalone.rs
+    python_root: .
+    feature_root: Project
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  id: architecture
+  include:
+  - .
+  - '**'
+  kind: directory-architecture
+  level: error
+  target: directory
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  exclude:
+  - .tmp
+  - .tmp/**
+  - .mypy_cache
+  - .mypy_cache/**
+  - .pytest_cache
+  - .pytest_cache/**
+  - .ruff_cache
+  - .ruff_cache/**

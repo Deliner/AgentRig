@@ -1,0 +1,6 @@
+purpose: Gate commits on selected checks and integrate feature branches
+files:
+  mod.rs: Delivery module declarations
+directories:
+  gate: Run checks against selected source snapshots and affected targets
+  git: Coordinate feature branches, checked integration and Git commit guards

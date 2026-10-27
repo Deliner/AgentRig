@@ -2,71 +2,61 @@
 
 ## Focus
 
-Publish the latest agreed planning and architecture-guidance changes to GitHub
-at the user's request on 2026-09-16. This is maintenance publication; none of
-the six selected product outcomes has started.
+Bring the repository toward the user's remembered target state recorded in
+[Requests.md](Requests.md) under "Целевое состояние после утраты истории —
+2026-10-26". The user agreed and selected [B018](Backlog/018.md) on
+2026-10-27: features without nested features declare an architecture type
+with required parts and inward dependencies ([D044](Decisions/044.md)). This
+VAC completes it as [P024](Archive/Plan/024.md). First-level features in
+Project ([D042](Decisions/042.md)) still await the user's review; the full
+B003 revision draft is not agreed.
 
 ## Workspace
 
-Branch: feature/backlog-card-review
+Branch: feature/target-state
 
-Revision: 30bf0e08faa6053d77b7a4370168ec008c9e3bfb
+Revision: d4734a47e76b3b01ef181959e6b14b5a6eb902c7
 
-Before this publication, master and fetched origin/master are
-de482103d885804c8b9d06d21efd6ae4a4d1c855. Git has no merge or rebase in progress.
-The uncommitted VAC contains agreed Backlog amendments, Plan with six detail
-cards, refactoring skills and their architecture descriptions. Runtime code,
-hook routes and the installed pin 9aee4ae are unchanged.
+The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
+d64607e, installed by `just bootstrap` under .cache/development. A stray
+branch feature/init-probe at a14f284 remains from an install probe;
+guard-reference refuses its deletion. Agent shells lack cargo and uv on PATH;
+prefix `env PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:...` inside
+`just write --`.
 
 ## Progress
 
-Plan selects B001 → B003 → B006 → B002 → B012 → B013 as P018–P023.
-All six remain pending in the agreed order. Original contracts are at
-30bf0e08faa6053d77b7a4370168ec008c9e3bfb; the amended contracts are B002/B003/B006,
-with provenance and scope recorded in P019/P020/P021.
+Committed on this branch: removal [D033](Decisions/033.md), macOS port
+[D034](Decisions/034.md), affected-only merge tests [D035](Decisions/035.md),
+Markdown and comment rules [D036](Decisions/036.md)/[D037](Decisions/037.md),
+.agentrig modules [D038](Decisions/038.md), Just groups
+[D039](Decisions/039.md), Ledger/Project init defaults
+[D040](Decisions/040.md), the worker under Project
+[D041](Decisions/041.md), first-level features in Project
+[D042](Decisions/042.md), contracts without permissions
+[D043](Decisions/043.md), feature types in the candidate (d64607e) and its
+pin (d4734a4).
 
-B003 uses existing lint, affected VAC tests, review against K1–K5 and the current
-full merge gate. B015/B016 are not prerequisites. The architecture skill now
-expresses responsibility/change boundaries and semantic roles without mandatory
-folders. Other refactoring skills refer to it. B003 K4 explicitly forbids direct
-and indirect cycles in actual architectural dependencies; K1–K3 and K5 remain.
-
-B006 preserves one shared coordinator with later B002. Known-path configuration
-edits require the skill before editing; opaque commands are compared before/after,
-with skill reading and config verification required after an unauthorized change.
-Recovery remains available. Existing consumer infrastructure verifies constructor
-behavior; full B004/B005 are not prerequisites. B002 uses the existing review
-runner; new submission automation stays in B015.
-
-P022/P023 retain the 2026-09-11 telemetry source findings and client integration
-work still needed. Source discovery is not feature acceptance.
-The external-linter card draft was set aside and remains unsaved.
-P017 remains archived. B017 is a future Ledger MCP requirement; its unrelated
-missing Tmp edit operation and the acknowledged semantic anchoring in
-edit-backlog's operation examples remain unresolved.
+This VAC sets `feature_root: Project`, types 36 leaf features flat and 3
+custom (structural_lint/architecture, shared/testing, command_runner/jobs)
+and archives P024. feature/target-state is not integrated into master. Plan
+P018–P023 reconciliation remains open.
 
 ## Verification
 
-Before publication, planning and architecture-guidance changes passed memory-check
-and git diff --check. All four changed skills passed quick_validate; local links
-and changed architecture YAML were checked. These are consistency checks, not
-product acceptance or an independent evaluation of agent behavior.
-The previously published tree passed its commit and full integration gates;
-those historical results do not verify this VAC.
-The first publication commit gate passed build, lint, memory and static checks,
-then selected 314 tests. The run failed when the filesystem filled up; no commit
-was created. Four inactive AgentRig pytest directories were removed from /tmp
-to free space. The staged gate must pass on retry; the full merge gate remains.
+The d64607e gate passed (45 Rust tests, 252 selected pytest, static checks),
+including 39 architecture Rust tests for classification, parts and direction.
+On this tree the candidate lint reports no errors, and the installed
+lint-config-check and config-check pass. Criterion results are in P024.
 
 ## Blockers
 
-No publication blocker is currently identified. B012/B013 still require client
-integration verification during implementation; unavailable measurements must
-remain explicit. No product outcome is declared complete.
+None for current work. The installed hook validates .agentrig/lint.yaml with
+the pinned runtime, so new lint settings need a pin first (B001).
+memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit this VAC through the normal staged gate, run feature-merge, then push
-master and the retained feature branch to origin and verify remote revisions.
-After publication retain a clean feature branch. Product implementation remains
-pending; B001 is first when execution is instructed.
+Report B018 to the user and ask whether to integrate feature/target-state
+into master with `just feature-merge`; then await their review of the layout
+and the rest of the feature scheme.

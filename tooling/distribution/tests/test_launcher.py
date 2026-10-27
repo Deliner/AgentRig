@@ -14,16 +14,19 @@ ROOT = Path(__file__).parents[3]
 
 
 @pytest.mark.parametrize(
-    "resource", ["src/main.rs", "review/config/review.yaml", "review/config/project.yml"]
+    "resource",
+    ["command_line/main.rs", "shared/architecture.yaml", "shared/skills/repair/SKILL.md"],
 )
 def test_launcher_rebuilds_changed_content_even_with_old_mtime(
     tmp_path: Path, resource: str
 ) -> None:
     source = tmp_path / "repo/tooling/worker"
-    payload = source / resource
+    source.mkdir(parents=True)
+    crate = tmp_path / "repo/Project"
+    payload = crate / resource
     payload.parent.mkdir(parents=True)
     shutil.copy(ROOT / "tooling/worker/build", source / "build")
-    (source / "Cargo.toml").write_text("manifest", encoding="utf-8")
+    (crate / "Cargo.toml").write_text("manifest", encoding="utf-8")
     payload.write_text("ONE", encoding="utf-8")
     original_time = payload.stat().st_mtime_ns
     fake = tmp_path / "bin"
@@ -70,17 +73,20 @@ def development_tree(root: Path) -> tuple[Path, dict[str, str]]:
     pin = root / "tooling/distribution/stable.txt"
     pin.parent.mkdir()
     pin.write_text("a" * 40 + "\n")
-    (source / "Cargo.toml").write_text("deliberately invalid manifest\n")
+    crate = root / "Project"
+    crate.mkdir()
+    (crate / "Cargo.toml").write_text("deliberately invalid manifest\n")
     env = dict(os.environ)
     for key in ["WORKER_BINARY", "WORKER_SOURCE_ROOT", "WORKER_TARGET_DIR", "CARGO_TARGET_DIR"]:
         env.pop(key, None)
     return source, env
 
 
-def test_stable_runtime_survives_candidate_build_failure(worker: Path, tmp_path: Path) -> None:
+def test_stable_runtime_survives_candidate_build_failure(tmp_path: Path) -> None:
     source, env = development_tree(tmp_path)
     installed = tmp_path / ".cache/development" / ("a" * 40)
-    subprocess.run([str(worker), "init", "--root", str(installed)], check=True)
+    candidate_build = ROOT / "tooling/worker/build"
+    subprocess.run([str(candidate_build), "init", "--root", str(installed)], check=True)
     binary = installed / ".agentrig/bin/agentrig"
     before = hashlib.sha256(binary.read_bytes()).hexdigest()
     candidate = subprocess.run(

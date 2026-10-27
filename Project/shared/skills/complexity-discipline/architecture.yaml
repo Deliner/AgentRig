@@ -1,0 +1,6 @@
+purpose: "Keep implementation and workflow complexity within current requirements"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep implementation and workflow complexity within current requirements"
+  context-reminder.json: "Attention intervals and full refresh schedule for complexity guidance"
+directories: {}

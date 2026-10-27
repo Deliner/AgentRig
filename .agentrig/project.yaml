@@ -1,0 +1,11 @@
+version: 1
+runtime: 0.3.0
+config_skill: .agents/skills/repair/SKILL.md
+paths:
+  sources:
+  - tooling/**
+  - Project/**
+  memory: Ledger
+  skills: .agents/skills
+  lint: .agentrig/lint.yaml
+  runtime: .cache/runtime

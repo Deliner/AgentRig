@@ -1,0 +1,5 @@
+purpose: "Maintain factual recovery context and a concrete next action"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to maintain factual recovery context and a concrete next action"
+directories: {}

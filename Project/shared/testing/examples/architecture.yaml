@@ -1,0 +1,7 @@
+purpose: Demonstrate independent AgentRig consumers and measure their installed behavior
+files:
+  README.md: Instructions for installing and exercising independent consumers
+  measure.py: Measure installed hook and lint process latency in fresh consumers
+directories:
+  python: Independent Python consumer source and checks
+  rust: Independent Rust consumer crate and checks

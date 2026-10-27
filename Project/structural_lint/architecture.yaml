@@ -1,0 +1,17 @@
+purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
+files:
+  mod.rs: Evaluation orchestration, scalar findings and configured diagnostic output
+  cli.rs: Embedded and standalone command arguments and rule discovery output
+  standalone.rs: Standalone lint executable entry and process exit reporting
+  explain.rs: Explain why a configured rule selects or excludes a target
+  rules.rs: Preserve public rule paths while forwarding to definitions and catalogue owners
+directories:
+  tests: Verify composed lint CLI diagnostics, explanation and portable consumers
+  testing: Build isolated lint CLI consumers shared across rule behavior tests
+  architecture: Check directory contracts, feature types and measured dependency cycles
+  catalog: Describe implemented rule and language capabilities
+  config: Load and validate strict lint policy and guidance paths
+  inventory: Discover maintained files and directories
+  languages: Parse source syntax and measure language-specific scalar rules
+  rules: Define stable rule identities, parameters and architecture settings
+  selection: Select targets and compute effective thresholds

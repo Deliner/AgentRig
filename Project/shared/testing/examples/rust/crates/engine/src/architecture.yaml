@@ -1,0 +1,4 @@
+purpose: Demonstrate a Rust executable invariant in the consumer crate
+files:
+  lib.rs: Minimal doubling assertion available as a configured invariant oracle
+directories: {}

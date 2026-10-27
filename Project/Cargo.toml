@@ -1,0 +1,39 @@
+[package]
+name = "agentrig"
+version = "0.3.0"
+edition = "2024"
+default-run = "agentrig"
+license = "MIT"
+repository = "https://github.com/Deliner/AgentRig"
+description = "Portable environments for agent-native development"
+
+[lib]
+path = "lib.rs"
+
+[[bin]]
+name = "agentrig"
+path = "command_line/main.rs"
+
+[[bin]]
+name = "agentrig-lint"
+path = "structural_lint/standalone.rs"
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_path_to_error = "0.1"
+globset = "0.4"
+sha2 = "0.10"
+fs2 = "0.4"
+tempfile = "3"
+shell-words = "1"
+anyhow = "1"
+toml = "1"
+serde_yaml_ng = "0.10"
+yaml-rust2 = { version = "0.11", default-features = false }
+tree-sitter = "0.26"
+tree-sitter-rust = "0.24"
+tree-sitter-python = "0.25"
+signal-hook = "0.3"
+libc = "0.2"
+tree-sitter-bash = "0.25.1"

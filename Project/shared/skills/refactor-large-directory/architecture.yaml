@@ -1,0 +1,5 @@
+purpose: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
+type: flat
+files:
+  SKILL.md: "Canonical responsibility, semantic role and dependency principles for structural work and architecture repair"
+directories: {}

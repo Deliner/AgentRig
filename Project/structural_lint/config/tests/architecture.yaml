@@ -1,0 +1,4 @@
+purpose: Verify strict lint configuration and supported target selection through both CLI entrypoints
+files:
+  test_config_check.py: Invalid rule, selector, language and syntax-independent configuration scenarios
+directories: {}

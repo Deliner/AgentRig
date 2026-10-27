@@ -1,0 +1,5 @@
+purpose: Resolve Python imports through regular packages, namespace packages and modules under the configured root
+files:
+  mod.rs: Import roots, relative names, package precedence and member resolution
+  tests.rs: Package loading, incomplete resolution and comparisons with real Python imports
+directories: {}

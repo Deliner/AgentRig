@@ -1,20 +1,17 @@
 purpose: Develop and verify portable AgentRig capabilities while preserving project delivery knowledge
 files:
-  architecture.yaml: Repository responsibility map and module boundaries
   .gitignore: Exclude generated caches and temporary development state
   AGENTS.md: Repository development instructions and ownership constraints
   LICENSE: MIT terms for distributing AgentRig
   README.md: Product overview and repository entry points
-  agentrig.yaml: Authoritative runtime paths, commands, checks and hook configuration
-  justfile: Thin command adapters to the configured runtime
+  justfile: Just entry point importing the recipe groups
 directories:
+  .agentrig: Configure the runtime and dispatch repository Git hooks to it
   .agents: Expose canonical agent skills to the development client
-  .codex: Register the development client hooks and MCP services
-  .githooks: Dispatch repository commit and reference guards
+  .claude: Register the Claude Code development client hooks
+  .codex: Register the Codex development client hooks
   .github: Configure hosted continuous integration
+  just: Thin command adapters to the configured runtime, grouped by responsibility
   Ledger: Preserve delivery contracts, choices, invariants and recovery state
-  Project: Reserve consumer project examples independently of worker implementation
-  tooling: Build, distribute and verify the portable worker
-allow: []
-deny: []
-public: []
+  Project: Implement, document and verify the portable AgentRig runtime
+  tooling: Launch, bootstrap, verify and release AgentRig for development of this repository

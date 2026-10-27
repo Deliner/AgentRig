@@ -1,0 +1,4 @@
+purpose: Compose the Rust consumer from its build packages
+files: {}
+directories:
+  engine: Minimal independently testable consumer crate

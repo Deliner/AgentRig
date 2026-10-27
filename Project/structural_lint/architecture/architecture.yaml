@@ -1,0 +1,15 @@
+purpose: Validate directory contracts, feature types and cycles over resolved source dependencies
+type: custom
+files:
+  mod.rs: Resolved dependency and issue records with contract-check composition
+  policy.rs: Strict directory contracts with purpose, inventory and feature type
+  features.rs: Feature classification, required type parts and inward part dependencies
+  inventory.rs: Exact file and child-directory responsibility coverage checks
+  graph.rs: Cycle detection over measured directory dependencies
+  tests.rs: Contract validation, feature types and measured cycle behavior
+  README.md: Rule configuration, contract format, feature types and source analysis limits
+directories:
+  tests: Exercise architecture inventories and cycles through CLI consumers
+  resolution: Resolve extracted references to concrete project source files
+  runner: Combine configured scope, extraction, resolution and actionable findings
+  source: Extract located dependency references from supported syntax

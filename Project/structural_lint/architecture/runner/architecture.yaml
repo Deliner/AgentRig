@@ -1,0 +1,6 @@
+purpose: Execute architecture analysis over configured scope and convert measured contract findings into lint diagnostics
+files:
+  mod.rs: Coordinate inventory validation, dependency analysis and diagnostic conversion
+  scope.rs: Select directories and source files while preserving complete responsibility inventories
+  analysis.rs: Read sources, build language resolvers and link local crate dependencies
+directories: {}

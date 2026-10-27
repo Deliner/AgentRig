@@ -1,0 +1,8 @@
+purpose: Initialize configured agent environments without overwriting existing consumer files
+type: flat
+files:
+  mod.rs: Expose declarative initialization
+  init.rs: Create a new environment after collision and generated bundle validation
+  wizard.rs: Collect interactive initialization settings and confirm the shown installation
+directories:
+  tests: Verify declarative and interactive initialization and client settings

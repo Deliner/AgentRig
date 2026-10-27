@@ -1,0 +1,5 @@
+purpose: "Decompose oversized source files by cohesive responsibility"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to decompose oversized source files by cohesive responsibility"
+directories: {}

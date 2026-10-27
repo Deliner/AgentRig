@@ -1,0 +1,4 @@
+purpose: Verify invalid runtime and execution settings are rejected before project operations
+files:
+  test_configuration.py: Runtime version, schema and process setting validation diagnostics
+directories: {}

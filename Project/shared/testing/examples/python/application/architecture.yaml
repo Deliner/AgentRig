@@ -1,0 +1,4 @@
+purpose: Demonstrate a Python executable invariant in a consumer source directory
+files:
+  test_sample.py: Minimal doubling assertion available as a configured invariant oracle
+directories: {}

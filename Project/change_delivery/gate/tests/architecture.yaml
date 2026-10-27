@@ -1,0 +1,5 @@
+purpose: Verify working, staged and revision check selection and diagnostics
+files:
+  test_gate.py: Selected check execution, staged inputs, warnings and actionable reruns
+  test_revision.py: Exact revision inputs, check evidence and invalid selection rejection
+directories: {}
