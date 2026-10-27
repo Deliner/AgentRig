@@ -10,7 +10,8 @@ a comment says either belongs to another owner or is not needed.
 
 1. Read the comment and the code it describes. Establish what it tells a
    reader that the code does not.
-2. Choose its owner:
+2. Choose its owner, telling a choice from a property with norm-or-choice;
+   one record may serve several comments:
    - Nothing beyond the code, or obsolete: delete it.
    - The code is unclear without it: rename or restructure the code until it
      states the same meaning, then delete it.

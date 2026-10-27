@@ -14,7 +14,7 @@ review runner are assessed by the executor at acceptance
 
 Branch: feature/target-state
 
-Revision: 8b8ce49a4fc77926b8cc375fe85f0e5093c231e8
+Revision: 7955912785dd8490a34491ca66599cb48d9fcaf7
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -33,13 +33,21 @@ P025 starts from [D037](Decisions/037.md)'s existing comment-reference lint
 rule for Rust and Python. Its first VAC moves the exact reference format to
 shared/syntax, where lint and memory-check share it; memory-check now reports
 each reference in the configured sources that names no recorded decision or
-invariant (K2). The language tests add tool-directive comments (K1).
+invariant (K2). The language tests add tool-directive comments (K1)
+(7955912). The current VAC adds a lint CLI eval of comment forms, data
+text, grouped guidance and the fixed variant (K1, K3, K6) and makes
+replace-comment use norm-or-choice and allow one record for several
+comments (K4).
+
+test_delivery.py (the I002 oracle) fails since P021: its hook scenario
+expects `just check` to pass, but the D047 init route now stops the first
+VAC check entry for edit-state. The impact map selects that test only for
+its own changes, so no gate ran it.
 
 ## Verification
 
-The current VAC passed the project_memory and language Python tests (92),
-the language Rust tests and memory-check on this repository with the
-candidate. 8b8ce49 passed the commit gate.
+The current VAC passed the language delivery tests (4). 7955912 passed
+the commit gate. test_delivery.py fails for both layouts as described.
 
 ## Blockers
 
@@ -47,6 +55,5 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the K1/K2 VAC, then check the comment finding's text (K3), the
-replace-comment skill (K4, K5) and add CLI evals through the lint and
-memory-check commands (K6).
+Restore the I002 oracle for the VAC check stop and map Project changes to
+test_delivery.py, then archive P025 with K1–K6 evidence and start P026.
