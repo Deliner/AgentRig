@@ -83,7 +83,7 @@ fn logged(
 ) -> Result<(Output, PathBuf)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
-    let runtime = context.path(&context.config.paths.runtime)?;
+    let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
     job.prepare(&argv, spec.read_only, spec.lifetime)?;
     let result = sandbox::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
@@ -95,7 +95,7 @@ fn logged(
     result.map(|output| (output, job.directory().to_owned()))
 }
 pub fn report(context: &Context) -> Result<()> {
-    crate::command_runner::jobs::report::print(&context.path(&context.config.paths.runtime)?)
+    crate::command_runner::jobs::report::print(&context.runtime)
 }
 pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let (name, extra) = args
@@ -104,7 +104,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let extra = extra.strip_prefix(&["--".into()]).unwrap_or(extra);
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
-    let runtime = context.path(&context.config.paths.runtime)?;
+    let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::create(
         &runtime,
         &context.root,
@@ -118,7 +118,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
 }
 pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     ensure!(args.len() == 1, "_job-run RUN_ID");
-    let runtime = context.path(&context.config.paths.runtime)?;
+    let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
     let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);

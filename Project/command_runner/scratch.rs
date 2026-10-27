@@ -7,7 +7,7 @@ use std::{fs, path::PathBuf, process::Command};
 pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     let text = forwarded(args).join(" ");
     ensure!(!text.trim().is_empty(), "scratch -- TEXT");
-    let runtime = context.path(&context.config.paths.runtime)?;
+    let runtime = context.runtime.clone();
     let area = area(context, &runtime);
     fs::create_dir_all(area.join("results"))?;
     let argv = vec!["sh".to_owned(), "-c".to_owned(), text];
@@ -30,7 +30,7 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     Ok(code)
 }
 pub fn cleanup(context: &Context, branch: &str) -> Result<()> {
-    let runtime = context.path(&context.config.paths.runtime)?;
+    let runtime = context.runtime.clone();
     let area = runtime.join("scratch").join(branch);
     let present = area.is_dir();
     if present {

@@ -172,6 +172,27 @@ def test_staged_gate_uses_staged_configuration(worker: Path, tmp_path: Path) -> 
     assert "exceeds 60" in result.stdout
 
 
+def test_staged_command_log_outlives_the_exported_index(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    views = {"failure": {"tail": 1}}
+    noisy = {"argv": ["sh", "-c", "echo hidden; echo shown; exit 3"], "output": views}
+    check = {
+        "id": "noisy",
+        "kind": "command",
+        "command": "noisy",
+        "skill": "guides/repair/SKILL.md",
+    }
+    update_config(tmp_path, commands={"noisy": noisy}, checks=[check])
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    subprocess.run(["git", "add", "."], cwd=tmp_path, check=True)
+    result = invoke(worker, tmp_path, "check", "--staged", "--only", "noisy")
+    assert result.returncode == 3, result.stdout + result.stderr
+    status = result.stdout.split("noisy: exit 3; log: ", 1)[1].splitlines()[0]
+    log = Path(status)
+    assert log.is_relative_to(tmp_path.resolve() / ".runtime")
+    assert (log / "stdout.log").read_text() == "hidden\nshown\n"
+
+
 def test_staged_git_check_preserves_invalid_unstaged_configuration(
     worker: Path, tmp_path: Path
 ) -> None:

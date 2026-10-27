@@ -34,9 +34,11 @@ pub fn list(context: &Context) -> Result<()> {
     for (name, command) in &context.config.commands {
         println!("{name}: {}", command.purpose);
         println!("  just run {name}{}", parameters(command));
-        match location(command, &tools) {
-            Some(path) => println!("  {}", role(context, path)),
-            None => println!("  runs {}", command.argv.join(" ")),
+        let fixed = !command.argv.is_empty();
+        match (location(command, &tools), fixed) {
+            (Some(path), _) => println!("  {}", role(context, path)),
+            (None, true) => println!("  runs {}", command.argv.join(" ")),
+            (None, false) => {}
         }
         if let Some(doc) = &command.doc {
             println!("  doc: {doc}");

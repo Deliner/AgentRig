@@ -52,10 +52,13 @@ def test_registry_lists_capabilities_then_removed_tools(worker: Path, tmp_path: 
         "  doc: tools/README.md",
     ]
     read = lines.index("read: Inspect files and Git history with configured programs")
-    assert lines[read + 1] == (
+    assert lines[read + 1 : read + 3] == [
         "  just run read -- PROGRAM ARGS; programs: cat, diff, find, git, grep, head, ls, rg, sed,"
-        " stat, tail, wc"
-    )
+        " stat, tail, wc",
+        "report: Summarize the project state",
+    ]
+    test = lines.index("test: Run the project tests")
+    assert lines[test + 2] == "  runs python3 -m pytest Project"
     assert any(line.startswith(".agentrig/hooks/pre-commit: ") for line in lines)
     assert lines[lines.index("Removed:") + 1 :] == [
         "old: Print the old report",

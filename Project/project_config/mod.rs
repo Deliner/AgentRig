@@ -10,13 +10,19 @@ use std::path::{Path, PathBuf};
 pub struct Context {
     pub root: PathBuf,
     pub config: Config,
+    pub runtime: PathBuf,
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
         let root = root.canonicalize()?;
         let config = read(&root)?;
         config.validate(&root)?;
-        Ok(Self { root, config })
+        let runtime = relative(&root, &config.paths.runtime)?;
+        Ok(Self {
+            root,
+            config,
+            runtime,
+        })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {
         relative(&self.root, value)
