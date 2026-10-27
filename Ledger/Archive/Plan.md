@@ -16,4 +16,5 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P008](Plan/008.md) | complete | P005 | Selectable agent harnesses | Prepare project and delegate workflows for Codex and Claude Code from shared environment declarations. |
 | [P009](Plan/009.md) | complete | P006 | Complete architecture maps and feature ownership | Maintain checked file/directory responsibilities and dependency boundaries, and apply them to AgentRig itself. |
 | [P017](Plan/017.md) | complete | - | Последовательный аудит B001–B016 по детерминированным якорям и сложности | Согласовать обвязку, которая повышает качество разработки и не отвлекает агента лишними процедурами. |
+| [P018](Plan/018.md) | complete | - | [B001](../Backlog/001.md): Исправление конфигурации без блокировки агента | Исправлять конфигурацию в текущей сессии без потери изменений. |
 | [P024](Plan/024.md) | complete | - | [B018](../Backlog/018.md): Архитектурный тип у фич нижнего уровня | По типу фичи сразу видно её устройство, а линтер не даёт зависимостям идти против схемы. |
