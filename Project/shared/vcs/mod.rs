@@ -4,7 +4,6 @@ mod directories;
 mod export;
 mod git;
 mod hooks;
-mod integration;
 mod observation;
 #[cfg(test)]
 mod tests;
@@ -77,6 +76,18 @@ impl<'a> Repository<'a> {
 
     pub fn new(root: &'a Path) -> Self {
         Self { root }
+    }
+
+    pub fn run(&self, args: &[&str]) -> Result<Vec<u8>> {
+        git::run(self.root, args)
+    }
+
+    pub fn command(&self, args: &[&str]) -> std::process::Command {
+        git::command(self.root, args)
+    }
+
+    pub fn ancestor(&self, older: &str, newer: &str) -> Result<bool> {
+        git::ancestor(self.root, older, newer)
     }
 
     pub fn commit_context(&self) -> Result<(String, bool)> {
@@ -189,5 +200,3 @@ fn paths(bytes: &[u8]) -> Result<Vec<String>> {
     paths.dedup();
     Ok(paths)
 }
-
-pub use git::run as git_command;

@@ -12,9 +12,9 @@ mod selection;
 mod tests;
 
 pub use crate::shared::diagnostics::lint::Diagnostic;
-use crate::shared::diagnostics::lint::print_diagnostic;
+use crate::shared::diagnostics::lint::print_diagnostics;
+use crate::shared::paths::patterns::globs;
 use anyhow::Result;
-use config::globs;
 use std::{collections::HashMap, fs, path::Path};
 
 // DECISION: D016
@@ -241,9 +241,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         if configuration_valid {
             println!("Lint configuration is valid: {}", path.display());
         }
-        for item in &diagnostics {
-            print_diagnostic(item);
-        }
+        print_diagnostics(&diagnostics);
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
 }

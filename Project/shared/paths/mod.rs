@@ -3,6 +3,7 @@ use std::{
     fs,
     path::{Component, Path, PathBuf},
 };
+pub mod patterns;
 #[cfg(test)]
 mod tests;
 

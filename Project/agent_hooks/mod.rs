@@ -5,17 +5,24 @@
 // DECISION: D011
 // DECISION: D003
 // DECISION: D019
+// DECISION: D046
+// DECISION: D047
 mod guard;
 pub mod input;
+mod recovery;
 mod reminder;
+mod requirements;
+#[cfg(test)]
+mod tests;
 mod transcript;
 
 use self::input::text;
-use crate::project_config::Context;
+use self::requirements::Answer;
+use crate::project_config::{Context, RouteEvent};
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
-use std::{collections::BTreeSet, path::Path};
+use std::path::{Path, PathBuf};
 
 pub fn context(event: &str, message: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
@@ -35,6 +42,7 @@ fn paths(event: &Value) -> Vec<String> {
     let patches = [
         payload.as_str(),
         payload["patch"].as_str(),
+        payload["command"].as_str(),
         payload["input"].as_str(),
         payload["patch_text"].as_str(),
     ];
@@ -54,16 +62,24 @@ fn paths(event: &Value) -> Vec<String> {
     }
     paths
 }
+fn target(root: &Path, event: &Value, path: &str) -> Option<PathBuf> {
+    let cwd = root.join(text(event, "cwd"));
+    let resolved = resolve(&cwd.join(path)).ok()?;
+    resolved.strip_prefix(root).ok().map(Path::to_owned)
+}
 pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     let invalid_event = !event.is_object();
     if invalid_event {
         bail!("expected a hook event object");
     }
-    let configured = Context::load(root)?;
+    let configured = match Context::load(root) {
+        Ok(configured) => configured,
+        Err(error) => return Ok(recovery::respond(root, event, &error)),
+    };
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),
         "PreToolUse" => match text(event, "tool_name") {
-            "Bash" | "Shell" | "exec_command" => shell_event(root, event, &configured),
+            "Bash" | "Shell" | "exec_command" => shell_event(event, &configured),
             "apply_patch" | "Edit" | "Write" => edit_event(root, event, &configured),
             _ => Ok(None),
         },
@@ -79,88 +95,130 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         root.join(memory).join("Plan.md").display(),
         full
     );
-    let directory = configured
-        .path(&configured.config.paths.runtime)?
-        .join("reminders");
-    let started = configured
-        .config
-        .hooks
-        .reminder
-        .as_ref()
-        .map(|_| reminder::start_at(event, &directory))
+    let hooks = &configured.config.hooks;
+    let stateful = hooks.reminder.is_some() || !hooks.routes.is_empty();
+    let started = stateful
+        .then(|| reminder::start_at(event, &state_directory(configured)?))
         .transpose();
     if let Err(error) = started {
         eprintln!("session reminder state: {error}");
-        message.push_str(&format!("\n\n{}", reminder_failure(configured, &error)));
+        message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
     Ok(Some(context("SessionStart", &message)))
 }
-fn shell_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
+fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     let validated = guard::arguments(guard::command(event))
         .and_then(|args| guard::hook_commands(configured, args));
     let argv = match validated {
         Ok(args) => args,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
     };
-    let opaque = argv.get(1).is_some_and(|arg| {
-        arg == "run"
+    let catalog = match argv.get(1).map(String::as_str) {
+        Some("run") => argv.get(2),
+        _ => argv.get(1),
+    };
+    let opaque = catalog.is_some_and(|name| {
+        name == "scratch"
             || configured
                 .config
                 .commands
-                .get(arg)
+                .get(name)
                 .is_some_and(|command| !command.read_only)
     });
-    let guidance = edit_guidance(root, event, true, configured)?;
-    Ok(if opaque {
-        Some(context(
-            "PreToolUse",
-            &format!(
-                "Shell write targets are opaque. If this command changes project memory, apply only the matching editing skill before the write:\n{}",
-                guidance
-            ),
-        ))
-    } else {
-        None
-    })
+    let mut found = Vec::new();
+    if opaque {
+        found.extend(requirements::events(
+            configured,
+            RouteEvent::Shell,
+            "opaque shell write",
+        ));
+    }
+    let check = guard::enters_check(&argv);
+    if check {
+        found.extend(requirements::events(
+            configured,
+            RouteEvent::Check,
+            "VAC check entry",
+        ));
+    }
+    respond(event, configured, found, false)
 }
 fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
-    let mut message = edit_guidance(root, event, false, configured)?;
-    let reminder = match &configured.config.hooks.reminder {
-        Some(path) => reminder::before_at(
-            event,
-            &input::object(&configured.path(path)?),
-            &configured
-                .path(&configured.config.paths.runtime)?
-                .join("reminders"),
-        ),
-        None => Ok(None),
-    };
-    match reminder {
-        Ok(Some(mut reason)) => {
-            reason = reason.replace(reminder::FULL, &full_refresh(configured));
-            let has_guidance = !message.is_empty();
-            if has_guidance {
-                reason.push_str(&format!("\n\n{message}"));
+    let paths: Vec<_> = paths(event)
+        .iter()
+        .filter_map(|path| target(root, event, path))
+        .collect();
+    let found = requirements::edits(configured, &paths)?;
+    respond(event, configured, found, true)
+}
+// DECISION: D047
+fn respond(
+    event: &Value,
+    configured: &Context,
+    found: Vec<requirements::Occurrence>,
+    reminded: bool,
+) -> Result<Option<Value>> {
+    let answer = match reminder::open(event, &state_directory(configured)?) {
+        Ok(mut session) => {
+            let mut answer = remind(event, configured, &mut session.state, reminded);
+            answer.found = requirements::pending(&mut session.state, configured, found);
+            if let Err(error) = session.save() {
+                eprintln!("complexity reminder: {error}");
+                answer.discipline = None;
+                answer.tracked = false;
+                answer.notes.push(state_failure(configured, &error));
             }
-            return Ok(Some(deny(&reason)));
+            answer
         }
         Err(error) => {
             eprintln!("complexity reminder: {error}");
-            message.push_str(&format!("\n\n{}", reminder_failure(configured, &error)));
+            Answer {
+                discipline: None,
+                found,
+                notes: vec![state_failure(configured, &error)],
+                tracked: false,
+            }
         }
-        _ => {}
-    }
-    let no_guidance = message.is_empty();
-    Ok(if no_guidance {
-        None
-    } else {
-        Some(context("PreToolUse", &message))
-    })
+    };
+    answer.output(configured, text(event, "tool_name"))
 }
-
-fn reminder_failure(configured: &Context, error: &anyhow::Error) -> String {
+fn remind(event: &Value, configured: &Context, state: &mut Value, reminded: bool) -> Answer {
+    let schedule = configured
+        .config
+        .hooks
+        .reminder
+        .as_ref()
+        .filter(|_| reminded);
+    let due = schedule.map_or(Ok(None), |path| {
+        let config = input::object(&configured.path(path)?);
+        reminder::due(event, &config, state)
+    });
+    let mut answer = Answer {
+        discipline: None,
+        found: Vec::new(),
+        notes: Vec::new(),
+        tracked: true,
+    };
+    match due {
+        Ok(due) => {
+            answer.discipline =
+                due.map(|text| text.replace(reminder::FULL, &full_refresh(configured)));
+        }
+        Err(error) => {
+            eprintln!("complexity reminder: {error}");
+            answer.notes.push(state_failure(configured, &error));
+        }
+    }
+    answer
+}
+fn state_directory(configured: &Context) -> Result<PathBuf> {
+    Ok(configured
+        .path(&configured.config.paths.runtime)?
+        .join("reminders"))
+}
+fn state_failure(configured: &Context, error: &anyhow::Error) -> String {
     format!(
-        "Context reminders unavailable: {error}. Check reminder storage at {} and the hook transcript_path; repair the unavailable input and retry. Ordinary file editing remains available.",
+        "Hook session state unavailable: {error}. Check the state storage at {} and the hook transcript_path; repair the unavailable input and retry. Until then requirements repeat without stopping actions; ordinary file editing remains available.",
         configured
             .root
             .join(&configured.config.paths.runtime)
@@ -182,35 +240,4 @@ fn full_refresh(context: &crate::project_config::Context) -> String {
             )
         })
         .unwrap_or_default()
-}
-fn edit_guidance(
-    root: &Path,
-    event: &Value,
-    all: bool,
-    context: &crate::project_config::Context,
-) -> Result<String> {
-    let cwd = root.join(text(event, "cwd"));
-    let paths: Vec<_> = paths(event)
-        .iter()
-        .filter_map(|path| resolve(&cwd.join(path)).ok())
-        .filter_map(|path| path.strip_prefix(root).ok().map(Path::to_owned))
-        .collect();
-    let mut skills = BTreeSet::new();
-    for route in &context.config.hooks.routes {
-        let include = crate::structural_lint::config::globs(&route.include)?;
-        let applies = all || paths.iter().any(|path| include.is_match(path));
-        if applies {
-            skills.insert(context.path(&route.skill)?);
-        }
-    }
-    Ok(skills
-        .iter()
-        .map(|skill| {
-            format!(
-                "Before editing the corresponding memory file, read and apply {}.",
-                skill.display()
-            )
-        })
-        .collect::<Vec<_>>()
-        .join("\n"))
 }

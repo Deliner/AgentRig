@@ -78,6 +78,15 @@ impl Contracts {
     }
 }
 
+pub fn describe(root: &Path, file: &Path) -> Option<(String, String)> {
+    let directory = file
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty());
+    let declaration = load(root, directory.unwrap_or(Path::new("."))).ok()?;
+    let role = declaration.files.get(file.file_name()?.to_str()?)?.clone();
+    Some((declaration.purpose, role))
+}
+
 fn relative(path: &Path) -> bool {
     !path.as_os_str().is_empty()
         && path

@@ -25,6 +25,7 @@ commands:
   read:
     argv: []
     accepts_args: true
+    programs: {cat: {}, sh: {}}
     read_only: true
 """
 LINT = """version: 1
@@ -56,7 +57,7 @@ def project(root: Path, config: str = CONFIG) -> Path:
     return root
 
 
-MODULES = ("git", "commands", "checks", "hooks", "oracles")
+MODULES = ("git", "commands", "checks", "hooks", "oracles", "tools")
 
 
 def write_config(root: Path, config: dict[str, Any]) -> None:

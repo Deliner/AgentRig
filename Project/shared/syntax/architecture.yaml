@@ -1,0 +1,5 @@
+purpose: Parse Rust, Python and shell sources and recognize exact decision and invariant reference comments
+type: flat
+files:
+  mod.rs: Grammar selection by extension, parsing and the reference comment format
+directories: {}

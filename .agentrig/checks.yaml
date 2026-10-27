@@ -9,6 +9,9 @@
 - id: memory
   kind: memory
   skill: .agents/skills/repair/SKILL.md
+- id: tools
+  kind: tools
+  skill: .agents/skills/develop-tools/SKILL.md
 - id: rustfmt
   kind: command
   skill: .agents/skills/repair/SKILL.md
@@ -34,10 +37,10 @@
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
     targets: ['shared::artifacts::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/paths/**']
-    targets: ['shared::paths::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+    targets: ['shared::paths::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/arguments/**']
     targets: ['shared::arguments::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
-  - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**']
+  - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**', 'Project/shared/syntax/**']
     targets: ['shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
 - id: ruff-format
   kind: command
@@ -62,6 +65,9 @@
   - include:
     - Project/structural_lint/**
     - Project/shared/arguments/**
+    - Project/shared/diagnostics/**
+    - Project/shared/paths/**
+    - Project/shared/syntax/**
     - Project/shared/vcs/**
     - Project/shared/yaml/**
     targets:
@@ -77,14 +83,16 @@
     - Project/project_config/settings/**
     - Project/shared/paths/**
     - Project/shared/arguments/**
+    - Project/shared/diagnostics/**
     - Project/command_runner/jobs/**
     - Project/shared/artifacts/**
     - Project/shared/vcs/**
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_setup/setup/tests
+    - Project/project_setup/initialization/tests
     - Project/command_runner/tests
+    - Project/command_runner/registry/tests
     - Project/project_config/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests
@@ -104,6 +112,7 @@
     - Project/command_runner/**
     targets:
     - Project/command_runner/tests
+    - Project/command_runner/registry/tests
     - Project/project_config/tests
     - Project/project_memory/tests/test_memory.py
     - Project/project_memory/tests/test_resume.py
@@ -132,14 +141,13 @@
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
-    - Project/project_setup/setup/tests
+    - Project/project_setup/initialization/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests/test_hooks.py
     - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - Project/shared/testing/test_delivery.py
-    - Project/shared/testing/examples/**
+    - Project/**
     targets:
     - Project/shared/testing/test_delivery.py
   - include:

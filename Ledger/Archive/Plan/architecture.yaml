@@ -10,5 +10,11 @@ files:
   008.md: "Selectable agent harnesses"
   009.md: "Complete architecture maps and feature ownership"
   017.md: Sequential Backlog audit for deterministic anchors, quality and necessary complexity
+  018.md: Configuration recovery without blocking the agent and its consumer acceptance
+  019.md: Project structure reflecting capability ownership and its blind review
+  021.md: Coordinated hook requirements and their acceptance in Codex and Claude Code
+  025.md: Comments limited to decision and invariant references and their CLI evals
   024.md: Architecture types of features without nested features and their verification
+  026.md: Condition naming skill refined by a fixed blind evaluation of real conditions
+  027.md: Tool registry, route control, compact output and task cleanup with their acceptance
 directories: {}

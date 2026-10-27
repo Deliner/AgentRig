@@ -1,0 +1,7 @@
+purpose: List registered tools with their owners and check tool placement, registration and removal records
+type: flat
+files:
+  mod.rs: Recognize tool files and print active catalog commands, entry tools and removed tools
+  check.rs: Report misplaced, unregistered or undescribed tools, stale references and invalid removal records
+directories:
+  tests: Verify the registry listing and the tool check through the CLI

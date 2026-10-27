@@ -1,6 +1,7 @@
-purpose: Resolve existing symbolic links and normalize paths that may have a not-yet-created tail
+purpose: Resolve existing symbolic links, normalize paths with a not-yet-created tail and match repository glob patterns
 type: flat
 files:
   mod.rs: Component resolution with bounded symbolic-link traversal
+  patterns.rs: Repository-relative glob patterns compiled for selection
   tests.rs: Missing tails, link-relative parent traversal, absolute links and cycles
 directories: {}

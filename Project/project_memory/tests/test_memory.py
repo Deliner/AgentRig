@@ -60,6 +60,21 @@ def test_rust_decision_markers_are_comments(worker: Path, tmp_path: Path) -> Non
     assert "missing or escaping memory link" in result.stderr
 
 
+def test_source_references_name_recorded_entries(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    memory(tmp_path)
+    source = tmp_path / "src/lib.py"
+    for reference in ["# DECISION: D404", "# INVARIANT: I404"]:
+        source.write_text(f"{reference}\nvalue = 1\n")
+        result = invoke(worker, tmp_path, "memory-check")
+        assert result.returncode == 2
+        identifier = reference.rsplit(" ", 1)[1]
+        assert f"src/lib.py: {identifier} is not a recorded" in result.stderr
+    source.write_text("value = 1\n")
+    (tmp_path / "src/lib.cpython-313.pyc").write_bytes(b"\xf3\r\r\n")
+    assert invoke(worker, tmp_path, "memory-check").returncode == 0
+
+
 def test_plan_cycle(worker: Path, tmp_path: Path) -> None:
     project(tmp_path)
     path = memory(tmp_path)

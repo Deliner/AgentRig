@@ -1,5 +1,4 @@
 // DECISION: D034
-pub use crate::command_runner::jobs::process::exit_code;
 use anyhow::{Result, ensure};
 use std::{
     path::Path,
@@ -25,7 +24,7 @@ pub fn tracked(
     command.current_dir(root);
     crate::command_runner::jobs::process::execute(&mut command, capture, job)
 }
-pub fn sandbox_available() -> bool {
+pub fn available() -> bool {
     let probe = tempfile::tempdir().and_then(|scratch| {
         sandbox(Path::new("/"), &["true".into()], scratch.path())
             .map_err(std::io::Error::other)?

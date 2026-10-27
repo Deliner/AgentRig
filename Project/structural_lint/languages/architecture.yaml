@@ -1,8 +1,8 @@
-purpose: Parse supported source languages and measure scalar rules through registered syntax handlers
+purpose: Measure scalar rules in supported source languages through registered syntax handlers
 type: flat
 files:
-  mod.rs: Shared parsing and scalar measurement traversal with located results
-  registry.rs: Grammar and measurement capabilities exposed for supported extensions
+  mod.rs: Scalar measurement traversal with located results
+  registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, function lengths, parameters and comments
   rust.rs: Rust conditions, function lengths, parameters and comments
 directories:

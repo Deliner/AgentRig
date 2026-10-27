@@ -33,7 +33,8 @@ Every command accepts `--root PATH`, by default the current directory.
 | --- | --- |
 | `init [--interactive]` | Create configuration, memory, skills, binary and adapters without overwriting files. |
 | `config-check` / `doctor` | Validate configuration; diagnose the runtime, executables, sandbox and hooks. |
-| `commands` / `run NAME -- ARGS` | List or execute the catalog; arguments stay argv elements. |
+| `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
+| `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate lint settings, list rules. |
 | `check [--staged \| --revision REV] [--only ID]` | Run the [gate](../change_delivery/gate/README.md). |
@@ -53,10 +54,18 @@ data) and `capabilities.lint` (disabling lint requires removing lint checks). Ea
 its whole content; an absent module is an empty section, and `project.yaml` cannot hold one.
 
 - `git.yaml`: base branch and feature-branch prefix.
-- `commands.yaml`: per name, `argv`, `cwd`, `accepts_args`, `read_only` and `lifetime`.
-- `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`), command, `include`, `skill`, `warning` and
-  [`affected`](../change_delivery/gate/README.md).
-- `hooks.yaml`: file-to-skill routes, reminder schedule and discipline skill.
+- `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args`, `read_only`, `lifetime`, `programs` and
+  `output`. An empty
+  `argv` (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing `deny` argument
+  prefixes. `output` holds `success` and `failure` views of lines containing a `matching` part plus the last `tail`
+  lines; such a run prints only its view, exit status and log directory.
+- `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`, `tools`), command, `include`, `skill`, `warning`
+  and [`affected`](../change_delivery/gate/README.md).
+- `tools.yaml`: `recognize` globs besides files with a shebang or executable bit, permitted `locations`, `entries`
+  started outside the catalog, and `removed` tools with `purpose`, `reason`, `path` and the `revision` holding them. The
+  `tools` check reports misplaced, unregistered or undescribed tools and stale references before merge, not on commits.
+- `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
+  reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, command check, runner (`pytest` or `cargo`) and exact test target.
 
 Unknown fields are errors naming their module; project-relative paths cannot escape the root. Lint settings follow the
@@ -65,7 +74,8 @@ Unknown fields are errors naming their module; project-relative paths cannot esc
 ## Delivery and memory
 
 `feature-start` requires the base branch, a clean tree and no pending merge or rebase. `feature-merge` rebases a
-divergent feature, requires a passing gate on unchanged inputs and merges into the base with an explicit merge commit.
+divergent feature, requires a passing gate on unchanged inputs and merges into the base with an explicit merge commit,
+then empties the branch scratch area except `results/` and deletes its scratch run logs.
 The pre-commit hook runs `guard-commit` and `check --staged`; the latest gate attempt is stored in
 `paths.runtime/checks.json`.
 

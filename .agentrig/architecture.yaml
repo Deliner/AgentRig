@@ -6,6 +6,7 @@ files:
   checks.yaml: Gate checks, impact map and repair skills
   hooks.yaml: Reminder, discipline skill and memory edit routes
   oracles.yaml: Executable oracles bound to invariants
+  tools.yaml: Tool recognition, permitted locations, entry tools and removed tools
   lint.yaml: Repository lint policy and repair guidance
 directories:
   hooks: Dispatch repository commit and reference guards

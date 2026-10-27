@@ -12,7 +12,7 @@ maintenance instructions independently authorize tooling work; they do not autho
 features. This repository develops the portable worker itself. Worker capabilities, including lint, are first-level
 features placed directly in Project under two-word names, with leaf support in Project/shared; tooling holds the
 development launchers, distribution and Python verification configuration, and repository memory is Ledger (D042).
-Runtime paths, Git base/prefix, commands, checks, hook routes and oracle bindings are owned by the .agentrig/ modules.
+Runtime paths, Git base/prefix, commands, checks, tools, hook routes and oracle bindings belong to .agentrig/ modules.
 
 ## Commands and verification
 
@@ -22,9 +22,10 @@ Runtime paths, Git base/prefix, commands, checks, hook routes and oracle binding
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
 Invoke shell operations through the Just recipes grouped under just/ (`just --list`). `just list` lists the configured
-command catalog. Use `just read -- ...` for sandboxed shell inspection, `just write -- ...` for authorized shell
-mutations, and `just run NAME -- ...` for catalog commands. Recipes are thin adapters and require an immediately
-preceding What/Why comment.
+command catalog. Use `just read -- PROGRAM ...` for sandboxed inspection and `just write -- PROGRAM ...` for shell
+mutations with the programs configured in .agentrig/commands.yaml, `just run NAME -- ...` for catalog commands and
+`just scratch -- TEXT` for temporary code in the branch task area. Recipes are thin adapters and require an
+immediately preceding What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
 change. Commit through .agentrig/hooks/pre-commit, which runs the configured exported-index gate with affected test
@@ -37,8 +38,9 @@ the branch after integration. Branch policy comes from .agentrig/git.yaml; never
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
 edit-* skill. Their canonical bodies live in Project/shared/skills and are exposed through .agents/skills. Do not
-create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the
-relevant skill yourself.
+create another instruction copy. Hook routes give memory-skill guidance, stop the first code edit in each directory
+until refactor-large-directory and its contracts are applied, and stop the first VAC commit in a context for edit-state
+(D047). Opaque shell writes require applying the relevant skill yourself.
 
 Use edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user
 agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for

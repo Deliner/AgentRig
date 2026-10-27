@@ -3,7 +3,47 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 
-from Project.structural_lint.testing.consumer import configure, lint
+import pytest
+
+from Project.structural_lint.testing.consumer import SKILL, configure, lint
+
+
+@pytest.mark.parametrize(
+    "example",
+    [
+        (
+            "rs",
+            "//",
+            "// SAFETY: the caller checks bounds",
+            "/// Documentation.",
+            'const TEXT: &str = "// DECISION: D001 data";',
+        ),
+        ("py", "#", "# type: ignore", '"""Documentation."""', 'TEXT = "# DECISION: D001 data"'),
+    ],
+)
+def test_comment_references_through_cli(
+    worker: Path, tmp_path: Path, example: tuple[str, str, str, str, str]
+) -> None:
+    extension, lead, directive, documentation, data = example
+    configure(tmp_path, "comment-reference")
+    reference = f"{lead} DECISION: D001"
+    lines = [reference, f"{lead} plain", f"{reference} because", directive, documentation, data]
+    path = tmp_path / f"src/example.{extension}"
+    path.write_text("\n".join(lines) + "\n")
+    code, items = lint(worker, tmp_path)
+    assert code == 1
+    assert [(item["rule"], item["line"]) for item in items] == [("source", n) for n in [2, 3, 4, 5]]
+    result = subprocess.run(
+        [str(worker), "lint", "--root", str(tmp_path), "--config", "lint.yaml"],
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    assert "ERROR [source] 4 locations" in result.stdout
+    assert f"src/example.{extension}:2" in result.stdout
+    assert SKILL in result.stdout and "RERUN:" in result.stdout
+    path.write_text(f"{reference}\n{data}\n")
+    assert lint(worker, tmp_path) == (0, [])
 
 
 def test_staged_language_source_and_policy(worker: Path, tmp_path: Path) -> None:

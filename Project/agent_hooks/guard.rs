@@ -42,14 +42,17 @@ pub fn command(event: &Value) -> Option<&str> {
         .iter()
         .find_map(|key| event["tool_input"][key].as_str())
 }
-pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
-    let command =
-        command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
+pub fn words(command: &str) -> Result<Vec<String>> {
     let has_outer_control = outer_control(command);
     if has_outer_control {
         bail!("Agent shell commands must be one top-level just invocation.");
     }
-    let argv = shell_words::split(command)?;
+    Ok(shell_words::split(command)?)
+}
+pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
+    let command =
+        command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
+    let argv = words(command)?;
     let not_just = argv
         .first()
         .and_then(|arg| Path::new(arg).file_name())
@@ -58,6 +61,22 @@ pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
         bail!("Direct shell commands are disabled; use a recipe from just --list.");
     }
     Ok(argv)
+}
+
+// DECISION: D047
+pub fn enters_check(argv: &[String]) -> bool {
+    let recipe = argv.get(1).is_some_and(|arg| arg == "check");
+    let words: Vec<String> = argv
+        .iter()
+        .flat_map(|word| shell_words::split(word).unwrap_or_default())
+        .collect();
+    let git = words.iter().position(|word| {
+        Path::new(word)
+            .file_name()
+            .is_some_and(|name| name == "git")
+    });
+    let commit = git.is_some_and(|start| words[start..].iter().any(|word| word == "commit"));
+    recipe || commit
 }
 
 pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>> {
@@ -81,6 +100,9 @@ pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>
         "feature-start" => {
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
+        }
+        "scratch" => {
+            anyhow::ensure!(!forwarded(&argv[2..]).is_empty(), "scratch -- TEXT");
         }
         "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "jobs" | "job-status"
         | "job-logs" | "job-stop" | "job-start" | "job-cleanup" => {}

@@ -1,5 +1,5 @@
-use super::{Check, CheckKind, Command, Config, Hooks, VERSION, name, relative};
-use crate::structural_lint::config::{globs, skill};
+use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, module, name, relative};
+use crate::shared::{diagnostics::skills, paths::patterns::globs};
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 use std::{collections::HashSet, fs};
@@ -7,28 +7,34 @@ use std::{collections::HashSet, fs};
 impl Config {
     pub(crate) fn validate(&self, root: &Path) -> Result<()> {
         self.validate_structure(root)?;
-        self.capabilities.validate(&self.checks)?;
+        self.capabilities.validate(&self.checks).context(FILE)?;
         if self.capabilities.lint {
             crate::structural_lint::config::load(root, &relative(root, &self.paths.lint)?)
                 .context("paths.lint")?;
         }
         Ok(())
     }
+    // DECISION: D045
     pub(crate) fn validate_structure(&self, root: &Path) -> Result<()> {
+        self.validate_project(root).context(FILE)?;
+        self.git.validate().with_context(|| module("git"))?;
+        self.validate_commands(root)
+            .with_context(|| module("commands"))?;
+        self.validate_checks(root)
+            .with_context(|| module("checks"))?;
+        self.hooks.validate(root).with_context(|| module("hooks"))?;
+        self.validate_oracles().with_context(|| module("oracles"))?;
+        Ok(())
+    }
+    fn validate_project(&self, root: &Path) -> Result<()> {
         ensure!(self.version == 1, "version: supported schema is 1");
         ensure!(
             self.runtime == VERSION,
             "runtime: project pins {}, binary is {VERSION}; install the pinned binary",
             self.runtime
         );
-        skill(root, &self.config_skill).context("config_skill")?;
-        self.validate_paths(root)?;
-        self.git.validate()?;
-        self.validate_commands(root)?;
-        self.validate_checks(root)?;
-        self.hooks.validate(root)?;
-        self.validate_oracles()?;
-        Ok(())
+        skills::reference(root, &self.config_skill).context("config_skill")?;
+        self.validate_paths(root)
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {
         for (label, value) in [
@@ -57,6 +63,10 @@ impl Config {
             ensure!(
                 !command.argv.is_empty() || command.accepts_args,
                 "commands.{id}: empty argv requires accepts_args"
+            );
+            ensure!(
+                !command.argv.is_empty() || !command.programs.is_empty(),
+                "commands.{id}: empty argv requires programs"
             );
             ensure!(
                 command.argv.first().is_none_or(|s| !s.is_empty()),
@@ -98,7 +108,8 @@ impl Config {
                 "checks.{}: empty include",
                 check.id
             );
-            skill(root, &check.skill).with_context(|| format!("checks.{}.skill", check.id))?;
+            skills::reference(root, &check.skill)
+                .with_context(|| format!("checks.{}.skill", check.id))?;
             check.validate_command(&self.commands)?;
             check.validate_affected(&self.commands)?;
         }
@@ -162,11 +173,13 @@ impl Hooks {
     fn validate(&self, root: &Path) -> Result<()> {
         for route in &self.routes {
             ensure!(!route.include.is_empty(), "hooks.routes: include required");
+            ensure!(!route.events.is_empty(), "hooks.routes: events required");
             globs(&route.include).context("hooks.routes.include")?;
-            skill(root, &route.skill).context("hooks.routes.skill")?;
+            skills::reference(root, &route.skill).context("hooks.routes.skill")?;
         }
+        self.validate_order()?;
         if let Some(path) = &self.discipline_skill {
-            skill(root, path).context("hooks.discipline_skill")?;
+            skills::reference(root, path).context("hooks.discipline_skill")?;
         }
         if let Some(path) = &self.reminder {
             ensure!(
@@ -174,6 +187,26 @@ impl Hooks {
                 "hooks.reminder requires hooks.discipline_skill"
             );
             validate_reminder(root, path)?;
+        }
+        Ok(())
+    }
+    // DECISION: D047
+    fn validate_order(&self) -> Result<()> {
+        let skills: Vec<&str> = self
+            .routes
+            .iter()
+            .map(|route| route.skill.as_str())
+            .collect();
+        for (index, skill) in skills.iter().enumerate() {
+            let earlier = skills[..index].iter().rposition(|other| other == skill);
+            let separated = earlier.filter(|earlier| earlier + 1 != index);
+            if let Some(earlier) = separated {
+                let between = earlier + 1;
+                anyhow::bail!(
+                    "hooks.routes[{earlier}] and hooks.routes[{index}] order {skill} both before and after {} (hooks.routes[{between}]); keep the routes of one skill adjacent",
+                    skills[between]
+                );
+            }
         }
         Ok(())
     }

@@ -44,4 +44,8 @@ files:
   042.md: "Context and rationale for: Place first-level features with two-word names directly in Project, shared support in Project/shared and Python verification configuration in tooling."
   043.md: "Context and rationale for: Limit directory contracts to purpose, files and directories, with directory cycles as the only dependency finding."
   044.md: "Context and rationale for: Make features without nested features declare an architecture type with required parts and inward dependencies."
+  045.md: "Context and rationale for: Keep configuration repair and its check available while the configuration is invalid."
+  046.md: "Context and rationale for: Let configuration recovery read its sources and repair skill through cat and accept Codex patch payloads."
+  047.md: "Context and rationale for: Merge hook requirements into one ordered response, deliver each skill and area once per context window and let configured routes block until delivered."
+  048.md: "Context and rationale for: Apply the flat-memory registry size exemption to the Plan archive while retaining complete memory and architecture validation."
 directories: {}

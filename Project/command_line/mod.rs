@@ -31,11 +31,12 @@ pub fn owns(command: &str) -> bool {
             | "job-stop"
             | "job-cleanup"
             | "_job-run"
+            | "scratch"
     )
 }
 pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
-        "init" => return project_setup::setup::init(root, args),
+        "init" => return project_setup::initialization::init(root, args),
         "guard-commit" => return guard_commit(root, args),
         "check" => {
             return gate::selected(root, gate::arguments(args)?);
@@ -58,6 +59,7 @@ pub fn run(root: &Path, command: &str, args: &[String]) -> Result<i32> {
     match command {
         "job-start" => command_runner::background(&context, args),
         "_job-run" => command_runner::background_run(&context, args),
+        "scratch" => command_runner::scratch::run(&context, args),
         _ => configured_command(&context, command, args),
     }
 }
@@ -110,9 +112,7 @@ fn configured_command(context: &Context, command: &str, args: &[String]) -> Resu
             Ok(0)
         }
         "commands" => {
-            for (name, spec) in &context.config.commands {
-                println!("{name}: {}", spec.argv.join(" "));
-            }
+            command_runner::registry::list(context)?;
             Ok(0)
         }
         "run" => {

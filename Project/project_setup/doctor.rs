@@ -90,7 +90,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .values()
         .any(|command| command.read_only);
     if read_only {
-        let works = crate::command_runner::process::sandbox_available();
+        let works = crate::command_runner::sandbox::available();
         println!(
             "read-only backend: {}",
             if works { "available" } else { "UNAVAILABLE" }

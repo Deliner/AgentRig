@@ -17,7 +17,8 @@ to the selected behavior. Introducing an identifier alone is insufficient.
    short-circuiting, order, side effects, bindings and conditional evaluation.
 4. Compare name, expression and selected behavior. A generic truth label or
    restatement of the comparison is insufficient when it conceals why this
-   state selects this behavior.
+   state selects this behavior. When the parts of a combined condition
+   establish one fact together, name that fact instead of listing the parts.
 
 Stop when the meaning is explicit, the finding is resolved and affected behavior
 is preserved. Do not add an abstraction merely to name a value.

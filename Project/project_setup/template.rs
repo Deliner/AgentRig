@@ -1,4 +1,7 @@
-use crate::project_config::{self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route};
+use crate::project_config::{
+    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, Tools,
+    View, Views,
+};
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
@@ -75,13 +78,23 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         },
         git: git(options),
         commands: commands(options),
-        checks: checks(&options["source"], &repair),
+        checks: checks(&options["source"], skill_root),
         hooks: Hooks {
             routes: routes(&options["memory"], skill_root),
             reminder: Some(format!("{service}/reminder.json")),
             discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
         },
         oracles: BTreeMap::new(),
+        tools: tools(service),
+    }
+}
+fn tools(service: &str) -> Tools {
+    let installed = vec![format!("{service}/bin/*"), format!("{service}/hooks/*")];
+    Tools {
+        recognize: Vec::new(),
+        locations: installed.clone(),
+        entries: installed,
+        removed: BTreeMap::new(),
     }
 }
 fn git(options: &Options<'_>) -> Git {
@@ -91,32 +104,143 @@ fn git(options: &Options<'_>) -> Git {
     }
 }
 
+type Programs = &'static [(
+    &'static str,
+    &'static [&'static str],
+    &'static [&'static str],
+)];
+const READ: Programs = &[
+    (
+        "git",
+        &[
+            "status",
+            "diff",
+            "log",
+            "show",
+            "rev-parse",
+            "branch",
+            "ls-files",
+            "grep",
+            "blame",
+            "merge-base",
+            "describe",
+            "cat-file",
+            "ls-tree",
+        ],
+        &["-O", "--open-files-in-pager"],
+    ),
+    ("ls", &[], &[]),
+    ("cat", &[], &[]),
+    ("head", &[], &[]),
+    ("tail", &[], &[]),
+    ("wc", &[], &[]),
+    ("grep", &[], &[]),
+    ("rg", &[], &["--pre"]),
+    ("sed", &[], &[]),
+    ("diff", &[], &[]),
+    ("stat", &[], &[]),
+    ("find", &[], &["-exec", "-ok"]),
+];
+const WRITE: Programs = &[
+    (
+        "git",
+        &[
+            "add",
+            "commit",
+            "rm",
+            "mv",
+            "restore",
+            "switch",
+            "checkout",
+            "stash",
+            "cherry-pick",
+            "rebase",
+            "branch",
+        ],
+        &["--exec", "-x"],
+    ),
+    ("mkdir", &[], &[]),
+    ("cp", &[], &[]),
+    ("mv", &[], &[]),
+    ("rm", &[], &[]),
+    ("touch", &[], &[]),
+    ("chmod", &[], &[]),
+];
+fn programs(table: Programs) -> BTreeMap<String, Program> {
+    let strings = |items: &[&str]| items.iter().map(|item| (*item).into()).collect();
+    table
+        .iter()
+        .map(|(name, subcommands, deny)| {
+            let program = Program {
+                subcommands: strings(subcommands),
+                deny: strings(deny),
+            };
+            ((*name).into(), program)
+        })
+        .collect()
+}
 fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
-    let mut commands = BTreeMap::new();
-    for (id, read_only) in [("read", true), ("write", false)] {
-        commands.insert(
-            id.into(),
-            Command {
-                lifetime: Default::default(),
-                argv: Vec::new(),
-                cwd: ".".into(),
-                accepts_args: true,
-                read_only,
-            },
-        );
+    let base = |purpose, read_only, table| Command {
+        programs: programs(table),
+        ..command(purpose, Vec::new(), read_only)
+    };
+    let test = Command {
+        output: Some(test_views(options)),
+        ..command("Run the project tests", test_command(options), false)
+    };
+    [
+        (
+            "read",
+            base(
+                "Inspect files and Git history with configured programs",
+                true,
+                READ,
+            ),
+        ),
+        (
+            "write",
+            base(
+                "Change files and Git state with configured programs",
+                false,
+                WRITE,
+            ),
+        ),
+        ("test", test),
+    ]
+    .into_iter()
+    .map(|(id, command)| (id.into(), command))
+    .collect()
+}
+fn command(purpose: &str, argv: Vec<String>, read_only: bool) -> Command {
+    Command {
+        purpose: purpose.into(),
+        doc: None,
+        lifetime: Default::default(),
+        argv,
+        cwd: ".".into(),
+        accepts_args: true,
+        read_only,
+        programs: BTreeMap::new(),
+        output: None,
     }
-    let argv = test_command(options);
-    commands.insert(
-        "test".into(),
-        Command {
-            lifetime: Default::default(),
-            argv,
-            cwd: ".".into(),
-            accepts_args: true,
-            read_only: false,
-        },
-    );
-    commands
+}
+fn test_views(options: &Options<'_>) -> Views {
+    let view = |matching: &[&str], tail| View {
+        matching: matching.iter().map(|part| (*part).into()).collect(),
+        tail,
+    };
+    let python = options["language"] == "python";
+    if python {
+        Views {
+            success: view(&[], 1),
+            failure: view(&["FAILED", "ERROR"], 1),
+        }
+    } else {
+        Views {
+            success: view(&["test result:"], 0),
+            failure: view(&["FAILED", "panicked", "error", "test result:"], 0),
+        }
+    }
 }
 fn test_command(options: &Options<'_>) -> Vec<String> {
     let python = options["language"] == "python";
@@ -152,47 +276,56 @@ fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
                 format!("{}/{file}/**/*.md", memory),
             ],
             skill: format!("{skill_root}/{skill}/SKILL.md"),
+            events: vec![RouteEvent::Edit, RouteEvent::Shell],
+            block: false,
         });
     }
+    routes.push(Route {
+        include: vec![
+            format!("{memory}/State.md"),
+            format!("{memory}/State/**/*.md"),
+        ],
+        skill: format!("{skill_root}/edit-state/SKILL.md"),
+        events: vec![RouteEvent::Check],
+        block: true,
+    });
     routes
 }
-fn checks(source: &str, repair: &str) -> Vec<Check> {
+fn checks(source: &str, skill_root: &str) -> Vec<Check> {
+    let skill = |name| format!("{skill_root}/{name}/SKILL.md");
+    let tests = Check {
+        command: Some("test".into()),
+        include: vec![format!("{source}/**")],
+        ..check("tests", CheckKind::Command, skill("repair"))
+    };
     vec![
-        Check {
-            id: "lint".into(),
-            kind: CheckKind::Lint,
-            command: None,
-            include: vec!["**".into()],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
-        Check {
-            id: "memory".into(),
-            kind: CheckKind::Memory,
-            command: None,
-            include: vec!["**".into()],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
-        Check {
-            id: "tests".into(),
-            kind: CheckKind::Command,
-            command: Some("test".into()),
-            include: vec![format!("{source}/**")],
-            skill: repair.to_owned(),
-            warning: false,
-            affected: Vec::new(),
-        },
+        check("lint", CheckKind::Lint, skill("repair")),
+        check("memory", CheckKind::Memory, skill("repair")),
+        tests,
+        check("tools", CheckKind::Tools, skill("develop-tools")),
     ]
+}
+fn check(id: &str, kind: CheckKind, skill: String) -> Check {
+    Check {
+        id: id.into(),
+        kind,
+        command: None,
+        include: vec!["**".into()],
+        skill,
+        warning: false,
+        affected: Vec::new(),
+    }
 }
 type Recipe = (&'static str, &'static str, bool);
 // DECISION: D039
 const RECIPES: [(&str, &[Recipe]); 5] = [
     (
         "commands",
-        &[("list", "commands", false), ("run", "run", true)],
+        &[
+            ("list", "commands", false),
+            ("run", "run", true),
+            ("scratch", "scratch", true),
+        ],
     ),
     (
         "checks",

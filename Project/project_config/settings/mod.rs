@@ -3,7 +3,7 @@ mod validation;
 pub use capabilities::Capabilities;
 // DECISION: D005
 pub use crate::shared::vcs::Settings as Git;
-use anyhow::{Context as _, Result, ensure};
+use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
@@ -12,7 +12,7 @@ use std::{
 
 // DECISION: D038
 pub const FILE: &str = ".agentrig/project.yaml";
-const MODULES: [&str; 5] = ["git", "commands", "checks", "hooks", "oracles"];
+const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "oracles", "tools"];
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -35,6 +35,29 @@ pub struct Config {
     pub hooks: Hooks,
     #[serde(default)]
     pub oracles: BTreeMap<String, Oracle>,
+    #[serde(default)]
+    pub tools: Tools,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Tools {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub recognize: Vec<String>,
+    #[serde(default)]
+    pub locations: Vec<String>,
+    #[serde(default)]
+    pub entries: Vec<String>,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub removed: BTreeMap<String, Removed>,
+}
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Removed {
+    pub purpose: String,
+    pub reason: String,
+    pub path: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub revision: Option<String>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -65,6 +88,10 @@ pub enum Frontend {
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Command {
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub purpose: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub doc: Option<String>,
     pub argv: Vec<String>,
     #[serde(default = "dot")]
     pub cwd: String,
@@ -74,6 +101,34 @@ pub struct Command {
     pub read_only: bool,
     #[serde(default)]
     pub lifetime: Lifetime,
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub programs: BTreeMap<String, Program>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub output: Option<Views>,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Views {
+    #[serde(default)]
+    pub success: View,
+    #[serde(default)]
+    pub failure: View,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct View {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub matching: Vec<String>,
+    #[serde(default)]
+    pub tail: usize,
+}
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Program {
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub subcommands: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub deny: Vec<String>,
 }
 #[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -88,6 +143,7 @@ pub enum CheckKind {
     Command,
     Lint,
     Memory,
+    Tools,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -122,6 +178,21 @@ pub struct Hooks {
 pub struct Route {
     pub include: Vec<String>,
     pub skill: String,
+    #[serde(default = "changes")]
+    pub events: Vec<RouteEvent>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub block: bool,
+}
+// DECISION: D047
+#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum RouteEvent {
+    Edit,
+    Shell,
+    Check,
+}
+fn changes() -> Vec<RouteEvent> {
+    vec![RouteEvent::Edit, RouteEvent::Shell]
 }
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -143,12 +214,12 @@ fn all() -> Vec<String> {
     vec!["**".into()]
 }
 
-fn module(section: &str) -> String {
+pub fn module(section: &str) -> String {
     format!(".agentrig/{section}.yaml")
 }
 pub fn read(root: &Path) -> Result<Config> {
     let mut sections: serde_json::Map<String, serde_json::Value> =
-        crate::shared::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))?;
+        crate::shared::yaml::read(&root.join(FILE))?;
     for section in MODULES {
         let path = module(section);
         ensure!(
@@ -170,6 +241,27 @@ pub fn read(root: &Path) -> Result<Config> {
         let file = if owned { module(section) } else { FILE.into() };
         anyhow::anyhow!("{file}: {error}")
     })
+}
+// DECISION: D045
+pub fn sources(root: &Path) -> Vec<PathBuf> {
+    let mut sources: Vec<PathBuf> = std::iter::once(FILE.to_owned())
+        .chain(MODULES.map(module))
+        .map(PathBuf::from)
+        .collect();
+    for (file, pointer) in [
+        (FILE.to_owned(), "/paths/lint"),
+        (module("hooks"), "/reminder"),
+    ] {
+        let document = crate::shared::yaml::read::<serde_json::Value>(&root.join(file)).ok();
+        let referenced = document
+            .as_ref()
+            .and_then(|document| document.pointer(pointer))
+            .and_then(serde_json::Value::as_str)
+            .and_then(|path| relative(root, path).ok())
+            .and_then(|path| path.strip_prefix(root).ok().map(Path::to_owned));
+        sources.extend(referenced);
+    }
+    sources
 }
 pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
     let serde_json::Value::Object(mut sections) = serde_json::to_value(config)? else {

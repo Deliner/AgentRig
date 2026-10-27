@@ -1,0 +1,5 @@
+purpose: "Develop, repair and remove registered project tools without duplicating capabilities"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to develop, repair and remove registered project tools"
+directories: {}

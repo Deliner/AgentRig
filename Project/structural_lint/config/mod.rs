@@ -1,10 +1,9 @@
 use super::catalog as rules;
+use crate::shared::{diagnostics::skills, paths::patterns::globs};
 use anyhow::{Result, bail};
-use globset::{GlobBuilder, GlobSet, GlobSetBuilder};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::HashSet,
-    fs,
     path::{Path, PathBuf},
 };
 
@@ -77,42 +76,6 @@ pub fn thresholds(warning: Option<u64>, error: Option<u64>) -> Result<()> {
         _ => Ok(()),
     }
 }
-pub fn globs(patterns: &[String]) -> Result<GlobSet> {
-    let mut builder = GlobSetBuilder::new();
-    for pattern in patterns {
-        let empty = pattern.trim().is_empty();
-        if empty {
-            bail!("empty glob");
-        }
-        let escapes_root =
-            Path::new(pattern).is_absolute() || pattern.split('/').any(|part| part == "..");
-        if escapes_root {
-            bail!("globs must stay relative to the repository: {pattern}");
-        }
-        builder.add(GlobBuilder::new(pattern).literal_separator(true).build()?);
-    }
-    Ok(builder.build()?)
-}
-pub fn skill(root: &Path, value: &str) -> Result<()> {
-    let absolute = Path::new(value).is_absolute();
-    if absolute {
-        bail!("skill paths must be relative to the repository: {value}");
-    }
-    let path = root.join(value).canonicalize()?;
-    let invalid_location =
-        !path.starts_with(root) || path.file_name().is_none_or(|name| name != "SKILL.md");
-    if invalid_location {
-        bail!("skill must reference a repository SKILL.md: {value}");
-    }
-    let source = fs::read_to_string(path)?;
-    let invalid_frontmatter = !source.starts_with("---\n")
-        || !source.contains("\nname: ")
-        || !source.contains("\ndescription: ");
-    if invalid_frontmatter {
-        bail!("invalid skill frontmatter: {value}");
-    }
-    Ok(())
-}
 pub fn load(root: &Path, path: &Path) -> Result<Config> {
     let mut config: Config = crate::shared::yaml::read(path)?;
     let external = config
@@ -125,7 +88,7 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
     if unsupported_version {
         bail!("unsupported config version {}", config.version);
     }
-    skill(resources, &config.config_skill)?;
+    skills::reference(resources, &config.config_skill)?;
     globs(&config.exclude)?;
     let missing_rules = config.rules.is_empty();
     if missing_rules {
@@ -179,8 +142,8 @@ impl Rule {
         rules::validate_extensions(self.kind, &self.extensions)?;
         rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
-        skill(root, &self.warning_skill)?;
-        skill(root, &self.error_skill)?;
+        skills::reference(root, &self.warning_skill)?;
+        skills::reference(root, &self.error_skill)?;
         for entry in &self.overrides {
             self.validate_override(entry)?;
         }

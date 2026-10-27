@@ -1,8 +1,9 @@
 use super::{
     catalog as rules,
-    config::{self, Rule, extension_matches, globs},
+    config::{self, Rule, extension_matches},
     inventory::Inventory,
 };
+use crate::shared::paths::patterns::globs;
 use anyhow::{Context, Result, bail};
 use globset::GlobSet;
 use std::path::Path;

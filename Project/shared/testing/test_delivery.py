@@ -225,11 +225,12 @@ class Consumer:
         result = invoke(self.binary, self.root, "hook", input=json.dumps(hook))
         assert result.returncode == 0
         assert "deny" in result.stdout
-        for command in ["just run test", "just check --only lint"]:
-            hook["tool_input"] = {"cmd": command}
-            assert (
-                "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
-            )
+        hook["tool_input"] = {"cmd": "just run test"}
+        assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+        hook["tool_input"] = {"cmd": "just check --only lint"}
+        first = invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+        assert "deny" in first and "edit-state/SKILL.md for VAC check entry" in first
+        assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
 
     def integrate(self) -> None:
         git(self.root, "add", ".")
@@ -270,6 +271,7 @@ def test_independent_project_delivery(
     worker: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch, layout: Layout
 ) -> None:
     monkeypatch.setenv("PATH", str(Path(sys.executable).parent) + os.pathsep + os.environ["PATH"])
+    monkeypatch.delenv("CARGO_TARGET_DIR", raising=False)
     consumer = Consumer(tmp_path, layout)
     consumer.install(worker)
     consumer.ready()

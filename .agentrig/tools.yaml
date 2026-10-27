@@ -1,0 +1,7 @@
+locations:
+- tooling/**
+- .agentrig/hooks/*
+entries:
+- .agentrig/hooks/*
+- tooling/worker/run
+- tooling/distribution/bootstrap.sh
