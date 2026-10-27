@@ -1,6 +1,7 @@
 purpose: Verify agent hook command guards, memory guidance and context reminder behavior
 files:
   mod.rs: Verify configuration recovery permissions, diagnostics and return to normal work
+  requirements.rs: Verify blocking delivery, merged ordering, order conflicts and VAC check reminders
   test_hooks.py: Verify shell invocation guards and direct memory edit guidance
   test_reminders.py: Verify Codex and Claude token accounting, reminder scheduling and storage recovery
 directories: {}

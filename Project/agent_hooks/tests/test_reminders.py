@@ -31,10 +31,12 @@ def test_portable_reminder_schedule_retry_and_compaction(
         "tool_name": "Write",
         "tool_input": {"file_path": "notes/State.md"},
     }
-    for count, expected in SCHEDULE:
+    for index, (count, expected) in enumerate(SCHEDULE):
         append_tokens(transcript, count, frontend)
         result = invoke(worker, tmp_path, "hook", input=json.dumps(edit))
         assert_reminder(result, expected)
+        delivered = index in (0, CONTEXT_RESET)
+        assert ("guides/edit-state/SKILL.md" in result.stdout) == delivered
     saved = next((scratch / "state/reminders").glob("*.json"))
     assert json.loads(saved.read_text())["scan_offset"] == transcript.stat().st_size
     result = invoke(worker, tmp_path, "hook", input=json.dumps({**start, "source": "compact"}))
@@ -42,7 +44,8 @@ def test_portable_reminder_schedule_retry_and_compaction(
     assert json.loads(saved.read_text())["baseline_tokens"] == 150
     result = invoke(worker, tmp_path, "hook", input=json.dumps(edit))
     assert "permissionDecision" not in json.loads(result.stdout)["hookSpecificOutput"]
-    for name in ["Plan", "Decisions", "Invariants", "State"]:
+    assert "guides/edit-state/SKILL.md" in result.stdout
+    for name in ["Plan", "Decisions", "Invariants"]:
         edit["tool_input"] = {"file_path": f"notes/{name}.md"}
         result = invoke(worker, tmp_path, "hook", input=json.dumps(edit))
         assert f"guides/edit-{name.lower()}/SKILL.md" in result.stdout
@@ -56,7 +59,7 @@ def test_no_configured_discipline_does_not_invent_a_skill(worker: Path, tmp_path
     assert "notes/State.md" in result.stdout
     assert ".agents/" not in result.stdout
     assert "FULL_REFRESH_REQUIRED" not in result.stdout
-    assert "Context reminders unavailable" not in result.stdout
+    assert "Hook session state unavailable" not in result.stdout
 
 
 @pytest.mark.parametrize("path", ["src/example.rs", "notes/State.md"])
@@ -78,14 +81,14 @@ def test_reminder_storage_failure_is_visible_and_recovers(
     assert result.returncode == 0
     output = json.loads(result.stdout)["hookSpecificOutput"]
     assert "permissionDecision" not in output
-    assert "Context reminders unavailable" in output["additionalContext"]
+    assert "Hook session state unavailable" in output["additionalContext"]
     assert str(runtime / "reminders") in output["additionalContext"]
     assert ("guides/edit-state/SKILL.md" in result.stdout) == (path == "notes/State.md")
     runtime.unlink()
     recovered = invoke(worker, tmp_path, "hook", input=json.dumps(event))
     assert recovered.returncode == 0
     assert "FULL_REFRESH_REQUIRED" in recovered.stdout
-    assert "Context reminders unavailable" not in recovered.stdout
+    assert "Hook session state unavailable" not in recovered.stdout
 
 
 @pytest.mark.parametrize(
@@ -164,6 +167,7 @@ SCHEDULE: list[tuple[int, str | None]] = [
     (149, None),
     (150, "REASSESS_CURRENT_WORK"),
 ]
+CONTEXT_RESET = 7
 
 
 def configured_session(worker: Path, tmp_path: Path, frontend: str = "codex") -> dict[str, Any]:
@@ -216,12 +220,11 @@ def append_tokens(transcript: Path, count: int, frontend: str = "codex") -> None
 
 def assert_reminder(result: subprocess.CompletedProcess[str], expected: str | None) -> None:
     assert result.returncode == 0
-    output = json.loads(result.stdout)["hookSpecificOutput"]
+    output = json.loads(result.stdout or "{}").get("hookSpecificOutput", {})
     no_reminder_expected = expected is None
     if no_reminder_expected:
         assert "permissionDecision" not in output
     else:
         assert output["permissionDecision"] == "deny"
         assert expected is not None and expected in output["permissionDecisionReason"]
-    assert "guides/edit-state/SKILL.md" in result.stdout
     assert ".agents/" not in result.stdout

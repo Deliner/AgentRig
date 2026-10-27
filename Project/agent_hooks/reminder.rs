@@ -51,7 +51,27 @@ pub fn start_at(event: &Value, directory: &Path) -> Result<()> {
         "baseline_tokens": baseline, "latest_tokens": baseline, "allow_next_edit": false}),
     )
 }
-pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Option<String>> {
+pub struct Session {
+    _lock: File,
+    path: PathBuf,
+    pub state: Value,
+}
+impl Session {
+    pub fn save(&self) -> Result<()> {
+        save(&self.path, &self.state)
+    }
+}
+// DECISION: D047
+pub fn open(event: &Value, directory: &Path) -> Result<Session> {
+    let (lock, path) = state_path(event, directory)?;
+    let state = object(&path);
+    Ok(Session {
+        _lock: lock,
+        path,
+        state,
+    })
+}
+pub fn due(event: &Value, config: &Value, state: &mut Value) -> Result<Option<String>> {
     let transcript = text(event, "transcript_path");
     let missing_transcript = transcript.is_empty();
     if missing_transcript {
@@ -67,14 +87,12 @@ pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Opti
         .as_str()
         .filter(|s| !s.trim().is_empty())
         .unwrap_or(ATTENTION);
-    let (_lock, path) = state_path(event, directory)?;
-    let mut state = object(&path);
-    let changed_transcript = text(&state, "transcript_path") != transcript;
+    let changed_transcript = text(state, "transcript_path") != transcript;
     if changed_transcript {
-        state = json!({"transcript_path": transcript, "scan_offset": 0,
+        *state = json!({"transcript_path": transcript, "scan_offset": 0,
             "baseline_tokens": 0, "allow_next_edit": false, "next_attention_tokens": attention});
     }
-    let mut progress = Progress::load(&state, attention, full);
+    let mut progress = Progress::load(state, attention, full);
     let (tokens, offset) = transcript::tokens(
         Path::new(transcript),
         state["scan_offset"].as_u64().unwrap_or(0),
@@ -83,9 +101,8 @@ pub fn before_at(event: &Value, config: &Value, directory: &Path) -> Result<Opti
         progress.observe(current, attention);
     }
     let reminder = progress.reminder(attention, full, message);
-    progress.store(&mut state);
+    progress.store(state);
     state["scan_offset"] = json!(offset);
-    save(&path, &state)?;
     Ok(reminder)
 }
 struct Progress {
@@ -93,6 +110,7 @@ struct Progress {
     next: u64,
     allow: bool,
     latest: Option<u64>,
+    context_reset: bool,
 }
 impl Progress {
     fn load(state: &Value, attention: u64, full: u64) -> Self {
@@ -108,12 +126,14 @@ impl Progress {
             next,
             allow: state["allow_next_edit"].as_bool().unwrap_or(false),
             latest: state["latest_tokens"].as_u64(),
+            context_reset: false,
         }
     }
     fn observe(&mut self, current: u64, attention: u64) {
         let context_reset = self.latest.is_some_and(|prior| current < prior);
         if context_reset {
             self.reset(current, attention);
+            self.context_reset = true;
         }
         self.latest = Some(current);
     }
@@ -127,6 +147,7 @@ impl Progress {
         let invalid_baseline = self.baseline > current;
         if invalid_baseline {
             self.reset(current, attention);
+            self.context_reset = true;
         }
         if self.allow {
             self.allow = false;
@@ -156,5 +177,8 @@ impl Progress {
         state["baseline_tokens"] = json!(self.baseline);
         state["next_attention_tokens"] = json!(self.next);
         state["allow_next_edit"] = json!(self.allow);
+        if self.context_reset {
+            state.as_object_mut().unwrap().remove("delivered");
+        }
     }
 }

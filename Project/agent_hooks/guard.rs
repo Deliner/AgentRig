@@ -63,6 +63,22 @@ pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
     Ok(argv)
 }
 
+// DECISION: D047
+pub fn enters_check(argv: &[String]) -> bool {
+    let recipe = argv.get(1).is_some_and(|arg| arg == "check");
+    let words: Vec<String> = argv
+        .iter()
+        .flat_map(|word| shell_words::split(word).unwrap_or_default())
+        .collect();
+    let git = words.iter().position(|word| {
+        Path::new(word)
+            .file_name()
+            .is_some_and(|name| name == "git")
+    });
+    let commit = git.is_some_and(|start| words[start..].iter().any(|word| word == "commit"));
+    recipe || commit
+}
+
 pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>> {
     match argv.get(1).map(String::as_str).unwrap_or("list") {
         "run" => {

@@ -56,7 +56,8 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 - `commands.yaml`: per name, `argv`, `cwd`, `accepts_args`, `read_only` and `lifetime`.
 - `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`), command, `include`, `skill`, `warning` and
   [`affected`](../change_delivery/gate/README.md).
-- `hooks.yaml`: file-to-skill routes, reminder schedule and discipline skill.
+- `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
+  reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, command check, runner (`pytest` or `cargo`) and exact test target.
 
 Unknown fields are errors naming their module; project-relative paths cannot escape the root. Lint settings follow the

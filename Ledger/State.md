@@ -4,38 +4,39 @@
 
 On 2026-10-27 the user deleted unneeded Backlog cards and selected the rest
 for execution: [Plan](Plan.md) orders B001 → B003 → B002 → B008 → B009 →
-B014. B001 is complete as [P018](Archive/Plan/018.md). P019 (project
-structure that reflects its capabilities, [B003](Backlog/003.md)) is active.
-References to the removed review runner are assessed by the executor at
-acceptance ([D033](Decisions/033.md)).
+B014. B001 and B003 are complete as [P018](Archive/Plan/018.md) and
+[P019](Archive/Plan/019.md). P021 (hook coordination, [B002](Backlog/002.md))
+is active. References to the removed review runner are assessed by the
+executor at acceptance ([D033](Decisions/033.md)).
 
 ## Workspace
 
 Branch: feature/target-state
 
-Revision: bd6460f37f1d1fb188e0b82bc05fb1464699a678
+Revision: 1898898b91ad1857691fc57d15d4c5ebc0c05042
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 52471a0 (D046 recovery), installed by `just bootstrap` under
 .cache/development. Change the pin and run bootstrap in one shell command:
-a pin without its install makes every hook fail. A stray branch
-feature/init-probe at a14f284 remains from an install probe; guard-reference
-refuses its deletion. Agent shells lack cargo and uv on PATH; prefix
-`PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
+a pin without its install makes every hook fail. The installed runtime
+rejects route `events` and `block` until the pin includes D047, so the
+repository's .agentrig/hooks.yaml keeps the old route form until then. A
+stray branch feature/init-probe at a14f284 remains from an install probe;
+guard-reference refuses its deletion. Agent shells lack cargo and uv on PATH;
+prefix `PATH=/Users/admin/.cargo/bin:...` inside `just write --`.
 
 ## Progress
 
-P018 (B001) and P019 (B003) are archived with acceptance evidence. P019
-moved shared patterns, skill references and parsing out of structural_lint,
-feature branch integration into change_delivery/git, renamed
-project_setup/initialization and command_runner/sandbox.rs, and aligned
-contracts after two blind reviews. P021 (B002, hook coordination) is active
-and has no code changes yet.
+P021's first VAC implements [D047](Decisions/047.md): one ordered hook
+response per event, routes with events (edit, shell, check) and optional
+block, per-session delivery of each skill and area, adjacency validation of
+route order, and an init route reminding edit-state at the VAC check entry.
 
 ## Verification
 
-e921f47, b9e4135, 0233a93 and bd6460f passed the full commit gate. K7
-consumer sessions passed in Claude Code and Codex as recorded in P018.
+Before the commit: agent_hooks Rust tests (10) and Python tests for
+agent_hooks, project_setup, plan and backlog guidance (127) passed with the
+candidate.
 
 ## Blockers
 
@@ -43,6 +44,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Map the current hook responses (SessionStart context, shell guard, edit
-guidance, reminders, recovery) against B002 K1–K15, then choose the first
-P021 VAC.
+Commit the D047 VAC, pin it with bootstrap in one command, then add the
+repository's blocking architecture and VAC check routes, group lint
+diagnostics by cause (K8) and state the merge review criteria (K9, K10, K13).

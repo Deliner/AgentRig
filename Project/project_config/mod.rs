@@ -2,7 +2,7 @@ pub(crate) mod settings;
 use anyhow::Result;
 pub use settings::{
     AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git, Hooks,
-    Lifetime, Oracle, Paths, Route, Runner, VERSION, files, read, relative, sources,
+    Lifetime, Oracle, Paths, Route, RouteEvent, Runner, VERSION, files, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 

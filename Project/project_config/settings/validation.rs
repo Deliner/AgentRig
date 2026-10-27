@@ -169,9 +169,11 @@ impl Hooks {
     fn validate(&self, root: &Path) -> Result<()> {
         for route in &self.routes {
             ensure!(!route.include.is_empty(), "hooks.routes: include required");
+            ensure!(!route.events.is_empty(), "hooks.routes: events required");
             globs(&route.include).context("hooks.routes.include")?;
             skills::reference(root, &route.skill).context("hooks.routes.skill")?;
         }
+        self.validate_order()?;
         if let Some(path) = &self.discipline_skill {
             skills::reference(root, path).context("hooks.discipline_skill")?;
         }
@@ -181,6 +183,26 @@ impl Hooks {
                 "hooks.reminder requires hooks.discipline_skill"
             );
             validate_reminder(root, path)?;
+        }
+        Ok(())
+    }
+    // DECISION: D047
+    fn validate_order(&self) -> Result<()> {
+        let skills: Vec<&str> = self
+            .routes
+            .iter()
+            .map(|route| route.skill.as_str())
+            .collect();
+        for (index, skill) in skills.iter().enumerate() {
+            let earlier = skills[..index].iter().rposition(|other| other == skill);
+            let separated = earlier.filter(|earlier| earlier + 1 != index);
+            if let Some(earlier) = separated {
+                let between = earlier + 1;
+                anyhow::bail!(
+                    "hooks.routes[{earlier}] and hooks.routes[{index}] order {skill} both before and after {} (hooks.routes[{between}]); keep the routes of one skill adjacent",
+                    skills[between]
+                );
+            }
         }
         Ok(())
     }

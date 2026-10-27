@@ -46,4 +46,5 @@ files:
   044.md: "Context and rationale for: Make features without nested features declare an architecture type with required parts and inward dependencies."
   045.md: "Context and rationale for: Keep configuration repair and its check available while the configuration is invalid."
   046.md: "Context and rationale for: Let configuration recovery read its sources and repair skill through cat and accept Codex patch payloads."
+  047.md: "Context and rationale for: Merge hook requirements into one ordered response, deliver each skill and area once per context window and let configured routes block until delivered."
 directories: {}

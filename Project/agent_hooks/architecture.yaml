@@ -1,11 +1,12 @@
-purpose: Interpret agent hook events and deliver command guards, edit guidance and context reminders
+purpose: Interpret agent hook events and deliver command guards, coordinated skill requirements and context reminders
 type: flat
 files:
   mod.rs: Dispatch session and tool events using configured project services
   input.rs: Read optional hook state objects and text fields with colocated behavior tests
   guard.rs: Parse the permitted outer shell invocation and validate its Just recipe arguments
   recovery.rs: Keep configuration repair and its check available while the configuration is invalid
-  reminder.rs: Track transcript progress and schedule configured context reminders
+  reminder.rs: Own per-session hook state, track transcript progress and schedule configured context reminders
+  requirements.rs: Match configured routes, keep undelivered skill requirements and render one ordered response
   transcript.rs: Normalize incremental Codex and Claude transcript input-token observations
   attention.txt: Guidance emitted at an attention interval
   full-refresh.txt: Instructions emitted when a complete discipline refresh is due

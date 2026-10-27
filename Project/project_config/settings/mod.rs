@@ -122,6 +122,21 @@ pub struct Hooks {
 pub struct Route {
     pub include: Vec<String>,
     pub skill: String,
+    #[serde(default = "changes")]
+    pub events: Vec<RouteEvent>,
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub block: bool,
+}
+// DECISION: D047
+#[derive(Deserialize, Serialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "lowercase")]
+pub enum RouteEvent {
+    Edit,
+    Shell,
+    Check,
+}
+fn changes() -> Vec<RouteEvent> {
+    vec![RouteEvent::Edit, RouteEvent::Shell]
 }
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "lowercase")]

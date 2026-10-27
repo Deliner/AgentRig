@@ -1,4 +1,6 @@
-use crate::project_config::{self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route};
+use crate::project_config::{
+    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Route, RouteEvent,
+};
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
@@ -152,8 +154,19 @@ fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
                 format!("{}/{file}/**/*.md", memory),
             ],
             skill: format!("{skill_root}/{skill}/SKILL.md"),
+            events: vec![RouteEvent::Edit, RouteEvent::Shell],
+            block: false,
         });
     }
+    routes.push(Route {
+        include: vec![
+            format!("{memory}/State.md"),
+            format!("{memory}/State/**/*.md"),
+        ],
+        skill: format!("{skill_root}/edit-state/SKILL.md"),
+        events: vec![RouteEvent::Check],
+        block: true,
+    });
     routes
 }
 fn checks(source: &str, repair: &str) -> Vec<Check> {
