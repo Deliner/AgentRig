@@ -37,8 +37,9 @@ the branch after integration. Branch policy comes from .agentrig/git.yaml; never
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
 edit-* skill. Their canonical bodies live in Project/shared/skills and are exposed through .agents/skills. Do not
-create another instruction copy. The configured pre-edit routes offer guidance; opaque shell writes require applying the
-relevant skill yourself.
+create another instruction copy. Hook routes give memory-skill guidance, stop the first code edit in each directory
+until refactor-large-directory and its contracts are applied, and stop the first VAC commit in a context for edit-state
+(D047). Opaque shell writes require applying the relevant skill yourself.
 
 Use edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user
 agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for
