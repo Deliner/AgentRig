@@ -1,6 +1,6 @@
 // DECISION: D005
 pub mod jobs;
-pub(crate) mod process;
+pub(crate) mod sandbox;
 use crate::project_config::Context;
 use anyhow::{Context as _, Result, ensure};
 use std::process::Output;
@@ -22,7 +22,7 @@ pub fn argv(context: &Context, name: &str, extra: &[String]) -> Result<Vec<Strin
 pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
     match execute(context, name, argv, false) {
-        Ok(output) => Ok(process::exit_code(&output)),
+        Ok(output) => Ok(jobs::process::exit_code(&output)),
         Err(error) => {
             eprintln!("{error:#}");
             Ok(127)
@@ -35,8 +35,8 @@ pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) 
     let runtime = context.path(&context.config.paths.runtime)?;
     let mut job = crate::command_runner::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
     job.prepare(&argv, spec.read_only, spec.lifetime)?;
-    let result = process::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
-    let code = result.as_ref().map(process::exit_code).unwrap_or(127);
+    let result = sandbox::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
+    let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),
@@ -71,8 +71,8 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     let mut job = crate::command_runner::jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
     let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);
-    let result = process::tracked(&cwd, &argv, (read_only, false), Some(&mut job));
-    let code = result.as_ref().map(process::exit_code).unwrap_or(127);
+    let result = sandbox::tracked(&cwd, &argv, (read_only, false), Some(&mut job));
+    let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),

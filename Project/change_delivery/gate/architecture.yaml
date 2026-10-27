@@ -1,4 +1,4 @@
-purpose: Execute configured checks against working, staged or revision inputs and record their results
+purpose: Execute configured checks against working, staged or revision inputs and record their results through project_memory check evidence
 type: flat
 files:
   mod.rs: Prepare checked snapshots, dispatch checks and produce actionable failures

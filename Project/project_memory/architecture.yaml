@@ -1,4 +1,4 @@
-purpose: Validate project memory contracts and report recovery context
+purpose: Validate project memory contracts, record check evidence and report recovery context
 files:
   mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks
   format.rs: Memory document sections, tables, links and source target paths

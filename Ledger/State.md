@@ -13,7 +13,7 @@ acceptance ([D033](Decisions/033.md)).
 
 Branch: feature/target-state
 
-Revision: 1628d677f6a9d707e7626d52e9b3f831ae0c987a
+Revision: 0233a93654d7fcd89e99859c34f15afb3311f236
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 52471a0 (D046 recovery), installed by `just bootstrap` under
@@ -26,22 +26,24 @@ refuses its deletion. Agent shells lack cargo and uv on PATH; prefix
 ## Progress
 
 P018 delivered hook configuration recovery ([D045](Decisions/045.md),
-[D046](Decisions/046.md)) and is archived with K1–K8 evidence. The first
-P019 VAC (B003 K3) gives shared behavior its own owners: glob patterns move to
-shared/paths/patterns.rs, skill reference validation to
-shared/diagnostics/skills.rs and source parsing to shared/syntax, so
-agent_hooks, change_delivery and project_memory no longer reach into
-structural_lint for them (e921f47). The next VAC moves feature start and
-checked integration from shared/vcs into change_delivery/git/integration.rs,
-their only consumer; shared/vcs keeps repository access with new
-Repository run, command and ancestor methods. Open: unclear names and the
-blind checks.
+[D046](Decisions/046.md)) and is archived with K1–K8 evidence. P019 VACs:
+shared glob patterns, skill references and parsing got their own owners
+(e921f47); feature start and integration moved to change_delivery/git
+(b9e4135); project_setup/setup became initialization (0233a93). Blind checks
+then ran: a tree-only reader placed behaviors a–j with confidence 3–5; a
+fresh Explore agent reached all ten through architecture.yaml contracts
+(confidence 4–5) and reported stale contract text and two process.rs files.
+The current VAC corrects those contracts and renames
+command_runner/process.rs to sandbox.rs. Moving check evidence to a
+first-level feature was tried and reverted: Project would exceed its hard
+limit of 15 entries; its consumers outside project_memory already depend on
+it, so the contracts now name check evidence as project memory.
 
 ## Verification
 
-e921f47 passed the full commit gate. For the workflow VAC: clippy with -D
-warnings, candidate `just lint` without errors and
-Project/change_delivery/git/tests (10) pass on the working tree. K7 consumer sessions passed in Claude Code and Codex as
+e921f47, b9e4135 and 0233a93 passed the full commit gate. For the current
+VAC: clippy with -D warnings and candidate `just lint` without errors on the
+working tree. K7 consumer sessions passed in Claude Code and Codex as
 recorded in P018.
 
 ## Blockers
@@ -50,7 +52,5 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the rename of project_setup/setup to project_setup/initialization,
-then rerun the blind name and structure checks against B003 K1–K5.
-project_memory/evidence stays: moving it to change_delivery would create a
-cycle with resume, and it depends on project_config, so it cannot be shared.
+Commit the contract and sandbox VAC, record B003 K1–K5 evidence in P019 and
+archive it, then start P021 (B002).

@@ -11,7 +11,7 @@ directories:
   command_line: Parse agentrig commands and dispatch them to the features that own them
   command_runner: Run catalog commands in the foreground and as tracked background jobs
   project_config: Define, load and validate the project configuration that workflow features read
-  project_memory: Validate project memory contracts and report recovery context
+  project_memory: Validate project memory contracts, record check evidence and report recovery context
   project_setup: Initialize agent environments and inspect their readiness
-  shared: Repository access, diagnostics, artifacts, skills and test support shared by features
+  shared: Repository access, path patterns, source parsing, diagnostics, artifacts, skills and test support shared by features
   structural_lint: Inspect source measurements and architecture contracts
