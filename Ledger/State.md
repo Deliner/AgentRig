@@ -26,15 +26,21 @@ refuses its deletion. Agent shells lack cargo and uv on PATH; prefix
 ## Progress
 
 P018 delivered hook configuration recovery ([D045](Decisions/045.md),
-[D046](Decisions/046.md)) and is archived with K1–K8 evidence. P019 has not
-started changes. Its analysis found cross-feature use of
-structural_lint::config `globs`/`skill` by agent_hooks, project_config and
-change_delivery, and overlap between shared/vcs and change_delivery/git.
+[D046](Decisions/046.md)) and is archived with K1–K8 evidence. The first
+P019 VAC (B003 K3) gives shared behavior its own owners: glob patterns move to
+shared/paths/patterns.rs, skill reference validation to
+shared/diagnostics/skills.rs and source parsing to shared/syntax, so
+agent_hooks, change_delivery and project_memory no longer reach into
+structural_lint for them. Remaining structural_lint consumers run or
+configure lint. Open: shared/vcs feature-workflow overlap with
+change_delivery/git, unclear names, blind checks.
 
 ## Verification
 
-1628d67 and 52471a0 passed the full commit gate. K7 consumer sessions passed
-in Claude Code and Codex as recorded in P018.
+For the K3 VAC: clippy with -D warnings, candidate `just lint` without errors
+and `just config-check` pass on the working tree; the commit gate runs the
+affected tests. K7 consumer sessions passed in Claude Code and Codex as
+recorded in P018.
 
 ## Blockers
 
@@ -42,6 +48,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Start P019: move `globs`/`skill` from structural_lint::config into shared
-support, then address the shared/vcs overlap and rerun the blind name and
-structure checks against B003 K1–K5.
+Commit the K3 VAC, then move feature-branch workflow out of shared/vcs into
+change_delivery/git and rerun the blind name and structure checks against
+B003 K1–K5.

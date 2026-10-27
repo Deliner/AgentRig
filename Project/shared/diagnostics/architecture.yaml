@@ -1,6 +1,7 @@
-purpose: Represent actionable findings and render diagnostic guidance with reproducible rerun commands
+purpose: Represent actionable findings, validate their skill references and render diagnostic guidance with reproducible rerun commands
 type: flat
 files:
   mod.rs: Shared guidance formatting and command failure recovery instructions
   lint.rs: Serializable lint findings and their text locations and rendering
+  skills.rs: Validation that configured guidance references a repository SKILL.md
 directories: {}

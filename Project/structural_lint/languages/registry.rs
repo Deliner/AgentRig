@@ -9,7 +9,6 @@ pub struct Handler {
     pub title: &'static str,
     pub extensions: &'static [&'static str],
     pub rules: &'static [Kind],
-    pub grammar: fn() -> tree_sitter::Language,
     pub inspect: Option<fn(Node<'_>, &str, &mut Vec<Measurement>)>,
 }
 pub const HANDLERS: &[Handler] = &[
@@ -24,7 +23,6 @@ pub const HANDLERS: &[Handler] = &[
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
-        grammar: || tree_sitter_rust::LANGUAGE.into(),
         inspect: Some(rust::inspect),
     },
     Handler {
@@ -38,7 +36,6 @@ pub const HANDLERS: &[Handler] = &[
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
-        grammar: || tree_sitter_python::LANGUAGE.into(),
         inspect: Some(python::inspect),
     },
 ];

@@ -3,8 +3,9 @@ mod scope;
 
 use super::{Contracts, Issue, source::References};
 use crate::shared::diagnostics::lint::Diagnostic;
+use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
-    config::{Rule, globs},
+    config::Rule,
     inventory::{self, Inventory},
 };
 use anyhow::Result;

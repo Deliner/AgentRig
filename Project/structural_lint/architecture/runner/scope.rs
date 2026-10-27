@@ -1,5 +1,6 @@
+use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
-    config::{Rule, extension_matches, globs},
+    config::{Rule, extension_matches},
     inventory::Inventory,
     selection,
 };

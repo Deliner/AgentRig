@@ -14,7 +14,7 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     let path = selected_path(path)?;
     let path = path.as_path();
     let config = config::load(root, config_path)?;
-    let excluded = config::globs(&config.exclude)?;
+    let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
     let inventory = inventory::collect(root, &excluded)?;
     let global = excluded.is_match(path);
     let mut rows = Vec::new();

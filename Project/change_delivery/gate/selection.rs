@@ -1,6 +1,6 @@
 // DECISION: D035
 use crate::project_config::Check;
-use crate::structural_lint::config::globs;
+use crate::shared::paths::patterns::globs;
 use anyhow::{Context, Result};
 use std::{
     collections::BTreeSet,

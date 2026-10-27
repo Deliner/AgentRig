@@ -1,12 +1,13 @@
-purpose: Repository access, diagnostics, artifacts, skills and test support shared by features
+purpose: Repository access, path patterns, source parsing, diagnostics, artifacts, skills and test support shared by features
 files:
   mod.rs: Shared module declarations
 directories:
   arguments: Shared command argument extraction
   artifacts: Read, fingerprint and atomically persist shared file artifacts
-  diagnostics: Render failures and actionable repair guidance
-  paths: Resolve filesystem paths consistently across capabilities
+  diagnostics: Render failures and actionable repair guidance and validate referenced skills
+  paths: Resolve filesystem paths and match repository glob patterns consistently across capabilities
   skills: Canonical agent guidance embedded into installed environments
+  syntax: Parse supported source files into syntax trees for lint measurements and memory markers
   testing: Construct configured consumer projects and example deliveries for behavior tests
   vcs: Observe and change Git repositories for delivery workflows
   yaml: Decode and encode strict YAML configuration

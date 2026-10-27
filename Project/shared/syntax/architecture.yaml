@@ -1,0 +1,5 @@
+purpose: Parse Rust, Python and shell sources into syntax trees selected by file extension
+type: flat
+files:
+  mod.rs: Grammar selection by extension and parsing
+directories: {}

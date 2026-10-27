@@ -1,5 +1,5 @@
 use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, module, name, relative};
-use crate::structural_lint::config::{globs, skill};
+use crate::shared::{diagnostics::skills, paths::patterns::globs};
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 use std::{collections::HashSet, fs};
@@ -33,7 +33,7 @@ impl Config {
             "runtime: project pins {}, binary is {VERSION}; install the pinned binary",
             self.runtime
         );
-        skill(root, &self.config_skill).context("config_skill")?;
+        skills::reference(root, &self.config_skill).context("config_skill")?;
         self.validate_paths(root)
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {
@@ -104,7 +104,8 @@ impl Config {
                 "checks.{}: empty include",
                 check.id
             );
-            skill(root, &check.skill).with_context(|| format!("checks.{}.skill", check.id))?;
+            skills::reference(root, &check.skill)
+                .with_context(|| format!("checks.{}.skill", check.id))?;
             check.validate_command(&self.commands)?;
             check.validate_affected(&self.commands)?;
         }
@@ -169,10 +170,10 @@ impl Hooks {
         for route in &self.routes {
             ensure!(!route.include.is_empty(), "hooks.routes: include required");
             globs(&route.include).context("hooks.routes.include")?;
-            skill(root, &route.skill).context("hooks.routes.skill")?;
+            skills::reference(root, &route.skill).context("hooks.routes.skill")?;
         }
         if let Some(path) = &self.discipline_skill {
-            skill(root, path).context("hooks.discipline_skill")?;
+            skills::reference(root, path).context("hooks.discipline_skill")?;
         }
         if let Some(path) = &self.reminder {
             ensure!(

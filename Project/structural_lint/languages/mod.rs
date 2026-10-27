@@ -8,7 +8,7 @@ pub use registry::{HANDLERS, handler};
 
 use anyhow::{Context, Result};
 use std::path::Path;
-use tree_sitter::{Node, Parser};
+use tree_sitter::Node;
 
 // DECISION: D017
 pub struct Measurement {
@@ -21,28 +21,13 @@ pub struct Analysis {
     pub measurements: Vec<Measurement>,
     pub parse_error: Option<usize>,
 }
-pub fn parse(path: &Path, source: &str) -> Result<Option<tree_sitter::Tree>> {
-    let language = match handler(path) {
-        Some(handler) => (handler.grammar)(),
-        None if path.extension().is_some_and(|extension| extension == "sh") => {
-            tree_sitter_bash::LANGUAGE.into()
-        }
-        None => return Ok(None),
-    };
-    let mut parser = Parser::new();
-    parser.set_language(&language)?;
-    Ok(Some(
-        parser
-            .parse(source, None)
-            .context("parser returned no tree")?,
-    ))
-}
 pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
     let handler = handler(path).context("unsupported source language")?;
     let inspect_node = handler
         .inspect
         .context("language has no scalar measurement handler")?;
-    let tree = parse(path, source)?.context("unsupported source language")?;
+    let tree =
+        crate::shared::syntax::parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
         measurements: Vec::new(),
         parse_error: None,

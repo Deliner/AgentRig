@@ -16,7 +16,7 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let shebang = source.lines().next().unwrap_or("");
     let shell = path.extension().is_none() && shebang.starts_with("#!") && shebang.contains("sh");
     let parse_path = if shell { Path::new("source.sh") } else { path };
-    let Some(tree) = crate::structural_lint::languages::parse(parse_path, &source)? else {
+    let Some(tree) = crate::shared::syntax::parse(parse_path, &source)? else {
         return Ok(None);
     };
     ensure!(

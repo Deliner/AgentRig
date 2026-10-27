@@ -1,5 +1,6 @@
 // DECISION: D022
 pub mod lint;
+pub mod skills;
 use std::{fmt, path::Path};
 
 pub struct Guidance<'a> {

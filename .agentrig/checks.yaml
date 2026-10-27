@@ -34,10 +34,10 @@
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
     targets: ['shared::artifacts::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/paths/**']
-    targets: ['shared::paths::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+    targets: ['shared::paths::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/arguments/**']
     targets: ['shared::arguments::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
-  - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**']
+  - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**', 'Project/shared/syntax/**']
     targets: ['shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
 - id: ruff-format
   kind: command
@@ -62,6 +62,9 @@
   - include:
     - Project/structural_lint/**
     - Project/shared/arguments/**
+    - Project/shared/diagnostics/**
+    - Project/shared/paths/**
+    - Project/shared/syntax/**
     - Project/shared/vcs/**
     - Project/shared/yaml/**
     targets:
@@ -77,6 +80,7 @@
     - Project/project_config/settings/**
     - Project/shared/paths/**
     - Project/shared/arguments/**
+    - Project/shared/diagnostics/**
     - Project/command_runner/jobs/**
     - Project/shared/artifacts/**
     - Project/shared/vcs/**

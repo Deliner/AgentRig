@@ -13,8 +13,8 @@ mod tests;
 
 pub use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::diagnostics::lint::print_diagnostic;
+use crate::shared::paths::patterns::globs;
 use anyhow::Result;
-use config::globs;
 use std::{collections::HashMap, fs, path::Path};
 
 // DECISION: D016

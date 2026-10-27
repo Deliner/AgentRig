@@ -211,7 +211,7 @@ fn edit_guidance(
         .collect();
     let mut skills = BTreeSet::new();
     for route in &context.config.hooks.routes {
-        let include = crate::structural_lint::config::globs(&route.include)?;
+        let include = crate::shared::paths::patterns::globs(&route.include)?;
         let applies = all || paths.iter().any(|path| include.is_match(path));
         if applies {
             skills.insert(context.path(&route.skill)?);

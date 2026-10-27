@@ -4,7 +4,8 @@ mod selection;
 // DECISION: D015
 // DECISION: D005
 // DECISION: D004
-use crate::structural_lint::{self, config::globs, inventory};
+use crate::shared::paths::patterns::globs;
+use crate::structural_lint::{self, inventory};
 use crate::{
     command_runner,
     project_config::{self, Check, CheckKind, Context},
