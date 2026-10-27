@@ -16,7 +16,7 @@ Branch: feature/target-state
 Revision: 288f2fd8e4bda64e851c6864ae29a4980118401e
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-487dd9c (D047 hook coordination), installed by `just bootstrap` under
+c1dde2c (D047 hook coordination), installed by `just bootstrap` under
 .cache/development. Change the pin and run bootstrap in one shell command:
 a pin without its install makes every hook fail. A stray branch
 feature/init-probe at a14f284 remains from an install probe; guard-reference
@@ -49,5 +49,4 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the classification fix, pin it with bootstrap in one command, then
-archive P021 with K1–K15 evidence and activate P025 (B008).
+Archive P021 with K1–K15 evidence and activate P025 (B008).
