@@ -14,7 +14,7 @@ review runner are assessed by the executor at acceptance
 
 Branch: feature/target-state
 
-Revision: 7955912785dd8490a34491ca66599cb48d9fcaf7
+Revision: 0d6ce60c02d249622eddd6cf872447d3db681e52
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 c1dde2c (D047 hook coordination), installed by `just bootstrap` under
@@ -39,15 +39,19 @@ text, grouped guidance and the fixed variant (K1, K3, K6) and makes
 replace-comment use norm-or-choice and allow one record for several
 comments (K4).
 
-test_delivery.py (the I002 oracle) fails since P021: its hook scenario
-expects `just check` to pass, but the D047 init route now stops the first
-VAC check entry for edit-state. The impact map selects that test only for
-its own changes, so no gate ran it.
+(1bd1cf8). The reference scan now runs before oracle discovery and skips
+non-UTF-8 files (0d6ce60).
+
+test_delivery.py (the I002 oracle) failed since P021: the D047 init route
+stops a consumer's first `just check`, and the map selected that test only
+for its own changes. The current VAC expects that stop and its retry,
+unsets the inherited CARGO_TARGET_DIR so consumer builds cannot reuse stale
+artifacts from AgentRig's target, and maps Project/** to the test.
 
 ## Verification
 
-The current VAC passed the language delivery tests (4). 7955912 passed
-the commit gate. test_delivery.py fails for both layouts as described.
+test_delivery.py passed for both layouts together with the memory tests
+(81 passed); config-check passed. 0d6ce60 passed the commit gate.
 
 ## Blockers
 
@@ -55,5 +59,4 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Restore the I002 oracle for the VAC check stop and map Project changes to
-test_delivery.py, then archive P025 with K1–K6 evidence and start P026.
+Archive P025 with K1–K6 evidence and start P026 (B009 condition naming).

@@ -142,8 +142,7 @@
     - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
-    - Project/shared/testing/test_delivery.py
-    - Project/shared/testing/examples/**
+    - Project/**
     targets:
     - Project/shared/testing/test_delivery.py
   - include:
