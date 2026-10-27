@@ -24,13 +24,20 @@ prefix `env PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:...` inside
 
 ## Progress
 
-The branch equals master at 79ff8be after the B018 integration. This VAC
-records the Backlog removal and the new Plan selection; no P018 code is
-written yet.
+49d36db records the Backlog removal and the new Plan selection. The next
+P018 VAC adds hook configuration recovery ([D045](Decisions/045.md)): with an
+invalid configuration only configuration-source edits and `just config-check`
+pass, every denial carries the full error and repair skill, and validation
+errors name their module file. Consumer acceptance in real Codex and Claude
+Code sessions (K7) is not done yet.
 
 ## Verification
 
-None for this selection yet beyond the commit gate.
+The reproduction in a scratch consumer showed every event denied before the
+change. After it, three new agent_hooks Rust tests pass and the same scratch
+probe shows config edits and `just config-check` allowed, other calls denied
+with the cause, for missing, corrupt, unknown-field, invalid-command,
+invalid-check and broken-lint cases.
 
 ## Blockers
 
@@ -40,5 +47,6 @@ inside `just read`.
 
 ## Next action
 
-Reproduce a broken .agentrig module in a scratch consumer project with the
-candidate and observe diagnostics, hook behavior and the repair path (B001 K1–K3).
+Pin and bootstrap the recovery runtime, then run the K7 consumer scenario:
+break a module in Codex and Claude Code consumers, let a real session repair
+it with unrelated changes present, and confirm commit checks still apply.

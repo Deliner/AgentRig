@@ -1,4 +1,4 @@
-use super::{Check, CheckKind, Command, Config, Hooks, VERSION, name, relative};
+use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, module, name, relative};
 use crate::structural_lint::config::{globs, skill};
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -7,14 +7,26 @@ use std::{collections::HashSet, fs};
 impl Config {
     pub(crate) fn validate(&self, root: &Path) -> Result<()> {
         self.validate_structure(root)?;
-        self.capabilities.validate(&self.checks)?;
+        self.capabilities.validate(&self.checks).context(FILE)?;
         if self.capabilities.lint {
             crate::structural_lint::config::load(root, &relative(root, &self.paths.lint)?)
                 .context("paths.lint")?;
         }
         Ok(())
     }
+    // DECISION: D045
     pub(crate) fn validate_structure(&self, root: &Path) -> Result<()> {
+        self.validate_project(root).context(FILE)?;
+        self.git.validate().with_context(|| module("git"))?;
+        self.validate_commands(root)
+            .with_context(|| module("commands"))?;
+        self.validate_checks(root)
+            .with_context(|| module("checks"))?;
+        self.hooks.validate(root).with_context(|| module("hooks"))?;
+        self.validate_oracles().with_context(|| module("oracles"))?;
+        Ok(())
+    }
+    fn validate_project(&self, root: &Path) -> Result<()> {
         ensure!(self.version == 1, "version: supported schema is 1");
         ensure!(
             self.runtime == VERSION,
@@ -22,13 +34,7 @@ impl Config {
             self.runtime
         );
         skill(root, &self.config_skill).context("config_skill")?;
-        self.validate_paths(root)?;
-        self.git.validate()?;
-        self.validate_commands(root)?;
-        self.validate_checks(root)?;
-        self.hooks.validate(root)?;
-        self.validate_oracles()?;
-        Ok(())
+        self.validate_paths(root)
     }
     fn validate_paths(&self, root: &Path) -> Result<()> {
         for (label, value) in [

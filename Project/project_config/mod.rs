@@ -1,8 +1,8 @@
 pub(crate) mod settings;
-use anyhow::{Context as _, Result};
+use anyhow::Result;
 pub use settings::{
     AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git, Hooks,
-    Lifetime, Oracle, Paths, Route, Runner, VERSION, files, read, relative,
+    Lifetime, Oracle, Paths, Route, Runner, VERSION, files, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 
@@ -14,12 +14,7 @@ impl Context {
     pub fn load(root: &Path) -> Result<Self> {
         let root = root.canonicalize()?;
         let config = read(&root)?;
-        config.validate(&root).with_context(|| {
-            format!(
-                "configuration invalid. ACTION: Apply {}",
-                config.config_skill
-            )
-        })?;
+        config.validate(&root)?;
         Ok(Self { root, config })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {

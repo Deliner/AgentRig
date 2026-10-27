@@ -7,7 +7,10 @@
 // DECISION: D019
 mod guard;
 pub mod input;
+mod recovery;
 mod reminder;
+#[cfg(test)]
+mod tests;
 mod transcript;
 
 use self::input::text;
@@ -15,7 +18,10 @@ use crate::project_config::Context;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::BTreeSet,
+    path::{Path, PathBuf},
+};
 
 pub fn context(event: &str, message: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
@@ -54,12 +60,20 @@ fn paths(event: &Value) -> Vec<String> {
     }
     paths
 }
+fn target(root: &Path, event: &Value, path: &str) -> Option<PathBuf> {
+    let cwd = root.join(text(event, "cwd"));
+    let resolved = resolve(&cwd.join(path)).ok()?;
+    resolved.strip_prefix(root).ok().map(Path::to_owned)
+}
 pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
     let invalid_event = !event.is_object();
     if invalid_event {
         bail!("expected a hook event object");
     }
-    let configured = Context::load(root)?;
+    let configured = match Context::load(root) {
+        Ok(configured) => configured,
+        Err(error) => return Ok(recovery::respond(root, event, &error)),
+    };
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),
         "PreToolUse" => match text(event, "tool_name") {
@@ -189,11 +203,9 @@ fn edit_guidance(
     all: bool,
     context: &crate::project_config::Context,
 ) -> Result<String> {
-    let cwd = root.join(text(event, "cwd"));
     let paths: Vec<_> = paths(event)
         .iter()
-        .filter_map(|path| resolve(&cwd.join(path)).ok())
-        .filter_map(|path| path.strip_prefix(root).ok().map(Path::to_owned))
+        .filter_map(|path| target(root, event, path))
         .collect();
     let mut skills = BTreeSet::new();
     for route in &context.config.hooks.routes {

@@ -1,7 +1,7 @@
 purpose: Define and validate project settings independently of loading recovery state or executing workflows
 type: flat
 files:
-  mod.rs: Strict project schema, version constants, YAML reading and project-relative paths
+  mod.rs: Strict project schema, version constants, YAML reading, project-relative paths and repairable source files
   capabilities.rs: Enabled capability declarations and their check consistency
   validation.rs: Structural validation of paths, commands, checks, hooks and oracles
 directories: {}

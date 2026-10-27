@@ -3,7 +3,7 @@ mod validation;
 pub use capabilities::Capabilities;
 // DECISION: D005
 pub use crate::shared::vcs::Settings as Git;
-use anyhow::{Context as _, Result, ensure};
+use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
@@ -148,7 +148,7 @@ fn module(section: &str) -> String {
 }
 pub fn read(root: &Path) -> Result<Config> {
     let mut sections: serde_json::Map<String, serde_json::Value> =
-        crate::shared::yaml::read(&root.join(FILE)).with_context(|| format!("{FILE} required"))?;
+        crate::shared::yaml::read(&root.join(FILE))?;
     for section in MODULES {
         let path = module(section);
         ensure!(
@@ -170,6 +170,27 @@ pub fn read(root: &Path) -> Result<Config> {
         let file = if owned { module(section) } else { FILE.into() };
         anyhow::anyhow!("{file}: {error}")
     })
+}
+// DECISION: D045
+pub fn sources(root: &Path) -> Vec<PathBuf> {
+    let mut sources: Vec<PathBuf> = std::iter::once(FILE.to_owned())
+        .chain(MODULES.map(module))
+        .map(PathBuf::from)
+        .collect();
+    for (file, pointer) in [
+        (FILE.to_owned(), "/paths/lint"),
+        (module("hooks"), "/reminder"),
+    ] {
+        let document = crate::shared::yaml::read::<serde_json::Value>(&root.join(file)).ok();
+        let referenced = document
+            .as_ref()
+            .and_then(|document| document.pointer(pointer))
+            .and_then(serde_json::Value::as_str)
+            .and_then(|path| relative(root, path).ok())
+            .and_then(|path| path.strip_prefix(root).ok().map(Path::to_owned));
+        sources.extend(referenced);
+    }
+    sources
 }
 pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
     let serde_json::Value::Object(mut sections) = serde_json::to_value(config)? else {

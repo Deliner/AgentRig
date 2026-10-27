@@ -4,6 +4,7 @@ files:
   mod.rs: Dispatch session and tool events using configured project services
   input.rs: Read optional hook state objects and text fields with colocated behavior tests
   guard.rs: Parse the permitted outer shell invocation and validate its Just recipe arguments
+  recovery.rs: Keep configuration repair and its check available while the configuration is invalid
   reminder.rs: Track transcript progress and schedule configured context reminders
   transcript.rs: Normalize incremental Codex and Claude transcript input-token observations
   attention.txt: Guidance emitted at an attention interval

@@ -96,7 +96,12 @@ fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a
     check_skill
         .or_else(|| config.and_then(|config| config.get("config_skill")))
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("config_skill in .agentrig/project.yaml (repair configuration syntax first)")
+        .unwrap_or("the repair skill named by config_skill in .agentrig/project.yaml, by default .agentrig/skills/repair/SKILL.md")
+}
+pub fn config_skill(root: &Path) -> String {
+    let config =
+        crate::shared::yaml::read::<serde_json::Value>(&root.join(".agentrig/project.yaml")).ok();
+    repair_skill(config.as_ref(), "config-check").to_owned()
 }
 
 fn executable() -> std::path::PathBuf {

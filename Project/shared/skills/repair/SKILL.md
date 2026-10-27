@@ -31,7 +31,9 @@ does not justify changing the guidance.
 ## Runtime binding
 
 Use config-check for settings, lint-rules for implemented capabilities and doctor
-for installation problems. Apply the named skill and execute the reported RERUN
+for installation problems. While hooks report invalid configuration, only edits of
+the listed configuration files and `just config-check` run: edit the reported file
+directly and rerun `just config-check`; normal work resumes once it passes. Apply the named skill and execute the reported RERUN
 command through the repository's configured shell adapter. For a gate check,
 use just check --only CHECK_ID and preserve --staged when reported. just report
 shows consecutive failures and delivered guidance, not proof of reading or a
