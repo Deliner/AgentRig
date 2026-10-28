@@ -2,7 +2,7 @@ purpose: Construct configured consumer projects and invoke their workflow comman
 type: custom
 files:
   repository.py: Construct checked Git repositories and observe revisions and workflow evidence
-  test_delivery.py: Deliver independent Python and Rust consumer projects through installed commands
+  test_delivery.py: Deliver independent consumer projects and verify init delivery matches the repository
   consumer.py: Seed project policy and empty memory and invoke or observe commands
 directories:
   examples: Independent consumer projects and portable usage demonstrations

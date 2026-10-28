@@ -2,45 +2,46 @@
 
 ## Focus
 
-On 2026-10-28 the user directed that directory architecture.yaml contracts
-exist only under Project and nowhere else. Delivered as
-[D052](Decisions/052.md): the lint architecture rule now selects only Project,
-and every architecture.yaml outside Project was removed. The [Plan](Plan.md) is
-empty; this is explicit maintenance, not a new product outcome.
+На 2026-10-28 доставка трёх согласованных исходов аудита докфудинга на ветке
+feature/dogfood-init завершена и закоммичена: B019/P028 (правило `architecture` и
+маршрут структуры в поставке `init`), B020/P029 (три markdown-правила и навык
+`condense-markdown`), B021/P030 (статический страж согласованности поставки и
+живой конфигурации, инвариант I020). Все три VAC в Git (40dbc30, cc42049,
+228dd91); карточки перенесены в Archive. Остаётся промоушен рантайма по D051 и
+`just feature-merge`.
 
 ## Workspace
 
-Branch: feature/architecture-scope
+Branch: feature/dogfood-init
 
-Revision: 3cc7ba399112aaac6775609030cae02b708c9879
+Revision: 228dd91 (HEAD, P030)
 
-The machine is macOS (Darwin 25.5.0). stable.txt pins this head, installed by
-bootstrap under .cache/development: this branch changes Project (skill bodies),
-so [D051](Decisions/051.md) pinned and bootstrapped its gate-accepted head
-before feature-merge. `just read`/`just write` run only the programs in
-.agentrig/commands.yaml; agent shells lack cargo on PATH, so commits run through
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
+Машина — macOS (Darwin 25.5.0). Пин tooling/distribution/stable.txt обновлён на
+228dd91 и установлен через `just bootstrap` (`.cache/development/228dd91…`);
+агентские хуки снова работают. Страж — Project/shared/testing/test_delivery.py,
+инвариант I020, оракул `test_dogfooding_capabilities_stay_universal`.
 
 ## Progress
 
-.agentrig/lint.yaml architecture rule include is now [Project, 'Project/**']
-with the dead root cache excludes dropped. Removed 21 architecture.yaml outside
-Project (tooling, Ledger, .agentrig, just, .agents, .claude, .codex, .github,
-root). Decisions.md links for D038, D039, D041 and D042 migrated to surviving
-owners; Plan.md, edit-plan and develop-tools no longer mention architecture
-inventories outside Project. D052 recorded with precedence over D028.
+P028/P029/P030 закоммичены; B019–B021 и P028–P030 — в Archive/Backlog и
+Archive/Plan; текущий Plan и Backlog пусты. Пин 228dd91 записан в stable.txt и
+забутстрапен (по D051). Текущий VAC: коммит пина stable.txt вместе с этим
+обновлением State перед интеграцией ветки.
 
 ## Verification
 
-This head passed the full commit gate (build, lint, memory, 77 Rust and 218
-Python tests). Lint reports no missing-contract findings now that only Project
-is analyzed, and memory-check resolves the migrated links with no WARNING.
-Bootstrap built and installed it.
+Полный гейт на коммите P030 (228dd91) зелёный: build, lint, memory, rustfmt,
+clippy, rust-test, ruff-format, ruff, mypy, test, typos, vulture (tools SKIP).
+Bootstrap 228dd91 выполнен из обычного терминала — агентский PreToolUse-хук
+отклонял bootstrap при неустановленном пине; после установки `just read -- git
+status` снова работает (чисто, кроме пина stable.txt).
 
 ## Blockers
 
-None. memory-check cannot run inside `just read`.
+Нет.
 
 ## Next action
 
-Commit the pin, run `just feature-merge` and report to the user.
+Закоммитить пин stable.txt (этот VAC) через hook-гейт, затем `just feature-merge`
+(запускает тесты, затронутые всей веткой; ветку сохранить после интеграции).
+После интеграции доложить пользователю; история VAC — в Git.

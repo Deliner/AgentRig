@@ -65,7 +65,7 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
         denied
     );
     fs::write(&commands, valid).unwrap();
-    assert_eq!(edit(&root, "Project/main.py"), "");
+    assert_eq!(edit(&root, "README.md"), "");
     assert_eq!(shell(&root, "just run test"), "");
 }
 

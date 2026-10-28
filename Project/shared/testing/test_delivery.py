@@ -5,8 +5,10 @@ import subprocess
 import sys
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import pytest
+import yaml
 
 from Project.shared.testing.consumer import git, invoke, update_config
 
@@ -231,6 +233,21 @@ class Consumer:
         first = invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
         assert "deny" in first and "edit-state/SKILL.md for VAC check entry" in first
         assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+        self.structure_route()
+
+    def structure_route(self) -> None:
+        source = self.layout.paths.source
+        skill = f"{self.layout.paths.skills}/refactor-large-directory/SKILL.md"
+        edit = {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Write",
+            "tool_input": {"file_path": f"{source}/unit/first"},
+            "cwd": str(self.root),
+        }
+        blocked = invoke(self.binary, self.root, "hook", input=json.dumps(edit)).stdout
+        assert "deny" in blocked and skill in blocked
+        edit["tool_input"] = {"file_path": f"{source}/unit/second"}
+        assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(edit)).stdout
 
     def integrate(self) -> None:
         git(self.root, "add", ".")
@@ -290,3 +307,57 @@ def test_init_collision_preserves_files(worker: Path, tmp_path: Path) -> None:
     assert "collision" in result.stderr
     assert list(tmp_path.iterdir()) == [path]
     assert path.read_text() == "user contents"
+
+
+# DECISION: D053
+WORKER_LOCAL_CHECKS = frozenset(
+    {"build", "rustfmt", "clippy", "rust-test", "ruff-format", "ruff", "mypy", "typos", "vulture"}
+)
+
+
+def capabilities(service: Path, skills: Path, worker_local: frozenset[str]) -> dict[str, set[str]]:
+    lint = yaml.safe_load((service / "lint.yaml").read_text())
+    hooks = yaml.safe_load((service / "hooks.yaml").read_text())
+    checks = yaml.safe_load((service / "checks.yaml").read_text())
+    return {
+        "rule-kinds": {rule["kind"] for rule in lint["rules"]},
+        "skills": {found.parent.name for found in skills.rglob("SKILL.md")},
+        "routes": {route["skill"].split("/")[-2] for route in hooks["routes"]},
+        "checks": {check_capability(check) for check in checks} - worker_local,
+    }
+
+
+def check_capability(check: dict[str, Any]) -> str:
+    command_kind = check["kind"] == "command"
+    return str(check["command"] if command_kind else check["kind"])
+
+
+def divergences(delivered: dict[str, set[str]], live: dict[str, set[str]]) -> list[str]:
+    report: list[str] = []
+    for dimension in sorted(delivered):
+        only_delivered = delivered[dimension] - live[dimension]
+        only_live = live[dimension] - delivered[dimension]
+        if only_delivered:
+            report.append(f"{dimension} only in init delivery: {sorted(only_delivered)}")
+        if only_live:
+            report.append(f"{dimension} only in repository: {sorted(only_live)}")
+    return report
+
+
+# INVARIANT: I020
+def test_dogfooding_capabilities_stay_universal(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init", "--language", "python").returncode == 0
+    repository = Path(__file__).resolve().parents[3]
+    service = tmp_path / ".agentrig"
+    delivered = capabilities(service, service / "skills", WORKER_LOCAL_CHECKS)
+    live_service = repository / ".agentrig"
+    live_skills = repository / "Project/shared/skills"
+    live = capabilities(live_service, live_skills, WORKER_LOCAL_CHECKS)
+    assert divergences(delivered, live) == [], divergences(delivered, live)
+    exposed = capabilities(live_service, live_skills, frozenset())
+    toolchain = divergences(delivered, exposed)
+    assert any("build" in message for message in toolchain), toolchain
+    for dimension in ("rule-kinds", "skills", "routes"):
+        one_sided = {**live, dimension: live[dimension] | {"demo"}}
+        report = divergences(delivered, one_sided)
+        assert any(dimension in message and "demo" in message for message in report), report
