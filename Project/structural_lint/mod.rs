@@ -186,6 +186,7 @@ fn finding(
 }
 struct Output<'a> {
     json: bool,
+    warnings: bool,
     validate_only: bool,
     rerun: Option<&'a str>,
 }
@@ -195,6 +196,7 @@ pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<
         path,
         Output {
             json,
+            warnings: false,
             validate_only,
             rerun: None,
         },
@@ -206,17 +208,20 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
         path,
         Output {
             json: false,
+            warnings: false,
             validate_only: false,
             rerun: Some(rerun),
         },
     )
 }
+// DECISION: D049
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
     let result = analyze(root, path, output.validate_only);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
+    diagnostics.retain(|item| output.warnings || item.level != "warning");
     let command = if output.validate_only {
         "lint-config-check"
     } else {

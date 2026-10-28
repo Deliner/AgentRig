@@ -32,7 +32,7 @@ def prepare(root: Path, config: str = CONFIG) -> None:
 
 def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     output = subprocess.run(
-        [str(worker), "lint", "--root", str(root), "--config", "lint.yaml", "--json"],
+        [str(worker), "lint", "--root", str(root), "--config", "lint.yaml", "--json", "--warnings"],
         text=True,
         capture_output=True,
         check=False,
