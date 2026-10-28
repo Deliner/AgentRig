@@ -66,9 +66,10 @@ development runtime; it never builds candidate sources. All command, hook, memor
 Rust runtime; adapters only forward calls. Python dependencies support tests and measurements.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
-select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Change the development
-pin only after candidate acceptance, then explicitly bootstrap the new pin. Project policy and canonical skill sources
-remain reviewable repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
+select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish
+every branch that changes Project by writing its gate-accepted head to stable.txt and bootstrapping it in one command,
+then commit the pin before `just feature-merge` (D051). Project policy and canonical skill sources remain reviewable
+repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
 
 Use `just config-check` for project configuration, `just lint-config-check` for lint settings, and `just lint-rules` for
 actual rule/language capabilities. Apply the reported repair skill. Preserve policy intent; do not weaken thresholds or

@@ -13,12 +13,13 @@ empty.
 
 Branch: feature/backlog-archive
 
-Revision: 7c4a03f6d272050102a5f0737bcc52cb38a5ae28
+Revision: 7099bb486864182231d2fd1bc478be0d4c07fb28
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-937d3f0, installed by bootstrap under .cache/development. Change the pin and
-run bootstrap in one shell command: a pin without its install makes every
-hook fail. A stray branch feature/init-probe at a14f284 remains from an
+7099bb4, installed by bootstrap under .cache/development. Under
+[D051](Decisions/051.md) every branch that changes Project ends by pinning
+its gate-accepted head and bootstrapping it in one shell command, without
+asking: a pin without its install makes every hook fail. A stray branch feature/init-probe at a14f284 remains from an
 install probe; guard-reference refuses its deletion. `just read`/`just
 write` run only the programs in .agentrig/commands.yaml. Agent shells lack
 cargo on PATH, so commits run through `just scratch -- 'export
@@ -30,14 +31,16 @@ PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 [Archive/Backlog.md](Archive/Backlog.md) with links updated; Backlog is empty.
 memory-check validates the archived Backlog and rejects IDs present in both;
 edit-plan, edit-backlog, AGENTS.md and the shipped instructions describe the
-rotation. The pin rule and the pin update itself are not done yet.
+rotation (commit 7099bb4). D051 records the pin rule in AGENTS.md and the
+distribution guide; 7099bb4, carrying D049 and D050, is pinned and installed.
 
 ## Verification
 
-On the uncommitted change the candidate passed Clippy, memory-check, lint
-and 163 Python tests (project_memory, project_setup, agent_hooks). All
-relative Ledger links resolve except three pre-existing links to the removed
-tooling/worker/examples/PORTABILITY.md in archived P002, P004 and P008.
+7099bb4 passed the commit gate (lint, memory, Clippy, 11 selected Rust and
+209 Python tests). Bootstrap built and installed it, and the installed
+runtime accepted the configuration. All relative Ledger links resolve except
+three pre-existing links to the removed tooling/worker/examples/PORTABILITY.md
+in archived P002, P004 and P008.
 
 ## Blockers
 
@@ -45,6 +48,5 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit this VAC, record the pin rule in AGENTS.md and the distribution guide,
-pin the branch head and bootstrap it, commit the pin, run `just
-feature-merge` and report to the user.
+Commit the pin and D051, run `just feature-merge` through scratch and report
+to the user.
