@@ -12,12 +12,12 @@ empty; this is explicit maintenance, not a new product outcome.
 
 Branch: feature/architecture-scope
 
-Revision: 17f06e7161711adce8c5b7e429f5d48f104fbeab
+Revision: 3cc7ba399112aaac6775609030cae02b708c9879
 
-The machine is macOS (Darwin 25.5.0). stable.txt still pins 7099bb4; this branch
-changes Project (skill bodies), so under [D051](Decisions/051.md) its
-gate-accepted head is pinned and bootstrapped in one command before
-feature-merge. `just read`/`just write` run only the programs in
+The machine is macOS (Darwin 25.5.0). stable.txt pins this head, installed by
+bootstrap under .cache/development: this branch changes Project (skill bodies),
+so [D051](Decisions/051.md) pinned and bootstrapped its gate-accepted head
+before feature-merge. `just read`/`just write` run only the programs in
 .agentrig/commands.yaml; agent shells lack cargo on PATH, so commits run through
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 
@@ -32,9 +32,10 @@ inventories outside Project. D052 recorded with precedence over D028.
 
 ## Verification
 
-Pending: stage and pass the commit gate. Lint must report no missing-contract
-findings now that only Project is analyzed, and memory must resolve the migrated
-links without a WARNING.
+This head passed the full commit gate (build, lint, memory, 77 Rust and 218
+Python tests). Lint reports no missing-contract findings now that only Project
+is analyzed, and memory-check resolves the migrated links with no WARNING.
+Bootstrap built and installed it.
 
 ## Blockers
 
@@ -42,5 +43,4 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Stage the change, pass the commit gate, pin and bootstrap the accepted head
-(D051), then run `just feature-merge` and report to the user.
+Commit the pin, run `just feature-merge` and report to the user.
