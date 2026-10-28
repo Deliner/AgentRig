@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B025](Backlog/025.md) | Семантический анализ символов для структурного линтера | Движок видит, какой символ используется и кем, снимая барьер для статических TC2/TC4. |
