@@ -28,7 +28,9 @@ mutations with the programs configured in .agentrig/commands.yaml, `just run NAM
 immediately preceding What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
-change. Commit through .agentrig/hooks/pre-commit, which runs the configured exported-index gate with affected test
+change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises
+and verify through the public surface, not internal state. Commit through .agentrig/hooks/pre-commit, which runs the
+configured exported-index gate with affected test
 groups plus smoke tests. Do not substitute the full test suite for unmapped commit paths; maintain the impact map
 instead. Never bypass the hook. Avoid repeating the gate immediately before the same commit unless needed for diagnosis.
 Finish on a clean feature branch with `just feature-merge`, which runs the tests affected by the whole branch; retain

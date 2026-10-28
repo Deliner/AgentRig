@@ -1,0 +1,5 @@
+purpose: "Place tests by behavior and assert observable behavior through the public surface"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions for test placement, public-surface testing and behavioral assertions"
+directories: {}

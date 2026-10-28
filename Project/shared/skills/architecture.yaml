@@ -15,4 +15,5 @@ directories:
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   repair: "Diagnose and repair configuration and verification failures"
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
+  testing-discipline: "Place tests by behavior and test through the public surface"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"

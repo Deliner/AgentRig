@@ -67,6 +67,10 @@ const SKILLS: &[(&str, &str)] = &[
         "replace-comment",
         include_str!("../shared/skills/replace-comment/SKILL.md"),
     ),
+    (
+        "testing-discipline",
+        include_str!("../shared/skills/testing-discipline/SKILL.md"),
+    ),
 ];
 pub fn skills() -> BTreeMap<&'static str, String> {
     SKILLS
@@ -108,9 +112,10 @@ pub fn memory() -> BTreeMap<&'static str, String> {
 // DECISION: D031
 // DECISION: D032
 // DECISION: D050
+// DECISION: D054
 pub fn instructions(config: &super::Config) -> String {
     let body = format!(
-        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration modules are .agentrig/*.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nUse edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards and their Backlog cards into Archive/. Required work remains in the current task.\n\nUse just run read -- PROGRAM ARGS for inspection and just run write -- PROGRAM ARGS for authorized changes; each runs only its configured programs. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n",
+        "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration modules are .agentrig/*.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Apply testing-discipline whenever you add or change tests. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nUse edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards and their Backlog cards into Archive/. Required work remains in the current task.\n\nUse just run read -- PROGRAM ARGS for inspection and just run write -- PROGRAM ARGS for authorized changes; each runs only its configured programs. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n",
         config.paths.service, config.paths.memory, config.paths.memory, config.paths.skills
     );
     format!("{}\n", wrap(&body, 100))
