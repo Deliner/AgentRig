@@ -11,6 +11,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/complexity-discipline/SKILL.md"),
     ),
     (
+        "condense-markdown",
+        include_str!("../shared/skills/condense-markdown/SKILL.md"),
+    ),
+    (
         "develop-tools",
         include_str!("../shared/skills/develop-tools/SKILL.md"),
     ),
@@ -105,8 +109,31 @@ pub fn memory() -> BTreeMap<&'static str, String> {
 // DECISION: D032
 // DECISION: D050
 pub fn instructions(config: &super::Config) -> String {
-    format!(
+    let body = format!(
         "# Project development\n\nThis repository contains the consumer project. The portable worker is installed under {}; its configuration modules are .agentrig/*.yaml. Develop the project sources selected by paths.sources.\n\nRead {}/State.md and {}/Plan.md, then reconcile them with version control before resuming work. Apply the installed complexity-discipline and execute-plan-feature skills under {}. Before editing memory, read the matching edit-plan, edit-backlog, edit-decisions, edit-invariants or edit-state skill.\n\nUse edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards and their Backlog cards into Archive/. Required work remains in the current task.\n\nUse just run read -- PROGRAM ARGS for inspection and just run write -- PROGRAM ARGS for authorized changes; each runs only its configured programs. Ordinary file editing does not require just write. Deliver cohesive verified changes on the configured feature branch. Commits and just feature-merge run the configured gates. Follow reported repair skills without weakening project policy.\n",
         config.paths.service, config.paths.memory, config.paths.memory, config.paths.skills
-    )
+    );
+    format!("{}\n", wrap(&body, 100))
+}
+fn wrap(text: &str, width: usize) -> String {
+    text.lines()
+        .map(|line| fold(line, width))
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+fn fold(line: &str, width: usize) -> String {
+    let mut rows: Vec<String> = Vec::new();
+    for word in line.split_whitespace() {
+        let extends = rows
+            .last()
+            .is_some_and(|row: &String| row.len() + 1 + word.len() <= width);
+        if extends {
+            let row = rows.last_mut().unwrap();
+            row.push(' ');
+            row.push_str(word);
+        } else {
+            rows.push(word.to_owned());
+        }
+    }
+    rows.join("\n")
 }

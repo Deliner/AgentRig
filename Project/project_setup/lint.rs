@@ -20,6 +20,7 @@ pub fn template(settings: &super::Config) -> Result<String> {
         .map(|kind| rules::example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources));
+    rules.extend(markdown(skills, &settings.paths.memory, sources));
     let config = json!({
         "version": 1,
         "config_skill": format!("{skills}/repair/SKILL.md"),
@@ -27,6 +28,23 @@ pub fn template(settings: &super::Config) -> Result<String> {
         "rules": rules,
     });
     crate::shared::yaml::encode(&config)
+}
+
+fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {
+    let condense = format!("{skills}/condense-markdown/SKILL.md");
+    let memory_exclude = format!("{memory}/**");
+    vec![
+        json!({"id": "markdown-size", "kind": "nonblank-lines", "target": "file",
+            "include": ["**/README.md", "**/AGENTS.md"], "exclude": [memory_exclude],
+            "error": 70, "warning_skill": condense, "error_skill": condense}),
+        json!({"id": "markdown-width", "kind": "line-width", "target": "file",
+            "include": ["**/README.md", "**/AGENTS.md"], "exclude": [memory_exclude],
+            "error": 120, "warning_skill": condense, "error_skill": condense}),
+        json!({"id": "markdown-placement", "kind": "forbidden-file", "target": "file",
+            "include": sources, "extensions": [".md"],
+            "exclude": ["**/README.md", "**/AGENTS.md", "**/SKILL.md"],
+            "level": "error", "warning_skill": condense, "error_skill": condense}),
+    ]
 }
 
 fn architecture(skills: &str, sources: &[String]) -> Value {

@@ -87,6 +87,38 @@ def contract(directory: Path) -> None:
     )
 
 
+def test_shipped_markdown_bounds(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init", "--language", "python").returncode == 0
+    assert (tmp_path / ".agentrig/skills/condense-markdown/SKILL.md").is_file()
+    (tmp_path / "Project").mkdir()
+    readme = tmp_path / "README.md"
+    readme.write_text("# Title\n\n" + "a line of prose\n" * 75 + "x" * 130 + "\n")
+    (tmp_path / "Project/notes.md").write_text("stray content\n")
+    (tmp_path / "Ledger/README.md").write_text("# Big\n\n" + "a line\n" * 75)
+    findings = markdown_findings(worker, tmp_path)
+    rules = {item["rule"] for item in findings}
+    assert rules == {"markdown-size", "markdown-width", "markdown-placement"}, findings
+    assert all(item["skill"].endswith("condense-markdown/SKILL.md") for item in findings)
+    memory_flagged = any(item["path"].startswith("Ledger") for item in findings)
+    assert not memory_flagged, findings
+    readme.write_text("# Title\n\n" + "a line\n" * 60)
+    (tmp_path / "Project/notes.md").unlink()
+    (tmp_path / "Ledger/README.md").unlink()
+    assert invoke(worker, tmp_path, "lint").returncode == 0
+
+
+def markdown_findings(worker: Path, root: Path) -> list[dict[str, Any]]:
+    result = invoke(worker, root, "lint", "--json")
+    assert result.returncode == 1, result.stdout + result.stderr
+    findings = json.loads(result.stdout)
+    selected = []
+    for item in findings:
+        markdown = item["rule"].startswith("markdown-")
+        if markdown:
+            selected.append(item)
+    return selected
+
+
 def examples(language: str) -> dict[str, tuple[str, str]]:
     python = language == "python"
     if python:

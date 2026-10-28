@@ -4,11 +4,12 @@
 
 На 2026-10-28 идёт доставка трёх согласованных исходов аудита докфудинга на ветке
 feature/dogfood-init: [B019](Backlog/019.md)/[P028](Plan/028.md) — правило
-`architecture` и маршрут структуры в поставке `init`; [B020](Backlog/020.md)/
-[P029](Plan/029.md) — три markdown-правила и навык `condense-markdown` в поставке;
+`architecture` и маршрут структуры в поставке `init` (complete, коммит 40dbc30);
+[B020](Backlog/020.md)/[P029](Plan/029.md) — три markdown-правила и навык
+`condense-markdown` в поставке (complete, коммит на этом VAC);
 [B021](Backlog/021.md)/[P030](Plan/030.md) — статический страж согласованности
-поставки и живой конфигурации. Порядок P028 → P029 → P030, P030 зависит от P028 и
-P029.
+поставки и живой конфигурации (pending). Порядок P028 → P029 → P030, P030 зависит
+от P028 и P029.
 
 ## Workspace
 
@@ -26,22 +27,21 @@ tooling/worker/build (фикстура `worker` в Project/conftest.py).
 
 ## Progress
 
-VAC планирования закоммичен как 561f1ae. P028 реализован и помечен complete:
-правило `architecture` и маршрут структуры отданы в шаблон `init`
-(Project/project_setup/lint.rs, template.rs); добавлены тесты K1
-(Project/project_setup/tests/test_lint_defaults.py) и K3 (structure_route в
-Project/shared/testing/test_delivery.py). Тесты движка хуков адаптированы к
-маршруту структуры на routes[0] (Project/agent_hooks/tests/requirements.rs,
-mod.rs): убран лишний ручной префикс маршрута, сдвинуты индексы Source, строка
-конфликта порядка и нейтральные пути проверки. Изменения ещё не закоммичены.
-P029 и P030 не начаты.
+P028 закоммичен как 40dbc30 (правило `architecture` и маршрут структуры в шаблоне
+`init`, адаптация тестов движка хуков). P029 реализован и помечен complete: три
+markdown-правила и helper `markdown` (Project/project_setup/lint.rs), навык
+`condense-markdown` в поставке и перенос генерируемого AGENTS.md по словам
+(Project/project_setup/assets.rs, `wrap`/`fold`), тест
+`test_shipped_markdown_bounds` (Project/project_setup/tests/test_lint_defaults.py).
+Изменения P029 ещё не закоммичены. P030 не начат.
 
 ## Verification
 
-На кандидате прошли pytest test_lint_defaults.py (9 passed, включая новый K1) и
-test_delivery.py (3 passed, python и rust — K2 и K3), а также rust-тесты
-agent_hooks (11 passed) после адаптации к маршруту структуры. Полный гейт P028 —
-на предстоящем коммите; memory-check в гейте этого VAC.
+На кандидате прошли pytest test_lint_defaults.py (10 passed, включая
+`test_shipped_markdown_bounds`), test_delivery.py (3 passed — потребительский
+`check` с markdown-правилами и перенесённым AGENTS.md) и
+test_hooks.py::test_ledger_edit_guidance (19 passed). P028 прошёл полный гейт при
+коммите 40dbc30. Полный гейт P029 — на предстоящем коммите.
 
 ## Blockers
 
@@ -49,7 +49,8 @@ agent_hooks (11 passed) после адаптации к маршруту стр
 
 ## Next action
 
-Закоммитить VAC P028 (четыре исходника + Plan/028.md, Plan.md, State.md) через
-hook. Затем начать P029: отдать markdown-size/width/placement и навык
-`condense-markdown` в поставку (Project/project_setup/lint.rs, assets.rs),
-проверив, что потребитель держит те же markdown-рамки, что репозиторий.
+Закоммитить VAC P029 (lint.rs, assets.rs, test_lint_defaults.py + Plan/029.md,
+Plan.md, State.md) через hook. Затем начать P030: статический страж
+согласованности поставки `init` и живой конфигурации репозитория — манифест
+universal/worker-local (D053), предикат-инвариант с оракулом-тестом (I020),
+запускаемый в гейте.
