@@ -70,4 +70,8 @@ I019:
   check: test
   runner: pytest
   target: Project/project_memory/tests/test_resume.py::test_resume_observes_real_conflict
+I020:
+  check: test
+  runner: pytest
+  target: Project/shared/testing/test_delivery.py::test_dogfooding_capabilities_stay_universal
 

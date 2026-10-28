@@ -137,6 +137,7 @@
     - Project/command_runner/tests
     - Project/project_config/tests
     - Project/change_delivery/git/tests/test_git.py
+    - Project/shared/testing/test_delivery.py
   - include:
     - Project/project_setup/**
     - Project/shared/skills/**

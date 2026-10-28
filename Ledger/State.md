@@ -2,46 +2,44 @@
 
 ## Focus
 
-На 2026-10-28 идёт доставка трёх согласованных исходов аудита докфудинга на ветке
-feature/dogfood-init: [B019](Backlog/019.md)/[P028](Plan/028.md) — правило
-`architecture` и маршрут структуры в поставке `init` (complete, коммит 40dbc30);
-[B020](Backlog/020.md)/[P029](Plan/029.md) — три markdown-правила и навык
-`condense-markdown` в поставке (complete, коммит на этом VAC);
-[B021](Backlog/021.md)/[P030](Plan/030.md) — статический страж согласованности
-поставки и живой конфигурации (pending). Порядок P028 → P029 → P030, P030 зависит
-от P028 и P029.
+На 2026-10-28 доставка трёх согласованных исходов аудита докфудинга на ветке
+feature/dogfood-init завершена: B019/P028 (правило `architecture` и маршрут
+структуры в поставке `init`), B020/P029 (три markdown-правила и навык
+`condense-markdown`) и B021/P030 (статический страж согласованности поставки и
+живой конфигурации). P028 и P029 закоммичены (40dbc30, cc42049); P030 реализован,
+ещё не закоммичен. B019–B021 и P028–P030 перенесены в Archive.
 
 ## Workspace
 
 Branch: feature/dogfood-init
 
-Revision: 561f1aed61a2dd043f1468cd481bbb5184b6f9ec
+Revision: cc42049 (HEAD, P029; VAC P030 ещё не закоммичен)
 
-Машина — macOS (Darwin 25.5.0). Шаблон потребителя — в Project/project_setup
-(lint.rs строит правила, template.rs — checks/routes/commands, assets.rs — навыки).
-Живая конфигурация репозитория — .agentrig/*.yaml и навыки Project/shared/skills;
-`lint::template` формирует только поставку, не трогая собственный .agentrig.
-Сборки и тесты идут через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:
-/Users/admin/.local/bin:/opt/homebrew/bin:...; ...'`, кандидат собирается из
-tooling/worker/build (фикстура `worker` в Project/conftest.py).
+Машина — macOS (Darwin 25.5.0). Страж живёт в Project/shared/testing/test_delivery.py
+как инвариант I020 с оракулом `test_dogfooding_capabilities_stay_universal`:
+манифест `WORKER_LOCAL_CHECKS` (решение D053), helper `capabilities` читает обе
+конфигурации, `divergences` сравнивает universal-измерения. Карта затронутых тестов
+(.agentrig/checks.yaml) направляет страж на `.agentrig/**`. Сборки/тесты — через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:/Users/admin/.local/bin:
+/opt/homebrew/bin:...; ...'`; кандидат — из tooling/worker/build.
 
 ## Progress
 
-P028 закоммичен как 40dbc30 (правило `architecture` и маршрут структуры в шаблоне
-`init`, адаптация тестов движка хуков). P029 реализован и помечен complete: три
-markdown-правила и helper `markdown` (Project/project_setup/lint.rs), навык
-`condense-markdown` в поставке и перенос генерируемого AGENTS.md по словам
-(Project/project_setup/assets.rs, `wrap`/`fold`), тест
-`test_shipped_markdown_bounds` (Project/project_setup/tests/test_lint_defaults.py).
-Изменения P029 ещё не закоммичены. P030 не начат.
+P030 реализован: инвариант I020 и оракул-тест в test_delivery.py, манифест
+`WORKER_LOCAL_CHECKS` и helpers `capabilities`/`check_capability`/`divergences`,
+запись маршрута `.agentrig/**` → test_delivery.py в .agentrig/checks.yaml, привязка
+оракула в .agentrig/oracles.yaml, решение D053 (Decisions.md, Decisions/053.md) и
+инвариант I020 (Invariants.md, Invariants/020.md). Карточки B019–B021 и P028–P030
+перенесены в Archive/Backlog и Archive/Plan (ссылки на решения в B019/B021
+углублены до `../../Decisions`). Изменения VAC P030 ещё не закоммичены.
 
 ## Verification
 
-На кандидате прошли pytest test_lint_defaults.py (10 passed, включая
-`test_shipped_markdown_bounds`), test_delivery.py (3 passed — потребительский
-`check` с markdown-правилами и перенесённым AGENTS.md) и
-test_hooks.py::test_ledger_edit_guidance (19 passed). P028 прошёл полный гейт при
-коммите 40dbc30. Полный гейт P029 — на предстоящем коммите.
+На кандидате: pytest test_delivery.py::test_dogfooding_capabilities_stay_universal
+(1 passed), полный `lint` (exit 0), ruff/ruff-format/mypy по файлу стража чисто,
+config-check (0). memory-check до переноса падал на ссылке Archive/Backlog/021.md;
+после переноса карточек требуется повторный прогон перед коммитом. Полный гейт — на
+коммите VAC P030.
 
 ## Blockers
 
@@ -49,8 +47,8 @@ test_hooks.py::test_ledger_edit_guidance (19 passed). P028 прошёл полн
 
 ## Next action
 
-Закоммитить VAC P029 (lint.rs, assets.rs, test_lint_defaults.py + Plan/029.md,
-Plan.md, State.md) через hook. Затем начать P030: статический страж
-согласованности поставки `init` и живой конфигурации репозитория — манифест
-universal/worker-local (D053), предикат-инвариант с оракулом-тестом (I020),
-запускаемый в гейте.
+Прогнать `memory-check` на кандидате для подтверждения ссылок и привязок после
+переноса, затем закоммитить VAC P030 через hook (ожидается стоп D047 на первом VAC
+— edit-state применён, повтор проходит). Далее по D051: записать принятый гейтом
+head в tooling/distribution/stable.txt, выполнить bootstrap, закоммитить пин,
+затем `just feature-merge` (ветку сохранить). Доложить пользователю.
