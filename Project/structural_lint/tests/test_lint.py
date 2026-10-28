@@ -33,6 +33,26 @@ def test_native_lint_thresholds_and_skills(
         assert item["rule"] == "source"
 
 
+# DECISION: D049
+def test_warnings_are_shown_only_on_request(worker: Path, tmp_path: Path) -> None:
+    prepare(tmp_path)
+    (tmp_path / "src/warned.rs").write_text("line\n" * 4, encoding="utf-8")
+    (tmp_path / "src/failed.rs").write_text("line\n" * 6, encoding="utf-8")
+    base = [str(worker), "lint", "--root", str(tmp_path), "--config", "lint.yaml"]
+
+    def run(*flags: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run([*base, *flags], capture_output=True, text=True, check=False)
+
+    default = run()
+    assert default.returncode == 1
+    assert "ERROR [source] src/failed.rs" in default.stdout
+    assert "WARNING" not in default.stdout + default.stderr
+    assert "WARNING [source] src/warned.rs" in run("--warnings").stdout
+    (tmp_path / "src/failed.rs").unlink()
+    quiet = run("--json")
+    assert (quiet.returncode, quiet.stdout.strip()) == (0, "[]")
+
+
 def test_overrides_and_exclusions(worker: Path, tmp_path: Path) -> None:
     config = CONFIG.replace(
         'extensions: [".rs", ".py", ".ts"]',

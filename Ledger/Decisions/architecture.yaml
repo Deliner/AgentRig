@@ -48,4 +48,5 @@ files:
   046.md: "Context and rationale for: Let configuration recovery read its sources and repair skill through cat and accept Codex patch payloads."
   047.md: "Context and rationale for: Merge hook requirements into one ordered response, deliver each skill and area once per context window and let configured routes block until delivered."
   048.md: "Context and rationale for: Apply the flat-memory registry size exemption to the Plan archive while retaining complete memory and architecture validation."
+  049.md: "Context and rationale for: Print and serialize lint warnings only when `--warnings` is requested."
 directories: {}

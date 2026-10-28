@@ -43,8 +43,8 @@ Every command accepts `--root PATH`, by default the current directory.
 | `jobs`, `job-start`, `job-status`, `job-logs`, `job-stop`, `job-cleanup` | Manage owned background runs. |
 | `hook` | Read an agent event as JSON on stdin and emit guidance or denial. |
 
-Warnings do not fail lint; blocking findings exit 1 and configuration failures exit 2. Diagnostics name the check,
-scope, cause, repair skill and a shell-quoted RERUN command.
+Lint shows warnings only with `--warnings`, and they never fail it; blocking findings exit 1 and configuration
+failures exit 2. Diagnostics name the check, scope, cause, repair skill and a shell-quoted RERUN command.
 
 ## Configuration
 

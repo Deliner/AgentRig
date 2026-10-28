@@ -5,9 +5,11 @@ use std::{
     path::{Path, PathBuf},
 };
 
+// DECISION: D049
 pub fn execute(root: &Path, config: &Path, args: &[String], validate_only: bool) -> Result<i32> {
     ensure!(
-        args.iter().all(|arg| arg == "--json"),
+        args.iter()
+            .all(|arg| matches!(arg.as_str(), "--json" | "--warnings")),
         "unknown lint argument"
     );
     super::run_output(
@@ -15,6 +17,7 @@ pub fn execute(root: &Path, config: &Path, args: &[String], validate_only: bool)
         config,
         super::Output {
             json: args.iter().any(|arg| arg == "--json"),
+            warnings: args.iter().any(|arg| arg == "--warnings"),
             validate_only,
             rerun: None,
         },

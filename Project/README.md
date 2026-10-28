@@ -19,7 +19,7 @@ flock must be available.
 
 Lint reads strict YAML version 1: the file `paths.lint` selects, `--config`, or `lint.yaml` when standalone. Unknown
 fields, duplicate keys, anchors, aliases, tags and merge keys are rejected. A configuration error exits 2 and names the
-repair skill; an error finding exits 1; warnings alone exit 0.
+repair skill; an error finding exits 1; warnings exit 0 and are printed only with `--warnings`.
 
 - `just lint-rules` lists each rule kind with its target, languages, measurement and parameters;
   `just lint-rule KIND --example` prints a complete rule entry.
