@@ -60,6 +60,9 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D054](Decisions/054.md) | Ship testing discipline as a norm skill, enforcing its statically checkable parts. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [delivery](../Project/project_setup/assets.rs), [repository instructions](../AGENTS.md) |
 | [D055](Decisions/055.md) | Keep test placement (TC1) a review norm; no static rule. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [superseded consequence](Decisions/054.md) |
 | [D056](Decisions/056.md) | Apply the flat-memory registry size exemption to the Backlog archive while retaining complete memory validation. | [lint policy](../.agentrig/lint.yaml) |
+| [D057](Decisions/057.md) | Keep test public-surface discipline (TC2/TC4) a review norm; no static rule. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [superseded consequence](Decisions/054.md) |
+
+D057 supersedes D054's consequence that TC2/TC4 become lint rules with invariant oracles; D054's norm-skill delivery and enforcement-split principle remain. With D055 (TC1), no part of testing discipline is a static rule on the current engine.
 
 D055 supersedes D054's consequence that TC1 becomes a lint rule with an invariant; D054's norm-skill delivery and enforcement-split principle remain.
 
