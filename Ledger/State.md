@@ -3,33 +3,34 @@
 ## Focus
 
 На 2026-10-28 выполняется согласованный набор улучшений (одна выборка, автономно, D032)
-в порядке: B3 (исключить `Ledger/Archive/Backlog` из `directory-size`, решение D056) →
-C1 (индекс норм «хорошего состояния») → [B023](Backlog/023.md) (статическая проверка
-публичной поверхности тестов) → [B024](Backlog/024.md) (размещение теста по покрытию).
-Текущий шаг — запись идей B023/B024 в Backlog.
+в порядке: B3 → C1 → [B023](Backlog/023.md) → [B024](Backlog/024.md). Выполнено: запись
+B023/B024 в Backlog (влито). Текущий шаг — B3: исключить `Ledger/Archive/Backlog` из
+`directory-size`, решение D056.
 
 ## Workspace
 
-Branch: feature/record-improvement-ideas
+Branch: feature/archive-backlog-size-exempt
 
-Revision: 2df2b08 (родитель; этот VAC добавляет запись B023/B024)
+Revision: 568c683 влит в master через 2df2b08-потомок; этот VAC — поверх master.
 
-Машина — macOS (Darwin 25.5.0). Этот VAC меняет только Ledger, пин по D051 не нужен.
-B023/B024 меняют Project — там перед merge потребуются пин stable.txt и bootstrap
-(запускает пользователь из обычного терминала с PATH, иначе хуки сессии выключаются).
+Машина — macOS (Darwin 25.5.0). B3 меняет только `.agentrig/lint.yaml` и Ledger —
+пин по D051 не нужен. B023/B024 меняют Project — там перед merge потребуются пин
+stable.txt и bootstrap (запускает пользователь из обычного терминала с PATH). Merge
+запускать через `just scratch -- '... tooling/worker/run feature-merge'` с PATH (прямой
+`just feature-merge` не видит cargo).
 
 ## Progress
 
-B023 и B024 записаны в Backlog ([Backlog.md](Backlog.md) + карточки
-[023](Backlog/023.md)/[024](Backlog/024.md)) в показанном и согласованном виде. B3 и C1
-проводятся как обслуживание/память (через Backlog не идут). Живой Plan пуст; промоушен
-B023/B024 в Plan — на их ветках доставки.
+B3: в `.agentrig/lint.yaml` добавлено исключение `Ledger/Archive/Backlog` из
+`directory-size` с `# DECISION: D056`; создан [Decisions/056.md](Decisions/056.md);
+добавлена строка D056 в [Decisions.md](Decisions.md). Архив Backlog сейчас 11 карточек
+(>10 — предупреждение, растёт к ошибке 15). Живой Plan пуст.
 
 ## Verification
 
-Этот VAC проверяется коммит-гейтом (build, lint, memory, rustfmt, clippy, rust-test,
-ruff/ruff-format/mypy, pytest, typos, vulture); memory-check — соответствие индекса
-Backlog и карточек.
+Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
+pytest, typos, vulture). lint — directory-size по `Ledger/Archive/Backlog` больше не
+предупреждает; memory-check — индекс решений и деталь D056 согласованы.
 
 ## Blockers
 
@@ -37,8 +38,6 @@ Backlog и карточек.
 
 ## Next action
 
-Закоммитить запись B023/B024 через гейт и влить ветку (`just feature-merge`). Затем
-ветка B3: добавить `Ledger/Archive/Backlog` в `exclude` правила `directory-size` в
-`.agentrig/lint.yaml` с `# DECISION: D056`, создать `Ledger/Decisions/056.md`, добавить
-строку и заметку о преемственности (D048/D030) в `Decisions.md`. Затем C1, затем B023,
-затем B024.
+Закоммитить B3 через гейт и влить ветку (merge через scratch с PATH). Затем C1: индекс
+норм «хорошего состояния» со ссылками на их записи (без пересказа), с проверкой, что
+memory-check терпит новый файл в `Ledger/`. Затем B023, затем B024.
