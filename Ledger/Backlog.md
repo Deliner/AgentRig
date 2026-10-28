@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B024](Backlog/024.md) | Размещение теста по реально исполняемому коду | Место теста выводится из того, что он реально трогает, если покрытие окупается. |

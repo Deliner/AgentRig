@@ -2,33 +2,40 @@
 
 ## Focus
 
-На 2026-10-28 выполняется согласованный набор улучшений (одна выборка, автономно, D032)
-в порядке: B3 → C1 → B023 → [B024](Backlog/024.md). Выполнено и влито: B023/B024 в
-Backlog; B3 (D056); C1 ([Norms.md](Norms.md)). B023 завершён как [P032](Archive/Plan/032.md):
-TC2/TC4 оставлены нормой (D057). Текущий шаг — финальный VAC B023 (архивация), затем B024.
+Согласованный набор улучшений (одна выборка, автономно, D032) в порядке
+B3 → C1 → B023 → B024 завершён. B3 — [D056](Decisions/056.md) (исключение
+Ledger/Archive/Backlog из directory-size); C1 — [Norms.md](Norms.md) (индекс норм);
+B023 — [P032](Archive/Plan/032.md), TC2/TC4 остаются нормой ([D057](Decisions/057.md));
+B024 — [P033](Archive/Plan/033.md), TC1 остаётся нормой ([D058](Decisions/058.md)).
+Остался финальный шаг: влить ветку feature/test-placement-norm.
 
 ## Workspace
 
-Branch: feature/test-visibility-norm
+Branch: feature/test-placement-norm
 
-Revision: a02dde4 (VAC1 — P032 + D057); этот VAC — архивация P032/B023.
+Revision: VAC1 = fec6fb3 (промоут P033 + D058). Финальный VAC переносит P033 и B024
+в Archive и снимает живые строки Plan/Backlog.
 
-Машина — macOS (Darwin 25.5.0). B023 — вывод-норма, Project не менялся, пин по D051 не
-нужен. Merge запускать через `just scratch -- '... tooling/worker/run feature-merge'` с
-PATH. Осталась ветка B024 (спайк по покрытию): меняет ли Project — решится при реализации.
+Машина — macOS (Darwin 25.5.0). Весь набор — Ledger/конфиг; Project не менялся, пин по
+D051 не нужен. Merge — `just scratch -- '... tooling/worker/run feature-merge'` с PATH.
 
 ## Progress
 
-B023/P032 завершён и переносится в Archive: [P032](Archive/Plan/032.md) с Delivery и
-сверкой K1–K3; карточка [B023](Archive/Backlog/023.md) — в Archive/Backlog; живые строки
-Plan/Backlog сняты (живой Plan пуст, в Backlog остаётся только B024). Решение
-[D057](Decisions/057.md): TC2/TC4 — норма рядом с TC1 (D055), без правила/инварианта.
+Завершено и влито ранее: B3, C1, B023 (все на отдельных ветках, влиты). На этой ветке:
+VAC1 — B024 промоутнут в [P033](Archive/Plan/033.md) и записан [D058](Decisions/058.md)
+(покрытие отклонено: инструментов нет ни в Rust, ни в Python тулчейне; содержательно
+«масса вне поддерева владельца» переотмечает законный случай D055; динамическая
+подсистема конфликтует с быстрым гейтом D035). Финальный VAC — P033/B024 перенесены в
+[Archive/Plan](Archive/Plan.md)/[Archive/Backlog](Archive/Backlog.md) с правкой ссылок,
+живые строки сняты (Plan и Backlog пусты), git rm живых Plan/033.md и Backlog/024.md,
+Delivery заполнена.
 
 ## Verification
 
-Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
-pytest, typos, vulture); memory-check — соответствие индексов и деталей после переноса
-карточек в Archive/Plan и Archive/Backlog.
+Коммит-гейт VAC1 зелёный (build, lint, memory, rustfmt, clippy, rust-test `[]`,
+ruff/ruff-format/mypy, pytest 23 passed, typos, vulture). Спайк инструментов покрытия:
+все отсутствуют. Финальный VAC — memory-check при коммите (индексы Plan/Backlog и
+Archive согласованы с деталями).
 
 ## Blockers
 
@@ -36,8 +43,8 @@ pytest, typos, vulture); memory-check — соответствие индекс�
 
 ## Next action
 
-Закоммитить архивный VAC B023 через гейт (git rm живых Plan/032.md и Backlog/023.md),
-влить ветку (merge через scratch с PATH, без пина). Затем B024: промоутить в Plan,
-спайк по сбору per-test покрытия (Rust llvm-cov, Python coverage.py) и проверке уровня
-размещения; по итогам — правило либо норма с записью причины; пин+bootstrap, если
-менялся Project; архивировать B024.
+Закоммитить финальный VAC (архивация P033/B024) через гейт, затем влить ветку
+`just scratch -- '... tooling/worker/run feature-merge'` с PATH (без пина). После влития
+— отчитаться пользователю по-русски: B3 и C1 — реальные артефакты; B023 и B024 завершены
+как нормы (D057/D058) с причинами; единственный рычаг для статических TC1/TC2/TC4 —
+семантический/типовой анализатор (крупная будущая фича). Не пушить без просьбы.
