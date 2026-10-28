@@ -2,39 +2,34 @@
 
 ## Focus
 
-На 2026-10-28 P031 — тестовая дисциплина ([B022](Archive/Backlog/022.md), TC1–TC7) —
-выполнен. Дисциплина доставлена навыком-нормой `testing-discipline`; оба статических
-кандидата (TC1 размещение, TC2 публичная поверхность) проверены на осуществимость при
-реализации и отклонены, правил линтера и инвариантов не добавлено. Карточки P031 и
-B022 перенесены в Archive/. Осталась интеграция ветки.
+На 2026-10-28 выполняется согласованный набор улучшений (одна выборка, автономно, D032)
+в порядке: B3 (исключить `Ledger/Archive/Backlog` из `directory-size`, решение D056) →
+C1 (индекс норм «хорошего состояния») → [B023](Backlog/023.md) (статическая проверка
+публичной поверхности тестов) → [B024](Backlog/024.md) (размещение теста по покрытию).
+Текущий шаг — запись идей B023/B024 в Backlog.
 
 ## Workspace
 
-Branch: feature/test-discipline
+Branch: feature/record-improvement-ideas
 
-Revision: 75d3a81 (HEAD; VAC2 — норма TC1 зафиксирована, D055)
+Revision: 2df2b08 (родитель; этот VAC добавляет запись B023/B024)
 
-Машина — macOS (Darwin 25.5.0). Ветка меняет Project (навык в Project/shared/skills,
-SKILLS и инструкции в project_setup/assets.rs), поэтому перед merge нужны пин
-stable.txt и bootstrap по D051. Bootstrap запускает пользователь из обычного
-терминала с PATH — смена пина выключает хуки сессии.
+Машина — macOS (Darwin 25.5.0). Этот VAC меняет только Ledger, пин по D051 не нужен.
+B023/B024 меняют Project — там перед merge потребуются пин stable.txt и bootstrap
+(запускает пользователь из обычного терминала с PATH, иначе хуки сессии выключаются).
 
 ## Progress
 
-VAC1 (d208b78): навык `testing-discipline` (TC1–TC6), отдан потребителю (assets.rs
-SKILLS + инструкции) и репозиторию (AGENTS.md); политика D054; I020 18/18.
-VAC2 (75d3a81): осуществимость TC1 отклонена при реализации (ребро импорта не
-отличает предмет проверки от общей ссылки; пример languages/tests → rules/kind.rs) —
-D055 фиксирует TC1 как норму рядом с TC2 и отменяет следствие D054 о правиле; раздел
-Enforcement навыка приведён в соответствие. Финальный VAC (в рабочем дереве, не
-закоммичен): P031/B022 перенесены в Archive/Plan и Archive/Backlog с Delivery и
-сверкой TC1–TC7; Plan и Backlog пусты.
+B023 и B024 записаны в Backlog ([Backlog.md](Backlog.md) + карточки
+[023](Backlog/023.md)/[024](Backlog/024.md)) в показанном и согласованном виде. B3 и C1
+проводятся как обслуживание/память (через Backlog не идут). Живой Plan пуст; промоушен
+B023/B024 в Plan — на их ветках доставки.
 
 ## Verification
 
-Оба VAC прошли коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test,
-ruff/ruff-format/mypy, pytest, typos, vulture). Архивный VAC проверяется гейтом при
-коммите (memory-check — соответствие индексов и деталей после переноса).
+Этот VAC проверяется коммит-гейтом (build, lint, memory, rustfmt, clippy, rust-test,
+ruff/ruff-format/mypy, pytest, typos, vulture); memory-check — соответствие индекса
+Backlog и карточек.
 
 ## Blockers
 
@@ -42,8 +37,8 @@ ruff/ruff-format/mypy, pytest, typos, vulture). Архивный VAC прове�
 
 ## Next action
 
-Закоммитить архивный VAC через гейт. Затем пин по D051: записать принятый гейтом
-HEAD ветки в tooling/distribution/stable.txt; пользователь запускает
-`cd /Users/admin/projects/AgentRig && PATH="/Users/admin/.cargo/bin:/Users/admin/.local/bin:/opt/homebrew/bin:$PATH" just bootstrap`;
-закоммитить пин. Затем `just feature-merge` (прогоняет тесты, затронутые всей
-веткой), ветку сохранить.
+Закоммитить запись B023/B024 через гейт и влить ветку (`just feature-merge`). Затем
+ветка B3: добавить `Ledger/Archive/Backlog` в `exclude` правила `directory-size` в
+`.agentrig/lint.yaml` с `# DECISION: D056`, создать `Ledger/Decisions/056.md`, добавить
+строку и заметку о преемственности (D048/D030) в `Decisions.md`. Затем C1, затем B023,
+затем B024.
