@@ -1,4 +1,0 @@
-purpose: Configure hosted verification of repository changes
-files: {}
-directories:
-  workflows: Executable continuous integration workflows

@@ -1,5 +1,0 @@
-purpose: Connect the Claude Code development client to the installed worker hooks
-files:
-  CLAUDE.md: Import the shared repository instructions into Claude Code
-  settings.json: Forward Claude Code session and tool events to the installed worker hook
-directories: {}
