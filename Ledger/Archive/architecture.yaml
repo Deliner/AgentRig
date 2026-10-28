@@ -1,5 +1,7 @@
 purpose: Preserve completed delivery records outside the current execution scope
 files:
+  Backlog.md: Index of completed Backlog outcomes with their original identities
   Plan.md: Index of completed Plan outcomes with original identities and evidence
 directories:
+  Backlog: Completed outcome cards in the original Backlog format
   Plan: Completed outcome cards in the original Plan format

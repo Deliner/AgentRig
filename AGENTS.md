@@ -47,7 +47,7 @@ agreement. All new product outcomes pass through Backlog before Plan. Plan conta
 current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without
 repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the
 canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards
-into Archive/Plan.md and Archive/Plan/. Required work remains in the current task.
+and their Backlog cards into Archive/. Required work remains in the current task.
 
 State is a factual recovery snapshot. Refresh it at meaningful task/VAC boundaries, blockers and handoffs, with actual
 verification and a concrete next action; include it in the relevant VAC. Plan owns current selection and delivery,
@@ -66,9 +66,10 @@ development runtime; it never builds candidate sources. All command, hook, memor
 Rust runtime; adapters only forward calls. Python dependencies support tests and measurements.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
-select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Change the development
-pin only after candidate acceptance, then explicitly bootstrap the new pin. Project policy and canonical skill sources
-remain reviewable repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
+select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish
+every branch that changes Project by writing its gate-accepted head to stable.txt and bootstrapping it in one command,
+then commit the pin before `just feature-merge` (D051). Project policy and canonical skill sources remain reviewable
+repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
 
 Use `just config-check` for project configuration, `just lint-config-check` for lint settings, and `just lint-rules` for
 actual rule/language capabilities. Apply the reported repair skill. Preserve policy intent; do not weaken thresholds or

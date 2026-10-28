@@ -21,9 +21,10 @@ Repository lint also invokes the candidate through the configured command check,
 because its architecture analysis develops independently of the pinned runtime.
 The installed runtime retains gate orchestration and snapshot isolation.
 
-To promote a development runtime, first commit the candidate and pass `just check` on it. In a subsequent feature
-change, put its full commit hash in stable.txt and run `just bootstrap`. Retained installation directories allow an
-explicit pin rollback. This development pin is separate from a consumer's versioned configuration.
+Every branch that changes Project promotes its runtime before `just feature-merge`: once its head passes the commit
+gate, put that full hash in stable.txt, run `just bootstrap` in the same command and commit the pin. Retained
+installation directories allow an explicit pin rollback. This development pin is separate from a consumer's versioned
+configuration.
 
 If agent hooks use the pinned launcher, changing the pin to an uninstalled revision also prevents those hooks from
 running. In that case run `just bootstrap` from an ordinary terminal; the agent's PreToolUse hook can otherwise reject

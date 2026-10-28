@@ -49,4 +49,6 @@ files:
   047.md: "Context and rationale for: Merge hook requirements into one ordered response, deliver each skill and area once per context window and let configured routes block until delivered."
   048.md: "Context and rationale for: Apply the flat-memory registry size exemption to the Plan archive while retaining complete memory and architecture validation."
   049.md: "Context and rationale for: Print and serialize lint warnings only when `--warnings` is requested."
+  050.md: "Context and rationale for: Move the Backlog row and card of each completed outcome to Archive/Backlog together with its Plan card."
+  051.md: "Context and rationale for: Pin and bootstrap the gate-accepted head of every branch that changes Project before merging it, without asking."
 directories: {}

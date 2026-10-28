@@ -8,7 +8,7 @@ Each new product row references an agreed Backlog outcome and acceptance, leavin
 
 Statuses remain pending, active, paused and complete within current delivery; at most one entry is active. Details contain Feature, User capability and Acceptance, with Delivery required for paused/complete entries. A temporarily blocked current task retains its blocker, branch and resumption condition. If execution is deferred, preserve that context in Backlog.
 
-Automatically rotate completed rows into [Archive/Plan.md](Archive/Plan.md) and their cards into Archive/Plan/ during completion, preserving IDs, acceptance and delivery evidence. The agent performs this through edit-plan without another confirmation, updating references and architecture inventories. Plan is not a completed-work archive; an empty Plan is valid.
+Automatically rotate completed rows into [Archive/Plan.md](Archive/Plan.md) and their cards into Archive/Plan/ during completion, preserving IDs, acceptance and delivery evidence; their source Backlog rows and cards move to [Archive/Backlog.md](Archive/Backlog.md) and Archive/Backlog/ at the same time. The agent performs this through edit-plan without another confirmation, updating references and architecture inventories. Plan is not a completed-work archive; an empty Plan is valid.
 
 P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's current-execution rule. Those P IDs remain retired. Original records are available at Git revision f6cd86efbae8ec501759f0c250b9bd4b76e300d7.
 
@@ -26,7 +26,7 @@ runner ревью перед merge: смысловую оценку по тем 
 исполнитель при приёмке; новый runner не создаётся. Ссылки на удалённые карточки
 сохранены текстом без перехода.
 Открытые вопросы готовности указаны в Delivery и не означают приостановку работы.
-Выбранный 2026-10-27 [B018](Backlog/018.md) выполнен как [P024](Archive/Plan/024.md);
+Выбранный 2026-10-27 [B018](Archive/Backlog/018.md) выполнен как [P024](Archive/Plan/024.md);
 B001 выполнен как [P018](Archive/Plan/018.md), B003 — как [P019](Archive/Plan/019.md),
 B002 — как [P021](Archive/Plan/021.md), B008 — как [P025](Archive/Plan/025.md),
 B009 — как [P026](Archive/Plan/026.md), B014 — как [P027](Archive/Plan/027.md).

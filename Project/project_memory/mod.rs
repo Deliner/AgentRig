@@ -103,14 +103,26 @@ fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> 
     }
     Ok(())
 }
+// DECISION: D050
 fn backlog(context: &Context, memory: &Path) -> Result<()> {
-    let path = memory.join("Backlog.md");
-    let adopted = path.try_exists()?;
-    if adopted {
-        details(context, memory, &table(&path, 'B')?, "Backlog")
-    } else {
-        reject_unindexed(memory, "Backlog", &HashSet::new())
+    let mut ids = HashSet::new();
+    for root in [memory.to_path_buf(), memory.join("Archive")] {
+        let path = root.join("Backlog.md");
+        let adopted = path.try_exists()?;
+        if adopted {
+            let rows = table(&path, 'B')?;
+            details(context, &root, &rows, "Backlog")?;
+            for row in rows {
+                ensure!(
+                    ids.insert(row.id),
+                    "duplicate ID across Backlog and Archive"
+                );
+            }
+        } else {
+            reject_unindexed(&root, "Backlog", &HashSet::new())?;
+        }
     }
+    Ok(())
 }
 // DECISION: D031
 fn plan(context: &Context, memory: &Path) -> Result<()> {

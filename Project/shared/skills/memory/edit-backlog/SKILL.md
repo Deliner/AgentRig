@@ -120,7 +120,7 @@ Preserve criterion IDs.
 
 Read paths.memory in .agentrig/project.yaml. Maintain Backlog.md with
 ID | Idea | Expected benefit and Backlog/NNN.md cards. Allocate an unused stable
-BNNN from index and cards; never renumber other ideas. Save the approved body
+BNNN from the live and archived indexes and cards; never renumber other ideas. Save the approved body
 with only necessary identity/navigation metadata, updating index and architecture
 inventories together. Use the existing memory check and report failed saves.
 Ordinary editing needs no just write. Do not copy secrets or transcripts.

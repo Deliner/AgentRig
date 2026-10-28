@@ -89,6 +89,25 @@ def test_backlog_rejects_broken_records(
     assert invoke(worker, tmp_path, "memory-check").returncode == 0
 
 
+# DECISION: D050
+def test_archived_backlog_is_checked_and_keeps_ids(worker: Path, tmp_path: Path) -> None:
+    project(tmp_path)
+    notes = memory(tmp_path)
+    write_idea(notes)
+    (notes / "Archive").mkdir()
+    (notes / "Backlog.md").rename(notes / "Archive/Backlog.md")
+    (notes / "Backlog").rename(notes / "Archive/Backlog")
+    assert invoke(worker, tmp_path, "memory-check").returncode == 0
+    card = notes / "Archive/Backlog/001.md"
+    card.write_text(CARD.replace("## Proposal", "## Unexpected"))
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2 and "sections must be" in result.stderr
+    card.write_text(CARD)
+    write_idea(notes)
+    result = invoke(worker, tmp_path, "memory-check")
+    assert result.returncode == 2 and "duplicate ID across Backlog and Archive" in result.stderr
+
+
 @pytest.mark.parametrize("missing", ["card", "row", "index"])
 def test_backlog_reports_lost_links(worker: Path, tmp_path: Path, missing: str) -> None:
     project(tmp_path)
