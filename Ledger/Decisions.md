@@ -58,6 +58,9 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D052](Decisions/052.md) | Require directory architecture contracts only in the Project source tree. | [lint policy](../.agentrig/lint.yaml), [architecture guide](../Project/structural_lint/architecture/README.md), [plan skill](../.agents/skills/edit-plan/SKILL.md), [tools skill](../.agents/skills/develop-tools/SKILL.md) |
 | [D053](Decisions/053.md) | Split delivered capabilities into universal, required in both the init delivery and this repository, and worker-local. | [card](Archive/Backlog/021.md), [manifest and guard](../Project/shared/testing/test_delivery.py), [norm](Invariants.md), [oracle](../.agentrig/oracles.yaml) |
 | [D054](Decisions/054.md) | Ship testing discipline as a norm skill, enforcing its statically checkable parts. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [delivery](../Project/project_setup/assets.rs), [repository instructions](../AGENTS.md) |
+| [D055](Decisions/055.md) | Keep test placement (TC1) a review norm; no static rule. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [superseded consequence](Decisions/054.md) |
+
+D055 supersedes D054's consequence that TC1 becomes a lint rule with an invariant; D054's norm-skill delivery and enforcement-split principle remain.
 
 D047 supersedes D014's context-only route guidance without delivery state; D014's single entrypoint and Ledger guidance without a denial remain.
 

@@ -33,7 +33,11 @@ owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
 
 ## Enforcement
 
-Where a principle can be checked statically the project also ships a lint rule
-for it, and a reported finding is repaired here. Widening visibility only for a
-test has no static check yet, because no reference-and-visibility analysis
-exists; it stays a review norm until that capability is built.
+These are review norms. A principle earns a lint rule only once it can be
+checked statically without false positives, and none of these can be yet.
+Placement (1) cannot: an import edge shows that a test depends on code, not
+whether that code is the behavior under test or an incidental shared type, so
+flagging every out-of-area dependency would punish ordinary shared vocabulary
+and test helpers. Public surface and back doors (2, 4) cannot: no symbol
+visibility or reverse-reference analysis exists. Until such analysis is built,
+apply these in review; a finding would be repaired here.
