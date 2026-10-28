@@ -2,45 +2,42 @@
 
 ## Focus
 
-On 2026-10-28 the user directed that directory architecture.yaml contracts
-exist only under Project and nowhere else. Delivered as
-[D052](Decisions/052.md): the lint architecture rule now selects only Project,
-and every architecture.yaml outside Project was removed. The [Plan](Plan.md) is
-empty; this is explicit maintenance, not a new product outcome.
+На 2026-10-28, по итогам аудита докфудинга, пользователь согласовал и поручил
+реализовать три исхода: [B019](Backlog/019.md) (правило `architecture` и маршрут
+структуры в поставке `init`), [B020](Backlog/020.md) (три markdown-правила и навык
+`condense-markdown` в поставке) и [B021](Backlog/021.md) (статический страж
+согласованности поставки `init` и живой конфигурации репозитория). Выбраны в
+[Plan](Plan.md) как P028 → P029 → P030; порядок по зависимостям, P030 зависит от
+P028 и P029.
 
 ## Workspace
 
-Branch: feature/architecture-scope
+Branch: feature/dogfood-init
 
-Revision: 3cc7ba399112aaac6775609030cae02b708c9879
+Revision: 332292b65854149a1f0ac8ae4e987522eb756ff0
 
-The machine is macOS (Darwin 25.5.0). stable.txt pins this head, installed by
-bootstrap under .cache/development: this branch changes Project (skill bodies),
-so [D051](Decisions/051.md) pinned and bootstrapped its gate-accepted head
-before feature-merge. `just read`/`just write` run only the programs in
-.agentrig/commands.yaml; agent shells lack cargo on PATH, so commits run through
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
+Машина — macOS (Darwin 25.5.0). Ветка отходит от master. Шаблон потребителя живёт
+в Project/project_setup (lint.rs фильтрует виды правил; template.rs строит checks,
+routes, commands; assets.rs перечисляет навыки). Живая конфигурация — в
+.agentrig/*.yaml и навыки в Project/shared/skills. Сборки и коммиты идут через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; ...'`, так как агентские
+оболочки не имеют cargo/uv в PATH.
 
 ## Progress
 
-.agentrig/lint.yaml architecture rule include is now [Project, 'Project/**']
-with the dead root cache excludes dropped. Removed 21 architecture.yaml outside
-Project (tooling, Ledger, .agentrig, just, .agents, .claude, .codex, .github,
-root). Decisions.md links for D038, D039, D041 and D042 migrated to surviving
-owners; Plan.md, edit-plan and develop-tools no longer mention architecture
-inventories outside Project. D052 recorded with precedence over D028.
+VAC планирования: сохранены карточки B019/B020/B021 и P028/P029/P030, обновлены
+индексы Backlog и Plan, обновлён State. Реализация ещё не начата.
 
 ## Verification
 
-This head passed the full commit gate (build, lint, memory, 77 Rust and 218
-Python tests). Lint reports no missing-contract findings now that only Project
-is analyzed, and memory-check resolves the migrated links with no WARNING.
-Bootstrap built and installed it.
+Пока только планирование памяти; memory-check запускается в гейте этого VAC.
 
 ## Blockers
 
-None. memory-check cannot run inside `just read`.
+Нет. memory-check не запускается внутри `just read`.
 
 ## Next action
 
-Commit the pin, run `just feature-merge` and report to the user.
+Закоммитить VAC планирования, затем начать P028: отдать правило `architecture` и
+маршрут структуры в шаблоне `init` (Project/project_setup/lint.rs и template.rs),
+проверив, что пустой проект после `init` проходит `lint`.
