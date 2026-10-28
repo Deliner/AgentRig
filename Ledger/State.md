@@ -2,16 +2,18 @@
 
 ## Focus
 
-On 2026-10-28 the user asked to hide lint warnings by default and show them
-only under a separate flag, leaving only blocking errors in normal output.
-This is recorded directly as [D049](Decisions/049.md); the selected Backlog
-set is complete and the [Plan](Plan.md) is empty.
+On 2026-10-28 the user asked for two things: completed Backlog cards must move
+to the archive, and after each merge the agent must update the development
+pin and run bootstrap itself, recording that rule in the instructions. The
+selected Backlog set B001, B002, B003, B008, B009, B014 and B018 is complete
+(P018–P027 in [Archive/Plan.md](Archive/Plan.md)); the [Plan](Plan.md) is
+empty.
 
 ## Workspace
 
-Branch: feature/lint-warnings-flag
+Branch: feature/backlog-archive
 
-Revision: 1555651ada244a0d5130f34f3725862aa84d5485
+Revision: 7c4a03f6d272050102a5f0737bcc52cb38a5ae28
 
 The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
 937d3f0, installed by bootstrap under .cache/development. Change the pin and
@@ -24,17 +26,18 @@ PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 
 ## Progress
 
-`lint` drops warning findings from text and JSON output unless `--warnings`
-is given; the gate's lint check uses the default. Exit codes and thresholds
-are unchanged. The rule-test helper requests warnings; the guides describe
-the flag.
+[D050](Decisions/050.md): the seven completed cards moved to
+[Archive/Backlog.md](Archive/Backlog.md) with links updated; Backlog is empty.
+memory-check validates the archived Backlog and rejects IDs present in both;
+edit-plan, edit-backlog, AGENTS.md and the shipped instructions describe the
+rotation. The pin rule and the pin update itself are not done yet.
 
 ## Verification
 
-On the uncommitted change the candidate passed Clippy and 217 Python tests
-(structural_lint, setup lint defaults, gate). On this repository default
-lint printed nothing and exited 0; `--warnings` printed 2 warning groups and
-exited 0.
+On the uncommitted change the candidate passed Clippy, memory-check, lint
+and 163 Python tests (project_memory, project_setup, agent_hooks). All
+relative Ledger links resolve except three pre-existing links to the removed
+tooling/worker/examples/PORTABILITY.md in archived P002, P004 and P008.
 
 ## Blockers
 
@@ -42,5 +45,6 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the change through the gate, run `just feature-merge` through
-scratch and report the results to the user.
+Commit this VAC, record the pin rule in AGENTS.md and the distribution guide,
+pin the branch head and bootstrap it, commit the pin, run `just
+feature-merge` and report to the user.

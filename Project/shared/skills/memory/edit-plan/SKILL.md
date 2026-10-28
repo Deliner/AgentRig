@@ -36,7 +36,7 @@ branch and resumption condition in Backlog before removing the current entry
 and reconciling dependencies. Interruption alone is not deferral.
 
 Archive completed outcomes automatically in the final VAC without another
-confirmation. Preserve identity, acceptance and actual delivery evidence before
+confirmation, together with their source Backlog cards. Preserve identity, acceptance and actual delivery evidence before
 removing the live entry. A conflicting archived identity must not be overwritten.
 Completed history is not an execution queue.
 
@@ -55,7 +55,9 @@ reference current or archived outcomes, remain acyclic, and must be complete
 before dependent items become active/complete.
 
 Use the configured memory directory's Archive/Plan.md and Archive/Plan/NNN.md,
-with the same columns, IDs, acceptance and Delivery. Create them when needed.
+with the same columns, IDs, acceptance and Delivery. Move the source Backlog row
+and card unchanged to Archive/Backlog.md and Archive/Backlog/NNN.md, adjusting
+only relative links. Create them when needed.
 Do not restore archived entries merely to reference them or reuse their IDs;
 allocate identities across Plan, Archive and Backlog references.
 

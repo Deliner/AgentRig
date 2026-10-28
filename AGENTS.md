@@ -47,7 +47,7 @@ agreement. All new product outcomes pass through Backlog before Plan. Plan conta
 current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without
 repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the
 canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards
-into Archive/Plan.md and Archive/Plan/. Required work remains in the current task.
+and their Backlog cards into Archive/. Required work remains in the current task.
 
 State is a factual recovery snapshot. Refresh it at meaningful task/VAC boundaries, blockers and handoffs, with actual
 verification and a concrete next action; include it in the relevant VAC. Plan owns current selection and delivery,
