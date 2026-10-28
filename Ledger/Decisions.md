@@ -54,7 +54,7 @@ Current precedence: [D051](Decisions/051.md) has the agent pin and bootstrap the
 | [D048](Decisions/048.md) | Apply the flat-memory registry size exemption to the Plan archive while retaining complete memory and architecture validation. | [lint policy](../.agentrig/lint.yaml) |
 | [D049](Decisions/049.md) | Print and serialize lint warnings only when `--warnings` is requested. | [engine](../Project/structural_lint/mod.rs), [arguments](../Project/structural_lint/cli.rs), [tests](../Project/structural_lint/tests/test_lint.py), [guide](../Project/README.md), [setup guide](../Project/project_setup/README.md) |
 | [D050](Decisions/050.md) | Move the Backlog row and card of each completed outcome to Archive/Backlog together with its Plan card. | [memory checker](../Project/project_memory/mod.rs), [tests](../Project/project_memory/tests/test_backlog.py), [plan skill](../.agents/skills/edit-plan/SKILL.md), [backlog skill](../.agents/skills/edit-backlog/SKILL.md), [instructions](../AGENTS.md), [shipped instructions](../Project/project_setup/assets.rs), [archive](Archive/Backlog.md) |
-| [D051](Decisions/051.md) | Pin and bootstrap the gate-accepted head of every branch that changes Project before merging it, without asking. | [instructions](../AGENTS.md), [distribution guide](../tooling/distribution/README.md), [pin](../tooling/distribution/stable.txt) |
+| [D051](Decisions/051.md) | Pin and bootstrap the gate-accepted head of every branch that changes Project before merging it, without asking. | [instructions](../AGENTS.md), [distribution guide](../tooling/distribution/README.md) |
 
 D047 supersedes D014's context-only route guidance without delivery state; D014's single entrypoint and Ledger guidance without a denial remain.
 
