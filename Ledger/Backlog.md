@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B022](Backlog/022.md) | Тестовая дисциплина: поведение через публичную поверхность на правильном уровне. | Тесты переживают рефакторинг, давление тестов не течёт в публичный API, место теста выводится из области — и это проверяется из коробки. |
