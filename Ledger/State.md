@@ -2,45 +2,39 @@
 
 ## Focus
 
-On 2026-10-28 the user asked for two things: completed Backlog cards must move
-to the archive, and after each merge the agent must update the development
-pin and run bootstrap itself, recording that rule in the instructions. The
-selected Backlog set B001, B002, B003, B008, B009, B014 and B018 is complete
-(P018–P027 in [Archive/Plan.md](Archive/Plan.md)); the [Plan](Plan.md) is
-empty.
+On 2026-10-28 the user directed that directory architecture.yaml contracts
+exist only under Project and nowhere else. Delivered as
+[D052](Decisions/052.md): the lint architecture rule now selects only Project,
+and every architecture.yaml outside Project was removed. The [Plan](Plan.md) is
+empty; this is explicit maintenance, not a new product outcome.
 
 ## Workspace
 
-Branch: feature/backlog-archive
+Branch: feature/architecture-scope
 
-Revision: 7099bb486864182231d2fd1bc478be0d4c07fb28
+Revision: 17f06e7161711adce8c5b7e429f5d48f104fbeab
 
-The machine is macOS (Darwin 25.5.0) with Homebrew flock. stable.txt pins
-7099bb4, installed by bootstrap under .cache/development. Under
-[D051](Decisions/051.md) every branch that changes Project ends by pinning
-its gate-accepted head and bootstrapping it in one shell command, without
-asking: a pin without its install makes every hook fail. A stray branch feature/init-probe at a14f284 remains from an
-install probe; guard-reference refuses its deletion. `just read`/`just
-write` run only the programs in .agentrig/commands.yaml. Agent shells lack
-cargo on PATH, so commits run through `just scratch -- 'export
-PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
+The machine is macOS (Darwin 25.5.0). stable.txt still pins 7099bb4; this branch
+changes Project (skill bodies), so under [D051](Decisions/051.md) its
+gate-accepted head is pinned and bootstrapped in one command before
+feature-merge. `just read`/`just write` run only the programs in
+.agentrig/commands.yaml; agent shells lack cargo on PATH, so commits run through
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; git commit ...'`.
 
 ## Progress
 
-[D050](Decisions/050.md): the seven completed cards moved to
-[Archive/Backlog.md](Archive/Backlog.md) with links updated; Backlog is empty.
-memory-check validates the archived Backlog and rejects IDs present in both;
-edit-plan, edit-backlog, AGENTS.md and the shipped instructions describe the
-rotation (commit 7099bb4). D051 records the pin rule in AGENTS.md and the
-distribution guide; 7099bb4, carrying D049 and D050, is pinned and installed.
+.agentrig/lint.yaml architecture rule include is now [Project, 'Project/**']
+with the dead root cache excludes dropped. Removed 21 architecture.yaml outside
+Project (tooling, Ledger, .agentrig, just, .agents, .claude, .codex, .github,
+root). Decisions.md links for D038, D039, D041 and D042 migrated to surviving
+owners; Plan.md, edit-plan and develop-tools no longer mention architecture
+inventories outside Project. D052 recorded with precedence over D028.
 
 ## Verification
 
-7099bb4 passed the commit gate (lint, memory, Clippy, 11 selected Rust and
-209 Python tests). Bootstrap built and installed it, and the installed
-runtime accepted the configuration. All relative Ledger links resolve except
-three pre-existing links to the removed tooling/worker/examples/PORTABILITY.md
-in archived P002, P004 and P008.
+Pending: stage and pass the commit gate. Lint must report no missing-contract
+findings now that only Project is analyzed, and memory must resolve the migrated
+links without a WARNING.
 
 ## Blockers
 
@@ -48,5 +42,5 @@ None. memory-check cannot run inside `just read`.
 
 ## Next action
 
-Commit the pin and D051, run `just feature-merge` through scratch and report
-to the user.
+Stage the change, pass the commit gate, pin and bootstrap the accepted head
+(D051), then run `just feature-merge` and report to the user.

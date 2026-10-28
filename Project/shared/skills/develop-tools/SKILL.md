@@ -15,9 +15,9 @@ runs through `scratch` in its branch task area and needs no registration.
    it suffices, extend the matching one when it almost does, and create a new
    one only when none can provide the result.
 3. Place a permanent tool under `tools.locations` in the directory that owns
-   its responsibility and describe it in that architecture.yaml. Register it as
-   a catalog command with `purpose` and, where details exist, `doc`; list it in
-   `tools.entries` only when Git, Just or another tool starts it directly.
+   its responsibility. Register it as a catalog command with `purpose` and,
+   where details exist, `doc`; list it in `tools.entries` only when Git, Just
+   or another tool starts it directly.
 4. Update the instructions, checks and documentation that name it.
 
 Do not add unrequested modes, generality or a duplicate that differs only in

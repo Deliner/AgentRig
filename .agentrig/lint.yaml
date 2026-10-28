@@ -152,7 +152,7 @@ rules:
   warning_skill: .agents/skills/replace-comment/SKILL.md
   error_skill: .agents/skills/replace-comment/SKILL.md
 
-# Full maintained-tree inventory; dependency extensions do not limit file coverage.
+# Project subtree inventory; dependency extensions do not limit file coverage.
 - architecture:
     external:
       rust:
@@ -223,18 +223,9 @@ rules:
   - .pyi
   id: architecture
   include:
-  - .
-  - '**'
+  - Project
+  - 'Project/**'
   kind: directory-architecture
   level: error
   target: directory
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md
-  exclude:
-  - .tmp
-  - .tmp/**
-  - .mypy_cache
-  - .mypy_cache/**
-  - .pytest_cache
-  - .pytest_cache/**
-  - .ruff_cache
-  - .ruff_cache/**

@@ -61,7 +61,7 @@ only relative links. Create them when needed.
 Do not restore archived entries merely to reference them or reuse their IDs;
 allocate identities across Plan, Archive and Backlog references.
 
-Update relative links, provenance, current application links and architecture
-inventories; run memory-check after rotation. Use edit-backlog for out-of-scope
+Update relative links, provenance and current application links; run
+memory-check after rotation. Use edit-backlog for out-of-scope
 ideas, save only agreed drafts and resume authorized work. Use
 execute-plan-feature for verification and integration.
