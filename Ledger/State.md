@@ -2,33 +2,38 @@
 
 ## Focus
 
-На 2026-10-28 выполняется согласованный набор улучшений (одна выборка, автономно, D032)
-в порядке: B3 → C1 → B023 → [B024](Backlog/024.md). Выполнено и влито: B023/B024 в
-Backlog; B3 (D056); C1 ([Norms.md](Norms.md)). B023 завершён как [P032](Archive/Plan/032.md):
-TC2/TC4 оставлены нормой (D057). Текущий шаг — финальный VAC B023 (архивация), затем B024.
+На 2026-10-28 исполняется согласованный набор улучшений (одна выборка, автономно, D032)
+в порядке: B3 → C1 → B023 → B024. Выполнено и влито: B023/B024 в Backlog; B3 (D056);
+C1 ([Norms.md](Norms.md)); B023 как P032 — TC2/TC4 норма (D057). Текущий шаг — B024 как
+[P033](Plan/033.md): по спайку покрытие отклонено, TC1 остаётся нормой (D058).
 
 ## Workspace
 
-Branch: feature/test-visibility-norm
+Branch: feature/test-placement-norm
 
-Revision: a02dde4 (VAC1 — P032 + D057); этот VAC — архивация P032/B023.
+Revision: поверх master (B023 влит). Этот VAC добавляет P033 и D058.
 
-Машина — macOS (Darwin 25.5.0). B023 — вывод-норма, Project не менялся, пин по D051 не
-нужен. Merge запускать через `just scratch -- '... tooling/worker/run feature-merge'` с
-PATH. Осталась ветка B024 (спайк по покрытию): меняет ли Project — решится при реализации.
+Машина — macOS (Darwin 25.5.0). B024 — вывод-норма, Project не менялся (coverage-подсистема
+не строилась, зависимости не добавлялись), пин по D051 не нужен. Merge — через
+`just scratch -- '... tooling/worker/run feature-merge'` с PATH.
 
 ## Progress
 
-B023/P032 завершён и переносится в Archive: [P032](Archive/Plan/032.md) с Delivery и
-сверкой K1–K3; карточка [B023](Archive/Backlog/023.md) — в Archive/Backlog; живые строки
-Plan/Backlog сняты (живой Plan пуст, в Backlog остаётся только B024). Решение
-[D057](Decisions/057.md): TC2/TC4 — норма рядом с TC1 (D055), без правила/инварианта.
+B024/P033: спайк показал — coverage-инструментов нет ни в Rust, ни в Python тулчейне
+(`cargo-llvm-cov`, `coverage`, `pytest-cov` отсутствуют), их пришлось бы добавить и
+отдать в `init`. Содержательно покрытие не решает TC1: оно учитывает весь исполненный
+код, включая общий/зависимый, поэтому «масса вне поддерева владельца» переотмечает
+законный случай D055 (тест `languages` исполняет общий `rules/kind.rs`) — неоднозначность
+«предмет vs попутное» лишь переносится на исполнение. Плюс per-test покрытие — медленная
+динамическая подсистема поверх быстрого статического гейта (D035). Решение
+[D058](Decisions/058.md): TC1 остаётся нормой (рядом с D055/D057), без правила и
+зависимостей. Карточка B024 промоутнута в Plan как [P033](Plan/033.md) (active).
 
 ## Verification
 
 Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
-pytest, typos, vulture); memory-check — соответствие индексов и деталей после переноса
-карточек в Archive/Plan и Archive/Backlog.
+pytest, typos, vulture); memory-check — индекс решений и Plan согласованы с деталями.
+Спайк: проба инструментов покрытия через scratch с PATH — все отсутствуют.
 
 ## Blockers
 
@@ -36,8 +41,7 @@ pytest, typos, vulture); memory-check — соответствие индекс�
 
 ## Next action
 
-Закоммитить архивный VAC B023 через гейт (git rm живых Plan/032.md и Backlog/023.md),
-влить ветку (merge через scratch с PATH, без пина). Затем B024: промоутить в Plan,
-спайк по сбору per-test покрытия (Rust llvm-cov, Python coverage.py) и проверке уровня
-размещения; по итогам — правило либо норма с записью причины; пин+bootstrap, если
-менялся Project; архивировать B024.
+Закоммитить VAC1 (P033 + D058) через гейт. Затем финальный VAC B024: заполнить Delivery,
+перенести P033 в Archive/Plan и B024 — в Archive/Backlog, снять живые строки, memory-check,
+обновить State; влить ветку (merge через scratch с PATH, без пина). После этого весь
+набор (B3, C1, B023, B024) завершён.
