@@ -2,38 +2,40 @@
 
 ## Focus
 
-На 2026-10-28 исполняется согласованный набор улучшений (одна выборка, автономно, D032)
-в порядке: B3 → C1 → B023 → B024. Выполнено и влито: B023/B024 в Backlog; B3 (D056);
-C1 ([Norms.md](Norms.md)); B023 как P032 — TC2/TC4 норма (D057). Текущий шаг — B024 как
-[P033](Plan/033.md): по спайку покрытие отклонено, TC1 остаётся нормой (D058).
+Согласованный набор улучшений (одна выборка, автономно, D032) в порядке
+B3 → C1 → B023 → B024 завершён. B3 — [D056](Decisions/056.md) (исключение
+Ledger/Archive/Backlog из directory-size); C1 — [Norms.md](Norms.md) (индекс норм);
+B023 — [P032](Archive/Plan/032.md), TC2/TC4 остаются нормой ([D057](Decisions/057.md));
+B024 — [P033](Archive/Plan/033.md), TC1 остаётся нормой ([D058](Decisions/058.md)).
+Остался финальный шаг: влить ветку feature/test-placement-norm.
 
 ## Workspace
 
 Branch: feature/test-placement-norm
 
-Revision: поверх master (B023 влит). Этот VAC добавляет P033 и D058.
+Revision: VAC1 = fec6fb3 (промоут P033 + D058). Финальный VAC переносит P033 и B024
+в Archive и снимает живые строки Plan/Backlog.
 
-Машина — macOS (Darwin 25.5.0). B024 — вывод-норма, Project не менялся (coverage-подсистема
-не строилась, зависимости не добавлялись), пин по D051 не нужен. Merge — через
-`just scratch -- '... tooling/worker/run feature-merge'` с PATH.
+Машина — macOS (Darwin 25.5.0). Весь набор — Ledger/конфиг; Project не менялся, пин по
+D051 не нужен. Merge — `just scratch -- '... tooling/worker/run feature-merge'` с PATH.
 
 ## Progress
 
-B024/P033: спайк показал — coverage-инструментов нет ни в Rust, ни в Python тулчейне
-(`cargo-llvm-cov`, `coverage`, `pytest-cov` отсутствуют), их пришлось бы добавить и
-отдать в `init`. Содержательно покрытие не решает TC1: оно учитывает весь исполненный
-код, включая общий/зависимый, поэтому «масса вне поддерева владельца» переотмечает
-законный случай D055 (тест `languages` исполняет общий `rules/kind.rs`) — неоднозначность
-«предмет vs попутное» лишь переносится на исполнение. Плюс per-test покрытие — медленная
-динамическая подсистема поверх быстрого статического гейта (D035). Решение
-[D058](Decisions/058.md): TC1 остаётся нормой (рядом с D055/D057), без правила и
-зависимостей. Карточка B024 промоутнута в Plan как [P033](Plan/033.md) (active).
+Завершено и влито ранее: B3, C1, B023 (все на отдельных ветках, влиты). На этой ветке:
+VAC1 — B024 промоутнут в [P033](Archive/Plan/033.md) и записан [D058](Decisions/058.md)
+(покрытие отклонено: инструментов нет ни в Rust, ни в Python тулчейне; содержательно
+«масса вне поддерева владельца» переотмечает законный случай D055; динамическая
+подсистема конфликтует с быстрым гейтом D035). Финальный VAC — P033/B024 перенесены в
+[Archive/Plan](Archive/Plan.md)/[Archive/Backlog](Archive/Backlog.md) с правкой ссылок,
+живые строки сняты (Plan и Backlog пусты), git rm живых Plan/033.md и Backlog/024.md,
+Delivery заполнена.
 
 ## Verification
 
-Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
-pytest, typos, vulture); memory-check — индекс решений и Plan согласованы с деталями.
-Спайк: проба инструментов покрытия через scratch с PATH — все отсутствуют.
+Коммит-гейт VAC1 зелёный (build, lint, memory, rustfmt, clippy, rust-test `[]`,
+ruff/ruff-format/mypy, pytest 23 passed, typos, vulture). Спайк инструментов покрытия:
+все отсутствуют. Финальный VAC — memory-check при коммите (индексы Plan/Backlog и
+Archive согласованы с деталями).
 
 ## Blockers
 
@@ -41,7 +43,8 @@ pytest, typos, vulture); memory-check — индекс решений и Plan с
 
 ## Next action
 
-Закоммитить VAC1 (P033 + D058) через гейт. Затем финальный VAC B024: заполнить Delivery,
-перенести P033 в Archive/Plan и B024 — в Archive/Backlog, снять живые строки, memory-check,
-обновить State; влить ветку (merge через scratch с PATH, без пина). После этого весь
-набор (B3, C1, B023, B024) завершён.
+Закоммитить финальный VAC (архивация P033/B024) через гейт, затем влить ветку
+`just scratch -- '... tooling/worker/run feature-merge'` с PATH (без пина). После влития
+— отчитаться пользователю по-русски: B3 и C1 — реальные артефакты; B023 и B024 завершены
+как нормы (D057/D058) с причинами; единственный рычаг для статических TC1/TC2/TC4 —
+семантический/типовой анализатор (крупная будущая фича). Не пушить без просьбы.
