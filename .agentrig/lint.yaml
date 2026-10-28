@@ -98,6 +98,8 @@ rules:
   - Ledger/Backlog
   # DECISION: D048 -- the Plan archive is the same flat indexed registry.
   - Ledger/Archive/Plan
+  # DECISION: D056 -- the Backlog archive is the same flat indexed registry.
+  - Ledger/Archive/Backlog
   warning: 10
   error: 15
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md
