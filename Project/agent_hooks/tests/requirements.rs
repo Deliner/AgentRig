@@ -4,8 +4,6 @@ use crate::agent_hooks::dispatch;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
-const ARCHITECTURE: &str = "- include: ['Project/**']\n  skill: .agentrig/skills/refactor-large-directory/SKILL.md\n  events: [edit]\n  block: true\n";
-
 fn route(root: &Path, route: &str) {
     let path = root.join(".agentrig/hooks.yaml");
     let hooks = fs::read_to_string(&path).unwrap();
@@ -35,7 +33,6 @@ fn edit(root: &Path, path: &str) -> Value {
 #[test]
 fn first_edit_in_an_area_stops_until_its_requirement_is_delivered() {
     let (_temp, root) = project();
-    route(&root, ARCHITECTURE);
     let first = edit(&root, "Project/agent_hooks/mod.rs");
     let (decision, message) = answer(&first);
     assert_eq!(decision, "deny");
@@ -60,7 +57,6 @@ fn first_edit_in_an_area_stops_until_its_requirement_is_delivered() {
 
 fn patched(files: &[&str]) -> String {
     let (_temp, root) = project();
-    route(&root, ARCHITECTURE);
     fs::write(
         root.join(".agentrig/reminder.json"),
         r#"{"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300}"#,
@@ -122,11 +118,11 @@ fn contradictory_route_order_is_rejected_until_repaired() {
     let denied = edit(&root, "Project/main.py");
     let (decision, message) = answer(&denied);
     assert_eq!(decision, "deny");
-    let conflict = ".agentrig/hooks.yaml: hooks.routes[0] and hooks.routes[6] order .agentrig/skills/edit-state/SKILL.md both before and after .agentrig/skills/edit-plan/SKILL.md (hooks.routes[1])";
+    let conflict = ".agentrig/hooks.yaml: hooks.routes[0] and hooks.routes[7] order .agentrig/skills/edit-state/SKILL.md both before and after .agentrig/skills/refactor-large-directory/SKILL.md (hooks.routes[1])";
     assert!(message.contains(conflict), "{message}");
     assert_eq!(edit(&root, ".agentrig/hooks.yaml"), Value::Null);
     fs::write(&hooks, valid).unwrap();
-    assert_eq!(edit(&root, "Project/main.py"), Value::Null);
+    assert_eq!(edit(&root, "README.md"), Value::Null);
 }
 
 #[test]
@@ -162,7 +158,7 @@ fn vac_check_entry_reminds_state_once_per_context() {
     let first = hook(&root, "exec_command", json!({"cmd": commit}));
     let (decision, message) = answer(&first);
     assert_eq!(decision, "deny");
-    let state = "- Required: read and apply {root}/.agentrig/skills/edit-state/SKILL.md for opaque shell write; VAC check entry. Source: hooks.routes[5], hooks.routes[6].";
+    let state = "- Required: read and apply {root}/.agentrig/skills/edit-state/SKILL.md for opaque shell write; VAC check entry. Source: hooks.routes[6], hooks.routes[7].";
     let state = state.replace("{root}", &root.display().to_string());
     assert!(message.contains(&state), "{message}");
     assert!(message.contains("- Guidance: read and apply"), "{message}");

@@ -2,42 +2,54 @@
 
 ## Focus
 
-На 2026-10-28, по итогам аудита докфудинга, пользователь согласовал и поручил
-реализовать три исхода: [B019](Backlog/019.md) (правило `architecture` и маршрут
-структуры в поставке `init`), [B020](Backlog/020.md) (три markdown-правила и навык
-`condense-markdown` в поставке) и [B021](Backlog/021.md) (статический страж
-согласованности поставки `init` и живой конфигурации репозитория). Выбраны в
-[Plan](Plan.md) как P028 → P029 → P030; порядок по зависимостям, P030 зависит от
-P028 и P029.
+На 2026-10-28 идёт доставка трёх согласованных исходов аудита докфудинга на ветке
+feature/dogfood-init: [B019](Backlog/019.md)/[P028](Plan/028.md) — правило
+`architecture` и маршрут структуры в поставке `init`; [B020](Backlog/020.md)/
+[P029](Plan/029.md) — три markdown-правила и навык `condense-markdown` в поставке;
+[B021](Backlog/021.md)/[P030](Plan/030.md) — статический страж согласованности
+поставки и живой конфигурации. Порядок P028 → P029 → P030, P030 зависит от P028 и
+P029.
 
 ## Workspace
 
 Branch: feature/dogfood-init
 
-Revision: 332292b65854149a1f0ac8ae4e987522eb756ff0
+Revision: 561f1aed61a2dd043f1468cd481bbb5184b6f9ec
 
-Машина — macOS (Darwin 25.5.0). Ветка отходит от master. Шаблон потребителя живёт
-в Project/project_setup (lint.rs фильтрует виды правил; template.rs строит checks,
-routes, commands; assets.rs перечисляет навыки). Живая конфигурация — в
-.agentrig/*.yaml и навыки в Project/shared/skills. Сборки и коммиты идут через
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:...; ...'`, так как агентские
-оболочки не имеют cargo/uv в PATH.
+Машина — macOS (Darwin 25.5.0). Шаблон потребителя — в Project/project_setup
+(lint.rs строит правила, template.rs — checks/routes/commands, assets.rs — навыки).
+Живая конфигурация репозитория — .agentrig/*.yaml и навыки Project/shared/skills;
+`lint::template` формирует только поставку, не трогая собственный .agentrig.
+Сборки и тесты идут через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:
+/Users/admin/.local/bin:/opt/homebrew/bin:...; ...'`, кандидат собирается из
+tooling/worker/build (фикстура `worker` в Project/conftest.py).
 
 ## Progress
 
-VAC планирования: сохранены карточки B019/B020/B021 и P028/P029/P030, обновлены
-индексы Backlog и Plan, обновлён State. Реализация ещё не начата.
+VAC планирования закоммичен как 561f1ae. P028 реализован и помечен complete:
+правило `architecture` и маршрут структуры отданы в шаблон `init`
+(Project/project_setup/lint.rs, template.rs); добавлены тесты K1
+(Project/project_setup/tests/test_lint_defaults.py) и K3 (structure_route в
+Project/shared/testing/test_delivery.py). Тесты движка хуков адаптированы к
+маршруту структуры на routes[0] (Project/agent_hooks/tests/requirements.rs,
+mod.rs): убран лишний ручной префикс маршрута, сдвинуты индексы Source, строка
+конфликта порядка и нейтральные пути проверки. Изменения ещё не закоммичены.
+P029 и P030 не начаты.
 
 ## Verification
 
-Пока только планирование памяти; memory-check запускается в гейте этого VAC.
+На кандидате прошли pytest test_lint_defaults.py (9 passed, включая новый K1) и
+test_delivery.py (3 passed, python и rust — K2 и K3), а также rust-тесты
+agent_hooks (11 passed) после адаптации к маршруту структуры. Полный гейт P028 —
+на предстоящем коммите; memory-check в гейте этого VAC.
 
 ## Blockers
 
-Нет. memory-check не запускается внутри `just read`.
+Нет.
 
 ## Next action
 
-Закоммитить VAC планирования, затем начать P028: отдать правило `architecture` и
-маршрут структуры в шаблоне `init` (Project/project_setup/lint.rs и template.rs),
-проверив, что пустой проект после `init` проходит `lint`.
+Закоммитить VAC P028 (четыре исходника + Plan/028.md, Plan.md, State.md) через
+hook. Затем начать P029: отдать markdown-size/width/placement и навык
+`condense-markdown` в поставку (Project/project_setup/lint.rs, assets.rs),
+проверив, что потребитель держит те же markdown-рамки, что репозиторий.

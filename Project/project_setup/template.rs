@@ -80,7 +80,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
         commands: commands(options),
         checks: checks(&options["source"], skill_root),
         hooks: Hooks {
-            routes: routes(&options["memory"], skill_root),
+            routes: routes(&options["memory"], &options["source"], skill_root),
             reminder: Some(format!("{service}/reminder.json")),
             discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
         },
@@ -260,8 +260,13 @@ fn test_command(options: &Options<'_>) -> Vec<String> {
         ]
     }
 }
-fn routes(memory: &str, skill_root: &str) -> Vec<Route> {
-    let mut routes = Vec::new();
+fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
+    let mut routes = vec![Route {
+        include: vec![format!("{source}/**")],
+        skill: format!("{skill_root}/refactor-large-directory/SKILL.md"),
+        events: vec![RouteEvent::Edit],
+        block: true,
+    }];
     for (file, skill) in [
         ("Plan", "edit-plan"),
         ("Archive/Plan", "edit-plan"),

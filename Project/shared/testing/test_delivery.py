@@ -231,6 +231,21 @@ class Consumer:
         first = invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
         assert "deny" in first and "edit-state/SKILL.md for VAC check entry" in first
         assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(hook)).stdout
+        self.structure_route()
+
+    def structure_route(self) -> None:
+        source = self.layout.paths.source
+        skill = f"{self.layout.paths.skills}/refactor-large-directory/SKILL.md"
+        edit = {
+            "hook_event_name": "PreToolUse",
+            "tool_name": "Write",
+            "tool_input": {"file_path": f"{source}/unit/first"},
+            "cwd": str(self.root),
+        }
+        blocked = invoke(self.binary, self.root, "hook", input=json.dumps(edit)).stdout
+        assert "deny" in blocked and skill in blocked
+        edit["tool_input"] = {"file_path": f"{source}/unit/second"}
+        assert "deny" not in invoke(self.binary, self.root, "hook", input=json.dumps(edit)).stdout
 
     def integrate(self) -> None:
         git(self.root, "add", ".")

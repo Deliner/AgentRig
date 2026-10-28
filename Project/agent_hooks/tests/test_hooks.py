@@ -23,7 +23,7 @@ from Project.shared.testing.consumer import invoke
         ("Edit", {"file_path": "Ledger/Plan/001.md"}, ["edit-plan"]),
         ("Edit", {"file_path": "Ledger/Decisions/001.md"}, ["edit-decisions"]),
         ("Edit", {"file_path": "Ledger/Invariants/001.md"}, ["edit-invariants"]),
-        ("Edit", {"file_path": "Project/State.md"}, []),
+        ("Edit", {"file_path": "docs/State.md"}, []),
         ("Edit", {"file_path": "Ledger/Plan-other.md"}, []),
         ("Edit", {"file_path": "Ledger/Plan/../State.md"}, ["edit-state"]),
         ("Edit", {"file_path": "{root}/Ledger/State.md"}, ["edit-state"]),
@@ -55,10 +55,7 @@ from Project.shared.testing.consumer import invoke
         ),
         (
             "apply_patch",
-            {
-                "patch_text": "*** Update File: Project/example.md\n"
-                "+*** Update File: Ledger/Plan.md\n"
-            },
+            {"patch_text": "*** Update File: docs/example.md\n+*** Update File: Ledger/Plan.md\n"},
             [],
         ),
     ],
