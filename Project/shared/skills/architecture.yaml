@@ -1,5 +1,5 @@
-# Flat memory-skill symlinks preserve existing hook and client instruction paths.
-# Their canonical bodies are inventoried under memory; discovery skips symlink aliases.
+# Flat skill symlinks preserve existing hook and client instruction paths.
+# Their canonical bodies are inventoried under their subgroup; discovery skips symlink aliases.
 # Installed skill names remain flat through project_setup/assets.rs.
 purpose: "Provide canonical agent guidance for delivery, architectural repair and project memory"
 files: {}
@@ -10,11 +10,11 @@ directories:
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
   flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
-  reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
   refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   repair: "Diagnose and repair configuration and verification failures"
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
+  signature: "Repair function-signature smells: excessive inputs and boolean flag parameters"
   testing-discipline: "Place tests by behavior and test through the public surface"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"

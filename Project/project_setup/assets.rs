@@ -52,7 +52,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "reduce-parameters",
-        include_str!("../shared/skills/reduce-parameters/SKILL.md"),
+        include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
     (
         "refactor-large-directory",
@@ -70,6 +70,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "replace-comment",
         include_str!("../shared/skills/replace-comment/SKILL.md"),
+    ),
+    (
+        "split-boolean-parameter",
+        include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),
     (
         "testing-discipline",

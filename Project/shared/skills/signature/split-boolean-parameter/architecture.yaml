@@ -1,0 +1,5 @@
+purpose: "Replace a boolean parameter with named modes while preserving behavior"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace a boolean parameter with named modes or a split"
+directories: {}
