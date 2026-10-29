@@ -86,6 +86,8 @@ clippy:
   - clippy::dbg_macro
   - -D
   - clippy::unreachable
+  - -D
+  - clippy::expect_used
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

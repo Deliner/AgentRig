@@ -55,7 +55,7 @@ fn validate_roots(
     let settings = rule
         .architecture
         .as_ref()
-        .expect("validated architecture settings");
+        .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
     ensure!(
         !needs_rust_root || !settings.rust_roots.is_empty(),
         "{}: selected Rust sources need architecture.rust_roots",

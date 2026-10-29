@@ -42,12 +42,10 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "comment" => comment(node, source, output),
         "expression_statement" => statement(node, output),
         "if_statement" | "elif_clause" => {
-            condition(
-                node,
-                node.child_by_field_name("condition")
-                    .expect("parsed condition"),
-                output,
-            );
+            let Some(test) = node.child_by_field_name("condition") else {
+                return;
+            };
+            condition(node, test, output);
         }
         "conditional_expression" => {
             let mut cursor = node.walk();
@@ -55,15 +53,19 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
                 .named_children(&mut cursor)
                 .filter(|child| !child.is_extra());
             let _consequence = operands.next();
-            let test = operands.next().expect("parsed conditional expression");
+            let Some(test) = operands.next() else {
+                return;
+            };
             condition(node, test, output);
         }
         "if_clause" => {
             let mut cursor = node.walk();
-            let test = node
+            let Some(test) = node
                 .named_children(&mut cursor)
                 .find(|child| !child.is_extra())
-                .expect("parsed comprehension condition");
+            else {
+                return;
+            };
             condition(node, test, output);
         }
         "function_definition" | "lambda" => {

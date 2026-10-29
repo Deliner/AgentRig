@@ -162,7 +162,10 @@ impl Attempt {
         Ok(stable)
     }
     fn save(&self) -> Result<()> {
-        let directory = self.path.parent().expect("runtime file parent");
+        let directory = self
+            .path
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("runtime file has no parent"))?;
         fs::create_dir_all(directory)?;
         crate::shared::artifacts::json::save(&self.path, &self.record)
     }

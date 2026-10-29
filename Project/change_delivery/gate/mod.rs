@@ -180,11 +180,13 @@ fn run_check(
     rerun: &str,
 ) -> Result<i32> {
     match check.kind {
-        CheckKind::Command => command_runner::run(
-            context,
-            check.command.as_deref().expect("validated command"),
-            source.2,
-        ),
+        CheckKind::Command => {
+            let command = check
+                .command
+                .as_deref()
+                .ok_or_else(|| anyhow::anyhow!("command check without a command"))?;
+            command_runner::run(context, command, source.2)
+        }
         CheckKind::Lint => structural_lint::check(
             &context.root,
             &context.path(&context.config.paths.lint)?,

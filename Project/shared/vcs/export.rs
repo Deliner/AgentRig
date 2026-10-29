@@ -18,7 +18,10 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
             "revision export cannot include submodule {name}; export its repository separately"
         );
         let path = directory.path().join(&name);
-        fs::create_dir_all(path.parent().expect("exported path has a parent"))?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("exported path has no parent"))?;
+        fs::create_dir_all(parent)?;
         let bytes = repository.read(revision, &name)?;
         let symlink = entry.kind == FileKind::Symlink;
         if symlink {

@@ -16,8 +16,11 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
         .checks
         .iter()
         .find(|c| c.id == oracle.check)
-        .expect("validated oracle check");
-    let name = check.command.as_deref().expect("validated command check");
+        .context("oracle check is not configured")?;
+    let name = check
+        .command
+        .as_deref()
+        .context("oracle check has no command")?;
     let target_function = oracle.target.rsplit("::").next().unwrap_or("");
     let target_function = target_function.split('[').next().unwrap_or("");
     ensure!(

@@ -271,7 +271,7 @@ pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
     for section in MODULES {
         let value = sections
             .remove(section)
-            .expect("serialized configuration section");
+            .ok_or_else(|| anyhow::anyhow!("missing configuration section {section}"))?;
         files.push((module(section), crate::shared::yaml::encode(&value)?));
     }
     files.push((FILE.into(), crate::shared::yaml::encode(&sections)?));
