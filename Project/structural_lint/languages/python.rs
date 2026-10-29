@@ -77,6 +77,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         _ => {}
     }
 }
+// DECISION: D061
 fn classify(node: Node<'_>) -> Nest {
     match node.kind() {
         "function_definition" | "lambda" => Nest::Boundary,

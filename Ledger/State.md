@@ -10,8 +10,10 @@
 
 ## Workspace
 
-Branch: feature/complexity-lints (от master). Revision: `a885bf2` (база ветки; VAC по
-ветке ещё не коммичены). Пин `tooling/distribution/stable.txt` = `ace5511` (прошлая карта).
+Branch: feature/complexity-lints (от master). Revision: A1 (enabling) закоммичен — `e4bb96a`;
+A2 (live) в рабочем дереве, не закоммичен. Установленный бинарь забустрапен на `e4bb96a`
+(знает `NestingDepth`), поэтому `lint.yaml` с `nesting-depth` не клинит хук. Коммитнутый пин
+`stable.txt` всё ещё `ace5511` — финальный пин (голова A2) ставится перед merge (D051).
 
 Машина — macOS. Сборка/clippy/коммит/мерж — через `just scratch -- '...'` с PATH; `cargo`
 в `~/.zshenv` (`~/.cargo/bin`).
@@ -24,25 +26,30 @@ Branch: feature/complexity-lints (от master). Revision: `a885bf2` (база в
 
 ## Progress
 
-A1 (nesting-depth) готов в рабочем дереве, не закоммичен:
+A1 (enabling) закоммичен `e4bb96a` — весь гейт зелёный, забустрапен:
 
 - Движок: `Kind::NestingDepth` (`kind.rs`), дескриптор `NESTINGDEPTH` (`error: 4`,
   навык `flatten-nesting`), в обоих обработчиках `rules` (`registry.rs`); измерение
   `nesting`/`descend` + enum `Nest` (`languages/mod.rs`); `classify` в `rust.rs`/`python.rs`
   (if/match/loop/while/for → +1; Rust else-if и Python elif — тот же уровень; вложенные
-  функции/замыкания — границы, меряются отдельно).
-- Навык `flatten-nesting`: `SKILL.md` + `architecture.yaml`, в `assets.rs` (`SKILLS`) и в
-  `Project/shared/skills/architecture.yaml` — обе стороны синхронно (I020).
-- Юнит-тесты движка: `rust_nesting_...`, `python_nesting_...` в `languages/tests/mod.rs`.
-- Ledger: создан [P036](Plan/036.md), строка в [Plan](Plan.md); [B029](Backlog/029.md) выбрана.
-- НЕ сделано в A1 осознанно: `catalog::ALL` и правило в `.agentrig/lint.yaml` (это A2).
+  функции/замыкания — границы, меряются отдельно). Навык `flatten-nesting` (обе стороны
+  I020). Юнит-тесты `rust_nesting_...`/`python_nesting_...`. Ledger: [P036](Plan/036.md).
+
+A2 (live) в рабочем дереве, не закоммичен:
+
+- `NestingDepth` добавлен в `catalog::ALL`; правило `nesting-depth` (`error: 4`) в
+  `.agentrig/lint.yaml`. Решение [D061](Decisions/061.md) записано (строка + карточка),
+  маркеры `// DECISION: D061` на владельцах (`descriptor.rs`, `languages/mod.rs`,
+  `rust.rs`, `python.rs`, `languages/tests/mod.rs`, `lint.yaml`) — зеркало D037.
+- Догфуд: наш код уже зелёный под порогом `error: 4` (глубина ≤4 везде), рефактор не нужен;
+  порог не ослаблялся (совпадает с `parameter-count`).
 
 ## Verification
 
-Кандидат собран (`agentrig 0.3.0`). Rust lib-тесты: 79 PASS (включая `rust_nesting_...`,
-`python_nesting_...`). Python: test_delivery (I020), test_lint_defaults (I017),
-test_capabilities, test_language_delivery, test_language — 40 PASS. I020 сбалансирован.
-Полный коммит-гейт ещё не прогонялся.
+A1-коммит: build/lint/memory/rustfmt/clippy/rust-test 56/ruff/ruff-format/mypy/test 264/
+typos/vulture — PASS; бустрап `e4bb96a` успешен. A2 (рабочее дерево): `config-check` валиден,
+кандидат-`lint` = 0 ошибок (маркеры D061 принимаются, nesting без находок). Полный A2-гейт
+ещё не прогонялся.
 
 ## Blockers
 
@@ -50,7 +57,7 @@ test_capabilities, test_language_delivery, test_language — 40 PASS. I020 сб�
 
 ## Next action
 
-Застейджить только файлы A1, закоммитить A1 через хук (гейт прогонит affected-тесты), затем
-пин+бустрап одной командой scratch (`stable.txt` = голова A1 + `just bootstrap`, D051). Затем
-A2: добавить `NestingDepth` в `catalog::ALL` и правило `nesting-depth` в `lint.yaml`, догфуд
-нашего кода к зелёному, обновить State. Не пушить без просьбы.
+Застейджить A2 (без `stable.txt`) и закоммитить через хук. Затем финальный пин: голова A2 →
+`stable.txt` + `just bootstrap` одной командой scratch, закоммитить пин (D051). Затем
+`just feature-merge` (ветка сохраняется). Потом — следующая карточка набора (B026, B028,
+B030–B033) и под-правила B029 4.2/4.3. Не пушить без просьбы.

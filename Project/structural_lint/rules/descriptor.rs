@@ -144,6 +144,7 @@ const PARAMETERCOUNT: Descriptor = Descriptor {
     },
 };
 
+// DECISION: D061
 const NESTINGDEPTH: Descriptor = Descriptor {
     default_id: "nesting-depth",
     target: "file",

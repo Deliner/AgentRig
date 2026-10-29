@@ -64,6 +64,7 @@ def run():
     );
 }
 
+// DECISION: D061
 fn nesting_depths(path: &str, source: &str) -> Vec<(String, u64)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
