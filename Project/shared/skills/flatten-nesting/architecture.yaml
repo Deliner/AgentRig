@@ -1,0 +1,5 @@
+purpose: "Reduce control-flow nesting depth while preserving behavior"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to flatten control-flow nesting while preserving behavior"
+directories: {}

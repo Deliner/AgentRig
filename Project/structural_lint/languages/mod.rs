@@ -126,3 +126,44 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
         });
     }
 }
+pub enum Nest {
+    Increment,
+    Boundary,
+    Plain,
+}
+pub fn nesting(
+    node: Node<'_>,
+    source: &str,
+    classify: fn(Node<'_>) -> Nest,
+    output: &mut Vec<Measurement>,
+) {
+    let has_body = node.child_by_field_name("body").is_some();
+    if has_body {
+        let symbol = node
+            .child_by_field_name("name")
+            .map(|name| text(name, source))
+            .unwrap_or("<anonymous>");
+        let mut max = 0;
+        descend(node, classify, 0, &mut max);
+        output.push(Measurement {
+            kind: Kind::NestingDepth,
+            line: node.start_position().row + 1,
+            symbol: symbol.into(),
+            actual: max,
+        });
+    }
+}
+fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: u64, max: &mut u64) {
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        match classify(child) {
+            Nest::Boundary => {}
+            Nest::Increment => {
+                let inner = depth + 1;
+                *max = (*max).max(inner);
+                descend(child, classify, inner, max);
+            }
+            Nest::Plain => descend(child, classify, depth, max),
+        }
+    }
+}

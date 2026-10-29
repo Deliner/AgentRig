@@ -63,3 +63,89 @@ def run():
         ]
     );
 }
+
+fn nesting_depths(path: &str, source: &str) -> Vec<(String, u64)> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut depths: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::NestingDepth)
+        .map(|item| (item.symbol, item.actual))
+        .collect();
+    depths.sort();
+    depths
+}
+
+#[test]
+fn rust_nesting_counts_blocks_without_else_if_or_nested_items() {
+    let source = "fn flat() {
+    let value = 1;
+}
+fn nested() {
+    for value in items {
+        if value > 0 {
+            while value > 0 {
+                work();
+            }
+        }
+    }
+}
+fn ladder(choice: i32) {
+    if choice == 0 {
+    } else if choice == 1 {
+    } else {
+    }
+}
+fn outer() {
+    let closure = |value: i32| {
+        if value > 0 {
+            work();
+        }
+    };
+}
+";
+    assert_eq!(
+        nesting_depths("source.rs", source),
+        [
+            ("<anonymous>".into(), 1),
+            ("flat".into(), 0),
+            ("ladder".into(), 1),
+            ("nested".into(), 3),
+            ("outer".into(), 0),
+        ]
+    );
+}
+
+#[test]
+fn python_nesting_counts_blocks_without_elif_or_nested_functions() {
+    let source = "def flat():
+    value = 1
+def nested():
+    for value in items:
+        if value > 0:
+            while value > 0:
+                work()
+def ladder(choice):
+    if choice == 0:
+        pass
+    elif choice == 1:
+        pass
+    else:
+        pass
+def outer():
+    def inner():
+        if ready:
+            work()
+";
+    assert_eq!(
+        nesting_depths("source.py", source),
+        [
+            ("flat".into(), 0),
+            ("inner".into(), 1),
+            ("ladder".into(), 1),
+            ("nested".into(), 3),
+            ("outer".into(), 0),
+        ]
+    );
+}

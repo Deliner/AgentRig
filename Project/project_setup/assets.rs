@@ -39,6 +39,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/execute-plan-feature/SKILL.md"),
     ),
     (
+        "flatten-nesting",
+        include_str!("../shared/skills/flatten-nesting/SKILL.md"),
+    ),
+    (
         "name-if-condition",
         include_str!("../shared/skills/name-if-condition/SKILL.md"),
     ),

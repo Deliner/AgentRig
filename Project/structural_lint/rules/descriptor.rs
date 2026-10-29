@@ -45,6 +45,7 @@ impl Kind {
             Self::NamedIfCondition => &NAMEDIFCONDITION,
             Self::FunctionLines => &FUNCTIONLINES,
             Self::ParameterCount => &PARAMETERCOUNT,
+            Self::NestingDepth => &NESTINGDEPTH,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -137,6 +138,17 @@ const PARAMETERCOUNT: Descriptor = Descriptor {
     target: "file",
     metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one",
     skill: "reduce-parameters",
+    parameters: Parameters::Thresholds {
+        warning: None,
+        error: 4,
+    },
+};
+
+const NESTINGDEPTH: Descriptor = Descriptor {
+    default_id: "nesting-depth",
+    target: "file",
+    metric: "deepest nested control-flow blocks in a function; if/match/loop/while/for add depth; Rust else-if and Python elif continue the same level; nested function and closure bodies are measured on their own",
+    skill: "flatten-nesting",
     parameters: Parameters::Thresholds {
         warning: None,
         error: 4,

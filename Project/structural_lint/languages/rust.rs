@@ -1,4 +1,4 @@
-use super::{Measurement, comment, condition, function};
+use super::{Measurement, Nest, comment, condition, function, nesting};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -34,7 +34,27 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
                 })
                 .count() as u64;
             function(node, source, count, output);
+            nesting(node, source, classify, output);
         }
         _ => {}
+    }
+}
+fn classify(node: Node<'_>) -> Nest {
+    match node.kind() {
+        "function_item" | "function_signature_item" | "closure_expression" => Nest::Boundary,
+        "if_expression" => {
+            let continuation = node
+                .parent()
+                .is_some_and(|parent| parent.kind() == "else_clause");
+            if continuation {
+                Nest::Plain
+            } else {
+                Nest::Increment
+            }
+        }
+        "match_expression" | "while_expression" | "loop_expression" | "for_expression" => {
+            Nest::Increment
+        }
+        _ => Nest::Plain,
     }
 }
