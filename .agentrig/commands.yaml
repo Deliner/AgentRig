@@ -76,6 +76,14 @@ clippy:
   - --
   - -D
   - warnings
+  - -D
+  - clippy::panic
+  - -D
+  - clippy::todo
+  - -D
+  - clippy::unimplemented
+  - -D
+  - clippy::dbg_macro
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
