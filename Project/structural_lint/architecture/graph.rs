@@ -27,20 +27,20 @@ pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
 }
 
 fn add_edge<'a>(graph: &mut Adjacency<'a>, edge: &'a Dependency) {
-    let (source, target) = (edge.source.parent().unwrap(), edge.target.parent().unwrap());
+    let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
+        return;
+    };
     let same_directory = source == target;
     if same_directory {
         return;
     }
-    let common = source
-        .ancestors()
-        .find(|path| target.starts_with(path))
-        .unwrap();
+    let Some(common) = source.ancestors().find(|path| target.starts_with(path)) else {
+        return;
+    };
     let boundary = |path: &Path| {
         path.strip_prefix(common)
-            .unwrap()
-            .components()
-            .next()
+            .ok()
+            .and_then(|rest| rest.components().next())
             .map(|part| common.join(part))
             .unwrap_or_else(|| common.to_owned())
     };

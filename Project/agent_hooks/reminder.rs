@@ -34,7 +34,10 @@ fn state_path(event: &Value, directory: &Path) -> Result<(File, PathBuf)> {
     Ok((lock, root.join(format!("{stem}.json"))))
 }
 fn save(path: &Path, state: &Value) -> Result<()> {
-    let mut temporary = tempfile::NamedTempFile::new_in(path.parent().unwrap())?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| anyhow::anyhow!("reminder file has no parent"))?;
+    let mut temporary = tempfile::NamedTempFile::new_in(parent)?;
     serde_json::to_writer(&mut temporary, state)?;
     writeln!(temporary)?;
     temporary.persist(path)?;
@@ -169,16 +172,19 @@ impl Progress {
         None
     }
     fn store(&self, state: &mut Value) {
+        let Some(object) = state.as_object_mut() else {
+            return;
+        };
         if let Some(current) = self.latest {
-            state["latest_tokens"] = json!(current);
+            object.insert("latest_tokens".into(), json!(current));
         } else {
-            state.as_object_mut().unwrap().remove("latest_tokens");
+            object.remove("latest_tokens");
         }
-        state["baseline_tokens"] = json!(self.baseline);
-        state["next_attention_tokens"] = json!(self.next);
-        state["allow_next_edit"] = json!(self.allow);
+        object.insert("baseline_tokens".into(), json!(self.baseline));
+        object.insert("next_attention_tokens".into(), json!(self.next));
+        object.insert("allow_next_edit".into(), json!(self.allow));
         if self.context_reset {
-            state.as_object_mut().unwrap().remove("delivered");
+            object.remove("delivered");
         }
     }
 }

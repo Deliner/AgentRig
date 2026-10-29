@@ -63,6 +63,9 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D057](Decisions/057.md) | Keep test public-surface discipline (TC2/TC4) a review norm; no static rule. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [superseded consequence](Decisions/054.md) |
 | [D058](Decisions/058.md) | Reject coverage-based test-placement enforcement; TC1 stays a review norm. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [kept norm](Decisions/055.md) |
 | [D059](Decisions/059.md) | Static TC2/TC4 require a type-resolving frontend; keep the review norm. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [kept norm](Decisions/057.md) |
+| [D060](Decisions/060.md) | Run Clippy as a dev-gate with a panic-risk deny set, excluding print lints because the CLI's output is the product. | [card](Archive/Backlog/027.md), [clippy profile](../.agentrig/commands.yaml), [ruff profile](../tooling/pyproject.toml) |
+
+D060 scopes B027 to this repository's development gate: the `init` template ships no external tools, so the Clippy panic-risk profile (`panic`/`todo`/`unimplemented`/`dbg_macro`/`unreachable`/`expect_used`/`unwrap_used`) and the ruff `PERF` group harden AgentRig's own code rather than `init`. It supersedes nothing and records the `print_stdout`/`print_stderr` exclusion as a choice (CLI output is the product), not a weakened threshold.
 
 D059 records the B025 semantic-analyzer alternative to static TC2/TC4 as rejected on the current tree-sitter engine; it reinforces D057's norm and names a type-resolving frontend (rust-analyzer-class for Rust, type inference for Python) as the measured lever, without changing the engine.
 

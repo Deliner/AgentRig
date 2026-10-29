@@ -62,7 +62,7 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
     Ok(())
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> Result<()> {
-    let (headings, optional) = format::detail_sections(directory);
+    let (headings, optional) = format::detail_sections(directory)?;
     let mut known = HashSet::new();
     for row in rows {
         ensure!(
@@ -90,11 +90,12 @@ fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> 
                 .and_then(|s| s.to_str())
                 .is_some_and(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()));
             if numeric {
+                let name = path
+                    .file_name()
+                    .ok_or_else(|| anyhow::anyhow!("detail path has no file name"))?
+                    .to_string_lossy();
                 ensure!(
-                    known.contains(&format!(
-                        "{directory}/{}",
-                        path.file_name().unwrap().to_string_lossy()
-                    )),
+                    known.contains(&format!("{directory}/{name}")),
                     "unindexed detail {}",
                     path.display()
                 );

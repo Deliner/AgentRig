@@ -92,7 +92,11 @@ fn groups(attribute: Node<'_>) -> Vec<Vec<Node<'_>>> {
         match child.kind() {
             "(" | ")" => {}
             "," => groups.push(Vec::new()),
-            _ => groups.last_mut().unwrap().push(child),
+            _ => {
+                if let Some(group) = groups.last_mut() {
+                    group.push(child);
+                }
+            }
         }
     }
     groups

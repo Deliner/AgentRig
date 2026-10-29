@@ -59,7 +59,7 @@ impl Job {
         let directory = storage::create(runtime)?;
         let run_id = directory
             .file_name()
-            .unwrap()
+            .ok_or_else(|| anyhow::anyhow!("job directory has no name"))?
             .to_string_lossy()
             .into_owned();
         let owner = owner().unwrap_or_else(|| run_id.clone());

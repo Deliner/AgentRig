@@ -15,7 +15,7 @@ fn bundle(config: &Config) -> Result<Files> {
     for (path, source) in project_config::files(config)? {
         files.insert(path, source.into_bytes());
     }
-    for (name, source) in assets::memory() {
+    for (name, source) in assets::memory()? {
         files.insert(
             format!("{}/{name}.md", config.paths.memory),
             source.into_bytes(),

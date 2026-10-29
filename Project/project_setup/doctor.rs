@@ -153,18 +153,14 @@ pub(super) fn hooks_registered(
         &super::adapters::generated(&context.config)?.root_command,
     )?)?;
     Ok(configured.is_some_and(|value| {
-        expected["hooks"]
-            .as_object()
-            .unwrap()
-            .iter()
-            .all(|(event, desired)| {
+        expected["hooks"].as_object().is_some_and(|hooks| {
+            hooks.iter().all(|(event, desired)| {
                 value["hooks"][event].as_array().is_some_and(|routes| {
                     desired
                         .as_array()
-                        .unwrap()
-                        .iter()
-                        .all(|route| routes.contains(route))
+                        .is_some_and(|items| items.iter().all(|route| routes.contains(route)))
                 })
             })
+        })
     }))
 }

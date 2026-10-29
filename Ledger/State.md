@@ -2,40 +2,37 @@
 
 ## Focus
 
-Программа улучшений качества кода «из коробки» (мозгоштурм 2026-10-29, кластеры 1–8,
-9-й исключён). Набор зафиксирован в Backlog карточками [B026](Backlog/026.md)–[B033](Backlog/033.md).
-Дальше — реализация по одной карточке через догфудинг: каждая = своя ветка → гейт → пин
-→ merge, наш код обязан проходить новое правило. Пороги не ослаблять ради проходимости.
+Реализация набора улучшений качества (кластеры 1–8, [B026](Backlog/026.md)–
+[B033](Backlog/033.md)) через догфудинг, по одной карточке. Первая — B027
+([P035](Archive/Plan/035.md)) — завершена; идёт её финальный коммит и влитие.
 
 ## Workspace
 
-Branch: feature/quality-backlog (Ledger-only, фиксация набора; Project не менялся, пин не
-нужен).
+Branch: feature/external-profiles (от master). Revision: VAC-A `a9875fa`, VAC-B `72299fa`,
+VAC-C `0a50b68`, VAC-D `ace5511` committed; финальный коммит (D060 + архивация + пин) —
+текущий. Пин `tooling/distribution/stable.txt` = `ace5511`, бустрап выполнен (D051).
 
-Revision: от master после влития feature/semantic-symbols.
-
-Машина — macOS (Darwin 25.5.0). Реализационные карточки будут менять Project (движок/
-поставка init) → каждой нужен пин по D051 перед merge. Merge/бустрап — через
-`just scratch -- '...'` с PATH.
+Машина — macOS. Сборка/clippy/коммит — через `just scratch -- '...'` с PATH; `cargo`
+добавлен в `~/.zshenv` (`~/.cargo/bin`), поэтому `just bootstrap`/`!`-шелл его видят.
 
 ## Progress
 
-Зафиксировано 8 карточек: B026 безопасность (`unsafe`-обоснование, bandit, секреты);
-B027 строгие профили clippy/ruff/mypy; B028 ошибки/ресурсы; B029 сложность (вложенность,
-флаговые параметры, бюджет ветвлений); B030 структура как карта (семьи вместе, качество
-architecture.yaml, одна возможность=файл); B031 именование (свалки, осмысленность,
-магические числа); B032 тесты (выключенные-с-обоснованием, недетерминизм, конвенции);
-B033 зависимости/сборка. Индекс Backlog обновлён.
+B027 доставлен (dev-гейт репозитория):
 
-Уже есть в движке (не дублировать): file-size, function-lines(40), parameter-count(4),
-named-if-condition, comment-reference, markdown-size/width/placement, directory-size,
-directory-architecture (контракты+циклы+типы фич, ловит необъявленные внешние зависимости).
-Clippy сейчас только `-D warnings` без restriction; ruff/mypy — профиль из tooling/pyproject.
+- clippy (`.agentrig/commands.yaml`) — `-D warnings` + паник-риск-deny
+  (`panic`/`todo`/`unimplemented`/`dbg_macro`/`unreachable`/`expect_used`/`unwrap_used`);
+  `print_stdout`/`print_stderr` исключены осознанно (CLI-вывод — продукт).
+- ruff — добавлен `PERF` (0 правок); `mypy --strict` был. Код зелёный (VAC-A..D).
+- [D060](Decisions/060.md) записан: clippy-профиль без print-линтов; `init` внешних тулов
+  не поставляет, профиль — улучшение dev-гейта, не init-возможность.
+- P035 → [Archive/Plan](Archive/Plan.md), B027 → [Archive/Backlog](Archive/Backlog.md),
+  Delivery заполнена; оригиналы `Plan/035.md`/`Backlog/027.md` удалены.
 
 ## Verification
 
-Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
-pytest, typos, vulture). Эта ветка — Ledger-only, memory-check индекса Backlog.
+VAC-D коммит-гейт целиком зелёный: build/lint/memory/rustfmt/clippy (полный профиль)/
+rust-test 77/ruff/ruff-format/mypy/pytest 346/typos/vulture — все PASS. Бустрап `ace5511`
+успешен (`agentrig 0.3.0`).
 
 ## Blockers
 
@@ -43,8 +40,6 @@ pytest, typos, vulture). Эта ветка — Ledger-only, memory-check инд�
 
 ## Next action
 
-Влить feature/quality-backlog. Затем реализовать карточки по порядку (конфиг/простые
-правила раньше, структура позже): предлагаемый порядок B027 → B028 → B029 → B031 → B026
-→ B032 → B033 → B030; промоут каждой в Plan при старте её ветки (edit-plan), догфуд до
-зелёного, пин D051, merge, архивация. Порядок и границы VAC — за исполнителем. Не пушить
-без просьбы.
+Закоммитить финал (Ledger-архивация + `stable.txt`). Затем `just feature-merge` (прогонит
+affected тесты всей ветки); ветка сохраняется. Затем — следующая карточка набора
+(B026, B028–B033) на новой ветке через `feature-start`. Не пушить без просьбы.

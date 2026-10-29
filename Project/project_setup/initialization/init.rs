@@ -64,7 +64,10 @@ fn validate_bundle(files: &Files) -> Result<()> {
     let root = preview.path().canonicalize()?;
     for (path, contents) in files {
         let path = project_config::relative(&root, path)?;
-        fs::create_dir_all(path.parent().unwrap())?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("bundle path has no parent"))?;
+        fs::create_dir_all(parent)?;
         fs::write(path, contents)?;
     }
     project_config::Context::load(&root)?;
@@ -74,7 +77,10 @@ pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()>
     for (path, contents) in files {
         let executable = executable(path);
         let path = project_config::relative(root, path)?;
-        fs::create_dir_all(path.parent().unwrap())?;
+        let parent = path
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("install path has no parent"))?;
+        fs::create_dir_all(parent)?;
         let mut file = OpenOptions::new()
             .write(true)
             .create_new(true)

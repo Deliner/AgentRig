@@ -7,9 +7,9 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "if_expression" => {
-            let test = node
-                .child_by_field_name("condition")
-                .expect("parsed if condition");
+            let Some(test) = node.child_by_field_name("condition") else {
+                return;
+            };
             let binding = test.kind() == "let_condition";
             if binding {
                 return;
@@ -17,9 +17,9 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             condition(node, test, output);
         }
         "function_item" | "function_signature_item" | "closure_expression" => {
-            let parameters = node
-                .child_by_field_name("parameters")
-                .expect("parsed parameters");
+            let Some(parameters) = node.child_by_field_name("parameters") else {
+                return;
+            };
             let mut cursor = parameters.walk();
             let count = parameters
                 .named_children(&mut cursor)

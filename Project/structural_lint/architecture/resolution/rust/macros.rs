@@ -57,7 +57,8 @@ impl Rust<'_> {
                 .literal
                 .as_ref()
                 .context("resource macro needs one static unescaped string literal")?;
-            let target = super::super::normalize(&source.parent().unwrap().join(literal))?;
+            let parent = source.parent().context("resource source has no parent")?;
+            let target = super::super::normalize(&parent.join(literal))?;
             BTreeSet::from([target])
         } else {
             BTreeSet::new()

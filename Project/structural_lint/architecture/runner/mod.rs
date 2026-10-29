@@ -38,7 +38,7 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     let settings = rule
         .architecture
         .as_ref()
-        .expect("validated architecture settings");
+        .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
     let rust_sources = analysis::rust_sources(&root, &files);
     let (resolvers, mut issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
     let (contracts, contract_issues) = Contracts::load(&root, &scope.directories);
@@ -50,10 +50,10 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(super::graph::cycles(&edges));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &edges));
-    Ok(issues
+    issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
-        .collect())
+        .collect()
 }
 
 fn dependencies(
@@ -70,10 +70,13 @@ fn dependencies(
     (edges, issues)
 }
 
-fn diagnostic(rule: &Rule, issue: Issue) -> Diagnostic {
-    let level = rule.level.expect("validated architecture level").name();
+fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
+    let level = rule
+        .level
+        .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?
+        .name();
     let blocking = level == "error";
-    Diagnostic {
+    Ok(Diagnostic {
         rule: rule.id.clone(),
         path: issue.path.to_string_lossy().into_owned(),
         level: level.into(),
@@ -88,5 +91,5 @@ fn diagnostic(rule: &Rule, issue: Issue) -> Diagnostic {
         line: issue.line,
         symbol: None,
         rerun: String::new(),
-    }
+    })
 }
