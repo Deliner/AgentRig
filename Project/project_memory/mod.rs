@@ -62,7 +62,7 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
     Ok(())
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> Result<()> {
-    let (headings, optional) = format::detail_sections(directory);
+    let (headings, optional) = format::detail_sections(directory)?;
     let mut known = HashSet::new();
     for row in rows {
         ensure!(

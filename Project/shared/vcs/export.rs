@@ -20,17 +20,14 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
         let path = directory.path().join(&name);
         fs::create_dir_all(path.parent().expect("exported path has a parent"))?;
         let bytes = repository.read(revision, &name)?;
-        match entry.kind {
-            FileKind::Symlink => links_after_contents.push((path, bytes)),
-            FileKind::File | FileKind::Executable => {
-                fs::write(&path, bytes)?;
-                let mode = match entry.kind {
-                    FileKind::Executable => 0o755,
-                    _ => 0o644,
-                };
-                fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
-            }
-            FileKind::Submodule => unreachable!("rejected before reading"),
+        let symlink = entry.kind == FileKind::Symlink;
+        if symlink {
+            links_after_contents.push((path, bytes));
+        } else {
+            fs::write(&path, bytes)?;
+            let executable = entry.kind == FileKind::Executable;
+            let mode = if executable { 0o755 } else { 0o644 };
+            fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
         }
     }
     for (path, target) in links_after_contents {

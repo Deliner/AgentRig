@@ -3,42 +3,40 @@
 ## Focus
 
 Реализация набора улучшений качества (кластеры 1–8, [B026](Backlog/026.md)–
-[B033](Backlog/033.md)) через догфудинг, по одной карточке. Сейчас в работе первая —
-B027 (строгие профили clippy/ruff), промоутнута в [P035](Plan/035.md).
+[B033](Backlog/033.md)) через догфудинг, по одной карточке. В работе первая — B027
+(строгие профили clippy/ruff), [P035](Plan/035.md).
 
 ## Workspace
 
 Branch: feature/external-profiles (от master после влития feature/quality-backlog).
-Revision: HEAD ветки до первого коммита VAC-A.
+Revision: VAC-A committed `a9875fa`; VAC-B (unreachable) застейджен, ещё не закоммичен.
 
-Машина — macOS (Darwin 25.5.0). Merge/бустрап/сборка — через `just scratch -- '...'` с
-PATH (`/Users/admin/.cargo/bin:/Users/admin/.local/bin:/opt/homebrew/bin:/usr/bin:/bin`).
+Машина — macOS (Darwin 25.5.0). Сборка/clippy/fmt/коммит — через `just scratch -- '...'`
+с PATH (`/Users/admin/.cargo/bin:/Users/admin/.local/bin:/opt/homebrew/bin:/usr/bin:/bin`).
 
 ## Progress
 
-Замер догфуд-поверхности B027 (clippy restriction как warnings + ruff PERF):
-- ruff `PERF` — 0 правок (наш код уже чист).
-- clippy restriction — 113 срабатываний: `println!`/`eprintln!`/`print!` = 73 (CLI-вывод,
-  легитимно); `unwrap` 17 / `expect` 14 / `unreachable!` 6 = 37 (паник-риск, чиним);
-  `panic!`/`todo!`/`unimplemented!`/`dbg!` = 0.
+B027 реализуется по одному clippy-линту за VAC, гейт зелёным. Замер: ruff `PERF` — 0
+правок; clippy паник-риск — 37 сайтов (`unwrap` 17 / `expect` 14 / `unreachable!` 6);
+print-линты (73) исключены осознанно (CLI-вывод). mypy уже strict; ruff уже с B/SIM/UP.
 
-Открытие: шаблон `init` (`Project/project_setup/template.rs`) внешних тулов
-(clippy/ruff/mypy) НЕ поставляет — отдаёт встроенный структурный линтер (`CheckKind::Lint`)
-и `read`/`write`/`test`. Значит clippy/ruff/mypy — собственный dev-гейт репозитория, не
-init-возможность. B027 сужен до улучшения dev-гейта (зафиксировать решением D060); «из
-коробки для пользователя» дают карточки-правила движка, не B027.
+- VAC-A (committed `a9875fa`): `PERF` в ruff; нулевые clippy-линты
+  (`panic`/`todo`/`unimplemented`/`dbg_macro`) в `.agentrig/commands.yaml`; B027→P035.
+- VAC-B (готов к коммиту): 6 `unreachable!` устранены — `settings::files` и
+  `structural_lint` два места → `anyhow::bail!`; `format::columns`/`detail_sections` →
+  `Result` (вызовы в `parse_table`, `project_memory::mod`, `assets::memory`→`Result`,
+  `bundle`); `vcs::export` match→if (Submodule уже отсечён `ensure!`). Включён
+  `-D clippy::unreachable`. fmt+clippy локально зелёные.
 
-VAC-A (готов к коммиту, код не меняется → пин не нужен): `PERF` добавлен в
-`tooling/pyproject.toml`; нулевые clippy-линты (`panic`/`todo`/`unimplemented`/`dbg_macro`)
-добавлены как `-D` в `.agentrig/commands.yaml`; B027→P035 (active) в Plan.
-
-mypy уже `strict = true`; ruff уже содержит `B`/`SIM`/`UP` — менять не нужно.
+Открытие (зафиксировать в D060 в финальном VAC): шаблон `init` (`template.rs`) внешних
+тулов не поставляет — только структурный линтер + read/write/test; поэтому B027 — улучшение
+dev-гейта репозитория, не init-возможность.
 
 ## Verification
 
-Коммит-гейт (build, lint, memory, rustfmt, clippy, rust-test, ruff/ruff-format/mypy,
-pytest, typos, vulture). VAC-A: clippy с новыми нулевыми линтами и ruff с PERF должны быть
-зелёными без правок кода; memory-check после промоута P035.
+Локально: `cargo fmt` + clippy с полным профилем (`panic/todo/unimplemented/dbg_macro/
+unreachable`) — зелёные, компиляция чистая. Коммит-гейт прогонит affected rust-test и
+pytest. VAC-A прошёл гейт целиком (77 Rust, 109 pytest).
 
 ## Blockers
 
@@ -46,10 +44,8 @@ pytest, typos, vulture). VAC-A: clippy с новыми нулевыми линт
 
 ## Next action
 
-Закоммитить VAC-A через хук. Затем по одному линту за VAC, гейт зелёным:
-VAC-B чинит 6 `unreachable!` → `-D clippy::unreachable`; VAC-C чинит 14 `expect` →
-`-D clippy::expect_used`; VAC-D чинит 17 `unwrap` → `-D clippy::unwrap_used`. Затем D060
-(профиль без print-линтов + dev-гейт-scoping). Правки трогают Project/-исходники → перед
-`feature-merge` один раз пин stable.txt + бустрап (D051), коммит пина, затем merge и
-архивация P035/B027. Сайты 37 паник-рисков — в
-scratchpad/b027/clippy.txt. Не пушить без просьбы.
+Закоммитить VAC-B. Затем VAC-C: 14 `expect` → `-D clippy::expect_used`; VAC-D: 17 `unwrap`
+→ `-D clippy::unwrap_used`. Затем D060 (профиль без print-линтов + dev-гейт-scoping). Правки
+трогают Project/ → перед `feature-merge` один раз пин stable.txt + бустрап (D051), коммит
+пина, затем merge и архивация P035/B027. Сайты 37 паник-рисков — в scratchpad/b027/clippy.txt.
+Не пушить без просьбы.

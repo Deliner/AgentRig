@@ -78,7 +78,7 @@ pub fn skills() -> BTreeMap<&'static str, String> {
         .map(|(name, source)| (*name, (*source).to_owned()))
         .collect()
 }
-pub fn memory() -> BTreeMap<&'static str, String> {
+pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
     let mut files = BTreeMap::new();
     for (name, prefix) in [
         ("Plan", 'P'),
@@ -86,7 +86,7 @@ pub fn memory() -> BTreeMap<&'static str, String> {
         ("Decisions", 'D'),
         ("Invariants", 'I'),
     ] {
-        let columns = columns(prefix).join(" | ");
+        let columns = columns(prefix)?.join(" | ");
         let separator = columns
             .split('|')
             .map(|_| "---")
@@ -106,7 +106,7 @@ pub fn memory() -> BTreeMap<&'static str, String> {
                 .collect::<Vec<_>>()
                 .join("\n"),
     );
-    files
+    Ok(files)
 }
 
 // DECISION: D031

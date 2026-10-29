@@ -265,7 +265,7 @@ pub fn sources(root: &Path) -> Vec<PathBuf> {
 }
 pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
     let serde_json::Value::Object(mut sections) = serde_json::to_value(config)? else {
-        unreachable!("configuration serializes to a mapping")
+        anyhow::bail!("configuration must serialize to a mapping")
     };
     let mut files = Vec::new();
     for section in MODULES {

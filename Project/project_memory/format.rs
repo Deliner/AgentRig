@@ -13,18 +13,18 @@ pub const STATE_SECTIONS: &[&str] = &[
     "Blockers",
     "Next action",
 ];
-pub fn columns(prefix: char) -> &'static [&'static str] {
-    match prefix {
+pub fn columns(prefix: char) -> Result<&'static [&'static str]> {
+    Ok(match prefix {
         'P' => &["ID", "Status", "Depends on", "Feature", "User capability"],
         'B' => &["ID", "Idea", "Expected benefit"],
         'D' => &["ID", "Decision", "Applies in"],
         'I' => &["ID", "Invariant", "Enforced by"],
-        _ => unreachable!("internal memory index kind"),
-    }
+        _ => anyhow::bail!("unknown memory index kind {prefix}"),
+    })
 }
 
-pub fn detail_sections(directory: &str) -> (&'static [&'static str], Option<&'static str>) {
-    match directory {
+pub fn detail_sections(directory: &str) -> Result<(&'static [&'static str], Option<&'static str>)> {
+    Ok(match directory {
         "Plan" => (
             &["Feature", "User capability", "Acceptance"],
             Some("Delivery"),
@@ -35,8 +35,8 @@ pub fn detail_sections(directory: &str) -> (&'static [&'static str], Option<&'st
             None,
         ),
         "Invariants" => (&["Predicate", "Oracle"], None),
-        _ => unreachable!("internal memory directory"),
-    }
+        _ => anyhow::bail!("unknown memory directory {directory}"),
+    })
 }
 
 pub struct Row {
@@ -72,7 +72,7 @@ pub fn table(path: &Path, prefix: char) -> Result<Vec<Row>> {
     parse_table(&source, path, prefix)
 }
 pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> {
-    let expected = columns(prefix);
+    let expected = columns(prefix)?;
     let columns = expected.len();
     let mut ids = HashSet::new();
     let mut rows = Vec::new();

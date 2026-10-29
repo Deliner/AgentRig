@@ -100,7 +100,7 @@ fn structural_measurements(
             .unwrap_or_default(),
         rules::Kind::ForbiddenFile => vec![(None, 1)],
         rules::Kind::DirectoryEntries => vec![(None, inventory.file_entries(selected.path) as u64)],
-        _ => unreachable!("validated by rule registry"),
+        _ => anyhow::bail!("rule kind {} has no structural metric", rule.kind),
     })
 }
 fn syntax_findings(
@@ -161,11 +161,7 @@ fn finding(
             _ => return Ok(None),
         }
     };
-    let message = match (limit, &rule.kind.descriptor().parameters) {
-        (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
-        (None, rules::Parameters::Level { violation }) => (*violation).into(),
-        (None, rules::Parameters::Thresholds { .. }) => unreachable!("thresholds report a limit"),
-    };
+    let message = rule_message(rule, limit, actual)?;
     let blocking = level == "error";
     Ok(Some(Diagnostic {
         rule: rule.id.clone(),
@@ -183,6 +179,15 @@ fn finding(
         symbol: None,
         rerun: String::new(),
     }))
+}
+fn rule_message(rule: &config::Rule, limit: Option<u64>, actual: u64) -> Result<String> {
+    Ok(match (limit, &rule.kind.descriptor().parameters) {
+        (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
+        (None, rules::Parameters::Level { violation }) => (*violation).into(),
+        (None, rules::Parameters::Thresholds { .. }) => {
+            anyhow::bail!("threshold rule reported no limit")
+        }
+    })
 }
 struct Output<'a> {
     json: bool,
