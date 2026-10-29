@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P035](Plan/035.md) | active | - | [B027](Backlog/027.md): строгие профили clippy/ruff (dev-гейт) | Код AgentRig проходит строгую анти-паттерн-/типовую проверку до коммита. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -79,3 +78,8 @@ B024 — как [P033](Archive/Plan/033.md) на ветке feature/test-placeme
 по одной карточке. Первой выбран [B027](Backlog/027.md) — промоутнут в [P035](Plan/035.md)
 на ветке feature/external-profiles. Порядок остальных — за исполнителем; ревизии
 контрактов — в карточках. Выполнение автономное, без повторного запроса между карточками.
+P035 (B027) выполнен: профиль clippy — паник-риск-deny без print-линтов
+([D060](Decisions/060.md)), ruff `PERF`; код приведён к зелёному (VAC-A..D). P035 перенесён
+в [Archive/Plan](Archive/Plan.md), B027 — в [Archive/Backlog](Archive/Backlog.md); пин
+stable.txt=`ace5511` ([D051](Decisions/051.md)). Остальные карточки набора (B026, B028–B033)
+— следующими, по одной за ветку.
