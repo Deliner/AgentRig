@@ -140,6 +140,19 @@ rules:
   error: 4
   warning_skill: .agents/skills/reduce-parameters/SKILL.md
   error_skill: .agents/skills/reduce-parameters/SKILL.md
+# DECISION: D061
+- id: nesting-depth
+  kind: nesting-depth
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 4
+  warning_skill: .agents/skills/flatten-nesting/SKILL.md
+  error_skill: .agents/skills/flatten-nesting/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

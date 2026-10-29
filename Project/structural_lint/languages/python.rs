@@ -1,4 +1,4 @@
-use super::{Measurement, comment, condition, function, text};
+use super::{Measurement, Nest, comment, condition, function, nesting, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
@@ -72,8 +72,18 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             let count = parameter_count(node);
             let receiver = method_receiver(node, source) && count > 0;
             function(node, source, count - u64::from(receiver), output);
+            nesting(node, source, classify, output);
         }
         _ => {}
+    }
+}
+// DECISION: D061
+fn classify(node: Node<'_>) -> Nest {
+    match node.kind() {
+        "function_definition" | "lambda" => Nest::Boundary,
+        "if_statement" | "for_statement" | "while_statement" | "with_statement"
+        | "try_statement" | "match_statement" => Nest::Increment,
+        _ => Nest::Plain,
     }
 }
 

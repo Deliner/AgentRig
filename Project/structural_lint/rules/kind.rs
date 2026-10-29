@@ -11,6 +11,7 @@ pub enum Kind {
     NamedIfCondition,
     FunctionLines,
     ParameterCount,
+    NestingDepth,
     CommentReference,
     DirectoryArchitecture,
 }
