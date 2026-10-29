@@ -129,15 +129,12 @@ fn wrap(text: &str, width: usize) -> String {
 fn fold(line: &str, width: usize) -> String {
     let mut rows: Vec<String> = Vec::new();
     for word in line.split_whitespace() {
-        let extends = rows
-            .last()
-            .is_some_and(|row: &String| row.len() + 1 + word.len() <= width);
-        if extends {
-            let row = rows.last_mut().unwrap();
-            row.push(' ');
-            row.push_str(word);
-        } else {
-            rows.push(word.to_owned());
+        match rows.last_mut() {
+            Some(row) if row.len() + 1 + word.len() <= width => {
+                row.push(' ');
+                row.push_str(word);
+            }
+            _ => rows.push(word.to_owned()),
         }
     }
     rows.join("\n")

@@ -72,10 +72,12 @@ fn directories(files: &[PathBuf]) -> BTreeMap<PathBuf, BTreeSet<String>> {
             } else {
                 parent.into()
             };
-            directories
-                .entry(directory)
-                .or_default()
-                .insert(child.file_name().unwrap().to_string_lossy().into_owned());
+            if let Some(name) = child.file_name() {
+                directories
+                    .entry(directory)
+                    .or_default()
+                    .insert(name.to_string_lossy().into_owned());
+            }
             child = parent;
         }
     }
