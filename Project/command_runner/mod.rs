@@ -58,7 +58,13 @@ fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) 
 pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
     let views = context.config.commands[name].output.as_ref();
-    match logged(context, name, argv, views.is_some()) {
+    let summarized = views.is_some();
+    let capture = if summarized {
+        jobs::Capture::Collect
+    } else {
+        jobs::Capture::Stream
+    };
+    match logged(context, name, argv, capture) {
         Ok((output, log)) => {
             let code = jobs::process::exit_code(&output);
             if let Some(views) = views {
@@ -72,20 +78,30 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
         }
     }
 }
-pub fn execute(context: &Context, name: &str, argv: Vec<String>, capture: bool) -> Result<Output> {
+pub fn execute(
+    context: &Context,
+    name: &str,
+    argv: Vec<String>,
+    capture: jobs::Capture,
+) -> Result<Output> {
     logged(context, name, argv, capture).map(|(output, _)| output)
 }
 fn logged(
     context: &Context,
     name: &str,
     argv: Vec<String>,
-    capture: bool,
+    capture: jobs::Capture,
 ) -> Result<(Output, PathBuf)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
     let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
-    job.prepare(&argv, spec.read_only, spec.lifetime)?;
+    let access = if spec.read_only {
+        jobs::Access::ReadOnly
+    } else {
+        jobs::Access::Writable
+    };
+    job.prepare(&argv, access, spec.lifetime)?;
     let result = sandbox::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
@@ -111,7 +127,12 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
         name,
         &context.path(&spec.cwd)?,
     )?;
-    job.prepare(&argv, spec.read_only, spec.lifetime)?;
+    let access = if spec.read_only {
+        jobs::Access::ReadOnly
+    } else {
+        jobs::Access::Writable
+    };
+    job.prepare(&argv, access, spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     println!("{}", serde_json::json!({"run_id": id}));
     Ok(0)
@@ -122,7 +143,12 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     let mut job = crate::command_runner::jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
     let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);
-    let result = sandbox::tracked(&cwd, &argv, (read_only, false), Some(&mut job));
+    let result = sandbox::tracked(
+        &cwd,
+        &argv,
+        (read_only, jobs::Capture::Stream),
+        Some(&mut job),
+    );
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
         code,

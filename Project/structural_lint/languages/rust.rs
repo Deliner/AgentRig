@@ -40,6 +40,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         _ => {}
     }
 }
+// DECISION: D062
 fn flag(parameter: Node<'_>, source: &str) -> bool {
     parameter
         .child_by_field_name("type")

@@ -168,6 +168,7 @@ fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: u64, max: &mut
         }
     }
 }
+// DECISION: D062
 pub fn boolean_parameters(
     node: Node<'_>,
     source: &str,

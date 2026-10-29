@@ -48,7 +48,11 @@ fn checked(context: &Context) -> Result<i32> {
 }
 
 fn execute_vcs(command: &mut Command) -> Result<i32> {
-    let output = crate::command_runner::jobs::process::execute(command, false, None)?;
+    let output = crate::command_runner::jobs::process::execute(
+        command,
+        crate::command_runner::jobs::Capture::Stream,
+        None,
+    )?;
     Ok(crate::command_runner::jobs::process::exit_code(&output))
 }
 

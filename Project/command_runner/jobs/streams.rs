@@ -5,23 +5,29 @@ use std::{
     thread::{self, JoinHandle},
 };
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Sink {
+    Collect,
+    Mirror,
+    LogOnly,
+}
+#[derive(Clone, Copy)]
+pub(super) enum Channel {
+    Stdout,
+    Stderr,
+}
 pub struct Stream {
     pub log: Option<File>,
-    pub capture: bool,
-    pub stderr: bool,
-    pub forward: bool,
+    pub sink: Sink,
+    pub channel: Channel,
 }
 pub struct Readers {
     stdout: Option<JoinHandle<Result<Vec<u8>>>>,
     stderr: Option<JoinHandle<Result<Vec<u8>>>>,
 }
 impl Readers {
-    pub fn start(
-        child: &mut std::process::Child,
-        capture: bool,
-        logs: Option<(File, File)>,
-        forward: bool,
-    ) -> Self {
+    pub fn start(child: &mut std::process::Child, logs: Option<(File, File)>, sink: Sink) -> Self {
         let (stdout_log, stderr_log) = match logs {
             Some((out, err)) => (Some(out), Some(err)),
             None => (None, None),
@@ -32,9 +38,8 @@ impl Readers {
                     pipe,
                     Stream {
                         log: stdout_log,
-                        capture,
-                        stderr: false,
-                        forward,
+                        sink,
+                        channel: Channel::Stdout,
                     },
                 )
             }),
@@ -43,9 +48,8 @@ impl Readers {
                     pipe,
                     Stream {
                         log: stderr_log,
-                        capture,
-                        stderr: true,
-                        forward,
+                        sink,
+                        channel: Channel::Stderr,
                     },
                 )
             }),
@@ -80,10 +84,10 @@ fn copy(mut input: impl Read, mut stream: Stream) -> Result<Vec<u8>> {
         if let Some(log) = &mut stream.log {
             log.write_all(bytes)?;
         }
-        if stream.capture {
-            captured.extend_from_slice(bytes);
-        } else if stream.forward {
-            forward(bytes, stream.stderr)?;
+        match stream.sink {
+            Sink::Collect => captured.extend_from_slice(bytes),
+            Sink::Mirror => forward(bytes, stream.channel)?,
+            Sink::LogOnly => {}
         }
     }
     if let Some(log) = stream.log {
@@ -91,11 +95,10 @@ fn copy(mut input: impl Read, mut stream: Stream) -> Result<Vec<u8>> {
     }
     Ok(captured)
 }
-fn forward(bytes: &[u8], stderr: bool) -> Result<()> {
-    if stderr {
-        std::io::stderr().write_all(bytes)?;
-    } else {
-        std::io::stdout().write_all(bytes)?;
+fn forward(bytes: &[u8], channel: Channel) -> Result<()> {
+    match channel {
+        Channel::Stderr => std::io::stderr().write_all(bytes)?,
+        Channel::Stdout => std::io::stdout().write_all(bytes)?,
     }
     Ok(())
 }

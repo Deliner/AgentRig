@@ -7,8 +7,20 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn changes(root: &Path, staged: bool, base: Option<&str>) -> Result<Option<Vec<PathBuf>>> {
-    let complete = !staged && base.is_none();
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Index {
+    Staged,
+    Working,
+}
+impl Index {
+    fn staged(self) -> bool {
+        matches!(self, Self::Staged)
+    }
+}
+
+pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Option<Vec<PathBuf>>> {
+    let complete = !index.staged() && base.is_none();
     if complete {
         return Ok(None);
     }

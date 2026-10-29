@@ -97,15 +97,16 @@ def test_architecture_cli_contracts(
         assert all(item["actual"] is None and item["limit"] is None for item in findings)
 
 
-@pytest.mark.parametrize("standalone", [False, True])
+@pytest.mark.parametrize("edition", ["integrated", "standalone"])
 def test_architecture_warning_level_and_nonmutation(
-    worker: Path, tmp_path: Path, standalone: bool
+    worker: Path, tmp_path: Path, edition: str
 ) -> None:
     _, target = consumer(tmp_path, "py")
     back_edge(target, "py")
     policy = tmp_path / "lint.yaml"
     policy.write_text(policy.read_text().replace("level: error", "level: warning"))
     before = snapshot(tmp_path)
+    standalone = edition == "standalone"
     binary = worker.with_name("agentrig-lint") if standalone else worker
     code, findings = lint(binary, tmp_path)
     assert code == 0 and len(findings) == 1, findings
@@ -207,13 +208,15 @@ def test_architecture_rejects_git_target_through_escaping_symlink(
     )
 
 
-@pytest.mark.parametrize("enabled", [True, False])
-def test_architecture_rust_root_validation(worker: Path, tmp_path: Path, enabled: bool) -> None:
+@pytest.mark.parametrize(("setting", "code"), [("true", 2), ("false", 0)])
+def test_architecture_rust_root_validation(
+    worker: Path, tmp_path: Path, setting: str, code: int
+) -> None:
     consumer(tmp_path, "rs")
     policy = tmp_path / "lint.yaml"
     policy.write_text(
         policy.read_text().replace("rust_roots: [src/lib.rs]", "rust_roots: []")
-        + f"    enabled: {str(enabled).lower()}\n"
+        + f"    enabled: {setting}\n"
     )
     result = subprocess.run(
         [str(worker), "lint-config-check", "--root", str(tmp_path), "--json"],
@@ -221,5 +224,5 @@ def test_architecture_rust_root_validation(worker: Path, tmp_path: Path, enabled
         text=True,
         check=False,
     )
-    assert result.returncode == (2 if enabled else 0)
+    assert result.returncode == code
     assert lint(worker, tmp_path)[0] == result.returncode

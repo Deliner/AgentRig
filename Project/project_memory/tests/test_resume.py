@@ -64,7 +64,7 @@ def test_resume_observes_real_conflict(worker: Path, tmp_path: Path, operation: 
     source.write_text("value = 3\n")
     git(tmp_path, "commit", "-am", "base")
     git(tmp_path, "switch", "task/conflict")
-    assert git(tmp_path, operation, "trunk", success=False).returncode != 0
+    assert git(tmp_path, operation, "trunk", expect="failure").returncode != 0
     before = file_contents(tmp_path)
     value = resumed(worker, tmp_path)
     assert value["vcs"][f"{operation}_in_progress"]

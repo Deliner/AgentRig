@@ -151,6 +151,7 @@ def outer():
     );
 }
 
+// DECISION: D062
 fn boolean_params(path: &str, source: &str) -> Vec<String> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);

@@ -68,7 +68,9 @@ def installed(worker: Path, tmp_path: Path) -> Path:
 def test_divergent_rebase_preserves_merge_history(worker: Path, installed: Path) -> None:
     root = installed
     base_before = git(root, "rev-parse", "HEAD")
-    denied = git_result(root, "commit", "--allow-empty", "-qm", "direct base commit", success=False)
+    denied = git_result(
+        root, "commit", "--allow-empty", "-qm", "direct base commit", expect="failure"
+    )
     assert denied.returncode != 0
     assert git(root, "rev-parse", "HEAD") == base_before
     assert invoke(worker, root, "feature-start", "product").returncode == 0
@@ -93,7 +95,7 @@ def test_divergent_rebase_preserves_merge_history(worker: Path, installed: Path)
     assert git(root, "status", "--porcelain") == ""
     for name in ["product", "side", "main", "concurrent"]:
         assert (root / f"{name}.txt").read_text() == name
-    deleted = git_result(root, "branch", "-D", "task/product", success=False)
+    deleted = git_result(root, "branch", "-D", "task/product", expect="failure")
     assert deleted.returncode != 0
     assert git(root, "rev-parse", "task/product") == tip
 

@@ -7,9 +7,9 @@ import pytest
 from Project.structural_lint.testing.consumer import CONFIG, prepare
 
 
-@pytest.mark.parametrize("git_repository", [False, True])
+@pytest.mark.parametrize("vcs", ["plain", "git"])
 def test_standalone_matches_worker_without_installing_files(
-    worker: Path, tmp_path: Path, git_repository: bool
+    worker: Path, tmp_path: Path, vcs: str
 ) -> None:
     policy = tmp_path / "policy"
     policy.mkdir()
@@ -18,6 +18,7 @@ def test_standalone_matches_worker_without_installing_files(
     (project / "src").mkdir(parents=True)
     source = project / "src/value.py"
     source.write_text("line\n" * 6)
+    git_repository = vcs == "git"
     if git_repository:
         subprocess.run(["git", "init", "-q", str(project)], check=True)
     before = sorted(str(path.relative_to(project)) for path in project.rglob("*"))

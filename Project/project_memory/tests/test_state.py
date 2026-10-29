@@ -35,20 +35,20 @@ Inspect Git and the failed check output, then correct the current VAC.
 
 
 @pytest.mark.parametrize(
-    ("source", "valid"),
+    ("source", "outcome"),
     [
-        (None, False),
-        (SNAPSHOT, True),
-        (SNAPSHOT.replace("## Focus", "## Task"), False),
-        (SNAPSHOT.replace("## Progress", "## Workspace"), False),
-        (SNAPSHOT.split("## Next action")[0], False),
-        (SNAPSHOT.replace("Resume the authorized feature.", ""), False),
-        (SNAPSHOT + "\n## Extra\n\nDuplicate history.\n", False),
+        (None, "rejected"),
+        (SNAPSHOT, "accepted"),
+        (SNAPSHOT.replace("## Focus", "## Task"), "rejected"),
+        (SNAPSHOT.replace("## Progress", "## Workspace"), "rejected"),
+        (SNAPSHOT.split("## Next action")[0], "rejected"),
+        (SNAPSHOT.replace("Resume the authorized feature.", ""), "rejected"),
+        (SNAPSHOT + "\n## Extra\n\nDuplicate history.\n", "rejected"),
     ],
 )
 # INVARIANT: I011
 def test_state_recovery_contract(
-    worker: Path, tmp_path: Path, source: str | None, valid: bool
+    worker: Path, tmp_path: Path, source: str | None, outcome: str
 ) -> None:
     ledger = tmp_path / "Ledger"
     project(tmp_path, CONFIG.replace('memory: "notes"', 'memory: "Ledger"'))
@@ -58,4 +58,5 @@ def test_state_recovery_contract(
     if present:
         assert source is not None
         (ledger / "State.md").write_text(source, encoding="utf-8")
-    assert (invoke(worker, tmp_path, "memory-check").returncode == 0) is valid
+    accepted = outcome == "accepted"
+    assert (invoke(worker, tmp_path, "memory-check").returncode == 0) is accepted

@@ -10,36 +10,36 @@
 
 ## Workspace
 
-Ветка: feature/boolean-parameters (от master `7c80a43`). Делаю 4.2 по двухкоммитной схеме.
-A1 (enabling) подготовлен в рабочем дереве: `Kind::BooleanParameter`, дескриптор-политика
-(Level), общий `boolean_parameters()` + предикаты `flag` в rust/python, навык
-`split-boolean-parameter` (+ его `architecture.yaml` и строка в родительском), запись в
-`assets.rs`, юнит-тесты. **Ещё НЕ** в `catalog::ALL` и **НЕ** в `lint.yaml` — I020
-сбалансирован. Пин `stable.txt` = `e8553a8`.
+Ветка: feature/boolean-parameters (от master `7c80a43`). Двухкоммитная схема. A1 (enabling)
+влит — `306ab9c` — и забустрапен (установленный бинарь знает `kind: boolean-parameter`). A2
+(live) полностью готов в рабочем дереве: `catalog::ALL`, правило в `.agentrig/lint.yaml`,
+33 догфуд-конверсии, запись решения D062. `stable.txt` пока = `306ab9c` (перепишется на head
+A2 при финальном пине).
 
-Машина — macOS. Сборка/clippy/коммит/мерж — через `just scratch -- '...'` с PATH; `cargo`
-в `~/.zshenv`. Новое правило-`Kind` требует двух коммитов с бустрапом между ними
-(установленный бинарь валидирует `lint.yaml` и клинит на незнакомом `kind:`):
-A1 enabling → пин+бустрап → A2 live (`ALL` + правило + догфуд) → финальный пин → merge.
+Машина — macOS. Сборка/clippy/fmt/тесты/коммит/мерж/бустрап — через `just scratch -- '...'` с
+PATH (`cargo` в `~/.zshenv`). Python тестов — `./tooling/.venv/bin/python3 -m pytest`.
 
 ## Progress
 
-B029 4.1 (nesting-depth) **сделана и влита в master**: A1 `e4bb96a` → A2 `e8553a8` →
-пин `341425a` → merge `7c80a43`. Решение [D061](Decisions/061.md).
+B029 4.1 (nesting-depth) **влита в master**: A1 `e4bb96a` → A2 `e8553a8` → пин `341425a` →
+merge `7c80a43`. Решение [D061](Decisions/061.md).
 
-B029 4.2 (boolean-parameter): A1-форма готова. Измерение — параметр, типизированный Rust-
-примитивом `bool`, либо аннотированный `bool` / с дефолтом `True`|`False` в Python; каждый
-такой параметр — находка (политика Level). `Option<bool>`, `&bool`, нелитеральные дефолты
-не ловятся. Навык `split-boolean-parameter`. Структурные поля и `self` исключены.
-
-Осталось по 4.2: коммит A1 → бустрап → A2 (`ALL` + правило в `lint.yaml` + догфуд наш код к
-зелёному + решение D062 + финальный пин) → merge. Затем 4.3 (бюджет ветвлений).
+B029 4.2 (boolean-parameter): A2-исходники готовы. Все 33 находки убраны — полный бан
+([D062](Decisions/062.md), выбор пользователя «чиню все 33»): 24 Rust-параметра → именованные
+mode-enum'ы (`Capture`/`Access`/`Grouping`/`Stop`/`Sink`/`Channel`/`Tree`/`Index`/`Mode`/
+`Format`/`Exclusion`/`Entries`/`Reminding`/`Enforcement`), 9 Python — строковые метки в
+parametrize (`edition`/`vcs`/`setting`+`code`/`outcome`, хелпер `git` → `expect=`). Конверсии
+вскрыли и устранены 19 находок `named-if-condition` (именованные локали / `match`) и один
+цикл каталогов `architecture` (`Capture` перенесён в `command_runner::jobs` к владельцу-
+исполнителю). Пороги/селекторы не ослаблялись.
 
 ## Verification
 
-Два новых юнит-теста зелёные (`rust_flags_bool_parameters_not_fields_or_other_types`,
-`python_flags_bool_annotations_and_true_false_defaults`); `cargo fmt` чистый. Полный гейт
-прогонится на коммите A1.
+Кандидат зелёный: `just candidate lint --root .` — **0 находок** (boolean-parameter, named-if-
+condition, architecture и остальные); `clippy` (strict deny-set) чисто; `rustfmt` применён;
+нативные тесты **81 passed**; затронутые pytest-файлы **75 passed**; `memory-check` exit 0
+(D062 записан, маркеры сверены). Гейт установленным A1-бинарём ещё не прогонялся (будет в
+pre-commit).
 
 ## Blockers
 
@@ -47,8 +47,7 @@ B029 4.2 (boolean-parameter): A1-форма готова. Измерение —
 
 ## Next action
 
-Закоммитить A1 (enabling) через хук. Затем записать head A1 в `stable.txt` и забустрапить
-одной командой scratch. Затем A2: добавить `Kind::BooleanParameter` в `catalog::ALL` и
-правило `boolean-parameter` в `.agentrig/lint.yaml`, прогнать candidate lint, найти
-догфуд-находки, починить (split/именованный тип, не ослабляя правило), записать D062,
-финальный пин, `feature-merge`. Не пушить без просьбы.
+Застейджить исходники + Ledger (State, Decisions, Decisions/062.md) **без** `stable.txt`;
+коммит A2 через pre-commit хук (не обходить). Затем финальный пин: записать head A2 в
+`tooling/distribution/stable.txt` + бустрап одним scratch, коммит пина, `feature-merge` через
+`tooling/worker/run feature-merge`. Не пушить, ветку сохранить. Затем 4.3 (бюджет ветвлений).

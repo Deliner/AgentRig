@@ -3,6 +3,13 @@ use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+enum Exclusion {
+    Global,
+    Scoped,
+}
+
 pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     let (path, flags) = args
         .split_first()
@@ -16,10 +23,15 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     let config = config::load(root, config_path)?;
     let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
     let inventory = inventory::collect(root, &excluded)?;
-    let global = excluded.is_match(path);
+    let globally_excluded = excluded.is_match(path);
+    let exclusion = if globally_excluded {
+        Exclusion::Global
+    } else {
+        Exclusion::Scoped
+    };
     let mut rows = Vec::new();
     for rule in &config.rules {
-        rows.push(explain(rule, path, &inventory, global)?);
+        rows.push(explain(rule, path, &inventory, exclusion)?);
     }
     let json = !flags.is_empty();
     if json {
@@ -52,12 +64,12 @@ fn explain(
     rule: &config::Rule,
     path: &Path,
     inventory: &inventory::Inventory,
-    global: bool,
+    exclusion: Exclusion,
 ) -> Result<Value> {
     let selector = selection::Selector::new(rule)?;
-    let mut reason = match (rule.enabled, global) {
+    let mut reason = match (rule.enabled, exclusion) {
         (false, _) => Some("disabled"),
-        (_, true) => Some("global exclude matches"),
+        (_, Exclusion::Global) => Some("global exclude matches"),
         _ => inventory_reason(rule, path, inventory).or_else(|| selector.reason(rule, path)),
     };
     let architecture = rule.kind == super::rules::Kind::DirectoryArchitecture;

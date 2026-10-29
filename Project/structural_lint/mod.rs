@@ -17,6 +17,29 @@ use crate::shared::paths::patterns::globs;
 use anyhow::Result;
 use std::{collections::HashMap, fs, path::Path};
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Format {
+    Json,
+    Text,
+}
+impl Format {
+    fn is_json(self) -> bool {
+        matches!(self, Self::Json)
+    }
+}
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Mode {
+    ConfigCheck,
+    Lint,
+}
+impl Mode {
+    fn config_check(self) -> bool {
+        matches!(self, Self::ConfigCheck)
+    }
+}
+
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
@@ -195,14 +218,14 @@ struct Output<'a> {
     validate_only: bool,
     rerun: Option<&'a str>,
 }
-pub fn run(root: &Path, path: &Path, json: bool, validate_only: bool) -> Result<i32> {
+pub fn run(root: &Path, path: &Path, format: Format, mode: Mode) -> Result<i32> {
     run_output(
         root,
         path,
         Output {
-            json,
+            json: format.is_json(),
             warnings: false,
-            validate_only,
+            validate_only: mode.config_check(),
             rerun: None,
         },
     )
@@ -221,7 +244,12 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
 }
 // DECISION: D049
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
-    let result = analyze(root, path, output.validate_only);
+    let mode = if output.validate_only {
+        Mode::ConfigCheck
+    } else {
+        Mode::Lint
+    };
+    let result = analyze(root, path, mode);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
@@ -255,9 +283,10 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
 }
-fn analyze(root: &Path, path: &Path, validate_only: bool) -> Result<Vec<Diagnostic>> {
+fn analyze(root: &Path, path: &Path, mode: Mode) -> Result<Vec<Diagnostic>> {
     config::load(root, path).and_then(|config| {
-        if validate_only {
+        let config_check = mode.config_check();
+        if config_check {
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
                 selection::select(rule, &inventory)?;

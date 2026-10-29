@@ -79,6 +79,7 @@ fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
 }
+// DECISION: D062
 fn flag(parameter: Node<'_>, source: &str) -> bool {
     let annotated = parameter
         .child_by_field_name("type")

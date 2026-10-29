@@ -153,6 +153,19 @@ rules:
   error: 4
   warning_skill: .agents/skills/flatten-nesting/SKILL.md
   error_skill: .agents/skills/flatten-nesting/SKILL.md
+# DECISION: D062
+- id: boolean-parameter
+  kind: boolean-parameter
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/split-boolean-parameter/SKILL.md
+  error_skill: .agents/skills/split-boolean-parameter/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

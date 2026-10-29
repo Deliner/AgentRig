@@ -16,6 +16,7 @@ pub const ALL: &[Kind] = &[
     Kind::FunctionLines,
     Kind::ParameterCount,
     Kind::NestingDepth,
+    Kind::BooleanParameter,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

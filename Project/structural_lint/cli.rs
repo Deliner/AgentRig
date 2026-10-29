@@ -6,7 +6,7 @@ use std::{
 };
 
 // DECISION: D049
-pub fn execute(root: &Path, config: &Path, args: &[String], validate_only: bool) -> Result<i32> {
+pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -> Result<i32> {
     ensure!(
         args.iter()
             .all(|arg| matches!(arg.as_str(), "--json" | "--warnings")),
@@ -18,7 +18,7 @@ pub fn execute(root: &Path, config: &Path, args: &[String], validate_only: bool)
         super::Output {
             json: args.iter().any(|arg| arg == "--json"),
             warnings: args.iter().any(|arg| arg == "--warnings"),
-            validate_only,
+            validate_only: mode.config_check(),
             rerun: None,
         },
     )
@@ -53,12 +53,13 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     if explain {
         return super::explain::run(&root, &root.join(config), &args);
     }
-    execute(
-        &root,
-        &root.join(config),
-        &args,
-        command == "lint-config-check",
-    )
+    let config_check = command == "lint-config-check";
+    let mode = if config_check {
+        super::Mode::ConfigCheck
+    } else {
+        super::Mode::Lint
+    };
+    execute(&root, &root.join(config), &args, mode)
 }
 
 pub fn discovery(command: &str, args: &[String]) -> Result<i32> {

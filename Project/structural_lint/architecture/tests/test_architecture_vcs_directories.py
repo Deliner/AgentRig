@@ -13,9 +13,9 @@ def repository(root: Path) -> None:
     (root / ".gitignore").write_text("ignored/\n")
 
 
-@pytest.mark.parametrize("standalone", [False, True])
+@pytest.mark.parametrize("edition", ["integrated", "standalone"])
 def test_empty_vcs_directories_require_contracts_without_including_ignored_trees(
-    worker: Path, tmp_path: Path, standalone: bool
+    worker: Path, tmp_path: Path, edition: str
 ) -> None:
     docs = documents(tmp_path)
     empty = docs / "drafts"
@@ -28,6 +28,7 @@ def test_empty_vcs_directories_require_contracts_without_including_ignored_trees
     policy.write_text(
         "exclude: ['src/docs/generated', 'src/docs/generated/**']\n" + policy.read_text()
     )
+    standalone = edition == "standalone"
     binary = worker.with_name("agentrig-lint") if standalone else worker
     command = [str(binary), "lint", "--root", str(tmp_path), "--json"]
     before = snapshot(tmp_path)

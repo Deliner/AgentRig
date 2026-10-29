@@ -6,8 +6,9 @@ import pytest
 from Project.structural_lint.testing.consumer import CONFIG, explain, lint, prepare
 
 
-@pytest.mark.parametrize("standalone", [False, True])
-def test_explain_effective_overrides(worker: Path, tmp_path: Path, standalone: bool) -> None:
+@pytest.mark.parametrize("edition", ["integrated", "standalone"])
+def test_explain_effective_overrides(worker: Path, tmp_path: Path, edition: str) -> None:
+    standalone = edition == "standalone"
     binary = worker.with_name("agentrig-lint") if standalone else worker
     policy = (
         CONFIG

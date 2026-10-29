@@ -157,6 +157,7 @@ const NESTINGDEPTH: Descriptor = Descriptor {
     },
 };
 
+// DECISION: D062
 const BOOLEANPARAMETER: Descriptor = Descriptor {
     default_id: "boolean-parameter",
     target: "file",

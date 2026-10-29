@@ -29,12 +29,12 @@ pub fn run(runtime: &Path, id: &str) -> Result<()> {
         return Ok(());
     }
     request(runtime, id)?;
-    group::signal(leader, false)?;
+    group::signal(leader, group::Stop::Graceful)?;
     let stopped = wait(leader);
     if stopped {
         return Ok(());
     }
-    group::signal(leader, true)?;
+    group::signal(leader, group::Stop::Forceful)?;
     ensure!(
         wait(leader),
         "process group still has live processes after forced termination"

@@ -21,6 +21,46 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Access {
+    ReadOnly,
+    Writable,
+}
+impl Access {
+    fn reads(self) -> bool {
+        matches!(self, Self::ReadOnly)
+    }
+}
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Grouping {
+    Own,
+    Inherited,
+}
+impl Grouping {
+    fn own(self) -> bool {
+        matches!(self, Self::Own)
+    }
+    pub fn target(self, pid: i32) -> i32 {
+        match self {
+            Self::Own => -pid,
+            Self::Inherited => pid,
+        }
+    }
+}
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Capture {
+    Collect,
+    Stream,
+}
+impl Capture {
+    fn collects(self) -> bool {
+        matches!(self, Self::Collect)
+    }
+}
+
 #[derive(Deserialize, Serialize)]
 pub struct Record {
     pub run_id: String,
@@ -99,18 +139,18 @@ impl Job {
         job.save()?;
         Ok(job)
     }
-    pub fn prepare(&mut self, argv: &[String], read_only: bool, lifetime: Lifetime) -> Result<()> {
+    pub fn prepare(&mut self, argv: &[String], access: Access, lifetime: Lifetime) -> Result<()> {
         self.record.argv = argv.into();
-        self.record.read_only = read_only;
+        self.record.read_only = access.reads();
         self.record.lifetime = lifetime;
         self.save()
     }
     pub fn directory(&self) -> &Path {
         &self.directory
     }
-    pub fn attach(&mut self, pid: u32, group: bool) -> Result<()> {
+    pub fn attach(&mut self, pid: u32, grouping: Grouping) -> Result<()> {
         self.record.child = Identity::read(pid).ok();
-        self.record.process_group = group;
+        self.record.process_group = grouping.own();
         self.save()
     }
     pub fn finish(&mut self, code: i32, error: Option<String>) -> Result<()> {

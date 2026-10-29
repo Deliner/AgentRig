@@ -112,7 +112,12 @@ fn execute_checks(
     options: &Options<'_>,
 ) -> Result<i32> {
     let files = files(context)?;
-    let changes = selection::changes(root, options.staged, options.base)?;
+    let index = if options.staged {
+        selection::Index::Staged
+    } else {
+        selection::Index::Working
+    };
+    let changes = selection::changes(root, index, options.base)?;
     for check in context
         .config
         .checks

@@ -106,7 +106,13 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     if explain {
         return structural_lint::explain::run(root, &config, args);
     }
-    structural_lint::cli::execute(root, &config, args, command == "lint-config-check")
+    let config_check = command == "lint-config-check";
+    let mode = if config_check {
+        structural_lint::Mode::ConfigCheck
+    } else {
+        structural_lint::Mode::Lint
+    };
+    structural_lint::cli::execute(root, &config, args, mode)
 }
 fn main() {
     let code = match run() {

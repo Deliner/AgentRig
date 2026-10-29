@@ -83,7 +83,12 @@ impl Answer {
         for group in self.found.chunk_by(same_skill) {
             let required = self.tracked && group.iter().any(|item| routes[item.route].block);
             blocking |= required;
-            lines.push(requirement(configured, group, required)?);
+            let enforcement = if required {
+                Enforcement::Required
+            } else {
+                Enforcement::Guidance
+            };
+            lines.push(requirement(configured, group, enforcement)?);
         }
         lines.extend(self.notes);
         let silent = lines.is_empty();
@@ -105,7 +110,25 @@ impl Answer {
         }))
     }
 }
-fn requirement(configured: &Context, group: &[Occurrence], required: bool) -> Result<String> {
+// DECISION: D062
+#[derive(Clone, Copy)]
+enum Enforcement {
+    Required,
+    Guidance,
+}
+impl Enforcement {
+    fn label(self) -> &'static str {
+        match self {
+            Self::Required => "Required",
+            Self::Guidance => "Guidance",
+        }
+    }
+}
+fn requirement(
+    configured: &Context,
+    group: &[Occurrence],
+    enforcement: Enforcement,
+) -> Result<String> {
     let routes = &configured.config.hooks.routes;
     let skill = configured.path(&routes[group[0].route].skill)?;
     let mut reasons: Vec<&str> = group.iter().map(|item| item.reason.as_str()).collect();
@@ -115,7 +138,7 @@ fn requirement(configured: &Context, group: &[Occurrence], required: bool) -> Re
         .map(|item| format!("hooks.routes[{}]", item.route))
         .collect();
     sources.dedup();
-    let kind = if required { "Required" } else { "Guidance" };
+    let kind = enforcement.label();
     Ok(format!(
         "- {kind}: read and apply {} for {}. Source: {}.",
         skill.display(),

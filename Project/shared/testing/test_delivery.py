@@ -257,7 +257,7 @@ class Consumer:
         assert git(self.root, "branch", "--show-current").stdout.strip() == self.layout.git.base
         assert (
             git(
-                self.root, "branch", "-D", self.layout.git.prefix + "bootstrap", success=False
+                self.root, "branch", "-D", self.layout.git.prefix + "bootstrap", expect="failure"
             ).returncode
             != 0
         )
