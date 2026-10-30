@@ -75,6 +75,18 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D069](Decisions/069.md) | Flag a Python `except` clause whose body is only `pass` at error level unless a `DECISION:` or `INVARIANT:` reference sits on the line directly above the `pass`, shipping the clean-syntactic half of B028's silent-error rule to init; Python only, delivered to consumers; the type-dependent Rust half stays on the dev gate (D068). | [card](Archive/Backlog/028.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/references/handle-error/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
 | [D070](Decisions/070.md) | Reject an `architecture.yaml` purpose whose whole meaningful content is a placeholder/generic token (`TODO`, `Module`, `...`) by tightening the existing `directory-architecture` contract validation, shipping B030's purpose-quality check (5.2) to init; no new rule kind or skill, I020 unchanged; extends D028/D043 and the fixed-set approach of D067. | [card](Archive/Backlog/030.md), [owner](../Project/structural_lint/architecture/policy.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/067.md) |
 | [D071](Decisions/071.md) | Keep B030's families-together (5.1) and one-capability-one-file (5.3) as norms, not init rules: 5.1 needs trait/base name→file resolution with wildcard/re-export/prelude holes and a new extraction subsystem (D059), and 5.3 is not syntactically identifiable without framework semantics; only the decidable purpose-quality check (5.2, D070) ships. | [card](Archive/Backlog/030.md), [norm](../Project/shared/skills/refactor/refactor-large-directory/SKILL.md), [related](Decisions/059.md), [related](Decisions/070.md) |
+| [D072](Decisions/072.md) | Flag a directory whose own name is a generic dumping-ground word (`utils`, `helpers`, `misc`, `common`) at error level via a new `dump-name` rule kind, mechanizing the `refactor-large-directory` norm against reuse buckets; `shared` is allowed; delivered to consumers through `catalog::ALL`; reuses the existing skill so I020 skills are unchanged and only the rule-kind set grows (B031 6.1). | [card](Backlog/031.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [measurement](../Project/structural_lint/mod.rs), [skill](../Project/shared/skills/refactor/refactor-large-directory/SKILL.md), [tests](../Project/structural_lint/tests/mod.rs) |
+
+D072 mechanizes the `refactor-large-directory` norm against reuse buckets and
+supersedes nothing: the lint now flags any directory whose own basename is one of
+`utils`, `helpers`, `misc` or `common`, which the norm already rejected but nothing
+enforced. `shared` is deliberately allowed as the home for genuine cross-feature
+leaves. The check reads the directory name from the inventory, so it is decidable
+and type-free (D035); a small fixed set keeps it near-zero-false-positive and this
+repository has no such directory. It ships to consumers through `catalog::ALL` and
+the delivered per-kind template, reuses the existing `refactor-large-directory`
+skill so the delivered skill set is unchanged and only the rule-kind set grows
+(I020), and mirrors the fixed-set approach of D067/D070 (B031 6.1).
 
 D071 records why two of B030's candidates stay norms and supersedes nothing:
 5.1 (a trait with its impls, or a base with its subclasses, co-located) would need

@@ -118,6 +118,7 @@ const DIRECTORYENTRIES: Descriptor = Descriptor {
     },
 };
 
+// DECISION: D072
 const DUMPNAME: Descriptor = Descriptor {
     default_id: "dump-name",
     target: "directory",

@@ -37,6 +37,7 @@ fn line_width_reports_each_line_over_the_limit_in_characters() {
     );
 }
 
+// DECISION: D072
 #[test]
 fn dump_name_reports_only_generic_dumping_ground_directories() {
     let files = [

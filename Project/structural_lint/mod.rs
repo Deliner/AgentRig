@@ -92,6 +92,7 @@ fn scalar_findings(
     }
     Ok(())
 }
+// DECISION: D072
 const DUMP_NAMES: &[&str] = &["utils", "helpers", "misc", "common"];
 // DECISION: D036
 fn structural_measurements(
