@@ -181,6 +181,7 @@ const BRANCHBUDGET: Descriptor = Descriptor {
         error: 5,
     },
 };
+// DECISION: D067
 const HARDCODEDSECRET: Descriptor = Descriptor {
     default_id: "hardcoded-secret",
     target: "file",

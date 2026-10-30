@@ -1,0 +1,5 @@
+purpose: "Remove a hardcoded credential from source and move it to configuration or a secret store"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to remove and rotate a hardcoded credential"
+directories: {}

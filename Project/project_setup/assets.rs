@@ -60,15 +60,19 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "refactor-large-directory",
-        include_str!("../shared/skills/refactor-large-directory/SKILL.md"),
+        include_str!("../shared/skills/refactor/refactor-large-directory/SKILL.md"),
     ),
     (
         "refactor-large-file",
-        include_str!("../shared/skills/refactor-large-file/SKILL.md"),
+        include_str!("../shared/skills/refactor/refactor-large-file/SKILL.md"),
     ),
     (
         "refactor-long-function",
-        include_str!("../shared/skills/refactor-long-function/SKILL.md"),
+        include_str!("../shared/skills/refactor/refactor-long-function/SKILL.md"),
+    ),
+    (
+        "remove-secret",
+        include_str!("../shared/skills/remove-secret/SKILL.md"),
     ),
     ("repair", include_str!("../shared/skills/repair/SKILL.md")),
     (

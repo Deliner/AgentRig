@@ -102,6 +102,7 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
+// DECISION: D067
 pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let found = crate::shared::syntax::secret(text(node, source));
     if let Some(name) = found {

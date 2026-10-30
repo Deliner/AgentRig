@@ -347,6 +347,7 @@ unsafe fn marked() {}
     assert_eq!(unsafe_findings("source.rs", source), [5, 11]);
 }
 
+// DECISION: D067
 fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);

@@ -190,6 +190,19 @@ rules:
   level: error
   warning_skill: .agents/skills/justify-unsafe/SKILL.md
   error_skill: .agents/skills/justify-unsafe/SKILL.md
+# DECISION: D067
+- id: hardcoded-secret
+  kind: hardcoded-secret
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/remove-secret/SKILL.md
+  error_skill: .agents/skills/remove-secret/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

@@ -31,6 +31,7 @@ pub fn reference(comment: &str) -> Option<&str> {
     let numbered = digits.len() == 3 && digits.bytes().all(|byte| byte.is_ascii_digit());
     numbered.then_some(id)
 }
+// DECISION: D067
 struct Token {
     name: &'static str,
     prefix: &'static str,

@@ -70,6 +70,18 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D064](Decisions/064.md) | Enable the ruff bandit (`S`) group for Python in the development gate, scoping the assert and subprocess noise checks (S101/S603/S607) to test code while keeping the full group on production code; a dev-gate profile, not an init capability. | [card](Backlog/026.md), [ruff profile](../tooling/pyproject.toml), [related](Decisions/060.md) |
 | [D065](Decisions/065.md) | Require a `DECISION:` or `INVARIANT:` reference on the line above every Rust `unsafe` block or `unsafe` function at error level, or remove the `unsafe`; Rust only, delivered to consumers. | [card](Backlog/026.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Rust](../Project/structural_lint/languages/rust.rs), [skill](../Project/shared/skills/references/justify-unsafe/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
 | [D066](Decisions/066.md) | Accept the `command_runner/jobs` libc FFI `unsafe` calls as sound — arguments built to the libc contract, returns and `errno` checked, no aliasing or borrowed pointer outliving the call — under one shared justification. | [rule](Decisions/065.md), [macOS identity](../Project/command_runner/jobs/identity/macos.rs), [Linux identity](../Project/command_runner/jobs/identity/linux.rs), [process signals](../Project/command_runner/jobs/process.rs), [group control](../Project/command_runner/jobs/group.rs) |
+| [D067](Decisions/067.md) | Flag string literals matching a fixed set of unambiguous credential formats (private-key block, AWS, GitHub, Google or Slack token) at error level in Rust and Python; delivered to consumers, additive to the ruff bandit group. | [card](Backlog/026.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [matcher](../Project/shared/syntax/mod.rs), [measurement](../Project/structural_lint/languages/mod.rs), [skill](../Project/shared/skills/remove-secret/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+
+D067 adds B026's last rule and supersedes nothing: the gate now flags any string
+literal matching a fixed set of unambiguous credential formats — a private-key
+block, or an AWS, GitHub, Google or Slack token — in Rust and Python at error
+level. It is additive to the ruff bandit group (D064), which catches Python
+credentials by variable name, whereas this matches by value in both languages;
+broader entropy scanning stays out as too false-positive-prone for a gate. The
+worker has no such literals, so dogfooding is clean. The remove-secret repair
+skill is added top-level, and the three refactor-* skills are grouped under
+`refactor/` to keep the skills directory within its size limit. With 1.1
+(D065/D066), 1.2 (D064) and 1.3 delivered, B026 (P037) is complete.
 
 D066 records why B026's unsafe-justification rule leaves AgentRig's own `unsafe`
 in place rather than removing it: the eleven FFI calls in `command_runner/jobs`
