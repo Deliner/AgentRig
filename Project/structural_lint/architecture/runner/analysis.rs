@@ -46,6 +46,30 @@ pub fn incomplete(path: &Path, line: Option<usize>, error: anyhow::Error) -> Iss
     }
 }
 
+// DECISION: D076
+#[derive(Default)]
+pub struct Externals {
+    pub rust: BTreeSet<String>,
+    pub python: BTreeSet<String>,
+}
+
+impl Externals {
+    fn record(&mut self, target: &Target, external: &str) {
+        let (set, first) = match target {
+            Target::PythonModule(_) | Target::PythonFrom { .. } => {
+                (&mut self.python, external.split('.').next())
+            }
+            _ => (
+                &mut self.rust,
+                external.trim_start_matches("::").split("::").next(),
+            ),
+        };
+        if let Some(name) = first.filter(|name| !name.is_empty()) {
+            set.insert(name.to_owned());
+        }
+    }
+}
+
 pub struct Resolvers<'a> {
     root: &'a Path,
     files: &'a BTreeSet<PathBuf>,
@@ -128,9 +152,10 @@ impl<'a> Resolvers<'a> {
         );
         let mut combined = Resolved::default();
         for resolver in owners {
-            combined
-                .files
-                .extend(self.linked(resolver.resolve(path, target)?)?.files);
+            let resolved = resolver.resolve(path, target)?;
+            let external = resolved.external.clone();
+            combined.files.extend(self.linked(resolved)?.files);
+            combined.external = combined.external.take().or(external);
         }
         Ok(combined)
     }
@@ -175,20 +200,26 @@ impl<'a> Resolvers<'a> {
         &self,
         path: &Path,
         references: References,
-    ) -> (Vec<Dependency>, Vec<Issue>) {
+    ) -> (Vec<Dependency>, Vec<Issue>, Externals) {
         let mut issues = references.issues;
         let mut edges = Vec::new();
+        let mut used = Externals::default();
         for reference in references.items {
             match self.resolve(path, &reference.target) {
-                Ok(resolved) => edges.extend(resolved.files.into_iter().map(|target| Dependency {
-                    source: path.into(),
-                    target,
-                    line: reference.line,
-                    module_declaration: matches!(reference.target, Target::RustModule { .. }),
-                })),
+                Ok(resolved) => {
+                    if let Some(external) = &resolved.external {
+                        used.record(&reference.target, external);
+                    }
+                    edges.extend(resolved.files.into_iter().map(|target| Dependency {
+                        source: path.into(),
+                        target,
+                        line: reference.line,
+                        module_declaration: matches!(reference.target, Target::RustModule { .. }),
+                    }));
+                }
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
             }
         }
-        (edges, issues)
+        (edges, issues, used)
     }
 }

@@ -79,6 +79,36 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D073](Decisions/073.md) | Keep B031's meaningful-identifier (6.2) and magic-number (6.3) candidates as norms, not init rules: 6.2 needs scope analysis the syntactic engine lacks and `data`/`tmp`/single letters are often legitimate, and 6.3 cannot separate magic literals from legitimate ones (indices, sizes, status codes, powers of two) — both high-false-positive against the gate's bar (D035); only the decidable dump-name check (6.1, D072) ships. | [card](Archive/Backlog/031.md), [related](Decisions/059.md), [related](Decisions/072.md) |
 | [D074](Decisions/074.md) | Flag a silently disabled test — a Rust `#[ignore]` attribute or a Python `@pytest.mark.skip`/`skipif` decorator without a `DECISION:` or `INVARIANT:` reference on the line directly above it — at error level via a new `disabled-test` rule kind reusing the justification mechanism (D065/D069); cross-language, delivered to consumers through `catalog::ALL` with a new `justify-skip` repair skill, so both the rule-kind and skill sets grow by one and stay balanced (I020) (B032 7.1). | [card](Archive/Backlog/032.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Rust](../Project/structural_lint/languages/rust.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/references/justify-skip/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
 | [D075](Decisions/075.md) | Keep B032's test-determinism (7.2) and naming/placement (7.3) candidates as norms, not init rules: 7.2 cannot tell a benign clock/RNG/network call from a nondeterminism bug and order dependence is not syntactic, and 7.3 is already the `testing-discipline` placement (D055) and behavior-naming norms; both are false-positive-prone or redundant against the gate bar (D035). 7.2 is added to the delivered skill as a determinism point; only the decidable disabled-test check (7.1, D074) ships as a rule. | [card](Archive/Backlog/032.md), [norm](../Project/shared/skills/testing-discipline/SKILL.md), [related](Decisions/055.md), [related](Decisions/074.md) |
+| [D076](Decisions/076.md) | Flag a declared external dependency (rust/python module) that no scanned source imports, by extending the existing directory-architecture resolution to aggregate used externals and diff against the declared set minus the std/core/alloc and __future__ seeds; no new rule kind or skill, I020 unchanged; extends D070 and the fixed-set/seed approach of D067 (B033 8.1). | [card](Archive/Backlog/033.md), [settings](../Project/structural_lint/rules/architecture.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests/test_architecture.py), [related](Decisions/070.md) |
+| [D077](Decisions/077.md) | Keep B033's lockfile discipline (8.2) a configuration norm already satisfied — committed Cargo.lock/uv.lock and --locked on every cargo/uv command, with init shipping no build commands — and the dependency budget (8.3) a review norm needing a soft threshold and per-feature counting the engine lacks; no new rule, skill or invariant, I020 unchanged; only 8.1 (D076) ships. | [card](Archive/Backlog/033.md), [command config](../.agentrig/commands.yaml), [related](Decisions/060.md), [related](Decisions/076.md) |
+
+D077 records why two of B033's candidates stay norms and supersedes nothing: 8.2
+(lockfile and `--locked` discipline) is already true — `Project/Cargo.lock` and
+`tooling/uv.lock` are committed, every cargo and uv command in
+`.agentrig/commands.yaml` and the build launcher passes `--locked`, and `init`
+ships no build commands — so there is nothing to ship or newly enforce beyond the
+command configuration that owns it (D005/D060); 8.3 (a dependency-count budget) is
+a soft, project-specific threshold needing per-feature aggregation the syntactic
+engine does not compute, so a blanket limit would be noise against the gate bar
+(D035). A pretend invariant for either is forbidden by norm-or-choice. Only the
+decidable never-imported check (8.1, D076) ships. With 8.1 and 8.2/8.3,
+B033/P042 — the last card of the clusters-1–8 quality set — is complete.
+
+D076 ships B033's dependency-hygiene check (8.1) and supersedes nothing: the
+`directory-architecture` rule now flags any declared `external` module that no
+scanned source imports, the mirror of the undeclared-external error it already
+raised. Resolution already computed an external origin per reference but dropped
+it on the Rust path; the engine now preserves and aggregates the first segment of
+every resolved external into a used-set and reports each declared external that is
+neither used nor a seed member on the feature owner. Two seeds are exempt:
+`std`/`core`/`alloc` as the always-available Rust baseline, and `__future__`
+because `from __future__ import …` parses as a `future_import_statement` the
+inspector does not record (a tree-sitter blind spot that would otherwise be a
+false positive). It is a stricter check inside the existing rule, not a new
+`Kind`, so the delivered rule-kind and skill sets are unchanged (I020) and the
+repair skill stays `refactor-large-directory`, mirroring D070. This repository
+dropped seven genuinely unused Python externals (contextlib, copy, hashlib, io,
+re, tarfile, tomllib) to go green.
 
 D075 records why two of B032's candidates stay norms and supersedes nothing: 7.2
 (a test is deterministic) cannot be flagged syntactically — a call to a clock, RNG

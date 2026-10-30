@@ -1,7 +1,7 @@
 mod analysis;
 mod scope;
 
-use super::{Contracts, Issue, source::References};
+use super::{Contracts, Issue, PYTHON_SEED, RUST_SEED, Settings, source::References};
 use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
@@ -45,8 +45,9 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(contract_issues);
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
     let sources = analysis::extract(&root, &scope.files);
-    let (edges, source_issues) = dependencies(&resolvers, sources);
+    let (edges, source_issues, used) = dependencies(&resolvers, sources);
     issues.extend(source_issues);
+    issues.extend(unused_externals(settings, &used));
     issues.extend(super::graph::cycles(&edges));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &edges));
@@ -59,15 +60,47 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
     sources: BTreeMap<PathBuf, References>,
-) -> (Vec<super::Dependency>, Vec<Issue>) {
+) -> (Vec<super::Dependency>, Vec<Issue>, analysis::Externals) {
     let mut edges = Vec::new();
     let mut issues = Vec::new();
+    let mut used = analysis::Externals::default();
     for (path, references) in sources {
-        let (resolved, failures) = resolvers.dependencies(&path, references);
+        let (resolved, failures, references_used) = resolvers.dependencies(&path, references);
         edges.extend(resolved);
         issues.extend(failures);
+        used.rust.extend(references_used.rust);
+        used.python.extend(references_used.python);
     }
-    (edges, issues)
+    (edges, issues, used)
+}
+
+// DECISION: D076
+fn unused_externals(settings: &Settings, used: &analysis::Externals) -> Vec<Issue> {
+    let owner = settings
+        .feature_root
+        .clone()
+        .unwrap_or_else(|| PathBuf::from("."));
+    let rust = settings
+        .external
+        .rust
+        .iter()
+        .filter(|name| !RUST_SEED.contains(&name.as_str()) && !used.rust.contains(*name))
+        .map(|name| unused(&owner, "Rust", name));
+    let python = settings
+        .external
+        .python
+        .iter()
+        .filter(|name| !PYTHON_SEED.contains(&name.as_str()) && !used.python.contains(*name))
+        .map(|name| unused(&owner, "Python", name));
+    rust.chain(python).collect()
+}
+
+fn unused(owner: &Path, language: &str, name: &str) -> Issue {
+    Issue {
+        path: owner.into(),
+        line: None,
+        message: format!("declared external {language} dependency is never imported: {name}"),
+    }
 }
 
 fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
