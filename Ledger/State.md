@@ -8,27 +8,27 @@ B026/P037, B028/P038, B030/P039, B031/P040 (в master). Текущая — B032/
 
 ## Workspace
 
-Ветка: feature/test-lints (от master `ca6fa4a`). Машина — macOS. Коммиты: `c93b22a` VAC-A
-(промоут B032→P041), `d8863ff` VAC-B1 (enabling), `6684f28` VAC-B2 (live-правило `disabled-test`:
-catalog::ALL + lint.yaml + навык `justify-skip` + D074 + индекс; хук зелёный). B1 запинён+забустрапен
-(stable.txt=`d8863ff`, НЕ закоммичен). VAC-C применён в рабочем дереве (без кода): Ledger/Decisions/075.md
-(нормы 7.2/7.3), testing-discipline/SKILL.md (пункт 7 детерминизм + секция Enforcement),
-Ledger/Decisions.md (строка+проза D075), эта State. Сборка/коммит/бустрап/merge — через
-`just scratch -- '...'` с PATH (`cargo` в `~/.cargo/bin`, venv `tooling/.venv/bin` первым).
+Ветка: feature/test-lints (от master `ca6fa4a`). Машина — macOS. Коммиты: `c93b22a` VAC-A (промоут),
+`d8863ff` VAC-B1 (enabling), `6684f28` VAC-B2 (live-правило `disabled-test` в init; хук зелёный),
+`47e52c4` VAC-C (нормы 7.2/7.3 — D075 + пункт 7 в `testing-discipline`; хук зелёный). B1 запинён+
+забустрапен (stable.txt=`d8863ff`, НЕ закоммичен). Архив-VAC применён в рабочем дереве: P041-карточка
++ `## Delivery` → `Archive/Plan/041.md` (git mv), B032-карточка (ссылки `../`→`../../`) →
+`Archive/Backlog/032.md` (git mv), строки Plan/Backlog сняты и добавлены в Archive/*, проза доставки
+в Plan.md, ссылки [card] D074/D075 → `Archive/Backlog/032.md`, эта State. Сборка/коммит/бустрап/merge
+— через `just scratch -- '...'` с PATH (`cargo` в `~/.cargo/bin`, venv `tooling/.venv/bin` первым).
 
 ## Progress
 
-B1 (d8863ff) установлен; VAC-B2 (6684f28) доставил 7.1-правило `disabled-test` в init (хук зелёный,
-I020-страж прошёл). VAC-C: 7.2 (детерминизм) и 7.3 (имя/размещение) записаны нормой D075 — 7.2 добавлен
-пунктом 7 в доставляемый навык `testing-discipline`, 7.3 уже покрыт его пунктами 1 (размещение, D055)
-и 5 (имя). Новых видов правил/навыков/инвариантов нет, наборы доставки I020 не меняются. B032/P041 по
-содержанию готов (7.1 правило, 7.2/7.3 нормы); осталась механика доставки (архив + пин + merge).
+B032/P041 доставлен: 7.1 — правило `disabled-test` в init (D074, VAC-B2 6684f28), 7.2/7.3 — норма
+(D075, VAC-C 47e52c4). Архив-VAC (эта правка) переносит карточки P041/B032 в Archive и мигрирует
+ссылки. Осталась механика D051: финальный пин (stable.txt=голова архив-коммита + bootstrap) отдельным
+коммитом, затем `just feature-merge`. После merge — отчёт и B033.
 
 ## Verification
 
-VAC-B2 хук зелёный: rustfmt/clippy/90 rust-тестов/ruff/mypy/304 py-теста (вкл. test_delivery I020,
-test_lint_defaults)/typos/vulture — всё PASS. Кандидат `cargo test --lib languages::tests` — 13 passed.
-VAC-C — только память+навык (нет кода); хук проверит память и затронутые тесты на коммите.
+VAC-B2 хук зелёный (rustfmt/clippy/90 rust/ruff/mypy/304 py вкл. test_delivery I020/typos/vulture).
+VAC-C хук зелёный (181 py-теста вкл. test_delivery I020). Архив-VAC — только память (нет кода); хук
+проверит memory-check после переноса карточек.
 
 ## Blockers
 
@@ -36,8 +36,8 @@ VAC-C — только память+навык (нет кода); хук про�
 
 ## Next action
 
-Закоммитить VAC-C (D075 + testing-discipline + индекс + эта State) через хук (stable.txt=`d8863ff` НЕ
-трогать). Затем: архив P041/B032 (строки+карточки Plan/Backlog → Archive, мигрировать ссылку [card]
-D074/D075 на `Archive/Backlog/032.md`, обновить State) отдельным коммитом → финальный пин
-(stable.txt=голова архивного коммита + `just bootstrap` в одном scratch, закоммитить пин) →
-`just feature-merge` (не пушить, ветку сохранить) → отчёт на русском на границе merge; затем B033.
+Закоммитить архив-VAC (git mv обеих карточек + строки Archive/* + проза Plan.md + миграция [card] +
+эта State) через хук. Затем финальный пин D051: в одном `just scratch` записать stable.txt=полный хэш
+головы архив-коммита + `just bootstrap`, затем закоммитить только stable.txt (`P041: pin <hash>`
+(D051)). Затем `just feature-merge` (не пушить, ветку сохранить) → отчёт на русском на границе merge;
+затем B033 (кластер 8: 8.1 неиспользуемые deps, 8.2 lockfiles+`--locked`, 8.3 бюджет зависимостей).
