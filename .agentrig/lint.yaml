@@ -203,6 +203,18 @@ rules:
   level: error
   warning_skill: .agents/skills/remove-secret/SKILL.md
   error_skill: .agents/skills/remove-secret/SKILL.md
+# DECISION: D069
+- id: silent-error
+  kind: silent-error
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/handle-error/SKILL.md
+  error_skill: .agents/skills/handle-error/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

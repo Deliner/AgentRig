@@ -1,6 +1,6 @@
 use super::{
     Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
-    function, nesting, text,
+    function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
@@ -74,14 +74,6 @@ fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measureme
             actual: 1,
         });
     }
-}
-fn justified(node: Node<'_>, source: &str) -> bool {
-    let row = node.start_position().row;
-    row > 0
-        && source
-            .lines()
-            .nth(row - 1)
-            .is_some_and(|line| crate::shared::syntax::reference(line.trim()).is_some())
 }
 // DECISION: D063
 fn branch(node: Node<'_>) -> Branch {

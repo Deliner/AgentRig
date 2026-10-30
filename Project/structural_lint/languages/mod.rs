@@ -102,6 +102,14 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
+pub fn justified(node: Node<'_>, source: &str) -> bool {
+    let row = node.start_position().row;
+    row > 0
+        && source
+            .lines()
+            .nth(row - 1)
+            .is_some_and(|line| crate::shared::syntax::reference(line.trim()).is_some())
+}
 // DECISION: D067
 pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let found = crate::shared::syntax::secret(text(node, source));

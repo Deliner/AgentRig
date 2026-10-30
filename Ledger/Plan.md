@@ -96,3 +96,11 @@ branch-budget ([D063](Decisions/063.md)); наш код приведён к зе
 [Archive/Backlog](Archive/Backlog.md); ссылки card в D064/D065/D067 переведены на
 `Archive/Backlog/026.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)). Остаются
 карточки набора B028, B030–B033.
+2026-10-30 P038 (B028) выполнен: дисциплина ошибок и ресурсов. 3.1 — Python-половина уехала в
+поставку `init` структурным правилом `silent-error` ([D069](Decisions/069.md)): `except`-тело
+из одного `pass` без ссылки-обоснования — находка; Rust-половина (`let _ = <Result>`) и 3.2 —
+на dev-гейте через clippy `let_underscore_must_use` ([D068](Decisions/068.md)); 3.3 (ресурсы)
+уже обеспечено группой ruff `SIM`. Наш код приведён к зелёному. P038 перенесён в
+[Archive/Plan](Archive/Plan.md), B028 — в [Archive/Backlog](Archive/Backlog.md); ссылки card в
+D068/D069 переведены на `Archive/Backlog/028.md`; пин stable.txt на голову ветки
+([D051](Decisions/051.md)). Остаются карточки набора B030–B033.

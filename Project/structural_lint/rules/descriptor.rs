@@ -50,6 +50,7 @@ impl Kind {
             Self::BranchBudget => &BRANCHBUDGET,
             Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
             Self::HardcodedSecret => &HARDCODEDSECRET,
+            Self::SilentError => &SILENTERROR,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -189,6 +190,16 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
     skill: "remove-secret",
     parameters: Parameters::Level {
         violation: "a hardcoded credential does not belong in source; move it to configuration or a secret store and rotate the exposed value",
+    },
+};
+// DECISION: D069
+const SILENTERROR: Descriptor = Descriptor {
+    default_id: "silent-error",
+    target: "file",
+    metric: "every Python except clause whose body is only pass without a DECISION: or INVARIANT: reference comment on the line directly above the pass",
+    skill: "handle-error",
+    parameters: Parameters::Level {
+        violation: "an except that only passes swallows the error; handle it, re-raise, or put a DECISION: or INVARIANT: reference on the line directly above the pass to justify ignoring it",
     },
 };
 // DECISION: D065

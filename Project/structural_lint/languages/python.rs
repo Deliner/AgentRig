@@ -1,6 +1,6 @@
 use super::{
     Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
-    function, nesting, text,
+    function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
@@ -45,6 +45,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "comment" => comment(node, source, output),
         "string" => credential(node, source, output),
         "expression_statement" => statement(node, output),
+        "except_clause" => silent_except(node, source, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -74,6 +75,33 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         }
         "function_definition" | "lambda" => measure(node, source, output),
         _ => {}
+    }
+}
+// DECISION: D069
+fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let mut cursor = node.walk();
+    let Some(body) = node
+        .named_children(&mut cursor)
+        .find(|child| child.kind() == "block")
+    else {
+        return;
+    };
+    let mut inner = body.walk();
+    let mut statements = body
+        .named_children(&mut inner)
+        .filter(|child| !child.is_extra());
+    let Some(first) = statements.next() else {
+        return;
+    };
+    let silent = first.kind() == "pass_statement" && statements.next().is_none();
+    let swallowed = silent && !justified(first, source);
+    if swallowed {
+        output.push(Measurement {
+            kind: Kind::SilentError,
+            line: node.start_position().row + 1,
+            symbol: "except".into(),
+            actual: 1,
+        });
     }
 }
 fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
