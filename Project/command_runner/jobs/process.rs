@@ -98,8 +98,8 @@ fn attach(
         unsafe {
             libc::kill(grouping.target(pid), SIGTERM);
         }
-        let _ = child.kill();
-        let _ = child.wait();
+        child.kill().ok();
+        child.wait().ok();
         return Err(error);
     }
     Ok(())

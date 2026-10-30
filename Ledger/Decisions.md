@@ -71,6 +71,18 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D065](Decisions/065.md) | Require a `DECISION:` or `INVARIANT:` reference on the line above every Rust `unsafe` block or `unsafe` function at error level, or remove the `unsafe`; Rust only, delivered to consumers. | [card](Archive/Backlog/026.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Rust](../Project/structural_lint/languages/rust.rs), [skill](../Project/shared/skills/references/justify-unsafe/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
 | [D066](Decisions/066.md) | Accept the `command_runner/jobs` libc FFI `unsafe` calls as sound — arguments built to the libc contract, returns and `errno` checked, no aliasing or borrowed pointer outliving the call — under one shared justification. | [rule](Decisions/065.md), [macOS identity](../Project/command_runner/jobs/identity/macos.rs), [Linux identity](../Project/command_runner/jobs/identity/linux.rs), [process signals](../Project/command_runner/jobs/process.rs), [group control](../Project/command_runner/jobs/group.rs) |
 | [D067](Decisions/067.md) | Flag string literals matching a fixed set of unambiguous credential formats (private-key block, AWS, GitHub, Google or Slack token) at error level in Rust and Python; delivered to consumers, additive to the ruff bandit group. | [card](Archive/Backlog/026.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [matcher](../Project/shared/syntax/mod.rs), [measurement](../Project/structural_lint/languages/mod.rs), [skill](../Project/shared/skills/remove-secret/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+| [D068](Decisions/068.md) | Deny clippy `let_underscore_must_use` in the development gate so an ignored `Result`/`#[must_use]` must be consciously consumed, catching the Rust half of B028's ignore-errors rule on the dev gate rather than shipping it to init (no type inference); extends D060. | [card](Backlog/028.md), [clippy profile](../.agentrig/commands.yaml), [ruff profile](../tooling/pyproject.toml), [related](Decisions/060.md) |
+
+D068 records the Rust, development-gate half of B028's error discipline and
+supersedes nothing: the clippy profile (D060) now denies
+`let_underscore_must_use`, so `let _ = <Result>` is a gate error alongside the
+`unused_must_use` already caught by `-D warnings`. By the user's 2026-10-30
+choice this stays on the dev gate rather than shipping to init, because proving
+the bound expression is a `Result` needs type inference the syntactic engine
+omits (D059). The resource discipline of 3.3 (ruff `SIM115`) is already provided
+by the enabled `SIM` group, so it needs no change. AgentRig's one
+`let _ = <Result>` (best-effort teardown in `command_runner/jobs/process.rs`)
+now uses `.ok()`.
 
 D067 adds B026's last rule and supersedes nothing: the gate now flags any string
 literal matching a fixed set of unambiguous credential formats — a private-key

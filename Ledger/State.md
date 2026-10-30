@@ -2,37 +2,34 @@
 
 ## Focus
 
-Набор улучшений качества (кластеры 1–8, [B026](Archive/Backlog/026.md),
-[B028](Backlog/028.md), [B030](Backlog/030.md)–[B033](Backlog/033.md)) через догфудинг, по
-одной карточке. [P037](Archive/Plan/037.md) ([B026](Archive/Backlog/026.md), линты
-безопасности) завершён и архивирован в рабочем дереве. Следующая карточка набора — B028.
+Набор улучшений качества (кластеры 1–8), по одной карточке. Текущая —
+[P038](Plan/038.md) ([B028](Backlog/028.md)): дисциплина ошибок и ресурсов. 3.1 запрет
+тихого глотания ошибок, 3.2 запрет игнорирования `Result`/`#[must_use]`, 3.3 ресурсы через
+контекст-менеджер/RAII. По выбору пользователя 2026-10-30 (вариант A): 3.1 — структурное
+правило для Python `except: pass` (уезжает в init), Rust `let _ = <Result>` — на dev-гейте
+через clippy (это п.3.2).
 
 ## Workspace
 
-Ветка: feature/security-lint (от master `f4f853d`). Коммиты: `474ff9b` VAC-A (ruff `S`, D064);
-`2ca56c9` VAC-B1; `a4f1c80` VAC-B2 (1.1 `unsafe-justification`, D065/D066); `fc804a2` VAC-C1
-(машинерия `hardcoded-secret`); `8c2b451` VAC-C2 (1.3 live, D067). `tooling/distribution/
-stable.txt` = `fc804a2` (промежуточный пин, НЕ закоммичен); финальный пин ещё не записан.
+Ветка: feature/error-discipline (от master `9ca3be2`, куда влит P037). Коммитов на ветке
+пока нет (VAC-A в рабочем дереве). stable.txt = `743a2bb` (голова P037, установлена).
 
 Машина — macOS. Сборка/clippy/fmt/тесты/коммит/мерж/бустрап — через `just scratch -- '...'` с
 PATH (`cargo` в `~/.cargo/bin`; для гейта с Python-тестами venv `tooling/.venv/bin` первым).
 
 ## Progress
 
-Все три под-правила P037 доставлены и влиты в ветку: 1.2 ruff `S` (`474ff9b`, D064); 1.1
-`unsafe-justification` (`2ca56c9`+`a4f1c80`, D065/D066, 11 FFI-мест помечены); 1.3
-`hardcoded-secret` (`fc804a2`+`8c2b451`, D067) — `Kind` в `catalog::ALL`, правило в
-`.agentrig/lint.yaml`, матчер `shared::syntax::secret`, навык `remove-secret`, `refactor-*`
-сгруппированы под `refactor/`. Архивация выполнена в рабочем дереве (не закоммичена): карточки
-`026.md`/`037.md` перенесены в `Archive/Backlog`/`Archive/Plan` (относительные ссылки
-исправлены, у P037 добавлен Delivery), индексы Backlog/Plan и их архивы обновлены, ссылки card
-в D064/D065/D067 переведены на `Archive/Backlog/026.md`. Plan.md пуст (валидно).
+B028 промоутнут в P038 (строка Plan + карточка `Plan/038.md`). VAC-A готов в рабочем дереве,
+не закоммичен: в clippy-профиль (`.agentrig/commands.yaml`) добавлен `-D
+clippy::let_underscore_must_use` (п.3.2 + Rust-часть 3.1 по варианту A); единственное место
+`command_runner/jobs/process.rs` (teardown после сбоя attach) переведено с `let _ =` на
+`.ok()`; записан D068. **3.3 уже обеспечен**: группа `SIM` (вкл. `SIM115`) уже в ruff-select —
+изменений не требует. `unused_must_use` уже ловится через `-D warnings`.
 
 ## Verification
 
-VAC-C2 (`8c2b451`) — полный гейт зелёный: build/lint/memory/rustfmt/clippy/rust-test 85/ruff/
-ruff-format/mypy/pytest 304 (вкл. I020 delivered==live)/typos/vulture. Архивный набор —
-только Ledger; memory-check проверяется гейтом архивного коммита.
+`cargo clippy` с новым денаем — чисто (0 находок после фикса process.rs). Полный гейт — на
+коммите VAC-A.
 
 ## Blockers
 
@@ -40,8 +37,9 @@ ruff-format/mypy/pytest 304 (вкл. I020 delivered==live)/typos/vulture. Арх
 
 ## Next action
 
-1) Закоммитить архивацию (без `tooling/distribution/stable.txt`) через хук. 2) Финальный пин
-([D051](Decisions/051.md)): записать голову архивного коммита в `tooling/distribution/
-stable.txt` + `just bootstrap` одним scratch; закоммитить пин. 3) `just feature-merge` (тесты,
-затронутые всей веткой); ветку сохранить, не пушить. 4) Продолжить набор: промоутнуть
-[B028](Backlog/028.md) на новой ветке `feature/...`.
+1) Закоммитить VAC-A (промоушен + clippy + process.rs + D068) через хук. 2) VAC-B (3.1):
+двухкоммитная схема для структурного правила `silent-error` (Python `except:`-тело из одного
+`pass`, escape `DECISION:`/`INVARIANT:`): B1 enabling (Kind+дескриптор+Python-хендлер+
+измерение+тест, не в `catalog::ALL`/lint.yaml, без маркеров) → пин+бустрап → B2 live
+(`catalog::ALL`, lint.yaml, навык ремонта, assets, маркеры, догфуд, D069, State). 3) Архив
+P038/B028, финальный пин (D051), `just feature-merge`. Не пушить, ветку сохранить.
