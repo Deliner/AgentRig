@@ -47,20 +47,9 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
 fn branch(node: Node<'_>) -> Branch {
     match node.kind() {
         "function_item" | "function_signature_item" | "closure_expression" => Branch::Boundary,
-        "if_expression" => Branch::Count(1),
-        "match_expression" => Branch::Count(arms(node)),
+        "if_expression" | "match_expression" => Branch::Decision,
         _ => Branch::Plain,
     }
-}
-fn arms(node: Node<'_>) -> u64 {
-    let Some(block) = node.child_by_field_name("body") else {
-        return 0;
-    };
-    let mut cursor = block.walk();
-    block
-        .named_children(&mut cursor)
-        .filter(|child| child.kind() == "match_arm")
-        .count() as u64
 }
 // DECISION: D062
 fn flag(parameter: Node<'_>, source: &str) -> bool {

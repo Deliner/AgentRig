@@ -234,7 +234,7 @@ fn branch_budgets(path: &str, source: &str) -> Vec<(String, u64)> {
 }
 
 #[test]
-fn rust_counts_ifs_and_match_arms_within_each_function() {
+fn rust_counts_ifs_and_matches_within_each_function() {
     let source = "fn flat() {
     let value = 1;
 }
@@ -266,7 +266,7 @@ fn outer(choice: i32) {
         branch_budgets("source.rs", source),
         [
             ("<anonymous>".into(), 1),
-            ("dispatch".into(), 3),
+            ("dispatch".into(), 1),
             ("flat".into(), 0),
             ("ladder".into(), 2),
             ("outer".into(), 1),
@@ -275,7 +275,7 @@ fn outer(choice: i32) {
 }
 
 #[test]
-fn python_counts_ifs_elifs_ternaries_and_case_arms_within_each_function() {
+fn python_counts_ifs_elifs_ternaries_and_matches_within_each_function() {
     let source = "def flat():
     value = 1
 def ladder(choice):
@@ -303,7 +303,7 @@ def outer(choice):
     assert_eq!(
         branch_budgets("source.py", source),
         [
-            ("dispatch".into(), 2),
+            ("dispatch".into(), 1),
             ("flat".into(), 0),
             ("inner".into(), 1),
             ("ladder".into(), 2),

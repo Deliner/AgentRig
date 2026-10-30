@@ -171,10 +171,10 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
 const BRANCHBUDGET: Descriptor = Descriptor {
     default_id: "branch-budget",
     target: "file",
-    metric: "decision points in a function: each if, else-if and ternary condition and each match or case arm; nested function and closure bodies are measured on their own",
+    metric: "decision points in a function: each if, else-if and ternary condition, and each match or case as one multi-way decision regardless of arms; nested function and closure bodies are measured on their own",
     skill: "reduce-branching",
     parameters: Parameters::Thresholds {
         warning: None,
-        error: 10,
+        error: 5,
     },
 };

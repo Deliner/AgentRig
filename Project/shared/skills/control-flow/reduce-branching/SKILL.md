@@ -20,15 +20,16 @@ decisions, not by scattering the same ones across helpers that each still decide
    caller spends one branch reaching it.
 5. Verify the changed function through its callers and affected behavior checks.
 
-An exhaustive `match` or `case` over a type is one decision realized as arms; when
-the arms are the finding, give the type the behavior (a method or trait per
-variant) rather than hiding arms behind a wildcard. Do not merge unrelated cases,
-drop a case, or collapse distinct conditions merely to lower the count.
+A `match` or `case` counts once however many arms it has: a flat multi-way
+dispatch is one decision, so prefer it over a chain of `if`/`else if` that re-tests
+the same value. Do not merge unrelated conditions or drop a case merely to lower
+the count.
 
 ## Rule binding
 
 The measurement counts the decision points in one function: each `if`, else-if
-and ternary condition and each `match` or `case` arm; nested function and closure
-bodies are measured on their own. Rerun the reported lint check and relevant
-behavior checks. Do not raise the threshold merely to pass. Apply
-complexity-discipline; stop when the finding is resolved and behavior is preserved.
+and ternary condition, and each `match` or `case` as one multi-way decision
+regardless of arms; nested function and closure bodies are measured on their own.
+Rerun the reported lint check and relevant behavior checks. Do not raise the
+threshold merely to pass. Apply complexity-discipline; stop when the finding is
+resolved and behavior is preserved.

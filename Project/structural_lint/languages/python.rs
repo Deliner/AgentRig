@@ -86,20 +86,11 @@ fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
 fn branch(node: Node<'_>) -> Branch {
     match node.kind() {
         "function_definition" | "lambda" => Branch::Boundary,
-        "if_statement" | "elif_clause" | "conditional_expression" => Branch::Count(1),
-        "match_statement" => Branch::Count(cases(node)),
+        "if_statement" | "elif_clause" | "conditional_expression" | "match_statement" => {
+            Branch::Decision
+        }
         _ => Branch::Plain,
     }
-}
-fn cases(node: Node<'_>) -> u64 {
-    let Some(block) = node.child_by_field_name("body") else {
-        return 0;
-    };
-    let mut cursor = block.walk();
-    block
-        .named_children(&mut cursor)
-        .filter(|child| child.kind() == "case_clause")
-        .count() as u64
 }
 // DECISION: D062
 fn flag(parameter: Node<'_>, source: &str) -> bool {

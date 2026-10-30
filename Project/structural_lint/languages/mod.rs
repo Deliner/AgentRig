@@ -193,7 +193,7 @@ pub fn boolean_parameters(
 }
 pub enum Branch {
     Boundary,
-    Count(u64),
+    Decision,
     Plain,
 }
 pub fn branching(
@@ -223,8 +223,8 @@ fn accumulate(node: Node<'_>, classify: fn(Node<'_>) -> Branch, total: &mut u64)
     for child in node.named_children(&mut cursor) {
         match classify(child) {
             Branch::Boundary => {}
-            Branch::Count(count) => {
-                *total += count;
+            Branch::Decision => {
+                *total += 1;
                 accumulate(child, classify, total);
             }
             Branch::Plain => accumulate(child, classify, total),
