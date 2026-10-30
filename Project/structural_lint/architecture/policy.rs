@@ -12,6 +12,30 @@ use std::{
 
 pub const FILENAME: &str = "architecture.yaml";
 
+// DECISION: D070
+const PLACEHOLDER_PURPOSES: &[&str] = &[
+    "todo",
+    "tbd",
+    "fixme",
+    "wip",
+    "xxx",
+    "na",
+    "none",
+    "placeholder",
+    "description",
+    "purpose",
+    "module",
+    "directory",
+    "package",
+    "folder",
+    "file",
+    "code",
+    "stuff",
+    "misc",
+    "various",
+    "temporary",
+];
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Declaration {
@@ -109,9 +133,17 @@ fn load(root: &Path, directory: &Path) -> Result<Declaration> {
         "contract escapes project root"
     );
     let declaration: Declaration = crate::shared::yaml::read(&path)?;
+    let purpose = declaration.purpose.trim();
     ensure!(
-        !declaration.purpose.trim().is_empty() && !declaration.purpose.contains(['\n', '\r']),
+        !purpose.is_empty() && !declaration.purpose.contains(['\n', '\r']),
         "purpose must describe the directory responsibility on one nonempty line"
+    );
+    let gist = purpose
+        .trim_matches(|character: char| !character.is_alphanumeric())
+        .to_ascii_lowercase();
+    ensure!(
+        !gist.is_empty() && !PLACEHOLDER_PURPOSES.contains(&gist.as_str()),
+        "purpose must state the real directory responsibility, not a placeholder"
     );
     Ok(declaration)
 }

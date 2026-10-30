@@ -73,6 +73,32 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D067](Decisions/067.md) | Flag string literals matching a fixed set of unambiguous credential formats (private-key block, AWS, GitHub, Google or Slack token) at error level in Rust and Python; delivered to consumers, additive to the ruff bandit group. | [card](Archive/Backlog/026.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [matcher](../Project/shared/syntax/mod.rs), [measurement](../Project/structural_lint/languages/mod.rs), [skill](../Project/shared/skills/remove-secret/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
 | [D068](Decisions/068.md) | Deny clippy `let_underscore_must_use` in the development gate so an ignored `Result`/`#[must_use]` must be consciously consumed, catching the Rust half of B028's ignore-errors rule on the dev gate rather than shipping it to init (no type inference); extends D060. | [card](Archive/Backlog/028.md), [clippy profile](../.agentrig/commands.yaml), [ruff profile](../tooling/pyproject.toml), [related](Decisions/060.md) |
 | [D069](Decisions/069.md) | Flag a Python `except` clause whose body is only `pass` at error level unless a `DECISION:` or `INVARIANT:` reference sits on the line directly above the `pass`, shipping the clean-syntactic half of B028's silent-error rule to init; Python only, delivered to consumers; the type-dependent Rust half stays on the dev gate (D068). | [card](Archive/Backlog/028.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/references/handle-error/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+| [D070](Decisions/070.md) | Reject an `architecture.yaml` purpose whose whole meaningful content is a placeholder/generic token (`TODO`, `Module`, `...`) by tightening the existing `directory-architecture` contract validation, shipping B030's purpose-quality check (5.2) to init; no new rule kind or skill, I020 unchanged; extends D028/D043 and the fixed-set approach of D067. | [card](Archive/Backlog/030.md), [owner](../Project/structural_lint/architecture/policy.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/067.md) |
+| [D071](Decisions/071.md) | Keep B030's families-together (5.1) and one-capability-one-file (5.3) as norms, not init rules: 5.1 needs trait/base name→file resolution with wildcard/re-export/prelude holes and a new extraction subsystem (D059), and 5.3 is not syntactically identifiable without framework semantics; only the decidable purpose-quality check (5.2, D070) ships. | [card](Archive/Backlog/030.md), [norm](../Project/shared/skills/refactor/refactor-large-directory/SKILL.md), [related](Decisions/059.md), [related](Decisions/070.md) |
+
+D071 records why two of B030's candidates stay norms and supersedes nothing:
+5.1 (a trait with its impls, or a base with its subclasses, co-located) would need
+to resolve each impl's trait or each class's base by name to its defining file,
+which the syntactic engine cannot do for wildcard, re-export or prelude names and
+which would need a new extraction subsystem — the cost D059 already declined; 5.3
+(one capability per file) cannot identify "a CLI command, rule or handler" without
+framework-specific semantics, and the generic proxy would flag legitimate cohesion
+the facade guidance allows. Both intents already live in the feature-type and
+contract discipline (D043/D044) and `refactor-large-directory`. Only the decidable
+purpose-quality check (5.2) became a rule (D070).
+
+D070 ships the init half of B030's structure-as-map discipline (5.2) and
+supersedes nothing: the `directory-architecture` contract loader now rejects a
+purpose whose whole meaningful content is a placeholder or generic token (`TODO`,
+`Module`, `...`), on top of the empty and multi-line checks it already made
+(D028/D043). A small fixed set keeps the check decidable and
+near-zero-false-positive — the repository's real purposes are multi-word phrases,
+and a phrase merely containing a generic word still passes — mirroring the
+hardcoded-secret fixed set (D067). It is a stricter check inside the existing rule,
+not a new `Kind`, so the delivered rule-kind and skill sets are unchanged (I020)
+and the repair skill stays `refactor-large-directory`. B030's families-together
+(5.1) and one-capability-one-file (5.3) are not shipped as rules — they need
+symbol resolution or are declarative — and remain norms.
 
 D069 ships the init half of B028's error discipline and supersedes nothing: the
 lint now flags any Python `except` clause whose body is only `pass`, since such a
