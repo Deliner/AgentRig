@@ -190,6 +190,9 @@ fn contracts_reject_missing_invalid_or_escaping_descriptions() {
         "purpose: 123",
         "purpose: A\npurpose: B",
         "purpose: A\ntype: solid",
+        "purpose: TODO",
+        "purpose: Module",
+        "purpose: '...'",
     ] {
         write(root.path(), "src", source);
         let issues = Contracts::load(root.path(), &directories).1;
@@ -202,6 +205,15 @@ fn contracts_reject_missing_invalid_or_escaping_descriptions() {
             .message
             .contains("invalid directory path")
     );
+}
+
+// DECISION: D070
+#[test]
+fn contracts_accept_a_real_purpose_containing_a_generic_word() {
+    let root = tempfile::tempdir().unwrap();
+    let directories = BTreeSet::from([PathBuf::from("src")]);
+    write(root.path(), "src", "purpose: Module loader for the parser");
+    assert!(Contracts::load(root.path(), &directories).1.is_empty());
 }
 
 #[test]
