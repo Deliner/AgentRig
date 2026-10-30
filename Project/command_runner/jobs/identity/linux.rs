@@ -17,7 +17,9 @@ pub fn sample(pid: u32) -> Result<Sample> {
             .context("incomplete process stat")?
             .parse()?)
     };
+    // DECISION: D066
     let page_size = u64::try_from(unsafe { libc::sysconf(libc::_SC_PAGESIZE) })?;
+    // DECISION: D066
     let ticks = u64::try_from(unsafe { libc::sysconf(libc::_SC_CLK_TCK) })?;
     Ok(Sample {
         start: number(19)?,

@@ -2,44 +2,37 @@
 
 ## Focus
 
-Реализация набора улучшений качества (кластеры 1–8, [B026](Backlog/026.md)–
-[B033](Backlog/033.md)) через догфудинг, по одной карточке. [P036](Archive/Plan/036.md)
-([B029](Archive/Backlog/029.md)) завершён: три под-правила сложности доставлены — 4.1
-вложенность ([D061](Decisions/061.md)), 4.2 булевы параметры ([D062](Decisions/062.md)),
-4.3 бюджет ветвлений ([D063](Decisions/063.md)); наш код зелёный. Следующие карточки набора
-— B026, B028, B030–B033 (порядок за исполнителем).
+Набор улучшений качества (кластеры 1–8, [B026](Archive/Backlog/026.md),
+[B028](Backlog/028.md), [B030](Backlog/030.md)–[B033](Backlog/033.md)) через догфудинг, по
+одной карточке. [P037](Archive/Plan/037.md) ([B026](Archive/Backlog/026.md), линты
+безопасности) завершён и архивирован в рабочем дереве. Следующая карточка набора — B028.
 
 ## Workspace
 
-Ветка: feature/branch-budget (от master `88c5e48`). Коммиты: A1 `239c9f5` (enabling, старая
-arms-метрика), A1′ `817fd8e` (коррекция «match = 1», забустрапен), A2 `d522f39`
-(branch-budget live, D063). Рабочее дерево: архив P036/B029 выполнен, не закоммичен;
-`tooling/distribution/stable.txt` = `817fd8e` (промежуточный пин A1′, не закоммичен, в коммит
-архива НЕ входит).
+Ветка: feature/security-lint (от master `f4f853d`). Коммиты: `474ff9b` VAC-A (ruff `S`, D064);
+`2ca56c9` VAC-B1; `a4f1c80` VAC-B2 (1.1 `unsafe-justification`, D065/D066); `fc804a2` VAC-C1
+(машинерия `hardcoded-secret`); `8c2b451` VAC-C2 (1.3 live, D067). `tooling/distribution/
+stable.txt` = `fc804a2` (промежуточный пин, НЕ закоммичен); финальный пин ещё не записан.
 
 Машина — macOS. Сборка/clippy/fmt/тесты/коммит/мерж/бустрап — через `just scratch -- '...'` с
 PATH (`cargo` в `~/.cargo/bin`; для гейта с Python-тестами venv `tooling/.venv/bin` первым).
 
 ## Progress
 
-B029 4.1 ([D061](Decisions/061.md)) и 4.2 ([D062](Decisions/062.md)) влиты в master.
-
-B029 4.3 доставлено (A2 `d522f39`): правило `branch-budget` (`error: 5`, `# DECISION: D063`)
-в lint.yaml; `Kind::BranchBudget`; маркеры на владельцах; запись D063. Порог `5` по колену
-распределения «match = 1». Четыре функции ≥6 приведены к ≤5 поведение-сохраняющими правками
-(`outer_control`, `arrange`, питон-тест через `match`, `run_output`), в рамках D062 и D017.
-
-Архив P036/B029 выполнен в рабочем дереве: карточки → `Archive/Plan/036.md` (с секцией
-Delivery) и `Archive/Backlog/029.md` (ссылки `../../`); строка P036 убрана из Plan.md (проза
-завершения), строка B029 убрана из Backlog.md; строки добавлены в Archive/Plan.md и
-Archive/Backlog.md; card-ссылки D061/D062/D063 переведены на `Archive/Backlog/029.md`.
-Осталось закоммитить архив через гейт.
+Все три под-правила P037 доставлены и влиты в ветку: 1.2 ruff `S` (`474ff9b`, D064); 1.1
+`unsafe-justification` (`2ca56c9`+`a4f1c80`, D065/D066, 11 FFI-мест помечены); 1.3
+`hardcoded-secret` (`fc804a2`+`8c2b451`, D067) — `Kind` в `catalog::ALL`, правило в
+`.agentrig/lint.yaml`, матчер `shared::syntax::secret`, навык `remove-secret`, `refactor-*`
+сгруппированы под `refactor/`. Архивация выполнена в рабочем дереве (не закоммичена): карточки
+`026.md`/`037.md` перенесены в `Archive/Backlog`/`Archive/Plan` (относительные ссылки
+исправлены, у P037 добавлен Delivery), индексы Backlog/Plan и их архивы обновлены, ссылки card
+в D064/D065/D067 переведены на `Archive/Backlog/026.md`. Plan.md пуст (валидно).
 
 ## Verification
 
-Гейт A2 `d522f39` полностью зелёный: build, lint (установленный A1′, branch-budget error 5,
-0 находок), memory, rustfmt, clippy, rust-test 83, ruff-format, ruff, mypy, pytest 356, typos,
-vulture. Коммит архива через гейт ещё не прогонялся.
+VAC-C2 (`8c2b451`) — полный гейт зелёный: build/lint/memory/rustfmt/clippy/rust-test 85/ruff/
+ruff-format/mypy/pytest 304 (вкл. I020 delivered==live)/typos/vulture. Архивный набор —
+только Ledger; memory-check проверяется гейтом архивного коммита.
 
 ## Blockers
 
@@ -47,8 +40,8 @@ vulture. Коммит архива через гейт ещё не прогон�
 
 ## Next action
 
-Застейджить только Ledger-изменения архива (`git add Ledger`; БЕЗ `stable.txt`) и закоммитить
-через гейт. Затем финальный пин (D051): голова ветки в `tooling/distribution/stable.txt` +
-`just bootstrap` одним `just scratch`, коммит пина. Затем `just feature-merge` (прогоняет
-затронутые ветвью тесты, ветку сохраняет). Отчёт о границе 4.3/P036 по-русски. Не пушить,
-ветку сохранить. Затем следующая карточка набора (B026, B028, B030–B033).
+1) Закоммитить архивацию (без `tooling/distribution/stable.txt`) через хук. 2) Финальный пин
+([D051](Decisions/051.md)): записать голову архивного коммита в `tooling/distribution/
+stable.txt` + `just bootstrap` одним scratch; закоммитить пин. 3) `just feature-merge` (тесты,
+затронутые всей веткой); ветку сохранить, не пушить. 4) Продолжить набор: промоутнуть
+[B028](Backlog/028.md) на новой ветке `feature/...`.

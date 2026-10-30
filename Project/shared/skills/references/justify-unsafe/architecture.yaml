@@ -1,0 +1,5 @@
+purpose: "Justify an unsafe block or function with a recorded reference, or remove the unsafe"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to justify or remove unsafe Rust constructs"
+directories: {}

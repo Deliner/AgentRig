@@ -78,6 +78,7 @@ fn forward_signals(
 ) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         for signal in signals.forever() {
+            // DECISION: D066
             unsafe {
                 libc::kill(grouping.target(pid), signal);
             }
@@ -93,6 +94,7 @@ fn attach(
     let pid = child.id() as i32;
     let attached = job.map(|job| job.attach(child.id(), grouping)).transpose();
     if let Err(error) = attached {
+        // DECISION: D066
         unsafe {
             libc::kill(grouping.target(pid), SIGTERM);
         }

@@ -1,7 +1,8 @@
 use super::{
-    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, function,
-    nesting, text,
+    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
+    function, nesting, text,
 };
+use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -9,6 +10,8 @@ use tree_sitter::Node;
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
+        "string_literal" | "raw_string_literal" => credential(node, source, output),
+        "unsafe_block" => unsafe_justification(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -20,29 +23,65 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             condition(node, test, output);
         }
         "function_item" | "function_signature_item" | "closure_expression" => {
-            let Some(parameters) = node.child_by_field_name("parameters") else {
-                return;
-            };
-            let mut cursor = parameters.walk();
-            let count = parameters
-                .named_children(&mut cursor)
-                .filter(|parameter| {
-                    let excluded = matches!(
-                        parameter.kind(),
-                        "self_parameter" | "attribute_item" | "line_comment" | "block_comment"
-                    ) || parameter
-                        .child_by_field_name("pattern")
-                        .is_some_and(|pattern| pattern.kind() == "self");
-                    !excluded
-                })
-                .count() as u64;
-            function(node, source, count, output);
-            nesting(node, source, classify, output);
-            boolean_parameters(node, source, flag, output);
-            branching(node, source, branch, output);
+            declaration(node, source, output)
         }
         _ => {}
     }
+}
+fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(parameters) = node.child_by_field_name("parameters") else {
+        return;
+    };
+    let mut cursor = parameters.walk();
+    let count = parameters
+        .named_children(&mut cursor)
+        .filter(|parameter| {
+            let excluded = matches!(
+                parameter.kind(),
+                "self_parameter" | "attribute_item" | "line_comment" | "block_comment"
+            ) || parameter
+                .child_by_field_name("pattern")
+                .is_some_and(|pattern| pattern.kind() == "self");
+            !excluded
+        })
+        .count() as u64;
+    function(node, source, count, output);
+    nesting(node, source, classify, output);
+    boolean_parameters(node, source, flag, output);
+    branching(node, source, branch, output);
+    let unsafe_declaration = unsafe_function(node, source);
+    if unsafe_declaration {
+        unsafe_justification(node, source, output);
+    }
+}
+// DECISION: D065
+fn unsafe_function(node: Node<'_>, source: &str) -> bool {
+    let mut cursor = node.walk();
+    node.children(&mut cursor).any(|child| {
+        child.kind() == "function_modifiers"
+            && text(child, source)
+                .split_whitespace()
+                .any(|word| word == "unsafe")
+    })
+}
+fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let unjustified = !justified(node, source);
+    if unjustified {
+        output.push(Measurement {
+            kind: Kind::UnsafeJustification,
+            line: node.start_position().row + 1,
+            symbol: "unsafe".into(),
+            actual: 1,
+        });
+    }
+}
+fn justified(node: Node<'_>, source: &str) -> bool {
+    let row = node.start_position().row;
+    row > 0
+        && source
+            .lines()
+            .nth(row - 1)
+            .is_some_and(|line| crate::shared::syntax::reference(line.trim()).is_some())
 }
 // DECISION: D063
 fn branch(node: Node<'_>) -> Branch {

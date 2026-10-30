@@ -18,6 +18,8 @@ pub const ALL: &[Kind] = &[
     Kind::NestingDepth,
     Kind::BooleanParameter,
     Kind::BranchBudget,
+    Kind::UnsafeJustification,
+    Kind::HardcodedSecret,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

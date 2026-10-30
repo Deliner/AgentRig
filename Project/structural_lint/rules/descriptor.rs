@@ -48,6 +48,8 @@ impl Kind {
             Self::NestingDepth => &NESTINGDEPTH,
             Self::BooleanParameter => &BOOLEANPARAMETER,
             Self::BranchBudget => &BRANCHBUDGET,
+            Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
+            Self::HardcodedSecret => &HARDCODEDSECRET,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -177,5 +179,25 @@ const BRANCHBUDGET: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 5,
+    },
+};
+// DECISION: D067
+const HARDCODEDSECRET: Descriptor = Descriptor {
+    default_id: "hardcoded-secret",
+    target: "file",
+    metric: "every string literal matching a known credential format: a private-key block, or an AWS, GitHub, Google or Slack token",
+    skill: "remove-secret",
+    parameters: Parameters::Level {
+        violation: "a hardcoded credential does not belong in source; move it to configuration or a secret store and rotate the exposed value",
+    },
+};
+// DECISION: D065
+const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
+    default_id: "unsafe-justification",
+    target: "file",
+    metric: "every Rust unsafe block or unsafe function without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "justify-unsafe",
+    parameters: Parameters::Level {
+        violation: "unsafe needs a recorded justification; put a DECISION: or INVARIANT: reference on the line directly above it, or remove the unsafe",
     },
 };

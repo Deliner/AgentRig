@@ -74,7 +74,7 @@ B024 — как [P033](Archive/Plan/033.md) на ветке feature/test-placeme
 меняется, цена фронтенда записана. P034 выполнен и перенесён в
 [Archive/Plan](Archive/Plan.md), B025 — в [Archive/Backlog](Archive/Backlog.md).
 2026-10-29 пользователь согласовал набор улучшений качества кода (кластеры 1–8,
-[B026](Backlog/026.md)–[B033](Backlog/033.md)) и поручил реализовать его через догфудинг,
+[B026](Archive/Backlog/026.md)–[B033](Backlog/033.md)) и поручил реализовать его через догфудинг,
 по одной карточке. Первой выбран [B027](Backlog/027.md) — промоутнут в [P035](Plan/035.md)
 на ветке feature/external-profiles. Порядок остальных — за исполнителем; ревизии
 контрактов — в карточках. Выполнение автономное, без повторного запроса между карточками.
@@ -89,3 +89,10 @@ branch-budget ([D063](Decisions/063.md)); наш код приведён к зе
 [Archive/Plan](Archive/Plan.md), B029 — в [Archive/Backlog](Archive/Backlog.md); ссылки card
 в D061/D062/D063 переведены на `Archive/Backlog/029.md`; пин stable.txt на голову ветки
 ([D051](Decisions/051.md)). Остаются карточки набора B026, B028, B030–B033.
+2026-10-30 P037 (B026) выполнен: три линта безопасности доставлены — 1.1 unsafe-justification
+([D065](Decisions/065.md)/[D066](Decisions/066.md)), 1.2 ruff bandit `S`
+([D064](Decisions/064.md)), 1.3 hardcoded-secret ([D067](Decisions/067.md)); наш код приведён к
+зелёному. P037 перенесён в [Archive/Plan](Archive/Plan.md), B026 — в
+[Archive/Backlog](Archive/Backlog.md); ссылки card в D064/D065/D067 переведены на
+`Archive/Backlog/026.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)). Остаются
+карточки набора B028, B030–B033.

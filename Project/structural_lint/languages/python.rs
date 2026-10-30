@@ -1,6 +1,6 @@
 use super::{
-    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, function,
-    nesting, text,
+    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
+    function, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
@@ -43,6 +43,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "comment" => comment(node, source, output),
+        "string" => credential(node, source, output),
         "expression_statement" => statement(node, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
