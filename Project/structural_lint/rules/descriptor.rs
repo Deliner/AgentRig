@@ -48,6 +48,7 @@ impl Kind {
             Self::NestingDepth => &NESTINGDEPTH,
             Self::BooleanParameter => &BOOLEANPARAMETER,
             Self::BranchBudget => &BRANCHBUDGET,
+            Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -177,5 +178,14 @@ const BRANCHBUDGET: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 5,
+    },
+};
+const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
+    default_id: "unsafe-justification",
+    target: "file",
+    metric: "every Rust unsafe block or unsafe function without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "justify-unsafe",
+    parameters: Parameters::Level {
+        violation: "unsafe needs a recorded justification; put a DECISION: or INVARIANT: reference on the line directly above it, or remove the unsafe",
     },
 };

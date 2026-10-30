@@ -23,6 +23,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::NestingDepth,
             Kind::BooleanParameter,
             Kind::BranchBudget,
+            Kind::UnsafeJustification,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

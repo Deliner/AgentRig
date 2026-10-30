@@ -14,6 +14,7 @@ pub enum Kind {
     NestingDepth,
     BooleanParameter,
     BranchBudget,
+    UnsafeJustification,
     CommentReference,
     DirectoryArchitecture,
 }
