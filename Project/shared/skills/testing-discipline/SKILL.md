@@ -27,6 +27,11 @@ this way it survives refactoring and never forces internals to leak.
 6. Do not duplicate coverage downward. When a behavior is covered at its proper
    level, do not re-assert it through a lower level's internals; keep one
    behavioral test at the owner.
+7. Make each test deterministic. Pin behavior through injected or fixture values,
+   not wall-clock time, random seeds, the network, the filesystem outside a temp
+   area, or another test's side effects or order. A test that turns on anything
+   but the code under test is a defect; fix the dependence rather than disabling
+   the test.
 
 Stop when each changed behavior is pinned through its public surface at its
 owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
@@ -39,5 +44,9 @@ Placement (1) cannot: an import edge shows that a test depends on code, not
 whether that code is the behavior under test or an incidental shared type, so
 flagging every out-of-area dependency would punish ordinary shared vocabulary
 and test helpers. Public surface and back doors (2, 4) cannot: no symbol
-visibility or reverse-reference analysis exists. Until such analysis is built,
-apply these in review; a finding would be repaired here.
+visibility or reverse-reference analysis exists. Determinism (7) cannot either: a
+call to a clock, RNG or the network is not by itself a nondeterminism bug, and
+order dependence is not syntactic, so a blanket ban would be false-positive-prone.
+The one decidable part — a test disabled without a justifying reference — is
+enforced by the `disabled-test` rule; the rest apply in review, where a finding
+would be repaired here.

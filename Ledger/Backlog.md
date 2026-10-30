@@ -10,5 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B032](Backlog/032.md) | Линты тестов | Тесты детерминированы и явно обоснованы, а не тихо выключены. |
 | [B033](Backlog/033.md) | Гигиена зависимостей и сборки | Зависимости осознанны и минимальны, сборка воспроизводима. |

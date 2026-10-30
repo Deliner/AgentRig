@@ -225,6 +225,19 @@ rules:
   level: error
   warning_skill: .agents/skills/handle-error/SKILL.md
   error_skill: .agents/skills/handle-error/SKILL.md
+# DECISION: D074
+- id: disabled-test
+  kind: disabled-test
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/justify-skip/SKILL.md
+  error_skill: .agents/skills/justify-skip/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

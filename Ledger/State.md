@@ -3,33 +3,32 @@
 ## Focus
 
 Набор улучшений качества (кластеры 1–8), по одной карточке. Доставлены B027/P035, B029/P036,
-B026/P037, B028/P038, B030/P039 (в master) и теперь B031/P040 — линты именования: 6.1
-имена-помойки доставлено в init правилом `dump-name` (D072); 6.2/6.3 — норма (D073). P040/B031
-перенесены в Archive. Осталась финализация ветки: финальный пин (D051) + feature-merge. Дальше —
-B032–B033.
+B026/P037, B028/P038, B030/P039, B031/P040 (в master). Текущая — B032/P041 (линты тестов): 7.1
+тихо выключенные тесты → правило `disabled-test`; 7.2/7.3 — вероятно норма. Дальше — B033.
 
 ## Workspace
 
-Ветка: feature/naming-lints (от master `e71b1cc`). Машина — macOS. Коммиты: `30520d5` VAC-A,
-`2b98cb7` VAC-B1 (enabling), `7d819bc` VAC-B2 (live rule + D072), `ad7dd72` VAC-C (D073). Архив
-P040/B031 в рабочем дереве, НЕ закоммичен: Archive/Plan/040.md (+ Delivery) и Archive/Backlog/031.md
-созданы; строки P040/B031 убраны из Plan.md/Backlog.md и добавлены в Archive/Plan.md/Archive/Backlog.md;
-проза-завершение в Plan.md; ссылки card D072/D073 в Decisions.md → `Archive/Backlog/031.md`; этот
-State. Оригиналы Plan/040.md и Backlog/031.md ещё на диске — удалить через `git rm` в коммите
-архива. stable.txt = `2b98cb7` (промежуточный пин B1, НЕ закоммичен). Сборка/коммит/бустрап/merge —
-через `just scratch -- '...'` с PATH (`cargo` в `~/.cargo/bin`, venv `tooling/.venv/bin` первым).
+Ветка: feature/test-lints (от master `ca6fa4a`). Машина — macOS. Коммиты: `c93b22a` VAC-A (промоут),
+`d8863ff` VAC-B1 (enabling), `6684f28` VAC-B2 (live-правило `disabled-test` в init; хук зелёный),
+`47e52c4` VAC-C (нормы 7.2/7.3 — D075 + пункт 7 в `testing-discipline`; хук зелёный). B1 запинён+
+забустрапен (stable.txt=`d8863ff`, НЕ закоммичен). Архив-VAC применён в рабочем дереве: P041-карточка
++ `## Delivery` → `Archive/Plan/041.md` (git mv), B032-карточка (ссылки `../`→`../../`) →
+`Archive/Backlog/032.md` (git mv), строки Plan/Backlog сняты и добавлены в Archive/*, проза доставки
+в Plan.md, ссылки [card] D074/D075 → `Archive/Backlog/032.md`, эта State. Сборка/коммит/бустрап/merge
+— через `just scratch -- '...'` с PATH (`cargo` в `~/.cargo/bin`, venv `tooling/.venv/bin` первым).
 
 ## Progress
 
-Реализация и память B031 завершены. 6.1 — правило `dump-name` (двухкоммитная схема: B1 enabling
-пин+бустрап, B2 live), навык переиспользован, I020 по skills не меняется. 6.2/6.3 — норма (D073).
-Остался только перенос в Archive (готов в дереве) и финализация ветки.
+B032/P041 доставлен: 7.1 — правило `disabled-test` в init (D074, VAC-B2 6684f28), 7.2/7.3 — норма
+(D075, VAC-C 47e52c4). Архив-VAC (эта правка) переносит карточки P041/B032 в Archive и мигрирует
+ссылки. Осталась механика D051: финальный пин (stable.txt=голова архив-коммита + bootstrap) отдельным
+коммитом, затем `just feature-merge`. После merge — отчёт и B033.
 
 ## Verification
 
-VAC-B2 гейт зелёный (88 Rust + 282 Python, вкл. test_delivery/I020 и architecture/tests). Кандидат
-`just lint` exit 0. Ссылки Ledger после переноса: проверить memory-check на коммите архива (должен
-быть зелёным; оригиналы удаляются тем же коммитом).
+VAC-B2 хук зелёный (rustfmt/clippy/90 rust/ruff/mypy/304 py вкл. test_delivery I020/typos/vulture).
+VAC-C хук зелёный (181 py-теста вкл. test_delivery I020). Архив-VAC — только память (нет кода); хук
+проверит memory-check после переноса карточек.
 
 ## Blockers
 
@@ -37,8 +36,8 @@ VAC-B2 гейт зелёный (88 Rust + 282 Python, вкл. test_delivery/I020
 
 ## Next action
 
-1) Коммит архива P040/B031 через хук: `git rm Ledger/Plan/040.md Ledger/Backlog/031.md` + `git add`
-остальных Ledger-файлов; stable.txt НЕ коммитить. 2) Финальный пин (двухкоммитная схема P036):
-stable.txt = голова архивного коммита + `just bootstrap` в одном `just scratch`, отдельный коммит
-`pin <head>`. 3) `just feature-merge` (тесты всей ветки); не пушить, ветку сохранить. 4) Отчёт на
-русском на границе merge; затем следующая карточка набора (B032 — линты тестов, затем B033).
+Закоммитить архив-VAC (git mv обеих карточек + строки Archive/* + проза Plan.md + миграция [card] +
+эта State) через хук. Затем финальный пин D051: в одном `just scratch` записать stable.txt=полный хэш
+головы архив-коммита + `just bootstrap`, затем закоммитить только stable.txt (`P041: pin <hash>`
+(D051)). Затем `just feature-merge` (не пушить, ветку сохранить) → отчёт на русском на границе merge;
+затем B033 (кластер 8: 8.1 неиспользуемые deps, 8.2 lockfiles+`--locked`, 8.3 бюджет зависимостей).

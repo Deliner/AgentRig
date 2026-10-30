@@ -1,0 +1,5 @@
+purpose: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to restore or justify a disabled test"
+directories: {}

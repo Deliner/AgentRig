@@ -12,6 +12,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
+        "attribute_item" => disabled_test(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -63,6 +64,24 @@ fn unsafe_function(node: Node<'_>, source: &str) -> bool {
                 .split_whitespace()
                 .any(|word| word == "unsafe")
     })
+}
+// DECISION: D074
+fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let ignored = node
+        .named_children(&mut node.walk())
+        .find(|child| child.kind() == "attribute")
+        .and_then(|attribute| attribute.named_child(0))
+        .map(|name| text(name, source))
+        .is_some_and(|name| name == "ignore");
+    let unjustified = ignored && !justified(node, source);
+    if unjustified {
+        output.push(Measurement {
+            kind: Kind::DisabledTest,
+            line: node.start_position().row + 1,
+            symbol: "ignore".into(),
+            actual: 1,
+        });
+    }
 }
 fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = !justified(node, source);

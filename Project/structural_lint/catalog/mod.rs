@@ -22,6 +22,7 @@ pub const ALL: &[Kind] = &[
     Kind::UnsafeJustification,
     Kind::HardcodedSecret,
     Kind::SilentError,
+    Kind::DisabledTest,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

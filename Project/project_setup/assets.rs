@@ -88,6 +88,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/handle-error/SKILL.md"),
     ),
     (
+        "justify-skip",
+        include_str!("../shared/skills/references/justify-skip/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

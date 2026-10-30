@@ -46,6 +46,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "string" => credential(node, source, output),
         "expression_statement" => statement(node, output),
         "except_clause" => silent_except(node, source, output),
+        "decorator" => disabled_test(node, source, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -78,6 +79,30 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D069
+// DECISION: D074
+fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(expression) = node.named_child(0) else {
+        return;
+    };
+    let call = expression.kind() == "call";
+    let callee = if call {
+        expression.child_by_field_name("function")
+    } else {
+        Some(expression)
+    };
+    let disabled = callee
+        .map(|callee| text(callee, source))
+        .is_some_and(|path| matches!(path, "pytest.mark.skip" | "pytest.mark.skipif"));
+    let unjustified = disabled && !justified(node, source);
+    if unjustified {
+        output.push(Measurement {
+            kind: Kind::DisabledTest,
+            line: node.start_position().row + 1,
+            symbol: "skip".into(),
+            actual: 1,
+        });
+    }
+}
 fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(body) = node
