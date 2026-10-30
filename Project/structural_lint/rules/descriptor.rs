@@ -180,6 +180,7 @@ const BRANCHBUDGET: Descriptor = Descriptor {
         error: 5,
     },
 };
+// DECISION: D065
 const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
     default_id: "unsafe-justification",
     target: "file",

@@ -53,6 +53,7 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         unsafe_justification(node, source, output);
     }
 }
+// DECISION: D065
 fn unsafe_function(node: Node<'_>, source: &str) -> bool {
     let mut cursor = node.walk();
     node.children(&mut cursor).any(|child| {

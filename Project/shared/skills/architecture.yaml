@@ -14,7 +14,7 @@ directories:
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   repair: "Diagnose and repair configuration and verification failures"
-  replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
+  references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"
   signature: "Repair function-signature smells: excessive inputs and boolean flag parameters"
   testing-discipline: "Place tests by behavior and test through the public surface"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"

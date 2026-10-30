@@ -73,7 +73,11 @@ const SKILLS: &[(&str, &str)] = &[
     ("repair", include_str!("../shared/skills/repair/SKILL.md")),
     (
         "replace-comment",
-        include_str!("../shared/skills/replace-comment/SKILL.md"),
+        include_str!("../shared/skills/references/replace-comment/SKILL.md"),
+    ),
+    (
+        "justify-unsafe",
+        include_str!("../shared/skills/references/justify-unsafe/SKILL.md"),
     ),
     (
         "split-boolean-parameter",
