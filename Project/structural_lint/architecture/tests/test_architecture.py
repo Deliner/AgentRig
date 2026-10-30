@@ -208,6 +208,56 @@ def test_architecture_rejects_git_target_through_escaping_symlink(
     )
 
 
+# DECISION: D076
+def test_architecture_flags_declared_python_external_that_is_never_imported(
+    worker: Path, tmp_path: Path
+) -> None:
+    source, _ = consumer(tmp_path, "py")
+    source.write_text(
+        "from __future__ import annotations\n"
+        "import os\n"
+        "from b.api import value\n\n\n"
+        "def run():\n    return os.getpid() + value()\n"
+    )
+    policy = tmp_path / "lint.yaml"
+    policy.write_text(
+        policy.read_text().replace(
+            "python_root: src",
+            "python_root: src\n      external:\n        python: [__future__, os, unused_dep]",
+        )
+    )
+    code, findings = lint(worker, tmp_path)
+    assert code == 1, findings
+    messages = [item["message"] for item in findings]
+    assert messages == ["declared external Python dependency is never imported: unused_dep"], (
+        findings
+    )
+
+
+# DECISION: D076
+def test_architecture_unused_external_rust_ignores_the_standard_library_seed(
+    worker: Path, tmp_path: Path
+) -> None:
+    source, _ = consumer(tmp_path, "rs")
+    source.write_text(
+        "use serde::Serialize;\n"
+        "#[derive(Serialize)]\npub struct Row;\n"
+        "pub fn run() -> i32 { crate::b::value() }\n"
+    )
+    policy = tmp_path / "lint.yaml"
+    policy.write_text(
+        policy.read_text().replace(
+            "rust_roots: [src/lib.rs]",
+            "rust_roots: [src/lib.rs]\n      external:\n"
+            "        rust: [std, core, alloc, serde, unused_dep]",
+        )
+    )
+    code, findings = lint(worker, tmp_path)
+    assert code == 1, findings
+    messages = [item["message"] for item in findings]
+    assert messages == ["declared external Rust dependency is never imported: unused_dep"], findings
+
+
 @pytest.mark.parametrize(("setting", "code"), [("true", 2), ("false", 0)])
 def test_architecture_rust_root_validation(
     worker: Path, tmp_path: Path, setting: str, code: int

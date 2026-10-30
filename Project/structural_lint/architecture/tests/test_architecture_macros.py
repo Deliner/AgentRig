@@ -8,6 +8,14 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
     parity,
 )
 
+MACRO_EXTERNALS = {
+    "assert": "[std]",
+    "nested": "[std]",
+    "module": "[std]",
+    "anyhow": "[std, anyhow]",
+    "json": "[std, serde_json]",
+}
+
 
 @pytest.mark.parametrize(
     "case",
@@ -39,11 +47,12 @@ def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: s
         "inner": "pub fn run() { assert!({ use custom::assert; assert!(true); true }); }",
     }
     source.write_text(sources[case])
+    declared = MACRO_EXTERNALS.get(case, "[std, anyhow, serde_json, custom]")
     config = tmp_path / "lint.yaml"
     config.write_text(
         config.read_text().replace(
             "      rust_roots:",
-            "      external:\n        rust: [std, anyhow, serde_json, custom]\n      rust_roots:",
+            f"      external:\n        rust: {declared}\n      rust_roots:",
         )
     )
     code, findings = parity(worker, tmp_path)

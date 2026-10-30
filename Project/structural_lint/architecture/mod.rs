@@ -10,7 +10,7 @@ mod tests;
 
 use std::path::PathBuf;
 
-pub use super::rules::architecture::Settings;
+pub use super::rules::architecture::{PYTHON_SEED, RUST_SEED, Settings};
 pub use policy::{Contracts, describe};
 
 #[derive(Clone, Debug)]

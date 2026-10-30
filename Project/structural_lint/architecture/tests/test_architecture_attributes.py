@@ -8,6 +8,13 @@ from Project.structural_lint.architecture.tests.test_architecture_behavior impor
     run_consumer,
 )
 
+ATTR_EXTERNALS = {
+    "callback": "[std, serde]",
+    "label": "[std, serde]",
+    "test": "[std]",
+    "platform": "[std]",
+}
+
 
 @pytest.mark.parametrize(
     "case", ["callback", "label", "unknown", "derive", "alias", "test", "platform", "feature"]
@@ -27,11 +34,12 @@ def test_rust_attributes_preserve_dependency_evidence(
         "feature": '#[cfg(feature = "extra")] mod checks { pub fn run() -> i32 { crate::b::value() } }',
     }
     source.write_text(samples[case])
+    declared = ATTR_EXTERNALS.get(case, "[std, serde, custom]")
     policy = tmp_path / "lint.yaml"
     policy.write_text(
         policy.read_text().replace(
             "      rust_roots:",
-            "      external:\n        rust: [std, serde, custom]\n      rust_roots:",
+            f"      external:\n        rust: {declared}\n      rust_roots:",
         )
     )
     code, findings = parity(worker, tmp_path)

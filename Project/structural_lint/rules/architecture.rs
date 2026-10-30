@@ -17,6 +17,12 @@ pub struct Settings {
     pub feature_root: Option<PathBuf>,
 }
 
+// DECISION: D076
+pub const RUST_SEED: [&str; 3] = ["std", "core", "alloc"];
+
+// DECISION: D076
+pub const PYTHON_SEED: [&str; 1] = ["__future__"];
+
 #[derive(Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct External {
@@ -27,7 +33,7 @@ pub struct External {
 impl Default for External {
     fn default() -> Self {
         Self {
-            rust: ["std", "core", "alloc"].map(str::to_owned).into(),
+            rust: RUST_SEED.map(str::to_owned).into(),
             python: BTreeSet::new(),
         }
     }
