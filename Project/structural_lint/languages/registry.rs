@@ -42,6 +42,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::BooleanParameter,
             Kind::BranchBudget,
             Kind::HardcodedSecret,
+            Kind::SilentError,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

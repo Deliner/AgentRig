@@ -361,6 +361,47 @@ fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
     found
 }
 
+fn silent_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::SilentError)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn python_flags_except_pass_without_a_justifying_reference() {
+    let source = "def guarded():
+    try:
+        work()
+    except ValueError:
+        pass
+    try:
+        work()
+    except KeyError:
+        # DECISION: D001
+        pass
+    try:
+        work()
+    except OSError as error:
+        log(error)
+    try:
+        work()
+    except TypeError:
+        cleanup()
+        pass
+    try:
+        work()
+    except IndexError: pass
+";
+    assert_eq!(silent_findings("source.py", source), [4, 22]);
+}
+
 #[test]
 fn rust_flags_literals_matching_known_credential_formats() {
     let aws = format!("AKIA{}", "0123456789ABCDEF");
