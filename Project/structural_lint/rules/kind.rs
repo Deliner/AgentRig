@@ -18,6 +18,7 @@ pub enum Kind {
     UnsafeJustification,
     HardcodedSecret,
     SilentError,
+    DisabledTest,
     CommentReference,
     DirectoryArchitecture,
 }

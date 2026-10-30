@@ -52,6 +52,7 @@ impl Kind {
             Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
             Self::HardcodedSecret => &HARDCODEDSECRET,
             Self::SilentError => &SILENTERROR,
+            Self::DisabledTest => &DISABLEDTEST,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -212,6 +213,15 @@ const SILENTERROR: Descriptor = Descriptor {
     skill: "handle-error",
     parameters: Parameters::Level {
         violation: "an except that only passes swallows the error; handle it, re-raise, or put a DECISION: or INVARIANT: reference on the line directly above the pass to justify ignoring it",
+    },
+};
+const DISABLEDTEST: Descriptor = Descriptor {
+    default_id: "disabled-test",
+    target: "file",
+    metric: "every Rust #[ignore] attribute or Python @pytest.mark.skip or skipif decorator without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "justify-skip",
+    parameters: Parameters::Level {
+        violation: "a silently disabled test drops coverage; re-enable it, delete it if obsolete, or put a DECISION: or INVARIANT: reference on the line directly above it to justify skipping",
     },
 };
 // DECISION: D065
