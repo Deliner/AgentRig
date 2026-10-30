@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P036](Plan/036.md) | active | - | [B029](Backlog/029.md): синтаксические линты сложности (вложенность/флаги/ветвления), догфуд к зелёному | Плоский, разбитый на понятные единицы код из коробки |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -84,3 +83,9 @@ P035 (B027) выполнен: профиль clippy — паник-риск-deny
 в [Archive/Plan](Archive/Plan.md), B027 — в [Archive/Backlog](Archive/Backlog.md); пин
 stable.txt=`ace5511` ([D051](Decisions/051.md)). Остальные карточки набора (B026, B028–B033)
 — следующими, по одной за ветку.
+2026-10-30 P036 (B029) выполнен: три под-правила сложности доставлены — 4.1 nesting-depth
+([D061](Decisions/061.md)), 4.2 boolean-parameter ([D062](Decisions/062.md)), 4.3
+branch-budget ([D063](Decisions/063.md)); наш код приведён к зелёному. P036 перенесён в
+[Archive/Plan](Archive/Plan.md), B029 — в [Archive/Backlog](Archive/Backlog.md); ссылки card
+в D061/D062/D063 переведены на `Archive/Backlog/029.md`; пин stable.txt на голову ветки
+([D051](Decisions/051.md)). Остаются карточки набора B026, B028, B030–B033.
