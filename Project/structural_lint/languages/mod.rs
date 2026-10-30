@@ -168,3 +168,26 @@ fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: u64, max: &mut
         }
     }
 }
+// DECISION: D062
+pub fn boolean_parameters(
+    node: Node<'_>,
+    source: &str,
+    flag: fn(Node<'_>, &str) -> bool,
+    output: &mut Vec<Measurement>,
+) {
+    let Some(parameters) = node.child_by_field_name("parameters") else {
+        return;
+    };
+    let mut cursor = parameters.walk();
+    for parameter in parameters.named_children(&mut cursor) {
+        let boolean = flag(parameter, source);
+        if boolean {
+            output.push(Measurement {
+                kind: Kind::BooleanParameter,
+                line: parameter.start_position().row + 1,
+                symbol: text(parameter, source).trim().into(),
+                actual: 1,
+            });
+        }
+    }
+}

@@ -1,4 +1,5 @@
 // DECISION: D034
+use super::jobs::Capture;
 use anyhow::{Result, ensure};
 use std::{
     path::Path,
@@ -8,7 +9,7 @@ use std::{
 pub fn tracked(
     root: &Path,
     argv: &[String],
-    options: (bool, bool),
+    options: (bool, Capture),
     job: Option<&mut crate::command_runner::jobs::Job>,
 ) -> Result<Output> {
     let (read_only, capture) = options;

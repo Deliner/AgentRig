@@ -1,0 +1,5 @@
+purpose: "Repair function-signature smells: excessive inputs and boolean flag parameters"
+files: {}
+directories:
+  reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
+  split-boolean-parameter: "Replace a boolean parameter with named modes while preserving behavior"

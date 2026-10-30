@@ -1,4 +1,4 @@
-use super::{Measurement, Nest, comment, condition, function, nesting};
+use super::{Measurement, Nest, boolean_parameters, comment, condition, function, nesting, text};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -35,9 +35,18 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
                 .count() as u64;
             function(node, source, count, output);
             nesting(node, source, classify, output);
+            boolean_parameters(node, source, flag, output);
         }
         _ => {}
     }
+}
+// DECISION: D062
+fn flag(parameter: Node<'_>, source: &str) -> bool {
+    parameter
+        .child_by_field_name("type")
+        .is_some_and(|annotation| {
+            annotation.kind() == "primitive_type" && text(annotation, source) == "bool"
+        })
 }
 // DECISION: D061
 fn classify(node: Node<'_>) -> Nest {

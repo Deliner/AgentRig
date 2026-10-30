@@ -1,4 +1,4 @@
-use super::{Measurement, Nest, comment, condition, function, nesting, text};
+use super::{Measurement, Nest, boolean_parameters, comment, condition, function, nesting, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
@@ -68,14 +68,26 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             };
             condition(node, test, output);
         }
-        "function_definition" | "lambda" => {
-            let count = parameter_count(node);
-            let receiver = method_receiver(node, source) && count > 0;
-            function(node, source, count - u64::from(receiver), output);
-            nesting(node, source, classify, output);
-        }
+        "function_definition" | "lambda" => measure(node, source, output),
         _ => {}
     }
+}
+fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let count = parameter_count(node);
+    let receiver = method_receiver(node, source) && count > 0;
+    function(node, source, count - u64::from(receiver), output);
+    nesting(node, source, classify, output);
+    boolean_parameters(node, source, flag, output);
+}
+// DECISION: D062
+fn flag(parameter: Node<'_>, source: &str) -> bool {
+    let annotated = parameter
+        .child_by_field_name("type")
+        .is_some_and(|annotation| text(annotation, source).trim() == "bool");
+    let defaulted = parameter
+        .child_by_field_name("value")
+        .is_some_and(|value| matches!(value.kind(), "true" | "false"));
+    annotated || defaulted
 }
 // DECISION: D061
 fn classify(node: Node<'_>) -> Nest {

@@ -50,7 +50,14 @@ impl Record {
     fn fingerprint(&self, context: &Context, origin: &Path) -> Result<String> {
         match self.exported_revision() {
             Some(revision) => content::revision_fingerprint(context, origin, revision),
-            None => content::fingerprint(context, origin, self.staged),
+            None => {
+                let tree = if self.staged {
+                    content::Tree::Staged
+                } else {
+                    content::Tree::Working
+                };
+                content::fingerprint(context, origin, tree)
+            }
         }
     }
 }
@@ -191,7 +198,7 @@ fn observed(context: &Context) -> Result<Value> {
         return Ok(json!({"status": "absent"}));
     };
     let revision = content::head(&context.root)?;
-    let worktree = content::fingerprint(context, &context.root, false)?;
+    let worktree = content::fingerprint(context, &context.root, content::Tree::Working)?;
     let revision_matches = revision.is_some() && revision == record.revision;
     let content_matches = worktree == record.fingerprint;
     let index_matches = record

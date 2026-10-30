@@ -65,6 +65,12 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D059](Decisions/059.md) | Static TC2/TC4 require a type-resolving frontend; keep the review norm. | [skill](../Project/shared/skills/testing-discipline/SKILL.md), [kept norm](Decisions/057.md) |
 | [D060](Decisions/060.md) | Run Clippy as a dev-gate with a panic-risk deny set, excluding print lints because the CLI's output is the product. | [card](Archive/Backlog/027.md), [clippy profile](../.agentrig/commands.yaml), [ruff profile](../tooling/pyproject.toml) |
 | [D061](Decisions/061.md) | Limit Rust and Python control-flow nesting depth per function (finding at depth 5+), with else-if and elif flat and nested functions measured on their own; delivered to consumers. | [card](Backlog/029.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [measurement](../Project/structural_lint/languages/mod.rs), [Rust](../Project/structural_lint/languages/rust.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/flatten-nesting/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+| [D062](Decisions/062.md) | Ban boolean parameters in Rust and Python at error level (primitive `bool`, or Python `bool`-annotated or `True`/`False`-defaulted; not fields, `self` or untyped), naming the two modes with an enum or a string label; delivered to consumers. | [card](Backlog/029.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [measurement](../Project/structural_lint/languages/mod.rs), [Rust](../Project/structural_lint/languages/rust.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/split-boolean-parameter/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+
+D062 adds B029's boolean-parameter lint and supersedes nothing: a `bool`
+parameter is a finding in Rust and Python, the worker's own 33 sites become named
+mode enums or string labels built at the call site, and `Capture` moves into
+`command_runner::jobs` so the directory dependency graph stays acyclic.
 
 D061 adds the first of B029's complexity lints and supersedes nothing: nesting depth is measured apart from function size and input count, else-if and elif stay flat, a nested function or closure is its own scope, and the depth-4 boundary reuses the parameter-count line rather than a weakened one.
 

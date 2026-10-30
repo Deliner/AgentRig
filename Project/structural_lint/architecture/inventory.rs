@@ -2,6 +2,18 @@ use super::{Issue, policy::Declaration};
 use crate::structural_lint::inventory::Inventory;
 use std::{collections::BTreeMap, fs, path::Path};
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+enum Entries {
+    Files,
+    Directories,
+}
+impl Entries {
+    fn directories(self) -> bool {
+        matches!(self, Self::Directories)
+    }
+}
+
 pub(super) fn check(
     root: &Path,
     directory: &Path,
@@ -10,8 +22,8 @@ pub(super) fn check(
 ) -> Vec<Issue> {
     let mut messages = Vec::new();
     for (entries, kind) in [
-        (&declaration.files, false),
-        (&declaration.directories, true),
+        (&declaration.files, Entries::Files),
+        (&declaration.directories, Entries::Directories),
     ] {
         validate(&root.join(directory), entries, kind, &mut messages);
     }
@@ -54,7 +66,7 @@ fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -
 fn validate(
     directory: &Path,
     entries: &BTreeMap<String, String>,
-    child_directory: bool,
+    kind: Entries,
     messages: &mut Vec<String>,
 ) {
     for (name, description) in entries {
@@ -67,8 +79,9 @@ fn validate(
             continue;
         }
         let metadata = fs::symlink_metadata(directory.join(name));
+        let expects_directory = kind.directories();
         let correct_kind = metadata.is_ok_and(|metadata| {
-            if child_directory {
+            if expects_directory {
                 metadata.is_dir()
             } else {
                 metadata.is_file()

@@ -150,3 +150,72 @@ def outer():
         ]
     );
 }
+
+// DECISION: D062
+fn boolean_params(path: &str, source: &str) -> Vec<String> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut names: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::BooleanParameter)
+        .map(|item| item.symbol)
+        .collect();
+    names.sort();
+    names
+}
+
+#[test]
+fn rust_flags_bool_parameters_not_fields_or_other_types() {
+    let source = "fn flat(count: u32, name: &str) {}
+fn toggled(staged: bool, count: u32) {}
+fn pair(first: bool, second: bool) {}
+fn wrapped(maybe: Option<bool>, borrowed: &bool) {}
+struct Config {
+    enabled: bool,
+}
+impl Config {
+    fn set(&mut self, ready: bool) {}
+}
+fn with_closure() {
+    let choose = |active: bool| active;
+}
+";
+    assert_eq!(
+        boolean_params("source.rs", source),
+        [
+            "active: bool",
+            "first: bool",
+            "ready: bool",
+            "second: bool",
+            "staged: bool",
+        ]
+    );
+}
+
+#[test]
+fn python_flags_bool_annotations_and_true_false_defaults() {
+    let source = "def flat(count, name):
+    pass
+def toggled(active: bool, count):
+    pass
+def defaulted(ready=True, name=''):
+    pass
+def mixed(verbose: bool = False):
+    pass
+def wrapped(maybe: Optional[bool]):
+    pass
+class Config:
+    def set(self, dry: bool):
+        pass
+";
+    assert_eq!(
+        boolean_params("source.py", source),
+        [
+            "active: bool",
+            "dry: bool",
+            "ready=True",
+            "verbose: bool = False"
+        ]
+    );
+}

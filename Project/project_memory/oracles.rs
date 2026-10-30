@@ -60,7 +60,8 @@ fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
 }
 fn discover(context: &Context, id: &str, name: &str, oracle: &Oracle) -> Result<()> {
     let argv = discovery_arguments(command_runner::argv(context, name, &[])?, oracle);
-    let result = command_runner::execute(context, name, argv, true)?;
+    let result =
+        command_runner::execute(context, name, argv, command_runner::jobs::Capture::Collect)?;
     ensure!(
         result.status.success(),
         "{id}: test discovery failed: {}",

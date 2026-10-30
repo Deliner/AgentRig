@@ -24,10 +24,10 @@ def consumer(root: Path, case: str) -> None:
     contract(child)
 
 
-@pytest.mark.parametrize("standalone", [False, True])
+@pytest.mark.parametrize("edition", ["integrated", "standalone"])
 @pytest.mark.parametrize("case", ["declaration", "call", "reexport"])
 def test_module_declaration_does_not_invent_use_cycles(
-    worker: Path, tmp_path: Path, standalone: bool, case: str
+    worker: Path, tmp_path: Path, edition: str, case: str
 ) -> None:
     consumer(tmp_path, case)
     subprocess.run(
@@ -43,6 +43,7 @@ def test_module_declaration_does_not_invent_use_cycles(
         capture_output=True,
         text=True,
     )
+    standalone = edition == "standalone"
     binary = worker.with_name("agentrig-lint") if standalone else worker
     code, findings = lint(binary, tmp_path)
     expected = {
@@ -54,9 +55,9 @@ def test_module_declaration_does_not_invent_use_cycles(
     assert [item["message"].split(":")[0].split(" src/")[0] for item in findings] == expected
 
 
-@pytest.mark.parametrize("standalone", [False, True])
+@pytest.mark.parametrize("edition", ["integrated", "standalone"])
 def test_explicit_module_path_outside_crate_directory_is_measured(
-    worker: Path, tmp_path: Path, standalone: bool
+    worker: Path, tmp_path: Path, edition: str
 ) -> None:
     config = CONFIG.replace("EXTENSION", ".rs").replace("ROOTS", "[src/lib.rs]")
     config = config.replace("[src, 'src/**']", "[src, 'src/**', shared, 'shared/**']")
@@ -69,6 +70,7 @@ def test_explicit_module_path_outside_crate_directory_is_measured(
     )
     contract(tmp_path / "src")
     contract(shared)
+    standalone = edition == "standalone"
     binary = worker.with_name("agentrig-lint") if standalone else worker
     assert lint(binary, tmp_path) == (0, [])
     (shared / "api.rs").write_text("pub fn value() -> i32 { 42 }\npub use crate::run as back;\n")

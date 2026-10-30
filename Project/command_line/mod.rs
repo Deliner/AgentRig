@@ -160,8 +160,8 @@ fn config_check(context: &Context) -> Result<i32> {
         crate::structural_lint::run(
             &context.root,
             &context.path(&context.config.paths.lint)?,
-            true,
-            true,
+            crate::structural_lint::Format::Json,
+            crate::structural_lint::Mode::ConfigCheck,
         )?
     } else {
         0

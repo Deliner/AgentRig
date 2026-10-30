@@ -12,13 +12,13 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     fs::create_dir_all(area.join("results"))?;
     let argv = vec!["sh".to_owned(), "-c".to_owned(), text];
     let mut job = Job::create(&runtime, &context.root, "scratch", &context.root)?;
-    job.prepare(&argv, false, Lifetime::Task)?;
+    job.prepare(&argv, jobs::Access::Writable, Lifetime::Task)?;
     let mut command = Command::new(&argv[0]);
     command
         .args(&argv[1..])
         .current_dir(&context.root)
         .env("AGENTRIG_SCRATCH", &area);
-    let result = jobs::process::execute(&mut command, false, Some(&mut job));
+    let result = jobs::process::execute(&mut command, jobs::Capture::Stream, Some(&mut job));
     if let Err(error) = &result {
         eprintln!("{error:#}");
     }

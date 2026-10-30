@@ -46,6 +46,7 @@ impl Kind {
             Self::FunctionLines => &FUNCTIONLINES,
             Self::ParameterCount => &PARAMETERCOUNT,
             Self::NestingDepth => &NESTINGDEPTH,
+            Self::BooleanParameter => &BOOLEANPARAMETER,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -153,5 +154,16 @@ const NESTINGDEPTH: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 4,
+    },
+};
+
+// DECISION: D062
+const BOOLEANPARAMETER: Descriptor = Descriptor {
+    default_id: "boolean-parameter",
+    target: "file",
+    metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding",
+    skill: "split-boolean-parameter",
+    parameters: Parameters::Level {
+        violation: "a boolean parameter hides two behaviors; split the function or name the modes with a dedicated type",
     },
 };

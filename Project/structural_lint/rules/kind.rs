@@ -12,6 +12,7 @@ pub enum Kind {
     FunctionLines,
     ParameterCount,
     NestingDepth,
+    BooleanParameter,
     CommentReference,
     DirectoryArchitecture,
 }

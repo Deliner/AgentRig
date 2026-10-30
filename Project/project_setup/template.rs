@@ -180,20 +180,24 @@ fn programs(table: Programs) -> BTreeMap<String, Program> {
         .collect()
 }
 fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
-    let base = |purpose, read_only, table| Command {
+    let base = |purpose, access, table| Command {
         programs: programs(table),
-        ..command(purpose, Vec::new(), read_only)
+        ..command(purpose, Vec::new(), access)
     };
     let test = Command {
         output: Some(test_views(options)),
-        ..command("Run the project tests", test_command(options), false)
+        ..command(
+            "Run the project tests",
+            test_command(options),
+            Access::Writable,
+        )
     };
     [
         (
             "read",
             base(
                 "Inspect files and Git history with configured programs",
-                true,
+                Access::ReadOnly,
                 READ,
             ),
         ),
@@ -201,7 +205,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
             "write",
             base(
                 "Change files and Git state with configured programs",
-                false,
+                Access::Writable,
                 WRITE,
             ),
         ),
@@ -211,7 +215,18 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
     .map(|(id, command)| (id.into(), command))
     .collect()
 }
-fn command(purpose: &str, argv: Vec<String>, read_only: bool) -> Command {
+// DECISION: D062
+#[derive(Clone, Copy)]
+enum Access {
+    ReadOnly,
+    Writable,
+}
+impl Access {
+    fn reads(self) -> bool {
+        matches!(self, Self::ReadOnly)
+    }
+}
+fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
     Command {
         purpose: purpose.into(),
         doc: None,
@@ -219,7 +234,7 @@ fn command(purpose: &str, argv: Vec<String>, read_only: bool) -> Command {
         argv,
         cwd: ".".into(),
         accepts_args: true,
-        read_only,
+        read_only: access.reads(),
         programs: BTreeMap::new(),
         output: None,
     }

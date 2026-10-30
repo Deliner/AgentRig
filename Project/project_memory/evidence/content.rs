@@ -8,11 +8,23 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn fingerprint(context: &Project, origin: &Path, staged: bool) -> Result<String> {
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Tree {
+    Staged,
+    Working,
+}
+impl Tree {
+    fn staged(self) -> bool {
+        matches!(self, Self::Staged)
+    }
+}
+
+pub fn fingerprint(context: &Project, origin: &Path, tree: Tree) -> Result<String> {
     fingerprint_paths(
         &context.root,
         &context.config.paths.runtime,
-        paths(origin, staged)?,
+        paths(origin, tree)?,
     )
 }
 
@@ -67,8 +79,9 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn paths(root: &Path, staged: bool) -> Result<Vec<PathBuf>> {
+fn paths(root: &Path, tree: Tree) -> Result<Vec<PathBuf>> {
     if let Some(repository) = crate::shared::vcs::Repository::discover(root)? {
+        let staged = tree.staged();
         let files = if staged {
             repository.staged_files()?
         } else {

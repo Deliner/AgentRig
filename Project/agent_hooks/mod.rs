@@ -24,6 +24,18 @@ use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+enum Reminding {
+    Active,
+    Suppressed,
+}
+impl Reminding {
+    fn active(self) -> bool {
+        matches!(self, Self::Active)
+    }
+}
+
 pub fn context(event: &str, message: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
 }
@@ -141,7 +153,7 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
             "VAC check entry",
         ));
     }
-    respond(event, configured, found, false)
+    respond(event, configured, found, Reminding::Suppressed)
 }
 fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
     let paths: Vec<_> = paths(event)
@@ -149,18 +161,18 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
         .filter_map(|path| target(root, event, path))
         .collect();
     let found = requirements::edits(configured, &paths)?;
-    respond(event, configured, found, true)
+    respond(event, configured, found, Reminding::Active)
 }
 // DECISION: D047
 fn respond(
     event: &Value,
     configured: &Context,
     found: Vec<requirements::Occurrence>,
-    reminded: bool,
+    reminding: Reminding,
 ) -> Result<Option<Value>> {
     let answer = match reminder::open(event, &state_directory(configured)?) {
         Ok(mut session) => {
-            let mut answer = remind(event, configured, &mut session.state, reminded);
+            let mut answer = remind(event, configured, &mut session.state, reminding);
             answer.found = requirements::pending(&mut session.state, configured, found);
             if let Err(error) = session.save() {
                 eprintln!("complexity reminder: {error}");
@@ -182,13 +194,13 @@ fn respond(
     };
     answer.output(configured, text(event, "tool_name"))
 }
-fn remind(event: &Value, configured: &Context, state: &mut Value, reminded: bool) -> Answer {
+fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Reminding) -> Answer {
     let schedule = configured
         .config
         .hooks
         .reminder
         .as_ref()
-        .filter(|_| reminded);
+        .filter(|_| reminding.active());
     let due = schedule.map_or(Ok(None), |path| {
         let config = input::object(&configured.path(path)?);
         reminder::due(event, &config, state)
