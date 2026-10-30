@@ -346,3 +346,34 @@ unsafe fn marked() {}
 ";
     assert_eq!(unsafe_findings("source.rs", source), [5, 11]);
 }
+
+fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut found: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::HardcodedSecret)
+        .map(|item| (item.line, item.symbol))
+        .collect();
+    found.sort();
+    found
+}
+
+#[test]
+fn rust_flags_literals_matching_known_credential_formats() {
+    let aws = format!("AKIA{}", "0123456789ABCDEF");
+    let github = format!("ghp_{}", "a".repeat(36));
+    let pem = format!("{}BEGIN PRIVATE KEY{}", "-----", "-----");
+    let source = format!(
+        "fn settings() {{\n    let a = \"{aws}\";\n    let b = \"{github}\";\n    let c = \"{pem}\";\n    let d = \"ordinary value\";\n}}\n"
+    );
+    assert_eq!(
+        secret_findings("source.rs", &source),
+        [
+            (2, "aws-access-key".into()),
+            (3, "github-token".into()),
+            (4, "private-key".into()),
+        ]
+    );
+}

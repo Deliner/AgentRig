@@ -49,6 +49,7 @@ impl Kind {
             Self::BooleanParameter => &BOOLEANPARAMETER,
             Self::BranchBudget => &BRANCHBUDGET,
             Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
+            Self::HardcodedSecret => &HARDCODEDSECRET,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -178,6 +179,15 @@ const BRANCHBUDGET: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 5,
+    },
+};
+const HARDCODEDSECRET: Descriptor = Descriptor {
+    default_id: "hardcoded-secret",
+    target: "file",
+    metric: "every string literal matching a known credential format: a private-key block, or an AWS, GitHub, Google or Slack token",
+    skill: "remove-secret",
+    parameters: Parameters::Level {
+        violation: "a hardcoded credential does not belong in source; move it to configuration or a secret store and rotate the exposed value",
     },
 };
 // DECISION: D065

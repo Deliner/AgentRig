@@ -102,6 +102,17 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
+pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let found = crate::shared::syntax::secret(text(node, source));
+    if let Some(name) = found {
+        output.push(Measurement {
+            kind: Kind::HardcodedSecret,
+            line: node.start_position().row + 1,
+            symbol: name.into(),
+            actual: 1,
+        });
+    }
+}
 pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measurement>) {
     let symbol = node
         .child_by_field_name("name")

@@ -15,6 +15,7 @@ pub enum Kind {
     BooleanParameter,
     BranchBudget,
     UnsafeJustification,
+    HardcodedSecret,
     CommentReference,
     DirectoryArchitecture,
 }
