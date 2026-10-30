@@ -8,6 +8,7 @@ pub enum Kind {
     LineWidth,
     ForbiddenFile,
     DirectoryEntries,
+    DumpName,
     NamedIfCondition,
     FunctionLines,
     ParameterCount,

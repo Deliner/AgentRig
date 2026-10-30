@@ -104,6 +104,16 @@ rules:
   error: 15
   warning_skill: .agents/skills/refactor-large-directory/SKILL.md
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
+# DECISION: D072
+- id: dump-name
+  kind: dump-name
+  target: directory
+  include:
+  - Project
+  - 'Project/**'
+  level: error
+  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agents/skills/refactor-large-directory/SKILL.md
 - id: named-if-condition
   kind: named-if-condition
   target: file

@@ -92,6 +92,8 @@ fn scalar_findings(
     }
     Ok(())
 }
+// DECISION: D072
+const DUMP_NAMES: &[&str] = &["utils", "helpers", "misc", "common"];
 // DECISION: D036
 fn structural_measurements(
     root: &Path,
@@ -123,6 +125,11 @@ fn structural_measurements(
             .unwrap_or_default(),
         rules::Kind::ForbiddenFile => vec![(None, 1)],
         rules::Kind::DirectoryEntries => vec![(None, inventory.file_entries(selected.path) as u64)],
+        rules::Kind::DumpName => {
+            let name = selected.path.file_name().and_then(|name| name.to_str());
+            let dump = name.is_some_and(|name| DUMP_NAMES.contains(&name));
+            if dump { vec![(None, 1)] } else { Vec::new() }
+        }
         _ => anyhow::bail!("rule kind {} has no structural metric", rule.kind),
     })
 }

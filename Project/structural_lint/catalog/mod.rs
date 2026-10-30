@@ -13,6 +13,7 @@ pub const ALL: &[Kind] = &[
     Kind::LineWidth,
     Kind::ForbiddenFile,
     Kind::DirectoryEntries,
+    Kind::DumpName,
     Kind::FunctionLines,
     Kind::ParameterCount,
     Kind::NestingDepth,
