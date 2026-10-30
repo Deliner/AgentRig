@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B033](Backlog/033.md) | Гигиена зависимостей и сборки | Зависимости осознанны и минимальны, сборка воспроизводима. |
