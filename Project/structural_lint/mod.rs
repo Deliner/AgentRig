@@ -244,10 +244,10 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
 }
 // DECISION: D049
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
-    let mode = if output.validate_only {
-        Mode::ConfigCheck
+    let (mode, command) = if output.validate_only {
+        (Mode::ConfigCheck, "lint-config-check")
     } else {
-        Mode::Lint
+        (Mode::Lint, "lint")
     };
     let result = analyze(root, path, mode);
     let (mut diagnostics, config_error) = match result {
@@ -255,11 +255,6 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         Err(error) => (vec![configuration_error(path, error)], true),
     };
     diagnostics.retain(|item| output.warnings || item.level != "warning");
-    let command = if output.validate_only {
-        "lint-config-check"
-    } else {
-        "lint"
-    };
     let args = vec![
         command.into(),
         "--config".into(),

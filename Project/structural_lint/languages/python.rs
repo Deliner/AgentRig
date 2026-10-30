@@ -83,6 +83,7 @@ fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
 }
+// DECISION: D063
 fn branch(node: Node<'_>) -> Branch {
     match node.kind() {
         "function_definition" | "lambda" => Branch::Boundary,

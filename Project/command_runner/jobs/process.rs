@@ -56,13 +56,11 @@ fn arrange(command: &mut Command, capture: Capture, job: Option<&Job>) -> (Group
     }
     let leads_group = forward && !std::io::stdin().is_terminal();
     let grouping = if leads_group {
+        command.process_group(0);
         Grouping::Own
     } else {
         Grouping::Inherited
     };
-    if leads_group {
-        command.process_group(0);
-    }
     let sink = if collecting {
         Sink::Collect
     } else if forward {

@@ -97,25 +97,20 @@ def test_local_crates_cannot_hide_incomplete_analysis(
     settings["rust_roots"] = ["src/lib.rs", "src/b/mod.rs"]
     settings["rust_crates"] = {"peer": "src/b/mod.rs"}
     settings["external"] = {"rust": ["std", "peer", "serde"]}
-    missing = failure == "missing"
-    unlisted = failure == "unlisted"
-    escape = failure == "escape"
-    cycle = failure == "cycle"
-    macro = failure == "macro"
-    unknown = failure == "unknown"
-    if missing:
-        target.unlink()
-    if unlisted:
-        settings["rust_roots"] = ["src/lib.rs"]
-    if escape:
-        settings["rust_crates"]["peer"] = "../outside.rs"
-    if cycle:
-        target.write_text("pub use peer::Value;")
-    if macro:
-        settings["rust_crates"]["serde"] = "src/b/mod.rs"
-        source.write_text("#[derive(serde::Deserialize)] pub struct Value;")
-    if unknown:
-        source.write_text("use peer::Missing;")
+    match failure:
+        case "missing":
+            target.unlink()
+        case "unlisted":
+            settings["rust_roots"] = ["src/lib.rs"]
+        case "escape":
+            settings["rust_crates"]["peer"] = "../outside.rs"
+        case "cycle":
+            target.write_text("pub use peer::Value;")
+        case "macro":
+            settings["rust_crates"]["serde"] = "src/b/mod.rs"
+            source.write_text("#[derive(serde::Deserialize)] pub struct Value;")
+        case "unknown":
+            source.write_text("use peer::Missing;")
     config.write_text(yaml.safe_dump(document))
     status, findings = parity(worker, tmp_path)
     assert status != 0 and findings

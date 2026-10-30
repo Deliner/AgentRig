@@ -168,6 +168,7 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
         violation: "a boolean parameter hides two behaviors; split the function or name the modes with a dedicated type",
     },
 };
+// DECISION: D063
 const BRANCHBUDGET: Descriptor = Descriptor {
     default_id: "branch-budget",
     target: "file",

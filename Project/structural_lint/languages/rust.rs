@@ -44,6 +44,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         _ => {}
     }
 }
+// DECISION: D063
 fn branch(node: Node<'_>) -> Branch {
     match node.kind() {
         "function_item" | "function_signature_item" | "closure_expression" => Branch::Boundary,

@@ -220,6 +220,7 @@ class Config:
     );
 }
 
+// DECISION: D063
 fn branch_budgets(path: &str, source: &str) -> Vec<(String, u64)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
