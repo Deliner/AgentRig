@@ -77,6 +77,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         _ => {}
     }
 }
+// DECISION: D069
 fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(body) = node

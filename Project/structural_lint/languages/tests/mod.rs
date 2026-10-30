@@ -361,6 +361,7 @@ fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
     found
 }
 
+// DECISION: D069
 fn silent_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);

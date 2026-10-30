@@ -20,6 +20,7 @@ pub const ALL: &[Kind] = &[
     Kind::BranchBudget,
     Kind::UnsafeJustification,
     Kind::HardcodedSecret,
+    Kind::SilentError,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

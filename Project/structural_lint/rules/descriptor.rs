@@ -192,6 +192,7 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
         violation: "a hardcoded credential does not belong in source; move it to configuration or a secret store and rotate the exposed value",
     },
 };
+// DECISION: D069
 const SILENTERROR: Descriptor = Descriptor {
     default_id: "silent-error",
     target: "file",
