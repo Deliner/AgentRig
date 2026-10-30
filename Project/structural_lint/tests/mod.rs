@@ -38,6 +38,27 @@ fn line_width_reports_each_line_over_the_limit_in_characters() {
 }
 
 #[test]
+fn dump_name_reports_only_generic_dumping_ground_directories() {
+    let files = [
+        ("Project/feature/utils/mod.rs", "fn main() {}"),
+        ("Project/feature/shared/mod.rs", "fn main() {}"),
+        ("Project/feature/parser/mod.rs", "fn main() {}"),
+        ("Project/helpers/mod.rs", "fn main() {}"),
+    ];
+    let rule =
+        "id: dump, kind: dump-name, target: directory, include: ['Project/**'], level: error";
+    let mut found = findings(&files, rule);
+    found.sort();
+    assert_eq!(
+        found,
+        [
+            ("Project/feature/utils".into(), None, Some(1)),
+            ("Project/helpers".into(), None, Some(1)),
+        ]
+    );
+}
+
+#[test]
 fn forbidden_file_reports_every_selected_file() {
     let files = [
         ("Project/README.md", ""),

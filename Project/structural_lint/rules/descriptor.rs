@@ -42,6 +42,7 @@ impl Kind {
             Self::LineWidth => &LINEWIDTH,
             Self::ForbiddenFile => &FORBIDDENFILE,
             Self::DirectoryEntries => &DIRECTORYENTRIES,
+            Self::DumpName => &DUMPNAME,
             Self::NamedIfCondition => &NAMEDIFCONDITION,
             Self::FunctionLines => &FUNCTIONLINES,
             Self::ParameterCount => &PARAMETERCOUNT,
@@ -114,6 +115,16 @@ const DIRECTORYENTRIES: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: Some(10),
         error: 15,
+    },
+};
+
+const DUMPNAME: Descriptor = Descriptor {
+    default_id: "dump-name",
+    target: "directory",
+    metric: "a directory whose name is a generic dumping ground: utils, helpers, misc or common; shared is allowed",
+    skill: "refactor-large-directory",
+    parameters: Parameters::Level {
+        violation: "a directory named for a generic dumping ground hides mixed responsibilities; name it for what it owns or distribute its contents to cohesive owners; shared is for genuine cross-feature leaves",
     },
 };
 
