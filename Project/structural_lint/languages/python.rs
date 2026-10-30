@@ -79,6 +79,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D069
+// DECISION: D074
 fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(expression) = node.named_child(0) else {
         return;

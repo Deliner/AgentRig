@@ -77,6 +77,22 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D071](Decisions/071.md) | Keep B030's families-together (5.1) and one-capability-one-file (5.3) as norms, not init rules: 5.1 needs trait/base name→file resolution with wildcard/re-export/prelude holes and a new extraction subsystem (D059), and 5.3 is not syntactically identifiable without framework semantics; only the decidable purpose-quality check (5.2, D070) ships. | [card](Archive/Backlog/030.md), [norm](../Project/shared/skills/refactor/refactor-large-directory/SKILL.md), [related](Decisions/059.md), [related](Decisions/070.md) |
 | [D072](Decisions/072.md) | Flag a directory whose own name is a generic dumping-ground word (`utils`, `helpers`, `misc`, `common`) at error level via a new `dump-name` rule kind, mechanizing the `refactor-large-directory` norm against reuse buckets; `shared` is allowed; delivered to consumers through `catalog::ALL`; reuses the existing skill so I020 skills are unchanged and only the rule-kind set grows (B031 6.1). | [card](Archive/Backlog/031.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [measurement](../Project/structural_lint/mod.rs), [skill](../Project/shared/skills/refactor/refactor-large-directory/SKILL.md), [tests](../Project/structural_lint/tests/mod.rs) |
 | [D073](Decisions/073.md) | Keep B031's meaningful-identifier (6.2) and magic-number (6.3) candidates as norms, not init rules: 6.2 needs scope analysis the syntactic engine lacks and `data`/`tmp`/single letters are often legitimate, and 6.3 cannot separate magic literals from legitimate ones (indices, sizes, status codes, powers of two) — both high-false-positive against the gate's bar (D035); only the decidable dump-name check (6.1, D072) ships. | [card](Archive/Backlog/031.md), [related](Decisions/059.md), [related](Decisions/072.md) |
+| [D074](Decisions/074.md) | Flag a silently disabled test — a Rust `#[ignore]` attribute or a Python `@pytest.mark.skip`/`skipif` decorator without a `DECISION:` or `INVARIANT:` reference on the line directly above it — at error level via a new `disabled-test` rule kind reusing the justification mechanism (D065/D069); cross-language, delivered to consumers through `catalog::ALL` with a new `justify-skip` repair skill, so both the rule-kind and skill sets grow by one and stay balanced (I020) (B032 7.1). | [card](Backlog/032.md), [repository rule](../.agentrig/lint.yaml), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Rust](../Project/structural_lint/languages/rust.rs), [Python](../Project/structural_lint/languages/python.rs), [skill](../Project/shared/skills/references/justify-skip/SKILL.md), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+
+D074 ships B032's disabled-test discipline (7.1) and supersedes nothing: the lint
+now flags any Rust `#[ignore]` attribute or Python `@pytest.mark.skip`/`skipif`
+decorator that disables a test, since such a marker drops the behavior from the
+suite without a trace. The escape mirrors unsafe-justification (D065) and
+except-pass (D069) — a `DECISION:` or `INVARIANT:` reference on the line directly
+above records why the skip is sound, otherwise the author must re-enable or delete
+the test (skill `justify-skip`). The Python half matches a small fixed set of
+decorator paths (`pytest.mark.skip`, `pytest.mark.skipif`), keeping it decidable
+and near-zero-false-positive (D035). It ships to consumers through `catalog::ALL`
+and the delivered per-kind template, and the new `justify-skip` repair skill joins
+the `references` group, so the delivered and live skill sets both grow by one and
+stay equal while the rule-kind set grows too (I020). AgentRig has no disabled
+tests, so dogfooding is clean. B032's 7.2 (nondeterminism) and 7.3
+(name/placement) stay norms.
 
 D073 records why two of B031's candidates stay norms and supersedes nothing:
 6.2 (identifiers carry meaning) would need scope analysis the syntactic engine does

@@ -215,6 +215,7 @@ const SILENTERROR: Descriptor = Descriptor {
         violation: "an except that only passes swallows the error; handle it, re-raise, or put a DECISION: or INVARIANT: reference on the line directly above the pass to justify ignoring it",
     },
 };
+// DECISION: D074
 const DISABLEDTEST: Descriptor = Descriptor {
     default_id: "disabled-test",
     target: "file",

@@ -421,6 +421,7 @@ fn rust_flags_literals_matching_known_credential_formats() {
     );
 }
 
+// DECISION: D074
 fn disabled_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);

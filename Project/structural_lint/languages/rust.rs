@@ -65,6 +65,7 @@ fn unsafe_function(node: Node<'_>, source: &str) -> bool {
                 .any(|word| word == "unsafe")
     })
 }
+// DECISION: D074
 fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let ignored = node
         .named_children(&mut node.walk())
