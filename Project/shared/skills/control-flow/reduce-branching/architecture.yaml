@@ -1,0 +1,5 @@
+purpose: "Reduce the decision points per function while preserving behavior"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to reduce per-function branching while preserving behavior"
+directories: {}

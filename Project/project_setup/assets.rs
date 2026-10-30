@@ -40,7 +40,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "flatten-nesting",
-        include_str!("../shared/skills/flatten-nesting/SKILL.md"),
+        include_str!("../shared/skills/control-flow/flatten-nesting/SKILL.md"),
     ),
     (
         "name-if-condition",
@@ -49,6 +49,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "norm-or-choice",
         include_str!("../shared/skills/memory/norm-or-choice/SKILL.md"),
+    ),
+    (
+        "reduce-branching",
+        include_str!("../shared/skills/control-flow/reduce-branching/SKILL.md"),
     ),
     (
         "reduce-parameters",

@@ -7,32 +7,56 @@ use anyhow::{Result, bail};
 use serde_json::Value;
 use std::path::Path;
 
+enum Role {
+    StartEscape,
+    InQuote(char),
+    OpenQuote,
+    Control,
+    Plain,
+}
+fn role(quote: Option<char>, ch: char, next: Option<char>) -> Role {
+    let substitution = ch == '$' && next == Some('(');
+    let escape_start = ch == '\\' && quote != Some('\'');
+    let quote_start = ch == '\'' || ch == '"';
+    let shell_control = ";|&<>\n\u{60}".contains(ch) || substitution;
+    if escape_start {
+        Role::StartEscape
+    } else if let Some(q) = quote {
+        Role::InQuote(q)
+    } else if quote_start {
+        Role::OpenQuote
+    } else if shell_control {
+        Role::Control
+    } else {
+        Role::Plain
+    }
+}
 // DECISION: D015
 fn outer_control(command: &str) -> bool {
     let chars: Vec<char> = command.chars().collect();
     let mut quote = None;
     let mut escaped = false;
     for (index, ch) in chars.iter().copied().enumerate() {
-        let substitution = ch == '$' && chars.get(index + 1) == Some(&'(');
-        let escape_start = ch == '\\' && quote != Some('\'');
-        let quote_start = ch == '\'' || ch == '"';
-        let shell_control = ";|&<>\n\u{60}".contains(ch) || substitution;
         if escaped {
             escaped = false;
-        } else if escape_start {
-            escaped = true;
-        } else if let Some(q) = quote {
-            let quote_end = ch == q;
-            let quoted_substitution = q == '"' && (ch == '\u{60}' || substitution);
-            if quote_end {
-                quote = None;
-            } else if quoted_substitution {
-                return true;
+            continue;
+        }
+        let next = chars.get(index + 1).copied();
+        match role(quote, ch, next) {
+            Role::StartEscape => escaped = true,
+            Role::InQuote(q) => {
+                let substitution = ch == '$' && next == Some('(');
+                let quote_end = ch == q;
+                let quoted_substitution = q == '"' && (ch == '\u{60}' || substitution);
+                if quote_end {
+                    quote = None;
+                } else if quoted_substitution {
+                    return true;
+                }
             }
-        } else if quote_start {
-            quote = Some(ch);
-        } else if shell_control {
-            return true;
+            Role::OpenQuote => quote = Some(ch),
+            Role::Control => return true,
+            Role::Plain => {}
         }
     }
     quote.is_some() || escaped

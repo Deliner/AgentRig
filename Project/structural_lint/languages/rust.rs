@@ -1,4 +1,7 @@
-use super::{Measurement, Nest, boolean_parameters, comment, condition, function, nesting, text};
+use super::{
+    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, function,
+    nesting, text,
+};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -36,8 +39,17 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             function(node, source, count, output);
             nesting(node, source, classify, output);
             boolean_parameters(node, source, flag, output);
+            branching(node, source, branch, output);
         }
         _ => {}
+    }
+}
+// DECISION: D063
+fn branch(node: Node<'_>) -> Branch {
+    match node.kind() {
+        "function_item" | "function_signature_item" | "closure_expression" => Branch::Boundary,
+        "if_expression" | "match_expression" => Branch::Decision,
+        _ => Branch::Plain,
     }
 }
 // DECISION: D062

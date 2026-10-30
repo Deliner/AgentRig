@@ -6,9 +6,9 @@ files: {}
 directories:
   complexity-discipline: "Keep implementation and workflow complexity within current requirements"
   condense-markdown: "Keep README and AGENTS.md within limits and other Markdown out of Project"
+  control-flow: "Repair function control-flow complexity: deep nesting and branch overload"
   develop-tools: "Develop, repair and remove registered project tools without duplicating capabilities"
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
-  flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
   refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"

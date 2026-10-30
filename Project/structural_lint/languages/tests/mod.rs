@@ -219,3 +219,97 @@ class Config:
         ]
     );
 }
+
+// DECISION: D063
+fn branch_budgets(path: &str, source: &str) -> Vec<(String, u64)> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut budgets: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::BranchBudget)
+        .map(|item| (item.symbol, item.actual))
+        .collect();
+    budgets.sort();
+    budgets
+}
+
+#[test]
+fn rust_counts_ifs_and_matches_within_each_function() {
+    let source = "fn flat() {
+    let value = 1;
+}
+fn ladder(choice: i32) {
+    if choice == 0 {
+    } else if choice == 1 {
+    } else {
+    }
+}
+fn dispatch(choice: i32) -> i32 {
+    match choice {
+        0 => 10,
+        1 => 20,
+        _ => 30,
+    }
+}
+fn outer(choice: i32) {
+    let closure = |value: i32| {
+        if value > 0 {
+            work();
+        }
+    };
+    if choice > 0 {
+        work();
+    }
+}
+";
+    assert_eq!(
+        branch_budgets("source.rs", source),
+        [
+            ("<anonymous>".into(), 1),
+            ("dispatch".into(), 1),
+            ("flat".into(), 0),
+            ("ladder".into(), 2),
+            ("outer".into(), 1),
+        ]
+    );
+}
+
+#[test]
+fn python_counts_ifs_elifs_ternaries_and_matches_within_each_function() {
+    let source = "def flat():
+    value = 1
+def ladder(choice):
+    if choice == 0:
+        pass
+    elif choice == 1:
+        pass
+    else:
+        pass
+def dispatch(choice):
+    match choice:
+        case 0:
+            return 10
+        case _:
+            return 20
+def ternary(choice):
+    return 1 if choice else 2
+def outer(choice):
+    def inner(value):
+        if value:
+            pass
+    if choice:
+        pass
+";
+    assert_eq!(
+        branch_budgets("source.py", source),
+        [
+            ("dispatch".into(), 1),
+            ("flat".into(), 0),
+            ("inner".into(), 1),
+            ("ladder".into(), 2),
+            ("outer".into(), 1),
+            ("ternary".into(), 1),
+        ]
+    );
+}

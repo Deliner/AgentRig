@@ -1,0 +1,5 @@
+purpose: "Repair function control-flow complexity: deep nesting and branch overload"
+files: {}
+directories:
+  flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
+  reduce-branching: "Reduce the decision points per function while preserving behavior"

@@ -47,6 +47,7 @@ impl Kind {
             Self::ParameterCount => &PARAMETERCOUNT,
             Self::NestingDepth => &NESTINGDEPTH,
             Self::BooleanParameter => &BOOLEANPARAMETER,
+            Self::BranchBudget => &BRANCHBUDGET,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -165,5 +166,16 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
     skill: "split-boolean-parameter",
     parameters: Parameters::Level {
         violation: "a boolean parameter hides two behaviors; split the function or name the modes with a dedicated type",
+    },
+};
+// DECISION: D063
+const BRANCHBUDGET: Descriptor = Descriptor {
+    default_id: "branch-budget",
+    target: "file",
+    metric: "decision points in a function: each if, else-if and ternary condition, and each match or case as one multi-way decision regardless of arms; nested function and closure bodies are measured on their own",
+    skill: "reduce-branching",
+    parameters: Parameters::Thresholds {
+        warning: None,
+        error: 5,
     },
 };

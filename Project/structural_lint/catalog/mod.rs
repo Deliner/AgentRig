@@ -17,6 +17,7 @@ pub const ALL: &[Kind] = &[
     Kind::ParameterCount,
     Kind::NestingDepth,
     Kind::BooleanParameter,
+    Kind::BranchBudget,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

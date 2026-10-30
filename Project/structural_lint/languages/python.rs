@@ -1,4 +1,7 @@
-use super::{Measurement, Nest, boolean_parameters, comment, condition, function, nesting, text};
+use super::{
+    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, function,
+    nesting, text,
+};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
@@ -78,6 +81,17 @@ fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     function(node, source, count - u64::from(receiver), output);
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
+    branching(node, source, branch, output);
+}
+// DECISION: D063
+fn branch(node: Node<'_>) -> Branch {
+    match node.kind() {
+        "function_definition" | "lambda" => Branch::Boundary,
+        "if_statement" | "elif_clause" | "conditional_expression" | "match_statement" => {
+            Branch::Decision
+        }
+        _ => Branch::Plain,
+    }
 }
 // DECISION: D062
 fn flag(parameter: Node<'_>, source: &str) -> bool {

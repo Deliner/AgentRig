@@ -3,43 +3,43 @@
 ## Focus
 
 Реализация набора улучшений качества (кластеры 1–8, [B026](Backlog/026.md)–
-[B033](Backlog/033.md)) через догфудинг, по одной карточке. Текущая — [B029](Backlog/029.md)
-([P036](Plan/036.md)): синтаксические линты сложности, по под-правилам. 4.1 глубина
-вложенности — **сделана и влита в master**. Сейчас — 4.2 запрет булевых/флаговых
-параметров. Дальше: 4.3 бюджет ветвлений.
+[B033](Backlog/033.md)) через догфудинг, по одной карточке. [P036](Archive/Plan/036.md)
+([B029](Archive/Backlog/029.md)) завершён: три под-правила сложности доставлены — 4.1
+вложенность ([D061](Decisions/061.md)), 4.2 булевы параметры ([D062](Decisions/062.md)),
+4.3 бюджет ветвлений ([D063](Decisions/063.md)); наш код зелёный. Следующие карточки набора
+— B026, B028, B030–B033 (порядок за исполнителем).
 
 ## Workspace
 
-Ветка: feature/boolean-parameters (от master `7c80a43`). Двухкоммитная схема. A1 (enabling)
-влит — `306ab9c` — и забустрапен (установленный бинарь знает `kind: boolean-parameter`). A2
-(live) полностью готов в рабочем дереве: `catalog::ALL`, правило в `.agentrig/lint.yaml`,
-33 догфуд-конверсии, запись решения D062. `stable.txt` пока = `306ab9c` (перепишется на head
-A2 при финальном пине).
+Ветка: feature/branch-budget (от master `88c5e48`). Коммиты: A1 `239c9f5` (enabling, старая
+arms-метрика), A1′ `817fd8e` (коррекция «match = 1», забустрапен), A2 `d522f39`
+(branch-budget live, D063). Рабочее дерево: архив P036/B029 выполнен, не закоммичен;
+`tooling/distribution/stable.txt` = `817fd8e` (промежуточный пин A1′, не закоммичен, в коммит
+архива НЕ входит).
 
 Машина — macOS. Сборка/clippy/fmt/тесты/коммит/мерж/бустрап — через `just scratch -- '...'` с
-PATH (`cargo` в `~/.zshenv`). Python тестов — `./tooling/.venv/bin/python3 -m pytest`.
+PATH (`cargo` в `~/.cargo/bin`; для гейта с Python-тестами venv `tooling/.venv/bin` первым).
 
 ## Progress
 
-B029 4.1 (nesting-depth) **влита в master**: A1 `e4bb96a` → A2 `e8553a8` → пин `341425a` →
-merge `7c80a43`. Решение [D061](Decisions/061.md).
+B029 4.1 ([D061](Decisions/061.md)) и 4.2 ([D062](Decisions/062.md)) влиты в master.
 
-B029 4.2 (boolean-parameter): A2-исходники готовы. Все 33 находки убраны — полный бан
-([D062](Decisions/062.md), выбор пользователя «чиню все 33»): 24 Rust-параметра → именованные
-mode-enum'ы (`Capture`/`Access`/`Grouping`/`Stop`/`Sink`/`Channel`/`Tree`/`Index`/`Mode`/
-`Format`/`Exclusion`/`Entries`/`Reminding`/`Enforcement`), 9 Python — строковые метки в
-parametrize (`edition`/`vcs`/`setting`+`code`/`outcome`, хелпер `git` → `expect=`). Конверсии
-вскрыли и устранены 19 находок `named-if-condition` (именованные локали / `match`) и один
-цикл каталогов `architecture` (`Capture` перенесён в `command_runner::jobs` к владельцу-
-исполнителю). Пороги/селекторы не ослаблялись.
+B029 4.3 доставлено (A2 `d522f39`): правило `branch-budget` (`error: 5`, `# DECISION: D063`)
+в lint.yaml; `Kind::BranchBudget`; маркеры на владельцах; запись D063. Порог `5` по колену
+распределения «match = 1». Четыре функции ≥6 приведены к ≤5 поведение-сохраняющими правками
+(`outer_control`, `arrange`, питон-тест через `match`, `run_output`), в рамках D062 и D017.
+
+Архив P036/B029 выполнен в рабочем дереве: карточки → `Archive/Plan/036.md` (с секцией
+Delivery) и `Archive/Backlog/029.md` (ссылки `../../`); строка P036 убрана из Plan.md (проза
+завершения), строка B029 убрана из Backlog.md; строки добавлены в Archive/Plan.md и
+Archive/Backlog.md; card-ссылки D061/D062/D063 переведены на `Archive/Backlog/029.md`.
+Осталось закоммитить архив через гейт.
 
 ## Verification
 
-Кандидат зелёный: `just candidate lint --root .` — **0 находок** (boolean-parameter, named-if-
-condition, architecture и остальные); `clippy` (strict deny-set) чисто; `rustfmt` применён;
-нативные тесты **81 passed**; затронутые pytest-файлы **75 passed**; `memory-check` exit 0
-(D062 записан, маркеры сверены). Гейт установленным A1-бинарём ещё не прогонялся (будет в
-pre-commit).
+Гейт A2 `d522f39` полностью зелёный: build, lint (установленный A1′, branch-budget error 5,
+0 находок), memory, rustfmt, clippy, rust-test 83, ruff-format, ruff, mypy, pytest 356, typos,
+vulture. Коммит архива через гейт ещё не прогонялся.
 
 ## Blockers
 
@@ -47,7 +47,8 @@ pre-commit).
 
 ## Next action
 
-Застейджить исходники + Ledger (State, Decisions, Decisions/062.md) **без** `stable.txt`;
-коммит A2 через pre-commit хук (не обходить). Затем финальный пин: записать head A2 в
-`tooling/distribution/stable.txt` + бустрап одним scratch, коммит пина, `feature-merge` через
-`tooling/worker/run feature-merge`. Не пушить, ветку сохранить. Затем 4.3 (бюджет ветвлений).
+Застейджить только Ledger-изменения архива (`git add Ledger`; БЕЗ `stable.txt`) и закоммитить
+через гейт. Затем финальный пин (D051): голова ветки в `tooling/distribution/stable.txt` +
+`just bootstrap` одним `just scratch`, коммит пина. Затем `just feature-merge` (прогоняет
+затронутые ветвью тесты, ветку сохраняет). Отчёт о границе 4.3/P036 по-русски. Не пушить,
+ветку сохранить. Затем следующая карточка набора (B026, B028, B030–B033).
