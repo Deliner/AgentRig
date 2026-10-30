@@ -20,10 +20,15 @@ line-length = 100
 target-version = "py312"
 
 [tool.ruff.lint]
-select = ["B", "E4", "E7", "E9", "F", "I", "PERF", "SIM", "UP"]
+select = ["B", "E4", "E7", "E9", "F", "I", "PERF", "S", "SIM", "UP"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["Project"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/tests/**/*.py" = ["S101", "S603", "S607"]
+"**/testing/**/*.py" = ["S101", "S603", "S607"]
+"**/conftest.py" = ["S101", "S603", "S607"]
 
 [tool.typos.default.extend-words]
 numer = "numer"
