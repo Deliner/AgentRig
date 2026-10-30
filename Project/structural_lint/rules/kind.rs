@@ -13,6 +13,7 @@ pub enum Kind {
     ParameterCount,
     NestingDepth,
     BooleanParameter,
+    BranchBudget,
     CommentReference,
     DirectoryArchitecture,
 }

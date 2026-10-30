@@ -191,3 +191,43 @@ pub fn boolean_parameters(
         }
     }
 }
+pub enum Branch {
+    Boundary,
+    Count(u64),
+    Plain,
+}
+pub fn branching(
+    node: Node<'_>,
+    source: &str,
+    classify: fn(Node<'_>) -> Branch,
+    output: &mut Vec<Measurement>,
+) {
+    let has_body = node.child_by_field_name("body").is_some();
+    if has_body {
+        let symbol = node
+            .child_by_field_name("name")
+            .map(|name| text(name, source))
+            .unwrap_or("<anonymous>");
+        let mut total = 0;
+        accumulate(node, classify, &mut total);
+        output.push(Measurement {
+            kind: Kind::BranchBudget,
+            line: node.start_position().row + 1,
+            symbol: symbol.into(),
+            actual: total,
+        });
+    }
+}
+fn accumulate(node: Node<'_>, classify: fn(Node<'_>) -> Branch, total: &mut u64) {
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        match classify(child) {
+            Branch::Boundary => {}
+            Branch::Count(count) => {
+                *total += count;
+                accumulate(child, classify, total);
+            }
+            Branch::Plain => accumulate(child, classify, total),
+        }
+    }
+}
