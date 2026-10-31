@@ -1,5 +1,6 @@
 purpose: Construct configured consumer projects and invoke their workflow commands for behavior tests
 type: custom
+dependents: 10
 files:
   repository.py: Construct checked Git repositories and observe revisions and workflow evidence
   test_delivery.py: Deliver independent consumer projects and verify init delivery matches the repository

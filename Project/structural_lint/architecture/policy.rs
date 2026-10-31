@@ -43,6 +43,9 @@ pub enum Zone {
     Pure,
 }
 
+// DECISION: D079
+const DEFAULT_DEPENDENTS: usize = 6;
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Declaration {
@@ -56,6 +59,9 @@ pub(super) struct Declaration {
     // DECISION: D078
     #[serde(default)]
     zone: Option<Zone>,
+    // DECISION: D079
+    #[serde(default)]
+    dependents: Option<usize>,
 }
 
 pub struct Contracts {
@@ -114,6 +120,40 @@ impl Contracts {
                         use_site.path
                     ),
                 }));
+            }
+        }
+        issues
+    }
+
+    // DECISION: D079
+    pub fn check_coupling(&self, edges: &[Dependency]) -> Vec<Issue> {
+        let mut dependents: BTreeMap<&Path, BTreeSet<&Path>> = BTreeMap::new();
+        for edge in edges {
+            if edge.module_declaration {
+                continue;
+            }
+            let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
+                continue;
+            };
+            let same_directory = source == target;
+            if same_directory {
+                continue;
+            }
+            dependents.entry(target).or_default().insert(source);
+        }
+        let mut issues = Vec::new();
+        for (directory, declaration) in &self.declarations {
+            let budget = declaration.dependents.unwrap_or(DEFAULT_DEPENDENTS);
+            let incoming = dependents.get(directory.as_path()).map_or(0, BTreeSet::len);
+            let over_budget = incoming > budget;
+            if over_budget {
+                issues.push(Issue {
+                    path: directory.join(FILENAME),
+                    line: None,
+                    message: format!(
+                        "directory is depended on by {incoming} other directories (budget {budget}); reduce incoming coupling or raise the declared dependents budget"
+                    ),
+                });
             }
         }
         issues
