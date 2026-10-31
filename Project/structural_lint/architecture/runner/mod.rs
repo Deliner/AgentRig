@@ -45,12 +45,14 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(contract_issues);
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
     let sources = analysis::extract(&root, &scope.files);
-    let (edges, source_issues, used) = dependencies(&resolvers, sources);
+    let (edges, source_issues, used, environment) = dependencies(&resolvers, sources);
     issues.extend(source_issues);
     issues.extend(unused_externals(settings, &used));
     issues.extend(super::graph::cycles(&edges));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &edges));
+    // DECISION: D078
+    issues.extend(contracts.check_zones(&environment));
     issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
@@ -60,18 +62,30 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
     sources: BTreeMap<PathBuf, References>,
-) -> (Vec<super::Dependency>, Vec<Issue>, analysis::Externals) {
+) -> (
+    Vec<super::Dependency>,
+    Vec<Issue>,
+    analysis::Externals,
+    BTreeMap<PathBuf, Vec<super::EnvironmentUse>>,
+) {
     let mut edges = Vec::new();
     let mut issues = Vec::new();
     let mut used = analysis::Externals::default();
+    let mut environment = BTreeMap::new();
     for (path, references) in sources {
-        let (resolved, failures, references_used) = resolvers.dependencies(&path, references);
+        let (resolved, failures, references_used, references_environment) =
+            resolvers.dependencies(&path, references);
         edges.extend(resolved);
         issues.extend(failures);
         used.rust.extend(references_used.rust);
         used.python.extend(references_used.python);
+        // DECISION: D078
+        let has_environment = !references_environment.is_empty();
+        if has_environment {
+            environment.insert(path, references_environment);
+        }
     }
-    (edges, issues, used)
+    (edges, issues, used, environment)
 }
 
 // DECISION: D076

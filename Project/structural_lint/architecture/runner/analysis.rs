@@ -1,5 +1,5 @@
 use super::super::{
-    Dependency, Issue, Settings,
+    Dependency, EnvironmentUse, Issue, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
     source::{self, References, Target},
 };
@@ -200,15 +200,24 @@ impl<'a> Resolvers<'a> {
         &self,
         path: &Path,
         references: References,
-    ) -> (Vec<Dependency>, Vec<Issue>, Externals) {
+    ) -> (Vec<Dependency>, Vec<Issue>, Externals, Vec<EnvironmentUse>) {
         let mut issues = references.issues;
         let mut edges = Vec::new();
         let mut used = Externals::default();
+        let mut environment = Vec::new();
         for reference in references.items {
             match self.resolve(path, &reference.target) {
                 Ok(resolved) => {
                     if let Some(external) = &resolved.external {
                         used.record(&reference.target, external);
+                        // DECISION: D078
+                        let touches_environment = super::super::environment(external);
+                        if touches_environment {
+                            environment.push(EnvironmentUse {
+                                line: reference.line,
+                                path: external.trim_start_matches("::").to_owned(),
+                            });
+                        }
                     }
                     edges.extend(resolved.files.into_iter().map(|target| Dependency {
                         source: path.into(),
@@ -220,6 +229,6 @@ impl<'a> Resolvers<'a> {
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
             }
         }
-        (edges, issues, used)
+        (edges, issues, used, environment)
     }
 }

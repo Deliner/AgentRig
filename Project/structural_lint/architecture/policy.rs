@@ -1,7 +1,7 @@
 // DECISION: D028
 // DECISION: D043
 // DECISION: D044
-use super::{Dependency, Issue};
+use super::{Dependency, EnvironmentUse, Issue};
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
@@ -36,6 +36,13 @@ const PLACEHOLDER_PURPOSES: &[&str] = &[
     "temporary",
 ];
 
+// DECISION: D078
+#[derive(Deserialize, Clone, Copy, PartialEq, Eq)]
+#[serde(rename_all = "kebab-case")]
+pub enum Zone {
+    Pure,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub(super) struct Declaration {
@@ -46,6 +53,9 @@ pub(super) struct Declaration {
     pub directories: BTreeMap<String, String>,
     #[serde(default, rename = "type")]
     pub kind: Option<super::features::Kind>,
+    // DECISION: D078
+    #[serde(default)]
+    zone: Option<Zone>,
 }
 
 pub struct Contracts {
@@ -77,6 +87,36 @@ impl Contracts {
         edges: &[Dependency],
     ) -> Vec<Issue> {
         super::features::check(root, &self.declarations, inventory, edges)
+    }
+
+    // DECISION: D078
+    pub fn check_zones(&self, environment: &BTreeMap<PathBuf, Vec<EnvironmentUse>>) -> Vec<Issue> {
+        let mut issues = Vec::new();
+        for (directory, declaration) in &self.declarations {
+            let foreign_zone = declaration.zone != Some(Zone::Pure);
+            if foreign_zone {
+                continue;
+            }
+            for (file, uses) in environment {
+                let parent = file
+                    .parent()
+                    .filter(|parent| !parent.as_os_str().is_empty())
+                    .unwrap_or_else(|| Path::new("."));
+                let other_directory = parent != directory.as_path();
+                if other_directory {
+                    continue;
+                }
+                issues.extend(uses.iter().map(|use_site| Issue {
+                    path: file.clone(),
+                    line: Some(use_site.line),
+                    message: format!(
+                        "zone `pure` directory must not access the environment; move the effect out or drop the zone: {}",
+                        use_site.path
+                    ),
+                }));
+            }
+        }
+        issues
     }
 
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {

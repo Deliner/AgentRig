@@ -37,3 +37,24 @@ impl Issue {
         }
     }
 }
+
+// DECISION: D078
+pub const ENVIRONMENT: [&str; 3] = ["std::env", "std::fs", "std::process"];
+
+// DECISION: D078
+#[derive(Debug)]
+pub struct EnvironmentUse {
+    pub line: usize,
+    pub path: String,
+}
+
+// DECISION: D078
+pub fn environment(external: &str) -> bool {
+    let path = external.trim_start_matches("::");
+    ENVIRONMENT.iter().any(|namespace| {
+        path == *namespace
+            || path
+                .strip_prefix(namespace)
+                .is_some_and(|rest| rest.starts_with("::"))
+    })
+}
