@@ -53,6 +53,8 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(contracts.check_features(features, &scope.inventory, &edges));
     // DECISION: D078
     issues.extend(contracts.check_zones(&environment));
+    // DECISION: D079
+    issues.extend(contracts.check_coupling(&edges));
     issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))

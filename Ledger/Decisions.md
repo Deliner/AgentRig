@@ -82,6 +82,23 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D076](Decisions/076.md) | Flag a declared external dependency (rust/python module) that no scanned source imports, by extending the existing directory-architecture resolution to aggregate used externals and diff against the declared set minus the std/core/alloc and __future__ seeds; no new rule kind or skill, I020 unchanged; extends D070 and the fixed-set/seed approach of D067 (B033 8.1). | [card](Archive/Backlog/033.md), [settings](../Project/structural_lint/rules/architecture.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests/test_architecture.py), [related](Decisions/070.md) |
 | [D077](Decisions/077.md) | Keep B033's lockfile discipline (8.2) a configuration norm already satisfied — committed Cargo.lock/uv.lock and --locked on every cargo/uv command, with init shipping no build commands — and the dependency budget (8.3) a review norm needing a soft threshold and per-feature counting the engine lacks; no new rule, skill or invariant, I020 unchanged; only 8.1 (D076) ships. | [card](Archive/Backlog/033.md), [command config](../.agentrig/commands.yaml), [related](Decisions/060.md), [related](Decisions/076.md) |
 | [D078](Decisions/078.md) | Add an optional architecture.yaml `zone` field with one class `pure`, whose directory must not reference `std::env`, `std::fs` or `std::process` in its own files, reported at error level by the existing directory-architecture rule; opt-in, additive and delivered to consumers with no new rule kind or skill (I020 unchanged); supersedes D044's four-field contract limit (B034 C1+C2). | [card](Archive/Backlog/034.md), [schema](../Project/structural_lint/architecture/policy.rs), [environment](../Project/structural_lint/architecture/mod.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/044.md) |
+| [D079](Decisions/079.md) | Add an optional architecture.yaml `dependents` budget capping how many distinct other directories may depend on a directory; the existing directory-architecture rule measures incoming coupling on the dependency graph it already builds for cycles and reports a directory over its budget (default 6) at error level, naming the count and budget; opt-in override, additive, no new rule kind or skill (I020 unchanged); extends D078's contract field set (B035, Набор II C4). | [card](Backlog/035.md), [schema](../Project/structural_lint/architecture/policy.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/078.md) |
+
+D079 ships B035's locality feature (Набор II, C4) and extends D078's contract
+field set: the architecture.yaml contract now takes an optional `dependents`
+budget — the number of distinct other directories allowed to depend on this
+one. The directory-architecture engine already builds the cross-directory
+dependency graph to detect cycles (D043); it now also counts each directory's
+distinct dependents on that graph and reports one whose incoming coupling
+exceeds its budget at error level, naming the count and budget. The default
+budget is 6, the tightest value that keeps every ordinary module in this
+repository green; the designed shared hubs (`shared/paths`, `shared/vcs`,
+`shared/testing`, `shared/diagnostics`, `shared/yaml`, `project_config`) declare
+their real radius, so the blast radius of a change is visible and bounded in the
+contract. Same-directory and module-declaration edges are not coupling. It is a
+stricter check inside the existing rule, not a new `Kind` or skill, so the
+delivered rule-kind and skill sets are unchanged (I020), mirroring D070/D076/D078.
+D044's type classification and D078's zone field remain in force.
 
 D078 ships B034's merged zone-and-environment feature (Набор II, C1+C2) and
 supersedes D044's four-field contract limit: the architecture.yaml contract now
