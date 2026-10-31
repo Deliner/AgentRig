@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B034](Backlog/034.md) | Зонирование модулей (классы зон) | Один переносимый набор дисциплины ложится на любое приложение: правила применяются с интенсивностью класса зоны. |
