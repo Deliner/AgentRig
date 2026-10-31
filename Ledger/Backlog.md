@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B036](Backlog/036.md) | Запрет немотивированного подавления линтов и `dbg!` (Rust) | Гейт нельзя тихо выключить: подавление несёт обоснование, отладочные остатки не доезжают до коммита |
