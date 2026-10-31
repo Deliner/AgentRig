@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B035](Backlog/035.md) | Локальность правки и радиус поражения | Радиус поражения правки виден и ограничен; случайно разросшийся хаб ловится гейтом, легитимный общий код объявляет свой радиус явно. |
