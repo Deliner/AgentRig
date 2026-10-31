@@ -83,6 +83,25 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D077](Decisions/077.md) | Keep B033's lockfile discipline (8.2) a configuration norm already satisfied — committed Cargo.lock/uv.lock and --locked on every cargo/uv command, with init shipping no build commands — and the dependency budget (8.3) a review norm needing a soft threshold and per-feature counting the engine lacks; no new rule, skill or invariant, I020 unchanged; only 8.1 (D076) ships. | [card](Archive/Backlog/033.md), [command config](../.agentrig/commands.yaml), [related](Decisions/060.md), [related](Decisions/076.md) |
 | [D078](Decisions/078.md) | Add an optional architecture.yaml `zone` field with one class `pure`, whose directory must not reference `std::env`, `std::fs` or `std::process` in its own files, reported at error level by the existing directory-architecture rule; opt-in, additive and delivered to consumers with no new rule kind or skill (I020 unchanged); supersedes D044's four-field contract limit (B034 C1+C2). | [card](Archive/Backlog/034.md), [schema](../Project/structural_lint/architecture/policy.rs), [environment](../Project/structural_lint/architecture/mod.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/044.md) |
 | [D079](Decisions/079.md) | Add an optional architecture.yaml `dependents` budget capping how many distinct other directories may depend on a directory; the existing directory-architecture rule measures incoming coupling on the dependency graph it already builds for cycles and reports a directory over its budget (default 6) at error level, naming the count and budget; opt-in override, additive, no new rule kind or skill (I020 unchanged); extends D078's contract field set (B035, Набор II C4). | [card](Archive/Backlog/035.md), [schema](../Project/structural_lint/architecture/policy.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/078.md) |
+| [D080](Decisions/080.md) | Flag a broad Rust `#[allow(...)]`/`#![allow(...)]` attribute without a `DECISION:` or `INVARIANT:` reference on the line directly above it, at error level via a new `allow-justification` rule kind that unifies the `#[ignore]` attribute dispatch (D074) and reuses the justification mechanism (D065/D069); Rust-only, delivered to consumers through `catalog::ALL` with a new `justify-allow` repair skill, so both the rule-kind and skill sets grow by one and stay balanced (I020) (B036, Набор II C9). | [card](Backlog/036.md), [rule kind](../Project/structural_lint/rules/descriptor.rs), [Rust](../Project/structural_lint/languages/rust.rs), [tests](../Project/structural_lint/languages/tests/mod.rs) |
+
+D080 ships the first of B036's two C9 cores (Набор II, local consistency and
+self-description): a broad Rust `allow` attribute without a justifying reference.
+A `#[allow(...)]` or `#![allow(...)]` switches a compiler or Clippy lint off for
+its scope, so an agent can quiet a rule instead of fixing the code; whether the
+attribute is an `allow` and whether a reference sits on the line directly above
+it is decidable from syntax alone (D035), and an attribute is not a comment, so
+the comment ban (D037) does not reach it. The Rust detector folds the `#[ignore]`
+(D074) and `#[allow]` handling into one attribute dispatch keyed on the attribute
+name — covering both the outer `attribute_item` and the inner
+`inner_attribute_item` — and reuses the `justified` reference-escape helper
+(D065/D069/D074). The new `allow-justification` kind ships through `catalog::ALL`
+and a new `justify-allow` repair skill in the `references` group, so the
+delivered and live rule-kind and skill sets each grow by one and stay equal
+(I020). Python `# noqa`/`# type: ignore`, commented-out code and bare
+`TODO`/`FIXME` stay under the comment ban (D037); `println!`/`eprintln!` remain
+the D060 choice; directory self-description stays under D070; the `dbg!`
+debug-artifact core is recorded separately. It supersedes nothing.
 
 D079 ships B035's locality feature (Набор II, C4) and extends D078's contract
 field set: the architecture.yaml contract now takes an optional `dependents`

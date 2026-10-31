@@ -478,3 +478,40 @@ def test_four(value):
 ";
     assert_eq!(disabled_findings("source.py", source), [3, 12]);
 }
+
+// DECISION: D080
+fn allow_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::AllowJustification)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_allow_without_a_reference_on_the_line_above() {
+    let source = "#[allow(dead_code)]
+fn bare() {}
+// DECISION: D001
+#[allow(dead_code)]
+fn justified_outer() {}
+#[derive(Debug)]
+struct Config;
+#[test]
+fn active() {}
+mod inner {
+    #![allow(unused)]
+    // INVARIANT: I002
+    #![allow(clippy::all)]
+}
+fn fixture() {
+    let text = \"#[allow(dead_code)] still a string\";
+}
+";
+    assert_eq!(allow_findings("source.rs", source), [1, 11]);
+}

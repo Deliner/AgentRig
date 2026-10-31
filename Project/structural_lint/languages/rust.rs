@@ -12,7 +12,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
-        "attribute_item" => disabled_test(node, source, output),
+        "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -66,22 +66,31 @@ fn unsafe_function(node: Node<'_>, source: &str) -> bool {
     })
 }
 // DECISION: D074
-fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let ignored = node
-        .named_children(&mut node.walk())
-        .find(|child| child.kind() == "attribute")
-        .and_then(|attribute| attribute.named_child(0))
-        .map(|name| text(name, source))
-        .is_some_and(|name| name == "ignore");
-    let unjustified = ignored && !justified(node, source);
+// DECISION: D080
+fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(name) = attribute_name(node, source) else {
+        return;
+    };
+    let kind = match name {
+        "ignore" => Kind::DisabledTest,
+        "allow" => Kind::AllowJustification,
+        _ => return,
+    };
+    let unjustified = !justified(node, source);
     if unjustified {
         output.push(Measurement {
-            kind: Kind::DisabledTest,
+            kind,
             line: node.start_position().row + 1,
-            symbol: "ignore".into(),
+            symbol: name.into(),
             actual: 1,
         });
     }
+}
+fn attribute_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+    let attribute = node
+        .named_children(&mut node.walk())
+        .find(|child| child.kind() == "attribute")?;
+    Some(text(attribute.named_child(0)?, source))
 }
 fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = !justified(node, source);
