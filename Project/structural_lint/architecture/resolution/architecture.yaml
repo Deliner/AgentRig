@@ -1,4 +1,5 @@
 purpose: Resolve extracted language references into project files or explicitly declared external modules
+zone: pure
 files:
   mod.rs: Shared resolution result and project-relative path normalization
 directories:

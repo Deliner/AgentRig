@@ -81,6 +81,22 @@ Current precedence: [D054](Decisions/054.md) ships testing discipline as the `te
 | [D075](Decisions/075.md) | Keep B032's test-determinism (7.2) and naming/placement (7.3) candidates as norms, not init rules: 7.2 cannot tell a benign clock/RNG/network call from a nondeterminism bug and order dependence is not syntactic, and 7.3 is already the `testing-discipline` placement (D055) and behavior-naming norms; both are false-positive-prone or redundant against the gate bar (D035). 7.2 is added to the delivered skill as a determinism point; only the decidable disabled-test check (7.1, D074) ships as a rule. | [card](Archive/Backlog/032.md), [norm](../Project/shared/skills/testing-discipline/SKILL.md), [related](Decisions/055.md), [related](Decisions/074.md) |
 | [D076](Decisions/076.md) | Flag a declared external dependency (rust/python module) that no scanned source imports, by extending the existing directory-architecture resolution to aggregate used externals and diff against the declared set minus the std/core/alloc and __future__ seeds; no new rule kind or skill, I020 unchanged; extends D070 and the fixed-set/seed approach of D067 (B033 8.1). | [card](Archive/Backlog/033.md), [settings](../Project/structural_lint/rules/architecture.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests/test_architecture.py), [related](Decisions/070.md) |
 | [D077](Decisions/077.md) | Keep B033's lockfile discipline (8.2) a configuration norm already satisfied — committed Cargo.lock/uv.lock and --locked on every cargo/uv command, with init shipping no build commands — and the dependency budget (8.3) a review norm needing a soft threshold and per-feature counting the engine lacks; no new rule, skill or invariant, I020 unchanged; only 8.1 (D076) ships. | [card](Archive/Backlog/033.md), [command config](../.agentrig/commands.yaml), [related](Decisions/060.md), [related](Decisions/076.md) |
+| [D078](Decisions/078.md) | Add an optional architecture.yaml `zone` field with one class `pure`, whose directory must not reference `std::env`, `std::fs` or `std::process` in its own files, reported at error level by the existing directory-architecture rule; opt-in, additive and delivered to consumers with no new rule kind or skill (I020 unchanged); supersedes D044's four-field contract limit (B034 C1+C2). | [card](Archive/Backlog/034.md), [schema](../Project/structural_lint/architecture/policy.rs), [environment](../Project/structural_lint/architecture/mod.rs), [resolver](../Project/structural_lint/architecture/runner/analysis.rs), [runner](../Project/structural_lint/architecture/runner/mod.rs), [tests](../Project/structural_lint/architecture/tests.rs), [related](Decisions/044.md) |
+
+D078 ships B034's merged zone-and-environment feature (Набор II, C1+C2) and
+supersedes D044's four-field contract limit: the architecture.yaml contract now
+takes an optional `zone` field whose one class, `pure`, forbids a directory's
+own files from referencing `std::env`, `std::fs` or `std::process`. The
+directory-architecture resolver already preserved each reference's external
+origin (D076); the engine now collects those that reach the three wholesale
+effectful namespaces and the contract rejects them in a `pure` directory at
+error level. One class is the complexity-discipline minimum that proves the
+mechanism with a real consumer; `std::net`, `std::time` and `std::io` stay out
+because each holds pure value types that would be false positives. It is a
+stricter check inside the existing rule, not a new `Kind` or skill, so the
+delivered rule-kind and skill sets are unchanged (I020), mirroring D070/D076.
+The repository tags `structural_lint/architecture/resolution` as the first pure
+module and stays green. D044's type classification remains in force.
 
 D077 records why two of B033's candidates stay norms and supersedes nothing: 8.2
 (lockfile and `--locked` discipline) is already true — `Project/Cargo.lock` and

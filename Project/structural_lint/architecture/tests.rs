@@ -1,6 +1,6 @@
-use super::{Contracts, Dependency, Issue};
+use super::{Contracts, Dependency, EnvironmentUse, Issue};
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     fs,
     path::{Path, PathBuf},
 };
@@ -242,5 +242,71 @@ fn contracts_reject_symlink_files_and_escaping_parent_directories() {
         Contracts::load(root.path(), &directories).1[0]
             .message
             .contains("escapes project root")
+    );
+}
+
+// DECISION: D078
+#[test]
+fn environment_namespaces_match_only_at_a_path_boundary() {
+    for external in [
+        "std::fs",
+        "std::fs::read",
+        "::std::env::var",
+        "std::process::Command",
+    ] {
+        assert!(super::environment(external), "{external}");
+    }
+    for external in [
+        "std::collections::BTreeMap",
+        "std::path::PathBuf",
+        "std::fmt",
+        "std::env_logger",
+        "fs::read",
+        "crate::fs::read",
+    ] {
+        assert!(!super::environment(external), "{external}");
+    }
+}
+
+// DECISION: D078
+#[test]
+fn zone_pure_directories_reject_environment_access_in_their_own_files() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        temp.path(),
+        "Project/calc",
+        "purpose: Pure numeric evaluation\nzone: pure",
+    );
+    write(temp.path(), "Project/io", "purpose: Filesystem boundary");
+    let directories: BTreeSet<_> = ["Project/calc", "Project/io"]
+        .into_iter()
+        .map(PathBuf::from)
+        .collect();
+    let (loaded, issues) = Contracts::load(temp.path(), &directories);
+    assert!(issues.is_empty(), "{:?}", messages(&issues));
+    let use_site = |line, path: &str| EnvironmentUse {
+        line,
+        path: path.into(),
+    };
+    let mut environment = BTreeMap::new();
+    environment.insert(
+        PathBuf::from("Project/calc/math.rs"),
+        vec![use_site(3, "std::fs::read"), use_site(9, "std::env::var")],
+    );
+    environment.insert(
+        PathBuf::from("Project/io/sink.rs"),
+        vec![use_site(1, "std::fs")],
+    );
+    let found = loaded.check_zones(&environment);
+    let located: Vec<_> = found
+        .iter()
+        .map(|issue| (issue.path.display().to_string(), issue.line))
+        .collect();
+    let calc = "Project/calc/math.rs".to_owned();
+    assert_eq!(located, [(calc.clone(), Some(3)), (calc, Some(9))]);
+    assert!(
+        found
+            .iter()
+            .all(|issue| issue.message.contains("must not access the environment"))
     );
 }
