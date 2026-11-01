@@ -14,6 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
+| [P052](Plan/052.md) | active | - | Tier A: tuple-as-record, eager-fallback-with-?, discarded-result (+ 2 бага) | Три near-zero-FP правила из коробки: закрыт обход parameter-count/boolean-parameter кортежем и silent-error через .ok();, пойман `?` в eager-фолбэке. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -397,3 +398,11 @@ D051-пин не требуется. Притворного инварианта
 зелёные. P051 перенесён в [Archive/Plan](Archive/Plan.md), B042 — в [Archive/Backlog](Archive/Backlog.md);
 ссылка card в D087 переведена на `Archive/Backlog/042.md`. **Набор II (C1–C10) завершён:** C1+C2, C4, C9,
 C6, C3, C5, C10, C7 и C8 доставлены.
+2026-11-01 после Набора II запущен воркфлоу-ревью нашего Rust-кода (10 ревьюеров Sonnet, run
+`wf_b944977a-5c3`): 96 находок, из них после дедупа/проверки по исходнику выделены Tier A
+([B043](Backlog/043.md)) и Tier B ([B044](Backlog/044.md)). Пользователь согласовал все пункты обоих тиров
+на исполнение через догфудинг. Находки durable-записаны в Backlog (коммит `5499e9b`, влит в master).
+Первой выбран [B043](Backlog/043.md) (Tier A) — промоутнут в [P052](Plan/052.md) на ветке
+feature/tier-a-rules: три новых вида правила (`tuple-as-record`, `eager-fallback-with-?`,
+`discarded-result`) двухфазной доставкой в одной ветке + догфуд-починка двух багов. Затем B044 (Tier B)
+той же схемой. Ревизии контрактов — в карточках.
