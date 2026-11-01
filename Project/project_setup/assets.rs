@@ -124,6 +124,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/handle-discarded/SKILL.md"),
     ),
     (
+        "own-the-resource",
+        include_str!("../shared/skills/references/own-the-resource/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

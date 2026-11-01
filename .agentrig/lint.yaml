@@ -346,6 +346,20 @@ rules:
   level: error
   warning_skill: .agents/skills/handle-discarded/SKILL.md
   error_skill: .agents/skills/handle-discarded/SKILL.md
+# DECISION: D092
+- id: disabled-raii
+  kind: disabled-raii
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/own-the-resource/SKILL.md
+  error_skill: .agents/skills/own-the-resource/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
