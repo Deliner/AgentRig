@@ -274,6 +274,20 @@ rules:
   level: error
   warning_skill: .agents/skills/handle-panic/SKILL.md
   error_skill: .agents/skills/handle-panic/SKILL.md
+# DECISION: D084
+- id: debug-assertion
+  kind: debug-assertion
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/firm-up-assertion/SKILL.md
+  error_skill: .agents/skills/firm-up-assertion/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

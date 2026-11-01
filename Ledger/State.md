@@ -36,14 +36,16 @@ exclude живого правила. Навык ремонта `firm-up-assertio
 `resolution/rust/macros.rs` и `architecture/source/rust/conditions.rs` — AST-детектор их не ловит) →
 догфуд будет зелёным.
 
-**VAC-A закоммичен** (`fa3755a`, память/промоушен; гейт весь PASS). **VAC-B1 закоммичен** (source):
-`kind.rs` (+`DebugAssertion`), `descriptor.rs` (+`DEBUGASSERTION`), `rust.rs`
-(+`assertion_macro`/`report_assertion`, вызов в `macro_invocation`), `registry.rs` (+вид в rust-handler),
-тест `rust_flags_debug_assertions_outside_test_code` в `markers.rs`, `Decisions/084.md` + индекс-строка
-(на B1 линкует только существующих владельцев: card + descriptor + rust + tests). `lint.yaml`,
-`catalog::ALL` и навык НЕ трогались → гейт зелёный, I020 сбалансирован (init без правила, live без правила).
-Далее — **мид-ветка атомарный бутстрап** (stable → голова B1), затем VAC-B2 (delivery), ротация,
-финальный пин D051, `feature-merge`.
+**VAC-A** (`fa3755a`, память/промоушен) и **VAC-B1** (`5061b18`, source: kind/descriptor/детектор/
+registry/тест/D084) закоммичены; гейт зелёный. **Мид-ветка бутстрап выполнен**: stable.txt =
+`5061b18…` (голова B1), установлен и закоммичен (`787b27f`) — stable-бинарь теперь десериализует вид
+`debug-assertion`. **VAC-B2 готов к коммиту** (delivery): `catalog::ALL` += `DebugAssertion`;
+`.agentrig/lint.yaml` += блок `debug-assertion` (exclude `**/tests/**`+`tests.rs`, навык
+`firm-up-assertion`, `# DECISION: D084`); создан навык `references/firm-up-assertion/`
+(SKILL.md + architecture.yaml) + плоский симлинк `shared/skills/firm-up-assertion`; `references/
+architecture.yaml` += инвентарь/purpose; `assets.rs` += firm-up-assertion; индекс-строка D084 дополнена
+ссылками на правило и навык. Догфуд зелёный: `just candidate lint` → 0 находок, `just config-check` →
+валидно. Далее — ротация B039/P048 в Archive, финальный пин D051, `feature-merge`.
 
 ## Verification
 
