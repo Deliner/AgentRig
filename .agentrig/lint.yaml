@@ -238,6 +238,17 @@ rules:
   level: error
   warning_skill: .agents/skills/justify-skip/SKILL.md
   error_skill: .agents/skills/justify-skip/SKILL.md
+# DECISION: D080
+- id: allow-justification
+  kind: allow-justification
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/justify-allow/SKILL.md
+  error_skill: .agents/skills/justify-allow/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

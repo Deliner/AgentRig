@@ -10,62 +10,64 @@ C4 локальность → **C9 подавление линтов/`dbg!`** �
 
 ## Workspace
 
-Ветка feature/hygiene (база master @ `bef58cb`), HEAD @ `cbb0ca9` (VAC-A). Машина — macOS. Сборка/
-кандидат/коммит/бустрап/merge — через `just scratch -- '...'` с PATH (`cargo` в `~/.cargo/bin`, venv
-`tooling/.venv/bin`). Agent-Bash — одна top-level `just`-команда без `&&`/хвостового `| tail`.
+Ветка feature/hygiene (база master @ `bef58cb`), HEAD @ `a464830` (VAC-B1). Машина — macOS.
+Сборка/кандидат/коммит/бутстрап — через `just scratch -- '...'` с восстановленным PATH (`cargo` в
+`~/.cargo/bin`); Agent-Bash — одна top-level `just`-команда без `&&`/хвостового `| tail`.
 
-Механизм (важно для порядка VAC): dev-рантайм хука/`config-check` собирается per-HEAD
-(`.cache/development/<hash>/`), НЕ из stable.txt. Поэтому новый `kind` нельзя назвать в живом
-`.agentrig/lint.yaml`, пока его не знает бинарь текущего HEAD → правило добавляется в ДВА VAC
-(проверено на disabled-test D074): **B1** = enum/descriptor/detector/registry/тесты (двигает HEAD,
-рантайм узнаёт kind), **B2** = `.agentrig/lint.yaml` + `catalog::ALL` + навык + `assets.rs` + решение
-+ догфуд-правка. `catalog::ALL` держится ВНЕ B1: иначе init отдаёт kind, которого нет в живом
-lint.yaml → I020 (`test_delivery.py`, доставка == живое, по candidate-бинарю) падает.
+Механизм рантайма (важно, прежняя запись «per-HEAD» была НЕВЕРНА): хук/`config-check`/оркестрация
+гейта идут через `tooling/worker/run`, который читает `tooling/distribution/stable.txt` и исполняет
+УСТАНОВЛЕННЫЙ бинарь `.cache/development/<stable-hash>/`; НЕ per-HEAD. Проверки `lint`/build/clippy/
+rustfmt/rust-test и `init` в I020 используют КАНДИДАТА (сборка из рабочего дерева через
+`tooling/worker/build`). Поэтому новый `kind` нельзя назвать в живом `.agentrig/lint.yaml`, пока его
+не знает stable-бинарь → правило идёт в ДВА VAC: **B1** = enum/descriptor/detector/registry/тесты
+(+ решение, т.к. memory-чекер требует marker→decision в том же коммите), затем мид-ветка бустрап
+stable.txt на голову B1, затем **B2** = `.agentrig/lint.yaml` + `catalog::ALL` + навык + `assets.rs`
++ линки решения + догфуд-правка. `catalog::ALL` держится вне B1: иначе init отдаёт kind, которого
+нет в живом lint.yaml → I020 падает.
+
+УРОК (дедлок): НИКОГДА не переставлять stable.txt на ещё не установленную ревизию — agent-хук
+(`worker/run hook`) падает fail-closed и блокирует ВСЕ Bash/Edit/Write (Read не заблокирован).
+Бутстрап делать АТОМАРНО: запись stable.txt + `bash tooling/distribution/bootstrap.sh` в одном
+`just scratch`, из уже-рабочего состояния (хук отрабатывает на старом установленном stable ДО
+команды, а после команды новый stable уже установлен). bootstrap собирает из `git archive <rev>`,
+т.е. из КОММИТА, не из рабочего дерева.
 
 ## Progress
 
-VAC-A закоммичен (`cbb0ca9`, гейт зелёный): карточка [B036](Backlog/036.md) → [P045](Plan/045.md),
-строка и абзац анализа C9 в Plan.md. Анализ: единственное новое статическое ядро C9 — два Rust-
-артефакта глушения гейта: широкий `#[allow(...)]`/`#![allow(...)]` без ссылки (атрибут, не
-комментарий) → правило `allow-justification`, переиспользуя `justified` (D065/D074); `dbg!` → правило
-`debug-artifact` (безусловно). Прочее уже обеспечено (D037 ловит Python `# noqa`/`# type: ignore`,
-закомментированный код, `TODO`/`FIXME`; самоописание — D070; print — выбор D060) либо норма.
+VAC-A (`cbb0ca9`) и VAC-B1 (`a464830`) закоммичены. stable.txt (рабочее дерево, не закоммичено) =
+`a464830`, установлен (знает `allow-justification`).
 
-VAC-B1 готов к коммиту (source-only): `Kind::AllowJustification` (kind.rs), descriptor
-`ALLOWJUSTIFICATION` + ветка match (descriptor.rs), в rust-handler `rules` (registry.rs), детектор —
-`disabled_test` переписан в общий `attribute`/`attribute_name` на `attribute_item`/
-`inner_attribute_item`, имя `ignore`→DisabledTest / `allow`→AllowJustification, через `justified`
-(rust.rs), тест `rust_flags_allow_without_a_reference_on_the_line_above` → `[1, 11]` (tests/mod.rs).
-`catalog::ALL` и lint.yaml НЕ трогаются (их — в B2).
-
-Догфуд-импакт (замерено `grep`): ровно один реальный `#[allow]` — `Project/command_runner/jobs/
-identity/macos.rs:65` `#[allow(deprecated)]` (чинить в B2: убрать, если сборка чистая без него, иначе
-обосновать ссылкой D066); `#![allow]` нет; `dbg!` нет; `#[allow]` в `architecture/resolution/rust/
-tests.rs:330` — внутри строкового литерала, по AST не находка.
+**VAC-B2 доставлен в рабочем дереве (этот VAC, ещё не закоммичен):** навык `justify-allow`
+(`Project/shared/skills/references/justify-allow/SKILL.md` + `architecture.yaml`, flat-symlink
+`Project/shared/skills/justify-allow`, инвентарь `references/architecture.yaml`, запись в
+`project_setup/assets.rs` SKILLS); `Kind::AllowJustification` возвращён в `catalog::ALL`; правило
+`allow-justification` (Rust, error) в `.agentrig/lint.yaml`; D080 «Applies in» дополнен
+`[repository rule]`+`[skill]`. Догфуд-правка: единственный реальный `#[allow(deprecated)]`
+(`command_runner/jobs/identity/macos.rs`) снабжён ссылкой `// DECISION: D066` (депрекейтед
+`mach_timebase_info` без замены). Прочие `#[allow]` в коде — внутри строковых литералов/metric-строк,
+по AST не находки.
 
 ## Verification
 
-VAC-B1 проверен напрямую через `cargo +1.98.1` (PATH-обход): build + clippy (с deny-флагами гейта) +
-rustfmt `--check` чисто; `--lib languages::tests` — 14/14 ok, включая новый allow-тест и сохранённый
-`rust_flags_ignore_...` (поведение disabled-test не сломано). Python-тесты через scratch/uv падают с
-127 (cargo не виден в подпроцессе `tooling/worker/build`) — артефакт среды, не кода; авторитетный
-гейт коммита видит cargo (VAC-A прошёл). I020 для B1 сбалансирован по построению.
+`just lint-config-check` — valid. `just candidate lint` (кандидат из рабочего дерева) — 0 находок.
+Полный гейт коммита B2 (build/lint/memory/rustfmt/clippy/rust-test/ruff/mypy/test/typos/vulture) ещё
+не прогонялся — будет при коммите через хук.
 
 ## Blockers
 
-Нет. (Снят lockout `config-check`: живой lint.yaml возвращён к исходному — kind добавится в B2, когда
-HEAD после B1 будет знать `allow-justification`.)
+Нет. (Дедлок stable.txt снят: пользователь выполнил `! git restore`, затем атомарный бустрап
+`a464830`.)
 
 ## Next action
 
-Закоммитить VAC-B1 (`add allow-justification rule kind and measurement`) через хук. Затем:
-- **VAC-B2** — сделать правило живым: `.agentrig/lint.yaml` (rule `allow-justification`), вернуть
-  `Kind::AllowJustification` в `catalog::ALL`, навык `justify-allow` в `Project/shared/skills/
-  references/` + `assets.rs` SKILLS, D080 (+ индекс/абзац в Decisions.md), догфуд-правка macos.rs:65.
-  `just candidate lint` → 0 находок; гейт зелёный.
-- **VAC-C** — `debug-artifact` (`dbg!`): детектор на `macro_invocation`, навык `remove-debug`, D081,
-  тесты; тоже split B1/B2, если добавляет kind в lint.yaml. Догфуд: 0 находок.
-- Ротация B036/P045 в Archive; пин stable.txt на gate-принятую голову + `just bootstrap` (D051);
+Закоммитить VAC-B2 через хук (`just scratch -- 'export PATH=...; cd … && git add -A :/ && git commit
+…'`, сообщение `P045 VAC-B2: deliver allow-justification rule, justify-allow skill, dogfood D066`;
+НЕ стейджить stable.txt). Затем:
+- **VAC-C** — правило `debug-artifact` (`dbg!`): новый `Kind::DebugArtifact`, детектор на
+  `macro_invocation` c именем макроса `dbg` (безусловная находка), навык `remove-debug`, D081, тест;
+  split B1(исходники+D081)/атомарный бустрап/B2(lint.yaml+catalog::ALL+навык+assets+линки). Догфуд: 0.
+- Ротация B036/P045 в Archive (и флип `[card]` D080 на `Archive/Backlog/036.md`); финальный пин
+  stable.txt на принятую гейтом голову + бустрап одним `just scratch` (D051); коммит пина;
   `just feature-merge` (не пушить, ветку сохранить). Отчёт на русском.
 
-Свободные ID: D080, D081, P046, B037.
+Свободные ID: D081, P046, B037.
