@@ -2,34 +2,32 @@
 
 ## Focus
 
-**B043 (Tier A) ПОЛНОСТЬЮ доставлен → [P052](Plan/052.md).** Три правила (`tuple-as-record`/`eager-fallback`/
-`discarded-result`) активны в `catalog`+`registry`+`lint.yaml`+навыки, репозиторий догфуд-чист, D051-пин сделан.
-Ветка готова к `just feature-merge`. Далее — B044 (Tier B).
+**B044 (Tier B) выбран → [P053](Plan/053.md); VAC-A (планирование) в рабочем дереве, не закоммичен.**
+B043 (Tier A) полностью доставлен и влит в master (merge `4ce7316`). Текущая работа — пять пунктов Tier B:
+AC1 `unchecked-index`, AC2 `disabled-RAII` (новые виды правил), AC5 `sibling-cycle` (расширение
+`directory-architecture`), AC3 TOCTOU и AC4 lossy-int-cast (правило-vs-норма при реализации).
 
 ## Workspace
 
-Ветка `feature/tier-a-rules` (база master @ `e9133a7`). Revision HEAD = `62ea144` (D051-пин). Коммиты ветки:
-`a910ecb` VAC-A, `76874a1` VAC-B1 (инертный источник), `b0ce9ee` VAC-B2 (активация+догфуд), `62ea144` пин.
-`stable.txt` = `b0ce9eebdbcee5992eec3079079de0fece04703d` (голова VAC-B2, последний коммит, меняющий Project),
-установлен через `just bootstrap` в `.cache/development/b0ce9ee…`. Рабочее дерево чистое. macOS; коммиты —
-`just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/tier-b-rules` (база master @ `4ce7316`). Revision HEAD = `4ce7316` (до коммита VAC-A;
+рабочее дерево содержит незакоммиченную ротацию P052/B043 + выбор P053 + этот снапшот). `stable.txt` =
+`b0ce9eebdbcee5992eec3079079de0fece04703d` (пин B043; Project на этой ветке ещё не менялся, D051-пин
+придёт с первым изменением Project). macOS; коммиты — `just scratch` с восстановленным PATH
+(`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
 
 ## Progress
 
-VAC-A `a910ecb`; VAC-B1 `76874a1` (kind/descriptor/rust/markers + D088–090, инертно). **VAC-B2 `b0ce9ee`:**
-`catalog::ALL`+=3, `registry` rust.rules+=3, три live-правила в `lint.yaml` (Rust-only, tests excluded, error,
-`# DECISION: D088/D089/D090`), навыки `name-the-record`/`eager-to-lazy`/`handle-discarded` (SKILL.md + leaf
-`architecture.yaml` + flat-symlink + `assets.rs` include_str!), I020 +3/+3; строки D088–090 дополнены
-`[repository rule]`+`[skill]`; добавлены D091 + `Decisions/091.md`. Догфуд: 2 `eager-fallback`→`match`
-(`main.rs`/`cli.rs`); 10 кортежей→структуры (`Selected`/`CheckRun`/`Outcome`+`change_index`; `Sandboxing`;
-`Arrangement`; `Invocation`; `Loaded`; `Dependencies`; `Analysis`; `TokenPath`); 2 teardown-`.ok()` с `DECISION: D091`;
-`tests.rs` переведён на `Loaded`. Пин `62ea144`.
+VAC-A (ротация + выбор), в рабочем дереве: P052 перенесён в `Archive/Plan.md` + `Archive/Plan/052.md`
+(добавлена секция Delivery); B043 — в `Archive/Backlog.md` + `Archive/Backlog/043.md` (изменены только
+относительные ссылки `../Decisions/` → `../../Decisions/`); строки P052/B043 убраны из `Plan.md`/`Backlog.md`,
+живые карточки `Plan/052.md`/`Backlog/043.md` подлежат удалению в коммите; ссылки card в D088–D090 переведены
+на `Archive/Backlog/043.md`; B044 промоутнут в `Plan.md` строкой P053 + карточка `Plan/053.md` + запись в
+журнал; B044 остаётся в живом `Backlog.md` (исполняется). Один активный пункт Plan — P053.
 
 ## Verification
 
-**Полный гейт зелёный дважды** (на `b0ce9ee` и `62ea144`): build, lint, memory, rustfmt, clippy, rust-test
-(106 passed), ruff-format, ruff, mypy, test (358 Python passed, включая `test_dogfooding_capabilities_stay_universal`
-I020), typos, vulture. `just bootstrap` собрал и установил `b0ce9ee` (`agentrig 0.3.0`).
+Гейт для VAC-A ещё не прогонялся; memory-check (индекс Decisions ↔ маркеры, согласованность ссылок)
+пройдёт в составе коммита. Последний зелёный полный гейт — на B043 (`b0ce9ee`/`62ea144`).
 
 ## Blockers
 
@@ -37,7 +35,11 @@ I020), typos, vulture. `just bootstrap` собрал и установил `b0ce
 
 ## Next action
 
-1. `just feature-merge` (через `just scratch` с PATH) — интегрировать ветку в master, прогнав тесты всей ветки;
-   ветку сохранить, не пушить.
-2. Затем B044 (Tier B) той же двухфазной схемой (инертный источник → активация+догфуд → пин) на своей ветке.
-   Свободные ID: D092+, P053+.
+1. Закоммитить VAC-A через `just scratch` с PATH (в коммите: удалить живые `Plan/052.md`/`Backlog/043.md`,
+   `git add -A Ledger/`, `git commit -F`); гейт прогонит memory-check.
+2. Затем VAC-B1 — инертный источник для `unchecked-index` + `disabled-RAII` (enum-виды, дескрипторы,
+   детекторы в `rust.rs`, тесты-маркеры; не подключать в `catalog`/`registry`/`lint.yaml`), затем мид-ветка
+   бутстрап (stable = голова VAC-B1) → VAC-B2 активация + догфуд. AC5 `sibling-cycle` — отдельным VAC
+   расширением `directory-architecture` (без нового вида/навыка). AC3/AC4 — оценить правило-vs-норма
+   (решения D092+). D051 финальный пин, затем `just feature-merge` (ветку сохранить, не пушить).
+   Свободные ID: D092+, P054+.
