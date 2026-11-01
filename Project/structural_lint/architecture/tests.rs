@@ -311,6 +311,60 @@ fn zone_pure_directories_reject_environment_access_in_their_own_files() {
     );
 }
 
+// DECISION: D083
+#[test]
+fn clock_reads_match_only_the_now_constructors() {
+    for external in [
+        "std::time::Instant::now",
+        "std::time::SystemTime::now",
+        "::std::time::SystemTime::now",
+    ] {
+        assert!(super::clock(external), "{external}");
+    }
+    for external in [
+        "std::time::Duration",
+        "std::time::Instant",
+        "std::time::SystemTime::UNIX_EPOCH",
+        "std::time::Duration::from_secs",
+    ] {
+        assert!(!super::clock(external), "{external}");
+    }
+}
+
+// DECISION: D083
+#[test]
+fn zone_pure_directories_reject_wall_clock_reads_in_their_own_files() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        temp.path(),
+        "Project/calc",
+        "purpose: Pure numeric evaluation\nzone: pure",
+    );
+    let directories = BTreeSet::from([PathBuf::from("Project/calc")]);
+    let (loaded, issues) = Contracts::load(temp.path(), &directories);
+    assert!(issues.is_empty(), "{:?}", messages(&issues));
+    let use_site = |line, path: &str| EnvironmentUse {
+        line,
+        path: path.into(),
+    };
+    let mut environment = BTreeMap::new();
+    environment.insert(
+        PathBuf::from("Project/calc/clock.rs"),
+        vec![
+            use_site(4, "std::time::Instant::now"),
+            use_site(8, "std::time::SystemTime::now"),
+        ],
+    );
+    let found = loaded.check_zones(&environment);
+    let lines: Vec<_> = found.iter().map(|issue| issue.line).collect();
+    assert_eq!(lines, [Some(4), Some(8)]);
+    assert!(
+        found
+            .iter()
+            .all(|issue| issue.message.contains("must not read the wall clock"))
+    );
+}
+
 // DECISION: D079
 #[test]
 fn coupling_ignores_same_directory_and_module_declaration_edges() {

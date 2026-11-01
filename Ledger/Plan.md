@@ -268,3 +268,27 @@ D081), обход предков `in_test_context` исключает тела `
 перенесён в [Archive/Plan](Archive/Plan.md), B037 — в [Archive/Backlog](Archive/Backlog.md); ссылка card
 в D082 переведена на `Archive/Backlog/037.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)).
 Набор II: C1+C2, C4, C9 и C6 доставлены; следующий кластер — C3 (детерминизм).
+2026-11-01 следующей выбран [B038](Backlog/038.md) — промоутнут в [P047](Plan/047.md) на ветке
+feature/determinism. Кластер C3 Набора II «детерминизм». По анализу (заземлён на реализации зоны
+`pure`, D078): единственное новое переносимое статическое ядро C3 — чтение стенных часов
+(`Instant::now`/`SystemTime::now`) в собственных файлах `zone: pure`-каталога, расширением проверки
+зоны в правиле `directory-architecture` (как [D079](Decisions/079.md)/[D076](Decisions/076.md)):
+ссылки уже резолвятся в полные пути, поэтому `::now` отличается от namespace `std::time` (чистые
+типы-значения `Duration` не трогаются), near-zero-FP. Нового вида правила/навыка нет → I020 без
+изменений; ремонт — существующий `refactor-large-directory`. Прочее C3 — норма: энтропия/RNG,
+порядок итерации `HashMap`/`HashSet`, тайминг потоков (тип-вывод/поток данных отвергнут,
+[D059](Decisions/059.md)); детерминизм тестов — уже testing-discipline 7.2 ([D075](Decisions/075.md)).
+Притворных инвариантов нет. Порядок остальных кластеров — за исполнителем.
+2026-11-01 P047 (B038, C3) выполнен: расширена проверка зоны `pure` правила `directory-architecture`
+([D083](Decisions/083.md), расширяет [D078](Decisions/078.md)) — чтение стенных часов (`Instant::now`/
+`SystemTime::now`) в собственном файле `zone: pure`-каталога становится находкой error, как и доступ к
+окружению. `architecture/mod.rs` — `CLOCK` + предикат `clock()` (точное равенство полному external-пути);
+`runner/analysis.rs` классифицирует ссылку через `environment()||clock()`; `policy.rs::check_zones`
+называет категорию (свободная fn `zone_message()`: «must not read the wall clock» для часов, байт-
+идентичная D078 строка для окружения). Резолвер уже дописывает `::now`, поэтому `Duration`/`UNIX_EPOCH`
+остаются легальными (near-zero-FP, [D035](Decisions/035.md)). Нового вида правила/навыка нет → I020 без
+изменений; ремонт — существующий `refactor-large-directory`. VAC-A `ef62152`, VAC-B `ad3235b`. Наш код
+зелёный (единственный `pure`-каталог `structural_lint/architecture/resolution` часов не читает). P047
+перенесён в [Archive/Plan](Archive/Plan.md), B038 — в [Archive/Backlog](Archive/Backlog.md); ссылка card
+в D083 переведена на `Archive/Backlog/038.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)).
+Набор II: C1+C2, C4, C9, C6 и C3 доставлены; следующий кластер — C5 (контракты поведения).
