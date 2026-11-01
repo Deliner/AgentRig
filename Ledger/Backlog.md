@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B040](Backlog/040.md) | Эволюция API/данных: glob-импорт не тянет всю растущую поверхность чужого модуля (Rust/Python) | Защита поверхности импортов от молчаливой эволюции API; переносимо на Rust/Python. |

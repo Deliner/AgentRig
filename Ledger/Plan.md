@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P049](Plan/049.md) | active | - | [B040](Backlog/040.md): правило `wildcard-import` — glob-импорт (Rust `use …::*` вне тестов, Python `from … import *`) без ссылки-обоснования — находка | Защита поверхности импортов от молчаливой эволюции API (C10) |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -335,3 +334,15 @@ C10 — glob/wildcard-импорт, тянущий всю растущую по�
 добавляет свой навык → I020 (виды правил и навыки растут согласованно). Путь — двухфазный
 (source→delivery) с мид-веткой бутстрапом, как у C9/C6/C5 (новый вид правила читается stable-бинарём из
 `lint.yaml`). Притворных инвариантов нет. Порядок остальных кластеров — за исполнителем.
+2026-11-01 P049 (B040, C10) выполнен: доставлено правило `wildcard-import` ([D085](Decisions/085.md)) —
+Rust glob (`use …::*`, узел `use_wildcard`) вне тестового кода и Python wildcard (`from … import *`,
+узел `wildcard_import` в `import_from_statement`) без ссылки-обоснования прямо выше — находка error, с
+ссылкой — без находки (механизм `justified`, как D065/D082); Rust-половина дополнительно исключает
+тесты обходом предков `in_test_context` (D082), оба языка — паттернами exclude живого правила. Вид в
+`catalog::ALL`, навык `narrow-import` в `assets.rs` → I020 (виды правил и навыки выросли на один,
+delivered == live). Путь двухфазный: VAC-B1 `a4961dd` (source), мид-ветка пин stable=`a4961dd`
+(`971462b`), VAC-B2 `1f14e3c` (delivery). Наш код зелёный (реальных glob-импортов в репозитории нет,
+`just candidate lint` → 0 находок). P049 перенесён в [Archive/Plan](Archive/Plan.md), B040 — в
+[Archive/Backlog](Archive/Backlog.md); ссылка card в D085 переведена на `Archive/Backlog/040.md`; пин
+stable.txt на голову ветки ([D051](Decisions/051.md)). Набор II: C1+C2, C4, C9, C6, C3, C5 и C10
+доставлены; следующий кластер — C7 (анти-дублирование).
