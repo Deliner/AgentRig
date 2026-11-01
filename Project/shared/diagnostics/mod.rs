@@ -37,7 +37,7 @@ pub fn rerun(root: &Path, args: &[String]) -> String {
 }
 
 pub fn failure(error: &anyhow::Error) -> String {
-    let (root, args) = invocation();
+    let Invocation { root, args } = invocation();
     let command = args.first().map(String::as_str).unwrap_or("worker");
     let config =
         crate::shared::yaml::read::<serde_json::Value>(&root.join(".agentrig/project.yaml")).ok();
@@ -57,7 +57,11 @@ pub fn failure(error: &anyhow::Error) -> String {
     .to_string()
 }
 
-fn invocation() -> (std::path::PathBuf, Vec<String>) {
+struct Invocation {
+    root: std::path::PathBuf,
+    args: Vec<String>,
+}
+fn invocation() -> Invocation {
     let mut args: Vec<String> = std::env::args().skip(1).collect();
     let option = args
         .iter()
@@ -81,7 +85,7 @@ fn invocation() -> (std::path::PathBuf, Vec<String>) {
             );
         }
     }
-    (root, args)
+    Invocation { root, args }
 }
 fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a str {
     let memory = command == "memory-check";

@@ -167,7 +167,7 @@ impl Contracts {
         issues
     }
 
-    pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> (Self, Vec<Issue>) {
+    pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> Loaded {
         let mut contracts = Self {
             declarations: BTreeMap::new(),
         };
@@ -186,8 +186,13 @@ impl Contracts {
                 }),
             }
         }
-        (contracts, issues)
+        Loaded { contracts, issues }
     }
+}
+
+pub struct Loaded {
+    pub contracts: Contracts,
+    pub issues: Vec<Issue>,
 }
 
 pub fn describe(root: &Path, file: &Path) -> Option<(String, String)> {

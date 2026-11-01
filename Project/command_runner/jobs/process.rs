@@ -26,7 +26,7 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
             .env("WORKER_PARENT_RUN", &job.record().run_id);
     }
     let logs = job.as_ref().map(|job| job.open_logs()).transpose()?;
-    let (grouping, sink) = arrange(command, capture, job.as_deref());
+    let Arrangement { grouping, sink } = arrange(command, capture, job.as_deref());
     let signals = Signals::new([SIGINT, SIGTERM, SIGHUP])?;
     let handle = signals.handle();
     let mut child = command
@@ -43,7 +43,11 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
         .map_err(|_| anyhow::anyhow!("signal forwarding thread failed"))?;
     readers.finish(status)
 }
-fn arrange(command: &mut Command, capture: Capture, job: Option<&Job>) -> (Grouping, Sink) {
+struct Arrangement {
+    grouping: Grouping,
+    sink: Sink,
+}
+fn arrange(command: &mut Command, capture: Capture, job: Option<&Job>) -> Arrangement {
     let logged = job.is_some();
     let forward = job.is_none_or(|job| !job.record().background);
     let collecting = capture.collects();
@@ -68,7 +72,7 @@ fn arrange(command: &mut Command, capture: Capture, job: Option<&Job>) -> (Group
     } else {
         Sink::LogOnly
     };
-    (grouping, sink)
+    Arrangement { grouping, sink }
 }
 
 fn forward_signals(
@@ -98,7 +102,9 @@ fn attach(
         unsafe {
             libc::kill(grouping.target(pid), SIGTERM);
         }
+        // DECISION: D091
         child.kill().ok();
+        // DECISION: D091
         child.wait().ok();
         return Err(error);
     }

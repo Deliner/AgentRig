@@ -6,13 +6,17 @@ use std::{
     process::{Command, Output},
 };
 
+pub struct Sandboxing {
+    pub read_only: bool,
+    pub capture: Capture,
+}
 pub fn tracked(
     root: &Path,
     argv: &[String],
-    options: (bool, Capture),
+    options: Sandboxing,
     job: Option<&mut crate::command_runner::jobs::Job>,
 ) -> Result<Output> {
-    let (read_only, capture) = options;
+    let Sandboxing { read_only, capture } = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
     let mut command = if read_only {

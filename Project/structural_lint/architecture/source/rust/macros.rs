@@ -92,7 +92,7 @@ fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {
         }
         let starts_path = identifier(node);
         if starts_path {
-            let (path, next) = token_path(source, &children, index);
+            let TokenPath { path, next } = token_path(source, &children, index);
             let macro_call = children.get(next).is_some_and(|node| node.kind() == "!");
             let arguments = macro_call.then(|| children.get(next + 1).copied().unwrap_or(node));
             record(source, node, path, arguments);
@@ -103,7 +103,11 @@ fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {
     }
 }
 
-fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> (String, usize) {
+struct TokenPath {
+    path: String,
+    next: usize,
+}
+fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> TokenPath {
     let mut path = compact(source.text(nodes[start]));
     let mut index = start + 1;
     while let Some(pair) = nodes.get(index..index + 2) {
@@ -116,7 +120,7 @@ fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> (String,
         path.push_str(&compact(source.text(pair[1])));
         index += 2;
     }
-    (path, index)
+    TokenPath { path, next: index }
 }
 
 fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Option<Node<'_>>) {

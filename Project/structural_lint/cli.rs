@@ -44,10 +44,11 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         ),
         "expected lint, lint-config-check, lint-explain, lint-rule or lint-rules"
     );
-    let root = take_option(&mut args, "--root")?
-        .map(PathBuf::from)
-        .unwrap_or(env::current_dir()?)
-        .canonicalize()?;
+    let root = match take_option(&mut args, "--root")? {
+        Some(value) => PathBuf::from(value),
+        None => env::current_dir()?,
+    }
+    .canonicalize()?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
     let explain = command == "lint-explain";
     if explain {

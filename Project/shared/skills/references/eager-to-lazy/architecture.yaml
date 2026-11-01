@@ -1,0 +1,5 @@
+purpose: "Move a fallback argument that can fail into the lazy *_else closure, or justify the eager evaluation with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make an eager fallback argument lazy"
+directories: {}

@@ -1,4 +1,4 @@
-use super::{Contracts, Dependency, EnvironmentUse, Issue};
+use super::{Contracts, Dependency, EnvironmentUse, Issue, Loaded};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -32,7 +32,10 @@ fn features(contracts: &[(&str, &str)], root: Option<&str>, edges: &[Dependency]
     let exclusions = crate::shared::paths::patterns::globs(&[]).unwrap();
     let inventory = crate::structural_lint::inventory::collect(temp.path(), &exclusions).unwrap();
     let directories = contracts.iter().map(|(path, _)| path.into()).collect();
-    let (loaded, issues) = Contracts::load(temp.path(), &directories);
+    let Loaded {
+        contracts: loaded,
+        issues,
+    } = Contracts::load(temp.path(), &directories);
     assert!(issues.is_empty(), "{:?}", messages(&issues));
     let found = loaded.check_features(root.map(Path::new), &inventory, edges);
     found
@@ -183,7 +186,7 @@ fn cycles_crossing_different_subdirectories_are_visible_at_the_boundary() {
 fn contracts_reject_missing_invalid_or_escaping_descriptions() {
     let root = tempfile::tempdir().unwrap();
     let directories = BTreeSet::from([PathBuf::from("src")]);
-    assert_eq!(Contracts::load(root.path(), &directories).1.len(), 1);
+    assert_eq!(Contracts::load(root.path(), &directories).issues.len(), 1);
     for source in [
         "purpose: ''",
         "purpose: Good\nunknown: value",
@@ -195,13 +198,13 @@ fn contracts_reject_missing_invalid_or_escaping_descriptions() {
         "purpose: '...'",
     ] {
         write(root.path(), "src", source);
-        let issues = Contracts::load(root.path(), &directories).1;
+        let issues = Contracts::load(root.path(), &directories).issues;
         assert_eq!(issues.len(), 1, "{source}");
         assert_eq!(issues[0].path, PathBuf::from("src/architecture.yaml"));
     }
     let outside = BTreeSet::from([PathBuf::from("../outside")]);
     assert!(
-        Contracts::load(root.path(), &outside).1[0]
+        Contracts::load(root.path(), &outside).issues[0]
             .message
             .contains("invalid directory path")
     );
@@ -213,7 +216,7 @@ fn contracts_accept_a_real_purpose_containing_a_generic_word() {
     let root = tempfile::tempdir().unwrap();
     let directories = BTreeSet::from([PathBuf::from("src")]);
     write(root.path(), "src", "purpose: Module loader for the parser");
-    assert!(Contracts::load(root.path(), &directories).1.is_empty());
+    assert!(Contracts::load(root.path(), &directories).issues.is_empty());
 }
 
 #[test]
@@ -231,7 +234,7 @@ fn contracts_reject_symlink_files_and_escaping_parent_directories() {
     .unwrap();
     let directories = BTreeSet::from([PathBuf::from("src")]);
     assert!(
-        Contracts::load(root.path(), &directories).1[0]
+        Contracts::load(root.path(), &directories).issues[0]
             .message
             .contains("regular file")
     );
@@ -239,7 +242,7 @@ fn contracts_reject_symlink_files_and_escaping_parent_directories() {
     fs::remove_dir(&directory).unwrap();
     symlink(outside.path().join("source"), &directory).unwrap();
     assert!(
-        Contracts::load(root.path(), &directories).1[0]
+        Contracts::load(root.path(), &directories).issues[0]
             .message
             .contains("escapes project root")
     );
@@ -282,8 +285,8 @@ fn zone_pure_directories_reject_environment_access_in_their_own_files() {
         .into_iter()
         .map(PathBuf::from)
         .collect();
-    let (loaded, issues) = Contracts::load(temp.path(), &directories);
-    assert!(issues.is_empty(), "{:?}", messages(&issues));
+    let loaded = Contracts::load(temp.path(), &directories);
+    assert!(loaded.issues.is_empty(), "{:?}", messages(&loaded.issues));
     let use_site = |line, path: &str| EnvironmentUse {
         line,
         path: path.into(),
@@ -297,7 +300,7 @@ fn zone_pure_directories_reject_environment_access_in_their_own_files() {
         PathBuf::from("Project/io/sink.rs"),
         vec![use_site(1, "std::fs")],
     );
-    let found = loaded.check_zones(&environment);
+    let found = loaded.contracts.check_zones(&environment);
     let located: Vec<_> = found
         .iter()
         .map(|issue| (issue.path.display().to_string(), issue.line))
@@ -341,8 +344,8 @@ fn zone_pure_directories_reject_wall_clock_reads_in_their_own_files() {
         "purpose: Pure numeric evaluation\nzone: pure",
     );
     let directories = BTreeSet::from([PathBuf::from("Project/calc")]);
-    let (loaded, issues) = Contracts::load(temp.path(), &directories);
-    assert!(issues.is_empty(), "{:?}", messages(&issues));
+    let loaded = Contracts::load(temp.path(), &directories);
+    assert!(loaded.issues.is_empty(), "{:?}", messages(&loaded.issues));
     let use_site = |line, path: &str| EnvironmentUse {
         line,
         path: path.into(),
@@ -355,7 +358,7 @@ fn zone_pure_directories_reject_wall_clock_reads_in_their_own_files() {
             use_site(8, "std::time::SystemTime::now"),
         ],
     );
-    let found = loaded.check_zones(&environment);
+    let found = loaded.contracts.check_zones(&environment);
     let lines: Vec<_> = found.iter().map(|issue| issue.line).collect();
     assert_eq!(lines, [Some(4), Some(8)]);
     assert!(
@@ -375,7 +378,10 @@ fn coupling_ignores_same_directory_and_module_declaration_edges() {
         "purpose: Shared helpers\ndependents: 1",
     );
     let directories = BTreeSet::from([PathBuf::from("Project/hub")]);
-    let (loaded, issues) = Contracts::load(temp.path(), &directories);
+    let Loaded {
+        contracts: loaded,
+        issues,
+    } = Contracts::load(temp.path(), &directories);
     assert!(issues.is_empty(), "{:?}", messages(&issues));
     let hub = |path: &str| format!("Project/hub/{path}");
     let mut edges = vec![
@@ -406,7 +412,9 @@ fn coupling_uses_the_default_budget_when_unspecified() {
     let temp = tempfile::tempdir().unwrap();
     write(temp.path(), "Project/wide", "purpose: Depended on widely");
     let directories = BTreeSet::from([PathBuf::from("Project/wide")]);
-    let (loaded, _) = Contracts::load(temp.path(), &directories);
+    let Loaded {
+        contracts: loaded, ..
+    } = Contracts::load(temp.path(), &directories);
     let into_wide = |count: usize| -> Vec<Dependency> {
         (0..count)
             .map(|n| edge(&format!("Project/d{n}/f.rs"), "Project/wide/f.rs"))
