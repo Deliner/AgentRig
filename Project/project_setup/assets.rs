@@ -96,6 +96,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/justify-allow/SKILL.md"),
     ),
     (
+        "remove-debug",
+        include_str!("../shared/skills/references/remove-debug/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

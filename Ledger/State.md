@@ -10,44 +10,40 @@ C4 локальность → **C9 подавление линтов/`dbg!`** �
 
 ## Workspace
 
-Ветка feature/hygiene (база master @ `bef58cb`), HEAD @ `c851755` (VAC-B2). Машина — macOS.
+Ветка feature/hygiene (база master @ `bef58cb`), HEAD @ `843a29e` (VAC-C-source). Машина — macOS.
 Сборка/кандидат/коммит/бутстрап — через `just scratch -- '...'` с восстановленным PATH (`cargo` в
 `~/.cargo/bin`); Agent-Bash — одна top-level `just`-команда без `&&`/хвостового `| tail`.
 
 Механизм рантайма: хук/`config-check`/оркестрация гейта идут через `tooling/worker/run`, который
 читает `tooling/distribution/stable.txt` и исполняет УСТАНОВЛЕННЫЙ бинарь `.cache/development/
 <stable-hash>/`; НЕ per-HEAD. Проверки `lint`/build/clippy/rustfmt/rust-test и `init` в I020
-используют КАНДИДАТА (сборка из рабочего дерева через `tooling/worker/build`). Новый `kind` нельзя
-назвать в живом `.agentrig/lint.yaml`, пока его не знает stable-бинарь → правило идёт в ДВА VAC:
-**B1** = enum/descriptor/detector/registry/тесты (+ решение, memory-чекер требует marker→decision в
-том же коммите), затем мид-ветка бустрап stable.txt на голову B1, затем **B2** = `.agentrig/
-lint.yaml` + `catalog::ALL` + навык + `assets.rs` + линки решения + догфуд-правка. `catalog::ALL`
-держится вне B1: иначе init отдаёт kind, которого нет в живом lint.yaml → I020 падает.
+используют КАНДИДАТА (сборка из рабочего дерева через `tooling/worker/build`). stable сейчас
+забутстраплен на `843a29e` — stable-бинарь знает `debug-artifact`.
 
-УРОК (дедлок): НИКОГДА не переставлять stable.txt на ещё не установленную ревизию — agent-хук
-падает fail-closed и блокирует ВСЕ Bash/Edit/Write (Read нет). Бутстрап делать АТОМАРНО: запись
-stable.txt + `bash tooling/distribution/bootstrap.sh` в одном `just scratch`, из уже-рабочего
-состояния. bootstrap собирает из `git archive <rev>`, т.е. из КОММИТА, не из рабочего дерева.
+УРОК (порядок доставки): живое правило в `.agentrig/lint.yaml` нельзя добавлять раньше, чем создан
+навык, на который оно ссылается: `config-check` падает с `paths.lint: No such file`, а agent-хук
+fail-closed блокирует все Bash/Edit/Write (кроме config-файлов, `cat` их и `just config-check`).
+Порядок: навык + `catalog::ALL` + `assets.rs` сначала, живое правило в `lint.yaml` — последним.
+УРОК (дедлок): НИКОГДА не переставлять stable.txt на ещё не установленную ревизию; бутстрап делать
+АТОМАРНО (запись stable.txt + `bash tooling/distribution/bootstrap.sh` в одном `just scratch`).
 
 ## Progress
 
-C9 ядро 1 (`allow-justification`) ДОСТАВЛЕНО: VAC-B1 `a464830` (enum/детектор/тест+D080), затем
-бустрап stable.txt=`a464830`, затем VAC-B2 `c851755` (lint.yaml-правило + `catalog::ALL` + навык
-`justify-allow` + `assets.rs` + линки D080 + догфуд `macos.rs` → `// DECISION: D066` над
-`#[allow(deprecated)]`). Полный гейт зелёный; `just candidate lint` — 0 находок.
+C9 ядро 1 (`allow-justification`) ДОСТАВЛЕНО: VAC-B1 `a464830`, VAC-B2 `c851755`.
 
-C9 ядро 2 (`debug-artifact`, `dbg!`) — **VAC-C-source готов в рабочем дереве, ещё не закоммичен**:
-`Kind::DebugArtifact` (kind.rs), descriptor `DEBUGARTIFACT`+arm (descriptor.rs), rust-handler rules
-(registry.rs), детектор `debug_macro` на `macro_invocation` c именем макроса `dbg` безусловно
-(rust.rs), тест `rust_flags_dbg_macro_invocations`→`[2,6]` (вынесен в новый `tests/markers.rs`; `mod.rs` превысил file-size 500 → сплит disabled-test/allow/
-debug-тестов в `markers.rs`, привязки D074/D080/D081 `[tests]` → `markers.rs`), решение D081
-(карточка + индекс-строка + абзац). `catalog::ALL`/lint.yaml/навык — НЕ тронуты (это VAC-C-delivery).
-stable.txt (рабочее дерево, не закоммичено) = `a464830`.
+C9 ядро 2 (`debug-artifact`, `dbg!`): VAC-C-source `843a29e` (enum/descriptor/registry/детектор
+`debug_macro` безусловно + тест `[2,6]` в `markers.rs` + D081). Бустрап stable.txt=`843a29e` сделан.
+**VAC-C-delivery готов в рабочем дереве, ещё не закоммичен**: правило `debug-artifact` в
+`.agentrig/lint.yaml` (Rust `.rs`, error, навык `remove-debug`), `Kind::DebugArtifact` в
+`catalog::ALL`, навык `remove-debug` (`references/remove-debug/SKILL.md`+`architecture.yaml` +
+symlink `shared/skills/remove-debug` + строка в `references/architecture.yaml` + `assets.rs` SKILLS),
+линки D081 (`[repository rule]`+`[skill]`). stable.txt (рабочее дерево) = `843a29e` (не стейджить).
 
 ## Verification
 
-`cargo +1.98.1 test --lib structural_lint::languages::tests` — 15/15 ok (вкл. новый `dbg`-тест и
-сохранённые allow/ignore/unsafe). Полный гейт VAC-C-source ещё не прогонялся — будет при коммите.
+`just config-check` — valid; `just lint-config-check` — valid; `just candidate lint` — 0 находок
+(в репозитории нет `dbg!`). Полный гейт VAC-C-delivery ещё не прогонялся — будет при коммите (вкл.
+I020 `test_delivery.py`: наборы rule-kinds и skills выросли на один и сбалансированы).
 
 ## Blockers
 
@@ -55,15 +51,9 @@ stable.txt (рабочее дерево, не закоммичено) = `a464830
 
 ## Next action
 
-Закоммитить VAC-C-source через хук (НЕ стейджить stable.txt), сообщение `P045 VAC-C1: add
-debug-artifact rule kind and measurement; record D081`. Затем:
-- Атомарный бустрап stable.txt на голову VAC-C-source (один `just scratch`), чтобы stable-бинарь
-  узнал `debug-artifact`.
-- **VAC-C-delivery** (`P045 VAC-C2`): правило `debug-artifact` в `.agentrig/lint.yaml`,
-  `Kind::DebugArtifact` в `catalog::ALL`, навык `remove-debug` (`references/remove-debug/` + symlink
-  + инвентарь + `assets.rs`), линки D081 (`[repository rule]`+`[skill]`), State. Догфуд: 0 находок.
-- Ротация B036/P045 в Archive (+ флип `[card]` D080 и D081 на `Archive/Backlog/036.md`); финальный
-  пин stable.txt на принятую гейтом голову + бустрап одним `just scratch` (D051); коммит пина;
-  `just feature-merge` (не пушить, ветку сохранить). Отчёт на русском.
-
-Свободные ID: P046, B037, D082.
+Закоммитить VAC-C-delivery через хук (НЕ стейджить stable.txt), сообщение `P045 VAC-C2: deliver
+debug-artifact rule, remove-debug skill`. Затем финал C9:
+- Ротация B036/P045 в Archive (+ флип `[card]` D080 и D081 на `Archive/Backlog/036.md`).
+- Финальный пин stable.txt на принятую гейтом голову + бустрап одним `just scratch` (D051); коммит
+  пина; `just feature-merge` (не пушить, ветку сохранить). Отчёт на русском.
+- Далее Набор II: C6 → C3 → C5 → C10 → C7 → C8. Свободные ID: P046, B037, D082.

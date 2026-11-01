@@ -1,0 +1,5 @@
+purpose: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to remove a leftover dbg! debugging artifact"
+directories: {}

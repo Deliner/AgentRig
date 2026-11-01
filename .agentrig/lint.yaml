@@ -249,6 +249,17 @@ rules:
   level: error
   warning_skill: .agents/skills/justify-allow/SKILL.md
   error_skill: .agents/skills/justify-allow/SKILL.md
+# DECISION: D081
+- id: debug-artifact
+  kind: debug-artifact
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/remove-debug/SKILL.md
+  error_skill: .agents/skills/remove-debug/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
