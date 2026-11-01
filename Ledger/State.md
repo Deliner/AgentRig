@@ -2,48 +2,34 @@
 
 ## Focus
 
-**Набор II** — переносимые на любое приложение, agent-native улучшения качества (10 кластеров
-C1–C10) — **ЗАВЕРШАЕТСЯ**: последний кластер **C8 (P051)** функционально готов, идёт интеграция ветки.
-Доставлены и влиты в master C1+C2 (P043), C4 (P044), C9 (P045), C6 (P046), C3 (P047), C5 (P048),
-C10 (P049), C7 (P050); C8 (P051) — на ветке, ждёт merge. Свободные ID: D088+, P052+, B043+.
+**Новый арк: правила из отчёта воркфлоу-ревью Rust-кода.** Набор II (C1–C10) завершён и влит в master.
+Воркфлоу-ревью нашего Rust-кода (10 ревьюеров Sonnet, run `wf_b944977a-5c3` / task `we6yjitjd`, 96
+находок, кросс-валидация + ручная проверка по исходнику) дал Tier A и Tier B. Пользователь согласовал
+**все** пункты обоих тиров на исполнение через догфудинг. Полное содержание тиров durable-записано в
+карточках [B043](Backlog/043.md) (Tier A) и [B044](Backlog/044.md) (Tier B) — scratchpad-дамп эфемерен.
+Следующее — реализовать B043, затем B044.
 
 ## Workspace
 
-Ветка feature/simplicity (база master @ `1f1a55d` — merge-коммит C7). Машина — macOS. Сборка/коммит/
-git-мутации — через `just scratch -- '...'` с восстановленным PATH (`cargo` в `~/.cargo/bin`); Agent-Bash
-— одна top-level `just`-команда без `&&`. Поиск — `just read -- grep ...` (без пайпов, globʼы в кавычках).
-
-Механизм рантайма: хук/`config-check`/оркестрация гейта идут через `tooling/worker/run` → УСТАНОВЛЕННЫЙ
-бинарь `.cache/development/<stable-hash>/` (из `tooling/distribution/stable.txt`, сейчас `2f490ac…` —
-голова C7). C8 — решение-карта + норма, нового вида правила нет → путь ОДНОФАЗНЫЙ (мид-ветка бутстрап не
-нужен). **D051-пин НЕ требуется:** C8 меняет только `Ledger/**` (ни кода, ни навыка Project) — перед merge
-перепроверить `git diff --name-only master`.
+master @ `e9133a7`. Ветка `feature/workflow-findings` — коммит durable-записи (карточки B043/B044 +
+строки Backlog + State). Машина — macOS. Сборка/коммит/git — через `just scratch -- '...'` с
+восстановленным PATH (`cargo` в `~/.cargo/bin`); поиск — `just read -- grep`. `stable.txt` = `2f490ac…`
+(голова C7). Новые виды правил → stable-бинарь должен их десериализовать → **двухфазная доставка**
+(source → мид-ветка пин+bootstrap → delivery) на каждый новый вид.
 
 ## Progress
 
-C8 «анти-переусложнение» доставлен **картой покрытия** ([D087](Decisions/087.md)) без нового правила:
-каждое разрешимое измерение переусложнения уже имеет поставляемого владельца (`function-lines`,
-`nesting-depth` D061, `branch-budget` D063, `parameter-count`, `boolean-parameter` D062,
-`named-if-condition`, `file-size`/`directory-entries`, `dump-name` D072, `directory-architecture`
-D070/D079), дисциплина проектирования — норма `complexity-discipline`. Остаток (спекулятивная общность,
-лишняя индирекция, мёртвый код) — норма (семантично/высоколожно против D035, либо отвергнутый фронтенд
-D059). Дублирующее правило было бы само переусложнением → не добавлено. Нового вида правила/навыка нет →
-I020 без изменений.
-
-VAC-A `eb2c890` (память: B042+промоут P051+State), VAC-B `a48af92` (решение-карта D087) — оба через гейт
-зелёные. Архивная ротация выполнена: созданы `Archive/Backlog/042.md`, `Archive/Plan/051.md` (с `## Delivery`,
-глубина `../../`, Backlog-ссылка `../Backlog/042.md`); строки добавлены в `Archive/Backlog.md`/`Archive/Plan.md`;
-активная строка P051 убрана из `Plan.md` (+ проза завершения «Набор II завершён»), строка B042 убрана из
-`Backlog.md`; ссылка card в индексе D087 переведена на `Archive/Backlog/042.md`; State обновлён.
+Отчёт собран и проверен по исходнику; содержание продублировано в Backlog (B043 Tier A: tuple-as-record,
+eager-fallback-with-?, discarded-result + 2 бага; B044 Tier B: unchecked-index, disabled-RAII,
+TOCTOU/path-exists, lossy-int-cast, sibling-cycle). Tier C (магические числа/stringly-typed/
+`serde_json::Value`/лишние clone) отсеян как уже-норма (D073/D059) или высокий FP. Карточки согласованы
+пользователем; реализация ещё не начата.
 
 ## Verification
 
-C8 функционально готов и зелёный: коммит-гейт VAC-A (`eb2c890`) и VAC-B (`a48af92`) весь PASS —
-build/lint/memory/rustfmt/clippy/rust-test (нет затронутых)/ruff-format/ruff/mypy/pytest 23
-(test_config_check)/typos/vulture. Наш код в поведении не меняется (решение-карта + норма). Факт по движку,
-обосновывающий отказ от нового правила, подтверждён ранее: `architecture/source/model/mod.rs` хранит ссылки
-и имена item-ов, не тела; `languages/mod.rs::analyze` — пофайловый скалярный проход без кросс-узловой
-агрегации.
+Нет (реализация не начата). Текущий master зелёный (merge-гейт C8 PASS). Топ-находки Tier A подтверждены
+чтением исходника: `main.rs:58`/`cli.rs:49` (eager `env::current_dir()?`), `process.rs:101-102` (`.ok();`),
+`git/mod.rs:146` (`Err(_)=>Ok(false)`), `sandbox.rs:12` `(bool,Capture)`, `gate/mod.rs:164/183` (кортежи).
 
 ## Blockers
 
@@ -51,9 +37,13 @@ build/lint/memory/rustfmt/clippy/rust-test (нет затронутых)/ruff-fo
 
 ## Next action
 
-1. Застейджить архивную ротацию: `git rm` живых `Ledger/Backlog/042.md`+`Ledger/Plan/051.md`, добавить
-   `Archive/Backlog/042.md`+`Archive/Plan/051.md`+изменённые `Archive/Backlog.md`/`Archive/Plan.md`/
-   `Plan.md`/`Backlog.md`/`Decisions.md`/`State.md`; коммит через гейт (memory-check зелёный после ротации).
-2. Перепроверить `git diff --name-only master` — только `Ledger/**` → D051-пин НЕ нужен.
-3. `just feature-merge` (ветку оставить, НЕ пушить).
-4. Отчёт по C8 на русском на merge-границе + объявить **Набор II завершён** (все 10 кластеров C1–C10).
+1. Закоммитить durable-запись (B043/B044 + строки Backlog + State) и влить `feature/workflow-findings`
+   в master (Ledger-only → без D051-пина).
+2. Промоутнуть **B043** (Tier A) → P052 (`Plan/052.md`, активная строка в `Plan.md`, проза), ветка
+   `feature/tier-a-rules`. Двухфазная доставка трёх новых видов в одной ветке: VAC-B1 (kind/descriptor/
+   детекторы rust.rs/registry/markers-тесты) → мид-ветка пин+bootstrap → VAC-B2 (catalog::ALL += 3,
+   lint.yaml += 3 live-правила, 3 навыка в references + flat-symlink + assets.rs, D-решения D088+).
+3. Догфуд: привести код к зелёному, включая починку 2 багов (env::current_dir в main.rs/cli.rs;
+   `.ok();`/`Err(_)` в process.rs/git.rs — обосновать/исправить, проверить направление в `merged_reference`).
+   Финальный D051-пин (ветка меняет Project). `just feature-merge`.
+4. Затем **B044** (Tier B) той же схемой. Свободные ID: P052+, D088+.
