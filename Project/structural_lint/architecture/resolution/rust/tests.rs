@@ -223,6 +223,31 @@ fn external_crates_do_not_hide_missing_anchored_paths() {
     );
 }
 
+// DECISION: D083
+#[test]
+fn clock_constructors_resolve_to_their_full_std_path() {
+    let sources = sources(&[(
+        "lib.rs",
+        "use std::time::Instant; fn f() { let _ = Instant::now(); }",
+    )]);
+    let external = BTreeSet::from(["std".into()]);
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
+    assert_eq!(
+        resolver
+            .resolve(Path::new("lib.rs"), &path("Instant::now"))
+            .unwrap()
+            .external,
+        Some("std::time::Instant::now".into())
+    );
+    assert_eq!(
+        resolver
+            .resolve(Path::new("lib.rs"), &path("std::time::SystemTime::now"))
+            .unwrap()
+            .external,
+        Some("std::time::SystemTime::now".into())
+    );
+}
+
 #[test]
 fn unsupported_source_cannot_build_a_verified_module_tree() {
     let external = BTreeSet::new();

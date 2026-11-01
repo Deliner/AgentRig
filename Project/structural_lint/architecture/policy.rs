@@ -68,6 +68,17 @@ pub struct Contracts {
     declarations: BTreeMap<PathBuf, Declaration>,
 }
 
+// DECISION: D083
+fn zone_message(path: &str) -> String {
+    let timekeeping = super::clock(path);
+    let effect = if timekeeping {
+        "read the wall clock"
+    } else {
+        "access the environment"
+    };
+    format!("zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}")
+}
+
 impl Contracts {
     pub fn check_inventory(
         &self,
@@ -115,10 +126,7 @@ impl Contracts {
                 issues.extend(uses.iter().map(|use_site| Issue {
                     path: file.clone(),
                     line: Some(use_site.line),
-                    message: format!(
-                        "zone `pure` directory must not access the environment; move the effect out or drop the zone: {}",
-                        use_site.path
-                    ),
+                    message: zone_message(&use_site.path),
                 }));
             }
         }

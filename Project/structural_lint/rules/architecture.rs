@@ -42,7 +42,7 @@ impl Default for External {
 impl Settings {
     pub fn describe() -> serde_json::Value {
         serde_json::json!({
-            "contract": "architecture.yaml: single-line purpose, files and directories responsibility maps; type on a feature without nested features; zone pure on a directory whose own files must not reach std::env, std::fs or std::process; dependents budget capping how many other directories may depend on a directory; every selected directory",
+            "contract": "architecture.yaml: single-line purpose, files and directories responsibility maps; type on a feature without nested features; zone pure on a directory whose own files must not reach std::env, std::fs, std::process or read the wall clock (Instant::now, SystemTime::now); dependents budget capping how many other directories may depend on a directory; every selected directory",
             "selection": "directory include/exclude; explicit extensions select immediate source files",
             "feature_root": "selected directory whose subdirectories are features; untyped features are composite, features without nested features declare flat, layered, hexagonal, onion, clean or custom with required parts and inward dependencies",
             "python_root": "one project-relative import root; default project root",

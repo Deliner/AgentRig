@@ -58,3 +58,11 @@ pub fn environment(external: &str) -> bool {
                 .is_some_and(|rest| rest.starts_with("::"))
     })
 }
+
+// DECISION: D083
+pub const CLOCK: [&str; 2] = ["std::time::Instant::now", "std::time::SystemTime::now"];
+
+// DECISION: D083
+pub fn clock(external: &str) -> bool {
+    CLOCK.contains(&external.trim_start_matches("::"))
+}

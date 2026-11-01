@@ -211,8 +211,10 @@ impl<'a> Resolvers<'a> {
                     if let Some(external) = &resolved.external {
                         used.record(&reference.target, external);
                         // DECISION: D078
-                        let touches_environment = super::super::environment(external);
-                        if touches_environment {
+                        // DECISION: D083
+                        let impure =
+                            super::super::environment(external) || super::super::clock(external);
+                        if impure {
                             environment.push(EnvironmentUse {
                                 line: reference.line,
                                 path: external.trim_start_matches("::").to_owned(),

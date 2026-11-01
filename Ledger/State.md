@@ -32,20 +32,25 @@ C3 ядро (по complexity-discipline, заземлено на D078): чтен
 суффикс `::now` → external = `std::time::Instant::now`/`std::time::SystemTime::now` (точное сопоставление
 отличает чтение часов от `Duration`/`UNIX_EPOCH`).
 
-**VAC-A (готов к коммиту, память)**: B038 заведена + промоутнута в P047; индексы Backlog/Plan; проза
-промоушена и анализ в Plan; State. Ветка создана.
+**VAC-A закоммичен** (`ef62152`, память, гейт зелёный): B038 заведена + промоутнута в P047; индексы
+Backlog/Plan; проза промоушена и анализ в Plan; State. Ветка создана.
 
-**VAC-B (предстоит, код)**: в `architecture/mod.rs` — `CLOCK=[std::time::Instant::now,
-std::time::SystemTime::now]` + предикат `clock()`; `analysis.rs` — `environment()||clock()` в пуш;
-`policy.rs::check_zones` — сообщение по категории (env оставить как есть, добавить сообщение про часы);
-тесты (предикат `clock`, зона с clock-use) в `architecture/tests.rs`; карточка D083 (расширяет D078) +
-индекс + линки. Дифференциация сообщений — чтобы не менять committed-поведение D078. Догфуд: `pure`-
-модуль репозитория (`structural_lint/architecture/resolution`) часов не читает → зелёный.
+**VAC-B (код готов, dogfood-зелёный, НЕ закоммичен)**: `architecture/mod.rs` — `CLOCK=[std::time::
+Instant::now, std::time::SystemTime::now]` + предикат `clock()`; `analysis.rs` — `environment()||clock()`
+в пуш `EnvironmentUse`; `policy.rs` — свободная fn `zone_message()` по категории (env-строка байт-
+идентична D078, добавлено «must not read the wall clock»); `rules/architecture.rs` — описание контракта
+расширено (без маркера, не линкуется, как D078); 3 теста (`clock_reads_match_only_the_now_constructors`,
+`zone_pure_directories_reject_wall_clock_reads_in_their_own_files`,
+`clock_constructors_resolve_to_their_full_std_path`); карточка `Decisions/083.md` (расширяет D078) +
+индекс-строка + линки на 5 файлов с маркером. Дифференциация сообщений — чтобы не менять committed-
+поведение D078.
 
 ## Verification
 
-C6 влит в master (`081d5e6`), гейт всей ветки зелёный, пин stable `50c5ed7`. C3 — ещё не
-реализовано/проверено. VAC-A проверяется коммит-гейтом (memory-check).
+C6 влит в master (`081d5e6`), гейт всей ветки зелёный, пин stable `50c5ed7`. VAC-A прошёл коммит-гейт
+(`ef62152`). VAC-B: `cargo test --manifest-path Project/Cargo.toml` — 3 новых теста зелёные + регрессия
+D078 (сообщение окружения не изменилось); `just candidate lint` → 0 находок (единственный `pure`-каталог
+репозитория `structural_lint/architecture/resolution` часов не читает). Коммит-гейт VAC-B — предстоит.
 
 ## Blockers
 
@@ -53,9 +58,13 @@ C6 влит в master (`081d5e6`), гейт всей ветки зелёный, 
 
 ## Next action
 
-1. Закоммитить **VAC-A** (промоушен C3, память) — сообщение
-   `P047 VAC-A: register B038 (C3 determinism), promote, record C3 analysis`.
-2. **VAC-B**: реализовать `clock()` + расширить `check_zones`, тесты, карточка D083 + линки; догфуд
-   (`just candidate lint` → 0 находок часов; `just config-check`); закоммитить через гейт.
-3. Финал: ротация B038/P047 в Archive (флип D083 `[card]`), пин stable.txt на голову + бустрап D051,
-   `just feature-merge` (ветку оставить, НЕ пушить). Затем C5. Свободные ID: P048, B039, D084+.
+1. Закоммитить **VAC-B** через гейт — код (`architecture/mod.rs`, `analysis.rs`, `policy.rs`,
+   `rules/architecture.rs`), 3 теста, `Decisions/083.md`, индекс-строка Decisions, State. Сообщение
+   `P047 VAC-B: deliver pure-zone wall-clock rule; record D083`.
+2. Финал C3: ротация B038→`Archive/Backlog/038.md` + строка, P047→`Archive/Plan/047.md` (`## Delivery`)
+   + строка, проза завершения в Plan, `git rm` живых `Plan/047.md`+`Backlog/038.md`, флип D083 `[card]`
+   → `Archive/Backlog/038.md`, refresh State; коммит `P047: archive B038/P047 (C3 delivered)`.
+3. Пин D051: stable.txt = полный 40-символьный хеш головы архив-коммита + атомарный бутстрап (один
+   scratch, откат при сбое); коммит `P047: pin stable.txt to <short> (D051)`.
+4. `just feature-merge` (ветку оставить, НЕ пушить). Отчёт по C3 на русском. Затем C5. Свободные ID:
+   P048, B039, D084+.
