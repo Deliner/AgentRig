@@ -10,3 +10,5 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B043](Backlog/043.md) | Tier A отчёта воркфлоу: tuple-as-record, eager-fallback-with-?, discarded-result (+ починка 2 багов) | Закрывают обход parameter-count/boolean-parameter/silent-error и ловят реальные латентные баги до коммита; переносимо. |
+| [B044](Backlog/044.md) | Tier B отчёта воркфлоу: unchecked-index, disabled-RAII, TOCTOU/path-exists, lossy-int-cast, sibling-cycle | Доп. охват панических/ресурсных/файловых/детерминизм-смеллов + внутрикаталожные циклы; переносимо. |
