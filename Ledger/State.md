@@ -2,34 +2,34 @@
 
 ## Focus
 
-**Новый арк: правила из отчёта воркфлоу-ревью Rust-кода.** Набор II (C1–C10) завершён и влит в master.
-Воркфлоу-ревью нашего Rust-кода (10 ревьюеров Sonnet, run `wf_b944977a-5c3` / task `we6yjitjd`, 96
-находок, кросс-валидация + ручная проверка по исходнику) дал Tier A и Tier B. Пользователь согласовал
-**все** пункты обоих тиров на исполнение через догфудинг. Полное содержание тиров durable-записано в
-карточках [B043](Backlog/043.md) (Tier A) и [B044](Backlog/044.md) (Tier B) — scratchpad-дамп эфемерен.
-Следующее — реализовать B043, затем B044.
+**B043 (Tier A) ПОЛНОСТЬЮ доставлен → [P052](Plan/052.md).** Три правила (`tuple-as-record`/`eager-fallback`/
+`discarded-result`) активны в `catalog`+`registry`+`lint.yaml`+навыки, репозиторий догфуд-чист, D051-пин сделан.
+Ветка готова к `just feature-merge`. Далее — B044 (Tier B).
 
 ## Workspace
 
-master @ `e9133a7`. Ветка `feature/workflow-findings` — коммит durable-записи (карточки B043/B044 +
-строки Backlog + State). Машина — macOS. Сборка/коммит/git — через `just scratch -- '...'` с
-восстановленным PATH (`cargo` в `~/.cargo/bin`); поиск — `just read -- grep`. `stable.txt` = `2f490ac…`
-(голова C7). Новые виды правил → stable-бинарь должен их десериализовать → **двухфазная доставка**
-(source → мид-ветка пин+bootstrap → delivery) на каждый новый вид.
+Ветка `feature/tier-a-rules` (база master @ `e9133a7`). Revision HEAD = `62ea144` (D051-пин). Коммиты ветки:
+`a910ecb` VAC-A, `76874a1` VAC-B1 (инертный источник), `b0ce9ee` VAC-B2 (активация+догфуд), `62ea144` пин.
+`stable.txt` = `b0ce9eebdbcee5992eec3079079de0fece04703d` (голова VAC-B2, последний коммит, меняющий Project),
+установлен через `just bootstrap` в `.cache/development/b0ce9ee…`. Рабочее дерево чистое. macOS; коммиты —
+`just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
 
 ## Progress
 
-Отчёт собран и проверен по исходнику; содержание продублировано в Backlog (B043 Tier A: tuple-as-record,
-eager-fallback-with-?, discarded-result + 2 бага; B044 Tier B: unchecked-index, disabled-RAII,
-TOCTOU/path-exists, lossy-int-cast, sibling-cycle). Tier C (магические числа/stringly-typed/
-`serde_json::Value`/лишние clone) отсеян как уже-норма (D073/D059) или высокий FP. Карточки согласованы
-пользователем; реализация ещё не начата.
+VAC-A `a910ecb`; VAC-B1 `76874a1` (kind/descriptor/rust/markers + D088–090, инертно). **VAC-B2 `b0ce9ee`:**
+`catalog::ALL`+=3, `registry` rust.rules+=3, три live-правила в `lint.yaml` (Rust-only, tests excluded, error,
+`# DECISION: D088/D089/D090`), навыки `name-the-record`/`eager-to-lazy`/`handle-discarded` (SKILL.md + leaf
+`architecture.yaml` + flat-symlink + `assets.rs` include_str!), I020 +3/+3; строки D088–090 дополнены
+`[repository rule]`+`[skill]`; добавлены D091 + `Decisions/091.md`. Догфуд: 2 `eager-fallback`→`match`
+(`main.rs`/`cli.rs`); 10 кортежей→структуры (`Selected`/`CheckRun`/`Outcome`+`change_index`; `Sandboxing`;
+`Arrangement`; `Invocation`; `Loaded`; `Dependencies`; `Analysis`; `TokenPath`); 2 teardown-`.ok()` с `DECISION: D091`;
+`tests.rs` переведён на `Loaded`. Пин `62ea144`.
 
 ## Verification
 
-Нет (реализация не начата). Текущий master зелёный (merge-гейт C8 PASS). Топ-находки Tier A подтверждены
-чтением исходника: `main.rs:58`/`cli.rs:49` (eager `env::current_dir()?`), `process.rs:101-102` (`.ok();`),
-`git/mod.rs:146` (`Err(_)=>Ok(false)`), `sandbox.rs:12` `(bool,Capture)`, `gate/mod.rs:164/183` (кортежи).
+**Полный гейт зелёный дважды** (на `b0ce9ee` и `62ea144`): build, lint, memory, rustfmt, clippy, rust-test
+(106 passed), ruff-format, ruff, mypy, test (358 Python passed, включая `test_dogfooding_capabilities_stay_universal`
+I020), typos, vulture. `just bootstrap` собрал и установил `b0ce9ee` (`agentrig 0.3.0`).
 
 ## Blockers
 
@@ -37,13 +37,7 @@ TOCTOU/path-exists, lossy-int-cast, sibling-cycle). Tier C (магические
 
 ## Next action
 
-1. Закоммитить durable-запись (B043/B044 + строки Backlog + State) и влить `feature/workflow-findings`
-   в master (Ledger-only → без D051-пина).
-2. Промоутнуть **B043** (Tier A) → P052 (`Plan/052.md`, активная строка в `Plan.md`, проза), ветка
-   `feature/tier-a-rules`. Двухфазная доставка трёх новых видов в одной ветке: VAC-B1 (kind/descriptor/
-   детекторы rust.rs/registry/markers-тесты) → мид-ветка пин+bootstrap → VAC-B2 (catalog::ALL += 3,
-   lint.yaml += 3 live-правила, 3 навыка в references + flat-symlink + assets.rs, D-решения D088+).
-3. Догфуд: привести код к зелёному, включая починку 2 багов (env::current_dir в main.rs/cli.rs;
-   `.ok();`/`Err(_)` в process.rs/git.rs — обосновать/исправить, проверить направление в `merged_reference`).
-   Финальный D051-пин (ветка меняет Project). `just feature-merge`.
-4. Затем **B044** (Tier B) той же схемой. Свободные ID: P052+, D088+.
+1. `just feature-merge` (через `just scratch` с PATH) — интегрировать ветку в master, прогнав тесты всей ветки;
+   ветку сохранить, не пушить.
+2. Затем B044 (Tier B) той же двухфазной схемой (инертный источник → активация+догфуд → пин) на своей ветке.
+   Свободные ID: D092+, P053+.

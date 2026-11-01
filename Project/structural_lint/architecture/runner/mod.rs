@@ -1,7 +1,7 @@
 mod analysis;
 mod scope;
 
-use super::{Contracts, Issue, PYTHON_SEED, RUST_SEED, Settings, source::References};
+use super::{Contracts, Issue, Loaded, PYTHON_SEED, RUST_SEED, Settings, source::References};
 use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
@@ -41,42 +41,48 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
     let rust_sources = analysis::rust_sources(&root, &files);
     let (resolvers, mut issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
-    let (contracts, contract_issues) = Contracts::load(&root, &scope.directories);
-    issues.extend(contract_issues);
+    let loaded: Loaded = Contracts::load(&root, &scope.directories);
+    issues.extend(loaded.issues);
+    let contracts = loaded.contracts;
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
     let sources = analysis::extract(&root, &scope.files);
-    let (edges, source_issues, used, environment) = dependencies(&resolvers, sources);
-    issues.extend(source_issues);
-    issues.extend(unused_externals(settings, &used));
-    issues.extend(super::graph::cycles(&edges));
+    let analyzed = dependencies(&resolvers, sources);
+    issues.extend(analyzed.issues);
+    issues.extend(unused_externals(settings, &analyzed.used));
+    issues.extend(super::graph::cycles(&analyzed.edges));
     let features = settings.feature_root.as_deref();
-    issues.extend(contracts.check_features(features, &scope.inventory, &edges));
+    issues.extend(contracts.check_features(features, &scope.inventory, &analyzed.edges));
     // DECISION: D078
-    issues.extend(contracts.check_zones(&environment));
+    issues.extend(contracts.check_zones(&analyzed.environment));
     // DECISION: D079
-    issues.extend(contracts.check_coupling(&edges));
+    issues.extend(contracts.check_coupling(&analyzed.edges));
     issues
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
         .collect()
 }
 
+struct Analysis {
+    edges: Vec<super::Dependency>,
+    issues: Vec<Issue>,
+    used: analysis::Externals,
+    environment: BTreeMap<PathBuf, Vec<super::EnvironmentUse>>,
+}
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
     sources: BTreeMap<PathBuf, References>,
-) -> (
-    Vec<super::Dependency>,
-    Vec<Issue>,
-    analysis::Externals,
-    BTreeMap<PathBuf, Vec<super::EnvironmentUse>>,
-) {
+) -> Analysis {
     let mut edges = Vec::new();
     let mut issues = Vec::new();
     let mut used = analysis::Externals::default();
     let mut environment = BTreeMap::new();
     for (path, references) in sources {
-        let (resolved, failures, references_used, references_environment) =
-            resolvers.dependencies(&path, references);
+        let analysis::Dependencies {
+            edges: resolved,
+            issues: failures,
+            used: references_used,
+            environment: references_environment,
+        } = resolvers.dependencies(&path, references);
         edges.extend(resolved);
         issues.extend(failures);
         used.rust.extend(references_used.rust);
@@ -87,7 +93,12 @@ fn dependencies(
             environment.insert(path, references_environment);
         }
     }
-    (edges, issues, used, environment)
+    Analysis {
+        edges,
+        issues,
+        used,
+        environment,
+    }
 }
 
 // DECISION: D076

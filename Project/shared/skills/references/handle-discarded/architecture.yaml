@@ -1,0 +1,5 @@
+purpose: "Handle or propagate a Result instead of dropping it with a bare .ok() statement, or justify the ignored outcome with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to handle or justify a discarded Result"
+directories: {}

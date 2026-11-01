@@ -112,6 +112,18 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/narrow-import/SKILL.md"),
     ),
     (
+        "name-the-record",
+        include_str!("../shared/skills/references/name-the-record/SKILL.md"),
+    ),
+    (
+        "eager-to-lazy",
+        include_str!("../shared/skills/references/eager-to-lazy/SKILL.md"),
+    ),
+    (
+        "handle-discarded",
+        include_str!("../shared/skills/references/handle-discarded/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

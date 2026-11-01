@@ -196,11 +196,7 @@ impl<'a> Resolvers<'a> {
         Ok(result)
     }
 
-    pub fn dependencies(
-        &self,
-        path: &Path,
-        references: References,
-    ) -> (Vec<Dependency>, Vec<Issue>, Externals, Vec<EnvironmentUse>) {
+    pub fn dependencies(&self, path: &Path, references: References) -> Dependencies {
         let mut issues = references.issues;
         let mut edges = Vec::new();
         let mut used = Externals::default();
@@ -231,6 +227,18 @@ impl<'a> Resolvers<'a> {
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
             }
         }
-        (edges, issues, used, environment)
+        Dependencies {
+            edges,
+            issues,
+            used,
+            environment,
+        }
     }
+}
+
+pub struct Dependencies {
+    pub edges: Vec<Dependency>,
+    pub issues: Vec<Issue>,
+    pub used: Externals,
+    pub environment: Vec<EnvironmentUse>,
 }

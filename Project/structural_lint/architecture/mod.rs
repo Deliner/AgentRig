@@ -11,7 +11,7 @@ mod tests;
 use std::path::PathBuf;
 
 pub use super::rules::architecture::{PYTHON_SEED, RUST_SEED, Settings};
-pub use policy::{Contracts, describe};
+pub use policy::{Contracts, Loaded, describe};
 
 #[derive(Clone, Debug)]
 pub struct Dependency {

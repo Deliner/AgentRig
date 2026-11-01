@@ -1,0 +1,35 @@
+---
+name: name-the-record
+description: Replace a tuple in a function parameter or return with a named struct, or record why the small tuple is intended.
+---
+
+# Name the record a signature tuple hides
+
+A tuple in a parameter or return position is an unnamed record: its fields have
+positions but no names, and several fields packed into one tuple parameter slip
+past the `parameter-count` and `boolean-parameter` budgets. Callers and the body
+read the fields by index, so the meaning lives only in the author's head.
+
+1. Give the tuple a named struct whose fields name each position, and take or
+   return that struct. Reuse an existing record when one already models the data.
+2. For a value the function builds to return, a dedicated return struct names the
+   result; for several related inputs, one parameter struct names them together.
+3. For a genuine coordinate pair or a deliberate small tuple, record the reasoning
+   as an owned `DECISION:`/`INVARIANT:` reference on the line directly above the
+   function.
+4. Rerun the reported lint check and the affected behavior checks.
+
+A `DECISION:` or `INVARIANT:` reference on the line directly above the function
+keeps the tuple, attesting the unnamed record is intended; without one it is a
+finding. Test code is out of scope.
+
+## Rule binding
+
+The measurement flags every Rust `function_item` or `function_signature_item`
+outside test code whose parameters include a tuple-typed parameter or whose
+return type is a tuple, without a `DECISION:`/`INVARIANT:` reference on the line
+directly above it. A unit `()` and a tuple nested inside a generic such as
+`Option<(A, B)>` are not flagged. Rerun the reported lint check and relevant
+behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the tuple is a named struct or justified by an
+owned reference.

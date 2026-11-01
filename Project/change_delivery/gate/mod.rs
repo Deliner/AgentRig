@@ -105,6 +105,13 @@ fn prepare(
     }
     Ok((None, Input::Worktree))
 }
+fn change_index(options: &Options<'_>) -> selection::Index {
+    if options.staged {
+        selection::Index::Staged
+    } else {
+        selection::Index::Working
+    }
+}
 fn execute_checks(
     context: &Context,
     root: &Path,
@@ -112,11 +119,7 @@ fn execute_checks(
     options: &Options<'_>,
 ) -> Result<i32> {
     let files = files(context)?;
-    let index = if options.staged {
-        selection::Index::Staged
-    } else {
-        selection::Index::Working
-    };
+    let index = change_index(options);
     let changes = selection::changes(root, index, options.base)?;
     for check in context
         .config
@@ -137,7 +140,10 @@ fn execute_checks(
                 continue;
             }
         }
-        let source = (root, targets.as_deref().unwrap_or_default());
+        let source = Selected {
+            root,
+            targets: targets.as_deref().unwrap_or_default(),
+        };
         if let Some(code) = execute_selected(context, source, check, attempt)? {
             return Ok(code);
         }
@@ -159,15 +165,32 @@ fn skip_reason(
         (true, false) => None,
     })
 }
+struct Selected<'a> {
+    root: &'a Path,
+    targets: &'a [String],
+}
+struct CheckRun<'a> {
+    root: &'a Path,
+    revision: Option<&'a str>,
+    targets: &'a [String],
+}
+struct Outcome {
+    code: i32,
+    broken: bool,
+}
 fn execute_selected(
     context: &Context,
-    source: (&Path, &[String]),
+    source: Selected<'_>,
     check: &Check,
     attempt: &mut crate::project_memory::evidence::Attempt,
 ) -> Result<Option<i32>> {
-    let rerun = attempt.rerun(source.0, &check.id);
-    let input = (source.0, attempt.exported_revision(), source.1);
-    let (code, broken) = checked(context, input, check, &rerun);
+    let rerun = attempt.rerun(source.root, &check.id);
+    let input = CheckRun {
+        root: source.root,
+        revision: attempt.exported_revision(),
+        targets: source.targets,
+    };
+    let Outcome { code, broken } = checked(context, input, check, &rerun);
     attempt.checked(check, code, rerun)?;
     let passed = code == 0;
     if passed {
@@ -178,35 +201,27 @@ fn execute_selected(
     Ok(stop.then_some(code))
 }
 
-fn run_check(
-    context: &Context,
-    source: (&Path, Option<&str>, &[String]),
-    check: &Check,
-    rerun: &str,
-) -> Result<i32> {
+fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str) -> Result<i32> {
     match check.kind {
         CheckKind::Command => {
             let command = check
                 .command
                 .as_deref()
                 .ok_or_else(|| anyhow::anyhow!("command check without a command"))?;
-            command_runner::run(context, command, source.2)
+            command_runner::run(context, command, source.targets)
         }
         CheckKind::Lint => structural_lint::check(
             &context.root,
             &context.path(&context.config.paths.lint)?,
             rerun,
         ),
-        CheckKind::Memory => crate::project_memory::check_with_history(context, source.0, source.1),
+        CheckKind::Memory => {
+            crate::project_memory::check_with_history(context, source.root, source.revision)
+        }
         CheckKind::Tools => command_runner::registry::check::run(context, check, rerun),
     }
 }
-fn checked(
-    context: &Context,
-    source: (&Path, Option<&str>, &[String]),
-    check: &Check,
-    rerun: &str,
-) -> (i32, bool) {
+fn checked(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str) -> Outcome {
     let result = run_check(context, source, check, rerun);
     let (code, message, broken) = match result {
         Ok(code) => (
@@ -232,7 +247,7 @@ fn checked(
             }
         );
     }
-    (code, broken)
+    Outcome { code, broken }
 }
 fn export(root: &Path) -> Result<tempfile::TempDir> {
     let repository = crate::shared::vcs::Repository::discover(root)?

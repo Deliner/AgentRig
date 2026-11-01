@@ -102,7 +102,15 @@ fn logged(
         jobs::Access::Writable
     };
     job.prepare(&argv, access, spec.lifetime)?;
-    let result = sandbox::tracked(&cwd, &argv, (spec.read_only, capture), Some(&mut job));
+    let result = sandbox::tracked(
+        &cwd,
+        &argv,
+        sandbox::Sandboxing {
+            read_only: spec.read_only,
+            capture,
+        },
+        Some(&mut job),
+    );
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
         code,
@@ -146,7 +154,10 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     let result = sandbox::tracked(
         &cwd,
         &argv,
-        (read_only, jobs::Capture::Stream),
+        sandbox::Sandboxing {
+            read_only,
+            capture: jobs::Capture::Stream,
+        },
         Some(&mut job),
     );
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);

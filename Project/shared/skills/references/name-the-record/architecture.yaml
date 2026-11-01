@@ -1,0 +1,5 @@
+purpose: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to name the record a signature tuple hides"
+directories: {}

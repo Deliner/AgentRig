@@ -58,6 +58,9 @@ impl Kind {
             Self::DebugAssertion => &DEBUGASSERTION,
             Self::PanicPath => &PANICPATH,
             Self::WildcardImport => &WILDCARDIMPORT,
+            Self::TupleAsRecord => &TUPLEASRECORD,
+            Self::EagerFallback => &EAGERFALLBACK,
+            Self::DiscardedResult => &DISCARDEDRESULT,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -288,5 +291,35 @@ const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
     skill: "justify-unsafe",
     parameters: Parameters::Level {
         violation: "unsafe needs a recorded justification; put a DECISION: or INVARIANT: reference on the line directly above it, or remove the unsafe",
+    },
+};
+// DECISION: D088
+const TUPLEASRECORD: Descriptor = Descriptor {
+    default_id: "tuple-as-record",
+    target: "file",
+    metric: "every Rust function parameter type or return type that is a tuple, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
+    skill: "name-the-record",
+    parameters: Parameters::Level {
+        violation: "a tuple in a signature is an unnamed record that evades the parameter-count and boolean-parameter budgets and hides what each position means; give it a named struct, or put a DECISION: or INVARIANT: reference on the line directly above the function to justify the tuple",
+    },
+};
+// DECISION: D089
+const EAGERFALLBACK: Descriptor = Descriptor {
+    default_id: "eager-fallback",
+    target: "file",
+    metric: "every Rust .unwrap_or, .ok_or or .map_or call whose eager first argument propagates with ? outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "eager-to-lazy",
+    parameters: Parameters::Level {
+        violation: "the fallback argument of unwrap_or, ok_or or map_or is evaluated unconditionally, so a ? inside it propagates even when the value is present; move the fallback into the lazy unwrap_or_else, ok_or_else or map_or_else closure, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the eager form",
+    },
+};
+// DECISION: D090
+const DISCARDEDRESULT: Descriptor = Descriptor {
+    default_id: "discarded-result",
+    target: "file",
+    metric: "every Rust bare .ok() statement that drops a Result outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "handle-discarded",
+    parameters: Parameters::Level {
+        violation: "a bare .ok() statement converts a Result to Option and throws the outcome away, so a failure passes silently; handle the error, propagate it with ?, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
     },
 };

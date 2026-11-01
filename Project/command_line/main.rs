@@ -53,9 +53,10 @@ fn immediate(command: &str) -> Option<Result<i32>> {
     })
 }
 fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
-    let root = take_option(args, "--root")?
-        .map(PathBuf::from)
-        .unwrap_or(env::current_dir()?);
+    let root = match take_option(args, "--root")? {
+        Some(value) => PathBuf::from(value),
+        None => env::current_dir()?,
+    };
     let initializing = command == "init";
     let interactive = initializing && args.iter().any(|arg| arg == "--interactive");
     if interactive {

@@ -244,3 +244,104 @@ from collections import abc
 ";
     assert_eq!(wildcard_findings("source.py", source), [2]);
 }
+
+// DECISION: D088
+fn record_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::TupleAsRecord)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_tuple_parameters_and_returns_outside_tests() {
+    let source = "fn packed(options: (bool, u32)) {}
+fn returns_pair() -> (u32, u32) { (1, 2) }
+// DECISION: D001
+fn annotated(options: (bool, u32)) {}
+fn plain(count: u32, name: &str) -> u32 { count }
+fn unit() -> () {}
+fn wrapped(maybe: Option<(u32, u32)>) {}
+#[cfg(test)]
+mod tests {
+    fn helper(options: (bool, u32)) {}
+}
+";
+    assert_eq!(record_findings("source.rs", source), [1, 2]);
+}
+
+// DECISION: D089
+fn eager_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::EagerFallback)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_eager_fallback_arguments_that_propagate() {
+    let source = "fn run() -> Result<u32, Error> {
+    let a = maybe().unwrap_or(fallback()?);
+    // DECISION: D001
+    let b = maybe().unwrap_or(fallback()?);
+    let c = maybe().ok_or(Error)?;
+    let d = option.map_or(0, |value| compute(value)?);
+    let e = option.unwrap_or(0);
+    Ok(a)
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        let f = maybe().unwrap_or(fallback()?);
+    }
+}
+";
+    assert_eq!(eager_findings("source.rs", source), [2]);
+}
+
+// DECISION: D090
+fn discarded_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::DiscardedResult)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_discarded_result_statements_outside_tests() {
+    let source = "fn run() {
+    thing.ok();
+    // DECISION: D001
+    other.ok();
+    let kept = thing.ok();
+    saved = thing.ok();
+    thing.ok()?;
+    thing.run();
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        value.ok();
+    }
+}
+";
+    assert_eq!(discarded_findings("source.rs", source), [2]);
+}

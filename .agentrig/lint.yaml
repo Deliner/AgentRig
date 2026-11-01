@@ -304,6 +304,48 @@ rules:
   level: error
   warning_skill: .agents/skills/narrow-import/SKILL.md
   error_skill: .agents/skills/narrow-import/SKILL.md
+# DECISION: D088
+- id: tuple-as-record
+  kind: tuple-as-record
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-record/SKILL.md
+  error_skill: .agents/skills/name-the-record/SKILL.md
+# DECISION: D089
+- id: eager-fallback
+  kind: eager-fallback
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/eager-to-lazy/SKILL.md
+  error_skill: .agents/skills/eager-to-lazy/SKILL.md
+# DECISION: D090
+- id: discarded-result
+  kind: discarded-result
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/handle-discarded/SKILL.md
+  error_skill: .agents/skills/handle-discarded/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
