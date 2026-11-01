@@ -260,6 +260,20 @@ rules:
   level: error
   warning_skill: .agents/skills/remove-debug/SKILL.md
   error_skill: .agents/skills/remove-debug/SKILL.md
+# DECISION: D082
+- id: panic-path
+  kind: panic-path
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/handle-panic/SKILL.md
+  error_skill: .agents/skills/handle-panic/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference

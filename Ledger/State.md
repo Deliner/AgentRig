@@ -9,7 +9,7 @@ C3 детерминизм → C5 контракты → C10 эволюция API
 
 ## Workspace
 
-Ветка feature/effects (база master @ `756d69e` — merge-коммит C9), HEAD `64e2b18` (VAC-A), VAC-B1 в
+Ветка feature/effects (база master @ `756d69e` — merge-коммит C9), HEAD `2a61311` (VAC-B1), VAC-B2 в
 рабочем дереве. Машина — macOS.
 Сборка/кандидат/коммит/бутстрап — через `just scratch -- '...'` с восстановленным PATH (`cargo` в
 `~/.cargo/bin`); Agent-Bash — одна top-level `just`-команда без `&&`.
@@ -21,7 +21,10 @@ per-HEAD. `lint`/build/clippy/rustfmt/rust-test и `init` (I020) использ�
 знает stable-бинарь → правило идёт в ДВА VAC: **B1** = enum/descriptor/detector/registry/тесты
 (+решение, memory-чекер требует marker→decision в том же коммите), затем мид-ветка бустрап stable.txt
 на голову B1, затем **B2** = `lint.yaml` + `catalog::ALL` + навык + `assets.rs` + линки + догфуд.
-`catalog::ALL` держится вне B1 (иначе I020 падает).
+`catalog::ALL` держится вне B1 (иначе I020 падает). stable = `2a61311` (мид-ветка бустрап после B1;
+`tooling/distribution/stable.txt` в рабочем дереве указывает на него, но НЕ закоммичен — финальный пин
+D051 на голову B2 будет на финале). `.agents/skills` → симлинк на `Project/shared/skills`, так что для
+config-check навык «существует» через файл+плоский симлинк (пересборка не нужна).
 
 УРОК (порядок доставки): живое правило в `lint.yaml` нельзя добавлять раньше создания навыка, на
 который оно ссылается (`config-check` падает `paths.lint: No such file`, хук fail-closed блокирует
@@ -36,21 +39,28 @@ C6 ядро — panic-путь в ПОСТАВЛЯЕМОМ линтере: `.unw
 
 **VAC-A закоммичен** (`64e2b18`): B037/P046 заведены и промоутнуты, C6-анализ записан.
 
-**VAC-B1 готов в рабочем дереве, ещё не закоммичен** (source): `Kind::PanicPath` (kind.rs); const
-`PANICPATH` + arm (descriptor.rs, `// DECISION: D082`); `Kind::PanicPath` в rust-правилах
-(registry.rs); детектор в rust.rs (`// DECISION: D082`) — диспетчер `call_expression` + расширенный
-`macro_invocation`, хелперы `panic_call`/`panic_macro`/`report_panic`/`in_test_context`/
-`test_attributed`/`test_marker`; тест `rust_flags_panic_paths_outside_test_code` в markers.rs
-(`// DECISION: D082`); карточка D082 + строка индекса. `catalog::ALL`/`lint.yaml`/навык НЕ тронуты
-(это B2). Факт AST (спайк): атрибуты — предшествующие соседи элемента; `.unwrap()` =
-`call_expression{function: field_expression{field: field_identifier}}`.
+**VAC-B1 закоммичен** (`2a61311`, source, полный гейт зелёный): `Kind::PanicPath` (kind.rs); const
+`PANICPATH` + arm (descriptor.rs); `Kind::PanicPath` в rust-правилах (registry.rs); детектор в rust.rs
+(`// DECISION: D082`) — диспетчер `call_expression` + расширенный `macro_invocation`, хелперы
+`panic_call`/`panic_macro`/`report_panic`/`in_test_context`/`test_attributed`/`test_marker`; тест
+`rust_flags_panic_paths_outside_test_code` в markers.rs; карточка D082 + индекс. Факт AST (спайк):
+атрибуты — предшествующие соседи элемента; `.unwrap()` = `call_expression{function: field_expression
+{field: field_identifier}}`.
+
+**VAC-B2 готов в рабочем дереве, ещё не закоммичен** (delivery): навык `handle-panic`
+(`references/handle-panic/SKILL.md`+`architecture.yaml`, плоский симлинк, инвентарь
+`references/architecture.yaml`, запись в `assets.rs`); `Kind::PanicPath` в `catalog::ALL`; линки D082
+(+`[repository rule]`,`[skill]`); живое правило `panic-path` в `lint.yaml` (include `**`, exclude
+`**/tests/**`+`**/tests.rs`, .rs, error, навык handle-panic). Инлайновые `#[cfg(test)]`-модули в боевых
+файлах (git.rs/input.rs/shared) снимает обход предков; сиблинги `tests.rs` и каталоги `tests/` — exclude.
 
 ## Verification
 
-`cargo +1.98.1 test --lib markers` на кандидате → 5 passed (incl.
-`rust_flags_panic_paths_outside_test_code`, находки `[2,3,6,9,10]`; обоснованные `.unwrap()`/`todo!`,
-строковый литерал и тело `#[cfg(test)] mod`+`#[test]` не дают находок). Компиляция чистая. Полный
-гейт — при коммите B1.
+VAC-B1: полный гейт зелёный при коммите `2a61311` (build/lint/memory/rustfmt/clippy/rust-test 74/ruff/
+mypy/test 202/typos/vulture); `cargo +1.98.1 test --lib markers` → 5 passed. stable бустрапнут на
+`2a61311`, `just config-check` зелёный (дедлока нет). VAC-B2: `just candidate lint` → 0 находок
+(боевой код без паники, тесты сняты); `just config-check` валиден с живым правилом. Полный гейт — при
+коммите B2.
 
 ## Blockers
 
@@ -58,15 +68,10 @@ C6 ядро — panic-путь в ПОСТАВЛЯЕМОМ линтере: `.unw
 
 ## Next action
 
-1. Застейджить и закоммитить **VAC-B1** (kind/descriptor/registry/rust/markers + D082 карточка+индекс +
-   State), сообщение `P046 VAC-B1: add panic-path rule kind and detector; record D082`. Хук гоняет
-   полный гейт (clippy на lib — мой код без unwrap/panic).
-2. Атомарный бустрап stable.txt на голову B1 (запись stable.txt + `bash tooling/distribution/bootstrap.sh`
-   в одном `just scratch`), коммит пина? Нет — пин stable на финале (D051). Здесь бустрап нужен, чтобы
-   stable-бинарь узнал `panic-path` перед живым правилом в B2.
-3. **VAC-B2** (delivery): правило `panic-path` в `lint.yaml` с `exclude: ['**/tests/**']`, `Kind::PanicPath`
-   в `catalog::ALL`, навык `handle-panic` в `references/` (SKILL.md + architecture.yaml + flat symlink +
-   инвентарь references/architecture.yaml) + `assets.rs`, линки D082 (+`[repository rule]`,`[skill]`),
-   догфуд (`just candidate lint` → 0 находок), State. СНАЧАЛА навык/catalog/assets, ПОТОМ живое правило.
-4. Финал: ротация B037/P046 в Archive, пин stable.txt на голову B2 + бустрап (D051), коммит пина,
-   `just feature-merge` (ветку оставить, НЕ пушить). Свободные ID: P047, B038, D083+.
+1. Застейджить и закоммитить **VAC-B2** (handle-panic навык+symlink+inventory+assets, catalog PanicPath,
+   lint.yaml правило, линки D082, State), сообщение `P046 VAC-B2: deliver panic-path rule and handle-panic
+   skill`. Хук гоняет полный гейт (incl. I020 `test_delivery`).
+2. Финал: ротация B037/P046 в Archive (карточки → Archive/Backlog/037.md, Archive/Plan/046.md; флип
+   D082 `[card]` → Archive/Backlog/037.md); пин stable.txt на голову B2 + бустрап атомарно (D051), коммит
+   пина; `just feature-merge` (ветку оставить, НЕ пушить). Затем C3 (следующий кластер Набора II).
+   Свободные ID: P047, B038, D083+.

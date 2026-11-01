@@ -100,6 +100,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/remove-debug/SKILL.md"),
     ),
     (
+        "handle-panic",
+        include_str!("../shared/skills/references/handle-panic/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

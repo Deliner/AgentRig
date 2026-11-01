@@ -1,4 +1,4 @@
-purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, and leftover debug artifacts"
+purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts and panic paths"
 files: {}
 directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
@@ -7,3 +7,4 @@ directories:
   justify-skip: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
   justify-allow: "Remove a broad Rust allow attribute and fix the finding, or record why it is suppressed with a reference"
   remove-debug: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
+  handle-panic: "Return or handle a Rust error instead of unwrap, expect or a panic macro, or justify the panic with a reference"

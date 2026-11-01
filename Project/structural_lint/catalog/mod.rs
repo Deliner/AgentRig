@@ -25,6 +25,7 @@ pub const ALL: &[Kind] = &[
     Kind::DisabledTest,
     Kind::AllowJustification,
     Kind::DebugArtifact,
+    Kind::PanicPath,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,
