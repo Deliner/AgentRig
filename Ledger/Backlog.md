@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B042](Backlog/042.md) | Анти-переусложнение: уже обеспечено комплексом правил сложности + нормой (карта покрытия) | Явная переносимая карта: over-engineering ловится из коробки комплексом правил сложности и нормой complexity-discipline; без избыточной машинерии. |
