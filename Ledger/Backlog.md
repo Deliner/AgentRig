@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B041](Backlog/041.md) | Анти-дублирование: один владелец поведения вместо копий (переносимая норма) | Переносимая agent-native норма против дублирования; честно, без ложного enforcement там, где движок не даёт near-zero-FP клон-детекции. |
