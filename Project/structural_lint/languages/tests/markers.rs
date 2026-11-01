@@ -152,6 +152,34 @@ mod tests {
 }
 
 #[test]
+fn rust_test_context_exempts_only_real_test_code() {
+    let source = "#[cfg(not(test))]
+fn production() {
+    value.unwrap();
+}
+#[cfg(feature = \"latest\")]
+fn gated() {
+    value.unwrap();
+}
+#[cfg(all(unix, test))]
+fn unix_test_only() {
+    value.unwrap();
+}
+#[cfg(test)]
+mod tests {
+    fn helper() {
+        value.unwrap();
+    }
+}
+#[tokio::test]
+async fn async_check() {
+    value.unwrap();
+}
+";
+    assert_eq!(panic_findings("source.rs", source), [3, 7]);
+}
+
+#[test]
 fn rust_flags_dbg_macro_invocations() {
     let source = "fn probe() {
     dbg!(compute());

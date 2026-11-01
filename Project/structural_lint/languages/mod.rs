@@ -1,6 +1,7 @@
 mod python;
 mod registry;
 mod rust;
+mod test_context;
 #[cfg(test)]
 mod tests;
 use super::rules::kind::Kind;
