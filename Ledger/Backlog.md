@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B037](Backlog/037.md) | Безопасная обработка ошибок вместо паники (Rust) | Потребитель из коробки не доносит до рантайма необработанную панику; агент возвращает/обрабатывает ошибку или обосновывает ссылкой |
