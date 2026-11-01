@@ -1,0 +1,5 @@
+purpose: "Let a Rust value drop or hold its guard instead of defeating RAII with keep, into_path, mem::forget, ManuallyDrop or Box::leak, or justify the intended leak with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to own a resource instead of defeating its cleanup"
+directories: {}

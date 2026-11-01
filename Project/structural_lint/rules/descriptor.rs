@@ -61,6 +61,7 @@ impl Kind {
             Self::TupleAsRecord => &TUPLEASRECORD,
             Self::EagerFallback => &EAGERFALLBACK,
             Self::DiscardedResult => &DISCARDEDRESULT,
+            Self::DisabledRaii => &DISABLEDRAII,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -321,5 +322,15 @@ const DISCARDEDRESULT: Descriptor = Descriptor {
     skill: "handle-discarded",
     parameters: Parameters::Level {
         violation: "a bare .ok() statement converts a Result to Option and throws the outcome away, so a failure passes silently; handle the error, propagate it with ?, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
+    },
+};
+// DECISION: D092
+const DISABLEDRAII: Descriptor = Descriptor {
+    default_id: "disabled-raii",
+    target: "file",
+    metric: "every Rust .keep() or .into_path() method call, or mem::forget, ManuallyDrop::new or Box::leak path call, outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "own-the-resource",
+    parameters: Parameters::Level {
+        violation: "this call defeats RAII, so a guard's cleanup never runs and a resource outlives its owner silently; let the value drop, hold the guard for the lifetime it protects, or put a DECISION: or INVARIANT: reference on the line directly above it to justify keeping, forgetting or leaking it",
     },
 };

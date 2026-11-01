@@ -34,6 +34,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::TupleAsRecord,
             Kind::EagerFallback,
             Kind::DiscardedResult,
+            Kind::DisabledRaii,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

@@ -8,6 +8,7 @@ use std::{
 pub fn create(runtime: &Path) -> Result<PathBuf> {
     let root = runtime.join("jobs");
     fs::create_dir_all(&root)?;
+    // DECISION: D092
     Ok(tempfile::Builder::new()
         .prefix("run-")
         .tempdir_in(root)?

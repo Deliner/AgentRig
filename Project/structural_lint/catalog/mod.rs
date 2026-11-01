@@ -31,6 +31,7 @@ pub const ALL: &[Kind] = &[
     Kind::TupleAsRecord,
     Kind::EagerFallback,
     Kind::DiscardedResult,
+    Kind::DisabledRaii,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

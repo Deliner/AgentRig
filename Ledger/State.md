@@ -2,34 +2,35 @@
 
 ## Focus
 
-**B043 (Tier A) ПОЛНОСТЬЮ доставлен → [P052](Plan/052.md).** Три правила (`tuple-as-record`/`eager-fallback`/
-`discarded-result`) активны в `catalog`+`registry`+`lint.yaml`+навыки, репозиторий догфуд-чист, D051-пин сделан.
-Ветка готова к `just feature-merge`. Далее — B044 (Tier B).
+**B044 (Tier B) → [P053](Archive/Plan/053.md) ЗАВЕРШЁН.** Из пяти кандидатов одно доставлено переносимым
+правилом — `disabled-raii` ([D092](Decisions/092.md), активно); четыре — честная норма
+([D093](Decisions/093.md)): `unchecked-index`, `toctou`, `lossy-int-cast` (нужен вывод типов/поток данных,
+семейство [D059](Decisions/059.md)) и `sibling-cycle` (внутрикаталожные циклы идиоматичны и намеренно
+разрешены моделью каталога, [D079](Decisions/079.md)) — все ниже near-zero-FP бара
+([D035](Decisions/035.md)). P053/B044 ротированы в Archive. Остаются финальный пин D051 + `feature-merge`.
 
 ## Workspace
 
-Ветка `feature/tier-a-rules` (база master @ `e9133a7`). Revision HEAD = `62ea144` (D051-пин). Коммиты ветки:
-`a910ecb` VAC-A, `76874a1` VAC-B1 (инертный источник), `b0ce9ee` VAC-B2 (активация+догфуд), `62ea144` пин.
-`stable.txt` = `b0ce9eebdbcee5992eec3079079de0fece04703d` (голова VAC-B2, последний коммит, меняющий Project),
-установлен через `just bootstrap` в `.cache/development/b0ce9ee…`. Рабочее дерево чистое. macOS; коммиты —
+Ветка `feature/tier-b-rules` (база master `4ce7316`), сохраняется после интеграции. `stable.txt` =
+`58e1041…` (голова completion-VAC, забутстраплено финальным пином D051). macOS; коммиты —
 `just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
 
 ## Progress
 
-VAC-A `a910ecb`; VAC-B1 `76874a1` (kind/descriptor/rust/markers + D088–090, инертно). **VAC-B2 `b0ce9ee`:**
-`catalog::ALL`+=3, `registry` rust.rules+=3, три live-правила в `lint.yaml` (Rust-only, tests excluded, error,
-`# DECISION: D088/D089/D090`), навыки `name-the-record`/`eager-to-lazy`/`handle-discarded` (SKILL.md + leaf
-`architecture.yaml` + flat-symlink + `assets.rs` include_str!), I020 +3/+3; строки D088–090 дополнены
-`[repository rule]`+`[skill]`; добавлены D091 + `Decisions/091.md`. Догфуд: 2 `eager-fallback`→`match`
-(`main.rs`/`cli.rs`); 10 кортежей→структуры (`Selected`/`CheckRun`/`Outcome`+`change_index`; `Sandboxing`;
-`Arrangement`; `Invocation`; `Loaded`; `Dependencies`; `Analysis`; `TokenPath`); 2 teardown-`.ok()` с `DECISION: D091`;
-`tests.rs` переведён на `Loaded`. Пин `62ea144`.
+VAC-A `d10996d` (ротация P052/B043, выбор P053). VAC-B1 `515e585` (инертный источник `disabled-raii`).
+Мид-пин `81ed95c` (stable=`515e585`). VAC-B2 `f06e2a3` (правило `disabled-raii` активно: `registry` +
+`catalog::ALL` + `lint.yaml` + навык `own-the-resource`; I020 +1/+1; догфуд `.keep()` обоснован D092).
+Completion-VAC `58e1041`: решение [D093](Decisions/093.md) (четыре нормы), ротация P053 →
+[Archive/Plan](Archive/Plan.md) и B044 → [Archive/Backlog](Archive/Backlog.md) с Delivery и миграцией
+относительных ссылок, миграция card-ссылок D092/D093 на `Archive/Backlog/044.md`, refresh State.
+Финальный пин D051 (этот коммит): `stable.txt` = `58e1041` + `just bootstrap`.
 
 ## Verification
 
-**Полный гейт зелёный дважды** (на `b0ce9ee` и `62ea144`): build, lint, memory, rustfmt, clippy, rust-test
-(106 passed), ruff-format, ruff, mypy, test (358 Python passed, включая `test_dogfooding_capabilities_stay_universal`
-I020), typos, vulture. `just bootstrap` собрал и установил `b0ce9ee` (`agentrig 0.3.0`).
+`just candidate lint` по репозиторию — 0 находок (storage.rs обоснован, tests исключены, в `tooling/`
+сайтов нет). `config-check` зелёный. Полный гейт VAC-B2 зелёный (build/lint/memory/rustfmt/clippy/
+rust-test 107/ruff/mypy/test 347 вкл. I020). Гейт completion-VAC (memory-check ссылок/маркеров + test вкл.
+I020) — на коммите этого VAC.
 
 ## Blockers
 
@@ -37,7 +38,6 @@ I020), typos, vulture. `just bootstrap` собрал и установил `b0ce
 
 ## Next action
 
-1. `just feature-merge` (через `just scratch` с PATH) — интегрировать ветку в master, прогнав тесты всей ветки;
-   ветку сохранить, не пушить.
-2. Затем B044 (Tier B) той же двухфазной схемой (инертный источник → активация+догфуд → пин) на своей ветке.
-   Свободные ID: D092+, P053+.
+1. `just feature-merge` (сохранить ветку, не пушить). Отчёт пользователю на русском на границе merge.
+2. Весь Tier A+B отчёта воркфлоу завершён; дальше согласованных карточек нет. Custom-allocator (B034-набросок)
+   припаркован — ждёт отдельного go-ahead пользователя. Свободные ID: D094+, P054+.

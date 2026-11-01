@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P052](Plan/052.md) | active | - | Tier A: tuple-as-record, eager-fallback-with-?, discarded-result (+ 2 бага) | Три near-zero-FP правила из коробки: закрыт обход parameter-count/boolean-parameter кортежем и silent-error через .ok();, пойман `?` в eager-фолбэке. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -406,3 +405,31 @@ C6, C3, C5, C10, C7 и C8 доставлены.
 feature/tier-a-rules: три новых вида правила (`tuple-as-record`, `eager-fallback-with-?`,
 `discarded-result`) двухфазной доставкой в одной ветке + догфуд-починка двух багов. Затем B044 (Tier B)
 той же схемой. Ревизии контрактов — в карточках.
+2026-11-01 P052 (B043, Tier A) выполнен и влит в master (merge `4ce7316`): три правила
+`tuple-as-record`/`eager-fallback-with-?`/`discarded-result` активны (VAC-B1 `76874a1`, VAC-B2 `b0ce9ee`,
+пин `62ea144`, State `2b7877b`), решения [D088](Decisions/088.md)/[D089](Decisions/089.md)/
+[D090](Decisions/090.md)/[D091](Decisions/091.md), I020 +3/+3, догфуд-зелёный (два бага исправлены). P052
+перенесён в [Archive/Plan](Archive/Plan.md), B043 — в [Archive/Backlog](Archive/Backlog.md); ссылки card в
+D088–D090 переведены на `Archive/Backlog/043.md`. Следующим выбран [B044](Backlog/044.md) (Tier B) —
+промоутнут в [P053](Plan/053.md) на ветке feature/tier-b-rules: AC1 `unchecked-index` и AC2 `disabled-RAII`
+— новыми видами правил (двухфазная доставка, мид-ветка бутстрап, каждое со своим навыком → I020
+согласованно); AC5 `sibling-cycle` — расширением `directory-architecture` ([D070](Decisions/070.md)/
+[D079](Decisions/079.md), без нового вида/навыка); AC3 TOCTOU/path-exists и AC4 lossy-int-cast —
+оцениваются правило-vs-норма при реализации (вероятно норма, семейство [D059](Decisions/059.md)). Где
+высокий FP — честно норма (бар [D035](Decisions/035.md)), притворных инвариантов нет. Порядок и границы
+VAC — за исполнителем; ревизия контракта — в карточке.
+2026-11-01 P053 (B044, Tier B) выполнен: из пяти кандидатов одно доставлено переносимым правилом —
+`disabled-raii` ([D092](Decisions/092.md)): вызов, намеренно отключающий RAII (`.keep()`/`.into_path()`,
+`mem::forget`/`ManuallyDrop::new`/`Box::leak`) вне тестов без ссылки-обоснования прямо выше — находка
+error, навык `own-the-resource`; двухфазно (VAC-B1 `515e585` источник, мид-ветка пин `81ed95c`, VAC-B2
+`f06e2a3` проводка), I020 +1/+1 (delivered == live). Четыре кандидата — норма
+([D093](Decisions/093.md)): `unchecked-index` (движок не отличает паникующую индексацию от непаникующей
+`serde_json::Value` без вывода типов, [D059](Decisions/059.md)), `toctou` (нужен поток данных, D059),
+`lossy-int-cast` (нужна разрядность, D059) — все ниже near-zero-FP бара ([D035](Decisions/035.md));
+`sibling-cycle` синтаксически разрешим, но внутрикаталожные циклы идиоматичны в Rust и намеренно разрешены
+моделью каталога-как-единицы ([D079](Decisions/079.md), `graph.rs` пропускает рёбра внутри каталога) —
+высоколож и противоречил бы зафиксированной модели. Притворных инвариантов нет, пороги не ослаблены.
+Догфуд зелёный (`just candidate lint` → 0 находок; `.keep()` в `command_runner/jobs/storage.rs` обоснован
+D092). P053 перенесён в [Archive/Plan](Archive/Plan.md), B044 — в [Archive/Backlog](Archive/Backlog.md);
+ссылки card в D092/D093 переведены на `Archive/Backlog/044.md`; финальный пин stable.txt на голову ветки
+([D051](Decisions/051.md)) + bootstrap перед `just feature-merge`. **Tier A+B отчёта воркфлоу завершены.**

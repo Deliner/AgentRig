@@ -1,4 +1,4 @@
-purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, signature tuples that hide an unnamed record, eager fallback arguments that propagate an error, and bare .ok() statements that discard a Result"
+purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, signature tuples that hide an unnamed record, eager fallback arguments that propagate an error, bare .ok() statements that discard a Result, and calls that defeat RAII so a resource outlives its owner"
 files: {}
 directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
@@ -13,3 +13,4 @@ directories:
   name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
   eager-to-lazy: "Move a fallback argument that can fail into the lazy *_else closure, or justify the eager evaluation with a reference"
   handle-discarded: "Handle or propagate a Result instead of dropping it with a bare .ok() statement, or justify the ignored outcome with a reference"
+  own-the-resource: "Let a Rust value drop or hold its guard instead of defeating RAII, or justify the intended leak with a reference"
