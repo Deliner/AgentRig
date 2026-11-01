@@ -55,6 +55,7 @@ impl Kind {
             Self::DisabledTest => &DISABLEDTEST,
             Self::AllowJustification => &ALLOWJUSTIFICATION,
             Self::DebugArtifact => &DEBUGARTIFACT,
+            Self::PanicPath => &PANICPATH,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -245,6 +246,16 @@ const DEBUGARTIFACT: Descriptor = Descriptor {
     skill: "remove-debug",
     parameters: Parameters::Level {
         violation: "a dbg! macro is a leftover debugging artifact; remove it and keep any value it wrapped",
+    },
+};
+// DECISION: D082
+const PANICPATH: Descriptor = Descriptor {
+    default_id: "panic-path",
+    target: "file",
+    metric: "every Rust .unwrap() or .expect(...) call and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "handle-panic",
+    parameters: Parameters::Level {
+        violation: "an unwrap, expect or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the panic",
     },
 };
 // DECISION: D065

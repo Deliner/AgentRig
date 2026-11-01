@@ -13,7 +13,11 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
         "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
-        "macro_invocation" => debug_macro(node, source, output),
+        "macro_invocation" => {
+            debug_macro(node, source, output);
+            panic_macro(node, source, output);
+        }
+        "call_expression" => panic_call(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -107,6 +111,84 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             actual: 1,
         });
     }
+}
+// DECISION: D082
+fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(function) = node.child_by_field_name("function") else {
+        return;
+    };
+    let Some(field) = function.child_by_field_name("field") else {
+        return;
+    };
+    let method = field.kind() == "field_identifier";
+    let name = text(field, source);
+    let panic = method && matches!(name, "unwrap" | "expect");
+    if panic {
+        report_panic(node, source, name, output);
+    }
+}
+fn panic_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(path) = node.child_by_field_name("macro") else {
+        return;
+    };
+    let name = text(path, source);
+    let panic = matches!(name, "panic" | "todo" | "unimplemented" | "unreachable");
+    if panic {
+        report_panic(node, source, name, output);
+    }
+}
+fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::PanicPath,
+        line: node.start_position().row + 1,
+        symbol: symbol.into(),
+        actual: 1,
+    });
+}
+fn in_test_context(node: Node<'_>, source: &str) -> bool {
+    let mut current = node;
+    while let Some(parent) = current.parent() {
+        let item = matches!(
+            parent.kind(),
+            "mod_item" | "function_item" | "function_signature_item"
+        );
+        let test = item && test_attributed(parent, source);
+        if test {
+            return true;
+        }
+        current = parent;
+    }
+    false
+}
+fn test_attributed(item: Node<'_>, source: &str) -> bool {
+    let mut sibling = item.prev_named_sibling();
+    while let Some(node) = sibling {
+        let marker = node.kind() == "attribute_item" && test_marker(node, source);
+        if marker {
+            return true;
+        }
+        let decoration = matches!(
+            node.kind(),
+            "attribute_item" | "line_comment" | "block_comment"
+        );
+        let stop = !decoration;
+        if stop {
+            return false;
+        }
+        sibling = node.prev_named_sibling();
+    }
+    false
+}
+fn test_marker(node: Node<'_>, source: &str) -> bool {
+    let Some(name) = attribute_name(node, source) else {
+        return false;
+    };
+    let cfg_test = name == "cfg" && text(node, source).contains("test");
+    name == "test" || cfg_test
 }
 fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = !justified(node, source);

@@ -111,6 +111,46 @@ fn debug_findings(path: &str, source: &str) -> Vec<usize> {
     lines
 }
 
+// DECISION: D082
+fn panic_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::PanicPath)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_panic_paths_outside_test_code() {
+    let source = "fn run() {
+    let a = thing.unwrap();
+    thing.expect(\"m\");
+    // DECISION: D001
+    let b = other.unwrap();
+    panic!(\"boom\");
+    // INVARIANT: I001
+    todo!();
+    unimplemented!();
+    unreachable!();
+    let s = \"x.unwrap() in a string\";
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn checks() {
+        value.unwrap();
+        panic!(\"ok\");
+    }
+}
+";
+    assert_eq!(panic_findings("source.rs", source), [2, 3, 6, 9, 10]);
+}
+
 #[test]
 fn rust_flags_dbg_macro_invocations() {
     let source = "fn probe() {
