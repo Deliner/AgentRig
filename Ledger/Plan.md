@@ -371,3 +371,29 @@ delivered == live). Однофазная доставка: VAC-A `6ea7398` (па
 [Archive/Plan](Archive/Plan.md), B041 — в [Archive/Backlog](Archive/Backlog.md); ссылка card в D086
 переведена на `Archive/Backlog/041.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)). Набор II:
 C1+C2, C4, C9, C6, C3, C5, C10 и C7 доставлены; остаётся последний кластер — C8 (анти-переусложнение).
+2026-11-01 последним выбран [B042](Backlog/042.md) — промоутнут в [P051](Plan/051.md) на ветке
+feature/simplicity. Кластер C8 Набора II «анти-переусложнение». По анализу: это самая покрытая область
+AgentRig — переусложнение/over-engineering уже ловится из коробки поставляемым комплексом правил сложности
+(`function-lines`, `nesting-depth` [D061](Decisions/061.md), `branch-budget` [D063](Decisions/063.md),
+`parameter-count`, `boolean-parameter` [D062](Decisions/062.md), `named-if-condition`, `file-size`/
+`directory-entries`, `dump-name` [D072](Decisions/072.md), `directory-architecture`
+[D070](Decisions/070.md)/[D079](Decisions/079.md)) и нормой `complexity-discipline` (выбор простейшего
+достаточного механизма). Остаток C8 (спекулятивная общность, лишняя индирекция, мёртвый код) семантичен или
+высоколож против near-zero-FP бара [D035](Decisions/035.md) и уже воплощён нормой. Нового правила нет —
+дублирующее правило было бы само переусложнением; C8 само-консистентно решается картой покрытия (решение
+[D087](Decisions/087.md)). Нового вида правила/навыка нет → I020 без изменений; наш код не меняется →
+D051-пин не требуется. Притворного инварианта нет. Это последний кластер Набора II.
+2026-11-01 P051 (B042, C8) выполнен: C8 «анти-переусложнение» доставлен **картой покрытия**
+([D087](Decisions/087.md)) без нового правила — каждое разрешимое измерение уже имеет поставляемого
+владельца (`function-lines`, `nesting-depth` [D061](Decisions/061.md), `branch-budget`
+[D063](Decisions/063.md), `parameter-count`, `boolean-parameter` [D062](Decisions/062.md),
+`named-if-condition`, `file-size`/`directory-entries`, `dump-name` [D072](Decisions/072.md),
+`directory-architecture` [D070](Decisions/070.md)/[D079](Decisions/079.md)), дисциплина проектирования —
+норма `complexity-discipline`; остаток (спекулятивная общность, лишняя индирекция, мёртвый код) —
+норма (семантично/высоколожно против [D035](Decisions/035.md), либо отвергнутый фронтенд
+[D059](Decisions/059.md)). Дублирующее правило было бы само переусложнением → не добавлено.
+Нового вида правила/навыка нет → I020 без изменений; Project-файлы не менялись → D051-пин не нужен.
+Однофазная доставка: VAC-A `eb2c890` (память), VAC-B `a48af92` (решение-карта D087) — оба через гейт
+зелёные. P051 перенесён в [Archive/Plan](Archive/Plan.md), B042 — в [Archive/Backlog](Archive/Backlog.md);
+ссылка card в D087 переведена на `Archive/Backlog/042.md`. **Набор II (C1–C10) завершён:** C1+C2, C4, C9,
+C6, C3, C5, C10, C7 и C8 доставлены.
