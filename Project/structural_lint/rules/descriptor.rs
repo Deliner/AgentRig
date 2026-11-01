@@ -57,6 +57,7 @@ impl Kind {
             Self::DebugArtifact => &DEBUGARTIFACT,
             Self::DebugAssertion => &DEBUGASSERTION,
             Self::PanicPath => &PANICPATH,
+            Self::WildcardImport => &WILDCARDIMPORT,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -267,6 +268,16 @@ const PANICPATH: Descriptor = Descriptor {
     skill: "handle-panic",
     parameters: Parameters::Level {
         violation: "an unwrap, expect or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the panic",
+    },
+};
+// DECISION: D085
+const WILDCARDIMPORT: Descriptor = Descriptor {
+    default_id: "wildcard-import",
+    target: "file",
+    metric: "every Rust use glob (`use path::*`) outside test code, or Python wildcard import (`from module import *`), without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "narrow-import",
+    parameters: Parameters::Level {
+        violation: "a glob import binds the whole, evolving surface of another module, so a name added or renamed upstream silently changes what is in scope; replace it with an explicit import list, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the glob",
     },
 };
 // DECISION: D065

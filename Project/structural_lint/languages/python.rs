@@ -47,6 +47,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "expression_statement" => statement(node, output),
         "except_clause" => silent_except(node, source, output),
         "decorator" => disabled_test(node, source, output),
+        "import_from_statement" => wildcard_import(node, source, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -99,6 +100,22 @@ fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             kind: Kind::DisabledTest,
             line: node.start_position().row + 1,
             symbol: "skip".into(),
+            actual: 1,
+        });
+    }
+}
+// DECISION: D085
+fn wildcard_import(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let mut cursor = node.walk();
+    let glob = node
+        .named_children(&mut cursor)
+        .any(|child| child.kind() == "wildcard_import");
+    let unjustified = glob && !justified(node, source);
+    if unjustified {
+        output.push(Measurement {
+            kind: Kind::WildcardImport,
+            line: node.start_position().row + 1,
+            symbol: "glob".into(),
             actual: 1,
         });
     }

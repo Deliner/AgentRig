@@ -19,6 +19,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             panic_macro(node, source, output);
         }
         "call_expression" => panic_call(node, source, output),
+        "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -170,6 +171,19 @@ fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Mea
         kind: Kind::PanicPath,
         line: node.start_position().row + 1,
         symbol: symbol.into(),
+        actual: 1,
+    });
+}
+// DECISION: D085
+fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::WildcardImport,
+        line: node.start_position().row + 1,
+        symbol: "glob".into(),
         actual: 1,
     });
 }
