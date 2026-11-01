@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B039](Backlog/039.md) | C5 контракты поведения: `debug_assert!`/`_eq!`/`_ne!` в не-тестовом Rust без ссылки `DECISION:`/`INVARIANT:` — находка (новый вид `debug-assertion` + навык `firm-up-assertion`) | Контракт нельзя закрепить на проверке, вырезаемой в release; агент поднимает до `assert!`, убирает или обосновывает ссылкой |

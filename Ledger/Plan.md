@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P048](Plan/048.md) | active | - | `debug-assertion` (C5 контракты поведения) | `debug_assert!`/`_eq!`/`_ne!` в не-тестовом Rust без ссылки `DECISION:`/`INVARIANT:` — находка |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -308,3 +307,16 @@ feature/contracts. Кластер C5 Набора II «контракты пов
 Правило добавляет свой навык → I020 (виды правил и навыки растут согласованно). Путь — двухфазный
 (source→delivery) с мид-веткой бутстрапом, как у C9/C6 (новый вид правила читается stable-бинарём из
 `lint.yaml`). Притворных инвариантов нет. Порядок остальных кластеров — за исполнителем.
+2026-11-01 P048 (B039, C5) выполнен: доставлено правило `debug-assertion` ([D084](Decisions/084.md)) —
+вызов `debug_assert!`/`debug_assert_eq!`/`debug_assert_ne!` в не-тестовом Rust без ссылки-обоснования
+прямо выше — находка error, с ссылкой — без находки (механизм `justified`, как D065/D082); детектор в
+`rust.rs` (`assertion_macro`/`report_assertion`) расширяет `macro_invocation` (рядом с D081/D082), обход
+предков `in_test_context` исключает `#[cfg(test)]`/`#[test]`, каталоги `tests/` и файл `tests.rs` —
+паттернами exclude; `assert!`/`assert_eq!`/`assert_ne!` не трогаются (реальный контракт во всех сборках).
+Вид в `catalog::ALL`, навык `firm-up-assertion` в `assets.rs` → I020 (виды правил и навыки выросли на
+один, delivered == live). Путь двухфазный: VAC-B1 `5061b18` (source), мид-ветка пин stable=`5061b18`
+(`787b27f`), VAC-B2 `1cb93b8` (delivery). Наш код зелёный (в репозитории нет вызовов `debug_assert!`,
+`just candidate lint` → 0 находок). P048 перенесён в [Archive/Plan](Archive/Plan.md), B039 — в
+[Archive/Backlog](Archive/Backlog.md); ссылка card в D084 переведена на `Archive/Backlog/039.md`; пин
+stable.txt на голову ветки ([D051](Decisions/051.md)). Набор II: C1+C2, C4, C9, C6, C3 и C5 доставлены;
+следующий кластер — C10 (эволюция API/данных).

@@ -5,8 +5,8 @@
 **Набор II** — переносимые на любое приложение, agent-native улучшения качества (10 кластеров
 C1–C10), по одной карточке за ветку, автономно. Порядок: C1 → C2 → C4 → C9 → C6 → C3 →
 **C5 контракты поведения** → C10 эволюция API → C7 анти-дублирование → C8 анти-переусложнение.
-Доставлены **C1+C2 (P043)**, **C4 (P044)**, **C9 (P045)**, **C6 (P046)**, **C3 (P047)**. Текущий — **C5
-контракты поведения (B039/P048)**.
+Доставлены **C1+C2 (P043)**, **C4 (P044)**, **C9 (P045)**, **C6 (P046)**, **C3 (P047)**, **C5 (P048)**.
+Следующий — **C10 эволюция API/данных**. Свободные ID: P049, B040, D085+.
 
 ## Workspace
 
@@ -36,23 +36,26 @@ exclude живого правила. Навык ремонта `firm-up-assertio
 `resolution/rust/macros.rs` и `architecture/source/rust/conditions.rs` — AST-детектор их не ловит) →
 догфуд будет зелёным.
 
-**VAC-A** (`fa3755a`, память/промоушен) и **VAC-B1** (`5061b18`, source: kind/descriptor/детектор/
-registry/тест/D084) закоммичены; гейт зелёный. **Мид-ветка бутстрап выполнен**: stable.txt =
-`5061b18…` (голова B1), установлен и закоммичен (`787b27f`) — stable-бинарь теперь десериализует вид
-`debug-assertion`. **VAC-B2 готов к коммиту** (delivery): `catalog::ALL` += `DebugAssertion`;
-`.agentrig/lint.yaml` += блок `debug-assertion` (exclude `**/tests/**`+`tests.rs`, навык
-`firm-up-assertion`, `# DECISION: D084`); создан навык `references/firm-up-assertion/`
-(SKILL.md + architecture.yaml) + плоский симлинк `shared/skills/firm-up-assertion`; `references/
-architecture.yaml` += инвентарь/purpose; `assets.rs` += firm-up-assertion; индекс-строка D084 дополнена
-ссылками на правило и навык. Догфуд зелёный: `just candidate lint` → 0 находок, `just config-check` →
-валидно. Далее — ротация B039/P048 в Archive, финальный пин D051, `feature-merge`.
+C5 доставлен и функционально завершён: VAC-A `fa3755a` (память), VAC-B1 `5061b18` (source), мид-ветка
+пин stable=`5061b18` (`787b27f`), VAC-B2 `1cb93b8` (delivery) — все через гейт, зелёные. Правило
+`debug-assertion` ([D084](Decisions/084.md)) + навык `firm-up-assertion` поставлены в `init`; I020
+сбалансирован (delivered == live); догфуд зелёный (`just candidate lint` → 0, `just config-check`
+валидно).
+
+**Ротация B039/P048 в Archive применена в рабочем дереве** (не закоммичена): созданы
+`Archive/Plan/048.md` (с `## Delivery`) и `Archive/Backlog/039.md`, строки в `Archive/Plan.md`/
+`Archive/Backlog.md`, проза завершения в `Plan.md`, активная строка P048 убрана, строка B039 убрана из
+`Backlog.md`, ссылка card D084 → `Archive/Backlog/039.md`. Осталось `git rm` живых `Plan/048.md`+
+`Backlog/039.md` и архив-коммит, затем финальный пин D051 и `feature-merge`.
 
 ## Verification
 
-C3 влит в master (`fdc4188`), пин stable `8a97e0e` (установлен, бутстрапнут). На ветке
-feature/contracts коммитов ещё нет; рабочее дерево — только память VAC-A (Backlog/039.md,
-Backlog.md, Plan/048.md, Plan.md, State.md). Коммит-гейт для VAC-A, затем код VAC-B1/VAC-B2 через гейт —
-предстоят.
+C3 влит в master (`fdc4188`). На ветке feature/contracts закоммичены VAC-A `fa3755a`, VAC-B1 `5061b18`,
+мид-ветка пин `787b27f` (stable.txt=`5061b18`, установлен/бутстрапнут), VAC-B2 `1cb93b8` — каждый через
+коммит-гейт, все зелёные. VAC-B2 весь гейт PASS: build/lint/memory/rustfmt/clippy/rust-test 101/
+ruff-format/ruff/mypy/pytest 306 (вкл. test_delivery/I020)/typos/vulture. Догфуд: `just candidate lint`
+→ 0 находок, `just config-check` → валидно. Архив-коммит ротации, финальный D051-пин и `feature-merge`
+— предстоят.
 
 ## Blockers
 
@@ -60,24 +63,9 @@ Backlog.md, Plan/048.md, Plan.md, State.md). Коммит-гейт для VAC-A,
 
 ## Next action
 
-1. Коммит **VAC-A** (память/промоушен) через гейт: `P048 VAC-A: register B039 (C5 behavior contracts),
-   promote, record analysis`. (Первый VAC-коммит контекста — ожидается Required-маршрут edit-state:
-   прочитать `edit-state/SKILL.md`, повторить тот же коммит.)
-2. **VAC-B1** (source): `rules/kind.rs` (+`DebugAssertion`), `rules/descriptor.rs` (+`DEBUGASSERTION`
-   const + arm, `// DECISION: D084`), `languages/rust.rs` (+`assertion_macro`/`report_assertion`),
-   `languages/registry.rs` (+`Kind::DebugAssertion` в rust-handler), тест в `languages/tests/markers.rs`,
-   `Decisions/084.md` + индекс. Коммит `P048 VAC-B1: register debug-assertion kind + detector; record D084`.
-3. **Мид-ветка атомарный бутстрап**: stable.txt → полный 40-символьный хеш головы VAC-B1 + бутстрап
-   (один scratch, откат при сбое). Коммит `P048 VAC-B1: pin stable.txt to <short> for mid-branch delivery (D051)`.
-4. **VAC-B2** (delivery): `catalog::ALL` += `DebugAssertion`; `.agentrig/lint.yaml` += блок
-   `debug-assertion` (зеркало excludes `panic-path`, навык `firm-up-assertion`, `# DECISION: D084`);
-   создать `Project/shared/skills/references/firm-up-assertion/SKILL.md` + `architecture.yaml`; плоский
-   симлинк `Project/shared/skills/firm-up-assertion -> references/firm-up-assertion` (ln через scratch);
-   `references/architecture.yaml` += directories/purpose; `project_setup/assets.rs` += firm-up-assertion;
-   ссылки D084; догфуд (`just candidate lint`, `config-check`). Коммит
-   `P048 VAC-B2: deliver debug-assertion rule + firm-up-assertion skill`.
-5. **Ротация** B039/P048 в Archive, проза завершения, `git rm` живых, флип card-ссылки D084. Коммит
-   `P048: archive B039/P048 (C5 delivered)`.
-6. **Финальный пин D051**: stable.txt = полный хеш головы архив-коммита + атомарный бутстрап; коммит
-   `P048: pin stable.txt to <short> (D051)`. Затем `just feature-merge` (ветку оставить, НЕ пушить).
-   Отчёт по C5 на русском. Свободные ID после C5: P049, B040, D085+.
+1. `git rm` живых `Plan/048.md`+`Backlog/039.md` и коммит ротации `P048: archive B039/P048 (C5 delivered)`
+   через гейт (всё остальное из ротации уже в рабочем дереве).
+2. Финальный пин D051: stable.txt = полный 40-символьный хеш головы архив-коммита + атомарный бутстрап
+   (один scratch, откат при сбое); коммит `P048: pin stable.txt to <short> (D051)`.
+3. `just feature-merge` (ветку оставить, НЕ пушить). Отчёт по C5 на русском. Затем C10 (эволюция
+   API/данных). Свободные ID: P049, B040, D085+.
