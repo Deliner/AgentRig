@@ -49,6 +49,9 @@ independent grounds. Approval for an action does not expand its scope.
 
 Consolidation is valid when it replaces duplicated representations of the same
 required behavior and reduces total complexity without changing semantics.
+Likewise, do not introduce a second representation of behavior that already has
+an owner: reuse or extend the existing definition instead of copying it, so one
+change cannot leave divergent copies behind.
 Do not silently turn R into a larger result or C into stronger constraints.
 
 ## Reject changes that only appear to improve the result
