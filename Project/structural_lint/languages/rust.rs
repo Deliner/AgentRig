@@ -1,3 +1,4 @@
+use super::test_context::in_test_context;
 use super::{
     Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
     function, justified, nesting, text,
@@ -17,6 +18,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
             panic_macro(node, source, output);
+            macro_body(node, source, output);
         }
         "call_expression" => {
             panic_call(node, source, output);
@@ -342,6 +344,59 @@ fn raii_marker<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
         _ => None,
     }
 }
+// DECISION: D094
+fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let exempt = in_test_context(node, source);
+    if exempt {
+        return;
+    }
+    let mut cursor = node.walk();
+    let Some(tree) = node
+        .children(&mut cursor)
+        .find(|child| child.kind() == "token_tree")
+    else {
+        return;
+    };
+    let span = tree.end_byte().saturating_sub(tree.start_byte());
+    let empty = span < 2;
+    if empty {
+        return;
+    }
+    let inner = &source[tree.start_byte() + 1..tree.end_byte() - 1];
+    let fragment = ["fn probe(){call(", inner, ")}"].concat();
+    let Ok(Some(parsed)) =
+        crate::shared::syntax::parse(std::path::Path::new("macro.rs"), &fragment)
+    else {
+        return;
+    };
+    let root = parsed.root_node();
+    let broken = root.has_error();
+    if broken {
+        return;
+    }
+    let base = tree.start_position().row;
+    let mut scoped = Vec::new();
+    scan_fragment(root, &fragment, &mut scoped);
+    for mut measurement in scoped {
+        measurement.line += base;
+        output.push(measurement);
+    }
+}
+fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    match node.kind() {
+        "call_expression" => {
+            panic_call(node, source, output);
+            eager_fallback(node, source, output);
+            disabled_raii(node, source, output);
+        }
+        "macro_invocation" => panic_macro(node, source, output),
+        _ => {}
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        scan_fragment(child, source, output);
+    }
+}
 // DECISION: D085
 fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let allowed = justified(node, source) || in_test_context(node, source);
@@ -354,47 +409,6 @@ fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         symbol: "glob".into(),
         actual: 1,
     });
-}
-fn in_test_context(node: Node<'_>, source: &str) -> bool {
-    let mut current = node;
-    while let Some(parent) = current.parent() {
-        let item = matches!(
-            parent.kind(),
-            "mod_item" | "function_item" | "function_signature_item"
-        );
-        let test = item && test_attributed(parent, source);
-        if test {
-            return true;
-        }
-        current = parent;
-    }
-    false
-}
-fn test_attributed(item: Node<'_>, source: &str) -> bool {
-    let mut sibling = item.prev_named_sibling();
-    while let Some(node) = sibling {
-        let marker = node.kind() == "attribute_item" && test_marker(node, source);
-        if marker {
-            return true;
-        }
-        let decoration = matches!(
-            node.kind(),
-            "attribute_item" | "line_comment" | "block_comment"
-        );
-        let stop = !decoration;
-        if stop {
-            return false;
-        }
-        sibling = node.prev_named_sibling();
-    }
-    false
-}
-fn test_marker(node: Node<'_>, source: &str) -> bool {
-    let Some(name) = attribute_name(node, source) else {
-        return false;
-    };
-    let cfg_test = name == "cfg" && text(node, source).contains("test");
-    name == "test" || cfg_test
 }
 fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = !justified(node, source);

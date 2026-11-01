@@ -433,3 +433,28 @@ error, навык `own-the-resource`; двухфазно (VAC-B1 `515e585` ис�
 D092). P053 перенесён в [Archive/Plan](Archive/Plan.md), B044 — в [Archive/Backlog](Archive/Backlog.md);
 ссылки card в D092/D093 переведены на `Archive/Backlog/044.md`; финальный пин stable.txt на голову ветки
 ([D051](Decisions/051.md)) + bootstrap перед `just feature-merge`. **Tier A+B отчёта воркфлоу завершены.**
+2026-11-01 после повторного воркфлоу-ревью исправленного кода (`wf_5e9ed727-485`: 10 ревьюеров Sonnet,
+28 подтверждённых находок, 0 high/живых багов) пользователь поручил закрыть все четыре находки уровня
+medium одной карточкой и взять в работу. Оформлен [B045](Backlog/045.md) — промоутнут в
+[P054](Plan/054.md) на ветке feature/medium-findings (база master `125bd20`). Содержание: AC1 — правила
+`panic-path`/`eager-fallback-with-?`/`disabled-raii` видят паттерн внутри тел макросов (сегодня слепы:
+детекторы на `call_expression`, тело макроса — `token_tree`); AC2 — честный тест-контекст вместо подстроки
+`"test"` в тексте атрибута (`#[cfg(not(test))]`/`feature=…`/`tokio::test`); AC3 — worker управляем
+сигналами между/после выполнений команд; AC4 — ограниченный по времени дренаж `execute()`. AC1/AC2 —
+двухфазная доставка там, где нужно stable-бинарю (D051); AC3/AC4 — поведение рантайма, поведенческие тесты.
+Где вскроется высокий FP — честная норма (бар [D035](Decisions/035.md)), притворных инвариантов нет. Порядок
+и границы VAC — за исполнителем; ревизия контракта — в карточке.
+2026-11-01 P054 (B045) выполнен: все четыре medium-находки повторного обзора (`wf_5e9ed727-485`) закрыты.
+AC2 (`3c2758f`) — честный тест-контекст в `structural_lint/languages/test_context.rs` (`#[cfg(not(test))]` не
+глушит правила, `#[cfg(feature=…)]` — не тест, `#[tokio::test]` — тест), негативные фикстуры в `markers.rs`.
+AC1 (`740b85b`, [D094](Decisions/094.md)) — `panic-path`/`eager-fallback-with-?`/`disabled-raii` видят паттерн
+внутри тел макросов (`rust.rs` переразбирает `token_tree`, граница D059 цела); попутно исправлен
+eager-fallback-баг `jobs/mod.rs`. AC3+AC4 (`3f64de5`, [D095](Decisions/095.md)) — `process.rs` сбрасывает
+SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worker снова завершаем сигналами), `streams.rs`
+дренаж ограничен `libc::poll` + флагом `exited` (возвращается, не убивая отсоединённого потомка и не теряя
+байт); оба `unsafe` помечены `// DECISION: D095`, расширяющим D066 (одиннадцать сайтов неизменны); два
+поведенческих теста worker. Нового вида правила/навыка нет → I020 без изменений. Догфуд зелёный
+(`just candidate lint` → 0 находок). P054 перенесён в [Archive/Plan](Archive/Plan.md), B045 — в
+[Archive/Backlog](Archive/Backlog.md); ссылки card в D094/D095 переведены на `Archive/Backlog/045.md`;
+финальный пин stable.txt на голову ветки ([D051](Decisions/051.md)) + bootstrap перед `just feature-merge`.
+**Набор II (C1–C10), Tier A+B отчёта воркфлоу и все medium-находки повторного обзора закрыты; Plan пуст.**

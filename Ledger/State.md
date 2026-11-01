@@ -2,35 +2,39 @@
 
 ## Focus
 
-**B044 (Tier B) → [P053](Archive/Plan/053.md) ЗАВЕРШЁН.** Из пяти кандидатов одно доставлено переносимым
-правилом — `disabled-raii` ([D092](Decisions/092.md), активно); четыре — честная норма
-([D093](Decisions/093.md)): `unchecked-index`, `toctou`, `lossy-int-cast` (нужен вывод типов/поток данных,
-семейство [D059](Decisions/059.md)) и `sibling-cycle` (внутрикаталожные циклы идиоматичны и намеренно
-разрешены моделью каталога, [D079](Decisions/079.md)) — все ниже near-zero-FP бара
-([D035](Decisions/035.md)). P053/B044 ротированы в Archive. Остаются финальный пин D051 + `feature-merge`.
+**P054 (B045) — закрыть четыре medium-находки повторного воркфлоу-ревью — ВЫПОЛНЕН и ротирован.** AC1
+(тела макросов), AC2 (честный тест-контекст), AC3 (worker управляем сигналами после форвардинга) и AC4
+(ограниченный дренаж `execute`) доставлены и зафиксированы. Карточка и источник — в
+[Archive/Plan/054.md](Archive/Plan/054.md) и [Archive/Backlog/045.md](Archive/Backlog/045.md). Plan пуст.
 
 ## Workspace
 
-Ветка `feature/tier-b-rules` (база master `4ce7316`), сохраняется после интеграции. `stable.txt` =
-`58e1041…` (голова completion-VAC, забутстраплено финальным пином D051). macOS; коммиты —
-`just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/medium-findings` (база master `125bd20`), наблюдаемый HEAD `3f64de5` (VAC-D) до
+Completion-VAC; сохраняется после интеграции. `stable.txt` = `58e1041…` до финального пина (AC1–AC4 не
+вводят новый `kind:`, мид-бранч пин не требовался). macOS;
+коммиты/cargo — через `just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на
+`build: cargo not found`.
 
 ## Progress
 
-VAC-A `d10996d` (ротация P052/B043, выбор P053). VAC-B1 `515e585` (инертный источник `disabled-raii`).
-Мид-пин `81ed95c` (stable=`515e585`). VAC-B2 `f06e2a3` (правило `disabled-raii` активно: `registry` +
-`catalog::ALL` + `lint.yaml` + навык `own-the-resource`; I020 +1/+1; догфуд `.keep()` обоснован D092).
-Completion-VAC `58e1041`: решение [D093](Decisions/093.md) (четыре нормы), ротация P053 →
-[Archive/Plan](Archive/Plan.md) и B044 → [Archive/Backlog](Archive/Backlog.md) с Delivery и миграцией
-относительных ссылок, миграция card-ссылок D092/D093 на `Archive/Backlog/044.md`, refresh State.
-Финальный пин D051 (этот коммит): `stable.txt` = `58e1041` + `just bootstrap`.
+VAC-A (`9a632df`): Backlog [B045](Archive/Backlog/045.md) → Plan P054.
+VAC-B (`3c2758f`) — **AC2**: честный тест-контекст, `structural_lint/languages/test_context.rs`.
+VAC-C (`740b85b`) — **AC1**: `panic-path`/`eager-fallback`/`disabled-raii` видят паттерн в телах макросов;
+[D094](Decisions/094.md); исправлен eager-fallback-баг `jobs/mod.rs`.
+VAC-D (`3f64de5`) — **AC3+AC4**: `streams.rs` дренаж через `libc::poll` + флаг `exited`; `process.rs`
+сбрасывает SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга; [D095](Decisions/095.md) (расширяет
+D066); два поведенческих теста.
+Completion-VAC (этот коммит): P054 → `Archive/Plan`, B045 → `Archive/Backlog`; ссылки card в D094/D095
+переведены на `Archive/Backlog/045.md`; индексы Plan/Backlog/Archive обновлены; Delivery P054 заполнен
+по AC.
 
 ## Verification
 
-`just candidate lint` по репозиторию — 0 находок (storage.rs обоснован, tests исключены, в `tooling/`
-сайтов нет). `config-check` зелёный. Полный гейт VAC-B2 зелёный (build/lint/memory/rustfmt/clippy/
-rust-test 107/ruff/mypy/test 347 вкл. I020). Гейт completion-VAC (memory-check ссылок/маркеров + test вкл.
-I020) — на коммите этого VAC.
+Кандидат-линт по всему репозиторию → EXIT=0 (на VAC-C/VAC-D). Два новых теста
+(`test_foreground_drain_is_bounded_when_descendant_holds_pipe`,
+`test_worker_stays_signal_controllable_after_child_exits`) проходят. Полный гейт зелёный на VAC-D
+(`3f64de5`, test 207 passed, вкл. оба новых теста). Completion-VAC — память-онли, проходит через гейт
+(exported-index + затронутые тест-группы + smoke).
 
 ## Blockers
 
@@ -38,6 +42,8 @@ I020) — на коммите этого VAC.
 
 ## Next action
 
-1. `just feature-merge` (сохранить ветку, не пушить). Отчёт пользователю на русском на границе merge.
-2. Весь Tier A+B отчёта воркфлоу завершён; дальше согласованных карточек нет. Custom-allocator (B034-набросок)
-   припаркован — ждёт отдельного go-ahead пользователя. Свободные ID: D094+, P054+.
+Финальный пин D051: `git rev-parse HEAD > tooling/distribution/stable.txt` + `just bootstrap` одним
+`just scratch`-коммитом (голова ветки после Completion-VAC), коммит пина через гейт до
+`just feature-merge`. Затем `just feature-merge` (ребейз на master, проверка интегрированного кандидата,
+merge без уплощения); ветку сохранить, не пушить. Custom-allocator (B034) припаркован. Свободные ID:
+D096+, P055+.

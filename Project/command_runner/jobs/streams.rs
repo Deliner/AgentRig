@@ -2,6 +2,11 @@ use anyhow::Result;
 use std::{
     fs::File,
     io::{Read, Write},
+    os::unix::io::{AsRawFd, RawFd},
+    sync::{
+        Arc,
+        atomic::{AtomicBool, Ordering},
+    },
     thread::{self, JoinHandle},
 };
 
@@ -25,6 +30,7 @@ pub struct Stream {
 pub struct Readers {
     stdout: Option<JoinHandle<Result<Vec<u8>>>>,
     stderr: Option<JoinHandle<Result<Vec<u8>>>>,
+    exited: Arc<AtomicBool>,
 }
 impl Readers {
     pub fn start(child: &mut std::process::Child, logs: Option<(File, File)>, sink: Sink) -> Self {
@@ -32,6 +38,7 @@ impl Readers {
             Some((out, err)) => (Some(out), Some(err)),
             None => (None, None),
         };
+        let exited = Arc::new(AtomicBool::new(false));
         Self {
             stdout: child.stdout.take().map(|pipe| {
                 drain(
@@ -41,6 +48,7 @@ impl Readers {
                         sink,
                         channel: Channel::Stdout,
                     },
+                    Arc::clone(&exited),
                 )
             }),
             stderr: child.stderr.take().map(|pipe| {
@@ -51,9 +59,14 @@ impl Readers {
                         sink,
                         channel: Channel::Stderr,
                     },
+                    Arc::clone(&exited),
                 )
             }),
+            exited,
         }
+    }
+    pub fn mark_exited(&self) {
+        self.exited.store(true, Ordering::Release);
     }
     pub fn finish(
         self,
@@ -68,13 +81,26 @@ impl Readers {
         })
     }
 }
-pub fn drain(input: impl Read + Send + 'static, stream: Stream) -> JoinHandle<Result<Vec<u8>>> {
-    thread::spawn(move || copy(input, stream))
+pub fn drain(
+    input: impl Read + AsRawFd + Send + 'static,
+    stream: Stream,
+    exited: Arc<AtomicBool>,
+) -> JoinHandle<Result<Vec<u8>>> {
+    thread::spawn(move || copy(input, stream, exited))
 }
-fn copy(mut input: impl Read, mut stream: Stream) -> Result<Vec<u8>> {
+fn copy(
+    mut input: impl Read + AsRawFd,
+    mut stream: Stream,
+    exited: Arc<AtomicBool>,
+) -> Result<Vec<u8>> {
     let mut captured = Vec::new();
     let mut buffer = [0; 8192];
     loop {
+        let ready = wait_readable(input.as_raw_fd(), &exited)?;
+        let done = !ready;
+        if done {
+            break;
+        }
         let count = input.read(&mut buffer)?;
         let eof = count == 0;
         if eof {
@@ -94,6 +120,34 @@ fn copy(mut input: impl Read, mut stream: Stream) -> Result<Vec<u8>> {
         log.sync_all()?;
     }
     Ok(captured)
+}
+fn wait_readable(fd: RawFd, exited: &AtomicBool) -> Result<bool> {
+    loop {
+        let mut descriptor = libc::pollfd {
+            fd,
+            events: libc::POLLIN,
+            revents: 0,
+        };
+        // DECISION: D095
+        let count = unsafe { libc::poll(&mut descriptor, 1, 200) };
+        let failed = count < 0;
+        if failed {
+            let error = std::io::Error::last_os_error();
+            let interrupted = error.kind() == std::io::ErrorKind::Interrupted;
+            if interrupted {
+                continue;
+            }
+            return Err(error.into());
+        }
+        let ready = descriptor.revents != 0;
+        if ready {
+            return Ok(true);
+        }
+        let finished = exited.load(Ordering::Acquire);
+        if finished {
+            return Ok(false);
+        }
+    }
 }
 fn forward(bytes: &[u8], channel: Channel) -> Result<()> {
     match channel {
