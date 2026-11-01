@@ -257,12 +257,11 @@ fn observe_once(runtime: &Path, record: &Record) -> Result<Value> {
     };
     let mut value = serde_json::to_value(record)?;
     value["state"] = json!(state);
-    value["age_seconds"] = json!(
-        record
-            .finished
-            .unwrap_or(now()?)
-            .saturating_sub(record.started)
-    );
+    let finished = match record.finished {
+        Some(seconds) => seconds,
+        None => now()?,
+    };
+    value["age_seconds"] = json!(finished.saturating_sub(record.started));
     value["leader_resources"] = json!(child);
     value["containment"] = json!("process-group; detached descendants are not contained");
     let contained = record.background;

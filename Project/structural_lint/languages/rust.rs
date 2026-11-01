@@ -18,6 +18,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
             panic_macro(node, source, output);
+            macro_body(node, source, output);
         }
         "call_expression" => {
             panic_call(node, source, output);
@@ -341,6 +342,59 @@ fn raii_marker<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
         ("ManuallyDrop", "new") => Some("ManuallyDrop"),
         ("Box", "leak") => Some("leak"),
         _ => None,
+    }
+}
+// DECISION: D094
+fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let exempt = in_test_context(node, source);
+    if exempt {
+        return;
+    }
+    let mut cursor = node.walk();
+    let Some(tree) = node
+        .children(&mut cursor)
+        .find(|child| child.kind() == "token_tree")
+    else {
+        return;
+    };
+    let span = tree.end_byte().saturating_sub(tree.start_byte());
+    let empty = span < 2;
+    if empty {
+        return;
+    }
+    let inner = &source[tree.start_byte() + 1..tree.end_byte() - 1];
+    let fragment = ["fn probe(){call(", inner, ")}"].concat();
+    let Ok(Some(parsed)) =
+        crate::shared::syntax::parse(std::path::Path::new("macro.rs"), &fragment)
+    else {
+        return;
+    };
+    let root = parsed.root_node();
+    let broken = root.has_error();
+    if broken {
+        return;
+    }
+    let base = tree.start_position().row;
+    let mut scoped = Vec::new();
+    scan_fragment(root, &fragment, &mut scoped);
+    for mut measurement in scoped {
+        measurement.line += base;
+        output.push(measurement);
+    }
+}
+fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    match node.kind() {
+        "call_expression" => {
+            panic_call(node, source, output);
+            eager_fallback(node, source, output);
+            disabled_raii(node, source, output);
+        }
+        "macro_invocation" => panic_macro(node, source, output),
+        _ => {}
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        scan_fragment(child, source, output);
     }
 }
 // DECISION: D085

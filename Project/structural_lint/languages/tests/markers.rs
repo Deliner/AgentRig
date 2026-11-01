@@ -180,6 +180,26 @@ async fn async_check() {
 }
 
 #[test]
+fn rust_flags_panic_paths_inside_macro_bodies() {
+    let source = "fn run() {
+    println!(\"{}\", value.unwrap());
+    let markup = html! { <div>{ bad.unwrap() }</div> };
+    panic_wrap!(
+        // DECISION: D001
+        guard.expect(\"ok\")
+    );
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        assert_eq!(value.unwrap(), 1);
+    }
+}
+";
+    assert_eq!(panic_findings("source.rs", source), [2]);
+}
+
+#[test]
 fn rust_flags_dbg_macro_invocations() {
     let source = "fn probe() {
     dbg!(compute());
@@ -333,6 +353,28 @@ fn rust_flags_eager_fallback_arguments_that_propagate() {
 mod tests {
     fn check() {
         let f = maybe().unwrap_or(fallback()?);
+    }
+}
+";
+    assert_eq!(eager_findings("source.rs", source), [2]);
+}
+
+// DECISION: D094
+#[test]
+fn rust_flags_eager_fallback_inside_macro_bodies() {
+    let source = "fn run() -> Result<u32, Error> {
+    let a = json!(maybe().unwrap_or(fallback()?));
+    let b = json!(
+        // DECISION: D001
+        maybe().unwrap_or(fallback()?)
+    );
+    let c = vec![compute()?, maybe().unwrap_or(0)];
+    Ok(a)
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        let d = json!(maybe().unwrap_or(fallback()?));
     }
 }
 ";
