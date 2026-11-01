@@ -2,35 +2,30 @@
 
 ## Focus
 
-**B044 (Tier B) → [P053](Archive/Plan/053.md) ЗАВЕРШЁН.** Из пяти кандидатов одно доставлено переносимым
-правилом — `disabled-raii` ([D092](Decisions/092.md), активно); четыре — честная норма
-([D093](Decisions/093.md)): `unchecked-index`, `toctou`, `lossy-int-cast` (нужен вывод типов/поток данных,
-семейство [D059](Decisions/059.md)) и `sibling-cycle` (внутрикаталожные циклы идиоматичны и намеренно
-разрешены моделью каталога, [D079](Decisions/079.md)) — все ниже near-zero-FP бара
-([D035](Decisions/035.md)). P053/B044 ротированы в Archive. Остаются финальный пин D051 + `feature-merge`.
+**P054 (B045) — закрыть четыре medium-находки повторного воркфлоу-ревью, активна.** AC1 — правила
+`panic-path`/`eager-fallback-with-?`/`disabled-raii` видят паттерн внутри тел макросов (сегодня слепы:
+детекторы на `call_expression`, тело макроса парсится как `token_tree`); AC2 — честный тест-контекст
+вместо подстроки `"test"` в тексте атрибута; AC3 — worker управляем сигналами между/после выполнений
+команд; AC4 — ограниченный по времени дренаж `execute()`. Контракт — карточка [B045](Backlog/045.md).
 
 ## Workspace
 
-Ветка `feature/tier-b-rules` (база master `4ce7316`), сохраняется после интеграции. `stable.txt` =
-`58e1041…` (голова completion-VAC, забутстраплено финальным пином D051). macOS; коммиты —
-`just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/medium-findings` (база master `125bd20`), сохраняется после интеграции. `stable.txt` =
+`58e1041…` (ещё не менялся; будет перепинён при двухфазной доставке AC1/AC2 и финальным пином D051).
+macOS; коммиты — `just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на
+`build: cargo not found`.
 
 ## Progress
 
-VAC-A `d10996d` (ротация P052/B043, выбор P053). VAC-B1 `515e585` (инертный источник `disabled-raii`).
-Мид-пин `81ed95c` (stable=`515e585`). VAC-B2 `f06e2a3` (правило `disabled-raii` активно: `registry` +
-`catalog::ALL` + `lint.yaml` + навык `own-the-resource`; I020 +1/+1; догфуд `.keep()` обоснован D092).
-Completion-VAC `58e1041`: решение [D093](Decisions/093.md) (четыре нормы), ротация P053 →
-[Archive/Plan](Archive/Plan.md) и B044 → [Archive/Backlog](Archive/Backlog.md) с Delivery и миграцией
-относительных ссылок, миграция card-ссылок D092/D093 на `Archive/Backlog/044.md`, refresh State.
-Финальный пин D051 (этот коммит): `stable.txt` = `58e1041` + `just bootstrap`.
+VAC-A (этот коммит): оформлен Backlog [B045](Backlog/045.md) и промоутнут в Plan [P054](Plan/054.md)
+(статус active), запись в журнал Plan, refresh State. Продуктовый код ещё не менялся. Дальше — по одному
+AC: сначала разведка кода (`rust.rs` диспетчеризация детекторов и `test_marker`; `jobs/process.rs`
+сигналы и `jobs/streams.rs` дренаж), затем доставка с догфудом.
 
 ## Verification
 
-`just candidate lint` по репозиторию — 0 находок (storage.rs обоснован, tests исключены, в `tooling/`
-сайтов нет). `config-check` зелёный. Полный гейт VAC-B2 зелёный (build/lint/memory/rustfmt/clippy/
-rust-test 107/ruff/mypy/test 347 вкл. I020). Гейт completion-VAC (memory-check ссылок/маркеров + test вкл.
-I020) — на коммите этого VAC.
+Пока только структура памяти (коммит-гейт VAC-A: memory-check ссылок/маркеров + тесты по карте).
+Продуктовых проверок ещё нет.
 
 ## Blockers
 
@@ -38,6 +33,8 @@ I020) — на коммите этого VAC.
 
 ## Next action
 
-1. `just feature-merge` (сохранить ветку, не пушить). Отчёт пользователю на русском на границе merge.
-2. Весь Tier A+B отчёта воркфлоу завершён; дальше согласованных карточек нет. Custom-allocator (B034-набросок)
-   припаркован — ждёт отдельного go-ahead пользователя. Свободные ID: D094+, P054+.
+1. AC2 (самое изолированное): починить `test_marker` в `structural_lint/languages/rust.rs` — парсить
+   предикат `cfg` вместо подстроки `"test"`; добавить негативные фикстуры в `languages/tests/markers.rs`.
+2. Затем AC1 (обзор тел макросов детекторами), AC3 (восстановление сигналов), AC4 (ограниченный дренаж).
+   Порядок и границы VAC — за исполнителем. Custom-allocator (B034-набросок) остаётся припаркован.
+   Свободные ID: D094+, P055+.
