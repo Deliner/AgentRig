@@ -2,32 +2,32 @@
 
 ## Focus
 
-**B044 (Tier B) выбран → [P053](Plan/053.md); VAC-A (планирование) в рабочем дереве, не закоммичен.**
-B043 (Tier A) полностью доставлен и влит в master (merge `4ce7316`). Текущая работа — пять пунктов Tier B:
-AC1 `unchecked-index`, AC2 `disabled-RAII` (новые виды правил), AC5 `sibling-cycle` (расширение
-`directory-architecture`), AC3 TOCTOU и AC4 lossy-int-cast (правило-vs-норма при реализации).
+**B044 (Tier B) → [P053](Plan/053.md). AC2 `disabled-raii` — VAC-B1 (инертный источник).**
+Заземлённая форма Tier B: AC2 `disabled-raii` — ПРАВИЛО (near-zero-FP), AC5 `sibling-cycle` — расширение
+`directory-architecture`; AC1 `unchecked-index`, AC3 TOCTOU, AC4 lossy-int-cast — НОРМЫ (нужны вывод типов/
+поток данных, семейство [D059](Decisions/059.md); бланкет-индексация ловит непаникующую `serde_json::Value`).
 
 ## Workspace
 
-Ветка `feature/tier-b-rules` (база master @ `4ce7316`). Revision HEAD = `4ce7316` (до коммита VAC-A;
-рабочее дерево содержит незакоммиченную ротацию P052/B043 + выбор P053 + этот снапшот). `stable.txt` =
-`b0ce9eebdbcee5992eec3079079de0fece04703d` (пин B043; Project на этой ветке ещё не менялся, D051-пин
-придёт с первым изменением Project). macOS; коммиты — `just scratch` с восстановленным PATH
-(`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/tier-b-rules` (база master @ `4ce7316`). `stable.txt` = `b0ce9ee…` (пин B043). macOS; коммиты —
+`just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Двухфазная доставка AC2: после коммита VAC-B1 — мид-ветка `just bootstrap` на голову VAC-B1 (чтобы stable-бинарь
+десериализовал новый вид), затем VAC-B2 с живым правилом в `lint.yaml`.
 
 ## Progress
 
-VAC-A (ротация + выбор), в рабочем дереве: P052 перенесён в `Archive/Plan.md` + `Archive/Plan/052.md`
-(добавлена секция Delivery); B043 — в `Archive/Backlog.md` + `Archive/Backlog/043.md` (изменены только
-относительные ссылки `../Decisions/` → `../../Decisions/`); строки P052/B043 убраны из `Plan.md`/`Backlog.md`,
-живые карточки `Plan/052.md`/`Backlog/043.md` подлежат удалению в коммите; ссылки card в D088–D090 переведены
-на `Archive/Backlog/043.md`; B044 промоутнут в `Plan.md` строкой P053 + карточка `Plan/053.md` + запись в
-журнал; B044 остаётся в живом `Backlog.md` (исполняется). Один активный пункт Plan — P053.
+VAC-A `d10996d` (ротация P052/B043 в Archive, выбор P053). VAC-B1 (в рабочем дереве, тест зелёный, не
+закоммичен): вид `DisabledRaii` в `kind.rs`; дескриптор `disabled-raii` + `// DECISION: D092` в `descriptor.rs`;
+детектор `disabled_raii`/`raii_marker` на диспетче `call_expression` в `rust.rs` (методы `keep`/`into_path` по
+имени, пути `mem::forget`/`ManuallyDrop::new`/`Box::leak` по точной паре сегментов); тест
+`rust_flags_disabled_raii_outside_tests` в `markers.rs`; решение D092 + `Decisions/092.md`. Инертно: НЕ в
+`registry`/`catalog::ALL`/`lint.yaml` — stable-бинарь его не видит. Навык `own-the-resource` и живое правило —
+в VAC-B2.
 
 ## Verification
 
-Гейт для VAC-A ещё не прогонялся; memory-check (индекс Decisions ↔ маркеры, согласованность ссылок)
-пройдёт в составе коммита. Последний зелёный полный гейт — на B043 (`b0ce9ee`/`62ea144`).
+`cargo test --lib disabled_raii` зелёный (находки [2,3,4,5,6,7]; justified/не-совпадающие методы/строка/тест
+исключены). Полный гейт VAC-B1 — на коммите.
 
 ## Blockers
 
@@ -35,11 +35,12 @@ VAC-A (ротация + выбор), в рабочем дереве: P052 пер
 
 ## Next action
 
-1. Закоммитить VAC-A через `just scratch` с PATH (в коммите: удалить живые `Plan/052.md`/`Backlog/043.md`,
-   `git add -A Ledger/`, `git commit -F`); гейт прогонит memory-check.
-2. Затем VAC-B1 — инертный источник для `unchecked-index` + `disabled-RAII` (enum-виды, дескрипторы,
-   детекторы в `rust.rs`, тесты-маркеры; не подключать в `catalog`/`registry`/`lint.yaml`), затем мид-ветка
-   бутстрап (stable = голова VAC-B1) → VAC-B2 активация + догфуд. AC5 `sibling-cycle` — отдельным VAC
-   расширением `directory-architecture` (без нового вида/навыка). AC3/AC4 — оценить правило-vs-норма
-   (решения D092+). D051 финальный пин, затем `just feature-merge` (ветку сохранить, не пушить).
-   Свободные ID: D092+, P054+.
+1. Закоммитить VAC-B1 через `just scratch`+PATH (гейт: build/lint/memory/clippy/rustfmt/test).
+2. Мид-ветка бутстрап: `stable.txt` = голова VAC-B1 + `just bootstrap` в одной команде.
+3. VAC-B2: активировать `disabled-raii` (`registry` rust.rules, `catalog::ALL`, `lint.yaml` error/Rust-only/
+   tests excluded `# DECISION: D092`, навык `own-the-resource` SKILL.md+leaf+symlink+`assets.rs`), I020 +1/+1;
+   дополнить строку D092 ссылками `[repository rule]`+`[skill]`; догфуд — обосновать `storage.rs:14 .keep()`
+   `// DECISION: D092`.
+4. Затем AC5 `sibling-cycle` (расширение `directory-architecture`, проверить анализатор графа на файловые рёбра
+   внутри каталога) и нормы AC1/AC3/AC4 (решения D093+). D051 финальный пин, `just feature-merge` (сохранить, не
+   пушить). Свободные ID: D093+, P054+.

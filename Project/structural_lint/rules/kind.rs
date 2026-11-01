@@ -27,6 +27,7 @@ pub enum Kind {
     TupleAsRecord,
     EagerFallback,
     DiscardedResult,
+    DisabledRaii,
     CommentReference,
     DirectoryArchitecture,
 }

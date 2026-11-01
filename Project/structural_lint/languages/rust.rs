@@ -21,6 +21,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "call_expression" => {
             panic_call(node, source, output);
             eager_fallback(node, source, output);
+            disabled_raii(node, source, output);
         }
         "expression_statement" => discarded_result(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
@@ -300,6 +301,46 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         symbol: "ok".into(),
         actual: 1,
     });
+}
+// DECISION: D092
+fn disabled_raii(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(function) = node.child_by_field_name("function") else {
+        return;
+    };
+    let Some(symbol) = raii_marker(function, source) else {
+        return;
+    };
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::DisabledRaii,
+        line: node.start_position().row + 1,
+        symbol: symbol.into(),
+        actual: 1,
+    });
+}
+fn raii_marker<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
+    if let Some(field) = function.child_by_field_name("field") {
+        let method = field.kind() == "field_identifier";
+        let name = text(field, source);
+        let consumes = method && matches!(name, "keep" | "into_path");
+        return consumes.then_some(name);
+    }
+    let unscoped = function.kind() != "scoped_identifier";
+    if unscoped {
+        return None;
+    }
+    let mut segments = text(function, source).rsplit("::");
+    let last = segments.next()?;
+    let prior = segments.next()?;
+    match (prior, last) {
+        ("mem", "forget") => Some("forget"),
+        ("ManuallyDrop", "new") => Some("ManuallyDrop"),
+        ("Box", "leak") => Some("leak"),
+        _ => None,
+    }
 }
 // DECISION: D085
 fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
