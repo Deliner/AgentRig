@@ -20,6 +20,7 @@ pub enum Kind {
     SilentError,
     DisabledTest,
     AllowJustification,
+    DebugArtifact,
     CommentReference,
     DirectoryArchitecture,
 }

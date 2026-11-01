@@ -54,6 +54,7 @@ impl Kind {
             Self::SilentError => &SILENTERROR,
             Self::DisabledTest => &DISABLEDTEST,
             Self::AllowJustification => &ALLOWJUSTIFICATION,
+            Self::DebugArtifact => &DEBUGARTIFACT,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -234,6 +235,16 @@ const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     skill: "justify-allow",
     parameters: Parameters::Level {
         violation: "a blanket allow silences a rule; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
+    },
+};
+// DECISION: D081
+const DEBUGARTIFACT: Descriptor = Descriptor {
+    default_id: "debug-artifact",
+    target: "file",
+    metric: "every Rust dbg! macro invocation",
+    skill: "remove-debug",
+    parameters: Parameters::Level {
+        violation: "a dbg! macro is a leftover debugging artifact; remove it and keep any value it wrapped",
     },
 };
 // DECISION: D065

@@ -2,5 +2,6 @@ purpose: Verify language-specific measurements and enforcement through real lint
 files:
   test_language.py: Rust and Python condition, function and parameter measurement scenarios
   test_language_delivery.py: Configured enforcement and repair guidance for language measurements
-  mod.rs: Rust and Python comment reference measurements from native analysis
+  mod.rs: Comment, control-flow, signature, unsafe, credential and silent-error measurements from native analysis
+  markers.rs: Disabled-test, blanket-allow and debug-artifact marker measurements from native analysis
 directories: {}

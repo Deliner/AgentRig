@@ -27,6 +27,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::HardcodedSecret,
             Kind::DisabledTest,
             Kind::AllowJustification,
+            Kind::DebugArtifact,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

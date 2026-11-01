@@ -13,6 +13,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
         "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
+        "macro_invocation" => debug_macro(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
@@ -91,6 +92,21 @@ fn attribute_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
         .named_children(&mut node.walk())
         .find(|child| child.kind() == "attribute")?;
     Some(text(attribute.named_child(0)?, source))
+}
+// DECISION: D081
+fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(path) = node.child_by_field_name("macro") else {
+        return;
+    };
+    let debug = text(path, source) == "dbg";
+    if debug {
+        output.push(Measurement {
+            kind: Kind::DebugArtifact,
+            line: node.start_position().row + 1,
+            symbol: "dbg".into(),
+            actual: 1,
+        });
+    }
 }
 fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = !justified(node, source);
