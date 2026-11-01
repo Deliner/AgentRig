@@ -163,3 +163,39 @@ fn rust_flags_dbg_macro_invocations() {
 ";
     assert_eq!(debug_findings("source.rs", source), [2, 6]);
 }
+
+// DECISION: D084
+fn assertion_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::DebugAssertion)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_debug_assertions_outside_test_code() {
+    let source = "fn run() {
+    debug_assert!(ready);
+    debug_assert_eq!(a, b);
+    // DECISION: D001
+    debug_assert_ne!(a, b);
+    assert!(always);
+    assert_eq!(a, b);
+    let s = \"debug_assert!(x) in a string\";
+}
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn checks() {
+        debug_assert!(value);
+    }
+}
+";
+    assert_eq!(assertion_findings("source.rs", source), [2, 3]);
+}

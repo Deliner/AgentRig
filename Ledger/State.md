@@ -36,10 +36,14 @@ exclude живого правила. Навык ремонта `firm-up-assertio
 `resolution/rust/macros.rs` и `architecture/source/rust/conditions.rs` — AST-детектор их не ловит) →
 догфуд будет зелёным.
 
-**B039 сохранён** (`Ledger/Backlog/039.md` + индекс-строка). **P048 промоутнут** (`Ledger/Plan/048.md`
-+ активная строка + проза). State обновлён. **VAC-A готов к коммиту** (память/промоушен). Далее —
-VAC-B1 (source), мид-ветка бутстрап, VAC-B2 (delivery), ротация в Archive, финальный пин D051,
-`feature-merge`.
+**VAC-A закоммичен** (`fa3755a`, память/промоушен; гейт весь PASS). **VAC-B1 закоммичен** (source):
+`kind.rs` (+`DebugAssertion`), `descriptor.rs` (+`DEBUGASSERTION`), `rust.rs`
+(+`assertion_macro`/`report_assertion`, вызов в `macro_invocation`), `registry.rs` (+вид в rust-handler),
+тест `rust_flags_debug_assertions_outside_test_code` в `markers.rs`, `Decisions/084.md` + индекс-строка
+(на B1 линкует только существующих владельцев: card + descriptor + rust + tests). `lint.yaml`,
+`catalog::ALL` и навык НЕ трогались → гейт зелёный, I020 сбалансирован (init без правила, live без правила).
+Далее — **мид-ветка атомарный бутстрап** (stable → голова B1), затем VAC-B2 (delivery), ротация,
+финальный пин D051, `feature-merge`.
 
 ## Verification
 

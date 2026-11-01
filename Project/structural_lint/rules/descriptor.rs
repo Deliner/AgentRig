@@ -55,6 +55,7 @@ impl Kind {
             Self::DisabledTest => &DISABLEDTEST,
             Self::AllowJustification => &ALLOWJUSTIFICATION,
             Self::DebugArtifact => &DEBUGARTIFACT,
+            Self::DebugAssertion => &DEBUGASSERTION,
             Self::PanicPath => &PANICPATH,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
@@ -246,6 +247,16 @@ const DEBUGARTIFACT: Descriptor = Descriptor {
     skill: "remove-debug",
     parameters: Parameters::Level {
         violation: "a dbg! macro is a leftover debugging artifact; remove it and keep any value it wrapped",
+    },
+};
+// DECISION: D084
+const DEBUGASSERTION: Descriptor = Descriptor {
+    default_id: "debug-assertion",
+    target: "file",
+    metric: "every Rust debug_assert!, debug_assert_eq! or debug_assert_ne! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "firm-up-assertion",
+    parameters: Parameters::Level {
+        violation: "a debug_assert is stripped from release builds, so the contract it states goes unchecked where it matters; promote it to assert! to hold in every build, remove it if redundant, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the debug-only check",
     },
 };
 // DECISION: D082
