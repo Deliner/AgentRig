@@ -292,3 +292,31 @@ feature/determinism. Кластер C3 Набора II «детерминизм�
 перенесён в [Archive/Plan](Archive/Plan.md), B038 — в [Archive/Backlog](Archive/Backlog.md); ссылка card
 в D083 переведена на `Archive/Backlog/038.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)).
 Набор II: C1+C2, C4, C9, C6 и C3 доставлены; следующий кластер — C5 (контракты поведения).
+2026-11-01 следующей выбран [B039](Backlog/039.md) — промоутнут в [P048](Plan/048.md) на ветке
+feature/contracts. Кластер C5 Набора II «контракты поведения». По анализу (заземлён на движке правил):
+единственное новое переносимое near-zero-FP статическое ядро C5 — вызов семейства `debug_assert!`
+(`debug_assert!`/`debug_assert_eq!`/`debug_assert_ne!`) в не-тестовом Rust без ссылки-обоснования прямо
+выше, новым правилом `debug-assertion`, переиспользующим механизм justified
+([D065](Decisions/065.md)/[D082](Decisions/082.md)); семейство вырезается под `cfg(debug_assertions)`,
+поэтому закреплённый им контракт молча не выполняется в release. Новый навык ремонта `firm-up-assertion`
+(поднять до `assert!`, убрать или обосновать). `assert!` не трогается — реальный контракт во всех
+сборках. Прочее C5 — норма/покрыто: контракт прозой — бан комментариев ([D037](Decisions/037.md));
+`#[must_use]`/проглоченный результат — вывод типов (dev-гейт [D068](Decisions/068.md)/отвергнут
+[D059](Decisions/059.md)); механизм `INVARIANT` ([D020](Decisions/020.md)) — контрактная машинерия
+репозитория, не переносимое правило `init`; Python `assert` под `-O` того же класса, но выше FP → норма.
+Правило добавляет свой навык → I020 (виды правил и навыки растут согласованно). Путь — двухфазный
+(source→delivery) с мид-веткой бутстрапом, как у C9/C6 (новый вид правила читается stable-бинарём из
+`lint.yaml`). Притворных инвариантов нет. Порядок остальных кластеров — за исполнителем.
+2026-11-01 P048 (B039, C5) выполнен: доставлено правило `debug-assertion` ([D084](Decisions/084.md)) —
+вызов `debug_assert!`/`debug_assert_eq!`/`debug_assert_ne!` в не-тестовом Rust без ссылки-обоснования
+прямо выше — находка error, с ссылкой — без находки (механизм `justified`, как D065/D082); детектор в
+`rust.rs` (`assertion_macro`/`report_assertion`) расширяет `macro_invocation` (рядом с D081/D082), обход
+предков `in_test_context` исключает `#[cfg(test)]`/`#[test]`, каталоги `tests/` и файл `tests.rs` —
+паттернами exclude; `assert!`/`assert_eq!`/`assert_ne!` не трогаются (реальный контракт во всех сборках).
+Вид в `catalog::ALL`, навык `firm-up-assertion` в `assets.rs` → I020 (виды правил и навыки выросли на
+один, delivered == live). Путь двухфазный: VAC-B1 `5061b18` (source), мид-ветка пин stable=`5061b18`
+(`787b27f`), VAC-B2 `1cb93b8` (delivery). Наш код зелёный (в репозитории нет вызовов `debug_assert!`,
+`just candidate lint` → 0 находок). P048 перенесён в [Archive/Plan](Archive/Plan.md), B039 — в
+[Archive/Backlog](Archive/Backlog.md); ссылка card в D084 переведена на `Archive/Backlog/039.md`; пин
+stable.txt на голову ветки ([D051](Decisions/051.md)). Набор II: C1+C2, C4, C9, C6, C3 и C5 доставлены;
+следующий кластер — C10 (эволюция API/данных).

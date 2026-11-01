@@ -15,6 +15,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
         "macro_invocation" => {
             debug_macro(node, source, output);
+            assertion_macro(node, source, output);
             panic_macro(node, source, output);
         }
         "call_expression" => panic_call(node, source, output),
@@ -111,6 +112,29 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             actual: 1,
         });
     }
+}
+// DECISION: D084
+fn assertion_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(path) = node.child_by_field_name("macro") else {
+        return;
+    };
+    let name = text(path, source);
+    let assertion = matches!(name, "debug_assert" | "debug_assert_eq" | "debug_assert_ne");
+    if assertion {
+        report_assertion(node, source, name, output);
+    }
+}
+fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::DebugAssertion,
+        line: node.start_position().row + 1,
+        symbol: symbol.into(),
+        actual: 1,
+    });
 }
 // DECISION: D082
 fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
