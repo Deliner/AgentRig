@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B044](Backlog/044.md) | Tier B отчёта воркфлоу: unchecked-index, disabled-RAII, TOCTOU/path-exists, lossy-int-cast, sibling-cycle | Доп. охват панических/ресурсных/файловых/детерминизм-смеллов + внутрикаталожные циклы; переносимо. |

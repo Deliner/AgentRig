@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P053](Plan/053.md) | active | - | Tier B: unchecked-index, disabled-RAII, sibling-cycle (+ оценка TOCTOU/lossy-int-cast) | Доп. переносимые проверки из коробки: индексация/слайсинг без обоснования (unchecked-index), отключение RAII (disabled-RAII), встречные sibling-зависимости каталога (sibling-cycle); TOCTOU и lossy-int-cast — правило/норма по реализации. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -419,3 +418,18 @@ D088–D090 переведены на `Archive/Backlog/043.md`. Следующи
 оцениваются правило-vs-норма при реализации (вероятно норма, семейство [D059](Decisions/059.md)). Где
 высокий FP — честно норма (бар [D035](Decisions/035.md)), притворных инвариантов нет. Порядок и границы
 VAC — за исполнителем; ревизия контракта — в карточке.
+2026-11-01 P053 (B044, Tier B) выполнен: из пяти кандидатов одно доставлено переносимым правилом —
+`disabled-raii` ([D092](Decisions/092.md)): вызов, намеренно отключающий RAII (`.keep()`/`.into_path()`,
+`mem::forget`/`ManuallyDrop::new`/`Box::leak`) вне тестов без ссылки-обоснования прямо выше — находка
+error, навык `own-the-resource`; двухфазно (VAC-B1 `515e585` источник, мид-ветка пин `81ed95c`, VAC-B2
+`f06e2a3` проводка), I020 +1/+1 (delivered == live). Четыре кандидата — норма
+([D093](Decisions/093.md)): `unchecked-index` (движок не отличает паникующую индексацию от непаникующей
+`serde_json::Value` без вывода типов, [D059](Decisions/059.md)), `toctou` (нужен поток данных, D059),
+`lossy-int-cast` (нужна разрядность, D059) — все ниже near-zero-FP бара ([D035](Decisions/035.md));
+`sibling-cycle` синтаксически разрешим, но внутрикаталожные циклы идиоматичны в Rust и намеренно разрешены
+моделью каталога-как-единицы ([D079](Decisions/079.md), `graph.rs` пропускает рёбра внутри каталога) —
+высоколож и противоречил бы зафиксированной модели. Притворных инвариантов нет, пороги не ослаблены.
+Догфуд зелёный (`just candidate lint` → 0 находок; `.keep()` в `command_runner/jobs/storage.rs` обоснован
+D092). P053 перенесён в [Archive/Plan](Archive/Plan.md), B044 — в [Archive/Backlog](Archive/Backlog.md);
+ссылки card в D092/D093 переведены на `Archive/Backlog/044.md`; финальный пин stable.txt на голову ветки
+([D051](Decisions/051.md)) + bootstrap перед `just feature-merge`. **Tier A+B отчёта воркфлоу завершены.**
