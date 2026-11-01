@@ -37,11 +37,21 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
     let forwarding = forward_signals(signals, pid, grouping);
     let readers = Readers::start(&mut child, logs, sink);
     let status = child.wait();
+    readers.mark_exited();
     handle.close();
     forwarding
         .join()
         .map_err(|_| anyhow::anyhow!("signal forwarding thread failed"))?;
+    restore_default_signals();
     readers.finish(status)
+}
+fn restore_default_signals() {
+    for signal in [SIGINT, SIGTERM, SIGHUP] {
+        // DECISION: D095
+        unsafe {
+            libc::signal(signal, libc::SIG_DFL);
+        }
+    }
 }
 struct Arrangement {
     grouping: Grouping,

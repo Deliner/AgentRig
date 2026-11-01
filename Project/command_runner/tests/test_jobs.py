@@ -46,6 +46,84 @@ def test_signal_reaches_child(worker: Path, tmp_path: Path) -> None:
             process.communicate()
 
 
+def run_leaky(worker: Path, root: Path, code: str) -> subprocess.Popen[bytes]:
+    argv = json.dumps(["python3", "-c", code])
+    project(root, CONFIG + f"\n  leaky:\n    argv: {argv}\n")
+    return subprocess.Popen(
+        [str(worker), "run", "--root", str(root), "leaky"],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+
+
+def terminate(process: subprocess.Popen[bytes]) -> None:
+    running = process.poll() is None
+    if running:
+        process.kill()
+        process.communicate()
+
+
+def wait_until_draining(process: subprocess.Popen[bytes]) -> bool:
+    assert process.stdout is not None
+    deadline = time.monotonic() + 10
+    seen_exit = False
+    ticks_after = 0
+    while time.monotonic() < deadline and ticks_after < 3:
+        line = process.stdout.readline()
+        empty = not line
+        if empty:
+            break
+        text = line.decode(errors="replace").strip()
+        exited = text == "main-done"
+        if exited:
+            seen_exit = True
+        tick = seen_exit and text == "tick"
+        if tick:
+            ticks_after += 1
+    ready = seen_exit and ticks_after >= 3
+    return ready
+
+
+# DECISION: D095
+def test_foreground_drain_is_bounded_when_descendant_holds_pipe(
+    worker: Path, tmp_path: Path
+) -> None:
+    leak = (
+        "import subprocess,sys\n"
+        "subprocess.Popen(['sleep', '30'])\n"
+        "sys.stdout.write('main-done\\n')\n"
+        "sys.stdout.flush()\n"
+        "sys.exit(0)\n"
+    )
+    process = run_leaky(worker, tmp_path, leak)
+    try:
+        process.communicate(timeout=10)
+        assert process.returncode == 0
+    finally:
+        terminate(process)
+
+
+# DECISION: D095
+def test_worker_stays_signal_controllable_after_child_exits(worker: Path, tmp_path: Path) -> None:
+    chatty = (
+        "import subprocess,sys\n"
+        "subprocess.Popen(['sh', '-c', 'for i in $(seq 200); do echo tick; sleep 0.05; done'])\n"
+        "sys.stdout.write('main-done\\n')\n"
+        "sys.stdout.flush()\n"
+        "sys.exit(0)\n"
+    )
+    process = run_leaky(worker, tmp_path, chatty)
+    try:
+        draining = wait_until_draining(process)
+        assert draining, "worker did not reach the post-exit drain"
+        process.send_signal(signal.SIGTERM)
+        process.wait(timeout=5)
+        assert process.returncode == -signal.SIGTERM
+    finally:
+        terminate(process)
+
+
 def wait_for_job(worker: Path, root: Path) -> dict[str, Any]:
     deadline = time.monotonic() + 5
     while time.monotonic() < deadline:
