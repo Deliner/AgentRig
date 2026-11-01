@@ -108,6 +108,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/firm-up-assertion/SKILL.md"),
     ),
     (
+        "narrow-import",
+        include_str!("../shared/skills/references/narrow-import/SKILL.md"),
+    ),
+    (
         "split-boolean-parameter",
         include_str!("../shared/skills/signature/split-boolean-parameter/SKILL.md"),
     ),

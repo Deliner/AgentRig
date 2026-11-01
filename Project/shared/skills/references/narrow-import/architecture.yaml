@@ -1,0 +1,5 @@
+purpose: "Replace a glob import with an explicit import list, or justify the deliberate wildcard with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to narrow a glob import"
+directories: {}

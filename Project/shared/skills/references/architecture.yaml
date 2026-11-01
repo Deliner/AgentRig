@@ -1,4 +1,4 @@
-purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths and release-stripped debug assertions"
+purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions and glob imports that bind a file to another module's whole surface"
 files: {}
 directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
@@ -9,3 +9,4 @@ directories:
   remove-debug: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
   handle-panic: "Return or handle a Rust error instead of unwrap, expect or a panic macro, or justify the panic with a reference"
   firm-up-assertion: "Promote a release-stripped Rust debug_assert to a real assert, remove it, or justify the debug-only check with a reference"
+  narrow-import: "Replace a glob import with an explicit import list, or justify the deliberate wildcard with a reference"

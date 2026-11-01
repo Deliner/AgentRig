@@ -27,6 +27,7 @@ pub const ALL: &[Kind] = &[
     Kind::DebugArtifact,
     Kind::DebugAssertion,
     Kind::PanicPath,
+    Kind::WildcardImport,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,
