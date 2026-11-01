@@ -12,7 +12,7 @@
 ## Workspace
 
 Ветка `feature/tier-b-rules` (база master `4ce7316`), сохраняется после интеграции. `stable.txt` =
-`515e585…` (голова VAC-B1) — перепинывается на голову completion-VAC финальным пином. macOS; коммиты —
+`58e1041…` (голова completion-VAC, забутстраплено финальным пином D051). macOS; коммиты —
 `just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
 
 ## Progress
@@ -20,9 +20,10 @@
 VAC-A `d10996d` (ротация P052/B043, выбор P053). VAC-B1 `515e585` (инертный источник `disabled-raii`).
 Мид-пин `81ed95c` (stable=`515e585`). VAC-B2 `f06e2a3` (правило `disabled-raii` активно: `registry` +
 `catalog::ALL` + `lint.yaml` + навык `own-the-resource`; I020 +1/+1; догфуд `.keep()` обоснован D092).
-Completion-VAC (этот коммит): решение [D093](Decisions/093.md) (четыре нормы), ротация P053 →
+Completion-VAC `58e1041`: решение [D093](Decisions/093.md) (четыре нормы), ротация P053 →
 [Archive/Plan](Archive/Plan.md) и B044 → [Archive/Backlog](Archive/Backlog.md) с Delivery и миграцией
 относительных ссылок, миграция card-ссылок D092/D093 на `Archive/Backlog/044.md`, refresh State.
+Финальный пин D051 (этот коммит): `stable.txt` = `58e1041` + `just bootstrap`.
 
 ## Verification
 
@@ -37,8 +38,6 @@ I020) — на коммите этого VAC.
 
 ## Next action
 
-1. D051 финальный пин: `stable.txt` = голова completion-VAC + `just bootstrap` одной `just scratch`-командой,
-   коммит пина до `just feature-merge`.
-2. `just feature-merge` (сохранить ветку, не пушить). Отчёт пользователю на русском на границе merge.
-3. Весь Tier A+B отчёта воркфлоу завершён; дальше согласованных карточек нет. Custom-allocator (B034-набросок)
+1. `just feature-merge` (сохранить ветку, не пушить). Отчёт пользователю на русском на границе merge.
+2. Весь Tier A+B отчёта воркфлоу завершён; дальше согласованных карточек нет. Custom-allocator (B034-набросок)
    припаркован — ждёт отдельного go-ahead пользователя. Свободные ID: D094+, P054+.
