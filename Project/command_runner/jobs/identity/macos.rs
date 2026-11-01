@@ -62,6 +62,7 @@ fn info<T>(pid: u32, flavor: c_int) -> Result<T> {
     // DECISION: D066
     Ok(unsafe { value.assume_init() })
 }
+// DECISION: D066
 #[allow(deprecated)]
 fn nanoseconds(ticks: u64) -> u64 {
     let mut timebase = libc::mach_timebase_info { numer: 0, denom: 0 };

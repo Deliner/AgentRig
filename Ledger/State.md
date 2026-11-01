@@ -4,34 +4,42 @@
 
 **Набор II** — переносимые на любое приложение, agent-native улучшения качества (10 кластеров
 C1–C10), по одной карточке за ветку, автономно. Порядок: C1 зонирование → C2 границы окружения →
-C4 локальность → C9 подавление линтов/`dbg!` → C6 эффекты/ошибки → C3 детерминизм → C5 контракты
-поведения → C10 эволюция API/данных → C7 анти-дублирование → C8 анти-переусложнение. Слитая
-**C1+C2 (B034/P043)** и **C4 (B035/P044)** доставлены. Дальше — **C9** (подавление линтов/`dbg!`).
+C4 локальность → C9 подавление линтов/`dbg!` → **C6 эффекты/ошибки** → C3 детерминизм → C5
+контракты поведения → C10 эволюция API/данных → C7 анти-дублирование → C8 анти-переусложнение.
+Слиты и доставлены **C1+C2 (B034/P043)**, **C4 (B035/P044)** и **C9 (B036/P045)**. Следующий — C6.
 
 ## Workspace
 
-Ветка feature/locality (база master @ `7cd8207`). VAC-B закоммичен — голова `1324dac`. Ротация
-карточек B035/P044 в Archive — в рабочем дереве, пин ещё не обновлён (stable.txt=`5d01af9`). Машина
-— macOS. Сборка/кандидат/коммит/бустрап/merge — через `just scratch -- '...'` с PATH (`cargo` в
-`~/.cargo/bin`, venv `tooling/.venv/bin` первым). Agent-Bash — одна top-level `just`-команда без
-`&&`/хвостового `| tail`.
+Ветка feature/hygiene (база master @ `bef58cb`), HEAD @ `dbcd342` (VAC-C2) + ротационный VAC.
+Машина — macOS. Сборка/кандидат/коммит/бутстрап — через `just scratch -- '...'` с восстановленным
+PATH (`cargo` в `~/.cargo/bin`); Agent-Bash — одна top-level `just`-команда без `&&`.
+
+Механизм рантайма: хук/`config-check`/оркестрация гейта идут через `tooling/worker/run` →
+УСТАНОВЛЕННЫЙ бинарь `.cache/development/<stable-hash>/` (из `tooling/distribution/stable.txt`); НЕ
+per-HEAD. `lint`/build/clippy/rustfmt/rust-test и `init` (I020) используют КАНДИДАТА. stable
+забутстраплен на `843a29e` (знает `debug-artifact`).
+
+УРОК (порядок доставки): живое правило в `.agentrig/lint.yaml` нельзя добавлять раньше, чем создан
+навык, на который оно ссылается: `config-check` падает (`paths.lint: No such file`), а agent-хук
+fail-closed блокирует все Bash/Edit/Write. Порядок: навык + `catalog::ALL` + `assets.rs` сначала,
+живое правило — последним. УРОК (дедлок): бутстрап только АТОМАРНО (запись stable.txt + `bash
+tooling/distribution/bootstrap.sh` в одном `just scratch`), никогда не ставить stable на
+неустановленную ревизию.
 
 ## Progress
 
-VAC-B (`1324dac`) закоммичен, полный гейт зелёный. Доставлено: поле `dependents` в контракте
-`architecture.yaml` и правило входящей связности (`directory-architecture` считает радиус каждого
-каталога по графу и сообщает о превышении бюджета, дефолт 6, на уровне error), решение D079
-(расширяет D078). Догфуд: шесть общих хабов объявили реальный радиус (`shared/paths`/`shared/vcs`
-12, `project_config` 11, `shared/testing`/`shared/diagnostics` 10, `shared/yaml` 9). Завершённые
-карточки B035/P044 перенесены в Archive (эта ротация в рабочем дереве): строки убраны из
-Backlog.md/Plan.md, карточки — в [Archive/Plan/044.md](Archive/Plan/044.md)/[Archive/Backlog/035.md](Archive/Backlog/035.md),
-ссылка card в D079 переведена на `Archive/Backlog/035.md`, в Plan.md добавлен абзац о доставке.
+C9 ДОСТАВЛЕНО полностью (два ядра). `allow-justification`: VAC-B1 `a464830`, VAC-B2 `c851755`.
+`debug-artifact` (`dbg!`, безусловно): VAC-C1 `843a29e`, VAC-C2 `dbcd342`. Оба вида в `catalog::ALL`,
+навыки `justify-allow`/`remove-debug` в `assets.rs` + symlink; правила в `.agentrig/lint.yaml`; линки
+D080/D081. Ротация B036/P045 в Archive сделана в рабочем дереве (карточки перенесены, индексы Plan/
+Backlog очищены, Archive/Plan.md + Archive/Backlog.md дополнены, `[card]` D080/D081 → `Archive/
+Backlog/036.md`, прозаическая строка 2026-11-01 в Plan.md). Ротационный VAC ещё не закоммичен.
 
 ## Verification
 
-Коммит-гейт VAC-B (`1324dac`) весь PASS: build/lint/memory/rustfmt/clippy/rust-test 87/ruff-format/
-ruff/mypy/pytest 358 (вкл. architecture-набор и test_delivery/I020)/typos/vulture. Ротацию карточек
-проверит memory-check при коммите.
+Коммит-гейт VAC-C2 `dbcd342` зелёный: build/lint/memory/rustfmt/clippy/rust-test 96/ruff-format/ruff/
+mypy/pytest 306 (вкл. test_delivery/I020)/typos/vulture — все PASS. `just candidate lint` — 0 находок.
+Memory-check ротации прогонится при коммите ротационного VAC.
 
 ## Blockers
 
@@ -39,8 +47,9 @@ ruff/mypy/pytest 358 (вкл. architecture-набор и test_delivery/I020)/typ
 
 ## Next action
 
-Закоммитить ротацию карточек в Archive через хук (голова X, гейт зелёный). Затем D051: (1) коммит
-«пин <X-short>» — stable.txt=X (40 симв. + `\n`) + `just bootstrap` ВНУТРИ одного `just scratch` с
-PATH; (2) `just feature-merge` ВНУТРИ `just scratch` с PATH (не пушить, ветку сохранить). Отчёт на
-русском. Следующий кластер Набора II — **C9** (подавление линтов/`dbg!`): завести карточку → реализовать
-→ догфуд → merge+пин. Свободные ID: P045, B036, D080.
+1. Закоммитить ротационный VAC (memory-only: Plan/Backlog/Archive/Decisions/State + перенос карточек),
+   сообщение `P045: archive B036/P045 (C9 delivered)`. НЕ стейджить stable.txt.
+2. D051: атомарный `just scratch` — stable.txt = голова ротационного VAC + `bash
+   tooling/distribution/bootstrap.sh`; затем коммит пина stable.txt.
+3. `just feature-merge` (не пушить, ветку сохранить). Отчёт на русском.
+4. Далее Набор II: C6 → C3 → C5 → C10 → C7 → C8. Свободные ID: P046, B037, D082.
