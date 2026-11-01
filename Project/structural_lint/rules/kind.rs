@@ -24,6 +24,9 @@ pub enum Kind {
     DebugAssertion,
     PanicPath,
     WildcardImport,
+    TupleAsRecord,
+    EagerFallback,
+    DiscardedResult,
     CommentReference,
     DirectoryArchitecture,
 }

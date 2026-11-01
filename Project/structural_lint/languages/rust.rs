@@ -18,7 +18,11 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             assertion_macro(node, source, output);
             panic_macro(node, source, output);
         }
-        "call_expression" => panic_call(node, source, output),
+        "call_expression" => {
+            panic_call(node, source, output);
+            eager_fallback(node, source, output);
+        }
+        "expression_statement" => discarded_result(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => {
             let Some(test) = node.child_by_field_name("condition") else {
@@ -61,6 +65,43 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     if unsafe_declaration {
         unsafe_justification(node, source, output);
     }
+    let named = matches!(node.kind(), "function_item" | "function_signature_item");
+    if named {
+        record_signature(node, source, output);
+    }
+}
+// DECISION: D088
+fn record_signature(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let tuple = signature_tuple(node);
+    let plain = !tuple;
+    if plain {
+        return;
+    }
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::TupleAsRecord,
+        line: node.start_position().row + 1,
+        symbol: "signature".into(),
+        actual: 1,
+    });
+}
+fn signature_tuple(node: Node<'_>) -> bool {
+    let parameter = node
+        .child_by_field_name("parameters")
+        .is_some_and(|parameters| {
+            let mut cursor = parameters.walk();
+            parameters
+                .named_children(&mut cursor)
+                .filter_map(|parameter| parameter.child_by_field_name("type"))
+                .any(|annotation| annotation.kind() == "tuple_type")
+        });
+    let returned = node
+        .child_by_field_name("return_type")
+        .is_some_and(|annotation| annotation.kind() == "tuple_type");
+    parameter || returned
 }
 // DECISION: D065
 fn unsafe_function(node: Node<'_>, source: &str) -> bool {
@@ -171,6 +212,92 @@ fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Mea
         kind: Kind::PanicPath,
         line: node.start_position().row + 1,
         symbol: symbol.into(),
+        actual: 1,
+    });
+}
+// DECISION: D089
+fn eager_fallback(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(function) = node.child_by_field_name("function") else {
+        return;
+    };
+    let Some(field) = function.child_by_field_name("field") else {
+        return;
+    };
+    let method = field.kind() == "field_identifier";
+    let name = text(field, source);
+    let eager = method && matches!(name, "unwrap_or" | "ok_or" | "map_or");
+    let unrelated = !eager;
+    if unrelated {
+        return;
+    }
+    let Some(arguments) = node.child_by_field_name("arguments") else {
+        return;
+    };
+    let mut cursor = arguments.walk();
+    let propagated = arguments
+        .named_children(&mut cursor)
+        .find(|argument| !argument.is_extra())
+        .is_some_and(propagates);
+    let safe = !propagated;
+    if safe {
+        return;
+    }
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::EagerFallback,
+        line: node.start_position().row + 1,
+        symbol: name.into(),
+        actual: 1,
+    });
+}
+fn propagates(node: Node<'_>) -> bool {
+    let shortcut = node.kind() == "try_expression";
+    if shortcut {
+        return true;
+    }
+    let deferred = node.kind() == "closure_expression";
+    if deferred {
+        return false;
+    }
+    let mut cursor = node.walk();
+    node.named_children(&mut cursor).any(propagates)
+}
+// DECISION: D090
+fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let mut cursor = node.walk();
+    let Some(inner) = node
+        .named_children(&mut cursor)
+        .find(|child| !child.is_extra())
+    else {
+        return;
+    };
+    let call = inner.kind() == "call_expression";
+    let other = !call;
+    if other {
+        return;
+    }
+    let Some(function) = inner.child_by_field_name("function") else {
+        return;
+    };
+    let Some(field) = function.child_by_field_name("field") else {
+        return;
+    };
+    let discarded = field.kind() == "field_identifier" && text(field, source) == "ok";
+    let kept = !discarded;
+    if kept {
+        return;
+    }
+    let allowed = justified(node, source) || in_test_context(node, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::DiscardedResult,
+        line: node.start_position().row + 1,
+        symbol: "ok".into(),
         actual: 1,
     });
 }
