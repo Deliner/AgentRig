@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B038](Backlog/038.md) | Детерминизм: зона `pure` не читает стенные часы (Rust) | Модуль `zone: pure` не может незаметно зависеть от времени — чтение часов ловится гейтом как доступ к окружению |

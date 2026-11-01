@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P047](Plan/047.md) | active | - | [B038](Backlog/038.md): детерминизм — зона `pure` не читает стенные часы (Rust) | Модуль `zone: pure` не может незаметно зависеть от времени — чтение `Instant::now`/`SystemTime::now` ловится гейтом как доступ к окружению |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
@@ -280,3 +279,16 @@ feature/determinism. Кластер C3 Набора II «детерминизм�
 порядок итерации `HashMap`/`HashSet`, тайминг потоков (тип-вывод/поток данных отвергнут,
 [D059](Decisions/059.md)); детерминизм тестов — уже testing-discipline 7.2 ([D075](Decisions/075.md)).
 Притворных инвариантов нет. Порядок остальных кластеров — за исполнителем.
+2026-11-01 P047 (B038, C3) выполнен: расширена проверка зоны `pure` правила `directory-architecture`
+([D083](Decisions/083.md), расширяет [D078](Decisions/078.md)) — чтение стенных часов (`Instant::now`/
+`SystemTime::now`) в собственном файле `zone: pure`-каталога становится находкой error, как и доступ к
+окружению. `architecture/mod.rs` — `CLOCK` + предикат `clock()` (точное равенство полному external-пути);
+`runner/analysis.rs` классифицирует ссылку через `environment()||clock()`; `policy.rs::check_zones`
+называет категорию (свободная fn `zone_message()`: «must not read the wall clock» для часов, байт-
+идентичная D078 строка для окружения). Резолвер уже дописывает `::now`, поэтому `Duration`/`UNIX_EPOCH`
+остаются легальными (near-zero-FP, [D035](Decisions/035.md)). Нового вида правила/навыка нет → I020 без
+изменений; ремонт — существующий `refactor-large-directory`. VAC-A `ef62152`, VAC-B `ad3235b`. Наш код
+зелёный (единственный `pure`-каталог `structural_lint/architecture/resolution` часов не читает). P047
+перенесён в [Archive/Plan](Archive/Plan.md), B038 — в [Archive/Backlog](Archive/Backlog.md); ссылка card
+в D083 переведена на `Archive/Backlog/038.md`; пин stable.txt на голову ветки ([D051](Decisions/051.md)).
+Набор II: C1+C2, C4, C9, C6 и C3 доставлены; следующий кластер — C5 (контракты поведения).
