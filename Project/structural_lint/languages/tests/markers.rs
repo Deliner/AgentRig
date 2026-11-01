@@ -199,3 +199,48 @@ mod tests {
 ";
     assert_eq!(assertion_findings("source.rs", source), [2, 3]);
 }
+
+// DECISION: D085
+fn wildcard_findings(path: &str, source: &str) -> Vec<usize> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut lines: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::WildcardImport)
+        .map(|item| item.line)
+        .collect();
+    lines.sort();
+    lines
+}
+
+#[test]
+fn rust_flags_glob_imports_outside_test_code() {
+    let source = "use crate::foo::*;
+use crate::bar::{Baz, Qux};
+use crate::grouped::{First, nested::*};
+// DECISION: D001
+use crate::justified::*;
+fn run() {
+    let text = \"use x::* in a string\";
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn checks() {}
+}
+";
+    assert_eq!(wildcard_findings("source.rs", source), [1, 3]);
+}
+
+#[test]
+fn python_flags_wildcard_imports_without_a_reference() {
+    let source = "from os import path
+from sys import *
+# DECISION: D001
+from json import *
+from collections import abc
+";
+    assert_eq!(wildcard_findings("source.py", source), [2]);
+}

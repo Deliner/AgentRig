@@ -23,6 +23,7 @@ pub enum Kind {
     DebugArtifact,
     DebugAssertion,
     PanicPath,
+    WildcardImport,
     CommentReference,
     DirectoryArchitecture,
 }

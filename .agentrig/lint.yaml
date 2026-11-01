@@ -288,6 +288,22 @@ rules:
   level: error
   warning_skill: .agents/skills/firm-up-assertion/SKILL.md
   error_skill: .agents/skills/firm-up-assertion/SKILL.md
+# DECISION: D085
+- id: wildcard-import
+  kind: wildcard-import
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  level: error
+  warning_skill: .agents/skills/narrow-import/SKILL.md
+  error_skill: .agents/skills/narrow-import/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
