@@ -9,7 +9,8 @@ C3 детерминизм → C5 контракты → C10 эволюция API
 
 ## Workspace
 
-Ветка feature/effects (база master @ `756d69e` — merge-коммит C9), HEAD на старте C6. Машина — macOS.
+Ветка feature/effects (база master @ `756d69e` — merge-коммит C9), HEAD `64e2b18` (VAC-A), VAC-B1 в
+рабочем дереве. Машина — macOS.
 Сборка/кандидат/коммит/бутстрап — через `just scratch -- '...'` с восстановленным PATH (`cargo` в
 `~/.cargo/bin`); Agent-Bash — одна top-level `just`-команда без `&&`.
 
@@ -31,13 +32,25 @@ Bash/Edit/Write): навык/`catalog`/`assets` сначала, живое пр�
 
 C6 ядро — panic-путь в ПОСТАВЛЯЕМОМ линтере: `.unwrap()`/`.expect(...)` и макросы
 `panic!`/`todo!`/`unimplemented!`/`unreachable!` без ссылки-обоснования прямо выше, тестовый код
-(`#[cfg(test)]`/`#[test]`/`tests/`) исключён; механизм justified (как unsafe D065/allow D080).
-**VAC-A готов в рабочем дереве, ещё не закоммичен**: B037 сохранён (карточка+строка Backlog), P046
-промоутнут (active, карточка+строка Plan), C6-анализ записан прозой, State. Код правила ещё не писан.
+исключён; механизм justified (как unsafe D065/allow D080).
+
+**VAC-A закоммичен** (`64e2b18`): B037/P046 заведены и промоутнуты, C6-анализ записан.
+
+**VAC-B1 готов в рабочем дереве, ещё не закоммичен** (source): `Kind::PanicPath` (kind.rs); const
+`PANICPATH` + arm (descriptor.rs, `// DECISION: D082`); `Kind::PanicPath` в rust-правилах
+(registry.rs); детектор в rust.rs (`// DECISION: D082`) — диспетчер `call_expression` + расширенный
+`macro_invocation`, хелперы `panic_call`/`panic_macro`/`report_panic`/`in_test_context`/
+`test_attributed`/`test_marker`; тест `rust_flags_panic_paths_outside_test_code` в markers.rs
+(`// DECISION: D082`); карточка D082 + строка индекса. `catalog::ALL`/`lint.yaml`/навык НЕ тронуты
+(это B2). Факт AST (спайк): атрибуты — предшествующие соседи элемента; `.unwrap()` =
+`call_expression{function: field_expression{field: field_identifier}}`.
 
 ## Verification
 
-Пока нет (VAC-A — memory-only, проверится memory-check при коммите).
+`cargo +1.98.1 test --lib markers` на кандидате → 5 passed (incl.
+`rust_flags_panic_paths_outside_test_code`, находки `[2,3,6,9,10]`; обоснованные `.unwrap()`/`todo!`,
+строковый литерал и тело `#[cfg(test)] mod`+`#[test]` не дают находок). Компиляция чистая. Полный
+гейт — при коммите B1.
 
 ## Blockers
 
@@ -45,15 +58,15 @@ C6 ядро — panic-путь в ПОСТАВЛЯЕМОМ линтере: `.unw
 
 ## Next action
 
-1. Закоммитить VAC-A (memory-only), сообщение `P046 VAC-A: register B037 (C6 effects), promote, record
-   C6 analysis`.
-2. **VAC-B1** (source): `Kind::PanicPath` (kind.rs) + descriptor + arm (descriptor.rs) + rust-handler
-   rules (registry.rs) + детектор на `call_expression`/`macro_invocation` c именами
-   `unwrap`/`expect`/`panic`/`todo`/`unimplemented`/`unreachable`, исключая `#[cfg(test)]`/`#[test]`,
-   через `justified` + тест в `markers.rs` + решение D082. НЕ трогать `catalog::ALL`. Коммит.
-3. Атомарный бустрап stable.txt на голову B1.
-4. **VAC-B2** (delivery): правило в `lint.yaml`, `Kind::PanicPath` в `catalog::ALL`, навык (имя на
-   выбор, напр. `handle-panic`) в `references/` + symlink + инвентарь + `assets.rs`, линки D082, догфуд
-   (lib уже без unwrap по D060 → 0 находок, тесты исключены), State. СНАЧАЛА навык, ПОТОМ живое правило.
-5. Финал: ротация B037/P046 в Archive, пин stable.txt + бустрап (D051), `just feature-merge`.
-   Свободные ID: P047, B038, D082+.
+1. Застейджить и закоммитить **VAC-B1** (kind/descriptor/registry/rust/markers + D082 карточка+индекс +
+   State), сообщение `P046 VAC-B1: add panic-path rule kind and detector; record D082`. Хук гоняет
+   полный гейт (clippy на lib — мой код без unwrap/panic).
+2. Атомарный бустрап stable.txt на голову B1 (запись stable.txt + `bash tooling/distribution/bootstrap.sh`
+   в одном `just scratch`), коммит пина? Нет — пин stable на финале (D051). Здесь бустрап нужен, чтобы
+   stable-бинарь узнал `panic-path` перед живым правилом в B2.
+3. **VAC-B2** (delivery): правило `panic-path` в `lint.yaml` с `exclude: ['**/tests/**']`, `Kind::PanicPath`
+   в `catalog::ALL`, навык `handle-panic` в `references/` (SKILL.md + architecture.yaml + flat symlink +
+   инвентарь references/architecture.yaml) + `assets.rs`, линки D082 (+`[repository rule]`,`[skill]`),
+   догфуд (`just candidate lint` → 0 находок), State. СНАЧАЛА навык/catalog/assets, ПОТОМ живое правило.
+4. Финал: ротация B037/P046 в Archive, пин stable.txt на голову B2 + бустрап (D051), коммит пина,
+   `just feature-merge` (ветку оставить, НЕ пушить). Свободные ID: P047, B038, D083+.

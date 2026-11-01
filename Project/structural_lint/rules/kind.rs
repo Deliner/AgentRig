@@ -21,6 +21,7 @@ pub enum Kind {
     DisabledTest,
     AllowJustification,
     DebugArtifact,
+    PanicPath,
     CommentReference,
     DirectoryArchitecture,
 }
