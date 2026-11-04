@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P064](Plan/064.md) | pending | - | [B057](Backlog/057.md): disallowed-path — политика запрещённых путей и владелец `shared/fs` | Проект объявляет запрещённые вне владельца пути; ошибки файловой системы AgentRig называют путь. |
 | [P065](Plan/065.md) | pending | - | [B060](Backlog/060.md): C-профиль dev-гейта — пять линтов clippy и ограждение `unsafe` | Dev-гейт ловит пять новых классов дефектов; `unsafe` только в объявленном поддереве. |
 | [P066](Plan/066.md) | pending | P056 | [B062](Backlog/062.md): одноразовые ремонты нашего кода (N1/N2 и прочие) | Собственный код соответствует N1/N2; fail-open вердикты закрыты тестами. |
 | [P067](Plan/067.md) | pending | - | [B061](Backlog/061.md): владелец консольного вывода | Источник любой строки вывода — одно место. |
@@ -482,4 +481,6 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 один VAC, [D099](Decisions/099.md)), P059 (B058; VAC-B1 `349c23a`, пин `e560c9d`,
 [D100](Decisions/100.md)), P060 (B054; один VAC, [D101](Decisions/101.md)), P061 (B055; VAC-B1 `30fd2a9`, пин
 `aced8ec`, [D102](Decisions/102.md)), P062 (B046; один VAC, [D103](Decisions/103.md)), P063 (B056; один VAC,
-[D104](Decisions/104.md)); у каждой догфуд 0 находок, живая проба даёт находку.
+[D104](Decisions/104.md)), P064 (B057; VAC-A `b68140d`, пин `7020ea6`, VAC-B1 `324326e`, VAC-B2 `8731520`,
+VAC-B3 `03d803c`, VAC-C, [D105](Decisions/105.md), [D106](Decisions/106.md)); у каждой догфуд 0 находок,
+живая проба даёт находку.

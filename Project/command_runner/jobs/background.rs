@@ -1,7 +1,7 @@
 use super::{Job, Record, identity::Identity, storage};
+use crate::shared::fs::{self, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{
-    fs::{self, OpenOptions},
     os::unix::process::CommandExt,
     path::Path,
     process::{Command, Stdio},
@@ -85,10 +85,10 @@ impl Job {
         &self.record
     }
     fn launcher(&self, executable: &Path) -> Result<Command> {
-        let log = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(self.directory.join("launcher.log"))?;
+        let log = fs::open_with(
+            OpenOptions::new().create_new(true).write(true),
+            self.directory.join("launcher.log"),
+        )?;
         let mut command = Command::new(executable);
         command
             .arg("_job-run")

@@ -1,10 +1,10 @@
 use crate::project_config::Context;
+use crate::shared::fs::{self, PermissionsExt};
 use anyhow::Result;
-use std::{env, fs, path::Path, process::Command};
+use std::{env, path::Path, process::Command};
 
 fn available(program: &str, cwd: &Path) -> bool {
     let executable = |path: &Path| {
-        use std::os::unix::fs::PermissionsExt;
         path.metadata()
             .is_ok_and(|meta| meta.is_file() && meta.permissions().mode() & 0o111 != 0)
     };

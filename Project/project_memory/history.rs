@@ -1,9 +1,10 @@
 // DECISION: D020
 use super::format;
 use crate::project_config::{Context, FILE};
+use crate::shared::fs;
 use crate::shared::vcs::{Entry, Repository};
 use anyhow::{Context as _, Result, ensure};
-use std::{collections::BTreeMap, fs, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<String> {
     let bytes = repository

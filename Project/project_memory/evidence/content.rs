@@ -1,12 +1,9 @@
 use crate::project_config::Context as Project;
+use crate::shared::fs::{self, PermissionsExt};
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use sha2::{Digest, Sha256};
-use std::{
-    fs,
-    os::unix::fs::PermissionsExt,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 // DECISION: D062
 #[derive(Clone, Copy)]

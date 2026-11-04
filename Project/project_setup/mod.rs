@@ -6,9 +6,10 @@ pub(super) mod initialization;
 mod lint;
 mod template;
 use crate::project_config::{self, Config};
+use crate::shared::fs;
 use anyhow::{Result, ensure};
 pub use doctor::run as doctor;
-use std::{collections::BTreeMap, fs};
+use std::collections::BTreeMap;
 type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(config: &Config) -> Result<Files> {
     let mut files = guidance(config);

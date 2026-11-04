@@ -1,0 +1,7 @@
+purpose: Own filesystem access for the product with errors naming the action and the path
+type: flat
+dependents: 20
+files:
+  mod.rs: Path-carrying wrappers over std::fs with re-exported handle and permission types
+  tests.rs: Error wording, kinds and wrapper behavior through temporary directories
+directories: {}

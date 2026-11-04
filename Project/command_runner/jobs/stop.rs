@@ -1,7 +1,7 @@
 use super::{group, identity::Identity, owner, storage};
+use crate::shared::fs::{self, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{
-    fs::OpenOptions,
     path::Path,
     time::{Duration, Instant},
 };
@@ -42,12 +42,11 @@ pub fn run(runtime: &Path, id: &str) -> Result<()> {
     Ok(())
 }
 fn request(runtime: &Path, id: &str) -> Result<()> {
-    OpenOptions::new()
-        .create(true)
-        .truncate(false)
-        .write(true)
-        .open(runtime.join("jobs").join(id).join("stop-requested"))?
-        .sync_all()?;
+    fs::open_with(
+        OpenOptions::new().create(true).truncate(false).write(true),
+        runtime.join("jobs").join(id).join("stop-requested"),
+    )?
+    .sync_all()?;
     Ok(())
 }
 fn wait(leader: &Identity) -> bool {

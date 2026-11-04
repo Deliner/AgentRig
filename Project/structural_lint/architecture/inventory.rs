@@ -1,6 +1,7 @@
 use super::{Issue, policy::Declaration};
+use crate::shared::fs;
 use crate::structural_lint::inventory::Inventory;
-use std::{collections::BTreeMap, fs, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 // DECISION: D062
 #[derive(Clone, Copy)]

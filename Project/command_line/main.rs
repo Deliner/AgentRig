@@ -63,7 +63,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
         return agentrig::shared::paths::resolve(&env::current_dir()?.join(root));
     }
     if initializing {
-        std::fs::create_dir_all(&root)?;
+        agentrig::shared::fs::create_dir_all(&root)?;
     }
     root.canonicalize().map_err(Into::into)
 }

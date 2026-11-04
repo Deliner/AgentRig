@@ -1,5 +1,6 @@
+use crate::shared::fs;
 use anyhow::{Result, bail};
-use std::{fs, path::Path};
+use std::path::Path;
 
 pub fn reference(root: &Path, value: &str) -> Result<()> {
     let absolute = Path::new(value).is_absolute();

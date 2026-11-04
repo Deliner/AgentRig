@@ -1,5 +1,6 @@
+use crate::shared::fs;
 use serde_json::Value;
-use std::{fs, path::Path};
+use std::path::Path;
 
 // DECISION: D015
 pub fn object(path: &Path) -> Value {
@@ -15,7 +16,7 @@ pub fn text<'a>(value: &'a Value, key: &str) -> &'a str {
 
 #[cfg(test)]
 mod tests {
-    use super::{object, text};
+    use super::{fs, object, text};
     use serde_json::json;
 
     #[test]
@@ -24,10 +25,10 @@ mod tests {
         let path = directory.path().join("state.json");
         assert_eq!(object(&path), json!({}));
         for contents in ["invalid", "null", "[]", "42", "\"text\""] {
-            std::fs::write(&path, contents).unwrap();
+            fs::write(&path, contents).unwrap();
             assert_eq!(object(&path), json!({}));
         }
-        std::fs::write(&path, r#"{"session_id":"abc","offset":3}"#).unwrap();
+        fs::write(&path, r#"{"session_id":"abc","offset":3}"#).unwrap();
         assert_eq!(object(&path), json!({"session_id": "abc", "offset": 3}));
     }
 

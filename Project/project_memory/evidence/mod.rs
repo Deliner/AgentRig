@@ -3,11 +3,11 @@ mod content;
 pub use content::native_index;
 
 use crate::project_config::{self, Check, Context};
+use crate::shared::fs;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 use std::{
-    fs,
     path::{Path, PathBuf},
     time::{SystemTime, UNIX_EPOCH},
 };

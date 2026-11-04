@@ -10,7 +10,7 @@ mod tests;
 
 use std::path::PathBuf;
 
-pub use super::rules::architecture::{PYTHON_SEED, RUST_SEED, Settings};
+pub use super::rules::architecture::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use policy::{Contracts, Loaded, describe};
 
 #[derive(Clone, Debug)]
@@ -54,7 +54,7 @@ pub fn environment(external: &str) -> bool {
     ENVIRONMENT.iter().any(|namespace| bounded(path, namespace))
 }
 
-fn bounded(path: &str, namespace: &str) -> bool {
+pub fn bounded(path: &str, namespace: &str) -> bool {
     path == namespace
         || path
             .strip_prefix(namespace)

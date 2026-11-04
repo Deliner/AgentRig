@@ -1,7 +1,6 @@
 # Directory architecture lint
 
-`directory-architecture` is an opt-in rule of `agentrig lint` and `agentrig-lint`. It checks per-directory contracts
-and feature types and reports directory cycles in measured source dependencies.
+`directory-architecture` (opt-in in `agentrig lint` and `agentrig-lint`) checks contracts, feature types and cycles.
 
 ## Configuration
 
@@ -29,9 +28,10 @@ parsed for dependencies; inventory coverage does not depend on it. Resolution us
 or regular non-symlink files outside Git; Git metadata and symlinked directories are skipped.
 
 `architecture` and explicit extensions are required. `python_root` defaults to the project root. `rust_roots` lists
-the actual crate roots (`[]` without Rust); `rust_crates` maps further local crate names, such as
-`{catalog: crates/catalog/src/lib.rs}`, to roots also listed there. External names are module or package prefixes, not
-globs; Rust defaults to `std`, `core` and `alloc`. An external name cannot hide a locally resolved path.
+the actual crate roots (`[]` without Rust); `rust_crates` maps further local crate names to roots also listed there.
+External names are module or package prefixes, not globs; Rust defaults to `std`, `core` and `alloc`. An external name
+cannot hide a locally resolved path. `disallowed` entries (`path`, `reason`, `replacement`, `allow` file globs) flag a
+reference resolved to that Rust path or a `::` subpath from a file outside `allow`, naming the reason and replacement.
 
 `level: warning` reports without failing, `error` exits 1 and configuration errors exit 2. Findings name the source
 line or the contract with the repair skill and rerun command.
