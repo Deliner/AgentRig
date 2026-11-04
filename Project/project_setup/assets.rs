@@ -125,15 +125,19 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "own-the-resource",
-        include_str!("../shared/skills/references/own-the-resource/SKILL.md"),
+        include_str!("../shared/skills/ownership/own-the-resource/SKILL.md"),
     ),
     (
         "own-the-state",
-        include_str!("../shared/skills/references/own-the-state/SKILL.md"),
+        include_str!("../shared/skills/ownership/own-the-state/SKILL.md"),
     ),
     (
         "anchor-at-crate",
         include_str!("../shared/skills/references/anchor-at-crate/SKILL.md"),
+    ),
+    (
+        "contain-the-deletion",
+        include_str!("../shared/skills/ownership/contain-the-deletion/SKILL.md"),
     ),
     (
         "split-boolean-parameter",

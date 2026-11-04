@@ -1,0 +1,5 @@
+purpose: "Delete a directory tree through an owner that checks the path lies inside its own area, or justify the intended recursive deletion with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to give a recursive directory deletion an owner with a boundary instead of a bare remove_dir_all call"
+directories: {}

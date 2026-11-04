@@ -29,6 +29,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             eager_fallback(node, source, output);
             disabled_raii(node, source, output);
             super::silent_error::collapsed_read_dir(node, source, output);
+            super::recursive_deletion::inspect(node, source, output);
         }
         "expression_statement" => discarded_result(node, source, output),
         "scoped_identifier" => super::super_reach::inspect(node, source, output),
@@ -420,6 +421,7 @@ fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             panic_call(node, source, output);
             eager_fallback(node, source, output);
             disabled_raii(node, source, output);
+            super::recursive_deletion::inspect(node, source, output);
         }
         "macro_invocation" => panic_macro(node, source, output),
         _ => {}

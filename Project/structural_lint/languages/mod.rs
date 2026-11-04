@@ -1,6 +1,7 @@
 mod global_state;
 mod manifest;
 mod python;
+mod recursive_deletion;
 mod registry;
 mod rust;
 mod silent_error;

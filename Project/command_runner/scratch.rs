@@ -39,6 +39,7 @@ pub fn cleanup(context: &Context, branch: &str) -> Result<()> {
             let disposable = entry.file_name() != "results";
             match (disposable, entry.file_type()?.is_dir()) {
                 (false, _) => {}
+                // DECISION: D102
                 (true, true) => fs::remove_dir_all(entry.path())?,
                 (true, false) => fs::remove_file(entry.path())?,
             }
@@ -50,6 +51,7 @@ pub fn cleanup(context: &Context, branch: &str) -> Result<()> {
         let run = record["run_id"].as_str().unwrap_or_default();
         let logged = owned && finished;
         if logged {
+            // DECISION: D102
             fs::remove_dir_all(jobs::directory(&runtime, run)?)?;
         }
     }
