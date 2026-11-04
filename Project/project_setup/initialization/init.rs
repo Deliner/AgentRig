@@ -1,12 +1,9 @@
 use super::wizard;
 use crate::project_config;
 use crate::project_setup::{Config, Files, bundle, template};
+use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
 use anyhow::{Result, ensure};
-use std::{
-    fs::{self, OpenOptions},
-    io::Write,
-    path::Path,
-};
+use std::{io::Write, path::Path};
 
 pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let interactive = args == ["--interactive"];
@@ -81,14 +78,10 @@ pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()>
             .parent()
             .ok_or_else(|| anyhow::anyhow!("install path has no parent"))?;
         fs::create_dir_all(parent)?;
-        let mut file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&path)?;
+        let mut file = fs::open_with(OpenOptions::new().write(true).create_new(true), &path)?;
         file.write_all(contents)?;
         if executable {
-            use std::os::unix::fs::PermissionsExt;
-            fs::set_permissions(&path, fs::Permissions::from_mode(0o755))?;
+            fs::set_permissions(&path, Permissions::from_mode(0o755))?;
         }
     }
     crate::shared::vcs::initialize(root, &config.git.base)?;

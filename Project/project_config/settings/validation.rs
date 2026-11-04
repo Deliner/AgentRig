@@ -1,8 +1,8 @@
 use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, module, name, relative};
-use crate::shared::{diagnostics::skills, paths::patterns::globs};
+use crate::shared::{diagnostics::skills, fs, paths::patterns::globs};
 use anyhow::{Context, Result, ensure};
+use std::collections::HashSet;
 use std::{collections::BTreeMap, path::Path};
-use std::{collections::HashSet, fs};
 
 impl Config {
     pub(crate) fn validate(&self, root: &Path) -> Result<()> {

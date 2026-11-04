@@ -2,10 +2,10 @@
 // DECISION: D022
 use super::evidence;
 use crate::project_config::Context;
+use crate::shared::fs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use serde_json::{Value, json};
-use std::fs;
 
 pub fn run(context: &Context) -> Result<()> {
     let memory = context.path(&context.config.paths.memory)?;

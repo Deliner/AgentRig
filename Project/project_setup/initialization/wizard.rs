@@ -28,7 +28,7 @@ pub fn run(root: &Path) -> Result<i32> {
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
         super::init::prepare(&root, &config, &files)?;
-        std::fs::create_dir_all(&root)?;
+        crate::shared::fs::create_dir_all(&root)?;
         super::init::install(&root, &config, &files)?;
         println!("Installed the worker environment. Authentication remains separate.");
         package::doctor(&project_config::Context::load(&root)?)

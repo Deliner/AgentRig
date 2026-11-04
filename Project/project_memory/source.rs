@@ -1,8 +1,8 @@
 // DECISION: D002
-use anyhow::{Context as _, Result, ensure};
+use crate::shared::fs;
+use anyhow::{Result, ensure};
 use std::{
     collections::{HashMap, HashSet},
-    fs,
     path::Path,
 };
 use tree_sitter::Node;
@@ -12,7 +12,7 @@ pub struct Source {
     pub functions: HashMap<String, Vec<HashSet<String>>>,
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
-    let bytes = fs::read(path).with_context(|| path.display().to_string())?;
+    let bytes = fs::read(path)?;
     let Ok(source) = String::from_utf8(bytes) else {
         return Ok(None);
     };

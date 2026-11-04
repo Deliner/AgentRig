@@ -1,7 +1,7 @@
+use crate::shared::fs;
 use anyhow::{Result, ensure};
 use std::{
     collections::HashSet,
-    fs,
     path::{Path, PathBuf},
 };
 

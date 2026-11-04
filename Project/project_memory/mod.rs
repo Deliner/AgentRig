@@ -14,13 +14,13 @@ mod source;
 pub use resume::run as resume;
 
 use crate::project_config::Context;
+use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
 use format::{Row, sections, table, target};
 use std::{
     collections::{HashMap, HashSet},
-    fs,
     path::Path,
 };
 

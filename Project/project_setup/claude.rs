@@ -1,8 +1,8 @@
 use super::{Config, Files, adapters};
 use crate::project_config::Context;
+use crate::shared::fs;
 use anyhow::Result;
 use serde_json::Value;
-use std::fs;
 
 pub(super) fn bundle(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
     files.insert("CLAUDE.md".into(), b"@AGENTS.md\n".to_vec());
