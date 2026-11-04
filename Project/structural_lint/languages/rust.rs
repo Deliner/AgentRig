@@ -13,7 +13,9 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
-        "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
+        "attribute_item" | "inner_attribute_item" => {
+            super::suppression::attribute(node, source, output)
+        }
         "static_item" => super::global_state::inspect(node, source, output),
         "macro_invocation" => {
             debug_macro(node, source, output);
@@ -121,33 +123,6 @@ fn unsafe_function(node: Node<'_>, source: &str) -> bool {
                 .split_whitespace()
                 .any(|word| word == "unsafe")
     })
-}
-// DECISION: D074
-// DECISION: D080
-fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let Some(name) = attribute_name(node, source) else {
-        return;
-    };
-    let kind = match name {
-        "ignore" => Kind::DisabledTest,
-        "allow" => Kind::AllowJustification,
-        _ => return,
-    };
-    let unjustified = !justified(node, source);
-    if unjustified {
-        output.push(Measurement {
-            kind,
-            line: node.start_position().row + 1,
-            symbol: name.into(),
-            actual: 1,
-        });
-    }
-}
-fn attribute_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
-    let attribute = node
-        .named_children(&mut node.walk())
-        .find(|child| child.kind() == "attribute")?;
-    Some(text(attribute.named_child(0)?, source))
 }
 // DECISION: D081
 fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {

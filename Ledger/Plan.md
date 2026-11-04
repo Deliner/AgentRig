@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P057](Plan/057.md) | pending | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [P058](Plan/058.md) | pending | - | [B059](Backlog/059.md): discarded-result — `.status()?;` / `.output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |
 | [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
 | [P060](Plan/060.md) | pending | - | [B054](Backlog/054.md): tuple-as-record — кортеж из ≥3 элементов внутри обобщённого типа | Безымянная запись не прячется в `Vec<(…)>`/`Option<(…)>`. |
@@ -485,4 +484,5 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 Ревизии контрактов — в карточках; порядок и границы VAC — за исполнителем. Выполнены и перенесены в
 [Archive/Plan](Archive/Plan.md)/[Archive/Backlog](Archive/Backlog.md): P055 (B052; VAC-B1 `c065b42`, пин
 `a8de4ec`, [D096](Decisions/096.md)), P056 (B049; VAC-B1 `9fce2ee`, пин `c049547`, [D097](Decisions/097.md),
-[I021](Invariants/021.md)); у каждой догфуд 0 находок, живая проба даёт находку.
+[I021](Invariants/021.md)), P057 (B053; VAC-B1 `fdbd5bb`, пин `d8fea52`, [D098](Decisions/098.md)); у каждой
+догфуд 0 находок, живая проба даёт находку.

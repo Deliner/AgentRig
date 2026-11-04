@@ -97,6 +97,38 @@ fn fixture() {
     assert_eq!(allow_findings("source.rs", source), [1, 11]);
 }
 
+// DECISION: D098
+#[test]
+fn rust_flags_expect_and_conditional_suppressions_like_allow() {
+    let source = "#[expect(dead_code)]
+fn bare() {}
+// DECISION: D001
+#[expect(dead_code, reason = \"generated\")]
+fn justified_expect() {}
+#[expect(unused, reason = \"a reason is not a reference\")]
+fn reasoned() {}
+#[cfg_attr(feature = \"strict\", allow(dead_code))]
+fn conditional_allow() {}
+#[cfg_attr(test, deny(warnings), expect(unused))]
+fn later_argument() {}
+// INVARIANT: I002
+#[cfg_attr(miri, allow(unused))]
+fn justified_conditional() {}
+#[cfg_attr(feature = \"serde\", derive(Serialize))]
+fn unrelated() {}
+mod inner {
+    #![cfg_attr(not(test), allow(dead_code))]
+}
+#[cfg_attr(miri, ignore)]
+fn skipped_conditionally() {}
+#[test]
+#[ignore]
+fn skipped() {}
+";
+    assert_eq!(allow_findings("source.rs", source), [1, 6, 8, 10, 18]);
+    assert_eq!(disabled_findings("source.rs", source), [20, 23]);
+}
+
 // DECISION: D081
 fn debug_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();
