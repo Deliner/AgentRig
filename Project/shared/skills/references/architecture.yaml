@@ -12,6 +12,6 @@ directories:
   narrow-import: "Replace a glob import with an explicit import list, or justify the deliberate wildcard with a reference"
   name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
   eager-to-lazy: "Move a fallback argument that can fail into the lazy *_else closure, or justify the eager evaluation with a reference"
-  handle-discarded: "Handle or propagate a Result instead of dropping it with a bare .ok() statement, or justify the ignored outcome with a reference"
+  handle-discarded: "Handle or propagate a Result instead of dropping it with a bare .ok() statement or a bare .status()? or .output()? statement, or justify the ignored outcome with a reference"
   own-the-resource: "Let a Rust value drop or hold its guard instead of defeating RAII, or justify the intended leak with a reference"
   own-the-state: "Give process-global mutable state an owner instead of a static lock or a public static cell, or justify the intended global with a reference"
