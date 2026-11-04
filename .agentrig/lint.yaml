@@ -241,6 +241,7 @@ rules:
   warning_skill: .agents/skills/justify-skip/SKILL.md
   error_skill: .agents/skills/justify-skip/SKILL.md
 # DECISION: D080
+# DECISION: D098
 - id: allow-justification
   kind: allow-justification
   target: file
@@ -248,6 +249,7 @@ rules:
   - '**'
   extensions:
   - .rs
+  - .toml
   level: error
   warning_skill: .agents/skills/justify-allow/SKILL.md
   error_skill: .agents/skills/justify-allow/SKILL.md

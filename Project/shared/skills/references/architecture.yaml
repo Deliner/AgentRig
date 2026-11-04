@@ -5,7 +5,7 @@ directories:
   justify-unsafe: "Justify an unsafe block or function with a recorded reference, or remove the unsafe"
   handle-error: "Handle a swallowed error, or record why it is safe to ignore with a reference"
   justify-skip: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
-  justify-allow: "Remove a broad Rust allow attribute and fix the finding, or record why it is suppressed with a reference"
+  justify-allow: "Remove a Rust allow, expect, cfg_attr or TOML allow-level suppression and fix the finding, or record why it is suppressed with a reference"
   remove-debug: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
   handle-panic: "Return or handle a Rust error instead of unwrap, expect or a panic macro, or justify the panic with a reference"
   firm-up-assertion: "Promote a release-stripped Rust debug_assert to a real assert, remove it, or justify the debug-only check with a reference"
