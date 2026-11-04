@@ -1,0 +1,5 @@
+purpose: "Give process-global mutable state an owner instead of a static lock or a public static cell, or justify the intended global with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to own mutable state instead of sharing it through a global"
+directories: {}
