@@ -107,7 +107,11 @@ pub fn guard_commit(root: &Path, settings: &crate::shared::vcs::Settings) -> Res
     eprintln!("direct commits on {base} are prohibited; create a {prefix} branch");
     Ok(1)
 }
-pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) -> Result<i32> {
+pub fn guard_reference_with(
+    root: &Path,
+    phase: &str,
+    settings: &crate::shared::vcs::Settings,
+) -> Result<i32> {
     let no_validation_needed = phase != "prepared";
     if no_validation_needed {
         return Ok(0);
@@ -122,9 +126,9 @@ pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) 
         }
         if let [old, new, reference] = fields.as_slice() {
             let deletion = new.chars().all(|ch| ch == '0')
-                && reference.starts_with(&format!("refs/heads/{prefix}"));
+                && reference.starts_with(&format!("refs/heads/{}", settings.prefix));
             if deletion {
-                let merged = merged_reference(root, old, reference, base)?;
+                let merged = merged_reference(root, old, reference, &settings.base)?;
                 if merged {
                     eprintln!("merged feature branches must be retained");
                     return Ok(1);

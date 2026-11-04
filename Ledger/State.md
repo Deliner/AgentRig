@@ -5,79 +5,45 @@
 **Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P064 слиты (последний merge `4cf520c`).
-**P065** (B060, C-профиль clippy dev-гейта и ограждение `unsafe`; [D107](Decisions/107.md)):
-VAC-1…VAC-5 (пять линтов) закоммичены; VAC-6 (`#![deny(unsafe_code)]`, D107, ротация P065/B060 в
-Archive) завершается этим коммитом; далее финальный пин D051 и `just feature-merge`; затем
-`just feature-start` для P066 (B062).
+выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P065 слиты (последний merge `b224444`).
+**P066** (B062, одноразовые ремонты собственного кода: AC2 fail-closed + `&Settings`, AC3 enum'ы,
+AC4 именованные записи, AC5 `Ordering`, AC6 `--help`): VAC-A (AC2) завершается этим коммитом; далее
+VAC по AC6, AC3 (Level, JobState, Command, каталог памяти), AC4, AC5 + ротация, пин D051,
+`just feature-merge`; затем P067 (B061), P068 (B063).
 
 ## Workspace
 
-Ветка `feature/clippy-c-profile` (база master `4cf520c`), наблюдаемый HEAD `61089d0` (VAC-5);
-stable.txt → `5a373d2`. macOS: коммиты/cargo — через `just scratch` с восстановленным
-PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
-`tooling/worker/run run clippy` (без `--all-targets`: код под `#[cfg(test)]` профилем не виден);
-догфуд — `tooling/worker/run run candidate -- lint`; pytest одного файла —
-`tooling/worker/run run test -- <файл>`.
+Ветка `feature/own-code-repairs` (база master `b224444`), HEAD `b224444` (коммитов ветки ещё нет);
+stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
+(`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
+`tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
+файла — `tooling/worker/run run test -- <файл>`.
 
 ## Progress
 
-- Базовый прогон пяти линтов на `4cf520c` (с `--all-targets` и без): единственная находка —
-  `self_named_module_files` на `Project/structural_lint/rules.rs` («move to rules/mod.rs»); по
-  остальным четырём — 0. Ожидание карточки «0 ремонта» по AC5 не подтвердилось: VAC-5 переносит
-  `rules.rs` → `rules/mod.rs` (`git mv`) и правит `structural_lint/architecture.yaml`.
-- `unsafe`-сайты продукта — только `command_runner/jobs/{identity/macos.rs, identity/linux.rs,
-  streams.rs, process.rs, group.rs}`; в `.agentrig/commands.yaml` маркеров DECISION нет
-  (YAML-владелец D060 без маркера; для D107 аналогично).
-- VAC-1 (`27f2dd2`): `-D clippy::exit` в профиле `clippy` `.agentrig/commands.yaml`; строка P065 в
-  Plan.md — active.
-- VAC-2 (`3b625a4`): `-D clippy::should_panic_without_expect`. Ограничение: профиль гейта без
-  `--all-targets` (D060) не видит код под `#[cfg(test)]`, поэтому линт держит только атрибуты в
-  компилируемом не-тестовом коде; фиксируется в D107 и Delivery.
-- VAC-3 (`9e60186`): `-D clippy::missing_fields_in_debug`.
-- VAC-4 (`9fb446f`): `-D clippy::rest_pat_in_fully_bound_structs`.
-- VAC-5 (`61089d0`): `-D clippy::self_named_module_files`; `git mv structural_lint/rules.rs
-  structural_lint/rules/mod.rs`. Перенос показал догфуду цикл `catalog → languages → rules → catalog`
-  (реэкспорт каталога из файла, который теперь лежит в `rules/`): реэкспорт `catalog::{ALL, catalog,
-  describe, example, …}` из `rules/mod.rs` удалён, потребители (`structural_lint/{mod,cli}.rs`,
-  `project_setup/lint.rs`) обращаются к `catalog::` напрямую (`config` и `selection` уже делали так);
-  входящие рёбра на `rules::Kind` теперь относятся к `rules/`, а не к родителю — бюджет
-  `rules/architecture.yaml` поднят до фактического радиуса 7 (D079). `structural_lint/architecture.yaml`
-  без `rules.rs`, `rules/architecture.yaml` описывает `mod.rs`.
-- VAC-6 (этот коммит): `// DECISION: D107` + `#![deny(unsafe_code)]` в `Project/lib.rs`;
-  `// DECISION: D107` + `#[allow(unsafe_code)]` над `pub mod jobs;` в `command_runner/mod.rs`; карточка
-  [D107](Decisions/107.md) и строка индекса (расширяет D060/D068; невыбранные линты;
-  deny-по-умолчанию проверены); ротация `Plan/065.md` → `Archive/Plan/065.md` (Delivery, ссылки
-  `../../Decisions/`), `Backlog/060.md` → `Archive/Backlog/060.md`, строки индексов, заметка в Plan.md.
-- Не сделано: финальный пин D051 (stable.txt → голова ветки + bootstrap, отдельный коммит) и
-  `just feature-merge` (ветку сохранить, не пушить); затем P066 (B062) на новой ветке.
+- Разбор карточки: fail-open AC2 — `agent_hooks/guard.rs:95` (`enters_check`:
+  `shell_words::split(word).unwrap_or_default()` — нечитаемое слово тихо считалось «не вход в
+  check/commit», и маршрут VAC-коммита (D047) обходился; воспроизводимый обход — ANSI-C-кавычки
+  `just scratch -- "git commit -q -m $'it\'s'"`: shell_words даёт «missing closing quote», а `sh -c`
+  выполняет commit). `guard_reference_with` уже пробрасывает ошибки (AC1 в P056) — менялась только
+  сигнатура.
+- VAC-A (этот коммит): `enters_check` → `Result<bool>`; ошибка разбора слова — отказ хука с причиной
+  (слово и причина) через общий путь отказов `shell_event` (`agent_hooks/mod.rs`);
+  `guard_reference_with(root, phase, &Settings)` как у `guard_commit`; вызов в `command_line/mod.rs`;
+  негативный тест `test_shell_guard_refuses_unreadable_check_entry` в `agent_hooks/tests/test_hooks.py`;
+  строка P066 в Plan.md — active. Побочный эффект: слово с непарной кавычкой в обычном аргументе
+  (например, `just read -- grep "don't"`) теперь отклоняется с указанием слова — охрана не отличает
+  shell-текст от аргумента; писать `don.t`.
+- Не сделано: AC6, AC3, AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
 
 ## Verification
 
-- VAC-1: проба `pub fn probe() { std::process::exit(1) }` в `Project/shared/fs/mod.rs` →
-  `tooling/worker/run run clippy` падает (exit 101, «usage of `process::exit` … `-D clippy::exit`»),
-  после отката — exit 0; гейт `27f2dd2` прошёл (128 rust-test, 112 pytest).
-- VAC-2: проба `#[should_panic] pub fn probe() {}` там же → exit 101 («#[should_panic] attribute
-  without a reason … `-D clippy::should-panic-without-expect`»), после отката — exit 0; гейт `3b625a4`
-  прошёл (128 rust-test, 112 pytest).
-- VAC-3: проба — `pub struct Probe { first, second }` с ручным `Debug`, печатающим только `first`
-  через `debug_struct(..).finish()`, там же → exit 101 («manual `Debug` impl does not include all
-  fields … `-D clippy::missing-fields-in-debug`»), после отката — exit 0; гейт `9e60186` прошёл
-  (128 rust-test, 112 pytest).
-- VAC-4: проба — `match value { Probe { first, second, .. } => … }` там же → exit 101 («unnecessary
-  use of `..` pattern in struct binding. All fields were already bound …
-  `-D clippy::rest-pat-in-fully-bound-structs`»; рядом `match-single-binding` из `-D warnings`), после
-  отката — exit 0; гейт `9fb446f` прошёл (128 rust-test, 112 pytest).
-- VAC-5: профиль с линтом на нетронутом дереве → exit 101 («`mod.rs` files are required, found
-  `structural_lint/rules.rs` … `-D clippy::self-named-module-files`») — реальная находка вместо пробы;
-  после `git mv` — exit 0, `--all-targets` чисто; догфуд после `git mv` — 2 находки (цикл и бюджет
-  7 > 6), после удаления реэкспорта и `dependents: 7` — 0; гейт `61089d0` прошёл (128 rust-test,
-  317 pytest).
-- 2026-11-05, рабочее дерево VAC-6: проба `unsafe { *pointer }` в `Project/shared/fs/mod.rs` → профиль
-  падает («usage of an `unsafe` block … the lint level is defined here lib.rs:2 `#![deny(unsafe_code)]`»),
-  после отката — exit 0, `--all-targets` чисто (поддерево `jobs` компилируется под allow);
-  `cargo clippy -- -W help`: `derived-hash-with-manual-eq` и `derive-ord-xor-partial-ord` — `deny`.
-  Гейт этого VAC (включая memory-check после ротации) ещё не запускался — коммит следующий шаг.
+- 2026-11-05, рабочее дерево VAC-A: `cargo fmt` применён; `tooling/worker/run run clippy` exit 0;
+  `--all-targets` чисто; догфуд `candidate -- lint` — 0 находок; `cargo test --lib` 128 passed;
+  pytest `agent_hooks/tests/test_hooks.py` + `change_delivery/git/tests/test_git.py` — 44 passed
+  (первая редакция теста с `# don't` не падала: shell_words, как sh, считает `#` комментарием —
+  заменена на ANSI-C-кавычки; `sh -c "printf %s $'it\'s'"` печатает `it's`). Гейт коммита — следующий
+  шаг.
 
 ## Blockers
 
@@ -85,8 +51,6 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; п�
 
 ## Next action
 
-Закоммитить VAC-6 через гейт («P065 VAC-6: confine unsafe to command_runner::jobs, record D107 and
-archive P065/B060 (B060 AC6, AC7)»); финальный пин D051 (`git rev-parse HEAD > tooling/distribution/
-stable.txt`, `bash tooling/distribution/bootstrap.sh`, коммит «P065 D051 pin…»); `just feature-merge`
-(ветку сохранить, не пушить). Затем `just feature-start` для P066 (B062, зависимость P056 выполнена):
-прочитать `Ledger/Plan/066.md` и `Ledger/Backlog/062.md`. Свободные ID: D108+, I022+, P069+, B065+.
+Закоммитить VAC-A через гейт («P066 VAC-A: fail-closed check entry and Settings for guard-reference
+(B062 AC2)»); затем VAC-B AC6 (`command_line/main.rs`: одна строка с указанием на `--help`).
+Свободные ID: D108+, I022+, P069+, B065+.

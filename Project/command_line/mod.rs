@@ -98,12 +98,9 @@ fn configured_command(context: &Context, command: &str, args: &[String]) -> Resu
     match command {
         "doctor" => project_setup::doctor(context),
         "config-check" => config_check(context),
-        "guard-reference" => git::guard_reference_with(
-            root,
-            args.first().map(String::as_str).unwrap_or(""),
-            &git.base,
-            &git.prefix,
-        ),
+        "guard-reference" => {
+            git::guard_reference_with(root, args.first().map(String::as_str).unwrap_or(""), git)
+        }
         "feature-start" => git::start(context, &args[0]),
         "feature-merge" => git::merge(context),
         "memory-check" => project_memory::check(context),
