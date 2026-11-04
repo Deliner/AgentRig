@@ -1,8 +1,10 @@
 mod global_state;
+mod manifest;
 mod python;
 mod registry;
 mod rust;
 mod silent_error;
+mod suppression;
 mod test_context;
 #[cfg(test)]
 mod tests;
@@ -26,9 +28,10 @@ pub struct Analysis {
 }
 pub fn analyze(path: &Path, source: &str) -> Result<Analysis> {
     let handler = handler(path).context("unsupported source language")?;
-    let inspect_node = handler
-        .inspect
-        .context("language has no scalar measurement handler")?;
+    let inspect_node = match &handler.inspect {
+        registry::Inspect::Document(analyze) => return Ok(analyze(source)),
+        registry::Inspect::Tree(inspect) => *inspect,
+    };
     let tree =
         crate::shared::syntax::parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
@@ -106,7 +109,9 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 pub fn justified(node: Node<'_>, source: &str) -> bool {
-    let row = node.start_position().row;
+    justified_line(node.start_position().row, source)
+}
+pub fn justified_line(row: usize, source: &str) -> bool {
     row > 0
         && source
             .lines()

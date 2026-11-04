@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P057](Plan/057.md) | pending | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
+| [P057](Plan/057.md) | active | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [P058](Plan/058.md) | pending | - | [B059](Backlog/059.md): discarded-result — `.status()?;` / `.output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |
 | [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
 | [P060](Plan/060.md) | pending | - | [B054](Backlog/054.md): tuple-as-record — кортеж из ≥3 элементов внутри обобщённого типа | Безымянная запись не прячется в `Vec<(…)>`/`Option<(…)>`. |

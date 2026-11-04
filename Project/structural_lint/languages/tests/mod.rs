@@ -4,6 +4,7 @@ use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;
 
 mod global_state;
+mod manifest;
 mod markers;
 mod silent_error;
 

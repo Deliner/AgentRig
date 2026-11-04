@@ -5,38 +5,44 @@
 **Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068** (порядок — в Plan.md). P055 выполнен и слит (`33477fd`). P056 (B049,
-`silent-error` для Rust, [D097](Decisions/097.md), [I021](Invariants/021.md)) завершён этим VAC-B2 и
-перенесён в Archive; следующая карточка — **P057** (B053 allow-justification: `expect`, `cfg_attr`,
-`[lints]` в Cargo.toml).
+выбраны в Plan **P055–P068** (порядок — в Plan.md). P055 (`33477fd`) и P056 (`8c3142c`) выполнены и
+слиты. Текущая карточка — **P057** (B053 AC1–AC4, `allow-justification`: `expect`, `cfg_attr`,
+`[lints]` Cargo.toml): расширение существующего вида, решение [D098](Decisions/098.md).
 
 ## Workspace
 
-Ветка `feature/silent-error-rust` (база master `33477fd`): VAC-B1 `9fce2ee`, пин `c049547`
-(stable.txt → `9fce2ee`), VAC-B2 — этот коммит. macOS: коммиты/cargo — через `just scratch` с
-восстановленным PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; рабочая форма
-догфуда — `tooling/worker/run run candidate -- lint` внутри `just scratch`. Каждый новый `kind:` и
-каждое расширение, которое stable-бинарь должен принять из `lint.yaml`, — двухфазно с мид-бранч пином
-([D051](Decisions/051.md)); по одной карточке за ветку.
+Ветка `feature/allow-justification-ext` (база master `8c3142c`), наблюдаемый HEAD `8c3142c`; VAC-B1 в
+рабочем дереве и коммитится этим VAC. macOS: коммиты/cargo — через `just scratch` с восстановленным
+PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; рабочая форма догфуда —
+`tooling/worker/run run candidate -- lint` внутри `just scratch`. Расширение `.toml` для
+`allow-justification` в `lint.yaml` принимается только после пина `registry.rs` (иначе конфигурация
+уходит в режим починки) — двухфазная доставка ([D051](Decisions/051.md)).
 
 ## Progress
 
-- P056 VAC-B2 (этот коммит): `.rs` в правиле `silent-error` (`.agentrig/lint.yaml`), навык
-  `handle-error` с Rust-ремонтами, fail-closed `merged_reference` (`git(..)?`), тест
-  `test_reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved` с `INVARIANT: I021`
-  (`oracles.yaml`, `Invariants.md`, `Invariants/021.md`), ссылки D097, ротация P056/B049 в Archive.
-- Не сделано: финальный пин D051 на голову ветки + bootstrap (отдельный коммит), `just feature-merge`
-  (ветку сохранить, не пушить); затем P057–P068 по порядку Plan.
+- VAC-B1 (этот коммит): диспетчеризация атрибутов вынесена из `rust.rs` в `languages/suppression.rs`
+  (`allow`/`expect`/`ignore`, голова `cfg_attr` — прямой аргумент после запятой; `ignore` → `disabled-test`),
+  TOML-обработчик `languages/manifest.rs` (`DeTable` крейта `toml`, таблицы `lints`/`workspace.lints`,
+  `"allow"`/`{ level = "allow" }`, ошибка синтаксиса → диагностика `syntax`), `Inspect::{Tree, Document}`
+  в `registry.rs` + обработчик `toml`, `justified_line` в `languages/mod.rs`, дескрипторы
+  `allow-justification`/`disabled-test` (AC4: `reason =` назван в сообщении), тесты
+  `tests/markers.rs` (AC1–AC2) и `tests/manifest.rs` (AC3 + ошибка синтаксиса), D098 (+ ссылки D074/D080
+  на `suppression.rs`), P057 → active.
+- Не сделано: мид-бранч пин → после этого коммита; VAC-B2 — `.toml` в правиле `allow-justification`
+  `.agentrig/lint.yaml`, навык `justify-allow` с тремя формами, догфуд, живая проба каждой формы
+  (`expect`, `cfg_attr`, `[lints]`), ротация P057/B053; финальный пин; `just feature-merge`; P058–P068.
 
 ## Verification
 
-- 2026-11-04 на рабочем дереве VAC-B2: `cargo test --lib silent_error` — 3 passed;
-  `just lint-config-check` — valid с `.rs`; оракул I021 (pytest `-k reference_guard`) — 1 passed;
-  догфуд `tooling/worker/run run candidate -- lint` — 0 находок (exit 0); живая проба `fn probe`
-  (`read_dir(root)?.flatten()` + `Err(_) => Ok(false)`) — `ERROR [silent-error] mod.rs:152 (flatten)`,
-  `:155 (probe)` с навыком `handle-error`, после удаления снова 0 находок; `just lint-rule silent-error`
-  описывает Rust и Python.
-- Гейт VAC-B1 (`9fce2ee`): rust-test 92 passed, python 202 passed; гейт VAC-B2 — при этом коммите.
+- Локально 2026-11-04 на рабочем дереве VAC-B1: `cargo fmt --check` OK (после правки раскладки),
+  `cargo clippy --all-targets -D warnings` OK, `cargo test --lib` — 118 passed (в том числе
+  `rust_flags_expect_and_conditional_suppressions_like_allow`: allow-находки строки 1, 6, 8, 10, 18,
+  disabled-test 20, 23; `toml_flags_allow_levels_under_lint_tables_without_a_reference_above`:
+  `1:private_intra_doc_links`, `5:unused`, `8:missing_docs`, `12:pedantic`, `15:unused_imports`,
+  обоснованный `dead_code` и `deny`/`warn`/`[dependencies] allow` не-находки;
+  `toml_reports_the_line_of_a_syntax_error` — строка 3).
+- Догфуд кандидата с новым Rust-детектором (`.rs`): `tooling/worker/run run candidate -- lint` — 0 находок
+  (exit 0). Гейт коммита VAC-B1 ещё не запускался; `.toml` в правиле и живая проба — после пина (VAC-B2).
 
 ## Blockers
 
@@ -44,7 +50,9 @@
 
 ## Next action
 
-Финальный пин: `git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, коммит пина, затем
-`tooling/worker/run feature-merge` внутри `just scratch` (ветка сохраняется, без push). Далее
-`just feature-start allow-justification-ext` для P057 ([Plan/057.md](Plan/057.md)): двухфазная
-доставка, догфуд, живая проба, ротация. Свободные ID: D098+, I022+, P069+, B065+.
+Закоммитить VAC-B1 через гейт, затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt`
++ bootstrap, отдельный коммит). Далее VAC-B2: `.toml` в `extensions` правила `allow-justification`,
+навык `justify-allow` (формы `expect`/`cfg_attr`/`[lints]`, `reason =` не ссылка), `just lint-config-check`,
+догфуд (ожидается 0 находок: форм в нашем коде нет, `[lints]` в `Project/Cargo.toml` нет), живая проба
+трёх форм, `just lint-rule allow-justification` (Rust и TOML), ротация P057 → Archive, финальный пин,
+`just feature-merge` (ветку сохранить, не пушить). Свободные ID: D099+, I022+, P069+, B065+.

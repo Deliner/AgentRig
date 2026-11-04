@@ -1,15 +1,20 @@
 // DECISION: D033
-use super::{Measurement, python, rust};
+// DECISION: D098
+use super::{Analysis, Measurement, manifest, python, rust};
 use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;
 use tree_sitter::Node;
 
+pub enum Inspect {
+    Tree(fn(Node<'_>, &str, &mut Vec<Measurement>)),
+    Document(fn(&str) -> Analysis),
+}
 pub struct Handler {
     pub name: &'static str,
     pub title: &'static str,
     pub extensions: &'static [&'static str],
     pub rules: &'static [Kind],
-    pub inspect: Option<fn(Node<'_>, &str, &mut Vec<Measurement>)>,
+    pub inspect: Inspect,
 }
 pub const HANDLERS: &[Handler] = &[
     Handler {
@@ -40,7 +45,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
-        inspect: Some(rust::inspect),
+        inspect: Inspect::Tree(rust::inspect),
     },
     Handler {
         name: "python",
@@ -60,7 +65,14 @@ pub const HANDLERS: &[Handler] = &[
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
-        inspect: Some(python::inspect),
+        inspect: Inspect::Tree(python::inspect),
+    },
+    Handler {
+        name: "toml",
+        title: "TOML",
+        extensions: &[".toml"],
+        rules: &[Kind::AllowJustification],
+        inspect: Inspect::Document(manifest::analyze),
     },
 ];
 pub fn handler(path: &Path) -> Option<&'static Handler> {

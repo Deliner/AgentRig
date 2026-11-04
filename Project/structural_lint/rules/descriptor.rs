@@ -227,23 +227,25 @@ const SILENTERROR: Descriptor = Descriptor {
     },
 };
 // DECISION: D074
+// DECISION: D098
 const DISABLEDTEST: Descriptor = Descriptor {
     default_id: "disabled-test",
     target: "file",
-    metric: "every Rust #[ignore] attribute or Python @pytest.mark.skip or skipif decorator without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust #[ignore] attribute, also as a direct #[cfg_attr(...)] argument, or Python @pytest.mark.skip or skipif decorator without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "justify-skip",
     parameters: Parameters::Level {
         violation: "a silently disabled test drops coverage; re-enable it, delete it if obsolete, or put a DECISION: or INVARIANT: reference on the line directly above it to justify skipping",
     },
 };
 // DECISION: D080
+// DECISION: D098
 const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     default_id: "allow-justification",
     target: "file",
-    metric: "every Rust #[allow(...)] or #![allow(...)] attribute without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, and every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute or the key",
     skill: "justify-allow",
     parameters: Parameters::Level {
-        violation: "a blanket allow silences a rule; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
+        violation: "a blanket allow, expect or conditional suppression silences a rule, and a reason = \"...\" inside the attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
     },
 };
 // DECISION: D081
