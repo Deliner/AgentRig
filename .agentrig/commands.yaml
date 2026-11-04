@@ -96,6 +96,8 @@ clippy:
   - clippy::exit
   - -D
   - clippy::should_panic_without_expect
+  - -D
+  - clippy::missing_fields_in_debug
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
