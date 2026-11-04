@@ -13,9 +13,10 @@ mod tests;
 
 pub use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::diagnostics::lint::print_diagnostics;
+use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::HashMap, path::Path};
 
 // DECISION: D062
 #[derive(Clone, Copy)]

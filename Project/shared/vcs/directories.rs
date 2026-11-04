@@ -1,6 +1,7 @@
 use super::{Repository, git};
+use crate::shared::fs;
 use anyhow::{Context, Result, ensure};
-use std::{collections::BTreeSet, fs, path::Path};
+use std::{collections::BTreeSet, path::Path};
 
 impl Repository<'_> {
     pub fn working_directories(&self, files: &[String]) -> Result<Vec<String>> {

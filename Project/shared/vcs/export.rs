@@ -1,9 +1,9 @@
 use super::{FileKind, Repository};
+use crate::shared::fs::{self, Permissions, PermissionsExt};
 use anyhow::{Result, ensure};
 use std::{
     ffi::OsStr,
-    fs,
-    os::unix::{ffi::OsStrExt, fs::PermissionsExt},
+    os::unix::ffi::OsStrExt,
     path::{Component, Path},
 };
 
@@ -30,11 +30,11 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
             fs::write(&path, bytes)?;
             let executable = entry.kind == FileKind::Executable;
             let mode = if executable { 0o755 } else { 0o644 };
-            fs::set_permissions(path, fs::Permissions::from_mode(mode))?;
+            fs::set_permissions(path, Permissions::from_mode(mode))?;
         }
     }
     for (path, target) in links_after_contents {
-        std::os::unix::fs::symlink(OsStr::from_bytes(&target), path)?;
+        fs::symlink(OsStr::from_bytes(&target), path)?;
     }
     Ok(directory)
 }

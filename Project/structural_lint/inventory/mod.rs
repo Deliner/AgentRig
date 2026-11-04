@@ -1,8 +1,8 @@
+use crate::shared::fs;
 use anyhow::Result;
 use globset::GlobSet;
 use std::{
     collections::{BTreeMap, BTreeSet},
-    fs,
     path::{Path, PathBuf},
 };
 

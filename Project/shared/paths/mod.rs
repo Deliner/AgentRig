@@ -1,8 +1,6 @@
+use crate::shared::fs;
 use anyhow::{Result, bail};
-use std::{
-    fs,
-    path::{Component, Path, PathBuf},
-};
+use std::path::{Component, Path, PathBuf};
 pub mod patterns;
 #[cfg(test)]
 mod tests;

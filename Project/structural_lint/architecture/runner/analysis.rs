@@ -1,3 +1,4 @@
+use crate::shared::fs;
 use crate::structural_lint::architecture::{
     self as architecture, Dependency, EnvironmentUse, Issue, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
@@ -6,7 +7,6 @@ use crate::structural_lint::architecture::{
 use anyhow::{Result, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    fs,
     path::{Path, PathBuf},
 };
 

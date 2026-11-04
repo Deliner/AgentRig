@@ -2,11 +2,11 @@
 // DECISION: D043
 // DECISION: D044
 use super::{Dependency, EnvironmentUse, Issue};
+use crate::shared::fs;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
     collections::{BTreeMap, BTreeSet},
-    fs,
     path::{Component, Path, PathBuf},
 };
 

@@ -1,10 +1,11 @@
 // DECISION: D026
 #[cfg(test)]
 mod tests;
+use crate::shared::fs;
 use anyhow::{Context, Result, ensure};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_yaml_ng::Value;
-use std::{fs, path::Path};
+use std::path::Path;
 use yaml_rust2::scanner::{Scanner, Token, TokenType};
 
 pub fn read<T: DeserializeOwned>(path: &Path) -> Result<T> {
@@ -20,7 +21,7 @@ pub fn read_document<T: DeserializeOwned>(path: &Path) -> Result<(T, String)> {
         "YAML configuration required: explicitly migrate legacy TOML {} to YAML; no format fallback is supported",
         path.display()
     );
-    let source = fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
+    let source = fs::read_to_string(path)?;
     let value =
         decode(&source).with_context(|| format!("YAML configuration {}", path.display()))?;
     Ok((value, source))

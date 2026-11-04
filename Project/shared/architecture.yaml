@@ -5,6 +5,7 @@ directories:
   arguments: Shared command argument extraction
   artifacts: Read, fingerprint and atomically persist shared file artifacts
   diagnostics: Render failures and actionable repair guidance and validate referenced skills
+  fs: Own filesystem access for the product with errors naming the action and the path
   paths: Resolve filesystem paths and match repository glob patterns consistently across capabilities
   skills: Canonical agent guidance embedded into installed environments
   syntax: Parse supported source files into syntax trees for lint measurements and memory markers
