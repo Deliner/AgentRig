@@ -7,4 +7,5 @@ files:
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
+  super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
 directories: {}

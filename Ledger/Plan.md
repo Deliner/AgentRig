@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
+| [P059](Plan/059.md) | active | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
 | [P060](Plan/060.md) | pending | - | [B054](Backlog/054.md): tuple-as-record — кортеж из ≥3 элементов внутри обобщённого типа | Безымянная запись не прячется в `Vec<(…)>`/`Option<(…)>`. |
 | [P061](Plan/061.md) | pending | - | [B055](Backlog/055.md): recursive-deletion — `remove_dir_all` требует владельца или обоснования | Каждое рекурсивное удаление имеет владельца с проверкой границ либо обоснование. |
 | [P062](Plan/062.md) | pending | - | [B046](Backlog/046.md): unsafe-site-justification — `unsafe impl`/`unsafe trait`, `static mut`, тела макросов | Любая `unsafe`-поверхность потребителя несёт обоснование. |

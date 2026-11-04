@@ -7,6 +7,7 @@ mod global_state;
 mod manifest;
 mod markers;
 mod silent_error;
+mod super_reach;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source).unwrap();

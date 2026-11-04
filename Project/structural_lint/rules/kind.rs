@@ -29,6 +29,7 @@ pub enum Kind {
     DiscardedResult,
     DisabledRaii,
     GlobalState,
+    SuperSuperReach,
     CommentReference,
     DirectoryArchitecture,
 }
