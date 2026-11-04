@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P061](Plan/061.md) | pending | - | [B055](Backlog/055.md): recursive-deletion — `remove_dir_all` требует владельца или обоснования | Каждое рекурсивное удаление имеет владельца с проверкой границ либо обоснование. |
+| [P061](Plan/061.md) | active | - | [B055](Backlog/055.md): recursive-deletion — `remove_dir_all` требует владельца или обоснования | Каждое рекурсивное удаление имеет владельца с проверкой границ либо обоснование. |
 | [P062](Plan/062.md) | pending | - | [B046](Backlog/046.md): unsafe-site-justification — `unsafe impl`/`unsafe trait`, `static mut`, тела макросов | Любая `unsafe`-поверхность потребителя несёт обоснование. |
 | [P063](Plan/063.md) | pending | - | [B056](Backlog/056.md): чистая зона — случайность, сеть, потоки и консоль | Объявленная чистой зона свободна от этих эффектов. |
 | [P064](Plan/064.md) | pending | - | [B057](Backlog/057.md): disallowed-path — политика запрещённых путей и владелец `shared/fs` | Проект объявляет запрещённые вне владельца пути; ошибки файловой системы AgentRig называют путь. |

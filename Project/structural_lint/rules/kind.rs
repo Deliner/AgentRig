@@ -30,6 +30,7 @@ pub enum Kind {
     DisabledRaii,
     GlobalState,
     SuperSuperReach,
+    RecursiveDeletion,
     CommentReference,
     DirectoryArchitecture,
 }

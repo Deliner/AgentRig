@@ -64,6 +64,7 @@ impl Kind {
             Self::DisabledRaii => &DISABLEDRAII,
             Self::GlobalState => &GLOBALSTATE,
             Self::SuperSuperReach => &SUPERSUPERREACH,
+            Self::RecursiveDeletion => &RECURSIVEDELETION,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -359,5 +360,15 @@ const SUPERSUPERREACH: Descriptor = Descriptor {
     skill: "anchor-at-crate",
     parameters: Parameters::Level {
         violation: "a super::super path binds the file to its position in the module tree instead of to the item's owner, so moving a directory breaks it and a reader cannot see whose item it is; write the path from crate::, or re-export the item at the parent module and reach it through a single super::, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the reach",
+    },
+};
+// DECISION: D102
+const RECURSIVEDELETION: Descriptor = Descriptor {
+    default_id: "recursive-deletion",
+    target: "file",
+    metric: "every Rust call whose function path ends in remove_dir_all, whose bare function name is remove_dir_all or whose method is remove_dir_all, from any source such as std::fs, tokio::fs, a local wrapper or a method, in source and in macro bodies, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "contain-the-deletion",
+    parameters: Parameters::Level {
+        violation: "a recursive directory deletion is the most destructive file-system operation, and a wrong argument erases a working tree; delete through an owner that checks the path lies inside its own area, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify the deletion",
     },
 };

@@ -6,6 +6,7 @@ use std::path::Path;
 mod global_state;
 mod manifest;
 mod markers;
+mod recursive_deletion;
 mod silent_error;
 mod super_reach;
 mod tuple_as_record;
