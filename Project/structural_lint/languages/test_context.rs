@@ -57,7 +57,7 @@ fn test_marker(node: Node<'_>, source: &str) -> bool {
     }
     false
 }
-fn last_segment<'a>(path: Node<'_>, source: &'a str) -> &'a str {
+pub(super) fn last_segment<'a>(path: Node<'_>, source: &'a str) -> &'a str {
     if let Some(name) = path.child_by_field_name("name") {
         return text(name, source);
     }

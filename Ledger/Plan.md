@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P056](Plan/056.md) | pending | - | [B049](Backlog/049.md): silent-error для Rust — проглоченные ошибки обхода `read_dir` и рукав `Err(_) => Ok(false)` | Нечитаемый каталог и ошибка проверки не превращаются молча в «пусто»/«нет»; fail-open вердикт нашего кода закрыт. |
 | [P057](Plan/057.md) | pending | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [P058](Plan/058.md) | pending | - | [B059](Backlog/059.md): discarded-result — `.status()?;` / `.output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |
 | [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
@@ -475,7 +474,7 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 проверок агентного кода; архив `agentrig-research/scratchpad`: `coverage-map.md`, `meta/register.md`)
 пользователь поручил реализовать все находки последовательно через догфудинг и для каждой убедиться, что
 она работает (/goal). Находки оформлены карточками [B052](Archive/Backlog/052.md)–[B063](Backlog/063.md) (плюс
-дополнение [B049](Backlog/049.md) AC2 и ранее заведённая [B046](Backlog/046.md)); [B064](Backlog/064.md)
+дополнение [B049](Archive/Backlog/049.md) AC2 и ранее заведённая [B046](Backlog/046.md)); [B064](Backlog/064.md)
 (ratchet-baseline) заведена идеей и не выбрана. Выбрано в Plan **P055 → P068**: сначала новые и
 расширенные правила линтера (B052, B049, B053, B059, B058, B054, B055, B046, B056, B057), затем dev-гейт
 (B060), ремонты нашего кода (B062), владелец вывода (B061), нормы и вердикты (B063). Не выбраны по
@@ -483,6 +482,7 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 ниже бара [D035](Decisions/035.md) правилами не становятся (вердикт — B063 AC3). Каждый новый `kind:` и
 каждое изменение, которое stable-бинарь должен принять из `lint.yaml`, — двухфазно с мид-бранч пином
 ([D051](Decisions/051.md)); по одной карточке за ветку, первая — feature/global-state (memory-VAC + P055).
-Ревизии контрактов — в карточках; порядок и границы VAC — за исполнителем. P055 выполнен (VAC-B1
-`c065b42`, пин `a8de4ec`, VAC-B2 с [D096](Decisions/096.md); догфуд 0 находок, живая проба даёт находку):
-P055 → [Archive/Plan](Archive/Plan.md), B052 → [Archive/Backlog](Archive/Backlog.md).
+Ревизии контрактов — в карточках; порядок и границы VAC — за исполнителем. Выполнены и перенесены в
+[Archive/Plan](Archive/Plan.md)/[Archive/Backlog](Archive/Backlog.md): P055 (B052; VAC-B1 `c065b42`, пин
+`a8de4ec`, [D096](Decisions/096.md)), P056 (B049; VAC-B1 `9fce2ee`, пин `c049547`, [D097](Decisions/097.md),
+[I021](Invariants/021.md)); у каждой догфуд 0 находок, живая проба даёт находку.

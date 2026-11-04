@@ -138,19 +138,12 @@ pub fn guard_reference_with(root: &Path, phase: &str, base: &str, prefix: &str) 
 fn merged_reference(root: &Path, old: &str, reference: &str, base: &str) -> Result<bool> {
     let unknown_tip = old.chars().all(|ch| ch == '0');
     let tip = if unknown_tip {
-        match git(
+        git(
             root,
             &["rev-parse", "--verify", &format!("{reference}^{{commit}}")],
-        ) {
-            Ok(tip) => tip,
-            Err(_) => return Ok(false),
-        }
+        )?
     } else {
         old.to_owned()
     };
-    Ok(Command::new("git")
-        .args(["merge-base", "--is-ancestor", &tip, base])
-        .current_dir(root)
-        .status()?
-        .success())
+    crate::shared::vcs::Repository::new(root).ancestor(&tip, base)
 }

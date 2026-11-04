@@ -2,6 +2,7 @@ mod global_state;
 mod python;
 mod registry;
 mod rust;
+mod silent_error;
 mod test_context;
 #[cfg(test)]
 mod tests;

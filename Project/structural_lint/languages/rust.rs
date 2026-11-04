@@ -26,24 +26,28 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             panic_call(node, source, output);
             eager_fallback(node, source, output);
             disabled_raii(node, source, output);
+            super::silent_error::collapsed_read_dir(node, source, output);
         }
         "expression_statement" => discarded_result(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
-        "if_expression" => {
-            let Some(test) = node.child_by_field_name("condition") else {
-                return;
-            };
-            let binding = test.kind() == "let_condition";
-            if binding {
-                return;
-            }
-            condition(node, test, output);
-        }
+        "if_expression" => conditional(node, source, output),
+        "match_arm" => super::silent_error::verdict_arm(node, source, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output)
         }
         _ => {}
     }
+}
+fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let Some(test) = node.child_by_field_name("condition") else {
+        return;
+    };
+    let binding = test.kind() == "let_condition";
+    if binding {
+        super::silent_error::verdict_if(node, source, output);
+        return;
+    }
+    condition(node, test, output);
 }
 fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(parameters) = node.child_by_field_name("parameters") else {

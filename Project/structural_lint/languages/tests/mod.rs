@@ -5,6 +5,7 @@ use std::path::Path;
 
 mod global_state;
 mod markers;
+mod silent_error;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source).unwrap();
