@@ -94,6 +94,8 @@ clippy:
   - clippy::let_underscore_must_use
   - -D
   - clippy::exit
+  - -D
+  - clippy::should_panic_without_expect
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
