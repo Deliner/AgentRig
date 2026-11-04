@@ -236,24 +236,39 @@ fn cleanup_cli(runtime: &Path, args: &[String]) -> Result<i32> {
     println!("{result}");
     Ok(i32::from(failed))
 }
+#[derive(Clone, Copy, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "kebab-case")]
+enum JobState {
+    Completed,
+    Running,
+    Orphaned,
+    StartingOrFinishing,
+    Interrupted,
+    Stopping,
+    Cancelled,
+}
+struct Observation {
+    state: JobState,
+    value: Value,
+}
 fn observe(runtime: &Path, record: &Record) -> Result<Value> {
-    let value = observe_once(runtime, record)?;
-    let interrupted = value["state"] == "interrupted";
+    let observation = observe_once(runtime, record)?;
+    let interrupted = observation.state == JobState::Interrupted;
     if interrupted {
         let latest = storage::load(runtime, &record.run_id)?;
-        return observe_once(runtime, &latest);
+        return Ok(observe_once(runtime, &latest)?.value);
     }
-    Ok(value)
+    Ok(observation.value)
 }
-fn observe_once(runtime: &Path, record: &Record) -> Result<Value> {
+fn observe_once(runtime: &Path, record: &Record) -> Result<Observation> {
     let child = record.child.as_ref().and_then(Identity::observe);
     let supervisor = record.supervisor.observe().is_some();
     let state = match (record.finished, child.is_some(), supervisor) {
-        (Some(_), _, _) => "completed",
-        (None, true, true) => "running",
-        (None, true, false) => "orphaned",
-        (None, false, true) => "starting-or-finishing",
-        (None, false, false) => "interrupted",
+        (Some(_), _, _) => JobState::Completed,
+        (None, true, true) => JobState::Running,
+        (None, true, false) => JobState::Orphaned,
+        (None, false, true) => JobState::StartingOrFinishing,
+        (None, false, false) => JobState::Interrupted,
     };
     let mut value = serde_json::to_value(record)?;
     value["state"] = json!(state);
@@ -268,26 +283,28 @@ fn observe_once(runtime: &Path, record: &Record) -> Result<Value> {
     if contained {
         return grouped(runtime, record, value);
     }
-    Ok(value)
+    Ok(Observation { state, value })
 }
-fn grouped(runtime: &Path, record: &Record, mut value: Value) -> Result<Value> {
+fn grouped(runtime: &Path, record: &Record, mut value: Value) -> Result<Observation> {
     let directory = runtime.join("jobs").join(&record.run_id);
     let populated = record.group.as_ref().is_some_and(group::populated);
     let launching = record.group.is_none() && background::launcher_live(&directory)?;
     let stopped = directory.join("stop-requested").exists();
-    value["state"] = json!(match (populated, stopped, record.finished) {
-        (false, true, None) if launching => "stopping",
-        (false, false, None) if launching => "starting-or-finishing",
-        (true, true, _) => "stopping",
-        (true, false, _) => "running",
-        (false, true, _) => "cancelled",
-        (false, false, Some(_)) => "completed",
-        (false, false, None) if record.supervisor.observe().is_some() => "starting-or-finishing",
-        _ => "interrupted",
-    });
+    let supervised = || record.supervisor.observe().is_some();
+    let state = match (populated, stopped, record.finished) {
+        (false, true, None) if launching => JobState::Stopping,
+        (false, false, None) if launching => JobState::StartingOrFinishing,
+        (true, true, _) => JobState::Stopping,
+        (true, false, _) => JobState::Running,
+        (false, true, _) => JobState::Cancelled,
+        (false, false, Some(_)) => JobState::Completed,
+        (false, false, None) if supervised() => JobState::StartingOrFinishing,
+        _ => JobState::Interrupted,
+    };
+    value["state"] = json!(state);
     value["containment"] = json!("process group");
     value["group_observation"] = json!(record.group.as_ref().map(group::observe));
-    Ok(value)
+    Ok(Observation { state, value })
 }
 fn now() -> Result<u64> {
     Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
