@@ -1,5 +1,5 @@
 use crate::project_config::{Check, Context, Removed, module};
-use crate::shared::diagnostics::lint::{Diagnostic, print_diagnostics};
+use crate::shared::diagnostics::lint::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
@@ -18,7 +18,7 @@ pub fn run(context: &Context, check: &Check, rerun: &str) -> Result<i32> {
         .map(|(path, message)| Diagnostic {
             rule: check.id.clone(),
             path,
-            level: "error".into(),
+            level: Level::Error,
             actual: None,
             limit: None,
             skill: check.skill.clone(),

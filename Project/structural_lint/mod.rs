@@ -12,7 +12,7 @@ mod selection;
 mod tests;
 
 pub use crate::shared::diagnostics::lint::Diagnostic;
-use crate::shared::diagnostics::lint::print_diagnostics;
+use crate::shared::diagnostics::lint::{Level, print_diagnostics};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
@@ -166,7 +166,7 @@ fn syntax_error(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
     Diagnostic {
         rule: "syntax".into(),
         path: path.to_string_lossy().into_owned(),
-        level: "error".into(),
+        level: Level::Error,
         actual: None,
         limit: None,
         skill: rule.error_skill.clone(),
@@ -183,21 +183,21 @@ fn finding(
 ) -> Result<Option<Diagnostic>> {
     let (warning, error) = (selected.warning, selected.error);
     let (level, limit) = if let Some(level) = rule.level {
-        (level.name(), None)
+        (level, None)
     } else {
         config::thresholds(warning, error)?;
         match (warning, error) {
-            (_, Some(limit)) if actual > limit => ("error", Some(limit)),
-            (Some(limit), _) if actual > limit => ("warning", Some(limit)),
+            (_, Some(limit)) if actual > limit => (Level::Error, Some(limit)),
+            (Some(limit), _) if actual > limit => (Level::Warning, Some(limit)),
             _ => return Ok(None),
         }
     };
     let message = rule_message(rule, limit, actual)?;
-    let blocking = level == "error";
+    let blocking = level == Level::Error;
     Ok(Some(Diagnostic {
         rule: rule.id.clone(),
         path: selected.path.to_string_lossy().into_owned(),
-        level: level.into(),
+        level,
         actual: Some(actual),
         limit,
         skill: if blocking {
@@ -262,7 +262,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
-    diagnostics.retain(|item| output.warnings || item.level != "warning");
+    diagnostics.retain(|item| output.warnings || item.level != Level::Warning);
     let args = vec![
         command.into(),
         "--config".into(),
@@ -274,7 +274,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
             .map(str::to_owned)
             .unwrap_or_else(|| crate::shared::diagnostics::rerun(root, &args));
     }
-    let failed = diagnostics.iter().any(|item| item.level == "error");
+    let failed = diagnostics.iter().any(|item| item.level == Level::Error);
     if output.json {
         println!("{}", serde_json::to_string(&diagnostics)?);
     } else {
@@ -309,7 +309,7 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
     Diagnostic {
         rule: "configuration".into(),
         path: path.display().to_string(),
-        level: "error".into(),
+        level: Level::Error,
         actual: None,
         limit: None,
         skill,
