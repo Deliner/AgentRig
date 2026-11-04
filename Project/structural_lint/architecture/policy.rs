@@ -69,13 +69,8 @@ pub struct Contracts {
 }
 
 // DECISION: D083
-fn zone_message(path: &str) -> String {
-    let timekeeping = super::clock(path);
-    let effect = if timekeeping {
-        "read the wall clock"
-    } else {
-        "access the environment"
-    };
+// DECISION: D104
+fn zone_message(effect: &str, path: &str) -> String {
     format!("zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}")
 }
 
@@ -123,10 +118,13 @@ impl Contracts {
                 if other_directory {
                     continue;
                 }
-                issues.extend(uses.iter().map(|use_site| Issue {
-                    path: file.clone(),
-                    line: Some(use_site.line),
-                    message: zone_message(&use_site.path),
+                issues.extend(uses.iter().filter_map(|use_site| {
+                    let effect = super::effect(&use_site.path)?;
+                    Some(Issue {
+                        path: file.clone(),
+                        line: Some(use_site.line),
+                        message: zone_message(effect, &use_site.path),
+                    })
                 }));
             }
         }
