@@ -28,6 +28,7 @@ pub enum Kind {
     EagerFallback,
     DiscardedResult,
     DisabledRaii,
+    GlobalState,
     CommentReference,
     DirectoryArchitecture,
 }

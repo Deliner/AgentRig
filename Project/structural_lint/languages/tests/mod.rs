@@ -3,6 +3,7 @@ use super::analyze;
 use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;
 
+mod global_state;
 mod markers;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {

@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P055](Plan/055.md) | pending | - | [B052](Backlog/052.md): global-state — процессно-глобальное изменяемое состояние без владельца (Rust) | Глобальная блокировка или публичная ячейка в коде потребителя имеет владельца либо записанное обоснование. |
+| [P055](Plan/055.md) | active | - | [B052](Backlog/052.md): global-state — процессно-глобальное изменяемое состояние без владельца (Rust) | Глобальная блокировка или публичная ячейка в коде потребителя имеет владельца либо записанное обоснование. |
 | [P056](Plan/056.md) | pending | - | [B049](Backlog/049.md): silent-error для Rust — проглоченные ошибки обхода `read_dir` и рукав `Err(_) => Ok(false)` | Нечитаемый каталог и ошибка проверки не превращаются молча в «пусто»/«нет»; fail-open вердикт нашего кода закрыт. |
 | [P057](Plan/057.md) | pending | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [P058](Plan/058.md) | pending | - | [B059](Backlog/059.md): discarded-result — `.status()?;` / `.output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |

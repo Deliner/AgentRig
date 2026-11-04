@@ -1,6 +1,7 @@
 purpose: Measure scalar rules in supported source languages through registered syntax handlers
 type: flat
 files:
+  global_state.rs: Rust process-global state, a static lock or public cell, declared directly or inside lazy_static!/thread_local!
   mod.rs: Scalar measurement traversal with located results
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, function lengths, parameters and comments

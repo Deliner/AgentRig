@@ -62,6 +62,7 @@ impl Kind {
             Self::EagerFallback => &EAGERFALLBACK,
             Self::DiscardedResult => &DISCARDEDRESULT,
             Self::DisabledRaii => &DISABLEDRAII,
+            Self::GlobalState => &GLOBALSTATE,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -332,5 +333,15 @@ const DISABLEDRAII: Descriptor = Descriptor {
     skill: "own-the-resource",
     parameters: Parameters::Level {
         violation: "this call defeats RAII, so a guard's cleanup never runs and a resource outlives its owner silently; let the value drop, hold the guard for the lifetime it protects, or put a DECISION: or INVARIANT: reference on the line directly above it to justify keeping, forgetting or leaking it",
+    },
+};
+// DECISION: D096
+const GLOBALSTATE: Descriptor = Descriptor {
+    default_id: "global-state",
+    target: "file",
+    metric: "every Rust static item outside test code, excluding static mut, whose type (following same-file type aliases up to three levels) contains a lock (Mutex, RwLock, DashMap, DashSet), or a public static whose type contains any cell (also RefCell, Cell, UnsafeCell, Atomic*), including items declared inside lazy_static! or thread_local!, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "own-the-state",
+    parameters: Parameters::Level {
+        violation: "a static lock or a public static cell is process-global mutable state with no owner in the directory tree, so every writer has to be found by search; give the state an owner (a parameter, a context field or a private cell behind one owning function), or put a DECISION: or INVARIANT: reference on the line directly above it to justify the global",
     },
 };
