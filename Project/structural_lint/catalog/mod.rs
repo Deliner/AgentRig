@@ -34,6 +34,7 @@ pub const ALL: &[Kind] = &[
     Kind::DisabledRaii,
     Kind::GlobalState,
     Kind::SuperSuperReach,
+    Kind::RecursiveDeletion,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

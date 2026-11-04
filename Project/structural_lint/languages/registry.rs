@@ -43,6 +43,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::DisabledRaii,
             Kind::GlobalState,
             Kind::SuperSuperReach,
+            Kind::RecursiveDeletion,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
