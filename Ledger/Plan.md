@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |
 | [P060](Plan/060.md) | pending | - | [B054](Backlog/054.md): tuple-as-record — кортеж из ≥3 элементов внутри обобщённого типа | Безымянная запись не прячется в `Vec<(…)>`/`Option<(…)>`. |
 | [P061](Plan/061.md) | pending | - | [B055](Backlog/055.md): recursive-deletion — `remove_dir_all` требует владельца или обоснования | Каждое рекурсивное удаление имеет владельца с проверкой границ либо обоснование. |
 | [P062](Plan/062.md) | pending | - | [B046](Backlog/046.md): unsafe-site-justification — `unsafe impl`/`unsafe trait`, `static mut`, тела макросов | Любая `unsafe`-поверхность потребителя несёт обоснование. |
@@ -484,4 +483,5 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 [Archive/Plan](Archive/Plan.md)/[Archive/Backlog](Archive/Backlog.md): P055 (B052; VAC-B1 `c065b42`, пин
 `a8de4ec`, [D096](Decisions/096.md)), P056 (B049; VAC-B1 `9fce2ee`, пин `c049547`, [D097](Decisions/097.md),
 [I021](Invariants/021.md)), P057 (B053; VAC-B1 `fdbd5bb`, пин `d8fea52`, [D098](Decisions/098.md)), P058 (B059;
-один VAC, [D099](Decisions/099.md)); у каждой догфуд 0 находок, живая проба даёт находку.
+один VAC, [D099](Decisions/099.md)), P059 (B058; VAC-B1 `349c23a`, пин `e560c9d`,
+[D100](Decisions/100.md)); у каждой догфуд 0 находок, живая проба даёт находку.

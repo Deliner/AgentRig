@@ -1,5 +1,5 @@
-use super::super::{
-    Dependency, EnvironmentUse, Issue, Settings,
+use crate::structural_lint::architecture::{
+    self as architecture, Dependency, EnvironmentUse, Issue, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
     source::{self, References, Target},
 };
@@ -209,7 +209,7 @@ impl<'a> Resolvers<'a> {
                         // DECISION: D078
                         // DECISION: D083
                         let impure =
-                            super::super::environment(external) || super::super::clock(external);
+                            architecture::environment(external) || architecture::clock(external);
                         if impure {
                             environment.push(EnvironmentUse {
                                 line: reference.line,

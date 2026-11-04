@@ -14,6 +14,6 @@ directories:
   remove-secret: "Remove a hardcoded credential from source and move it to configuration or a secret store"
   repair: "Diagnose and repair configuration and verification failures"
   references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"
-  signature: "Repair function-signature smells: excessive inputs and boolean flag parameters"
+  signature: "Repair function-signature smells: excessive inputs, boolean flag parameters and tuples that hide an unnamed record"
   testing-discipline: "Place tests by behavior and test through the public surface"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"

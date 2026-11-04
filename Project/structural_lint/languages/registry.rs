@@ -42,6 +42,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::DiscardedResult,
             Kind::DisabledRaii,
             Kind::GlobalState,
+            Kind::SuperSuperReach,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

@@ -31,6 +31,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             super::silent_error::collapsed_read_dir(node, source, output);
         }
         "expression_statement" => discarded_result(node, source, output),
+        "scoped_identifier" => super::super_reach::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, source, output),
         "match_arm" => super::silent_error::verdict_arm(node, source, output),

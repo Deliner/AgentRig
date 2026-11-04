@@ -63,6 +63,7 @@ impl Kind {
             Self::DiscardedResult => &DISCARDEDRESULT,
             Self::DisabledRaii => &DISABLEDRAII,
             Self::GlobalState => &GLOBALSTATE,
+            Self::SuperSuperReach => &SUPERSUPERREACH,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -347,5 +348,15 @@ const GLOBALSTATE: Descriptor = Descriptor {
     skill: "own-the-state",
     parameters: Parameters::Level {
         violation: "a static lock or a public static cell is process-global mutable state with no owner in the directory tree, so every writer has to be found by search; give the state an owner (a parameter, a context field or a private cell behind one owning function), or put a DECISION: or INVARIANT: reference on the line directly above it to justify the global",
+    },
+};
+// DECISION: D100
+const SUPERSUPERREACH: Descriptor = Descriptor {
+    default_id: "super-super-reach",
+    target: "file",
+    metric: "every Rust path that reaches two module levels up through super::super, in a use declaration, an expression or a type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "anchor-at-crate",
+    parameters: Parameters::Level {
+        violation: "a super::super path binds the file to its position in the module tree instead of to the item's owner, so moving a directory breaks it and a reader cannot see whose item it is; write the path from crate::, or re-export the item at the parent module and reach it through a single super::, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the reach",
     },
 };

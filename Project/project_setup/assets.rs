@@ -113,7 +113,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "name-the-record",
-        include_str!("../shared/skills/references/name-the-record/SKILL.md"),
+        include_str!("../shared/skills/signature/name-the-record/SKILL.md"),
     ),
     (
         "eager-to-lazy",
@@ -130,6 +130,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "own-the-state",
         include_str!("../shared/skills/references/own-the-state/SKILL.md"),
+    ),
+    (
+        "anchor-at-crate",
+        include_str!("../shared/skills/references/anchor-at-crate/SKILL.md"),
     ),
     (
         "split-boolean-parameter",

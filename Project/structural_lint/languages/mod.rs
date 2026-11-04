@@ -4,6 +4,7 @@ mod python;
 mod registry;
 mod rust;
 mod silent_error;
+mod super_reach;
 mod suppression;
 mod test_context;
 #[cfg(test)]

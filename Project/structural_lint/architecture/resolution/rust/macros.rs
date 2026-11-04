@@ -1,4 +1,5 @@
 use super::{Located, Query, Resolved, Rust};
+use crate::structural_lint::architecture::resolution::normalize;
 use crate::structural_lint::architecture::source::RustMacro;
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeSet, path::Path};
@@ -58,7 +59,7 @@ impl Rust<'_> {
                 .as_ref()
                 .context("resource macro needs one static unescaped string literal")?;
             let parent = source.parent().context("resource source has no parent")?;
-            let target = super::super::normalize(&parent.join(literal))?;
+            let target = normalize(&parent.join(literal))?;
             BTreeSet::from([target])
         } else {
             BTreeSet::new()

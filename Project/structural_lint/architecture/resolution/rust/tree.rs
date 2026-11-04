@@ -1,4 +1,5 @@
 use super::{Module, Rust, joined};
+use crate::structural_lint::architecture::resolution::normalize;
 use crate::structural_lint::architecture::source::{Reference, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::path::{Path, PathBuf};
@@ -93,7 +94,7 @@ impl Rust<'_> {
     }
 
     fn explicit_module(&self, parent: &Module, value: &str) -> Result<Module> {
-        let file = super::super::normalize(
+        let file = normalize(
             &parent
                 .file
                 .parent()
