@@ -250,6 +250,7 @@ fn propagates(node: Node<'_>) -> bool {
     node.named_children(&mut cursor).any(propagates)
 }
 // DECISION: D090
+// DECISION: D099
 fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(inner) = node
@@ -258,22 +259,9 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
     else {
         return;
     };
-    let call = inner.kind() == "call_expression";
-    let other = !call;
-    if other {
-        return;
-    }
-    let Some(function) = inner.child_by_field_name("function") else {
+    let Some(symbol) = discarded_method(inner, source) else {
         return;
     };
-    let Some(field) = function.child_by_field_name("field") else {
-        return;
-    };
-    let discarded = field.kind() == "field_identifier" && text(field, source) == "ok";
-    let kept = !discarded;
-    if kept {
-        return;
-    }
     let allowed = justified(node, source) || in_test_context(node, source);
     if allowed {
         return;
@@ -281,9 +269,36 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
     output.push(Measurement {
         kind: Kind::DiscardedResult,
         line: node.start_position().row + 1,
-        symbol: "ok".into(),
+        symbol: symbol.into(),
         actual: 1,
     });
+}
+fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
+    let propagated = inner.kind() == "try_expression";
+    let call = if propagated {
+        inner.named_child(0)?
+    } else {
+        inner
+    };
+    let other = call.kind() != "call_expression";
+    if other {
+        return None;
+    }
+    let field = call
+        .child_by_field_name("function")?
+        .child_by_field_name("field")?;
+    let unnamed = field.kind() != "field_identifier";
+    if unnamed {
+        return None;
+    }
+    let name = text(field, source);
+    let dropped = if propagated {
+        let nullary = call.child_by_field_name("arguments")?.named_child_count() == 0;
+        ["status", "output"].contains(&name) && nullary
+    } else {
+        name == "ok"
+    };
+    dropped.then_some(name)
 }
 // DECISION: D092
 fn disabled_raii(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {

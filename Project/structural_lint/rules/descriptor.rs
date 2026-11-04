@@ -319,13 +319,14 @@ const EAGERFALLBACK: Descriptor = Descriptor {
     },
 };
 // DECISION: D090
+// DECISION: D099
 const DISCARDEDRESULT: Descriptor = Descriptor {
     default_id: "discarded-result",
     target: "file",
-    metric: "every Rust bare .ok() statement that drops a Result outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust bare .ok() statement that drops a Result, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-discarded",
     parameters: Parameters::Level {
-        violation: "a bare .ok() statement converts a Result to Option and throws the outcome away, so a failure passes silently; handle the error, propagate it with ?, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
+        violation: "a bare .ok() statement converts a Result to Option and throws the outcome away, and a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, so a failure passes silently; handle the error or check the status, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
     },
 };
 // DECISION: D092

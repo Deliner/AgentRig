@@ -448,6 +448,34 @@ mod tests {
     assert_eq!(discarded_findings("source.rs", source), [2]);
 }
 
+// DECISION: D099
+#[test]
+fn rust_flags_propagated_status_and_output_statements_that_drop_the_outcome() {
+    let source = "fn run() -> io::Result<()> {
+    Command::new(\"git\").status()?;
+    // DECISION: D001
+    Command::new(\"git\").output()?;
+    command(root, args)
+        .args([\"-c\"])
+        .output()?;
+    let status = Command::new(\"git\").status()?;
+    Command::new(\"git\").status()?.success();
+    check(Command::new(\"git\").output()?);
+    writer.output(data)?;
+    Command::new(\"git\").status();
+    thing.ok()?;
+    Ok(())
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        Command::new(\"git\").status()?;
+    }
+}
+";
+    assert_eq!(discarded_findings("source.rs", source), [2, 5]);
+}
+
 // DECISION: D092
 fn raii_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();
