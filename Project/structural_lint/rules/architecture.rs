@@ -1,5 +1,7 @@
 // DECISION: D044
-use anyhow::{Result, ensure};
+use crate::shared::paths::patterns::globs;
+use anyhow::{Context, Result, ensure};
+use globset::GlobSet;
 use serde::{Deserialize, Serialize};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -15,6 +17,26 @@ pub struct Settings {
     pub external: External,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub feature_root: Option<PathBuf>,
+    // DECISION: D105
+    pub disallowed: Vec<Disallowed>,
+}
+
+// DECISION: D105
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Disallowed {
+    pub path: String,
+    pub reason: String,
+    pub replacement: String,
+    #[serde(default)]
+    pub allow: Vec<String>,
+}
+
+// DECISION: D105
+impl Disallowed {
+    pub fn allowed(&self) -> Result<GlobSet> {
+        globs(&self.allow).with_context(|| format!("disallowed path allow globs: {}", self.path))
+    }
 }
 
 // DECISION: D076
@@ -50,6 +72,7 @@ impl Settings {
             "rust_roots": "explicit project-relative crate root files; required for selected Rust sources",
             "rust_crates": "local Rust crate name to a root listed in rust_roots; resolved to measured file edges before external classification",
             "external": "literal module prefixes by rust/python namespace; Rust defaults std/core/alloc",
+            "disallowed": "resolved Rust external paths forbidden outside their owner: entries of path, reason, replacement and allow file globs; a reference resolved to the path or a :: subpath from a file outside allow is a finding naming the reason and replacement",
             "resolution": {
                 "rust": "Rust 2018+ declared module trees, literal path attributes on file-level external modules, local crate mappings and module-level aliases; Self and single inline trait bounds; observed prelude names with syntactic shadow checks; known macro/resource paths, standard/serde attributes and cfg over test and target platform predicates (all configurations measured); unsupported expansion and binding ambiguity remain incomplete",
                 "python": "one import root, package initializers and namespace submodules; recognized loader aliases/values report incomplete binding analysis; package export ambiguity and runtime path changes unsupported"
@@ -81,16 +104,12 @@ impl Settings {
                 "architecture external modules must be literal names: {name}"
             );
         }
-        Ok(())
+        self.validate_disallowed()
     }
     fn validate_crates(&self) -> Result<()> {
         for (name, root) in &self.rust_crates {
-            let identifier = !name.is_empty()
-                && name.chars().enumerate().all(|(index, c)| {
-                    c == '_' || c.is_ascii_alphabetic() || (index > 0 && c.is_ascii_digit())
-                });
             ensure!(
-                identifier,
+                identifier(name),
                 "local Rust crate name must be an identifier: {name}"
             );
             ensure!(
@@ -101,4 +120,30 @@ impl Settings {
         }
         Ok(())
     }
+    // DECISION: D105
+    fn validate_disallowed(&self) -> Result<()> {
+        for entry in &self.disallowed {
+            let literal = entry.path.split("::").all(identifier);
+            ensure!(
+                literal,
+                "disallowed path must be a literal Rust path of :: separated identifiers: {}",
+                entry.path
+            );
+            let explained = !entry.reason.trim().is_empty() && !entry.replacement.trim().is_empty();
+            ensure!(
+                explained,
+                "disallowed path needs a nonempty reason and replacement: {}",
+                entry.path
+            );
+            entry.allowed()?;
+        }
+        Ok(())
+    }
+}
+
+fn identifier(name: &str) -> bool {
+    !name.is_empty()
+        && name.chars().enumerate().all(|(index, c)| {
+            c == '_' || c.is_ascii_alphabetic() || (index > 0 && c.is_ascii_digit())
+        })
 }

@@ -1,6 +1,6 @@
 purpose: Resolve existing symbolic links, normalize paths with a not-yet-created tail and match repository glob patterns
 type: flat
-dependents: 12
+dependents: 13
 files:
   mod.rs: Component resolution with bounded symbolic-link traversal
   patterns.rs: Repository-relative glob patterns compiled for selection

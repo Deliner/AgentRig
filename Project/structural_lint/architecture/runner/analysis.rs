@@ -76,6 +76,7 @@ pub struct Resolvers<'a> {
     python: Python<'a>,
     rust: Vec<Rust<'a>>,
     crates: &'a BTreeMap<String, PathBuf>,
+    disallowed: super::disallowed::Policy<'a>,
 }
 
 impl<'a> Resolvers<'a> {
@@ -105,6 +106,7 @@ impl<'a> Resolvers<'a> {
                 python: Python::new(&settings.python_root, files, &settings.external.python)?,
                 rust,
                 crates: &settings.rust_crates,
+                disallowed: super::disallowed::Policy::new(&settings.disallowed)?,
             },
             issues,
         ))
@@ -216,6 +218,8 @@ impl<'a> Resolvers<'a> {
                                 path: external.trim_start_matches("::").to_owned(),
                             });
                         }
+                        // DECISION: D105
+                        issues.extend(self.disallowed.check(path, reference.line, external));
                     }
                     edges.extend(resolved.files.into_iter().map(|target| Dependency {
                         source: path.into(),

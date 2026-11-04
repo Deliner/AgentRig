@@ -1,4 +1,5 @@
 mod analysis;
+mod disallowed;
 mod scope;
 
 use super::{Contracts, Issue, Loaded, PYTHON_SEED, RUST_SEED, Settings, source::References};
