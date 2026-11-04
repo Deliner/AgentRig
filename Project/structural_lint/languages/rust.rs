@@ -12,11 +12,16 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
-        "unsafe_block" => unsafe_justification(node, source, output),
+        "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
+            super::unsafe_site::inspect(node, source, output)
+        }
         "attribute_item" | "inner_attribute_item" => {
             super::suppression::attribute(node, source, output)
         }
-        "static_item" => super::global_state::inspect(node, source, output),
+        "static_item" => {
+            super::global_state::inspect(node, source, output);
+            super::unsafe_site::inspect(node, source, output);
+        }
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
@@ -37,7 +42,8 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "if_expression" => conditional(node, source, output),
         "match_arm" => super::silent_error::verdict_arm(node, source, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
-            declaration(node, source, output)
+            declaration(node, source, output);
+            super::unsafe_site::inspect(node, source, output);
         }
         _ => {}
     }
@@ -74,10 +80,6 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
-    let unsafe_declaration = unsafe_function(node, source);
-    if unsafe_declaration {
-        unsafe_justification(node, source, output);
-    }
     record_signature(node, source, output);
 }
 // DECISION: D088
@@ -150,16 +152,6 @@ fn scalar(node: Node<'_>, source: &str) -> bool {
             .is_some_and(|inner| inner.kind() == "primitive_type"),
         _ => false,
     }
-}
-// DECISION: D065
-fn unsafe_function(node: Node<'_>, source: &str) -> bool {
-    let mut cursor = node.walk();
-    node.children(&mut cursor).any(|child| {
-        child.kind() == "function_modifiers"
-            && text(child, source)
-                .split_whitespace()
-                .any(|word| word == "unsafe")
-    })
 }
 // DECISION: D081
 fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
@@ -443,17 +435,6 @@ fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         symbol: "glob".into(),
         actual: 1,
     });
-}
-fn unsafe_justification(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let unjustified = !justified(node, source);
-    if unjustified {
-        output.push(Measurement {
-            kind: Kind::UnsafeJustification,
-            line: node.start_position().row + 1,
-            symbol: "unsafe".into(),
-            actual: 1,
-        });
-    }
 }
 // DECISION: D063
 fn branch(node: Node<'_>) -> Branch {

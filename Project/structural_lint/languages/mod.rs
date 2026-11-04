@@ -10,6 +10,7 @@ mod suppression;
 mod test_context;
 #[cfg(test)]
 mod tests;
+mod unsafe_site;
 use super::rules::kind::Kind;
 pub use registry::{HANDLERS, handler};
 

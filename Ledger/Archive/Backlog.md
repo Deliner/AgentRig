@@ -47,3 +47,4 @@ Cards move here from Backlog together with their Plan outcome through edit-plan,
 | [B058](Backlog/058.md) | super-super-reach: путь через `super::super` | Файл ссылается на владельца (`crate::`), а не на своё место в дереве. |
 | [B054](Backlog/054.md) | tuple-as-record: кортеж из ≥3 элементов с примитивом внутри обобщённого типа (`Vec<(…)>`, `Option<(…)>`, `&[(…)]`) | Безымянная запись не прячется в обобщении; у неё появляются имена полей. |
 | [B055](Backlog/055.md) | recursive-deletion: `remove_dir_all` вне тестов без владельца или обоснования | Каждое рекурсивное удаление имеет владельца с проверкой границ либо записанное обоснование. |
+| [B046](Backlog/046.md) | unsafe-site-justification: обоснование на всех формах `unsafe` (`unsafe impl`/`unsafe trait`, `static mut`, тела макросов) | Любая `unsafe`-поверхность потребителя несёт обоснование; закрываются слепые зоны D065. |

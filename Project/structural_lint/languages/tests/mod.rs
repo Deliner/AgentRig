@@ -10,6 +10,7 @@ mod recursive_deletion;
 mod silent_error;
 mod super_reach;
 mod tuple_as_record;
+mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source).unwrap();
@@ -320,39 +321,6 @@ def outer(choice):
             ("ternary".into(), 1),
         ]
     );
-}
-
-// DECISION: D065
-fn unsafe_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut lines: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| item.kind == Kind::UnsafeJustification)
-        .map(|item| item.line)
-        .collect();
-    lines.sort();
-    lines
-}
-
-#[test]
-fn rust_flags_unsafe_without_a_reference_on_the_line_above() {
-    let source = "fn plain() {
-    let value = 1;
-}
-fn uses_unsafe() {
-    let first = unsafe { work() };
-    // DECISION: D001
-    let second = unsafe { work() };
-    // INVARIANT: I002
-    let third = unsafe { work() };
-}
-unsafe fn bare() {}
-// DECISION: D001
-unsafe fn marked() {}
-";
-    assert_eq!(unsafe_findings("source.rs", source), [5, 11]);
 }
 
 // DECISION: D067
