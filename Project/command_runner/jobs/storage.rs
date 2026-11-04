@@ -1,9 +1,7 @@
 use super::Record;
+use crate::shared::fs;
 use anyhow::{Result, ensure};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 pub fn create(runtime: &Path) -> Result<PathBuf> {
     let root = runtime.join("jobs");

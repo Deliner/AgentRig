@@ -1,14 +1,14 @@
+use crate::shared::fs;
 use anyhow::Result;
 use serde_json::Value;
 use std::{
-    fs::File,
     io::{BufRead, BufReader, Seek, SeekFrom},
     path::Path,
 };
 
 // DECISION: D015
 pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
-    let file = File::open(path)?;
+    let file = fs::open(path)?;
     let truncated = offset > file.metadata()?.len();
     if truncated {
         offset = 0;

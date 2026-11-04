@@ -1,8 +1,9 @@
 use super::jobs::{self, Job};
 use crate::project_config::{Context, Lifetime};
 use crate::shared::arguments::forwarded;
+use crate::shared::fs;
 use anyhow::{Result, ensure};
-use std::{fs, path::PathBuf, process::Command};
+use std::{path::PathBuf, process::Command};
 
 pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     let text = forwarded(args).join(" ");

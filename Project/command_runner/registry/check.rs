@@ -1,8 +1,9 @@
 use crate::project_config::{Check, Context, Removed, module};
 use crate::shared::diagnostics::lint::{Diagnostic, print_diagnostics};
+use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
-use std::{fs, path::Path};
+use std::path::Path;
 
 type Findings = Vec<(String, String)>;
 pub fn run(context: &Context, check: &Check, rerun: &str) -> Result<i32> {

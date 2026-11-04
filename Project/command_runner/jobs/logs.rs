@@ -1,8 +1,8 @@
 use super::storage;
+use crate::shared::fs;
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::{
-    fs::File,
     io::{Read, Seek, SeekFrom},
     path::Path,
 };
@@ -16,7 +16,7 @@ pub fn read(runtime: &Path, id: &str) -> Result<Value> {
     )
 }
 fn tail(path: &Path) -> Result<Value> {
-    let mut file = match File::open(path) {
+    let mut file = match fs::open(path) {
         Ok(file) => file,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
             return Ok(json!({"text": "", "bytes": 0, "truncated": false}));

@@ -1,6 +1,6 @@
 use super::{Resources, Sample};
+use crate::shared::fs;
 use anyhow::{Context, Result};
-use std::fs;
 
 pub fn boot() -> Result<String> {
     Ok(fs::read_to_string("/proc/sys/kernel/random/boot_id")?

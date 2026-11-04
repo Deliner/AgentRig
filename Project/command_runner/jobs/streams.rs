@@ -1,6 +1,6 @@
+use crate::shared::fs::File;
 use anyhow::Result;
 use std::{
-    fs::File,
     io::{Read, Write},
     os::unix::io::{AsRawFd, RawFd},
     sync::{

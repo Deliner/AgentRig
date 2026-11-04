@@ -1,12 +1,12 @@
 // DECISION: D006
 use super::input::{object, text};
 use super::transcript;
+use crate::shared::fs::{self, File, OpenOptions};
 use anyhow::{Context, Result};
 use fs2::FileExt;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::{
-    fs::{self, File, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
 };
@@ -26,10 +26,10 @@ fn state_path(event: &Value, directory: &Path) -> Result<(File, PathBuf)> {
         .find(|value| !value.is_empty())
         .unwrap_or("session");
     let stem = hash(session);
-    let lock = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open(root.join(format!("{stem}.lock")))?;
+    let lock = fs::open_with(
+        OpenOptions::new().create(true).append(true),
+        root.join(format!("{stem}.lock")),
+    )?;
     lock.lock_exclusive()?;
     Ok((lock, root.join(format!("{stem}.json"))))
 }

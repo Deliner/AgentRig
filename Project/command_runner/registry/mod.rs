@@ -1,9 +1,10 @@
 pub mod check;
 use crate::project_config::{Command, Context};
+use crate::shared::fs::{self, PermissionsExt};
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::architecture::describe;
 use anyhow::Result;
-use std::{fs, io::Read, os::unix::fs::PermissionsExt, path::Path};
+use std::{io::Read, path::Path};
 
 pub fn tools(context: &Context, files: &[String]) -> Result<Vec<String>> {
     let recognized = globs(&context.config.tools.recognize)?;
@@ -16,9 +17,8 @@ pub fn tools(context: &Context, files: &[String]) -> Result<Vec<String>> {
 fn executable(path: &Path) -> bool {
     let regular = fs::symlink_metadata(path).is_ok_and(|metadata| metadata.is_file());
     let mut start = [0; 2];
-    let shebang = fs::File::open(path)
-        .and_then(|mut file| file.read_exact(&mut start))
-        .is_ok_and(|()| &start == b"#!");
+    let shebang =
+        fs::open(path).is_ok_and(|mut file| file.read_exact(&mut start).is_ok() && &start == b"#!");
     let mode = fs::metadata(path).is_ok_and(|metadata| metadata.permissions().mode() & 0o111 != 0);
     regular && (shebang || mode)
 }
