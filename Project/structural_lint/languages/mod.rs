@@ -1,3 +1,4 @@
+mod global_state;
 mod python;
 mod registry;
 mod rust;

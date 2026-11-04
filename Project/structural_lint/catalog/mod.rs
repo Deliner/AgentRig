@@ -32,6 +32,7 @@ pub const ALL: &[Kind] = &[
     Kind::EagerFallback,
     Kind::DiscardedResult,
     Kind::DisabledRaii,
+    Kind::GlobalState,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

@@ -35,6 +35,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::EagerFallback,
             Kind::DiscardedResult,
             Kind::DisabledRaii,
+            Kind::GlobalState,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

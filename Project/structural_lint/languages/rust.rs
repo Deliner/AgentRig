@@ -14,11 +14,13 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" => unsafe_justification(node, source, output),
         "attribute_item" | "inner_attribute_item" => attribute(node, source, output),
+        "static_item" => super::global_state::inspect(node, source, output),
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
             panic_macro(node, source, output);
             macro_body(node, source, output);
+            super::global_state::macro_items(node, source, output);
         }
         "call_expression" => {
             panic_call(node, source, output);

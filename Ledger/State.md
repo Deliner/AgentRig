@@ -2,38 +2,42 @@
 
 ## Focus
 
-**Захват Backlog-находок межпроектного обзора.** P054 (B045) завершён и влит в master (`9b5fedd`).
-Пользователь попросил завести карточки по результатам межпроектного обзора Rust-кода
-(`rust-lint-mining` `wf_f2a6f63a-7ff`, репозитории bevy/rustdesk/openidea): 5 правил-кандидатов и
-3 self-находки собственного кода. Заведены как Backlog **B046–B051** (не выбраны в Plan). Plan пуст.
+**Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
+Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
+убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
+выбраны в Plan **P055–P068** (порядок — в Plan.md). P055 (B052, `global-state`) выполнен, проверен
+и перенесён в Archive; ветка завершается `just feature-merge`. Следующая карточка — P056 (B049 AC2,
+`silent-error` для Rust), новая ветка.
 
 ## Workspace
 
-Ветка `feature/review-findings-backlog` (база master `9b5fedd`), наблюдаемый HEAD до
-capture-VAC — `9b5fedd`. Коммит — memory-only (только `Ledger/`); новых `kind:` не вводит, мид-бранч
-пин не требуется. macOS; коммиты/cargo — через `just scratch` с восстановленным PATH
-(`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/global-state` (база master `32debc8`), наблюдаемый HEAD `5202340` (финальный пин
+D051: stable.txt → `db0a868`, bootstrap выполнен, гейт пина PASS). Этот State коммитится отдельным
+memory-коммитом перед слиянием. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
+(`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; `just candidate …` напрямую падает на
+`cargo: command not found`, рабочая форма — `tooling/worker/run run candidate -- lint` внутри
+`just scratch`. Навык для нового правила создаётся раньше ссылки в `lint.yaml`
+(`.agents/skills` → `Project/shared/skills`), иначе конфигурация уходит в режим починки.
 
 ## Progress
 
-Созданы карточки и строки индекса:
-- **B046** unsafe-site-justification (P1, medium): расширить D065 на `unsafe impl`/`unsafe trait`,
-  `static mut`, тела макросов.
-- **B047** discarded-result-variants (P2): расширить D090 на Option-комбинаторы + `.err()`.
-- **B048** panic-surface-extension (P3): assert под `cfg(debug_assertions)` → D084;
-  `unwrap_err`/`expect_err`/`resume_unwind` → D082; новый `unwind-justification` для `catch_unwind`.
-- **B049** rust-silent-error (P4): новый `kind:` — проглоченные ошибки обхода `read_dir`.
-- **B050** guard-across-await (P5): новый `kind:` — std-гард через `.await`.
-- **B051** self-находки: проза D066/D095 vs код (дрейф обоснования), каст PID `process.rs` vs
-  `group.rs`, явное условие `MaybeUninit::zeroed` в `macos.rs`.
-Собственный код AgentRig чист по B046–B050 (проверено грепом `Project`); единственные реальные
-наблюдения — в B051, все low/без изменения поведения.
+- `f1c574a` memory-VAC (B052–B064, B049 AC2, P055–P068); `c065b42` VAC-B1 (`Kind::GlobalState`,
+  детектор `languages/global_state.rs`, тесты, D096); `a8de4ec` пин → `c065b42`; `db0a868` VAC-B2
+  (`catalog::ALL`, `registry.rs`, правило `global-state` в `.agentrig/lint.yaml`, навык
+  `own-the-state` + `assets.rs`, ссылки D096, ротация P055 → `Archive/Plan/055.md`, B052 →
+  `Archive/Backlog/052.md`); `5202340` финальный пин → `db0a868`.
+- Не сделано: коммит этого State, `just feature-merge`; P056–P068.
 
 ## Verification
 
-Карточки — чистый захват Backlog; реализация не начиналась, код не менялся. Capture-VAC —
-memory-only, проходит через гейт (exported-index + затронутые тест-группы + smoke). Приёмочные
-критерии правил не верифицированы (это будущая работа при доставке).
+- Гейт VAC-B2 `db0a868`: все проверки PASS, rust-test 112 passed, python 308 passed (в том числе
+  `project_setup/tests/test_lint_defaults.py` — I020), lint PASS с живым правилом, memory PASS.
+  Гейт пина `5202340`: PASS на установленной ревизии `db0a868`.
+- Догфуд `tooling/worker/run run candidate -- lint` — 0 находок; живая проба `static PROBE: Mutex<u8>`
+  → `ERROR [global-state] global_state.rs:11 (PROBE)` с навыком `own-the-state`, после удаления
+  снова чисто; `just lint-rule global-state` описывает вид; `just lint-config-check` — valid;
+  `cargo test --lib global_state` — 2 passed (AC1–AC3 и не-находки B052).
+- `just feature-merge` (тесты всей ветки) ещё не запускался.
 
 ## Blockers
 
@@ -41,9 +45,9 @@ memory-only, проходит через гейт (exported-index + затрон
 
 ## Next action
 
-Capture-VAC закоммитить memory-only через `.agentrig/hooks/pre-commit`
-(`Ledger/Backlog.md`, `Ledger/Backlog/046..051.md`, `Ledger/State.md`), затем `just feature-merge`
-на master; ветку сохранить, не пушить. Карточки B046–B051 ждут выбора пользователя в Plan
-(ожидаемый порядок доставки правил P1→P5). Любое правило с новым `kind:` (B048 AC3, B049, B050)
-при доставке требует двухфазного пина (D051). Custom-allocator (B034) припаркован. Свободные ID:
-D096+, P055+, B052+.
+Закоммитить State, затем `just feature-merge` (ветку сохранить, не пушить). Далее
+`just feature-start silent-error-rust` для P056 (B049 AC2): прочитать python-детектор `silent-error`
+и `languages/rust.rs`, выбрать механизм (расширение `silent-error` на `.rs` или новый `kind:`),
+двухфазная доставка с мид-бранч пином, догфуд (единственный наш сайт —
+`change_delivery/git/mod.rs:146`, чинится fail-closed по B062 AC1 в P066 либо обосновывается).
+Свободные ID: D097+, P069+, B065+.
