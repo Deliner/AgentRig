@@ -2,38 +2,31 @@
 
 ## Focus
 
-**Захват Backlog-находок межпроектного обзора.** P054 (B045) завершён и влит в master (`9b5fedd`).
-Пользователь попросил завести карточки по результатам межпроектного обзора Rust-кода
-(`rust-lint-mining` `wf_f2a6f63a-7ff`, репозитории bevy/rustdesk/openidea): 5 правил-кандидатов и
-3 self-находки собственного кода. Заведены как Backlog **B046–B051** (не выбраны в Plan). Plan пуст.
+**Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
+Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
+убедиться, что она работает. Находки оформлены карточками B052–B064 (B064 — идея, не выбрана),
+дополнена B049 (AC2); выбраны в Plan **P055–P068** (порядок — в Plan.md). Текущая карточка —
+P055 (B052, новый вид правила `global-state`).
 
 ## Workspace
 
-Ветка `feature/review-findings-backlog` (база master `9b5fedd`), наблюдаемый HEAD до
-capture-VAC — `9b5fedd`. Коммит — memory-only (только `Ledger/`); новых `kind:` не вводит, мид-бранч
-пин не требуется. macOS; коммиты/cargo — через `just scratch` с восстановленным PATH
-(`cargo`/`uv`), иначе гейт падает на `build: cargo not found`.
+Ветка `feature/global-state` (база master `32debc8`), наблюдаемый HEAD до memory-VAC — `32debc8`.
+Первый коммит — memory-only (`Ledger/`); затем VAC-B1 P055 (новый `kind:` → мид-бранч пин D051).
+macOS; коммиты/cargo — через `just scratch` с восстановленным PATH (`cargo`/`uv`), иначе гейт
+падает на `build: cargo not found`.
 
 ## Progress
 
-Созданы карточки и строки индекса:
-- **B046** unsafe-site-justification (P1, medium): расширить D065 на `unsafe impl`/`unsafe trait`,
-  `static mut`, тела макросов.
-- **B047** discarded-result-variants (P2): расширить D090 на Option-комбинаторы + `.err()`.
-- **B048** panic-surface-extension (P3): assert под `cfg(debug_assertions)` → D084;
-  `unwrap_err`/`expect_err`/`resume_unwind` → D082; новый `unwind-justification` для `catch_unwind`.
-- **B049** rust-silent-error (P4): новый `kind:` — проглоченные ошибки обхода `read_dir`.
-- **B050** guard-across-await (P5): новый `kind:` — std-гард через `.await`.
-- **B051** self-находки: проза D066/D095 vs код (дрейф обоснования), каст PID `process.rs` vs
-  `group.rs`, явное условие `MaybeUninit::zeroed` в `macos.rs`.
-Собственный код AgentRig чист по B046–B050 (проверено грепом `Project`); единственные реальные
-наблюдения — в B051, все low/без изменения поведения.
+- Memory-VAC подготовлен, не закоммичен: карточки `Ledger/Backlog/052..064.md`, строки индекса
+  Backlog, дополнение B049 (AC2 + границы), строки Plan P055–P068 с абзацем выбора, карточки
+  `Ledger/Plan/055..068.md`, State.
+- Код не менялся; P055 не начат.
 
 ## Verification
 
-Карточки — чистый захват Backlog; реализация не начиналась, код не менялся. Capture-VAC —
-memory-only, проходит через гейт (exported-index + затронутые тест-группы + smoke). Приёмочные
-критерии правил не верифицированы (это будущая работа при доставке).
+Карточки и Plan — чистая память; реализация не начиналась. Memory-VAC проходит через гейт
+(exported-index + затронутые тест-группы + smoke) при коммите. Приёмочные критерии правил не
+верифицированы (будущая работа при доставке каждой карточки).
 
 ## Blockers
 
@@ -41,9 +34,9 @@ memory-only, проходит через гейт (exported-index + затрон
 
 ## Next action
 
-Capture-VAC закоммитить memory-only через `.agentrig/hooks/pre-commit`
-(`Ledger/Backlog.md`, `Ledger/Backlog/046..051.md`, `Ledger/State.md`), затем `just feature-merge`
-на master; ветку сохранить, не пушить. Карточки B046–B051 ждут выбора пользователя в Plan
-(ожидаемый порядок доставки правил P1→P5). Любое правило с новым `kind:` (B048 AC3, B049, B050)
-при доставке требует двухфазного пина (D051). Custom-allocator (B034) припаркован. Свободные ID:
-D096+, P055+, B052+.
+Закоммитить memory-VAC через `.agentrig/hooks/pre-commit` (`Ledger/Backlog.md`,
+`Ledger/Backlog/049.md`, `Ledger/Backlog/052..064.md`, `Ledger/Plan.md`, `Ledger/Plan/055..068.md`,
+`Ledger/State.md`), затем P055 VAC-B1: `Kind::GlobalState` + детектор (отдельный файл рядом с
+`languages/rust.rs`) + тесты в новом файле `languages/tests/` + decision D096; мид-бранч пин
+stable.txt + bootstrap; VAC-B2 проводка (`catalog::ALL`, `lint.yaml`, навык `own-the-state`,
+`assets.rs`); догфуд `just candidate lint` → 0; живая проба. Свободные ID: D096+, P069+, B065+.
