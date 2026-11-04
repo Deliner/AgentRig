@@ -1,17 +1,22 @@
 ---
 name: justify-unsafe
-description: Justify an unsafe block or function with a recorded reference, or remove the unsafe.
+description: Justify every unsafe site (block, function, impl, trait, static mut or unsafe inside a macro body) with a recorded reference, or remove the unsafe.
 ---
 
 # Record why each unsafe is sound, or remove it
 
-Every unsafe block and unsafe function must carry a DECISION: or INVARIANT:
-reference on the line directly above it. The reference points to the recorded
-reason the unsafe is sound; without one the hazard is unexplained.
+Every unsafe site must carry a DECISION: or INVARIANT: reference on the line
+directly above it: an unsafe block, an unsafe function, an unsafe impl or unsafe
+trait, a static mut item, and an unsafe keyword inside a macro_rules! body or a
+macro invocation's arguments. Attribute lines between the reference and an item
+do not break the adjacency; inside a macro body the reference sits on the line
+directly above the unsafe keyword. The reference points to the recorded reason
+the unsafe is sound; without one the hazard is unexplained.
 
 1. Read the unsafe construct and establish the exact obligation it takes on: the
    FFI or pointer contract it must satisfy, the arguments it builds, the return
-   value it checks, and the aliasing or lifetime it relies on.
+   value it checks, the aliasing or lifetime it relies on, the Send or Sync
+   guarantee an unsafe impl asserts, or the exclusive access a static mut needs.
 2. Prefer removing the unsafe. A safe standard API, a checked wrapper, or a crate
    that already owns the invariant discharges the obligation instead of recording
    a reason to keep it.
@@ -28,8 +33,11 @@ by widening the rule.
 
 ## Rule binding
 
-The measurement flags every Rust unsafe block or unsafe function without a
-DECISION: or INVARIANT: reference comment on the line directly above it. Rerun
-the reported lint check and relevant behavior checks. Do not weaken the rule or
+The measurement flags every Rust unsafe site, an unsafe block, unsafe function,
+unsafe impl, unsafe trait or static mut item and every unsafe keyword inside a
+macro_rules! body or a macro invocation's arguments, without a DECISION: or
+INVARIANT: reference comment on the line directly above it; attribute lines
+directly above an item keep the adjacency, so the reference may stand above
+`#[cfg(..)]`. Rerun the reported lint check and relevant behavior checks. Do not weaken the rule or
 its selectors merely to pass. Apply complexity-discipline; stop when the finding
 is resolved and the unsafe is either removed or justified.

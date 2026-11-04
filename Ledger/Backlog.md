@@ -10,7 +10,6 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B046](Backlog/046.md) | unsafe-site-justification: обоснование на всех формах `unsafe` (`unsafe impl`/`unsafe trait`, `static mut`, тела макросов) | Любая `unsafe`-поверхность потребителя несёт обоснование; закрываются слепые зоны D065. |
 | [B047](Backlog/047.md) | discarded-result-variants: молча отброшенные Option-комбинаторы (`map`/`and_then`/`map_or`) + `.err()` | Отброшенные fallible-результаты Option ловятся из коробки в дополнение к `let _ =`/`.ok()`. |
 | [B048](Backlog/048.md) | panic-surface-extension: assert под `cfg(debug_assertions)`, `unwrap_err`/`expect_err`/`resume_unwind`, обоснование `catch_unwind` | Debug-only проверки не выдают себя за release-контракт; паник-/unwind-поверхность покрыта единообразно. |
 | [B050](Backlog/050.md) | guard-across-await: std-гард блокировки, удерживаемый через `.await` | Потребитель-async не удержит гард std-блокировки через точку ожидания (дедлок/`!Send`); на нашем коде находок нет. |

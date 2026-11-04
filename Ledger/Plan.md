@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P062](Plan/062.md) | pending | - | [B046](Backlog/046.md): unsafe-site-justification — `unsafe impl`/`unsafe trait`, `static mut`, тела макросов | Любая `unsafe`-поверхность потребителя несёт обоснование. |
 | [P063](Plan/063.md) | pending | - | [B056](Backlog/056.md): чистая зона — случайность, сеть, потоки и консоль | Объявленная чистой зона свободна от этих эффектов. |
 | [P064](Plan/064.md) | pending | - | [B057](Backlog/057.md): disallowed-path — политика запрещённых путей и владелец `shared/fs` | Проект объявляет запрещённые вне владельца пути; ошибки файловой системы AgentRig называют путь. |
 | [P065](Plan/065.md) | pending | - | [B060](Backlog/060.md): C-профиль dev-гейта — пять линтов clippy и ограждение `unsafe` | Dev-гейт ловит пять новых классов дефектов; `unsafe` только в объявленном поддереве. |
@@ -483,4 +482,5 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 [I021](Invariants/021.md)), P057 (B053; VAC-B1 `fdbd5bb`, пин `d8fea52`, [D098](Decisions/098.md)), P058 (B059;
 один VAC, [D099](Decisions/099.md)), P059 (B058; VAC-B1 `349c23a`, пин `e560c9d`,
 [D100](Decisions/100.md)), P060 (B054; один VAC, [D101](Decisions/101.md)), P061 (B055; VAC-B1 `30fd2a9`, пин
-`aced8ec`, [D102](Decisions/102.md)); у каждой догфуд 0 находок, живая проба даёт находку.
+`aced8ec`, [D102](Decisions/102.md)), P062 (B046; один VAC, [D103](Decisions/103.md)); у каждой догфуд 0 находок,
+живая проба даёт находку.
