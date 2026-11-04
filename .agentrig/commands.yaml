@@ -100,6 +100,8 @@ clippy:
   - clippy::missing_fields_in_debug
   - -D
   - clippy::rest_pat_in_fully_bound_structs
+  - -D
+  - clippy::self_named_module_files
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

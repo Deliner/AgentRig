@@ -4,7 +4,6 @@ files:
   cli.rs: Embedded and standalone command arguments and rule discovery output
   standalone.rs: Standalone lint executable entry and process exit reporting
   explain.rs: Explain why a configured rule selects or excludes a target
-  rules.rs: Preserve public rule paths while forwarding to definitions and catalogue owners
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   testing: Build isolated lint CLI consumers shared across rule behavior tests

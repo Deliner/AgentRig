@@ -1,6 +1,8 @@
 purpose: Define rule identities, metrics, parameters and architecture settings independently of language handlers
 type: flat
+dependents: 7
 files:
+  mod.rs: Declare the definition modules and export the rule identity and descriptor types
   kind.rs: Stable rule identities and their serialized names
   descriptor.rs: Rule metrics, parameter contracts, defaults and repair skill bindings
   architecture.rs: Architecture rule settings, schema validation and capability description
