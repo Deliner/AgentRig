@@ -45,3 +45,4 @@ Cards move here from Backlog together with their Plan outcome through edit-plan,
 | [B053](Backlog/053.md) | allow-justification: `#[expect]`, `cfg_attr(…, allow/expect/ignore)` и уровень `"allow"` в `[lints]` Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [B059](Backlog/059.md) | discarded-result: инструкция `….status()?;` / `….output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |
 | [B058](Backlog/058.md) | super-super-reach: путь через `super::super` | Файл ссылается на владельца (`crate::`), а не на своё место в дереве. |
+| [B054](Backlog/054.md) | tuple-as-record: кортеж из ≥3 элементов с примитивом внутри обобщённого типа (`Vec<(…)>`, `Option<(…)>`, `&[(…)]`) | Безымянная запись не прячется в обобщении; у неё появляются имена полей. |

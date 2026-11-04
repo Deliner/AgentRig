@@ -300,13 +300,14 @@ const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
     },
 };
 // DECISION: D088
+// DECISION: D101
 const TUPLEASRECORD: Descriptor = Descriptor {
     default_id: "tuple-as-record",
     target: "file",
-    metric: "every Rust function parameter type or return type that is a tuple, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
+    metric: "every Rust function parameter type or return type that is a tuple, or that nests inside a generic or slice type, at any depth, a tuple of three or more elements with a primitive, String or &str element (closure signatures included for the nested form), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
     skill: "name-the-record",
     parameters: Parameters::Level {
-        violation: "a tuple in a signature is an unnamed record that evades the parameter-count and boolean-parameter budgets and hides what each position means; give it a named struct, or put a DECISION: or INVARIANT: reference on the line directly above the function to justify the tuple",
+        violation: "a tuple in a signature is an unnamed record that evades the parameter-count and boolean-parameter budgets and hides what each position means, whether it stands alone or inside Vec<(..)>, Option<(..)> or &[(..)]; give it a named struct, or put a DECISION: or INVARIANT: reference on the line directly above the function to justify the tuple",
     },
 };
 // DECISION: D089

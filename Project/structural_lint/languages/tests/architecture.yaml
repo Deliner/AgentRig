@@ -8,4 +8,5 @@ files:
   silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
+  tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis
 directories: {}
