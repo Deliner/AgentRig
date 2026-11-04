@@ -1,5 +1,6 @@
-purpose: "Repair function-signature smells: excessive inputs and boolean flag parameters"
+purpose: "Repair function-signature smells: excessive inputs, boolean flag parameters and tuples that hide an unnamed record"
 files: {}
 directories:
+  name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
   reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
   split-boolean-parameter: "Replace a boolean parameter with named modes while preserving behavior"

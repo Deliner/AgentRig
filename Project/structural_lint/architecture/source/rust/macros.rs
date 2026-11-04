@@ -1,5 +1,5 @@
-use super::super::model::RustMacro;
 use super::{Source, Target, compact, scope};
+use crate::structural_lint::architecture::source::model::RustMacro;
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {

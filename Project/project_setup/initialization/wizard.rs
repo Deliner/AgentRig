@@ -1,5 +1,5 @@
-use super::super::{self as package, Config, template};
 use crate::project_config;
+use crate::project_setup::{self as package, Config, template};
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
@@ -31,7 +31,7 @@ pub fn run(root: &Path) -> Result<i32> {
         std::fs::create_dir_all(&root)?;
         super::init::install(&root, &config, &files)?;
         println!("Installed the worker environment. Authentication remains separate.");
-        super::super::doctor(&project_config::Context::load(&root)?)
+        package::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()
     }

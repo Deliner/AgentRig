@@ -1,6 +1,6 @@
-use super::super::{Config, Files, bundle, template};
 use super::wizard;
 use crate::project_config;
+use crate::project_setup::{Config, Files, bundle, template};
 use anyhow::{Result, ensure};
 use std::{
     fs::{self, OpenOptions},

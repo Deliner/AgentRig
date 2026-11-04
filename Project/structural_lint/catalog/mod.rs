@@ -33,6 +33,7 @@ pub const ALL: &[Kind] = &[
     Kind::DiscardedResult,
     Kind::DisabledRaii,
     Kind::GlobalState,
+    Kind::SuperSuperReach,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

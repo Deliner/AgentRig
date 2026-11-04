@@ -378,6 +378,20 @@ rules:
   level: error
   warning_skill: .agents/skills/own-the-state/SKILL.md
   error_skill: .agents/skills/own-the-state/SKILL.md
+# DECISION: D100
+- id: super-super-reach
+  kind: super-super-reach
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/anchor-at-crate/SKILL.md
+  error_skill: .agents/skills/anchor-at-crate/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
