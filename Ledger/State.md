@@ -6,15 +6,14 @@
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
 выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P064 слиты (последний merge `4cf520c`).
-**P065** (B060, C-профиль clippy dev-гейта и ограждение `unsafe`): VAC-1…VAC-4 (`clippy::exit`,
-`should_panic_without_expect`, `missing_fields_in_debug`, `rest_pat_in_fully_bound_structs`)
-закоммичены; VAC-5 (`-D clippy::self_named_module_files` + перенос `rules.rs` → `rules/mod.rs`)
-завершается этим коммитом; далее VAC-6 (`#![deny(unsafe_code)]`, D107, ротация P065/B060),
-финальный пин D051 и `just feature-merge`.
+**P065** (B060, C-профиль clippy dev-гейта и ограждение `unsafe`; [D107](Decisions/107.md)):
+VAC-1…VAC-5 (пять линтов) закоммичены; VAC-6 (`#![deny(unsafe_code)]`, D107, ротация P065/B060 в
+Archive) завершается этим коммитом; далее финальный пин D051 и `just feature-merge`; затем
+`just feature-start` для P066 (B062).
 
 ## Workspace
 
-Ветка `feature/clippy-c-profile` (база master `4cf520c`), наблюдаемый HEAD `9fb446f` (VAC-4);
+Ветка `feature/clippy-c-profile` (база master `4cf520c`), наблюдаемый HEAD `61089d0` (VAC-5);
 stable.txt → `5a373d2`. macOS: коммиты/cargo — через `just scratch` с восстановленным
 PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy` (без `--all-targets`: код под `#[cfg(test)]` профилем не виден);
@@ -37,7 +36,7 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; п�
   компилируемом не-тестовом коде; фиксируется в D107 и Delivery.
 - VAC-3 (`9e60186`): `-D clippy::missing_fields_in_debug`.
 - VAC-4 (`9fb446f`): `-D clippy::rest_pat_in_fully_bound_structs`.
-- VAC-5 (этот коммит): `-D clippy::self_named_module_files`; `git mv structural_lint/rules.rs
+- VAC-5 (`61089d0`): `-D clippy::self_named_module_files`; `git mv structural_lint/rules.rs
   structural_lint/rules/mod.rs`. Перенос показал догфуду цикл `catalog → languages → rules → catalog`
   (реэкспорт каталога из файла, который теперь лежит в `rules/`): реэкспорт `catalog::{ALL, catalog,
   describe, example, …}` из `rules/mod.rs` удалён, потребители (`structural_lint/{mod,cli}.rs`,
@@ -45,10 +44,13 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; п�
   входящие рёбра на `rules::Kind` теперь относятся к `rules/`, а не к родителю — бюджет
   `rules/architecture.yaml` поднят до фактического радиуса 7 (D079). `structural_lint/architecture.yaml`
   без `rules.rs`, `rules/architecture.yaml` описывает `mod.rs`.
-- Не сделано: VAC-6
-  (`#![deny(unsafe_code)]` в `Project/lib.rs`, `#[allow(unsafe_code)]` + `// DECISION: D107` над
-  `pub mod jobs;` в `command_runner/mod.rs`, карточка D107 и строка индекса, ротация P065/B060),
-  финальный пин D051, `just feature-merge` (ветку сохранить, не пушить).
+- VAC-6 (этот коммит): `// DECISION: D107` + `#![deny(unsafe_code)]` в `Project/lib.rs`;
+  `// DECISION: D107` + `#[allow(unsafe_code)]` над `pub mod jobs;` в `command_runner/mod.rs`; карточка
+  [D107](Decisions/107.md) и строка индекса (расширяет D060/D068; невыбранные линты;
+  deny-по-умолчанию проверены); ротация `Plan/065.md` → `Archive/Plan/065.md` (Delivery, ссылки
+  `../../Decisions/`), `Backlog/060.md` → `Archive/Backlog/060.md`, строки индексов, заметка в Plan.md.
+- Не сделано: финальный пин D051 (stable.txt → голова ветки + bootstrap, отдельный коммит) и
+  `just feature-merge` (ветку сохранить, не пушить); затем P066 (B062) на новой ветке.
 
 ## Verification
 
@@ -66,11 +68,16 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; п�
   use of `..` pattern in struct binding. All fields were already bound …
   `-D clippy::rest-pat-in-fully-bound-structs`»; рядом `match-single-binding` из `-D warnings`), после
   отката — exit 0; гейт `9fb446f` прошёл (128 rust-test, 112 pytest).
-- 2026-11-05, рабочее дерево VAC-5: профиль с линтом на нетронутом дереве → exit 101 («`mod.rs` files
-  are required, found `structural_lint/rules.rs` … `-D clippy::self-named-module-files`») — реальная
-  находка вместо пробы; после `git mv` — exit 0, `--all-targets` тоже чисто. Догфуд после `git mv`:
-  2 находки (цикл и бюджет 7 > 6); после удаления реэкспорта — только бюджет; после `dependents: 7` —
-  см. гейт этого VAC. `cargo test --lib`: 128 ok. Коммит — следующий шаг.
+- VAC-5: профиль с линтом на нетронутом дереве → exit 101 («`mod.rs` files are required, found
+  `structural_lint/rules.rs` … `-D clippy::self-named-module-files`») — реальная находка вместо пробы;
+  после `git mv` — exit 0, `--all-targets` чисто; догфуд после `git mv` — 2 находки (цикл и бюджет
+  7 > 6), после удаления реэкспорта и `dependents: 7` — 0; гейт `61089d0` прошёл (128 rust-test,
+  317 pytest).
+- 2026-11-05, рабочее дерево VAC-6: проба `unsafe { *pointer }` в `Project/shared/fs/mod.rs` → профиль
+  падает («usage of an `unsafe` block … the lint level is defined here lib.rs:2 `#![deny(unsafe_code)]`»),
+  после отката — exit 0, `--all-targets` чисто (поддерево `jobs` компилируется под allow);
+  `cargo clippy -- -W help`: `derived-hash-with-manual-eq` и `derive-ord-xor-partial-ord` — `deny`.
+  Гейт этого VAC (включая memory-check после ротации) ещё не запускался — коммит следующий шаг.
 
 ## Blockers
 
@@ -78,10 +85,8 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; п�
 
 ## Next action
 
-Закоммитить VAC-5 через гейт («P065 VAC-5: deny clippy::self_named_module_files and move rules.rs to
-rules/mod.rs (B060 AC5)»); затем VAC-6: `#![deny(unsafe_code)]` в `Project/lib.rs` (строка
-`// DECISION: D107` над ним), `// DECISION: D107` + `#[allow(unsafe_code)]` над `pub mod jobs;` в
-`command_runner/mod.rs`, проба `unsafe` вне поддерева (ошибка компиляции), карточка D107 (расширяет
-D060: набор, невыбранные линты, deny-по-умолчанию `derived_hash_with_manual_eq` /
-`derive_ord_xor_partial_ord`, ограничение `#[cfg(test)]`), строка индекса, ротация P065/B060, затем
-финальный пин D051 и `just feature-merge`. Свободные ID: D107+, I022+, P069+, B065+.
+Закоммитить VAC-6 через гейт («P065 VAC-6: confine unsafe to command_runner::jobs, record D107 and
+archive P065/B060 (B060 AC6, AC7)»); финальный пин D051 (`git rev-parse HEAD > tooling/distribution/
+stable.txt`, `bash tooling/distribution/bootstrap.sh`, коммит «P065 D051 pin…»); `just feature-merge`
+(ветку сохранить, не пушить). Затем `just feature-start` для P066 (B062, зависимость P056 выполнена):
+прочитать `Ledger/Plan/066.md` и `Ledger/Backlog/062.md`. Свободные ID: D108+, I022+, P069+, B065+.
