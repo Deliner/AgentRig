@@ -6,6 +6,7 @@ files:
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, function lengths, parameters and comments
   rust.rs: Rust conditions, function lengths, parameters and comments
+  silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries or an Err arm answering a bool verdict
   test_context.rs: Decide whether a Rust node sits inside test-only code for rule exemptions
 directories:
   tests: Verify language measurements and delivery enforcement

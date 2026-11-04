@@ -216,13 +216,14 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
     },
 };
 // DECISION: D069
+// DECISION: D097
 const SILENTERROR: Descriptor = Descriptor {
     default_id: "silent-error",
     target: "file",
-    metric: "every Python except clause whose body is only pass without a DECISION: or INVARIANT: reference comment on the line directly above the pass",
+    metric: "every Python except clause whose body is only pass, every Rust read_dir call chain collapsed by .flatten(), .filter_map(Result::ok), .filter_map(|e| e.ok()) or .map_while(Result::ok), and every Rust match or if-let arm Err(_)/Err(..) whose body is Ok(true), Ok(false) or a return of one inside a function declared to return Result<bool, ...>, outside Rust test code, without a DECISION: or INVARIANT: reference comment on the line directly above the pass, the chain or the arm",
     skill: "handle-error",
     parameters: Parameters::Level {
-        violation: "an except that only passes swallows the error; handle it, re-raise, or put a DECISION: or INVARIANT: reference on the line directly above the pass to justify ignoring it",
+        violation: "an except that only passes, a read_dir chain that drops its failed entries or an Err arm that answers a verdict swallows the error; handle it, propagate or re-raise it, or put a DECISION: or INVARIANT: reference on the line directly above to justify ignoring it",
     },
 };
 // DECISION: D074

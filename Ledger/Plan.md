@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P056](Plan/056.md) | pending | - | [B049](Backlog/049.md): silent-error для Rust — проглоченные ошибки обхода `read_dir` и рукав `Err(_) => Ok(false)` | Нечитаемый каталог и ошибка проверки не превращаются молча в «пусто»/«нет»; fail-open вердикт нашего кода закрыт. |
+| [P056](Plan/056.md) | active | - | [B049](Backlog/049.md): silent-error для Rust — проглоченные ошибки обхода `read_dir` и рукав `Err(_) => Ok(false)` | Нечитаемый каталог и ошибка проверки не превращаются молча в «пусто»/«нет»; fail-open вердикт нашего кода закрыт. |
 | [P057](Plan/057.md) | pending | - | [B053](Backlog/053.md): allow-justification — `expect`, `cfg_attr` и `[lints]` в Cargo.toml | Подавление линта нельзя спрятать за `expect`, `cfg_attr` или манифестом. |
 | [P058](Plan/058.md) | pending | - | [B059](Backlog/059.md): discarded-result — `.status()?;` / `.output()?;` | Провалившаяся внешняя команда не остаётся незамеченной. |
 | [P059](Plan/059.md) | pending | - | [B058](Backlog/058.md): super-super-reach — путь через два уровня модулей вверх | Файл ссылается на владельца, а не на своё место в дереве; наши восемь сайтов переведены на `crate::`. |

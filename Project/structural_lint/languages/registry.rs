@@ -25,6 +25,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::BranchBudget,
             Kind::UnsafeJustification,
             Kind::HardcodedSecret,
+            Kind::SilentError,
             Kind::DisabledTest,
             Kind::AllowJustification,
             Kind::DebugArtifact,
