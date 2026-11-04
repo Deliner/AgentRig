@@ -8,6 +8,7 @@ mod manifest;
 mod markers;
 mod silent_error;
 mod super_reach;
+mod tuple_as_record;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source).unwrap();

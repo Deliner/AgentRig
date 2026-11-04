@@ -325,37 +325,6 @@ from collections import abc
     assert_eq!(wildcard_findings("source.py", source), [2]);
 }
 
-// DECISION: D088
-fn record_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut lines: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| item.kind == Kind::TupleAsRecord)
-        .map(|item| item.line)
-        .collect();
-    lines.sort();
-    lines
-}
-
-#[test]
-fn rust_flags_tuple_parameters_and_returns_outside_tests() {
-    let source = "fn packed(options: (bool, u32)) {}
-fn returns_pair() -> (u32, u32) { (1, 2) }
-// DECISION: D001
-fn annotated(options: (bool, u32)) {}
-fn plain(count: u32, name: &str) -> u32 { count }
-fn unit() -> () {}
-fn wrapped(maybe: Option<(u32, u32)>) {}
-#[cfg(test)]
-mod tests {
-    fn helper(options: (bool, u32)) {}
-}
-";
-    assert_eq!(record_findings("source.rs", source), [1, 2]);
-}
-
 // DECISION: D089
 fn eager_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();
