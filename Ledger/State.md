@@ -8,13 +8,13 @@
 выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P065 слиты (последний merge `b224444`).
 **P066** (B062, одноразовые ремонты собственного кода: AC2 fail-closed + `&Settings`, AC3 enum'ы,
 AC4 именованные записи, AC5 `Ordering`, AC6 `--help`): VAC-A (AC2) `384936a`; VAC-B (AC6) `4d2e48a`;
-VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) завершается этим коммитом; далее VAC по AC3
-(Command, каталог памяти), AC4, AC5 + ротация, пин D051, `just feature-merge`; затем P067 (B061),
-P068 (B063).
+VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) `8059224`; VAC-E (AC3c `Command`)
+завершается этим коммитом; далее VAC по AC3 (каталог памяти), AC4, AC5 + ротация, пин D051,
+`just feature-merge`; затем P067 (B061), P068 (B063).
 
 ## Workspace
 
-Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `a983c85` (VAC-C);
+Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `8059224` (VAC-D);
 stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
@@ -44,13 +44,20 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   `"error"`/`"warning"` исчезли из `structural_lint/mod.rs` (`finding`, `run_output`),
   `architecture/runner/mod.rs` и `registry/check.rs`; текст и JSON диагностик не изменились
   (`Guidance.level` получает `level.name()`).
-- VAC-D (этот коммит, AC3b): `enum JobState` (Completed, Running, Orphaned, StartingOrFinishing,
+- VAC-D (`8059224`, AC3b): `enum JobState` (Completed, Running, Orphaned, StartingOrFinishing,
   Interrupted, Stopping, Cancelled; serde kebab-case) и запись `Observation { state, value }` в
   `command_runner/jobs/mod.rs`; `observe_once`/`grouped` возвращают типизированное состояние, `observe`
   сравнивает `JobState::Interrupted` вместо строки в JSON; поле `state` пишется той же вставкой
   (`json!(state)`), порядок ключей сохранён (serde_json `preserve_order`). Строки состояний живут только
   в этом файле (grep по Project).
-- Не сделано: AC3c–AC3d, AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
+- VAC-E (этот коммит, AC3c): `command_line::Command` (16 вариантов + `Jobs(jobs::Command)`) с одной
+  таблицей имён `NAMES` (`parse` для `main.rs` вместо `owns()` + особых случаев guard-*, `name()` для
+  сообщений `takes no arguments`/`unknown scaffold command`); `run`/`validate_arguments`/
+  `configured_command` сопоставляют варианты; `jobs::Command { List, Status, Logs, Stop, Cleanup }`,
+  `jobs::cli` принимает его, ветка `unknown jobs command` исчезла (исчерпывающий match). Строки команд
+  остались только на границе разбора (`main.rs`: hook/lint-*, `project_root` для `init`) и в
+  `structural_lint::cli` — вне карточки.
+- Не сделано: AC3d, AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
 
 ## Verification
 
@@ -72,7 +79,14 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   догфуд 0; `cargo test --lib` 128 passed; pytest `command_runner/tests/test_jobs.py` — 13 passed
   (утверждения по `state`: running, completed, orphaned, interrupted, cancelled, `group_observation`);
   `candidate -- job-status run-BTBLbq` печатает `…"background":false,"state":"completed","age_seconds":…`
-  — позиция и значение ключа прежние. Гейт коммита — следующий шаг.
+  — позиция и значение ключа прежние. Гейт `8059224` прошёл (15 rust-test, 209 pytest).
+- 2026-11-05, рабочее дерево VAC-E: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
+  догфуд 0 (с `--warnings` — 16 прежних file-size, среди них `jobs/mod.rs` 308 > 300 после VAC-D, и
+  directory-size `.`/Ledger; ошибок нет); `cargo test --lib` 128 passed; пробы кандидата: `doctor extra`
+  → `doctor takes no arguments`, `job-status` → `job-status RUN_ID`, `feature-start` → `feature-start
+  NAME`, `jobs extra` → `jobs takes no arguments`, `nope` → строка AC6, `commands` печатает каталог —
+  exit 2/0 как прежде; pytest `command_runner/tests/test_commands.py` + `test_jobs.py` — 18 passed.
+  Гейт коммита — следующий шаг.
 
 ## Blockers
 
@@ -80,7 +94,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-D через гейт («P066 VAC-D: type the job state (B062 AC3)»); затем VAC-E AC3c:
-`enum Command` в `command_line` (таблица имён для разбора и сообщений `takes no arguments`) и
-`jobs::Command { List, Status, Logs, Stop, Cleanup }` в `command_runner/jobs/mod.rs`; `main.rs`
-разбирает команду вместо `owns()`; сообщение AC6 сохраняется. Свободные ID: D108+, I022+, P069+, B065+.
+Закоммитить VAC-E через гейт («P066 VAC-E: type the command cascade (B062 AC3)»); затем VAC-F AC3d:
+`enum Catalog { Plan, Backlog, Decisions, Invariants }` в `project_memory/format.rs` (каталог даёт
+директорию, префикс, колонки и `detail_sections`); потребители — `project_memory/mod.rs`, `history.rs`,
+`project_setup/assets.rs memory()`. Свободные ID: D108+, I022+, P069+, B065+.

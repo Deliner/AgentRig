@@ -195,30 +195,34 @@ pub fn directory(runtime: &Path, id: &str) -> Result<PathBuf> {
     storage::load(runtime, id)?;
     Ok(runtime.join("jobs").join(id))
 }
-pub fn cli(runtime: &Path, command: &str, args: &[String]) -> Result<i32> {
-    let cleanup = command == "job-cleanup";
-    if cleanup {
-        return cleanup_cli(runtime, args);
-    }
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum Command {
+    List,
+    Status,
+    Logs,
+    Stop,
+    Cleanup,
+}
+pub fn cli(runtime: &Path, command: Command, args: &[String]) -> Result<i32> {
     let value = match command {
-        "jobs" => {
+        Command::Cleanup => return cleanup_cli(runtime, args),
+        Command::List => {
             anyhow::ensure!(args.is_empty(), "jobs takes no arguments");
             json!(list(runtime)?)
         }
-        "job-status" => {
+        Command::Status => {
             anyhow::ensure!(args.len() == 1, "job-status RUN_ID");
             status(runtime, &args[0])?
         }
-        "job-logs" => {
+        Command::Logs => {
             anyhow::ensure!(args.len() == 1, "job-logs RUN_ID");
             logs::read(runtime, &args[0])?
         }
-        "job-stop" => {
+        Command::Stop => {
             anyhow::ensure!(args.len() == 1, "job-stop RUN_ID");
             stop::run(runtime, &args[0])?;
             status(runtime, &args[0])?
         }
-        _ => anyhow::bail!("unknown jobs command {command}"),
     };
     println!("{value}");
     Ok(0)
