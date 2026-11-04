@@ -100,6 +100,31 @@ def test_divergent_rebase_preserves_merge_history(worker: Path, installed: Path)
     assert git(root, "rev-parse", "task/product") == tip
 
 
+# INVARIANT: I021
+def test_reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved(
+    worker: Path, installed: Path
+) -> None:
+    root = installed
+    unknown = "0" * 40
+    merged = invoke(
+        worker,
+        root,
+        "guard-reference",
+        "prepared",
+        input=f"{unknown} {unknown} refs/heads/task/bootstrap\n",
+    )
+    assert merged.returncode == 1 and "retained" in merged.stderr
+    missing = invoke(
+        worker,
+        root,
+        "guard-reference",
+        "prepared",
+        input=f"{unknown} {unknown} refs/heads/task/missing\n",
+    )
+    assert missing.returncode == 2, missing.stdout + missing.stderr
+    assert "retained" not in missing.stderr
+
+
 def test_conflicting_rebase_can_be_aborted_without_losing_feature(
     worker: Path, installed: Path
 ) -> None:

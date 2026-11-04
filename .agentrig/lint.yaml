@@ -214,6 +214,7 @@ rules:
   warning_skill: .agents/skills/remove-secret/SKILL.md
   error_skill: .agents/skills/remove-secret/SKILL.md
 # DECISION: D069
+# DECISION: D097
 - id: silent-error
   kind: silent-error
   target: file
@@ -222,6 +223,7 @@ rules:
   extensions:
   - .py
   - .pyi
+  - .rs
   level: error
   warning_skill: .agents/skills/handle-error/SKILL.md
   error_skill: .agents/skills/handle-error/SKILL.md

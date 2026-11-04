@@ -5,38 +5,38 @@
 **Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068** (порядок — в Plan.md). P055 выполнен и слит (`33477fd`). Текущая
-карточка — **P056** (B049 AC1–AC2, `silent-error` для Rust): расширение существующего вида на `.rs`,
-детектор `languages/silent_error.rs`, решение [D097](Decisions/097.md).
+выбраны в Plan **P055–P068** (порядок — в Plan.md). P055 выполнен и слит (`33477fd`). P056 (B049,
+`silent-error` для Rust, [D097](Decisions/097.md), [I021](Invariants/021.md)) завершён этим VAC-B2 и
+перенесён в Archive; следующая карточка — **P057** (B053 allow-justification: `expect`, `cfg_attr`,
+`[lints]` в Cargo.toml).
 
 ## Workspace
 
-Ветка `feature/silent-error-rust` (база master `33477fd`), наблюдаемый HEAD `33477fd`; VAC-B1 в
-рабочем дереве и коммитится этим VAC. macOS: коммиты/cargo — через `just scratch` с восстановленным
-PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; `just candidate …` напрямую падает
-на `cargo: command not found`, рабочая форма — `tooling/worker/run run candidate -- lint` внутри
-`just scratch`. Расширение `.rs` для `silent-error` в `lint.yaml` принимается только после пина
-`registry.rs` (иначе конфигурация уходит в режим починки).
+Ветка `feature/silent-error-rust` (база master `33477fd`): VAC-B1 `9fce2ee`, пин `c049547`
+(stable.txt → `9fce2ee`), VAC-B2 — этот коммит. macOS: коммиты/cargo — через `just scratch` с
+восстановленным PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; рабочая форма
+догфуда — `tooling/worker/run run candidate -- lint` внутри `just scratch`. Каждый новый `kind:` и
+каждое расширение, которое stable-бинарь должен принять из `lint.yaml`, — двухфазно с мид-бранч пином
+([D051](Decisions/051.md)); по одной карточке за ветку.
 
 ## Progress
 
-- VAC-B1 (этот коммит): `Kind::SilentError` в Rust-списке `registry.rs`, детектор
-  `languages/silent_error.rs` (AC1 цепочки `read_dir`, AC2 рукав `Err → Ok(bool)`), диспетчеризация
-  в `rust.rs` (`call_expression`, `match_arm`, `if let`), дескриптор с обоими языками, тесты
-  `languages/tests/silent_error.rs`, D097, P056 → active.
-- Не сделано: мид-бранч пин → этот коммит; VAC-B2 — `.rs` в правиле `silent-error` `.agentrig/lint.yaml`,
-  навык `handle-error` с Rust-ремонтами, fail-closed `merged_reference` + Python-тест с `INVARIANT: I021`
-  (`oracles.yaml`, `Invariants.md`, `Invariants/021.md`), догфуд, живая проба, ротация P056/B049;
-  финальный пин; `just feature-merge`; P057–P068.
+- P056 VAC-B2 (этот коммит): `.rs` в правиле `silent-error` (`.agentrig/lint.yaml`), навык
+  `handle-error` с Rust-ремонтами, fail-closed `merged_reference` (`git(..)?`), тест
+  `test_reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved` с `INVARIANT: I021`
+  (`oracles.yaml`, `Invariants.md`, `Invariants/021.md`), ссылки D097, ротация P056/B049 в Archive.
+- Не сделано: финальный пин D051 на голову ветки + bootstrap (отдельный коммит), `just feature-merge`
+  (ветку сохранить, не пушить); затем P057–P068 по порядку Plan.
 
 ## Verification
 
-- Локально 2026-11-04 на рабочем дереве VAC-B1: `cargo fmt --check` OK, `cargo clippy --all-targets
-  -D warnings` OK, `cargo test --lib` — 114 passed (в том числе 2 новых теста: AC1 — пять находок
-  `3:flatten … 7:map_while`, не-находки для `entry?`, обоснованной цепочки, `map` и тестовой функции;
-  AC2 — `4:merged`, `8:merged`, `12:io_verdict`, не-находки для проброса, guard, алиаса типа,
-  замыкания, обоснования и теста).
-- Гейт коммита VAC-B1 ещё не запускался; догфуд с живым правилом — после пина (VAC-B2).
+- 2026-11-04 на рабочем дереве VAC-B2: `cargo test --lib silent_error` — 3 passed;
+  `just lint-config-check` — valid с `.rs`; оракул I021 (pytest `-k reference_guard`) — 1 passed;
+  догфуд `tooling/worker/run run candidate -- lint` — 0 находок (exit 0); живая проба `fn probe`
+  (`read_dir(root)?.flatten()` + `Err(_) => Ok(false)`) — `ERROR [silent-error] mod.rs:152 (flatten)`,
+  `:155 (probe)` с навыком `handle-error`, после удаления снова 0 находок; `just lint-rule silent-error`
+  описывает Rust и Python.
+- Гейт VAC-B1 (`9fce2ee`): rust-test 92 passed, python 202 passed; гейт VAC-B2 — при этом коммите.
 
 ## Blockers
 
@@ -44,10 +44,7 @@ PATH (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; `ju
 
 ## Next action
 
-Закоммитить VAC-B1 через гейт, затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt`
-+ bootstrap, отдельный коммит). Далее VAC-B2: `.rs` в `extensions` правила `silent-error`,
-навык `handle-error` (Rust-ремонты), `merged_reference` → `git(...)?`, тест
-`test_reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved` с `INVARIANT: I021`,
-`just lint-config-check`, догфуд `tooling/worker/run run candidate -- lint` (ожидается 0 находок после
-ремонта), живая проба обоих паттернов, ротация P056 → Archive, финальный пин, `just feature-merge`
-(ветку сохранить, не пушить). Свободные ID: D098+, I022+, P069+, B065+.
+Финальный пин: `git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, коммит пина, затем
+`tooling/worker/run feature-merge` внутри `just scratch` (ветка сохраняется, без push). Далее
+`just feature-start allow-justification-ext` для P057 ([Plan/057.md](Plan/057.md)): двухфазная
+доставка, догфуд, живая проба, ротация. Свободные ID: D098+, I022+, P069+, B065+.
