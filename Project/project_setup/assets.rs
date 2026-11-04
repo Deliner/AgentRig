@@ -1,4 +1,4 @@
-use crate::project_memory::format::{STATE_SECTIONS, columns};
+use crate::project_memory::format::{Catalog, STATE_SECTIONS};
 use std::collections::BTreeMap;
 
 const SKILLS: &[(&str, &str)] = &[
@@ -156,13 +156,14 @@ pub fn skills() -> BTreeMap<&'static str, String> {
 }
 pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
     let mut files = BTreeMap::new();
-    for (name, prefix) in [
-        ("Plan", 'P'),
-        ("Backlog", 'B'),
-        ("Decisions", 'D'),
-        ("Invariants", 'I'),
+    for catalog in [
+        Catalog::Plan,
+        Catalog::Backlog,
+        Catalog::Decisions,
+        Catalog::Invariants,
     ] {
-        let columns = columns(prefix)?.join(" | ");
+        let name = catalog.directory();
+        let columns = catalog.columns().join(" | ");
         let separator = columns
             .split('|')
             .map(|_| "---")

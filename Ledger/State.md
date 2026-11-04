@@ -14,7 +14,7 @@ VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) `8059224`; VAC-E (AC3c `
 
 ## Workspace
 
-Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `8059224` (VAC-D);
+Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `029eed3` (VAC-E);
 stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
@@ -50,14 +50,22 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   сравнивает `JobState::Interrupted` вместо строки в JSON; поле `state` пишется той же вставкой
   (`json!(state)`), порядок ключей сохранён (serde_json `preserve_order`). Строки состояний живут только
   в этом файле (grep по Project).
-- VAC-E (этот коммит, AC3c): `command_line::Command` (16 вариантов + `Jobs(jobs::Command)`) с одной
+- VAC-E (`029eed3`, AC3c): `command_line::Command` (16 вариантов + `Jobs(jobs::Command)`) с одной
   таблицей имён `NAMES` (`parse` для `main.rs` вместо `owns()` + особых случаев guard-*, `name()` для
   сообщений `takes no arguments`/`unknown scaffold command`); `run`/`validate_arguments`/
   `configured_command` сопоставляют варианты; `jobs::Command { List, Status, Logs, Stop, Cleanup }`,
   `jobs::cli` принимает его, ветка `unknown jobs command` исчезла (исчерпывающий match). Строки команд
   остались только на границе разбора (`main.rs`: hook/lint-*, `project_root` для `init`) и в
   `structural_lint::cli` — вне карточки.
-- Не сделано: AC3d, AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
+- VAC-F (этот коммит, AC3d): `enum Catalog { Plan, Backlog, Decisions, Invariants }` в
+  `project_memory/format.rs` с `directory()`, `prefix()`, `columns()`, `detail_sections() -> Sections
+  { required, optional }`; свободные `columns(char)`/`detail_sections(&str)` с ветками `bail!` исчезли;
+  `table`/`parse_table`/`parse_row` принимают каталог; потребители — `project_memory/mod.rs`
+  (`details`, `reject_unindexed`, все вызовы `table`), `history.rs`, `project_setup/assets.rs memory()`.
+  Догфуд поймал кортеж в новой сигнатуре `detail_sections` (tuple-as-record; прежняя была скрыта в
+  `Result<(..)>` — правило не заглядывает в `Result`, побочное наблюдение для отчёта) — заменён записью
+  `Sections`.
+- Не сделано: AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
 
 ## Verification
 
@@ -86,7 +94,11 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   → `doctor takes no arguments`, `job-status` → `job-status RUN_ID`, `feature-start` → `feature-start
   NAME`, `jobs extra` → `jobs takes no arguments`, `nope` → строка AC6, `commands` печатает каталог —
   exit 2/0 как прежде; pytest `command_runner/tests/test_commands.py` + `test_jobs.py` — 18 passed.
-  Гейт коммита — следующий шаг.
+  Гейт `029eed3` прошёл (128 rust-test, 209 pytest).
+- 2026-11-05, рабочее дерево VAC-F: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
+  догфуд 0 (первая редакция дала tuple-as-record `format.rs:48` — исправлено); `cargo test --lib` 128
+  passed; `candidate -- memory-check` на репозитории exit 0; pytest `project_memory/tests` +
+  `project_setup/tests` — 90 passed. Гейт коммита — следующий шаг.
 
 ## Blockers
 
@@ -94,7 +106,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-E через гейт («P066 VAC-E: type the command cascade (B062 AC3)»); затем VAC-F AC3d:
-`enum Catalog { Plan, Backlog, Decisions, Invariants }` в `project_memory/format.rs` (каталог даёт
-директорию, префикс, колонки и `detail_sections`); потребители — `project_memory/mod.rs`, `history.rs`,
-`project_setup/assets.rs memory()`. Свободные ID: D108+, I022+, P069+, B065+.
+Закоммитить VAC-F через гейт («P066 VAC-F: type the memory catalog (B062 AC3)»); затем VAC-G AC4: семь
+пар → записи у владельцев (`format::Link`, `settings::files`, `check.rs Findings`, `policy::describe`,
+`template::justfiles`, `streams::Readers::start` + `Job::open_logs` — `Logs { stdout, stderr }`).
+Свободные ID: D108+, I022+, P069+, B065+.

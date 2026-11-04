@@ -18,7 +18,7 @@ use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
-use format::{Row, sections, table, target};
+use format::{Catalog, Row, sections, table, target};
 use std::{
     collections::{HashMap, HashSet},
     path::Path,
@@ -40,9 +40,9 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
 }
 // DECISION: D037
 fn references(context: &Context, memory: &Path) -> Result<()> {
-    let records: HashSet<String> = table(&memory.join("Decisions.md"), 'D')?
+    let records: HashSet<String> = table(&memory.join("Decisions.md"), Catalog::Decisions)?
         .into_iter()
-        .chain(table(&memory.join("Invariants.md"), 'I')?)
+        .chain(table(&memory.join("Invariants.md"), Catalog::Invariants)?)
         .map(|row| row.id)
         .collect();
     let sources = globs(&context.config.paths.sources)?;
@@ -61,8 +61,9 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> Result<()> {
-    let (headings, optional) = format::detail_sections(directory)?;
+fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> Result<()> {
+    let layout = catalog.detail_sections();
+    let directory = catalog.directory();
     let mut known = HashSet::new();
     for row in rows {
         ensure!(
@@ -73,13 +74,14 @@ fn details(context: &Context, memory: &Path, rows: &[Row], directory: &str) -> R
         known.insert(row.detail.clone());
         sections(
             &target(&context.root, memory, &row.detail)?,
-            headings,
-            optional,
+            layout.required,
+            layout.optional,
         )?;
     }
-    reject_unindexed(memory, directory, &known)
+    reject_unindexed(memory, catalog, &known)
 }
-fn reject_unindexed(memory: &Path, directory: &str, known: &HashSet<String>) -> Result<()> {
+fn reject_unindexed(memory: &Path, catalog: Catalog, known: &HashSet<String>) -> Result<()> {
+    let directory = catalog.directory();
     let path = memory.join(directory);
     let directory_exists = path.is_dir();
     if directory_exists {
@@ -111,8 +113,8 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
         let path = root.join("Backlog.md");
         let adopted = path.try_exists()?;
         if adopted {
-            let rows = table(&path, 'B')?;
-            details(context, &root, &rows, "Backlog")?;
+            let rows = table(&path, Catalog::Backlog)?;
+            details(context, &root, &rows, Catalog::Backlog)?;
             for row in rows {
                 ensure!(
                     ids.insert(row.id),
@@ -120,7 +122,7 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
                 );
             }
         } else {
-            reject_unindexed(&root, "Backlog", &HashSet::new())?;
+            reject_unindexed(&root, Catalog::Backlog, &HashSet::new())?;
         }
     }
     Ok(())
@@ -138,7 +140,7 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
         );
         rows.extend(completed);
     } else {
-        reject_unindexed(&archive, "Plan", &HashSet::new())?;
+        reject_unindexed(&archive, Catalog::Plan, &HashSet::new())?;
     }
     ensure!(
         rows.iter().filter(|row| row.cells[1] == "active").count() <= 1,
@@ -156,8 +158,8 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
     acyclic(&graph)
 }
 fn plan_rows(context: &Context, memory: &Path) -> Result<Vec<Row>> {
-    let rows = table(&memory.join("Plan.md"), 'P')?;
-    details(context, memory, &rows, "Plan")?;
+    let rows = table(&memory.join("Plan.md"), Catalog::Plan)?;
+    details(context, memory, &rows, Catalog::Plan)?;
     for row in &rows {
         plan_status(row, memory)?;
     }
@@ -221,8 +223,8 @@ fn acyclic(graph: &HashMap<&str, Vec<&str>>) -> Result<()> {
     Ok(())
 }
 fn decisions(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Decisions.md"), 'D')?;
-    details(context, memory, &rows, "Decisions")?;
+    let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
+    details(context, memory, &rows, Catalog::Decisions)?;
     for row in &rows {
         let links = format::links(&row.cells[2]);
         ensure!(!links.is_empty(), "{}: application link required", row.id);
@@ -254,8 +256,8 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
     Ok(())
 }
 fn invariants(context: &Context, memory: &Path) -> Result<()> {
-    let rows = table(&memory.join("Invariants.md"), 'I')?;
-    details(context, memory, &rows, "Invariants")?;
+    let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
+    details(context, memory, &rows, Catalog::Invariants)?;
     for row in &rows {
         let (name, link) = format::link(&row.cells[2])?;
         let path = target(&context.root, memory, &link)?;
