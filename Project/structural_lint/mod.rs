@@ -73,7 +73,7 @@ fn scalar_findings(
 ) -> Result<()> {
     let Evaluation { analyses, output } = evaluation;
     for selected in selection::select(rule, inventory)? {
-        let syntax_rule = rules::syntax(rule.kind);
+        let syntax_rule = catalog::syntax(rule.kind);
         if syntax_rule {
             let path = selected.path;
             let uncached = !analyses.contains_key(path);

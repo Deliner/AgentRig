@@ -67,7 +67,7 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let catalog = command == "lint-rules";
     if catalog {
         ensure!(args.is_empty(), "lint-rules takes no arguments");
-        println!("{}", super::rules::catalog());
+        println!("{}", super::catalog::catalog());
         return Ok(0);
     }
     let kind = args
@@ -84,10 +84,10 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let json = args.iter().any(|arg| arg == "--json");
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
-            "rules": [super::rules::example(kind, ".agents/skills", &["src/**".into()])]});
+            "rules": [super::catalog::example(kind, ".agents/skills", &["src/**".into()])]});
         println!("{}", crate::shared::yaml::encode(&value)?);
     } else if json {
-        println!("{}", super::rules::describe(kind));
+        println!("{}", super::catalog::describe(kind));
     } else {
         print_rule(kind);
     }
@@ -103,9 +103,9 @@ fn print_rule(kind: super::rules::Kind) {
         descriptor.skill,
         descriptor.parameters.describe()
     );
-    let syntax = super::rules::syntax(kind);
+    let syntax = super::catalog::syntax(kind);
     if syntax {
-        println!("Languages: {}", super::rules::support(kind));
+        println!("Languages: {}", super::catalog::support(kind));
     }
     let architecture = kind == super::rules::Kind::DirectoryArchitecture;
     if architecture {

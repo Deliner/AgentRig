@@ -1,4 +1,6 @@
 // DECISION: D005
+// DECISION: D107
+#[allow(unsafe_code)]
 pub mod jobs;
 pub mod registry;
 pub(crate) mod sandbox;

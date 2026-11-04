@@ -1,3 +1,5 @@
+// DECISION: D107
+#![deny(unsafe_code)]
 // DECISION: D042
 pub mod agent_hooks;
 pub(crate) mod change_delivery;
