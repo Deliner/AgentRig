@@ -92,6 +92,8 @@ clippy:
   - clippy::unwrap_used
   - -D
   - clippy::let_underscore_must_use
+  - -D
+  - clippy::exit
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
