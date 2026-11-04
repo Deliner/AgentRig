@@ -368,6 +368,81 @@ fn zone_pure_directories_reject_wall_clock_reads_in_their_own_files() {
     );
 }
 
+// DECISION: D104
+#[test]
+fn pure_zone_effects_name_entropy_network_threads_and_console() {
+    let cases = [
+        ("std::fs::read", Some("access the environment")),
+        ("std::time::Instant::now", Some("read the wall clock")),
+        ("rand::random", Some("draw entropy")),
+        ("rand::thread_rng", Some("draw entropy")),
+        ("::rand::rng", Some("draw entropy")),
+        ("getrandom::getrandom", Some("draw entropy")),
+        ("getrandom::fill", Some("draw entropy")),
+        ("std::net", Some("use the network")),
+        ("std::net::TcpStream::connect", Some("use the network")),
+        ("std::thread::spawn", Some("use threads")),
+        ("std::io::stdin", Some("use the console")),
+        ("std::io::stdout", Some("use the console")),
+        ("std::io::stderr", Some("use the console")),
+        ("std::print", Some("use the console")),
+        ("std::println", Some("use the console")),
+        ("std::eprint", Some("use the console")),
+        ("std::eprintln", Some("use the console")),
+        ("rand::rngs::StdRng", None),
+        ("rand::Rng", None),
+        ("getrandom::Error", None),
+        ("std::io::Write", None),
+        ("std::io::Error", None),
+        ("std::sync::Mutex", None),
+        ("std::format", None),
+        ("std::dbg", None),
+    ];
+    for (external, expected) in cases {
+        assert_eq!(super::effect(external), expected, "{external}");
+    }
+}
+
+// DECISION: D104
+#[test]
+fn zone_pure_directories_name_the_effect_of_each_forbidden_reference() {
+    let temp = tempfile::tempdir().unwrap();
+    write(
+        temp.path(),
+        "Project/calc",
+        "purpose: Pure numeric evaluation\nzone: pure",
+    );
+    let directories = BTreeSet::from([PathBuf::from("Project/calc")]);
+    let loaded = Contracts::load(temp.path(), &directories);
+    assert!(loaded.issues.is_empty(), "{:?}", messages(&loaded.issues));
+    let use_site = |line, path: &str| EnvironmentUse {
+        line,
+        path: path.into(),
+    };
+    let mut environment = BTreeMap::new();
+    environment.insert(
+        PathBuf::from("Project/calc/effects.rs"),
+        vec![
+            use_site(2, "rand::random"),
+            use_site(5, "std::net::TcpStream::connect"),
+            use_site(7, "std::thread::spawn"),
+            use_site(9, "std::println"),
+        ],
+    );
+    let found = loaded.contracts.check_zones(&environment);
+    let expected = [
+        "draw entropy",
+        "use the network",
+        "use threads",
+        "use the console",
+    ];
+    assert_eq!(found.len(), expected.len(), "{:?}", messages(&found));
+    for (issue, effect) in found.iter().zip(expected) {
+        let named = issue.message.contains(&format!("must not {effect};"));
+        assert!(named, "{}", issue.message);
+    }
+}
+
 // DECISION: D079
 #[test]
 fn coupling_ignores_same_directory_and_module_declaration_edges() {

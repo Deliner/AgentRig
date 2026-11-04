@@ -208,8 +208,8 @@ impl<'a> Resolvers<'a> {
                         used.record(&reference.target, external);
                         // DECISION: D078
                         // DECISION: D083
-                        let impure =
-                            architecture::environment(external) || architecture::clock(external);
+                        // DECISION: D104
+                        let impure = architecture::effect(external).is_some();
                         if impure {
                             environment.push(EnvironmentUse {
                                 line: reference.line,
