@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P069](Plan/069.md) | active | - | [B065](Backlog/065.md): shipped-contract — поставка `init` и диагностика lint соответствуют записанным решениям | Консумер получает `init`-поставку и диагностику lint, совпадающие с решениями Ledger. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
