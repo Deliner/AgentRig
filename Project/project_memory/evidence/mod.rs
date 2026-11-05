@@ -3,6 +3,7 @@ mod content;
 pub use content::native_index;
 
 use crate::project_config::{self, Check, Context};
+use crate::shared::console;
 use crate::shared::fs;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -219,18 +220,21 @@ fn observed(context: &Context) -> Result<Value> {
 }
 pub fn report(context: &Context) -> Result<()> {
     let value = resume(context);
-    println!("Check evidence: {}", serde_json::to_string(&value)?);
+    console::stdout(format!(
+        "Check evidence: {}",
+        serde_json::to_string(&value)?
+    ));
     let results = value.pointer("/last_run/results").and_then(Value::as_array);
     for result in results.into_iter().flatten() {
         let repeated = result["consecutive_failures"].as_u64().unwrap_or_default() >= 2;
         if repeated {
-            println!(
+            console::stdout(format!(
                 "Repeated check failure [{}]: {} attempts. Guidance presented: {}. RERUN: {}. Compare actual failures and revise guidance if applying it did not help; this does not prove the skill was read or the root cause repeated.",
                 result["id"].as_str().unwrap_or_default(),
                 result["consecutive_failures"],
                 result["skill"].as_str().unwrap_or_default(),
                 result["rerun"].as_str().unwrap_or_default()
-            );
+            ));
         }
     }
     Ok(())

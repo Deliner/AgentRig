@@ -1,4 +1,5 @@
 use crate::project_config::Context;
+use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use anyhow::Result;
 use std::{env, path::Path, process::Command};
@@ -16,11 +17,11 @@ fn available(program: &str, cwd: &Path) -> bool {
         .is_some_and(|paths| env::split_paths(&paths).any(|path| executable(&path.join(program))))
 }
 pub fn run(context: &Context) -> Result<i32> {
-    println!(
+    console::stdout(format!(
         "runtime {}: compatible; platform {}",
         crate::project_config::VERSION,
         env::consts::OS
-    );
+    ));
     let mut failed = !installed_binary(context);
     failed |= !command_availability(context)?;
     failed |= !sandbox_availability(context);
@@ -31,17 +32,14 @@ pub fn run(context: &Context) -> Result<i32> {
     };
     if failed {
         let rerun = crate::shared::diagnostics::rerun(&context.root, &["doctor".into()]);
-        eprintln!(
-            "{}",
-            crate::shared::diagnostics::Guidance {
-                level: "ERROR",
-                id: "doctor",
-                location: &context.root.display().to_string(),
-                message: "installation checks failed; see the individual results above",
-                skill: &context.config.config_skill,
-                rerun: &rerun,
-            }
-        );
+        console::stderr(crate::shared::diagnostics::Guidance {
+            level: "ERROR",
+            id: "doctor",
+            location: &context.root.display().to_string(),
+            message: "installation checks failed; see the individual results above",
+            skill: &context.config.config_skill,
+            rerun: &rerun,
+        });
     }
     Ok(i32::from(failed))
 }
@@ -58,14 +56,14 @@ fn installed_binary(context: &Context) -> bool {
             && String::from_utf8_lossy(&output.stdout).trim()
                 == format!("agentrig {}", crate::project_config::VERSION)
     });
-    println!(
+    console::stdout(format!(
         "installed binary: {}",
         if matches {
             "compatible"
         } else {
             "MISSING OR INCOMPATIBLE"
         }
-    );
+    ));
     matches
 }
 fn command_availability(context: &Context) -> Result<bool> {
@@ -73,10 +71,10 @@ fn command_availability(context: &Context) -> Result<bool> {
     for (name, command) in &context.config.commands {
         if let Some(program) = command.argv.first() {
             let found = available(program, &context.path(&command.cwd)?);
-            println!(
+            console::stdout(format!(
                 "command {name}: {} ({program})",
                 if found { "available" } else { "MISSING" }
-            );
+            ));
             failed |= !found;
         }
     }
@@ -91,10 +89,10 @@ fn sandbox_availability(context: &Context) -> bool {
         .any(|command| command.read_only);
     if read_only {
         let works = crate::command_runner::sandbox::available();
-        println!(
+        console::stdout(format!(
             "read-only backend: {}",
             if works { "available" } else { "UNAVAILABLE" }
-        );
+        ));
         failed |= !works;
     }
     !failed
@@ -109,14 +107,14 @@ fn vcs_registration(context: &Context) -> Result<bool> {
                 available(path, &context.root)
                     && fs::read(context.root.join(path)).is_ok_and(|actual| actual == *contents)
             });
-    println!(
+    console::stdout(format!(
         "git hooks: {}",
         if registered {
             "registered"
         } else {
             "NOT REGISTERED OR CHANGED; verify VCS registration, adapter contents and executable permissions"
         }
-    );
+    ));
     Ok(registered)
 }
 fn codex_registration(context: &Context) -> Result<bool> {
@@ -133,14 +131,14 @@ fn codex_registration(context: &Context) -> Result<bool> {
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
     let codex = enabled && hooks_registered(context, configured.as_ref())?;
-    println!(
+    console::stdout(format!(
         "Codex registration: {}",
         if codex {
             "registered"
         } else {
             "MISSING OR CHANGED; inspect .codex/config.toml and .codex/hooks.json"
         }
-    );
+    ));
     Ok(codex)
 }
 

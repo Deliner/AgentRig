@@ -14,6 +14,7 @@ mod source;
 pub use resume::run as resume;
 
 use crate::project_config::Context;
+use crate::shared::console;
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::inventory;
@@ -245,11 +246,11 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
                     row.id,
                     path.display()
                 ),
-                None => eprintln!(
+                None => console::stderr(format!(
                     "WARNING [{}]: marker inspection unsupported for {}",
                     row.id,
                     path.display()
-                ),
+                )),
             }
         }
     }

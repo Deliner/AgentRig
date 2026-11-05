@@ -7,6 +7,7 @@ pub(crate) mod sandbox;
 pub mod scratch;
 mod summary;
 use crate::project_config::{Context, Program};
+use crate::shared::console;
 use anyhow::{Context as _, Result, bail, ensure};
 use std::{collections::BTreeMap, path::PathBuf, process::Output};
 
@@ -75,7 +76,7 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
             Ok(code)
         }
         Err(error) => {
-            eprintln!("{error:#}");
+            console::stderr(format!("{error:#}"));
             Ok(127)
         }
     }
@@ -144,7 +145,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     };
     job.prepare(&argv, access, spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
-    println!("{}", serde_json::json!({"run_id": id}));
+    console::stdout(serde_json::json!({"run_id": id}));
     Ok(0)
 }
 pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {

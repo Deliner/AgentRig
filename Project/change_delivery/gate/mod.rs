@@ -1,4 +1,5 @@
 use crate::project_memory::evidence::{Input, native_index};
+use crate::shared::console;
 mod selection;
 // DECISION: D016
 // DECISION: D015
@@ -128,13 +129,13 @@ fn execute_checks(
         .filter(|check| options.only.is_none_or(|id| check.id == id))
     {
         if let Some(reason) = skip_reason(check, &files, options)? {
-            println!("SKIP [{}]: {reason}", check.id);
+            console::stdout(format!("SKIP [{}]: {reason}", check.id));
             continue;
         }
         let targets = selection::targets(check, changes.as_deref())?;
         if let Some(targets) = &targets {
             attempt.selective()?;
-            println!("SELECT [{}]: {targets:?}", check.id);
+            console::stdout(format!("SELECT [{}]: {targets:?}", check.id));
             let empty = targets.is_empty();
             if empty {
                 continue;
@@ -194,7 +195,7 @@ fn execute_selected(
     attempt.checked(check, code, rerun)?;
     let passed = code == 0;
     if passed {
-        println!("PASS [{}]", check.id);
+        console::stdout(format!("PASS [{}]", check.id));
         return Ok(None);
     }
     let stop = broken || code >= 128 || !check.warning;
@@ -235,17 +236,14 @@ fn checked(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str) 
     if failed {
         let advisory = check.warning && !broken;
         let level = if advisory { "WARNING" } else { "ERROR" };
-        eprintln!(
-            "{}",
-            crate::shared::diagnostics::Guidance {
-                level,
-                id: &check.id,
-                location: &check.include.join(", "),
-                message: &message,
-                skill: &check.skill,
-                rerun
-            }
-        );
+        console::stderr(crate::shared::diagnostics::Guidance {
+            level,
+            id: &check.id,
+            location: &check.include.join(", "),
+            message: &message,
+            skill: &check.skill,
+            rerun,
+        });
     }
     Outcome { code, broken }
 }

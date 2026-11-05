@@ -1,5 +1,6 @@
 pub mod check;
 use crate::project_config::{Command, Context};
+use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::architecture::describe;
@@ -32,21 +33,21 @@ pub fn list(context: &Context) -> Result<()> {
     let files = crate::shared::vcs::Repository::new(&context.root).working_files()?;
     let tools = tools(context, &files)?;
     for (name, command) in &context.config.commands {
-        println!("{name}: {}", command.purpose);
-        println!("  just run {name}{}", parameters(command));
+        console::stdout(format!("{name}: {}", command.purpose));
+        console::stdout(format!("  just run {name}{}", parameters(command)));
         let fixed = !command.argv.is_empty();
         match (location(command, &tools), fixed) {
-            (Some(path), _) => println!("  {}", role(context, path)),
-            (None, true) => println!("  runs {}", command.argv.join(" ")),
+            (Some(path), _) => console::stdout(format!("  {}", role(context, path))),
+            (None, true) => console::stdout(format!("  runs {}", command.argv.join(" "))),
             (None, false) => {}
         }
         if let Some(doc) = &command.doc {
-            println!("  doc: {doc}");
+            console::stdout(format!("  doc: {doc}"));
         }
     }
     let entries = globs(&context.config.tools.entries)?;
     for path in tools.iter().filter(|path| entries.is_match(path)) {
-        println!("{}", role(context, path));
+        console::stdout(role(context, path));
     }
     removed(context);
     Ok(())
@@ -74,14 +75,14 @@ fn removed(context: &Context) {
     let removed = &context.config.tools.removed;
     let listed = !removed.is_empty();
     if listed {
-        println!("Removed:");
+        console::stdout("Removed:");
     }
     for (name, item) in removed {
         let restore = item.revision.as_ref().map_or_else(
             || "never committed; not recoverable".to_owned(),
             |revision| format!("restore: git show {revision}:{}", item.path),
         );
-        println!("{name}: {}", item.purpose);
-        println!("  {}: {}; {restore}", item.path, item.reason);
+        console::stdout(format!("{name}: {}", item.purpose));
+        console::stdout(format!("  {}: {}; {restore}", item.path, item.reason));
     }
 }

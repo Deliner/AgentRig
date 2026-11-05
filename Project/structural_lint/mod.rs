@@ -11,6 +11,7 @@ mod selection;
 #[cfg(test)]
 mod tests;
 
+use crate::shared::console;
 pub use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::diagnostics::lint::{Level, print_diagnostics};
 use crate::shared::fs;
@@ -276,11 +277,11 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
     }
     let failed = diagnostics.iter().any(|item| item.level == Level::Error);
     if output.json {
-        println!("{}", serde_json::to_string(&diagnostics)?);
+        console::stdout(serde_json::to_string(&diagnostics)?);
     } else {
         let configuration_valid = output.validate_only && !config_error;
         if configuration_valid {
-            println!("Lint configuration is valid: {}", path.display());
+            console::stdout(format!("Lint configuration is valid: {}", path.display()));
         }
         print_diagnostics(&diagnostics);
     }

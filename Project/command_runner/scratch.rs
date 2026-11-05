@@ -1,6 +1,7 @@
 use super::jobs::{self, Job};
 use crate::project_config::{Context, Lifetime};
 use crate::shared::arguments::forwarded;
+use crate::shared::console;
 use crate::shared::fs;
 use anyhow::{Result, ensure};
 use std::{path::PathBuf, process::Command};
@@ -21,7 +22,7 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
         .env("AGENTRIG_SCRATCH", &area);
     let result = jobs::process::execute(&mut command, jobs::Capture::Stream, Some(&mut job));
     if let Err(error) = &result {
-        eprintln!("{error:#}");
+        console::stderr(format!("{error:#}"));
     }
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
