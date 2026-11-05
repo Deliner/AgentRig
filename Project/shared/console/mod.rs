@@ -1,3 +1,5 @@
+// DECISION: D109
+#![allow(clippy::print_stdout, clippy::print_stderr)]
 use std::{
     fmt::Display,
     io::{self, Write},

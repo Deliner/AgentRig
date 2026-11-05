@@ -102,6 +102,10 @@ clippy:
   - clippy::rest_pat_in_fully_bound_structs
   - -D
   - clippy::self_named_module_files
+  - -D
+  - clippy::print_stdout
+  - -D
+  - clippy::print_stderr
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
