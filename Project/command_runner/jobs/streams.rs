@@ -27,15 +27,19 @@ pub struct Stream {
     pub sink: Sink,
     pub channel: Channel,
 }
+pub struct Logs {
+    pub stdout: File,
+    pub stderr: File,
+}
 pub struct Readers {
     stdout: Option<JoinHandle<Result<Vec<u8>>>>,
     stderr: Option<JoinHandle<Result<Vec<u8>>>>,
     exited: Arc<AtomicBool>,
 }
 impl Readers {
-    pub fn start(child: &mut std::process::Child, logs: Option<(File, File)>, sink: Sink) -> Self {
+    pub fn start(child: &mut std::process::Child, logs: Option<Logs>, sink: Sink) -> Self {
         let (stdout_log, stderr_log) = match logs {
-            Some((out, err)) => (Some(out), Some(err)),
+            Some(logs) => (Some(logs.stdout), Some(logs.stderr)),
             None => (None, None),
         };
         let exited = Arc::new(AtomicBool::new(false));

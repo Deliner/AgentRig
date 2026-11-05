@@ -263,7 +263,11 @@ pub fn sources(root: &Path) -> Vec<PathBuf> {
     }
     sources
 }
-pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
+pub struct ModuleFile {
+    pub path: String,
+    pub source: String,
+}
+pub fn files(config: &Config) -> Result<Vec<ModuleFile>> {
     let serde_json::Value::Object(mut sections) = serde_json::to_value(config)? else {
         anyhow::bail!("configuration must serialize to a mapping")
     };
@@ -272,9 +276,15 @@ pub fn files(config: &Config) -> Result<Vec<(String, String)>> {
         let value = sections
             .remove(section)
             .ok_or_else(|| anyhow::anyhow!("missing configuration section {section}"))?;
-        files.push((module(section), crate::shared::yaml::encode(&value)?));
+        files.push(ModuleFile {
+            path: module(section),
+            source: crate::shared::yaml::encode(&value)?,
+        });
     }
-    files.push((FILE.into(), crate::shared::yaml::encode(&sections)?));
+    files.push(ModuleFile {
+        path: FILE.into(),
+        source: crate::shared::yaml::encode(&sections)?,
+    });
     Ok(files)
 }
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {

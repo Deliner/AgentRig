@@ -193,13 +193,20 @@ pub struct Loaded {
     pub issues: Vec<Issue>,
 }
 
-pub fn describe(root: &Path, file: &Path) -> Option<(String, String)> {
+pub struct Description {
+    pub purpose: String,
+    pub role: String,
+}
+pub fn describe(root: &Path, file: &Path) -> Option<Description> {
     let directory = file
         .parent()
         .filter(|parent| !parent.as_os_str().is_empty());
     let declaration = load(root, directory.unwrap_or(Path::new("."))).ok()?;
     let role = declaration.files.get(file.file_name()?.to_str()?)?.clone();
-    Some((declaration.purpose, role))
+    Some(Description {
+        purpose: declaration.purpose,
+        role,
+    })
 }
 
 fn relative(path: &Path) -> bool {

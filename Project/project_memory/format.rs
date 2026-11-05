@@ -76,7 +76,11 @@ pub struct Row {
     pub detail: String,
     pub cells: Vec<String>,
 }
-pub fn link(cell: &str) -> Result<(String, String)> {
+pub struct Link {
+    pub name: String,
+    pub path: String,
+}
+pub fn link(cell: &str) -> Result<Link> {
     let (name, path) = cell
         .trim()
         .strip_prefix('[')
@@ -85,7 +89,10 @@ pub fn link(cell: &str) -> Result<(String, String)> {
     let path = path
         .strip_suffix(')')
         .ok_or_else(|| anyhow::anyhow!("incomplete link: {cell}"))?;
-    Ok((name.into(), path.into()))
+    Ok(Link {
+        name: name.into(),
+        path: path.into(),
+    })
 }
 pub fn links(cell: &str) -> Vec<String> {
     let mut remaining = cell;
@@ -155,7 +162,10 @@ fn parse_row(
     catalog: Catalog,
     ids: &mut HashSet<String>,
 ) -> Result<Row> {
-    let (id, detail) = link(&cells[0])?;
+    let Link {
+        name: id,
+        path: detail,
+    } = link(&cells[0])?;
     ensure!(
         id.starts_with(catalog.prefix())
             && id.len() > 1

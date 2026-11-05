@@ -259,16 +259,17 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
     details(context, memory, &rows, Catalog::Invariants)?;
     for row in &rows {
-        let (name, link) = format::link(&row.cells[2])?;
-        let path = target(&context.root, memory, &link)?;
+        let oracle = format::link(&row.cells[2])?;
+        let path = target(&context.root, memory, &oracle.path)?;
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         ensure!(
             source.marked_function(&oracles::function_target(context, &row.id)?, &row.id),
-            "{}: marked oracle function {name} missing or ambiguous",
-            row.id
+            "{}: marked oracle function {} missing or ambiguous",
+            row.id,
+            oracle.name
         );
-        oracles::validate(context, &row.id, &name, &path)?;
+        oracles::validate(context, &row.id, &oracle.name, &path)?;
     }
     Ok(())
 }

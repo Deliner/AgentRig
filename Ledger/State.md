@@ -9,12 +9,13 @@
 **P066** (B062, одноразовые ремонты собственного кода: AC2 fail-closed + `&Settings`, AC3 enum'ы,
 AC4 именованные записи, AC5 `Ordering`, AC6 `--help`): VAC-A (AC2) `384936a`; VAC-B (AC6) `4d2e48a`;
 VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) `8059224`; VAC-E (AC3c `Command`)
-завершается этим коммитом; далее VAC по AC3 (каталог памяти), AC4, AC5 + ротация, пин D051,
-`just feature-merge`; затем P067 (B061), P068 (B063).
+`029eed3`; VAC-F (AC3d `Catalog`) `96a4a57`; VAC-G (AC4 записи) завершается этим коммитом; далее
+VAC-H: AC5 (D108 + маркеры) + ротация P066/B062, пин D051, `just feature-merge`; затем P067 (B061),
+P068 (B063).
 
 ## Workspace
 
-Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `029eed3` (VAC-E);
+Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `96a4a57` (VAC-F);
 stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
@@ -57,7 +58,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   `jobs::cli` принимает его, ветка `unknown jobs command` исчезла (исчерпывающий match). Строки команд
   остались только на границе разбора (`main.rs`: hook/lint-*, `project_root` для `init`) и в
   `structural_lint::cli` — вне карточки.
-- VAC-F (этот коммит, AC3d): `enum Catalog { Plan, Backlog, Decisions, Invariants }` в
+- VAC-F (`96a4a57`, AC3d): `enum Catalog { Plan, Backlog, Decisions, Invariants }` в
   `project_memory/format.rs` с `directory()`, `prefix()`, `columns()`, `detail_sections() -> Sections
   { required, optional }`; свободные `columns(char)`/`detail_sections(&str)` с ветками `bail!` исчезли;
   `table`/`parse_table`/`parse_row` принимают каталог; потребители — `project_memory/mod.rs`
@@ -65,7 +66,15 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   Догфуд поймал кортеж в новой сигнатуре `detail_sections` (tuple-as-record; прежняя была скрыта в
   `Result<(..)>` — правило не заглядывает в `Result`, побочное наблюдение для отчёта) — заменён записью
   `Sections`.
-- Не сделано: AC4, AC5, ротация P066/B062, пин D051, `just feature-merge`.
+- VAC-G (этот коммит, AC4): семь пар стали записями у владельцев — `format::Link { name, path }`
+  (`parse_row`, `invariants`), `project_config::settings::ModuleFile { path, source }` (`files`,
+  потребитель `project_setup::bundle`), `registry/check.rs Finding { path, message }` (`Findings`),
+  `architecture::policy::Description { purpose, role }` (`describe`, потребитель `registry::role`),
+  `template::Justfile { path, source }` (`justfiles`, потребитель `add_runtime`),
+  `streams::Logs { stdout, stderr }` (`Readers::start`, `Job::open_logs`); импорт `File` в `jobs/mod.rs`
+  стал лишним и удалён. Эти пары прятались за `Result<(..)>`, `Option<(..)>` и псевдонимом типа —
+  правило tuple-as-record их не видело (наблюдение для отчёта).
+- Не сделано: AC5 (D108 + маркеры), ротация P066/B062, пин D051, `just feature-merge`.
 
 ## Verification
 
@@ -98,7 +107,12 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 - 2026-11-05, рабочее дерево VAC-F: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
   догфуд 0 (первая редакция дала tuple-as-record `format.rs:48` — исправлено); `cargo test --lib` 128
   passed; `candidate -- memory-check` на репозитории exit 0; pytest `project_memory/tests` +
-  `project_setup/tests` — 90 passed. Гейт коммита — следующий шаг.
+  `project_setup/tests` — 90 passed. Гейт `96a4a57` прошёл (11 rust-test, 211 pytest).
+- 2026-11-05, рабочее дерево VAC-G: `cargo fmt` применён (первый прогон clippy упал на неиспользуемом
+  импорте `File` — удалён); профиль clippy exit 0; `--all-targets` чисто; догфуд 0; `cargo test --lib` 128
+  passed; `candidate -- memory-check` exit 0; `candidate -- commands` печатает строки ролей как прежде
+  (логика `describe` не менялась); pytest `command_runner/tests` + `registry/tests` +
+  `project_memory/tests/test_memory.py` + `project_setup/tests` — 42 passed. Гейт коммита — следующий шаг.
 
 ## Blockers
 
@@ -106,7 +120,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-F через гейт («P066 VAC-F: type the memory catalog (B062 AC3)»); затем VAC-G AC4: семь
-пар → записи у владельцев (`format::Link`, `settings::files`, `check.rs Findings`, `policy::describe`,
-`template::justfiles`, `streams::Readers::start` + `Job::open_logs` — `Logs { stdout, stderr }`).
+Закоммитить VAC-G через гейт («P066 VAC-G: name the record pairs (B062 AC4)»); затем VAC-H: карточка
+D108 (Release в `mark_exited` / Acquire в `wait_readable`, расширяет D095) + строка в Decisions.md +
+`// DECISION: D108` над `streams.rs` 69 и 146; ротация P066/B062 в Archive; пин D051; `just feature-merge`.
 Свободные ID: D108+, I022+, P069+, B065+.

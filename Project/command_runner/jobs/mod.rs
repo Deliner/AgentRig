@@ -1,5 +1,5 @@
 use crate::project_config::Lifetime;
-use crate::shared::fs::{self, File, OpenOptions};
+use crate::shared::fs::{self, OpenOptions};
 mod background;
 pub mod cleanup;
 mod group;
@@ -163,14 +163,17 @@ impl Job {
     fn save(&self) -> Result<()> {
         storage::save(&self.directory, &self.record)
     }
-    fn open_logs(&self) -> Result<(File, File)> {
+    fn open_logs(&self) -> Result<streams::Logs> {
         let open = |name: &str| {
             fs::open_with(
                 OpenOptions::new().create_new(true).write(true),
                 self.directory.join(name),
             )
         };
-        Ok((open("stdout.log")?, open("stderr.log")?))
+        Ok(streams::Logs {
+            stdout: open("stdout.log")?,
+            stderr: open("stderr.log")?,
+        })
     }
 }
 pub fn owner() -> Option<String> {
