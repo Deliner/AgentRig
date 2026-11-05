@@ -63,3 +63,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P065](Plan/065.md) | complete | - | [B060](Backlog/060.md): C-профиль dev-гейта — пять линтов clippy и ограждение `unsafe` ([D107](../Decisions/107.md)) | Dev-гейт ловит пять новых классов дефектов; `unsafe` только в объявленном поддереве. |
 | [P066](Plan/066.md) | complete | P056 | [B062](Backlog/062.md): одноразовые ремонты нашего кода (N1/N2 и прочие) ([D108](../Decisions/108.md)) | Собственный код соответствует N1/N2; fail-open вердикты закрыты тестами. |
 | [P067](Plan/067.md) | complete | - | [B061](Backlog/061.md): владелец консольного вывода ([D109](../Decisions/109.md)) | Источник любой строки вывода — одно место. |
+| [P068](Plan/068.md) | complete | P066 | [B063](Backlog/063.md): нормы N1/N2 и вердикты дуги ([D110](../Decisions/110.md)) | Две переносимые дисциплины у потребителя; отклонённые кандидаты не предлагаются заново. |

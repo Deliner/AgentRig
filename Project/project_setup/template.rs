@@ -275,6 +275,7 @@ fn test_command(options: &Options<'_>) -> Vec<String> {
         ]
     }
 }
+// DECISION: D110
 fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
     let mut routes = vec![Route {
         include: vec![format!("{source}/**")],
