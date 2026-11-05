@@ -26,7 +26,8 @@ repair skill; an error finding exits 1; warnings exit 0 and are printed only wit
 - `just lint-config-check` validates configuration, skills and selectors against the current inventory without
   reading sources.
 - `just lint-explain PATH` shows why each rule selects or skips a path, with effective thresholds and overrides.
-- `just lint --json` prints each finding's rule, path, line, symbol, measurement, limit, level, skill and rerun command.
+- `just lint --json` prints each finding's rule, path, line, symbol, actual, limit, level, message, skill and rerun
+  command.
 
 A rule has an id, a kind, a file or directory target, include globs, and optional exclude globs and extensions.
 Numeric rules take a warning threshold, an error threshold or both, with warning below error; a larger value reports.
