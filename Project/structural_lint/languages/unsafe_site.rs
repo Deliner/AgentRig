@@ -16,10 +16,19 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let mut cursor = node.walk();
     for token in node
         .children(&mut cursor)
-        .filter(|child| child.kind() == "unsafe")
+        .filter(|child| child.kind() == "unsafe" && !attribute_opener(node, *child))
     {
         report(token, "unsafe", source, output);
     }
+}
+fn attribute_opener(tree: Node<'_>, token: Node<'_>) -> bool {
+    let hashed = tree.prev_sibling().is_some_and(|hash| hash.kind() == "#");
+    let first = token.prev_sibling().is_some_and(|open| open.kind() == "[");
+    let arguments = token
+        .next_sibling()
+        .and_then(|next| next.child(0))
+        .is_some_and(|open| open.kind() == "(");
+    hashed && first && arguments
 }
 fn site(node: Node<'_>) -> Option<&'static str> {
     match node.kind() {

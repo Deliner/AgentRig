@@ -21,15 +21,22 @@ no visible cleanup, so a later reader cannot tell who releases it.
    `DECISION:`/`INVARIANT:` reference on the line directly above the call.
 4. Rerun the reported lint check and the affected behavior checks.
 
+The method forms are recognized by name alone, without checking the receiver:
+every `.keep()` or `.into_path()` call is flagged, also on a type that owns no
+cleanup, such as a directory-walk entry's `into_path`. When the receiver
+releases nothing on drop, nothing leaks; the reference on the line directly
+above the call records that.
+
 A `DECISION:` or `INVARIANT:` reference on the line directly above the call keeps
 it, attesting the leak is intended; without one it is a finding.
 
 ## Rule binding
 
-The measurement flags every Rust `.keep()` or `.into_path()` method call and
-every `mem::forget`, `ManuallyDrop::new` or `Box::leak` path call outside test
-code without a `DECISION:` or `INVARIANT:` reference on the line directly above
-it. Test code is out of scope. Rerun the reported lint check and relevant
+The measurement flags every Rust `.keep()` or `.into_path()` method call,
+matched by name without checking the receiver's type, and every `mem::forget`,
+`ManuallyDrop::new` or `Box::leak` path call outside test code without a
+`DECISION:` or `INVARIANT:` reference on the line directly above it. Test code
+is out of scope. Rerun the reported lint check and relevant
 behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the value drops under an owner, or the leak is
 justified by an owned reference.

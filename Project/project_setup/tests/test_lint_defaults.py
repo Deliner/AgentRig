@@ -45,6 +45,22 @@ def test_strict_defaults_block_delivery(
     assert invoke(worker, tmp_path, "lint").returncode == 0
 
 
+@pytest.mark.parametrize("language", ["python", "rust"])
+def test_shipped_rules_skip_test_files_only_where_decided(
+    worker: Path, tmp_path: Path, language: str
+) -> None:
+    assert invoke(worker, tmp_path, "init", "--language", language).returncode == 0
+    (tmp_path / "Project/tests").mkdir(parents=True)
+    source = "fn value() -> u8 {\n    Some(1).unwrap()\n}\nfn raw() {\n    unsafe {}\n}\n"
+    for path in ("Project/x.rs", "Project/tests/x.rs"):
+        (tmp_path / path).write_text(source)
+    result = invoke(worker, tmp_path, "lint", "--json")
+    flagged = {(item["rule"], item["path"]) for item in json.loads(result.stdout)}
+    assert ("panic-path", "Project/x.rs") in flagged, flagged
+    assert ("panic-path", "Project/tests/x.rs") not in flagged, flagged
+    assert ("unsafe-justification", "Project/tests/x.rs") in flagged, flagged
+
+
 def test_shipped_architecture_reports_contract_and_cycle(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init", "--language", "python").returncode == 0
     for name in ("alpha", "beta"):

@@ -3,6 +3,7 @@ files:
   mod.rs: Generate the environment bundle and read prepared or installed resource contents
   adapters.rs: Generate Git and agent hook adapters
   assets.rs: Ship canonical skills and scaffold memory and agent instructions
+  cargo.rs: Derive Rust crate roots, crate names and the test manifest from the consumer's Cargo manifest
   claude.rs: Generate and inspect Claude Code client settings
   doctor.rs: Check installed runtime, hooks, tools and client readiness
   lint.rs: Generate supported lint rule examples for the consumer

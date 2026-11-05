@@ -34,9 +34,11 @@ return type is a tuple, and every function, signature or closure whose parameter
 or return type nests, inside a generic or slice type at any depth, a tuple of
 three or more elements with at least one primitive, `String` or `&str` element,
 without a `DECISION:`/`INVARIANT:` reference on the line directly above it. A
-unit `()`, a pair such as `Option<(A, B)>`, a nested tuple without a primitive
-element, a bare `&(A, B, u8)`, a `type` alias and a struct field are not
-flagged. Rerun the reported lint check and relevant
-behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
+unit `()` is not a tuple, so `-> ()` and `Result<(), E>` are not flagged; a `()`
+element of a nested tuple counts toward its three elements but is not a
+primitive element. A pair such as `Option<(A, B)>`, a nested tuple without a
+primitive element, a bare `&(A, B, u8)`, a `type` alias and a struct field are
+not flagged either. Rerun the reported lint check and relevant behavior checks.
+Do not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the tuple is a named struct or justified by an
 owned reference.

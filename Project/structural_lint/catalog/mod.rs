@@ -129,6 +129,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         "target": descriptor.target, "include": sources,
         "warning_skill": skill, "error_skill": skill});
     descriptor.parameters.apply(&mut value);
+    let excludes = !descriptor.exclude.is_empty();
+    if excludes {
+        value["exclude"] = json!(descriptor.exclude);
+    }
     let language_rule = syntax(kind);
     if language_rule {
         value["extensions"] = json!(extensions(kind));

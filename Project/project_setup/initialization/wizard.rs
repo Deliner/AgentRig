@@ -1,5 +1,6 @@
 use crate::project_config;
-use crate::project_setup::{self as package, Config, template};
+use crate::project_setup::template::{self, Scaffold};
+use crate::project_setup::{self as package, Config};
 use crate::shared::console;
 use anyhow::{Result, ensure};
 use std::{
@@ -12,15 +13,16 @@ pub fn run(root: &Path) -> Result<i32> {
     console::stdout(
         "AgentRig setup. Enter accepts the displayed default; 'cancel' or EOF cancels before installation.",
     );
-    let Some((root, config)) = selection(root)? else {
+    let Some((root, scaffold)) = selection(root)? else {
         return cancelled();
     };
-    let files = package::bundle(&config)?;
-    super::init::prepare(&root, &config, &files)?;
+    let config = &scaffold.config;
+    let files = package::bundle(&scaffold)?;
+    super::init::prepare(&root, config, &files)?;
     console::stdout(format!(
         "Configuration for {}:\n{}\nFiles:\n{}",
         root.display(),
-        crate::shared::yaml::encode(&config)?,
+        crate::shared::yaml::encode(config)?,
         files.keys().cloned().collect::<Vec<_>>().join("\n")
     ));
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
@@ -28,9 +30,9 @@ pub fn run(root: &Path) -> Result<i32> {
     };
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
-        super::init::prepare(&root, &config, &files)?;
+        super::init::prepare(&root, config, &files)?;
         crate::shared::fs::create_dir_all(&root)?;
-        super::init::install(&root, &config, &files)?;
+        super::init::install(&root, config, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
         package::doctor(&project_config::Context::load(&root)?)
     } else {
@@ -38,7 +40,7 @@ pub fn run(root: &Path) -> Result<i32> {
     }
 }
 
-fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
+fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {
     let Some(target) = ask("Project directory", &root.to_string_lossy())? else {
         return Ok(None);
     };
@@ -48,7 +50,7 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
         "project already has {}",
         project_config::FILE
     );
-    let Some(mut config) = project_config(&root)? else {
+    let Some(mut scaffold) = project_config(&root)? else {
         return Ok(None);
     };
     let Some(checks) = ask(
@@ -58,11 +60,11 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Config)>> {
     else {
         return Ok(None);
     };
-    select_checks(&mut config, &checks)?;
-    Ok(Some((root, config)))
+    select_checks(&mut scaffold.config, &checks)?;
+    Ok(Some((root, scaffold)))
 }
 
-fn project_config(root: &Path) -> Result<Option<Config>> {
+fn project_config(root: &Path) -> Result<Option<Scaffold>> {
     let mut options = template::options(root, &[])?;
     for (key, label) in [
         ("language", "Language: python/rust"),
@@ -87,7 +89,8 @@ fn project_config(root: &Path) -> Result<Option<Config>> {
         .iter()
         .flat_map(|(key, value)| [format!("--{key}"), value.clone()])
         .collect();
-    Ok(Some(template::config(&template::options(root, &args)?)))
+    let options = template::options(root, &args)?;
+    Ok(Some(template::scaffold(root, &options)?))
 }
 
 fn select_checks(config: &mut Config, value: &str) -> Result<()> {

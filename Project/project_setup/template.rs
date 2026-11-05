@@ -1,3 +1,4 @@
+use super::cargo::{self, Layout};
 use crate::project_config::{
     self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, Tools,
     View, Views,
@@ -55,7 +56,24 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
     }
     Ok(())
 }
-pub(super) fn config(options: &Options<'_>) -> Config {
+pub(super) struct Scaffold {
+    pub config: Config,
+    pub rust: Layout,
+}
+pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
+    let source = &options["source"];
+    let python = options["language"] == "python";
+    let rust = if python {
+        Layout::fallback(source)
+    } else {
+        cargo::layout(root, source)?
+    };
+    Ok(Scaffold {
+        config: config(options, &rust),
+        rust,
+    })
+}
+fn config(options: &Options<'_>, rust: &Layout) -> Config {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
@@ -77,7 +95,7 @@ pub(super) fn config(options: &Options<'_>) -> Config {
             runtime: format!("{service}/runtime"),
         },
         git: git(options),
-        commands: commands(options),
+        commands: commands(options, rust),
         checks: checks(&options["source"], skill_root),
         hooks: Hooks {
             routes: routes(&options["memory"], &options["source"], skill_root),
@@ -179,7 +197,7 @@ fn programs(table: Programs) -> BTreeMap<String, Program> {
         })
         .collect()
 }
-fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
+fn commands(options: &Options<'_>, rust: &Layout) -> BTreeMap<String, Command> {
     let base = |purpose, access, table| Command {
         programs: programs(table),
         ..command(purpose, Vec::new(), access)
@@ -188,7 +206,7 @@ fn commands(options: &Options<'_>) -> BTreeMap<String, Command> {
         output: Some(test_views(options)),
         ..command(
             "Run the project tests",
-            test_command(options),
+            test_command(options, rust),
             Access::Writable,
         )
     };
@@ -257,7 +275,7 @@ fn test_views(options: &Options<'_>) -> Views {
         }
     }
 }
-fn test_command(options: &Options<'_>) -> Vec<String> {
+fn test_command(options: &Options<'_>, rust: &Layout) -> Vec<String> {
     let python = options["language"] == "python";
     if python {
         vec![
@@ -271,7 +289,7 @@ fn test_command(options: &Options<'_>) -> Vec<String> {
             "cargo".into(),
             "test".into(),
             "--manifest-path".into(),
-            format!("{}/Cargo.toml", options["source"]),
+            rust.manifest.clone(),
         ]
     }
 }

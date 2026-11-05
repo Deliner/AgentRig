@@ -1,5 +1,6 @@
 pub(super) mod adapters;
 mod assets;
+mod cargo;
 mod claude;
 mod doctor;
 pub(super) mod initialization;
@@ -11,7 +12,8 @@ use anyhow::{Result, ensure};
 pub use doctor::run as doctor;
 use std::collections::BTreeMap;
 type Files = BTreeMap<String, Vec<u8>>;
-fn bundle(config: &Config) -> Result<Files> {
+fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
+    let config = &scaffold.config;
     let mut files = guidance(config);
     for file in project_config::files(config)? {
         files.insert(file.path, file.source.into_bytes());
@@ -22,7 +24,7 @@ fn bundle(config: &Config) -> Result<Files> {
             source.into_bytes(),
         );
     }
-    add_policy(&mut files, config)?;
+    add_policy(&mut files, config, &scaffold.rust)?;
     add_runtime(&mut files, config)?;
     Ok(files)
 }
@@ -43,11 +45,11 @@ pub(super) fn guidance(config: &Config) -> Files {
     );
     files
 }
-fn add_policy(files: &mut Files, config: &Config) -> Result<()> {
+fn add_policy(files: &mut Files, config: &Config, rust: &cargo::Layout) -> Result<()> {
     if config.capabilities.lint {
         files.insert(
             config.paths.lint.clone(),
-            lint::template(config)?.into_bytes(),
+            lint::template(config, rust)?.into_bytes(),
         );
     }
     if let Some(path) = &config.hooks.reminder {

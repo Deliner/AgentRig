@@ -78,3 +78,21 @@ const SAFE: usize = 1;
 ";
     assert_eq!(unsafe_findings("source.rs", source), [3, 6, 9, 10]);
 }
+
+// DECISION: D103
+#[test]
+fn rust_skips_unsafe_attribute_openers_in_macro_arguments() {
+    let source = "define_class!(
+    #[unsafe(super(NSObject))]
+    struct Delegate;
+    impl Delegate {
+        #[unsafe(method(applicationDidFinishLaunching:))]
+        fn did_finish_launching(&self) {
+            let value = unsafe { work() };
+        }
+        unsafe fn raw(&self) {}
+    }
+);
+";
+    assert_eq!(unsafe_findings("source.rs", source), [7, 9]);
+}

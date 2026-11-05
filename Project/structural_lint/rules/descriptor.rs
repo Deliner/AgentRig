@@ -3,11 +3,13 @@ use serde_json::{Value, json};
 
 pub struct Descriptor {
     pub default_id: &'static str,
+    pub exclude: &'static [&'static str],
     pub target: &'static str,
     pub metric: &'static str,
     pub skill: &'static str,
     pub parameters: Parameters,
 }
+const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
 pub enum Parameters {
     Thresholds { warning: Option<u64>, error: u64 },
     Level { violation: &'static str },
@@ -72,6 +74,7 @@ impl Kind {
 }
 const NONBLANKLINES: Descriptor = Descriptor {
     default_id: "file-size",
+    exclude: &[],
     target: "file",
     metric: "nonempty lines, including comments; non-UTF-8 files skipped",
     skill: "refactor-large-file",
@@ -83,6 +86,7 @@ const NONBLANKLINES: Descriptor = Descriptor {
 // DECISION: D036
 const LINEWIDTH: Descriptor = Descriptor {
     default_id: "line-width",
+    exclude: &[],
     target: "file",
     metric: "characters per line, one finding per line over a threshold; non-UTF-8 files skipped",
     skill: "condense-markdown",
@@ -93,6 +97,7 @@ const LINEWIDTH: Descriptor = Descriptor {
 };
 const FORBIDDENFILE: Descriptor = Descriptor {
     default_id: "forbidden-file",
+    exclude: &[],
     target: "file",
     metric: "every selected file is a finding, regardless of content",
     skill: "condense-markdown",
@@ -103,6 +108,7 @@ const FORBIDDENFILE: Descriptor = Descriptor {
 // DECISION: D037
 const COMMENTREFERENCE: Descriptor = Descriptor {
     default_id: "comments",
+    exclude: &[],
     target: "file",
     metric: "every comment and lone string statement except an exact DECISION: DNNN or INVARIANT: INNN reference",
     skill: "replace-comment",
@@ -112,6 +118,7 @@ const COMMENTREFERENCE: Descriptor = Descriptor {
 };
 const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     default_id: "architecture",
+    exclude: &[],
     target: "directory",
     metric: "architecture.yaml inventories and directory cycles in resolved source dependencies; incomplete analysis is a finding",
     skill: "refactor-large-directory",
@@ -122,6 +129,7 @@ const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
 
 const DIRECTORYENTRIES: Descriptor = Descriptor {
     default_id: "directory-size",
+    exclude: &[],
     target: "directory",
     metric: "immediate child names in the selected inventory",
     skill: "refactor-large-directory",
@@ -134,6 +142,7 @@ const DIRECTORYENTRIES: Descriptor = Descriptor {
 // DECISION: D072
 const DUMPNAME: Descriptor = Descriptor {
     default_id: "dump-name",
+    exclude: &[],
     target: "directory",
     metric: "a directory whose name is a generic dumping ground: utils, helpers, misc or common; shared is allowed",
     skill: "refactor-large-directory",
@@ -144,6 +153,7 @@ const DUMPNAME: Descriptor = Descriptor {
 
 const NAMEDIFCONDITION: Descriptor = Descriptor {
     default_id: "named-if",
+    exclude: &[],
     target: "file",
     metric: "one named value per boolean if condition; Rust if-let bindings excluded; named field paths accepted",
     skill: "name-if-condition",
@@ -154,6 +164,7 @@ const NAMEDIFCONDITION: Descriptor = Descriptor {
 
 const FUNCTIONLINES: Descriptor = Descriptor {
     default_id: "function-size",
+    exclude: &[],
     target: "file",
     metric: "nonblank lines from signature through body, including comments; declarations without body excluded",
     skill: "refactor-long-function",
@@ -165,6 +176,7 @@ const FUNCTIONLINES: Descriptor = Descriptor {
 
 const PARAMETERCOUNT: Descriptor = Descriptor {
     default_id: "parameters",
+    exclude: &[],
     target: "file",
     metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one",
     skill: "reduce-parameters",
@@ -177,6 +189,7 @@ const PARAMETERCOUNT: Descriptor = Descriptor {
 // DECISION: D061
 const NESTINGDEPTH: Descriptor = Descriptor {
     default_id: "nesting-depth",
+    exclude: &[],
     target: "file",
     metric: "deepest nested control-flow blocks in a function; if/match/loop/while/for add depth; Rust else-if and Python elif continue the same level; nested function and closure bodies are measured on their own",
     skill: "flatten-nesting",
@@ -189,6 +202,7 @@ const NESTINGDEPTH: Descriptor = Descriptor {
 // DECISION: D062
 const BOOLEANPARAMETER: Descriptor = Descriptor {
     default_id: "boolean-parameter",
+    exclude: &[],
     target: "file",
     metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding",
     skill: "split-boolean-parameter",
@@ -199,6 +213,7 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
 // DECISION: D063
 const BRANCHBUDGET: Descriptor = Descriptor {
     default_id: "branch-budget",
+    exclude: &[],
     target: "file",
     metric: "decision points in a function: each if, else-if and ternary condition, and each match or case as one multi-way decision regardless of arms; nested function and closure bodies are measured on their own",
     skill: "reduce-branching",
@@ -210,6 +225,7 @@ const BRANCHBUDGET: Descriptor = Descriptor {
 // DECISION: D067
 const HARDCODEDSECRET: Descriptor = Descriptor {
     default_id: "hardcoded-secret",
+    exclude: &[],
     target: "file",
     metric: "every string literal matching a known credential format: a private-key block, or an AWS, GitHub, Google or Slack token",
     skill: "remove-secret",
@@ -221,6 +237,7 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
 // DECISION: D097
 const SILENTERROR: Descriptor = Descriptor {
     default_id: "silent-error",
+    exclude: &[],
     target: "file",
     metric: "every Python except clause whose body is only pass, every Rust read_dir call chain collapsed by .flatten(), .filter_map(Result::ok), .filter_map(|e| e.ok()) or .map_while(Result::ok), and every Rust match or if-let arm Err(_)/Err(..) whose body is Ok(true), Ok(false) or a return of one inside a function declared to return Result<bool, ...>, outside Rust test code, without a DECISION: or INVARIANT: reference comment on the line directly above the pass, the chain or the arm",
     skill: "handle-error",
@@ -232,6 +249,7 @@ const SILENTERROR: Descriptor = Descriptor {
 // DECISION: D098
 const DISABLEDTEST: Descriptor = Descriptor {
     default_id: "disabled-test",
+    exclude: &[],
     target: "file",
     metric: "every Rust #[ignore] attribute, also as a direct #[cfg_attr(...)] argument, or Python @pytest.mark.skip or skipif decorator without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "justify-skip",
@@ -243,6 +261,7 @@ const DISABLEDTEST: Descriptor = Descriptor {
 // DECISION: D098
 const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     default_id: "allow-justification",
+    exclude: &[],
     target: "file",
     metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, and every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute or the key",
     skill: "justify-allow",
@@ -253,6 +272,7 @@ const ALLOWJUSTIFICATION: Descriptor = Descriptor {
 // DECISION: D081
 const DEBUGARTIFACT: Descriptor = Descriptor {
     default_id: "debug-artifact",
+    exclude: &[],
     target: "file",
     metric: "every Rust dbg! macro invocation",
     skill: "remove-debug",
@@ -263,6 +283,7 @@ const DEBUGARTIFACT: Descriptor = Descriptor {
 // DECISION: D084
 const DEBUGASSERTION: Descriptor = Descriptor {
     default_id: "debug-assertion",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust debug_assert!, debug_assert_eq! or debug_assert_ne! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "firm-up-assertion",
@@ -273,6 +294,7 @@ const DEBUGASSERTION: Descriptor = Descriptor {
 // DECISION: D082
 const PANICPATH: Descriptor = Descriptor {
     default_id: "panic-path",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust .unwrap() or .expect(...) call and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-panic",
@@ -283,6 +305,7 @@ const PANICPATH: Descriptor = Descriptor {
 // DECISION: D085
 const WILDCARDIMPORT: Descriptor = Descriptor {
     default_id: "wildcard-import",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust use glob (`use path::*`) outside test code, or Python wildcard import (`from module import *`), without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "narrow-import",
@@ -294,8 +317,9 @@ const WILDCARDIMPORT: Descriptor = Descriptor {
 // DECISION: D103
 const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
     default_id: "unsafe-justification",
+    exclude: &[],
     target: "file",
-    metric: "every Rust unsafe site (an unsafe block, unsafe function, unsafe impl, unsafe trait or static mut item, and every unsafe keyword inside a macro_rules! body or a macro invocation's arguments) without a DECISION: or INVARIANT: reference comment on the line directly above it, where attribute lines between the comment and an item keep the adjacency",
+    metric: "every Rust unsafe site (an unsafe block, unsafe function, unsafe impl, unsafe trait or static mut item, and every unsafe keyword inside a macro_rules! body or a macro invocation's arguments except one opening a #[unsafe(..)] attribute) without a DECISION: or INVARIANT: reference comment on the line directly above it, where attribute lines between the comment and an item keep the adjacency",
     skill: "justify-unsafe",
     parameters: Parameters::Level {
         violation: "unsafe needs a recorded justification; put a DECISION: or INVARIANT: reference on the line directly above it (above its attributes for an item), or remove the unsafe",
@@ -305,6 +329,7 @@ const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
 // DECISION: D101
 const TUPLEASRECORD: Descriptor = Descriptor {
     default_id: "tuple-as-record",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust function parameter type or return type that is a tuple, or that nests inside a generic or slice type, at any depth, a tuple of three or more elements with a primitive, String or &str element (closure signatures included for the nested form), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
     skill: "name-the-record",
@@ -315,6 +340,7 @@ const TUPLEASRECORD: Descriptor = Descriptor {
 // DECISION: D089
 const EAGERFALLBACK: Descriptor = Descriptor {
     default_id: "eager-fallback",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust .unwrap_or, .ok_or or .map_or call whose eager first argument propagates with ? outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "eager-to-lazy",
@@ -326,6 +352,7 @@ const EAGERFALLBACK: Descriptor = Descriptor {
 // DECISION: D099
 const DISCARDEDRESULT: Descriptor = Descriptor {
     default_id: "discarded-result",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust bare .ok() statement that drops a Result, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-discarded",
@@ -336,6 +363,7 @@ const DISCARDEDRESULT: Descriptor = Descriptor {
 // DECISION: D092
 const DISABLEDRAII: Descriptor = Descriptor {
     default_id: "disabled-raii",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust .keep() or .into_path() method call, or mem::forget, ManuallyDrop::new or Box::leak path call, outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "own-the-resource",
@@ -346,6 +374,7 @@ const DISABLEDRAII: Descriptor = Descriptor {
 // DECISION: D096
 const GLOBALSTATE: Descriptor = Descriptor {
     default_id: "global-state",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust static item outside test code, excluding static mut, whose type (following same-file type aliases up to three levels) contains a lock (Mutex, RwLock, DashMap, DashSet), or a public static whose type contains any cell (also RefCell, Cell, UnsafeCell, Atomic*), including items declared inside lazy_static! or thread_local!, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "own-the-state",
@@ -356,6 +385,7 @@ const GLOBALSTATE: Descriptor = Descriptor {
 // DECISION: D100
 const SUPERSUPERREACH: Descriptor = Descriptor {
     default_id: "super-super-reach",
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust path that reaches two module levels up through super::super, in a use declaration, an expression or a type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "anchor-at-crate",
@@ -366,6 +396,7 @@ const SUPERSUPERREACH: Descriptor = Descriptor {
 // DECISION: D102
 const RECURSIVEDELETION: Descriptor = Descriptor {
     default_id: "recursive-deletion",
+    exclude: &[],
     target: "file",
     metric: "every Rust call whose function path ends in remove_dir_all, whose bare function name is remove_dir_all or whose method is remove_dir_all, from any source such as std::fs, tokio::fs, a local wrapper or a method, in source and in macro bodies, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "contain-the-deletion",

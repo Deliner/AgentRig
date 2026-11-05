@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -51,6 +53,27 @@ def test_warnings_are_shown_only_on_request(worker: Path, tmp_path: Path) -> Non
     (tmp_path / "src/failed.rs").unlink()
     quiet = run("--json")
     assert (quiet.returncode, quiet.stdout.strip()) == (0, "[]")
+
+
+def test_rerun_reproduces_findings_with_their_flags(worker: Path, tmp_path: Path) -> None:
+    prepare(tmp_path)
+    (tmp_path / "src/warned.rs").write_text("line\n" * 4, encoding="utf-8")
+    (tmp_path / "src/failed.rs").write_text("line\n" * 6, encoding="utf-8")
+    code, findings = lint(worker, tmp_path)
+    assert sorted(item["level"] for item in findings) == ["error", "warning"]
+    for finding in findings:
+        rerun = subprocess.run(
+            shlex.split(finding["rerun"]), capture_output=True, text=True, check=False
+        )
+        assert (rerun.returncode, json.loads(rerun.stdout)) == (code, findings)
+
+
+def test_missing_skill_is_named_in_the_finding(worker: Path, tmp_path: Path) -> None:
+    prepare(tmp_path)
+    (tmp_path / SKILL).unlink()
+    code, items = lint(worker, tmp_path)
+    assert (code, items[0]["rule"]) == (2, "configuration")
+    assert str(tmp_path.resolve() / SKILL) in items[0]["message"]
 
 
 def test_overrides_and_exclusions(worker: Path, tmp_path: Path) -> None:

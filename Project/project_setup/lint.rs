@@ -1,10 +1,11 @@
 // DECISION: D021
 // DECISION: D036
+use super::cargo::Layout;
 use crate::structural_lint::{catalog, rules};
 use anyhow::Result;
 use serde_json::{Value, json};
 
-pub fn template(settings: &super::Config) -> Result<String> {
+pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let skills = &settings.paths.skills;
     let sources = &settings.paths.sources;
     let mut rules: Vec<Value> = catalog::ALL
@@ -19,7 +20,7 @@ pub fn template(settings: &super::Config) -> Result<String> {
         })
         .map(|kind| catalog::example(*kind, skills, sources))
         .collect();
-    rules.push(architecture(skills, sources));
+    rules.push(architecture(skills, sources, rust));
     rules.extend(markdown(skills, &settings.paths.memory, sources));
     let config = json!({
         "version": 1,
@@ -47,13 +48,13 @@ fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {
     ]
 }
 
-fn architecture(skills: &str, sources: &[String]) -> Value {
+fn architecture(skills: &str, sources: &[String], rust: &Layout) -> Value {
     let mut rule = catalog::example(rules::Kind::DirectoryArchitecture, skills, sources);
-    let root = sources
-        .first()
-        .map(|source| source.strip_suffix("/**").unwrap_or(source))
-        .unwrap_or(".");
     rule["extensions"] = json!([".rs", ".py", ".pyi"]);
-    rule["architecture"]["rust_roots"] = json!([format!("{root}/src/lib.rs")]);
+    rule["architecture"]["rust_roots"] = json!(rust.roots);
+    let crates = !rust.crates.is_empty();
+    if crates {
+        rule["architecture"]["rust_crates"] = json!(rust.crates);
+    }
     rule
 }

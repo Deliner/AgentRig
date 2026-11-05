@@ -13,6 +13,7 @@ fn errors_name_the_action_and_path_and_keep_the_kind() {
         ("inspect", super::metadata(&missing).unwrap_err()),
         ("inspect", super::symlink_metadata(&missing).unwrap_err()),
         ("read link", super::read_link(&missing).unwrap_err()),
+        ("resolve", super::canonicalize(&missing).unwrap_err()),
         ("read directory", super::read_dir(&missing).err().unwrap()),
         ("remove", super::remove_file(&missing).unwrap_err()),
         ("remove", super::remove_dir_all(&missing).unwrap_err()),

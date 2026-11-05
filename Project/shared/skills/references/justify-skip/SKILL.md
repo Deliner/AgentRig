@@ -23,15 +23,20 @@ directly above it recording why skipping it is the right call.
    `@pytest.mark.skip`/`skipif` decorator.
 5. Rerun the reported lint check and the affected behavior checks.
 
-A comment that is not an exact `DECISION: DNNN` or `INVARIANT: INNN` reference
-does not justify the skip. Do not silence the finding with a plain comment or by
-widening the rule.
+The reference is the only accepted form: an exact `DECISION: DNNN` or
+`INVARIANT: INNN` comment (`//` in Rust, `#` in Python) on the line directly
+above the attribute or decorator. By project convention the rule does not read
+the message of `#[ignore = ".."]` or a skip decorator's `reason`, even when it
+says why the test is skipped: record that reason as the decision or invariant
+and reference it. Any other comment does not justify the skip either. Do not
+silence the finding with a plain comment or by widening the rule.
 
 ## Rule binding
 
 The measurement flags every Rust `#[ignore]` attribute or Python
 `@pytest.mark.skip`/`skipif` decorator without a DECISION: or INVARIANT:
-reference comment on the line directly above it. Rerun the reported lint check
-and relevant behavior checks. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when the finding is resolved and the test
-is re-enabled, deleted or justified.
+reference comment on the line directly above it. No other comment, `#[ignore]`
+message or `reason` argument is read. Rerun the reported lint check and relevant
+behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the finding is resolved and the test is
+re-enabled, deleted or justified.

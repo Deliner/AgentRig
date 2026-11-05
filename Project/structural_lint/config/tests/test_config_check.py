@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+import yaml
 
 from Project.structural_lint.testing.consumer import CONFIG, configure, lint, prepare
 
@@ -140,6 +141,35 @@ def test_catalog_examples_validate(worker: Path, tmp_path: Path, kind: str) -> N
     ).stdout
     assert item["metric"] in human
     assert "--example" in human
+
+
+def test_rule_examples_exclude_test_files_only_where_decided(worker: Path) -> None:
+    catalog = subprocess.run(
+        [str(worker), "lint-rules"], capture_output=True, text=True, check=True
+    )
+    excludes: dict[str, Any] = {}
+    for item in json.loads(catalog.stdout):
+        example = subprocess.run(
+            [str(worker), "lint-rule", item["kind"], "--example"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        rule = yaml.safe_load(example.stdout)["rules"][0]
+        excludes[rule["id"]] = rule.get("exclude")
+    decided = [
+        "panic-path",
+        "debug-assertion",
+        "wildcard-import",
+        "tuple-as-record",
+        "eager-fallback",
+        "discarded-result",
+        "disabled-raii",
+        "global-state",
+        "super-super-reach",
+    ]
+    shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}
+    assert shipped == dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])
 
 
 @pytest.mark.parametrize(
