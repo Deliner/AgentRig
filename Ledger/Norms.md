@@ -22,3 +22,5 @@
 | Решения и инварианты раздельно; решения неизменны, ссылки мигрируют; norm-or-choice | [D001](Decisions/001.md), [D020](Decisions/020.md), [навык](../.agents/skills/norm-or-choice/SKILL.md) |
 | Дисциплина сложности: минимально необходимая сложность на каждом шаге | [D006](Decisions/006.md), [навык](../.agents/skills/complexity-discipline/SKILL.md) |
 | Снимок восстановления State, сверяемый с Git | [D013](Decisions/013.md), [навык](../.agents/skills/edit-state/SKILL.md) |
+| N1, типовая дисциплина: тип закрывает названный инвариант, режим или жизненный цикл; разбор один раз на границе, дальше `enum` | [D110](Decisions/110.md), [навык](../.agents/skills/type-driven-discipline/SKILL.md) |
+| N2, fail-closed вердикты: `Allow` только из позитивной проверки, ошибка или неизвестность — `Deny` с причиной, негативный тест на сайт | [D110](Decisions/110.md), [I021](Invariants/021.md), [навык](../.agents/skills/fail-closed-enforcement/SKILL.md) |

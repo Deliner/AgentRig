@@ -275,6 +275,7 @@ fn test_command(options: &Options<'_>) -> Vec<String> {
         ]
     }
 }
+// DECISION: D110
 fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
     let mut routes = vec![Route {
         include: vec![format!("{source}/**")],
@@ -282,24 +283,7 @@ fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
         events: vec![RouteEvent::Edit],
         block: true,
     }];
-    for (file, skill) in [
-        ("Plan", "edit-plan"),
-        ("Archive/Plan", "edit-plan"),
-        ("Backlog", "edit-backlog"),
-        ("Decisions", "edit-decisions"),
-        ("Invariants", "edit-invariants"),
-        ("State", "edit-state"),
-    ] {
-        routes.push(Route {
-            include: vec![
-                format!("{}/{file}.md", memory),
-                format!("{}/{file}/**/*.md", memory),
-            ],
-            skill: format!("{skill_root}/{skill}/SKILL.md"),
-            events: vec![RouteEvent::Edit, RouteEvent::Shell],
-            block: false,
-        });
-    }
+    routes.extend(memory_routes(memory, skill_root));
     routes.push(Route {
         include: vec![
             format!("{memory}/State.md"),
@@ -309,7 +293,34 @@ fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
         events: vec![RouteEvent::Check],
         block: true,
     });
+    routes.push(Route {
+        include: vec![format!("{source}/**")],
+        skill: format!("{skill_root}/fail-closed-enforcement/SKILL.md"),
+        events: vec![RouteEvent::Edit],
+        block: false,
+    });
     routes
+}
+fn memory_routes(memory: &str, skill_root: &str) -> Vec<Route> {
+    [
+        ("Plan", "edit-plan"),
+        ("Archive/Plan", "edit-plan"),
+        ("Backlog", "edit-backlog"),
+        ("Decisions", "edit-decisions"),
+        ("Invariants", "edit-invariants"),
+        ("State", "edit-state"),
+    ]
+    .into_iter()
+    .map(|(file, skill)| Route {
+        include: vec![
+            format!("{memory}/{file}.md"),
+            format!("{memory}/{file}/**/*.md"),
+        ],
+        skill: format!("{skill_root}/{skill}/SKILL.md"),
+        events: vec![RouteEvent::Edit, RouteEvent::Shell],
+        block: false,
+    })
+    .collect()
 }
 fn checks(source: &str, skill_root: &str) -> Vec<Check> {
     let skill = |name| format!("{skill_root}/{name}/SKILL.md");

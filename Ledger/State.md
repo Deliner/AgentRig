@@ -5,54 +5,52 @@
 **Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P066 слиты (последний merge `806c2a1`).
-**P067** (B061, владелец консольного вывода): VAC-A (AC1) `92a4703` — лист `Project/shared/console`
-с функциями `stdout`/`stderr`/`prompt`, 73 продакшн-сайта печатают через него, вывод не изменился;
-VAC-B (AC2: `-D clippy::print_stdout`/`print_stderr` в профиле, `#![allow]` с D109 у владельца, проба
-вне владельца → красный гейт; AC3: решение D109, снимающее исключение print-линтов D060; ротация
-P067/B061) завершается этим коммитом; далее пин D051, `just feature-merge`; затем P068 (B063).
+выбраны в Plan **P055–P068**. P055–P067 слиты (последний merge `0e9fb8b`).
+**P068** (B063): VAC-A `4c05c39` (AC1, AC2 — навыки N1/N2, фраза в AGENTS.md, advisory-маршрут);
+VAC-B (AC3, AC4: решение D110 с вердиктами дуги, строки N1/N2 в Norms.md, маркеры D110 в
+`assets.rs`/`template.rs`, ротация P068/B063 в Archive) завершается этим коммитом; далее пин D051
+и `just feature-merge` — программа P055–P068 завершена; затем итоговый отчёт пользователю.
 
 ## Workspace
 
-Ветка `feature/console-owner` (база master `806c2a1`), наблюдаемый HEAD `92a4703` (VAC-A);
-stable.txt → `9d03e5a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
+Ветка `feature/norms-verdict` (база master `0e9fb8b`), наблюдаемый HEAD `4c05c39` (VAC-A);
+stable.txt → `a8fbebf`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
-`tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
-файла — `tooling/worker/run run test -- <файл>`.
+`tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest
+одного файла — `tooling/worker/run run test -- <файл>`; проба хука —
+`tooling/worker/run hook --root <корень>` с JSON PreToolUse на stdin.
 
 ## Progress
 
-- VAC-A (`92a4703`, AC1): владелец `shared/console/mod.rs` + `architecture.yaml` (`type: flat`,
-  `dependents: 13` — реальный радиус), функции `stdout(impl Display)`, `stderr(impl Display)`,
-  `prompt(impl Display) -> io::Result<()>` (`print!` + `flush` для вопроса мастера); 73 сайта в 23 файлах
-  (55 `println!`, 17 `eprintln!`, 1 `print!`) → `console::stdout("literal")` (7), `console::stdout(value)`
-  (18), `console::stdout(format!(…))` (47), `console::prompt(format!(…))?` (1); бинари `main.rs`/
-  `standalone.rs` импортируют `agentrig::shared::console`. Макросы `out!`/`err!` отвергнуты: анализатор
-  архитектуры по построению не анализирует `#[macro_export]` и вызовы макросов своего крейта (D059), а без
-  экспорта макрос недостижим из бинарей.
-- VAC-B (этот коммит, AC2/AC3): в `clippy` профиля `.agentrig/commands.yaml` добавлены
-  `-D clippy::print_stdout`, `-D clippy::print_stderr`; `shared/console/mod.rs` открывается
-  `// DECISION: D109` + `#![allow(clippy::print_stdout, clippy::print_stderr)]` (форма D080);
-  `Ledger/Decisions/109.md` + строка индекса (card → Archive/Backlog/061, owner, clippy profile, related
-  D060/D080/D059) — вывод — продукт, печатает владелец; снято только исключение print-линтов D060. Ротация:
-  Plan/067 → Archive/Plan/067 (Delivery с приёмкой AC1–AC3), Backlog/061 → Archive/Backlog/061 (без
-  изменений), строки индексов Archive/Plan.md и Archive/Backlog.md, строка P067 удалена из Plan.md (заметка
-  добавлена), строка B061 удалена из Backlog.md; в Plan осталась P068.
-- Не сделано: пин D051 (меняются `Project` и `commands.yaml`), `just feature-merge`.
+- VAC-A (`4c05c39`, AC1/AC2): группа `Project/shared/skills/discipline/` (туда перенесён
+  `testing-discipline`; плоские симлинки `testing-discipline`, `type-driven-discipline`,
+  `fail-closed-enforcement` в корне навыков сохраняют пути `.agents/skills/<имя>/SKILL.md`;
+  лимит `directory-size` корня 15 сохранён); `assets.rs`: две записи SKILLS + новый путь
+  testing-discipline; `instructions()` и AGENTS.md: «Apply type-driven-discipline when a value
+  carries an invariant, a mode or a lifecycle»; маршрут без `block` на `Project/agent_hooks/**`,
+  `Project/change_delivery/**` → `fail-closed-enforcement/SKILL.md`; в `template.rs` такой же
+  маршрут на `{source}/**` (I020), цикл маршрутов памяти извлечён в `memory_routes`.
+- VAC-B (этот коммит, AC3/AC4): `Ledger/Decisions/110.md` + строка индекса (card →
+  Archive/Backlog/063, оба навыка, AGENTS.md, `assets.rs` и `template.rs` с `// DECISION: D110`,
+  `hooks.yaml`; related D093/D054/D059/D035/D097); `Ledger/Norms.md` — строки N1 и N2 (D110,
+  навыки, I021). Ротация: Plan/068 → Archive/Plan/068 (Delivery с приёмкой AC1–AC4),
+  Backlog/063 → Archive/Backlog/063 (без изменений), строки индексов Archive/Plan.md и
+  Archive/Backlog.md, строки P068/B063 удалены из Plan.md/Backlog.md (заметка в Plan.md
+  добавлена; Plan пуст — допустимо).
+- Не сделано: пин D051 (меняется `Project`), `just feature-merge`.
 
 ## Verification
 
-- 2026-11-05, VAC-A: гейт `92a4703` прошёл (128 rust-test, 371 pytest); на том же дереве полный pytest
-  `run test -- Project -q` — 435 passed (CLI/hook/lint-наборы сравнивают текст stdout/stderr — вывод не
-  изменился), `cargo test --lib` 128 passed, догфуд 0 (без строки `dependents` — единственная находка
-  13 > 6).
-- 2026-11-05, рабочее дерево VAC-B: проба `println!("probe")` + `eprintln!("probe")` в
-  `command_runner/summary.rs` → `tooling/worker/run run clippy` exit 101 с «error: use of `println!`»
-  (`print_stdout`) и «error: use of `eprintln!`» (`print_stderr`); после `git checkout -- summary.rs` —
-  exit 0 (владелец печатает под своим `allow`). `cargo fmt --check` чисто; `--all-targets` чисто; догфуд
-  `candidate -- lint` — 0 находок (`allow-justification` принимает строку D109); `candidate -- memory-check`
-  exit 0 (D109 связан с маркером владельца и ссылками); `config-check` — конфигурация валидна. Гейт коммита
-  VAC-B — следующий шаг.
+- 2026-11-05, VAC-A: гейт `4c05c39` прошёл (128 rust-test, 225 pytest). На том же дереве: fmt,
+  clippy (и `--all-targets`) чисто, догфуд 0, memory-check 0, config valid, `cargo test --lib`
+  128 passed, pytest `test_delivery.py` (I020) + `project_setup/tests` + `agent_hooks` — 58 passed;
+  проба хука: Edit `Project/agent_hooks/guard.rs` → Guidance `fail-closed-enforcement/SKILL.md`
+  (hooks.routes[8]) рядом с Required refactor-large-directory; Edit `project_setup/template.rs` →
+  без упоминания навыка.
+- 2026-11-05, рабочее дерево VAC-B: `candidate -- memory-check` exit 0 (D110 связан с маркерами
+  и ссылками, ротация корректна); догфуд `candidate -- lint` — 0 находок; `cargo fmt --check`
+  чисто; `run clippy` exit 0; `config-check` — конфигурация валидна. Гейт коммита VAC-B —
+  следующий шаг.
 
 ## Blockers
 
@@ -60,7 +58,7 @@ stable.txt → `9d03e5a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-B через гейт («P067 VAC-B: deny print lints outside the console owner (B061 AC2, AC3)»);
-затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, отдельный коммит) и
-`just feature-merge` (ветку сохранить); затем `just feature-start` для P068 (B063, Plan/068.md).
-Свободные ID: D110+, I022+, P069+, B065+.
+Закоммитить VAC-B через гейт («P068 VAC-B: record D110 verdicts and norms N1/N2 (B063 AC3,
+AC4)»); затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap,
+отдельный коммит) и `just feature-merge` (ветку сохранить); затем итоговый отчёт пользователю
+по находкам дуги. Свободные ID: D111+, I022+, P069+, B065+.
