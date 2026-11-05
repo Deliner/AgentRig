@@ -9,13 +9,13 @@
 **P066** (B062, одноразовые ремонты собственного кода: AC2 fail-closed + `&Settings`, AC3 enum'ы,
 AC4 именованные записи, AC5 `Ordering`, AC6 `--help`): VAC-A (AC2) `384936a`; VAC-B (AC6) `4d2e48a`;
 VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) `8059224`; VAC-E (AC3c `Command`)
-`029eed3`; VAC-F (AC3d `Catalog`) `96a4a57`; VAC-G (AC4 записи) завершается этим коммитом; далее
-VAC-H: AC5 (D108 + маркеры) + ротация P066/B062, пин D051, `just feature-merge`; затем P067 (B061),
-P068 (B063).
+`029eed3`; VAC-F (AC3d `Catalog`) `96a4a57`; VAC-G (AC4 записи) `611c0d6`; VAC-H (AC5: D108 + маркеры,
+перенос чтения флага выше `poll`, ротация P066/B062) завершается этим коммитом; далее пин D051,
+`just feature-merge`; затем P067 (B061), P068 (B063).
 
 ## Workspace
 
-Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `96a4a57` (VAC-F);
+Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `611c0d6` (VAC-G);
 stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
@@ -66,7 +66,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   Догфуд поймал кортеж в новой сигнатуре `detail_sections` (tuple-as-record; прежняя была скрыта в
   `Result<(..)>` — правило не заглядывает в `Result`, побочное наблюдение для отчёта) — заменён записью
   `Sections`.
-- VAC-G (этот коммит, AC4): семь пар стали записями у владельцев — `format::Link { name, path }`
+- VAC-G (`611c0d6`, AC4): семь пар стали записями у владельцев — `format::Link { name, path }`
   (`parse_row`, `invariants`), `project_config::settings::ModuleFile { path, source }` (`files`,
   потребитель `project_setup::bundle`), `registry/check.rs Finding { path, message }` (`Findings`),
   `architecture::policy::Description { purpose, role }` (`describe`, потребитель `registry::role`),
@@ -74,7 +74,14 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   `streams::Logs { stdout, stderr }` (`Readers::start`, `Job::open_logs`); импорт `File` в `jobs/mod.rs`
   стал лишним и удалён. Эти пары прятались за `Result<(..)>`, `Option<(..)>` и псевдонимом типа —
   правило tuple-as-record их не видело (наблюдение для отчёта).
-- Не сделано: AC5 (D108 + маркеры), ротация P066/B062, пин D051, `just feature-merge`.
+- VAC-H (этот коммит, AC5): D108 — Release в `mark_exited` / Acquire в `wait_readable` (`streams.rs`), оба
+  сайта с `// DECISION: D108`, строка в Decisions.md (card → Archive/Backlog/062, streams, related D095). При
+  записи обоснования найдено окно потери хвоста: `poll` шёл раньше чтения флага, и хвост, записанный ребёнком
+  между истёкшим `poll` и чтением флага перед самым выходом, не дочитывался — чтение флага перенесено в начало
+  итерации (стоп только когда пуст `poll`, выполненный после уже увиденного выхода); D108 это фиксирует.
+  Ротация: Plan/066 → Archive/Plan/066 (Delivery с приёмкой AC2–AC6), Backlog/062 → Archive/Backlog/062,
+  строки индексов, ссылка B062 в Archive/Plan/056, заметка в Plan.md; в Plan остались P067, P068.
+- Не сделано: пин D051, `just feature-merge`.
 
 ## Verification
 
@@ -112,7 +119,14 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
   импорте `File` — удалён); профиль clippy exit 0; `--all-targets` чисто; догфуд 0; `cargo test --lib` 128
   passed; `candidate -- memory-check` exit 0; `candidate -- commands` печатает строки ролей как прежде
   (логика `describe` не менялась); pytest `command_runner/tests` + `registry/tests` +
-  `project_memory/tests/test_memory.py` + `project_setup/tests` — 42 passed. Гейт коммита — следующий шаг.
+  `project_memory/tests/test_memory.py` + `project_setup/tests` — 42 passed. Гейт `611c0d6` прошёл (107 rust-test,
+  360 pytest).
+- 2026-11-05, рабочее дерево VAC-H: `memory-check` со строкой D108, но без маркеров — «D108: decision marker
+  absent in …/command_runner/jobs/streams.rs» (exit 2); с маркерами — exit 0; `cargo fmt --check` чисто; профиль
+  clippy exit 0; `--all-targets` чисто; догфуд 0; `cargo test --lib` 128 passed; pytest `test_jobs.py` (в том
+  числе дренажный тест `test_foreground_drain_is_bounded_when_descendant_holds_pipe`) + `test_commands.py` — 18
+  passed. Окно потери хвоста детерминированно не воспроизводится (микросекунды между возвратом `poll` и чтением
+  флага) — нового теста нет, порядок обоснован в D108. Гейт коммита VAC-H — следующий шаг.
 
 ## Blockers
 
@@ -120,7 +134,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-G через гейт («P066 VAC-G: name the record pairs (B062 AC4)»); затем VAC-H: карточка
-D108 (Release в `mark_exited` / Acquire в `wait_readable`, расширяет D095) + строка в Decisions.md +
-`// DECISION: D108` над `streams.rs` 69 и 146; ротация P066/B062 в Archive; пин D051; `just feature-merge`.
-Свободные ID: D108+, I022+, P069+, B065+.
+Закоммитить VAC-H через гейт («P066 VAC-H: justify the stream orderings and archive B062 (AC5)»); затем
+пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, отдельный коммит) и
+`just feature-merge` (ветку сохранить); затем `just feature-start` для P067 (B061, Plan/067.md).
+Свободные ID: D109+, I022+, P069+, B065+.

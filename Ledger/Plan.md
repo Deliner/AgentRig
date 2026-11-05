@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P066](Plan/066.md) | active | P056 | [B062](Backlog/062.md): одноразовые ремонты нашего кода (N1/N2 и прочие) | Собственный код соответствует N1/N2; fail-open вердикты закрыты тестами. |
 | [P067](Plan/067.md) | pending | - | [B061](Backlog/061.md): владелец консольного вывода | Источник любой строки вывода — одно место. |
 | [P068](Plan/068.md) | pending | P066 | [B063](Backlog/063.md): нормы N1/N2 и вердикты дуги | Две переносимые дисциплины у потребителя; отклонённые кандидаты не предлагаются заново. |
 
@@ -483,4 +482,7 @@ SIGINT/SIGTERM/SIGHUP в `SIG_DFL` после join форвардинга (worke
 [D104](Decisions/104.md)), P064 (B057; VAC-A `b68140d`, пин `7020ea6`, VAC-B1 `324326e`, VAC-B2 `8731520`,
 VAC-B3 `03d803c`, VAC-C, [D105](Decisions/105.md), [D106](Decisions/106.md)), P065 (B060; VAC-1 `27f2dd2`,
 VAC-2 `3b625a4`, VAC-3 `9e60186`, VAC-4 `9fb446f`, VAC-5 `61089d0`, VAC-6, [D107](Decisions/107.md)); у каждой
-догфуд 0 находок, живая проба даёт находку.
+догфуд 0 находок, живая проба даёт находку. P066 (B062; VAC-A `384936a`, VAC-B `4d2e48a`, VAC-C `a983c85`,
+VAC-D `8059224`, VAC-E `029eed3`, VAC-F `96a4a57`, VAC-G `611c0d6`, VAC-H, [D108](Decisions/108.md)) — ремонты
+собственного кода: догфуд 0, внешний вывод не менялся, кроме fail-closed AC2; при записи D108 закрыто окно
+потери хвоста вывода в `wait_readable`.

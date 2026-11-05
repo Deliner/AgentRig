@@ -70,6 +70,7 @@ impl Readers {
         }
     }
     pub fn mark_exited(&self) {
+        // DECISION: D108
         self.exited.store(true, Ordering::Release);
     }
     pub fn finish(
@@ -127,6 +128,8 @@ fn copy(
 }
 fn wait_readable(fd: RawFd, exited: &AtomicBool) -> Result<bool> {
     loop {
+        // DECISION: D108
+        let finished = exited.load(Ordering::Acquire);
         let mut descriptor = libc::pollfd {
             fd,
             events: libc::POLLIN,
@@ -147,7 +150,6 @@ fn wait_readable(fd: RawFd, exited: &AtomicBool) -> Result<bool> {
         if ready {
             return Ok(true);
         }
-        let finished = exited.load(Ordering::Acquire);
         if finished {
             return Ok(false);
         }
