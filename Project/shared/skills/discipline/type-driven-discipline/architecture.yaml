@@ -1,0 +1,5 @@
+purpose: "Close a named invariant, mode or lifecycle in a type checked once at the boundary"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions for newtypes, enums over modes, constructors and typestate against dangerous operations"
+directories: {}

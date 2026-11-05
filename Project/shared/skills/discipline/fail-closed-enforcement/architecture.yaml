@@ -1,0 +1,5 @@
+purpose: "Make enforcement verdicts fail closed: an error or unknown denies with its reason"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions for two-variant verdicts, deny-with-reason on error and negative tests per verdict site"
+directories: {}

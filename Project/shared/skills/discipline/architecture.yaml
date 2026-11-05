@@ -1,0 +1,6 @@
+purpose: "Review disciplines without an executable oracle: test placement, type-driven modelling and fail-closed verdicts"
+files: {}
+directories:
+  testing-discipline: "Place tests by behavior and assert observable behavior through the public surface"
+  type-driven-discipline: "Close a named invariant, mode or lifecycle in a type checked once at the boundary"
+  fail-closed-enforcement: "Make enforcement verdicts fail closed: an error or unknown denies with its reason"

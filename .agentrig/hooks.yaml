@@ -27,3 +27,6 @@ routes:
   skill: .agents/skills/edit-state/SKILL.md
   events: [check]
   block: true
+- include: ['Project/agent_hooks/**', 'Project/change_delivery/**']
+  skill: .agents/skills/fail-closed-enforcement/SKILL.md
+  events: [edit]

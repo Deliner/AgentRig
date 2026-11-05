@@ -16,5 +16,5 @@ directories:
   references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"
   ownership: "Give a resource, process-global state or a recursive file-system deletion an owner with a bounded responsibility, or justify the intended exception with a reference"
   signature: "Repair function-signature smells: excessive inputs, boolean flag parameters and tuples that hide an unnamed record"
-  testing-discipline: "Place tests by behavior and test through the public surface"
+  discipline: "Review disciplines without an executable oracle: test placement, type-driven modelling and fail-closed verdicts"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"
