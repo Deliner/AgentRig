@@ -1,4 +1,5 @@
 use crate::shared::arguments::take_option;
+use crate::shared::console;
 use anyhow::{Result, ensure};
 use std::{
     env,
@@ -67,7 +68,7 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let catalog = command == "lint-rules";
     if catalog {
         ensure!(args.is_empty(), "lint-rules takes no arguments");
-        println!("{}", super::catalog::catalog());
+        console::stdout(super::catalog::catalog());
         return Ok(0);
     }
     let kind = args
@@ -85,9 +86,9 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
             "rules": [super::catalog::example(kind, ".agents/skills", &["src/**".into()])]});
-        println!("{}", crate::shared::yaml::encode(&value)?);
+        console::stdout(crate::shared::yaml::encode(&value)?);
     } else if json {
-        println!("{}", super::catalog::describe(kind));
+        console::stdout(super::catalog::describe(kind));
     } else {
         print_rule(kind);
     }
@@ -96,23 +97,25 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
 
 fn print_rule(kind: super::rules::Kind) {
     let descriptor = kind.descriptor();
-    println!(
+    console::stdout(format!(
         "{kind}: {}\nTarget: {}\nRepair skill: {}\nParameters: {}",
         descriptor.metric,
         descriptor.target,
         descriptor.skill,
         descriptor.parameters.describe()
-    );
+    ));
     let syntax = super::catalog::syntax(kind);
     if syntax {
-        println!("Languages: {}", super::catalog::support(kind));
+        console::stdout(format!("Languages: {}", super::catalog::support(kind)));
     }
     let architecture = kind == super::rules::Kind::DirectoryArchitecture;
     if architecture {
-        println!(
+        console::stdout(format!(
             "Architecture settings and limits: {}",
             super::architecture::Settings::describe()
-        );
+        ));
     }
-    println!("Use lint-rule {kind} --example for a complete configuration example.");
+    console::stdout(format!(
+        "Use lint-rule {kind} --example for a complete configuration example."
+    ));
 }

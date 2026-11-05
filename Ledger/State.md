@@ -5,128 +5,54 @@
 **Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
 Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
 убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P065 слиты (последний merge `b224444`).
-**P066** (B062, одноразовые ремонты собственного кода: AC2 fail-closed + `&Settings`, AC3 enum'ы,
-AC4 именованные записи, AC5 `Ordering`, AC6 `--help`): VAC-A (AC2) `384936a`; VAC-B (AC6) `4d2e48a`;
-VAC-C (AC3a `Level`) `a983c85`; VAC-D (AC3b `JobState`) `8059224`; VAC-E (AC3c `Command`)
-`029eed3`; VAC-F (AC3d `Catalog`) `96a4a57`; VAC-G (AC4 записи) `611c0d6`; VAC-H (AC5: D108 + маркеры,
-перенос чтения флага выше `poll`, ротация P066/B062) завершается этим коммитом; далее пин D051,
-`just feature-merge`; затем P067 (B061), P068 (B063).
+выбраны в Plan **P055–P068** (порядок — в Plan.md). P055–P066 слиты (последний merge `806c2a1`).
+**P067** (B061, владелец консольного вывода): VAC-A (AC1) `92a4703` — лист `Project/shared/console`
+с функциями `stdout`/`stderr`/`prompt`, 73 продакшн-сайта печатают через него, вывод не изменился;
+VAC-B (AC2: `-D clippy::print_stdout`/`print_stderr` в профиле, `#![allow]` с D109 у владельца, проба
+вне владельца → красный гейт; AC3: решение D109, снимающее исключение print-линтов D060; ротация
+P067/B061) завершается этим коммитом; далее пин D051, `just feature-merge`; затем P068 (B063).
 
 ## Workspace
 
-Ветка `feature/own-code-repairs` (база master `b224444`), наблюдаемый HEAD `611c0d6` (VAC-G);
-stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
+Ветка `feature/console-owner` (база master `806c2a1`), наблюдаемый HEAD `92a4703` (VAC-A);
+stable.txt → `9d03e5a`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
 (`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
 `tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest одного
 файла — `tooling/worker/run run test -- <файл>`.
 
 ## Progress
 
-- Разбор карточки: fail-open AC2 — `agent_hooks/guard.rs:95` (`enters_check`:
-  `shell_words::split(word).unwrap_or_default()` — нечитаемое слово тихо считалось «не вход в
-  check/commit», и маршрут VAC-коммита (D047) обходился; воспроизводимый обход — ANSI-C-кавычки
-  `just scratch -- "git commit -q -m $'it\'s'"`: shell_words даёт «missing closing quote», а `sh -c`
-  выполняет commit). `guard_reference_with` уже пробрасывает ошибки (AC1 в P056) — менялась только
-  сигнатура.
-- VAC-A (`384936a`): `enters_check` → `Result<bool>`; ошибка разбора слова — отказ хука с причиной
-  (слово и причина) через общий путь отказов `shell_event` (`agent_hooks/mod.rs`);
-  `guard_reference_with(root, phase, &Settings)` как у `guard_commit`; вызов в `command_line/mod.rs`;
-  негативный тест `test_shell_guard_refuses_unreadable_check_entry` в `agent_hooks/tests/test_hooks.py`;
-  строка P066 в Plan.md — active. Побочный эффект: слово с непарной кавычкой в обычном аргументе
-  (например, `just read -- grep "don't"`) теперь отклоняется с указанием слова — охрана не отличает
-  shell-текст от аргумента; писать `don.t`.
-- VAC-B (`4d2e48a`): `command_line/main.rs` — ошибка неизвестной команды стала одной строкой
-  `unknown command "<имя>"; run agentrig --help for the command table` (таблица команд живёт в
-  `print_help`); usage-строка с частичным перечнем удалена.
-- VAC-C (`a983c85`, AC3a): `enum Level { Warning, Error }` переехал к владельцу `Diagnostic` в
-  `shared/diagnostics/lint.rs` (serde lowercase, `name()`, `Copy`, `Eq`); `structural_lint::config::Level`
-  — реэкспорт (конфиг правил читает тот же тип); `Diagnostic.level: Level`; сравнения со строками
-  `"error"`/`"warning"` исчезли из `structural_lint/mod.rs` (`finding`, `run_output`),
-  `architecture/runner/mod.rs` и `registry/check.rs`; текст и JSON диагностик не изменились
-  (`Guidance.level` получает `level.name()`).
-- VAC-D (`8059224`, AC3b): `enum JobState` (Completed, Running, Orphaned, StartingOrFinishing,
-  Interrupted, Stopping, Cancelled; serde kebab-case) и запись `Observation { state, value }` в
-  `command_runner/jobs/mod.rs`; `observe_once`/`grouped` возвращают типизированное состояние, `observe`
-  сравнивает `JobState::Interrupted` вместо строки в JSON; поле `state` пишется той же вставкой
-  (`json!(state)`), порядок ключей сохранён (serde_json `preserve_order`). Строки состояний живут только
-  в этом файле (grep по Project).
-- VAC-E (`029eed3`, AC3c): `command_line::Command` (16 вариантов + `Jobs(jobs::Command)`) с одной
-  таблицей имён `NAMES` (`parse` для `main.rs` вместо `owns()` + особых случаев guard-*, `name()` для
-  сообщений `takes no arguments`/`unknown scaffold command`); `run`/`validate_arguments`/
-  `configured_command` сопоставляют варианты; `jobs::Command { List, Status, Logs, Stop, Cleanup }`,
-  `jobs::cli` принимает его, ветка `unknown jobs command` исчезла (исчерпывающий match). Строки команд
-  остались только на границе разбора (`main.rs`: hook/lint-*, `project_root` для `init`) и в
-  `structural_lint::cli` — вне карточки.
-- VAC-F (`96a4a57`, AC3d): `enum Catalog { Plan, Backlog, Decisions, Invariants }` в
-  `project_memory/format.rs` с `directory()`, `prefix()`, `columns()`, `detail_sections() -> Sections
-  { required, optional }`; свободные `columns(char)`/`detail_sections(&str)` с ветками `bail!` исчезли;
-  `table`/`parse_table`/`parse_row` принимают каталог; потребители — `project_memory/mod.rs`
-  (`details`, `reject_unindexed`, все вызовы `table`), `history.rs`, `project_setup/assets.rs memory()`.
-  Догфуд поймал кортеж в новой сигнатуре `detail_sections` (tuple-as-record; прежняя была скрыта в
-  `Result<(..)>` — правило не заглядывает в `Result`, побочное наблюдение для отчёта) — заменён записью
-  `Sections`.
-- VAC-G (`611c0d6`, AC4): семь пар стали записями у владельцев — `format::Link { name, path }`
-  (`parse_row`, `invariants`), `project_config::settings::ModuleFile { path, source }` (`files`,
-  потребитель `project_setup::bundle`), `registry/check.rs Finding { path, message }` (`Findings`),
-  `architecture::policy::Description { purpose, role }` (`describe`, потребитель `registry::role`),
-  `template::Justfile { path, source }` (`justfiles`, потребитель `add_runtime`),
-  `streams::Logs { stdout, stderr }` (`Readers::start`, `Job::open_logs`); импорт `File` в `jobs/mod.rs`
-  стал лишним и удалён. Эти пары прятались за `Result<(..)>`, `Option<(..)>` и псевдонимом типа —
-  правило tuple-as-record их не видело (наблюдение для отчёта).
-- VAC-H (этот коммит, AC5): D108 — Release в `mark_exited` / Acquire в `wait_readable` (`streams.rs`), оба
-  сайта с `// DECISION: D108`, строка в Decisions.md (card → Archive/Backlog/062, streams, related D095). При
-  записи обоснования найдено окно потери хвоста: `poll` шёл раньше чтения флага, и хвост, записанный ребёнком
-  между истёкшим `poll` и чтением флага перед самым выходом, не дочитывался — чтение флага перенесено в начало
-  итерации (стоп только когда пуст `poll`, выполненный после уже увиденного выхода); D108 это фиксирует.
-  Ротация: Plan/066 → Archive/Plan/066 (Delivery с приёмкой AC2–AC6), Backlog/062 → Archive/Backlog/062,
-  строки индексов, ссылка B062 в Archive/Plan/056, заметка в Plan.md; в Plan остались P067, P068.
-- Не сделано: пин D051, `just feature-merge`.
+- VAC-A (`92a4703`, AC1): владелец `shared/console/mod.rs` + `architecture.yaml` (`type: flat`,
+  `dependents: 13` — реальный радиус), функции `stdout(impl Display)`, `stderr(impl Display)`,
+  `prompt(impl Display) -> io::Result<()>` (`print!` + `flush` для вопроса мастера); 73 сайта в 23 файлах
+  (55 `println!`, 17 `eprintln!`, 1 `print!`) → `console::stdout("literal")` (7), `console::stdout(value)`
+  (18), `console::stdout(format!(…))` (47), `console::prompt(format!(…))?` (1); бинари `main.rs`/
+  `standalone.rs` импортируют `agentrig::shared::console`. Макросы `out!`/`err!` отвергнуты: анализатор
+  архитектуры по построению не анализирует `#[macro_export]` и вызовы макросов своего крейта (D059), а без
+  экспорта макрос недостижим из бинарей.
+- VAC-B (этот коммит, AC2/AC3): в `clippy` профиля `.agentrig/commands.yaml` добавлены
+  `-D clippy::print_stdout`, `-D clippy::print_stderr`; `shared/console/mod.rs` открывается
+  `// DECISION: D109` + `#![allow(clippy::print_stdout, clippy::print_stderr)]` (форма D080);
+  `Ledger/Decisions/109.md` + строка индекса (card → Archive/Backlog/061, owner, clippy profile, related
+  D060/D080/D059) — вывод — продукт, печатает владелец; снято только исключение print-линтов D060. Ротация:
+  Plan/067 → Archive/Plan/067 (Delivery с приёмкой AC1–AC3), Backlog/061 → Archive/Backlog/061 (без
+  изменений), строки индексов Archive/Plan.md и Archive/Backlog.md, строка P067 удалена из Plan.md (заметка
+  добавлена), строка B061 удалена из Backlog.md; в Plan осталась P068.
+- Не сделано: пин D051 (меняются `Project` и `commands.yaml`), `just feature-merge`.
 
 ## Verification
 
-- 2026-11-05, рабочее дерево VAC-A: `cargo fmt` применён; `tooling/worker/run run clippy` exit 0;
-  `--all-targets` чисто; догфуд `candidate -- lint` — 0 находок; `cargo test --lib` 128 passed;
-  pytest `agent_hooks/tests/test_hooks.py` + `change_delivery/git/tests/test_git.py` — 44 passed
-  (первая редакция теста с `# don't` не падала: shell_words, как sh, считает `#` комментарием —
-  заменена на ANSI-C-кавычки; `sh -c "printf %s $'it\'s'"` печатает `it's`). Гейт `384936a` прошёл
-  (11 rust-test, 215 pytest).
-- 2026-11-05, рабочее дерево VAC-B: `tooling/worker/run run candidate -- bogus-command` → exit 2, одна
-  строка `ERROR [bogus-command] …: unknown command "bogus-command"; run agentrig --help for the command
-  table. ACTION: … RERUN: …`; без команды — `unknown command ""` с той же отсылкой; `--help` печатает
-  таблицу. Гейт `4d2e48a` прошёл (128 rust-test, 27 pytest).
-- 2026-11-05, рабочее дерево VAC-C: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
-  догфуд 0; `cargo test --lib` 128 passed; `candidate -- lint --json --warnings` печатает
-  `"level":"warning"` как прежде; pytest `structural_lint/tests/test_lint.py` +
-  `registry/tests/test_registry.py` — 22 passed. Гейт `a983c85` прошёл (116 rust-test, 370 pytest).
-- 2026-11-05, рабочее дерево VAC-D: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
-  догфуд 0; `cargo test --lib` 128 passed; pytest `command_runner/tests/test_jobs.py` — 13 passed
-  (утверждения по `state`: running, completed, orphaned, interrupted, cancelled, `group_observation`);
-  `candidate -- job-status run-BTBLbq` печатает `…"background":false,"state":"completed","age_seconds":…`
-  — позиция и значение ключа прежние. Гейт `8059224` прошёл (15 rust-test, 209 pytest).
-- 2026-11-05, рабочее дерево VAC-E: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
-  догфуд 0 (с `--warnings` — 16 прежних file-size, среди них `jobs/mod.rs` 308 > 300 после VAC-D, и
-  directory-size `.`/Ledger; ошибок нет); `cargo test --lib` 128 passed; пробы кандидата: `doctor extra`
-  → `doctor takes no arguments`, `job-status` → `job-status RUN_ID`, `feature-start` → `feature-start
-  NAME`, `jobs extra` → `jobs takes no arguments`, `nope` → строка AC6, `commands` печатает каталог —
-  exit 2/0 как прежде; pytest `command_runner/tests/test_commands.py` + `test_jobs.py` — 18 passed.
-  Гейт `029eed3` прошёл (128 rust-test, 209 pytest).
-- 2026-11-05, рабочее дерево VAC-F: `cargo fmt` применён; профиль clippy exit 0; `--all-targets` чисто;
-  догфуд 0 (первая редакция дала tuple-as-record `format.rs:48` — исправлено); `cargo test --lib` 128
-  passed; `candidate -- memory-check` на репозитории exit 0; pytest `project_memory/tests` +
-  `project_setup/tests` — 90 passed. Гейт `96a4a57` прошёл (11 rust-test, 211 pytest).
-- 2026-11-05, рабочее дерево VAC-G: `cargo fmt` применён (первый прогон clippy упал на неиспользуемом
-  импорте `File` — удалён); профиль clippy exit 0; `--all-targets` чисто; догфуд 0; `cargo test --lib` 128
-  passed; `candidate -- memory-check` exit 0; `candidate -- commands` печатает строки ролей как прежде
-  (логика `describe` не менялась); pytest `command_runner/tests` + `registry/tests` +
-  `project_memory/tests/test_memory.py` + `project_setup/tests` — 42 passed. Гейт `611c0d6` прошёл (107 rust-test,
-  360 pytest).
-- 2026-11-05, рабочее дерево VAC-H: `memory-check` со строкой D108, но без маркеров — «D108: decision marker
-  absent in …/command_runner/jobs/streams.rs» (exit 2); с маркерами — exit 0; `cargo fmt --check` чисто; профиль
-  clippy exit 0; `--all-targets` чисто; догфуд 0; `cargo test --lib` 128 passed; pytest `test_jobs.py` (в том
-  числе дренажный тест `test_foreground_drain_is_bounded_when_descendant_holds_pipe`) + `test_commands.py` — 18
-  passed. Окно потери хвоста детерминированно не воспроизводится (микросекунды между возвратом `poll` и чтением
-  флага) — нового теста нет, порядок обоснован в D108. Гейт коммита VAC-H — следующий шаг.
+- 2026-11-05, VAC-A: гейт `92a4703` прошёл (128 rust-test, 371 pytest); на том же дереве полный pytest
+  `run test -- Project -q` — 435 passed (CLI/hook/lint-наборы сравнивают текст stdout/stderr — вывод не
+  изменился), `cargo test --lib` 128 passed, догфуд 0 (без строки `dependents` — единственная находка
+  13 > 6).
+- 2026-11-05, рабочее дерево VAC-B: проба `println!("probe")` + `eprintln!("probe")` в
+  `command_runner/summary.rs` → `tooling/worker/run run clippy` exit 101 с «error: use of `println!`»
+  (`print_stdout`) и «error: use of `eprintln!`» (`print_stderr`); после `git checkout -- summary.rs` —
+  exit 0 (владелец печатает под своим `allow`). `cargo fmt --check` чисто; `--all-targets` чисто; догфуд
+  `candidate -- lint` — 0 находок (`allow-justification` принимает строку D109); `candidate -- memory-check`
+  exit 0 (D109 связан с маркером владельца и ссылками); `config-check` — конфигурация валидна. Гейт коммита
+  VAC-B — следующий шаг.
 
 ## Blockers
 
@@ -134,7 +60,7 @@ stable.txt → `42f028a`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-H через гейт («P066 VAC-H: justify the stream orderings and archive B062 (AC5)»); затем
-пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, отдельный коммит) и
-`just feature-merge` (ветку сохранить); затем `just feature-start` для P067 (B061, Plan/067.md).
-Свободные ID: D109+, I022+, P069+, B065+.
+Закоммитить VAC-B через гейт («P067 VAC-B: deny print lints outside the console owner (B061 AC2, AC3)»);
+затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap, отдельный коммит) и
+`just feature-merge` (ветку сохранить); затем `just feature-start` для P068 (B063, Plan/068.md).
+Свободные ID: D110+, I022+, P069+, B065+.

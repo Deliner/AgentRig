@@ -2,6 +2,7 @@
 // DECISION: D022
 use super::evidence;
 use crate::project_config::Context;
+use crate::shared::console;
 use crate::shared::fs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
@@ -22,7 +23,7 @@ pub fn run(context: &Context) -> Result<()> {
     let report = json!({"state": state, "plan": plan, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "checks": evidence::resume(context),
         "jobs": crate::command_runner::jobs::list(&context.path(&context.config.paths.runtime)?)?});
-    println!("{report}");
+    console::stdout(report);
     Ok(())
 }
 fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {

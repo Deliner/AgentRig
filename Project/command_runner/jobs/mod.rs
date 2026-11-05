@@ -1,4 +1,5 @@
 use crate::project_config::Lifetime;
+use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions};
 mod background;
 pub mod cleanup;
@@ -227,7 +228,7 @@ pub fn cli(runtime: &Path, command: Command, args: &[String]) -> Result<i32> {
             status(runtime, &args[0])?
         }
     };
-    println!("{value}");
+    console::stdout(value);
     Ok(0)
 }
 fn cleanup_cli(runtime: &Path, args: &[String]) -> Result<i32> {
@@ -240,7 +241,7 @@ fn cleanup_cli(runtime: &Path, args: &[String]) -> Result<i32> {
     let failed = result["errors"]
         .as_array()
         .is_some_and(|errors| !errors.is_empty());
-    println!("{result}");
+    console::stdout(result);
     Ok(i32::from(failed))
 }
 #[derive(Clone, Copy, Eq, PartialEq, Serialize)]

@@ -1,4 +1,5 @@
 use crate::project_config::{View, Views};
+use crate::shared::console;
 use std::{path::Path, process::Output};
 
 pub fn print(name: &str, views: &Views, output: &Output, log: &Path) {
@@ -11,9 +12,9 @@ pub fn print(name: &str, views: &Views, output: &Output, log: &Path) {
     let stderr = String::from_utf8_lossy(&output.stderr);
     let lines: Vec<&str> = stdout.lines().chain(stderr.lines()).collect();
     for line in select(view, &lines) {
-        println!("{line}");
+        console::stdout(line);
     }
-    println!("{name}: exit {code}; log: {}", log.display());
+    console::stdout(format!("{name}: exit {code}; log: {}", log.display()));
 }
 fn select<'a>(view: &View, lines: &[&'a str]) -> Vec<&'a str> {
     let start = lines.len().saturating_sub(view.tail);

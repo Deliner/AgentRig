@@ -1,6 +1,7 @@
 // DECISION: D020
 
 use agentrig::shared::arguments::take_option;
+use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::{agent_hooks, command_line, project_config, structural_lint};
 use anyhow::{Result, bail};
@@ -38,7 +39,7 @@ fn run() -> Result<i32> {
 fn immediate(command: &str) -> Option<Result<i32>> {
     Some(match command {
         "--version" => {
-            println!("agentrig {}", project_config::VERSION);
+            console::stdout(format!("agentrig {}", project_config::VERSION));
             Ok(0)
         }
         "--help" => {
@@ -64,8 +65,8 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     root.canonicalize().map_err(Into::into)
 }
 fn print_help() {
-    println!(
-        "agentrig\ninit [--interactive] | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix."
+    console::stdout(
+        "agentrig\ninit [--interactive] | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix.",
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -81,7 +82,7 @@ fn hook(root: &Path) -> Result<i32> {
         ))),
     };
     if let Some(value) = output {
-        println!("{value}");
+        console::stdout(value);
     }
     Ok(0)
 }
@@ -115,7 +116,7 @@ fn main() {
     let code = match run() {
         Ok(code) => code,
         Err(error) => {
-            eprintln!("{}", diagnostics::failure(&error));
+            console::stderr(diagnostics::failure(&error));
             2
         }
     };

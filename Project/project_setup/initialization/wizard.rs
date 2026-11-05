@@ -1,27 +1,28 @@
 use crate::project_config;
 use crate::project_setup::{self as package, Config, template};
+use crate::shared::console;
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
-    io::{self, Write},
+    io,
     path::{Path, PathBuf},
 };
 
 pub fn run(root: &Path) -> Result<i32> {
-    println!(
-        "AgentRig setup. Enter accepts the displayed default; 'cancel' or EOF cancels before installation."
+    console::stdout(
+        "AgentRig setup. Enter accepts the displayed default; 'cancel' or EOF cancels before installation.",
     );
     let Some((root, config)) = selection(root)? else {
         return cancelled();
     };
     let files = package::bundle(&config)?;
     super::init::prepare(&root, &config, &files)?;
-    println!(
+    console::stdout(format!(
         "Configuration for {}:\n{}\nFiles:\n{}",
         root.display(),
         crate::shared::yaml::encode(&config)?,
         files.keys().cloned().collect::<Vec<_>>().join("\n")
-    );
+    ));
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
         return cancelled();
     };
@@ -30,7 +31,7 @@ pub fn run(root: &Path) -> Result<i32> {
         super::init::prepare(&root, &config, &files)?;
         crate::shared::fs::create_dir_all(&root)?;
         super::init::install(&root, &config, &files)?;
-        println!("Installed the worker environment. Authentication remains separate.");
+        console::stdout("Installed the worker environment. Authentication remains separate.");
         package::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()
@@ -106,8 +107,7 @@ fn select_checks(config: &mut Config, value: &str) -> Result<()> {
 }
 
 fn ask(label: &str, default: &str) -> Result<Option<String>> {
-    print!("{label} [{default}]: ");
-    io::stdout().flush()?;
+    console::prompt(format!("{label} [{default}]: "))?;
     let mut line = String::new();
     let read = io::stdin().read_line(&mut line)?;
     let cancelled = read == 0 || line.trim().eq_ignore_ascii_case("cancel");
@@ -124,6 +124,6 @@ fn ask(label: &str, default: &str) -> Result<Option<String>> {
 }
 
 fn cancelled() -> Result<i32> {
-    println!("Initialization cancelled; no environment installed.");
+    console::stdout("Initialization cancelled; no environment installed.");
     Ok(0)
 }

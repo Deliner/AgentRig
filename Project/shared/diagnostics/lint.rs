@@ -1,3 +1,4 @@
+use crate::shared::console;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Deserialize, Eq, PartialEq, Serialize)]
@@ -32,7 +33,7 @@ pub struct Diagnostic {
 
 pub(crate) fn print_diagnostics(items: &[Diagnostic]) {
     for text in grouped(items) {
-        println!("{text}");
+        console::stdout(text);
     }
 }
 

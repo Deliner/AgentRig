@@ -1,3 +1,4 @@
+use crate::shared::console;
 use crate::{
     change_delivery::{gate, git},
     command_runner::{self, jobs},
@@ -161,17 +162,14 @@ fn run_command(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
         let mut args = vec!["run".into(), name.into(), "--".into()];
         args.extend_from_slice(extra);
         let rerun = crate::shared::diagnostics::rerun(&context.root, &args);
-        eprintln!(
-            "{}",
-            crate::shared::diagnostics::Guidance {
-                level: "ERROR",
-                id: &check.id,
-                location: &context.config.commands[name].cwd,
-                message: &format!("exited {code}; see original output above"),
-                skill: &check.skill,
-                rerun: &rerun
-            }
-        );
+        console::stderr(crate::shared::diagnostics::Guidance {
+            level: "ERROR",
+            id: &check.id,
+            location: &context.config.commands[name].cwd,
+            message: &format!("exited {code}; see original output above"),
+            skill: &check.skill,
+            rerun: &rerun,
+        });
     }
     Ok(code)
 }
@@ -188,10 +186,10 @@ fn config_check(context: &Context) -> Result<i32> {
     };
     let valid = code == 0;
     if valid {
-        println!(
+        console::stdout(format!(
             "Scaffold configuration is valid (runtime {})",
             project_config::VERSION
-        );
+        ));
     }
     Ok(code)
 }

@@ -1,4 +1,5 @@
 use super::storage;
+use crate::shared::console;
 use anyhow::Result;
 use std::{collections::BTreeMap, path::Path};
 
@@ -15,12 +16,12 @@ pub fn print(runtime: &Path) -> Result<()> {
         entry.2 += duration;
         entry.3 = entry.3.max(duration);
     }
-    println!("command calls failures total_s avg_s max_s");
+    console::stdout("command calls failures total_s avg_s max_s");
     for (name, (calls, failed, total, max)) in totals {
-        println!(
+        console::stdout(format!(
             "{name} {calls} {failed} {total:.3} {:.3} {max:.3}",
             total / calls as f64
-        );
+        ));
     }
     Ok(())
 }

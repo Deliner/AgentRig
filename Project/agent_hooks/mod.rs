@@ -19,6 +19,7 @@ mod transcript;
 use self::input::text;
 use self::requirements::Answer;
 use crate::project_config::{Context, RouteEvent};
+use crate::shared::console;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
@@ -113,7 +114,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         .then(|| reminder::start_at(event, &state_directory(configured)?))
         .transpose();
     if let Err(error) = started {
-        eprintln!("session reminder state: {error}");
+        console::stderr(format!("session reminder state: {error}"));
         message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
     Ok(Some(context("SessionStart", &message)))
@@ -175,7 +176,7 @@ fn respond(
             let mut answer = remind(event, configured, &mut session.state, reminding);
             answer.found = requirements::pending(&mut session.state, configured, found);
             if let Err(error) = session.save() {
-                eprintln!("complexity reminder: {error}");
+                console::stderr(format!("complexity reminder: {error}"));
                 answer.discipline = None;
                 answer.tracked = false;
                 answer.notes.push(state_failure(configured, &error));
@@ -183,7 +184,7 @@ fn respond(
             answer
         }
         Err(error) => {
-            eprintln!("complexity reminder: {error}");
+            console::stderr(format!("complexity reminder: {error}"));
             Answer {
                 discipline: None,
                 found,
@@ -217,7 +218,7 @@ fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Rem
                 due.map(|text| text.replace(reminder::FULL, &full_refresh(configured)));
         }
         Err(error) => {
-            eprintln!("complexity reminder: {error}");
+            console::stderr(format!("complexity reminder: {error}"));
             answer.notes.push(state_failure(configured, &error));
         }
     }

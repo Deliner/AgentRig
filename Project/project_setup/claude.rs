@@ -1,5 +1,6 @@
 use super::{Config, Files, adapters};
 use crate::project_config::Context;
+use crate::shared::console;
 use crate::shared::fs;
 use anyhow::Result;
 use serde_json::Value;
@@ -23,13 +24,13 @@ pub(super) fn registration(context: &Context) -> Result<bool> {
             .is_none_or(|value| value == false)
     });
     let registered = enabled && super::doctor::hooks_registered(context, settings.as_ref())?;
-    println!(
+    console::stdout(format!(
         "Claude Code registration: {}",
         if registered {
             "registered"
         } else {
             "MISSING OR CHANGED; inspect .claude/settings.json"
         }
-    );
+    ));
     Ok(registered)
 }

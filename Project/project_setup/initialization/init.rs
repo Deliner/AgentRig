@@ -1,6 +1,7 @@
 use super::wizard;
 use crate::project_config;
 use crate::project_setup::{Config, Files, bundle, template};
+use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
 use anyhow::{Result, ensure};
 use std::{io::Write, path::Path};
@@ -15,11 +16,11 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let files = bundle(&config)?;
     prepare(root, &config, &files)?;
     install(root, &config, &files)?;
-    println!(
+    console::stdout(format!(
         "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
         options["language"],
         project_config::VERSION
-    );
+    ));
     Ok(0)
 }
 pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()> {

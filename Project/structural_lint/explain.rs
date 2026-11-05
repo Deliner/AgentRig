@@ -1,4 +1,5 @@
 use super::{config, inventory, selection};
+use crate::shared::console;
 use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
@@ -35,7 +36,7 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     }
     let json = !flags.is_empty();
     if json {
-        println!("{}", json!({"path": path, "rules": rows}));
+        console::stdout(json!({"path": path, "rules": rows}));
     } else {
         print(path, &rows);
     }
@@ -117,20 +118,20 @@ fn inventory_reason(
     None
 }
 fn print(path: &Path, rows: &[Value]) {
-    println!("Lint selection for {}", path.display());
+    console::stdout(format!("Lint selection for {}", path.display()));
     for row in rows {
-        println!(
+        console::stdout(format!(
             "{} ({}): {}",
             row["id"].as_str().unwrap_or(""),
             row["kind"].as_str().unwrap_or(""),
             row["reason"].as_str().unwrap_or("")
-        );
+        ));
         let selected = row["selected"] == true;
         if selected {
-            println!(
+            console::stdout(format!(
                 "  warning={} error={} level={} matched_overrides={} (zero-based)",
                 row["warning"], row["error"], row["level"], row["matched_overrides"]
-            );
+            ));
         }
     }
 }

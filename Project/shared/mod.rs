@@ -1,5 +1,6 @@
 pub mod arguments;
 pub mod artifacts;
+pub mod console;
 pub mod diagnostics;
 pub mod fs;
 pub mod paths;

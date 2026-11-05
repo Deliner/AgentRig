@@ -4,6 +4,7 @@
 mod integration;
 use super::gate;
 use crate::project_config::Context;
+use crate::shared::console;
 use crate::shared::vcs::git_context as git;
 use anyhow::{Result, ensure};
 use std::{
@@ -17,7 +18,7 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
     let branch = integration::start(&repository, settings, name)?;
-    println!("{branch}");
+    console::stdout(branch);
     Ok(0)
 }
 
@@ -29,7 +30,7 @@ pub fn merge(context: &Context) -> Result<i32> {
         integration::integrate(&repository, settings, || checked(context), execute_vcs)?;
     let passed = code == 0;
     if passed {
-        println!("merged {feature}; branch retained");
+        console::stdout(format!("merged {feature}; branch retained"));
         return cleanup_merged(context, &feature);
     }
     Ok(code)
@@ -59,7 +60,9 @@ fn execute_vcs(command: &mut Command) -> Result<i32> {
 fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
     let scratch = crate::command_runner::scratch::cleanup(context, feature);
     if let Err(error) = &scratch {
-        eprintln!("merge succeeded; scratch area cleanup failed: {error:#}");
+        console::stderr(format!(
+            "merge succeeded; scratch area cleanup failed: {error:#}"
+        ));
     }
     Ok(cleanup_jobs(context, feature)?.max(i32::from(scratch.is_err())))
 }
@@ -78,16 +81,18 @@ fn cleanup_jobs(context: &Context, feature: &str) -> Result<i32> {
             let failed = report["errors"]
                 .as_array()
                 .is_some_and(|errors| !errors.is_empty());
-            println!("post-merge cleanup: {report}");
+            console::stdout(format!("post-merge cleanup: {report}"));
             if failed {
-                eprintln!("merge succeeded; cleanup failed. Retry job-cleanup --branch {feature}");
+                console::stderr(format!(
+                    "merge succeeded; cleanup failed. Retry job-cleanup --branch {feature}"
+                ));
             }
             Ok(i32::from(failed))
         }
         Err(error) => {
-            eprintln!(
+            console::stderr(format!(
                 "merge succeeded; cleanup failed: {error}. Retry job-cleanup --branch {feature}"
-            );
+            ));
             Ok(1)
         }
     }
@@ -104,7 +109,9 @@ pub fn guard_commit(root: &Path, settings: &crate::shared::vcs::Settings) -> Res
     if permitted {
         return Ok(0);
     }
-    eprintln!("direct commits on {base} are prohibited; create a {prefix} branch");
+    console::stderr(format!(
+        "direct commits on {base} are prohibited; create a {prefix} branch"
+    ));
     Ok(1)
 }
 pub fn guard_reference_with(
@@ -130,7 +137,7 @@ pub fn guard_reference_with(
             if deletion {
                 let merged = merged_reference(root, old, reference, &settings.base)?;
                 if merged {
-                    eprintln!("merged feature branches must be retained");
+                    console::stderr("merged feature branches must be retained");
                     return Ok(1);
                 }
             }
