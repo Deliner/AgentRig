@@ -264,11 +264,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         Err(error) => (vec![configuration_error(path, error)], true),
     };
     diagnostics.retain(|item| output.warnings || item.level != Level::Warning);
-    let args = vec![
-        command.into(),
-        "--config".into(),
-        path.to_string_lossy().into_owned(),
-    ];
+    let args = rerun_args(command, path, &output);
     for item in &mut diagnostics {
         item.rerun = output
             .rerun
@@ -286,6 +282,17 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         print_diagnostics(&diagnostics);
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
+}
+fn rerun_args(command: &str, path: &Path, output: &Output<'_>) -> Vec<String> {
+    let mut args = vec![
+        command.into(),
+        "--config".into(),
+        path.to_string_lossy().into_owned(),
+    ];
+    let json = output.json.then_some("--json");
+    let warnings = output.warnings.then_some("--warnings");
+    args.extend([json, warnings].into_iter().flatten().map(String::from));
+    args
 }
 fn analyze(root: &Path, path: &Path, mode: Mode) -> Result<Vec<Diagnostic>> {
     config::load(root, path).and_then(|config| {

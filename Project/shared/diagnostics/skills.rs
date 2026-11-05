@@ -7,7 +7,7 @@ pub fn reference(root: &Path, value: &str) -> Result<()> {
     if absolute {
         bail!("skill paths must be relative to the repository: {value}");
     }
-    let path = root.join(value).canonicalize()?;
+    let path = fs::canonicalize(root.join(value))?;
     let invalid_location =
         !path.starts_with(root) || path.file_name().is_none_or(|name| name != "SKILL.md");
     if invalid_location {

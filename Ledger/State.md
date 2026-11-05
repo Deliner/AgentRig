@@ -4,26 +4,33 @@
 
 **P069 / [B065](Backlog/065.md) — `shipped-contract`: поставка `init` и диагностика lint соответствуют записанным
 решениям (находки раунда 8).** Авторизация — /goal пользователя 2026-11-05 (бриф D1, закрытый список AC1–AC7). Текущий
-VAC 1 (Ledger): карточка B065 и строка индекса, строка P069 и `Plan/069.md`, этот снимок.
+VAC 2: AC4 (`rerun` сохраняет `--json`/`--warnings`) и AC5 (находка `configuration` называет путь отсутствующего
+навыка).
 
 ## Workspace
 
 Branch: `feature/shipped-contract`
-Revision: `72a7e3d3fd640f15573004b6558c702700e043bc`
+Revision: `ea5ba170911f489ab1fefe47d232f6c9c2b7324d`
 
-База — master `72a7e3d` (слияние `feature/norm-facets`); VAC 1 не закоммичен; stable.txt → `1fad15d`. macOS:
-манифест — `Project/Cargo.toml`; поставка — `just candidate -- init --root <каталог> …`; pytest одного файла —
-`just run test -- <файл>`; Rust-тесты — `just run rust-test -- <фильтр>`.
+База — master `72a7e3d`; VAC 1 — `ea5ba17`; VAC 2 в рабочем дереве; stable.txt → `1fad15d`. macOS: cargo нет в PATH
+`just write`/`just run` — коммиты и тесты с кандидатом через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH
+&& …'`; поставка — `just candidate -- init --root <каталог> …`.
 
 ## Progress
 
-- В рабочем дереве: `Ledger/Backlog/065.md` и строка B065 в `Backlog.md` (текст брифа без изменений), строка P069
-  (active) в `Plan.md` и `Plan/069.md`, этот снимок.
-- Не начато: AC1–AC7 (код, навыки, README), финальный VAC с Delivery и ротацией, пин D051, `just feature-merge`.
+- VAC 1 `ea5ba17`: B065 и строка индекса, P069 (active) и `Plan/069.md`, снимок State.
+- VAC 2 (рабочее дерево): `structural_lint/mod.rs::rerun_args` добавляет `--json`/`--warnings` вызова; обёртка
+  `shared/fs::canonicalize` (D106: действие «resolve» и путь) в `shared/diagnostics/skills.rs`; тесты
+  `test_lint.py::test_rerun_reproduces_findings_with_their_flags`, `::test_missing_skill_is_named_in_the_finding`,
+  случай `resolve` в `shared/fs/tests.rs`.
+- Не начато: AC6, AC1, AC3, AC2, AC7, финальный VAC (Delivery, ротация), пин D051, `just feature-merge`.
 
 ## Verification
 
-Для ветки ещё нет: гейт VAC 1 не запускался.
+- 2026-11-05, рабочее дерево VAC 2: `just run test -- Project/structural_lint/tests/test_lint.py` — 22 passed; те же два
+  новых теста с `WORKER_BINARY` установленной ревизии `1fad15d` — 2 failed (без изменения падают);
+  `just run rust-test -- shared::fs` — 2 passed; `just lint` (кандидат) — без находок.
+- VAC 1 `ea5ba17`: гейт pre-commit зелёный (build, lint, memory, rustfmt, clippy, ruff, mypy, test, typos, vulture).
 
 ## Blockers
 
@@ -31,6 +38,5 @@ Revision: `72a7e3d3fd640f15573004b6558c702700e043bc`
 
 ## Next action
 
-Закоммитить VAC 1 через хук pre-commit; затем VAC по порядку брифа: AC4 (`rerun` с `--json`/`--warnings`), AC5 (путь
-отсутствующего навыка), AC6 (поля JSON в `Project/README.md`), AC1, AC3, AC2, AC7. Свободные ID: D111+, I022+, P070+,
-B066+.
+Закоммитить VAC 2 через хук; затем AC6 (поля JSON в `Project/README.md`), AC1, AC3, AC2, AC7. Свободные ID: D111+,
+I022+, P070+, B066+.

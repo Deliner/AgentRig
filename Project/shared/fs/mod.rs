@@ -94,6 +94,10 @@ pub fn read_link(path: impl AsRef<Path>) -> Result<PathBuf> {
     at("read link", path.as_ref(), std::fs::read_link(&path))
 }
 
+pub fn canonicalize(path: impl AsRef<Path>) -> Result<PathBuf> {
+    at("resolve", path.as_ref(), std::fs::canonicalize(&path))
+}
+
 pub fn set_permissions(path: impl AsRef<Path>, permissions: Permissions) -> Result<()> {
     at(
         "set permissions on",
