@@ -384,7 +384,11 @@ const RECIPES: [(&str, &[Recipe]); 5] = [
         ],
     ),
 ];
-pub(super) fn justfiles(config: &Config) -> Vec<(String, String)> {
+pub(super) struct Justfile {
+    pub path: String,
+    pub source: String,
+}
+pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
     let mut root = "set positional-arguments := true\n\n".to_owned();
     let path = format!("./{}", config.paths.service_path("bin/agentrig"));
     let binary = shell_words::quote(&path);
@@ -402,8 +406,14 @@ pub(super) fn justfiles(config: &Config) -> Vec<(String, String)> {
                 )
             })
             .collect();
-        files.push((file, source.join("\n")));
+        files.push(Justfile {
+            path: file,
+            source: source.join("\n"),
+        });
     }
-    files.push(("justfile".into(), root));
+    files.push(Justfile {
+        path: "justfile".into(),
+        source: root,
+    });
     files
 }

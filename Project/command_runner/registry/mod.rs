@@ -63,7 +63,10 @@ fn role(context: &Context, path: &str) -> String {
     let file = Path::new(path);
     let owner = file.parent().map(Path::display);
     match (describe(&context.root, file), owner) {
-        (Some((purpose, role)), Some(owner)) => format!("{path}: {role}; owner {owner}: {purpose}"),
+        (Some(description), Some(owner)) => format!(
+            "{path}: {}; owner {owner}: {}",
+            description.role, description.purpose
+        ),
         _ => format!("{path}: not described by its architecture.yaml"),
     }
 }

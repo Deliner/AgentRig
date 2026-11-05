@@ -13,8 +13,8 @@ use std::collections::BTreeMap;
 type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(config: &Config) -> Result<Files> {
     let mut files = guidance(config);
-    for (path, source) in project_config::files(config)? {
-        files.insert(path, source.into_bytes());
+    for file in project_config::files(config)? {
+        files.insert(file.path, file.source.into_bytes());
     }
     for (name, source) in assets::memory()? {
         files.insert(
@@ -68,8 +68,8 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         config.paths.service_path("bin/agentrig"),
         fs::read(std::env::current_exe()?)?,
     );
-    for (path, source) in template::justfiles(config) {
-        files.insert(path, source.into_bytes());
+    for justfile in template::justfiles(config) {
+        files.insert(justfile.path, justfile.source.into_bytes());
     }
     client_files(files, config, &generated.root_command)?;
     for (path, contents) in generated.files {

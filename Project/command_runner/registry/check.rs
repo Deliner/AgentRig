@@ -1,11 +1,15 @@
 use crate::project_config::{Check, Context, Removed, module};
-use crate::shared::diagnostics::lint::{Diagnostic, print_diagnostics};
+use crate::shared::diagnostics::lint::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
 use std::path::Path;
 
-type Findings = Vec<(String, String)>;
+struct Finding {
+    path: String,
+    message: String,
+}
+type Findings = Vec<Finding>;
 pub fn run(context: &Context, check: &Check, rerun: &str) -> Result<i32> {
     let files = crate::shared::vcs::Repository::new(&context.root).working_files()?;
     let tools = super::tools(context, &files)?;
@@ -15,14 +19,14 @@ pub fn run(context: &Context, check: &Check, rerun: &str) -> Result<i32> {
     removed(context, &files, &mut findings);
     let diagnostics: Vec<_> = findings
         .into_iter()
-        .map(|(path, message)| Diagnostic {
+        .map(|finding| Diagnostic {
             rule: check.id.clone(),
-            path,
-            level: "error".into(),
+            path: finding.path,
+            level: Level::Error,
             actual: None,
             limit: None,
             skill: check.skill.clone(),
-            message,
+            message: finding.message,
             line: None,
             symbol: None,
             rerun: rerun.into(),
@@ -52,16 +56,19 @@ fn placement(context: &Context, tools: &[String], findings: &mut Findings) -> Re
             }
             (true, true) => continue,
         };
-        findings.push((path.clone(), message));
+        findings.push(Finding {
+            path: path.clone(),
+            message,
+        });
     }
     for pattern in &settings.entries {
         let entry = globs(std::slice::from_ref(pattern))?;
         let stale = !tools.iter().any(|path| entry.is_match(path));
         if stale {
-            findings.push((
-                module("tools"),
-                format!("tools.entries {pattern} matches no tool"),
-            ));
+            findings.push(Finding {
+                path: module("tools"),
+                message: format!("tools.entries {pattern} matches no tool"),
+            });
         }
     }
     Ok(())
@@ -70,20 +77,20 @@ fn catalog(context: &Context, findings: &mut Findings) {
     for (name, command) in &context.config.commands {
         let undescribed = command.purpose.trim().is_empty();
         if undescribed {
-            findings.push((
-                module("commands"),
-                format!("commands.{name}: purpose is required"),
-            ));
+            findings.push(Finding {
+                path: module("commands"),
+                message: format!("commands.{name}: purpose is required"),
+            });
         }
         let references = command.argv.iter().filter(|argument| path_like(argument));
         for reference in references.chain(&command.doc) {
             let target = reference.split('#').next().unwrap_or_default();
             let missing = !context.root.join(target).exists();
             if missing {
-                findings.push((
-                    module("commands"),
-                    format!("commands.{name}: {target} does not exist"),
-                ));
+                findings.push(Finding {
+                    path: module("commands"),
+                    message: format!("commands.{name}: {target} does not exist"),
+                });
             }
         }
     }
@@ -131,15 +138,18 @@ fn removed(context: &Context, files: &[String], findings: &mut Findings) {
         findings.extend(
             record_problems(context, name, item)
                 .into_iter()
-                .map(|message| (registry.clone(), message)),
+                .map(|message| Finding {
+                    path: registry.clone(),
+                    message,
+                }),
         );
         for (file, text) in &readers {
             let referenced = text.contains(&item.path);
             if referenced {
-                findings.push((
-                    (*file).clone(),
-                    format!("references removed tool {}", item.path),
-                ));
+                findings.push(Finding {
+                    path: (*file).clone(),
+                    message: format!("references removed tool {}", item.path),
+                });
             }
         }
     }

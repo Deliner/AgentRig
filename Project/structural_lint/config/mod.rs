@@ -1,4 +1,5 @@
 use super::catalog as rules;
+pub use crate::shared::diagnostics::lint::Level;
 use crate::shared::{diagnostics::skills, paths::patterns::globs};
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
@@ -51,20 +52,6 @@ pub struct Override {
     pub extensions: Vec<String>,
     pub warning: Option<u64>,
     pub error: Option<u64>,
-}
-#[derive(Clone, Copy, Deserialize, Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Level {
-    Warning,
-    Error,
-}
-impl Level {
-    pub fn name(self) -> &'static str {
-        match self {
-            Self::Warning => "warning",
-            Self::Error => "error",
-        }
-    }
 }
 fn enabled_by_default() -> bool {
     true

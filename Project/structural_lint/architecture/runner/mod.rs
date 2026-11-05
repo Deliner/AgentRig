@@ -3,7 +3,7 @@ mod disallowed;
 mod scope;
 
 use super::{Contracts, Issue, Loaded, PYTHON_SEED, RUST_SEED, Settings, source::References};
-use crate::shared::diagnostics::lint::Diagnostic;
+use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
     config::Rule,
@@ -134,13 +134,12 @@ fn unused(owner: &Path, language: &str, name: &str) -> Issue {
 fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
     let level = rule
         .level
-        .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?
-        .name();
-    let blocking = level == "error";
+        .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?;
+    let blocking = level == Level::Error;
     Ok(Diagnostic {
         rule: rule.id.clone(),
         path: issue.path.to_string_lossy().into_owned(),
-        level: level.into(),
+        level,
         actual: None,
         limit: None,
         skill: if blocking {

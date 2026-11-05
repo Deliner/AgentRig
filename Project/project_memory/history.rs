@@ -36,7 +36,7 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
     }
     let rows = committed_table(repository, revision, &index)?;
     let memory = context.path(&context.config.paths.memory)?;
-    let current = format::table(&memory.join("Decisions.md"), 'D')?;
+    let current = format::table(&memory.join("Decisions.md"), format::Catalog::Decisions)?;
     for old in rows {
         let row = current
             .iter()
@@ -65,7 +65,7 @@ fn committed_table(
     format::parse_table(
         &committed(repository, revision, path)?,
         Path::new(path),
-        'D',
+        format::Catalog::Decisions,
     )
 }
 

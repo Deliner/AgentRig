@@ -13,30 +13,62 @@ pub const STATE_SECTIONS: &[&str] = &[
     "Blockers",
     "Next action",
 ];
-pub fn columns(prefix: char) -> Result<&'static [&'static str]> {
-    Ok(match prefix {
-        'P' => &["ID", "Status", "Depends on", "Feature", "User capability"],
-        'B' => &["ID", "Idea", "Expected benefit"],
-        'D' => &["ID", "Decision", "Applies in"],
-        'I' => &["ID", "Invariant", "Enforced by"],
-        _ => anyhow::bail!("unknown memory index kind {prefix}"),
-    })
+#[derive(Clone, Copy)]
+pub enum Catalog {
+    Plan,
+    Backlog,
+    Decisions,
+    Invariants,
 }
-
-pub fn detail_sections(directory: &str) -> Result<(&'static [&'static str], Option<&'static str>)> {
-    Ok(match directory {
-        "Plan" => (
-            &["Feature", "User capability", "Acceptance"],
-            Some("Delivery"),
-        ),
-        "Backlog" => (&["Context", "Proposal", "Expected benefit"], None),
-        "Decisions" => (
-            &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
-            None,
-        ),
-        "Invariants" => (&["Predicate", "Oracle"], None),
-        _ => anyhow::bail!("unknown memory directory {directory}"),
-    })
+impl Catalog {
+    pub fn directory(self) -> &'static str {
+        match self {
+            Self::Plan => "Plan",
+            Self::Backlog => "Backlog",
+            Self::Decisions => "Decisions",
+            Self::Invariants => "Invariants",
+        }
+    }
+    fn prefix(self) -> char {
+        match self {
+            Self::Plan => 'P',
+            Self::Backlog => 'B',
+            Self::Decisions => 'D',
+            Self::Invariants => 'I',
+        }
+    }
+    pub fn columns(self) -> &'static [&'static str] {
+        match self {
+            Self::Plan => &["ID", "Status", "Depends on", "Feature", "User capability"],
+            Self::Backlog => &["ID", "Idea", "Expected benefit"],
+            Self::Decisions => &["ID", "Decision", "Applies in"],
+            Self::Invariants => &["ID", "Invariant", "Enforced by"],
+        }
+    }
+    pub fn detail_sections(self) -> Sections {
+        match self {
+            Self::Plan => Sections {
+                required: &["Feature", "User capability", "Acceptance"],
+                optional: Some("Delivery"),
+            },
+            Self::Backlog => Sections {
+                required: &["Context", "Proposal", "Expected benefit"],
+                optional: None,
+            },
+            Self::Decisions => Sections {
+                required: &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
+                optional: None,
+            },
+            Self::Invariants => Sections {
+                required: &["Predicate", "Oracle"],
+                optional: None,
+            },
+        }
+    }
+}
+pub struct Sections {
+    pub required: &'static [&'static str],
+    pub optional: Option<&'static str>,
 }
 
 pub struct Row {
@@ -44,7 +76,11 @@ pub struct Row {
     pub detail: String,
     pub cells: Vec<String>,
 }
-pub fn link(cell: &str) -> Result<(String, String)> {
+pub struct Link {
+    pub name: String,
+    pub path: String,
+}
+pub fn link(cell: &str) -> Result<Link> {
     let (name, path) = cell
         .trim()
         .strip_prefix('[')
@@ -53,7 +89,10 @@ pub fn link(cell: &str) -> Result<(String, String)> {
     let path = path
         .strip_suffix(')')
         .ok_or_else(|| anyhow::anyhow!("incomplete link: {cell}"))?;
-    Ok((name.into(), path.into()))
+    Ok(Link {
+        name: name.into(),
+        path: path.into(),
+    })
 }
 pub fn links(cell: &str) -> Vec<String> {
     let mut remaining = cell;
@@ -67,12 +106,12 @@ pub fn links(cell: &str) -> Vec<String> {
     }
     output
 }
-pub fn table(path: &Path, prefix: char) -> Result<Vec<Row>> {
+pub fn table(path: &Path, catalog: Catalog) -> Result<Vec<Row>> {
     let source = fs::read_to_string(path)?;
-    parse_table(&source, path, prefix)
+    parse_table(&source, path, catalog)
 }
-pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> {
-    let expected = columns(prefix)?;
+pub fn parse_table(source: &str, path: &Path, catalog: Catalog) -> Result<Vec<Row>> {
+    let expected = catalog.columns();
     let columns = expected.len();
     let mut ids = HashSet::new();
     let mut rows = Vec::new();
@@ -98,7 +137,7 @@ pub fn parse_table(source: &str, path: &Path, prefix: char) -> Result<Vec<Row>> 
         if separator {
             continue;
         }
-        rows.push(parse_row(cells, path, prefix, &mut ids)?);
+        rows.push(parse_row(cells, path, catalog, &mut ids)?);
     }
     ensure!(header, "{}: missing table header", path.display());
     Ok(rows)
@@ -120,12 +159,15 @@ fn table_cells(line: &str, path: &Path, columns: usize) -> Result<Vec<String>> {
 fn parse_row(
     cells: Vec<String>,
     path: &Path,
-    prefix: char,
+    catalog: Catalog,
     ids: &mut HashSet<String>,
 ) -> Result<Row> {
-    let (id, detail) = link(&cells[0])?;
+    let Link {
+        name: id,
+        path: detail,
+    } = link(&cells[0])?;
     ensure!(
-        id.starts_with(prefix)
+        id.starts_with(catalog.prefix())
             && id.len() > 1
             && id[1..].chars().all(|c| c.is_ascii_digit())
             && ids.insert(id.clone()),

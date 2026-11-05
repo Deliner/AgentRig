@@ -1,10 +1,24 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
+#[derive(Clone, Copy, Deserialize, Eq, PartialEq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Level {
+    Warning,
+    Error,
+}
+impl Level {
+    pub fn name(self) -> &'static str {
+        match self {
+            Self::Warning => "warning",
+            Self::Error => "error",
+        }
+    }
+}
 #[derive(Serialize)]
 pub struct Diagnostic {
     pub(crate) rule: String,
     pub(crate) path: String,
-    pub(crate) level: String,
+    pub(crate) level: Level,
     pub(crate) actual: Option<u64>,
     pub(crate) limit: Option<u64>,
     pub(crate) skill: String,
@@ -37,7 +51,7 @@ fn grouped(items: &[Diagnostic]) -> Vec<String> {
 fn same_cause(left: &Diagnostic, right: &Diagnostic) -> bool {
     let cause = |item: &Diagnostic| {
         (
-            item.level.clone(),
+            item.level,
             item.rule.clone(),
             item.limit,
             item.skill.clone(),
@@ -59,7 +73,7 @@ fn render(group: &[&Diagnostic]) -> String {
         )
     };
     let mut text = super::Guidance {
-        level: &first.level,
+        level: first.level.name(),
         id: &first.rule,
         location: &location,
         message: &message,
@@ -83,13 +97,13 @@ fn format_location(item: &Diagnostic) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{Diagnostic, grouped};
+    use super::{Diagnostic, Level, grouped};
 
     fn finding(path: &str, actual: u64, limit: u64) -> Diagnostic {
         Diagnostic {
             rule: "size".into(),
             path: path.into(),
-            level: "warning".into(),
+            level: Level::Warning,
             actual: Some(actual),
             limit: Some(limit),
             skill: "skill.md".into(),

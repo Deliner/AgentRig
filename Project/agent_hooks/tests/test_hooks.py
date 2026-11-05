@@ -120,6 +120,20 @@ def test_shell_guard_rejects_bypass(worker: Path, tmp_path: Path, command: str) 
     assert json.loads(result.stdout)["hookSpecificOutput"]["permissionDecision"] == "deny"
 
 
+def test_shell_guard_refuses_unreadable_check_entry(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init").returncode == 0
+    event = {
+        "hook_event_name": "PreToolUse",
+        "tool_name": "Bash",
+        "tool_input": {"command": "just scratch -- \"git commit -q -m $'it\\'s'\""},
+    }
+    result = invoke(worker, tmp_path, "hook", input=json.dumps(event))
+    output = json.loads(result.stdout)["hookSpecificOutput"]
+    assert output["permissionDecision"] == "deny"
+    assert "git commit" in output["permissionDecisionReason"]
+    assert "missing closing quote" in output["permissionDecisionReason"]
+
+
 def test_nested_cwd_and_symlinks(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init", "--memory", "notes").returncode == 0
     event = {

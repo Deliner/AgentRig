@@ -120,9 +120,10 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     let validated = guard::arguments(guard::command(event))
-        .and_then(|args| guard::hook_commands(configured, args));
-    let argv = match validated {
-        Ok(args) => args,
+        .and_then(|args| guard::hook_commands(configured, args))
+        .and_then(|args| guard::enters_check(&args).map(|check| (args, check)));
+    let (argv, check) = match validated {
+        Ok(validated) => validated,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
     };
     let catalog = match argv.get(1).map(String::as_str) {
@@ -145,7 +146,6 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
             "opaque shell write",
         ));
     }
-    let check = guard::enters_check(&argv);
     if check {
         found.extend(requirements::events(
             configured,

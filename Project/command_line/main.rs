@@ -25,18 +25,14 @@ fn run() -> Result<i32> {
         return result;
     }
     let root = project_root(&mut args, &command)?;
-    let workflow_command = command_line::owns(&command)
-        || matches!(command.as_str(), "guard-commit" | "guard-reference");
-    if workflow_command {
-        return command_line::run(&root, &command, &args);
+    if let Some(workflow) = command_line::Command::parse(&command) {
+        return command_line::run(&root, workflow, &args);
     }
     match command.as_str() {
         "hook" => hook(&root),
         "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => structural_lint::cli::discovery(&command, &args),
-        _ => bail!(
-            "usage: agentrig hook|lint|lint-config-check|lint-rules|lint-rule|guard-commit|guard-reference [--root PATH]"
-        ),
+        _ => bail!("unknown command {command:?}; run agentrig --help for the command table"),
     }
 }
 fn immediate(command: &str) -> Option<Result<i32>> {
