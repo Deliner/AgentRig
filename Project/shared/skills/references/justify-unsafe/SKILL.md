@@ -8,10 +8,11 @@ description: Justify every unsafe site (block, function, impl, trait, static mut
 Every unsafe site must carry a DECISION: or INVARIANT: reference on the line
 directly above it: an unsafe block, an unsafe function, an unsafe impl or unsafe
 trait, a static mut item, and an unsafe keyword inside a macro_rules! body or a
-macro invocation's arguments. Attribute lines between the reference and an item
-do not break the adjacency; inside a macro body the reference sits on the line
-directly above the unsafe keyword. The reference points to the recorded reason
-the unsafe is sound; without one the hazard is unexplained.
+macro invocation's arguments other than one opening a `#[unsafe(..)]` attribute.
+Attribute lines between the reference and an item do not break the adjacency;
+inside a macro body the reference sits on the line directly above the unsafe
+keyword. The reference points to the recorded reason the unsafe is sound;
+without one the hazard is unexplained.
 
 1. Read the unsafe construct and establish the exact obligation it takes on: the
    FFI or pointer contract it must satisfy, the arguments it builds, the return
@@ -35,9 +36,10 @@ by widening the rule.
 
 The measurement flags every Rust unsafe site, an unsafe block, unsafe function,
 unsafe impl, unsafe trait or static mut item and every unsafe keyword inside a
-macro_rules! body or a macro invocation's arguments, without a DECISION: or
-INVARIANT: reference comment on the line directly above it; attribute lines
-directly above an item keep the adjacency, so the reference may stand above
-`#[cfg(..)]`. Rerun the reported lint check and relevant behavior checks. Do not weaken the rule or
-its selectors merely to pass. Apply complexity-discipline; stop when the finding
-is resolved and the unsafe is either removed or justified.
+macro_rules! body or a macro invocation's arguments except one opening a
+`#[unsafe(..)]` attribute, without a DECISION: or INVARIANT: reference comment
+on the line directly above it; attribute lines directly above an item keep the
+adjacency, so the reference may stand above `#[cfg(..)]`. Rerun the reported
+lint check and relevant behavior checks. Do not weaken the rule or its selectors
+merely to pass. Apply complexity-discipline; stop when the finding is resolved
+and the unsafe is either removed or justified.
