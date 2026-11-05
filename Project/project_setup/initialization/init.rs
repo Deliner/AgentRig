@@ -12,10 +12,10 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
         return wizard::run(root);
     }
     let options = template::options(root, args)?;
-    let config = template::config(&options);
-    let files = bundle(&config)?;
-    prepare(root, &config, &files)?;
-    install(root, &config, &files)?;
+    let scaffold = template::scaffold(root, &options)?;
+    let files = bundle(&scaffold)?;
+    prepare(root, &scaffold.config, &files)?;
+    install(root, &scaffold.config, &files)?;
     console::stdout(format!(
         "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
         options["language"],
