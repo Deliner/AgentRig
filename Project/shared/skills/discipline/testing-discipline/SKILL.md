@@ -32,6 +32,12 @@ this way it survives refactoring and never forces internals to leak.
    area, or another test's side effects or order. A test that turns on anything
    but the code under test is a defect; fix the dependence rather than disabling
    the test.
+8. Keep test seams out of production code. A hook, override, environment
+   switch or `cfg!(test)` branch that exists only so a test can steer the code
+   is a defect: pass the dependency (clock, filesystem root, command runner)
+   through the public surface, so production and tests take the same path. A
+   seam at a security, linker or test-runtime boundary is the exception and
+   carries a `// DECISION:` reference naming that boundary.
 
 Stop when each changed behavior is pinned through its public surface at its
 owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
@@ -47,6 +53,9 @@ and test helpers. Public surface and back doors (2, 4) cannot: no symbol
 visibility or reverse-reference analysis exists. Determinism (7) cannot either: a
 call to a clock, RNG or the network is not by itself a nondeterminism bug, and
 order dependence is not syntactic, so a blanket ban would be false-positive-prone.
+Seams (8) cannot: a parameter or `cfg` branch does not say whether a test is
+its only caller, and the security, linker and test-runtime exceptions share
+that syntax.
 The one decidable part — a test disabled without a justifying reference — is
 enforced by the `disabled-test` rule; the rest apply in review, where a finding
 would be repaired here.

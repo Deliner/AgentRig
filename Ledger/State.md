@@ -2,55 +2,42 @@
 
 ## Focus
 
-**Программа реализации находок исследовательской дуги (семь раундов) через догфудинг.**
-Пользователь поручил (/goal, 2026-11-04) реализовать все находки последовательно и для каждой
-убедиться, что она работает. Карточки B052–B064 (B064 — идея, не выбрана), дополнение B049 (AC2);
-выбраны в Plan **P055–P068**. P055–P067 слиты (последний merge `0e9fb8b`).
-**P068** (B063): VAC-A `4c05c39` (AC1, AC2 — навыки N1/N2, фраза в AGENTS.md, advisory-маршрут);
-VAC-B (AC3, AC4: решение D110 с вердиктами дуги, строки N1/N2 в Norms.md, маркеры D110 в
-`assets.rs`/`template.rs`, ротация P068/B063 в Archive) завершается этим коммитом; далее пин D051
-и `just feature-merge` — программа P055–P068 завершена; затем итоговый отчёт пользователю.
+**Довершение программы находок дуги (P055–P068, слита `057b87f`): находки 36 и 39.**
+Хук цели (/goal 2026-11-04) указал: fieldgap (36) и `test-seam` v2 (39) не имеют текста в навыках,
+хотя D110 числит «exhaustive destructuring» фасетом N1 и объявляет `test-seam` v2 нормой. Этот VAC
+записывает оба как текст существующих навыков (форма в `type-driven-discipline`, пункт 8 в
+`testing-discipline`, фразы «почему не правило» в их Enforcement) и ссылку владельца из строки D110;
+без нового навыка, правила, решения и оракула. Далее пин D051, `just feature-merge`, отчёт.
 
 ## Workspace
 
-Ветка `feature/norms-verdict` (база master `0e9fb8b`), наблюдаемый HEAD `4c05c39` (VAC-A);
-stable.txt → `a8fbebf`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
-(`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; профиль clippy гейта —
-`tooling/worker/run run clippy`; догфуд — `tooling/worker/run run candidate -- lint`; pytest
-одного файла — `tooling/worker/run run test -- <файл>`; проба хука —
-`tooling/worker/run hook --root <корень>` с JSON PreToolUse на stdin.
+Ветка `feature/norm-facets` (база master `057b87f`), наблюдаемый HEAD `057b87f` (VAC не закоммичен);
+stable.txt → `1aae05f`. macOS: коммиты/cargo — через `just scratch` с восстановленным PATH
+(`/Users/admin/.cargo/bin`), манифест — `Project/Cargo.toml`; догфуд — `tooling/worker/run run
+candidate -- lint`; поставка — `candidate -- init --root <каталог> …`; pytest одного файла —
+`tooling/worker/run run test -- <файл>`.
 
 ## Progress
 
-- VAC-A (`4c05c39`, AC1/AC2): группа `Project/shared/skills/discipline/` (туда перенесён
-  `testing-discipline`; плоские симлинки `testing-discipline`, `type-driven-discipline`,
-  `fail-closed-enforcement` в корне навыков сохраняют пути `.agents/skills/<имя>/SKILL.md`;
-  лимит `directory-size` корня 15 сохранён); `assets.rs`: две записи SKILLS + новый путь
-  testing-discipline; `instructions()` и AGENTS.md: «Apply type-driven-discipline when a value
-  carries an invariant, a mode or a lifecycle»; маршрут без `block` на `Project/agent_hooks/**`,
-  `Project/change_delivery/**` → `fail-closed-enforcement/SKILL.md`; в `template.rs` такой же
-  маршрут на `{source}/**` (I020), цикл маршрутов памяти извлечён в `memory_routes`.
-- VAC-B (этот коммит, AC3/AC4): `Ledger/Decisions/110.md` + строка индекса (card →
-  Archive/Backlog/063, оба навыка, AGENTS.md, `assets.rs` и `template.rs` с `// DECISION: D110`,
-  `hooks.yaml`; related D093/D054/D059/D035/D097); `Ledger/Norms.md` — строки N1 и N2 (D110,
-  навыки, I021). Ротация: Plan/068 → Archive/Plan/068 (Delivery с приёмкой AC1–AC4),
-  Backlog/063 → Archive/Backlog/063 (без изменений), строки индексов Archive/Plan.md и
-  Archive/Backlog.md, строки P068/B063 удалены из Plan.md/Backlog.md (заметка в Plan.md
-  добавлена; Plan пуст — допустимо).
-- Не сделано: пин D051 (меняется `Project`), `just feature-merge`.
+- Правки (в рабочем дереве): `discipline/type-driven-discipline/SKILL.md` — форма «операция с
+  контрактом полноты деструктурирует запись без `..`» и фраза Enforcement (контракт полноты не
+  синтаксичен — норма); `discipline/testing-discipline/SKILL.md` — пункт 8 «тестовые швы вне
+  production-кода; исключение — граница безопасности, линкера или тестовой среды со ссылкой
+  `// DECISION:`» и фраза Enforcement; `Ledger/Decisions.md` — в Applies-in D110 добавлена ссылка
+  `testing skill` (владелец вердикта `test-seam` v2; текст D110 не менялся, D020).
+- Догфуд по находкам: `cfg!(test)` в Project нет; `AGENTRIG_TEST_GIT_CONTEXT_ROOT` читается внутри
+  `#[cfg(test)] mod tests` (`shared/vcs/git.rs:197`, перезапуск теста подпроцессом) — не шов в
+  production; `..`-паттерны только на вариантах enum; рукописных операций полноты (PartialEq, Hash,
+  Serialize, merge записи) нет — нарушений норм 36/39 в Project не найдено.
+- Не сделано: коммит VAC через гейт, пин D051, `just feature-merge`.
 
 ## Verification
 
-- 2026-11-05, VAC-A: гейт `4c05c39` прошёл (128 rust-test, 225 pytest). На том же дереве: fmt,
-  clippy (и `--all-targets`) чисто, догфуд 0, memory-check 0, config valid, `cargo test --lib`
-  128 passed, pytest `test_delivery.py` (I020) + `project_setup/tests` + `agent_hooks` — 58 passed;
-  проба хука: Edit `Project/agent_hooks/guard.rs` → Guidance `fail-closed-enforcement/SKILL.md`
-  (hooks.routes[8]) рядом с Required refactor-large-directory; Edit `project_setup/template.rs` →
-  без упоминания навыка.
-- 2026-11-05, рабочее дерево VAC-B: `candidate -- memory-check` exit 0 (D110 связан с маркерами
-  и ссылками, ротация корректна); догфуд `candidate -- lint` — 0 находок; `cargo fmt --check`
-  чисто; `run clippy` exit 0; `config-check` — конфигурация валидна. Гейт коммита VAC-B —
-  следующий шаг.
+- 2026-11-05, рабочее дерево: `just config-check` — валидна; `candidate -- lint` — 0 находок,
+  exit 0; `candidate -- memory-check` — exit 0; pytest `test_delivery.py` (I020) — 4 passed;
+  поставка: `candidate -- init` в каталог-пробу → `guides/type-driven-discipline/SKILL.md` строки
+  44, 71–72 и `guides/testing-discipline/SKILL.md` строки 35, 56 содержат новый текст, AGENTS.md
+  поставки называет оба навыка. Гейт коммита ещё не запускался.
 
 ## Blockers
 
@@ -58,7 +45,7 @@ stable.txt → `a8fbebf`. macOS: коммиты/cargo — через `just scrat
 
 ## Next action
 
-Закоммитить VAC-B через гейт («P068 VAC-B: record D110 verdicts and norms N1/N2 (B063 AC3,
-AC4)»); затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` + bootstrap,
-отдельный коммит) и `just feature-merge` (ветку сохранить); затем итоговый отчёт пользователю
-по находкам дуги. Свободные ID: D111+, I022+, P069+, B065+.
+Закоммитить VAC через гейт («Record the fieldgap and test-seam norms in the discipline skills
+(findings 36, 39)»); затем пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt` +
+bootstrap, отдельный коммит) и `just feature-merge` (ветку сохранить); затем отчёт пользователю.
+Свободные ID: D111+, I022+, P069+, B065+.

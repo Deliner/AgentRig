@@ -41,6 +41,10 @@ value is correct and the type would be ceremony.
   `const _: () = assert!(..)` or a test, not by convention.
 - Snapshot and restore go through `Clone`, `mem::replace` or `mem::take` of the
   whole value, never field-by-field copies that miss the field added later.
+- An operation with a completeness contract over a record (compare, merge,
+  serialize, display every field) destructures it with every field named and
+  no `..`, so a field added later fails to compile at that site instead of
+  silently dropping out of the operation.
 - Filesystem paths are `&Path`/`PathBuf`, not strings; durations are
   `Duration`, not bare integers.
 - A chain of `else if x == LITERAL` over one value, and a `match` on an integer
@@ -63,7 +67,9 @@ value is correct and the type would be ceremony.
 These are review norms. The syntactic engine cannot see a type's invariant,
 a constructor's relation to its fields or the second site of a vocabulary: the
 string-as-enum probe reached 62.5 % precision against the 90 % rule bar, and
-the newtype and typestate forms need the type resolution the engine omits. The
+the newtype and typestate forms need the type resolution the engine omits.
+Whether an operation carries a completeness contract is not syntactic either,
+so exhaustive destructuring stays a review norm. The
 decidable slices already ship as rules: `boolean-parameter`, `tuple-as-record`
 and `global-state`. The rest apply in review, where a finding is repaired here.
 Apply complexity-discipline: a type that closes no named invariant is not
