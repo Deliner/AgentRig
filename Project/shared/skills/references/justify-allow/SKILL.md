@@ -30,14 +30,16 @@ attribute or the manifest key, recording why the suppression is right.
    API with no replacement or a generated construct, record the reason as a
    decision or bind it to an existing invariant, then put its `DECISION: DNNN`
    or `INVARIANT: INNN` reference comment on the line directly above the
-   attribute (`//`) or the manifest key (`#`). A `reason = "..."` inside the
-   attribute is not a reference: the reason belongs in the Ledger, not in the
-   code.
+   attribute (`//`) or the manifest key (`#`).
 5. Rerun the reported lint check and the affected behavior checks.
 
-A comment that is not an exact `DECISION: DNNN` or `INVARIANT: INNN` reference
-does not justify the suppression. Do not silence the finding with a plain
-comment, a `reason` string, or by widening the rule.
+The reference is the only accepted form: an exact `DECISION: DNNN` or
+`INVARIANT: INNN` comment on the line directly above the attribute or the key.
+By project convention the rule does not read a `reason = ".."` argument, even
+when it states a sound reason: record that reason as the decision or invariant
+and reference it. Any other comment does not justify the suppression either. Do
+not silence the finding with a plain comment, a `reason` string, or by widening
+the rule.
 
 ## Rule binding
 
@@ -47,7 +49,7 @@ direct argument after a comma is `allow`, `expect` or `ignore` (a conditional
 `ignore` reports under disabled-test), and every lint set to `"allow"` or
 `{ level = "allow" }` under a `[lints.*]` or `[workspace.lints.*]` table of a
 TOML manifest, without a DECISION: or INVARIANT: reference comment on the line
-directly above the attribute or the key. Rerun the reported lint check and
-relevant behavior checks. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when the suppression is removed or
-justified.
+directly above the attribute or the key. No other comment and no `reason`
+argument is read. Rerun the reported lint check and relevant behavior checks. Do
+not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the suppression is removed or justified.
