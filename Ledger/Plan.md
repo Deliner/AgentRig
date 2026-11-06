@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P070](Plan/070.md) | active | - | [B067](Backlog/067.md): delivery-repairs — поставка D1 без расхождений с контрактом B065 и D103 | Потребитель получает поставку `init`/lint, совпадающую с контрактом B065 и D103. |
 
 Выбрано пользователем 2026-09-11 в порядке B001 → B003 → B006 → B002 → B012 → B013.
 2026-10-27 пользователь удалил из Backlog ненужные карточки, включая B006, B012
