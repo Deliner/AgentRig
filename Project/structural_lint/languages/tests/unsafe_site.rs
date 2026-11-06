@@ -96,3 +96,32 @@ fn rust_skips_unsafe_attribute_openers_in_macro_arguments() {
 ";
     assert_eq!(unsafe_findings("source.rs", source), [7, 9]);
 }
+
+// DECISION: D103
+#[test]
+fn rust_skips_conditional_unsafe_attribute_openers() {
+    let source = "#[cfg_attr(unix, unsafe(no_mangle))]
+pub fn exported() {}
+#[cfg_attr(all(unix, test), inline, unsafe(no_mangle))]
+pub fn conditional() {}
+define_class!(
+    #[cfg_attr(unix, unsafe(super(NSObject)))]
+    struct Delegate;
+    impl Delegate {
+        #[cfg_attr(debug_assertions, unsafe(method(run:)))]
+        fn run(&self) {
+            let value = unsafe { work() };
+        }
+        unsafe fn raw(&self) {}
+    }
+);
+unsafe impl Send for Delegate {}
+unsafe fn bare() {}
+fn call() -> u8 { unsafe { work() } }
+macro_rules! raw { () => { unsafe { work() } }; }
+";
+    assert_eq!(
+        unsafe_findings("source.rs", source),
+        [11, 13, 16, 17, 18, 19]
+    );
+}
