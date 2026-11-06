@@ -6,12 +6,13 @@ description: Replace a boolean parameter with named modes or a split when boolea
 # Name the modes a boolean parameter hides
 
 A boolean parameter either makes one function carry two behaviors or passes a
-true/false fact, and in both cases every call site reads as a bare
-`true`/`false` whose meaning lives elsewhere. Resolve the finding by naming the
-modes or the fact with a type, not by hiding the flag behind an alias.
+true/false fact, and in both cases a call site passes only a boolean, a literal
+or a computed value, whose meaning lives in the declaration. Resolve the finding
+by naming the modes or the fact with a type, not by hiding the flag behind an
+alias.
 
 1. Read the parameter and the two behaviors it selects. Find every call site and
-   which literal each one passes, and whether the flag selects a mode or merely
+   the value each one passes, and whether the flag selects a mode or merely
    records a fact that is used later.
 2. When the two behaviors are largely separate, split into two functions named
    for each outcome and route common work through a shared helper. The caller
@@ -25,16 +26,22 @@ modes or the fact with a type, not by hiding the flag behind an alias.
    that carries it with its related data, and accept that instead of the bool.
 5. Verify the changed function through its call sites and affected behavior checks.
 
-Do not keep the bool and alias it, accept the named type only to branch straight
-back to a bool, or drop a mode to lower the count. The replacement must leave the
-same behavior on every path.
+Do not keep the bool and alias it, drop its type annotation, accept the named
+type only to branch straight back to a bool, or drop a mode to lower the count.
+The replacement must leave the same behavior on every path.
 
 ## Rule binding
 
-The rule flags a parameter typed as the Rust `bool` primitive, or annotated
-`bool` or defaulting to `True` or `False` in Python, whether it selects a mode or
-only passes a fact; `Option<bool>`, `&bool` and non-literal defaults are not
-flagged, so a named type clears the finding. Rerun the reported lint check and
+The rule reads parameter declarations, never call arguments, and flags a mode and
+a fact alike. In Rust it flags each parameter of a function, a trait or extern
+function signature or a closure whose declared type is exactly the primitive
+`bool`; `Option<bool>`, `&bool`, a named type and an untyped closure parameter
+are not flagged. In Python it flags each parameter of a `def` or `lambda` that is
+annotated exactly `bool`, whatever its default, or that defaults to the literal
+`True` or `False`, whatever its annotation; `bool | None`, `Optional[bool]`, a
+quoted `"bool"` and an unannotated parameter with a computed default such as
+`flag=read_flag()` are not flagged. A named type that replaces the `bool` and any
+`True`/`False` default clears the finding. Rerun the reported lint check and
 relevant behavior checks. Do not remove the rule or weaken its selectors merely
 to pass. Apply complexity-discipline; stop when the finding is resolved and
 behavior is preserved.

@@ -2,47 +2,38 @@
 
 ## Focus
 
-**P069 / [B065](Archive/Backlog/065.md) — `shipped-contract`: поставка `init` и диагностика lint соответствуют
-записанным решениям (находки раунда 8).** Авторизация — /goal пользователя 2026-11-05 (бриф D1, закрытый список
-AC1–AC7). AC1–AC7 выполнены; текущий — финальный VAC (Delivery в [Archive/Plan/069.md](Archive/Plan/069.md), ротация
-P069/B065 в Archive), затем пин D051 и `just feature-merge`.
+**P070 / [B067](Archive/Backlog/067.md) — `delivery-repairs`: поставка D1 без расхождений с контрактом B065 и D103
+(ремонты по критике D1).** Авторизация — /goal пользователя 2026-11-05 (бриф D3, закрытый список AC1–AC5). AC1–AC5
+выполнены, P070 и B067 в Archive; текущий шаг — пин D051 и слияние ветки.
 
 ## Workspace
 
-Branch: `feature/shipped-contract`
-Revision: `dacbeb03006466682f14d9776e15490d010bd5aa`
+Branch: `feature/delivery-repairs`
+Revision: `a1743fcb3c68f6bb8421e78a7463afd38b30fc3d`
 
-База — master `72a7e3d`; VAC 1 — `ea5ba17`, VAC 2 — `3765724`, VAC 3 — `5f6fda8`, VAC 4 — `bf23c83`, VAC 5 —
-`c4f7d2f`, VAC 6 — `57ef5c2`, VAC 7 — `dacbeb0`; финальный VAC в рабочем дереве; stable.txt → `1fad15d`. macOS: в
-PATH `just write`/`just run` нет cargo — коммиты и тесты с кандидатом через
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; поставка — `just candidate -- init --root <каталог>`.
+База — master `44613fd`. VAC 1 — `da1a126`, VAC 2 — `52b39d4`, VAC 3 — `3b0d874`, VAC 4 — `8029148`, VAC 5 —
+`29fdc07`, финальный VAC — `a1743fc`; пин D051 в рабочем дереве: `tooling/distribution/stable.txt` = `a1743fc`,
+установлен `just bootstrap`.
+macOS: в PATH `just write`/`just run` нет cargo — коммиты и проверки с cargo через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; поставка — `just candidate <команда> --root <каталог>`.
 
 ## Progress
 
-- VAC 1–7 закоммичены; по каждому AC — результат и свидетельство в Delivery
-  [Archive/Plan/069.md](Archive/Plan/069.md): AC4, AC5 — `3765724`; AC6 — `5f6fda8`; AC1 — `bf23c83`; AC3 —
-  `c4f7d2f`; AC2 — `57ef5c2`; AC7 — `dacbeb0`.
-- Финальный VAC (рабочее дерево): Delivery заполнен; строка и карточка P069 перенесены в `Archive/Plan.md` и
-  `Archive/Plan/069.md`, строка и карточка B065 — в `Archive/Backlog.md` и `Archive/Backlog/065.md`; живые строки
-  удалены, Plan пуст.
-- Не начато: пин D051 (stable.txt → голова ветки после финального VAC, `just bootstrap`), `just feature-merge`.
+- AC1–AC5 доставлены: VAC 1 `da1a126` (выбор, AC5), VAC 2 `52b39d4` (AC4), VAC 3 `3b0d874` (AC3), VAC 4 `8029148`
+  (AC2), VAC 5 `29fdc07` (AC1); свидетельства по AC — Delivery в [Archive/Plan/070.md](Archive/Plan/070.md).
+- Финальный VAC `a1743fc`: Delivery заполнен, P070 → `Archive/Plan.md`/`Archive/Plan/070.md`, B067 без изменений →
+  `Archive/Backlog.md`/`Archive/Backlog/067.md`; живой Plan пуст.
+- Пин D051 (рабочее дерево): stable.txt — полный хеш `a1743fc`, `just bootstrap` установил его.
+- Не начато: `just feature-merge`.
 
 ## Verification
 
-- 2026-11-06, VAC 7 `dacbeb0`: гейт зелёный (rust-test не выбран, test 189 passed, включая `test_delivery.py` —
-  I020); `git grep -F` 19 формулировок AC7 — `72a7e3d` и `57ef5c2` 0 из 19, `dacbeb0` 19 из 19.
-- 2026-11-06, проба AC5 по сценарию карточки (`init --language rust`, удалён `.agentrig/skills/remove-debug/SKILL.md`):
-  `lint --root <r> --config .agentrig/lint.yaml --json` — кандидат называет путь в `message` находки
-  `configuration`, `1fad15d` — нет; проектный `lint --json` пишет ошибку текстом в stderr (без JSON), путь назван.
-- VAC 6 `57ef5c2`: гейт зелёный (rust-test 11, test 189 passed); четыре теста `rust_init` на `1fad15d` — 4 failed.
-- VAC 5 `c4f7d2f`: гейт зелёный (rust-test 104, test 280 passed); фикстура через `init`+`lint --json`: `1fad15d`
-  флагует строки [2, 5, 7, 9], кандидат — [7, 9].
-- VAC 4 `bf23c83`: гейт зелёный со второй попытки (первая — ruff-format; rust-test 103, test 280 passed); три новых
-  теста на `1fad15d` — 3 failed.
-- VAC 3 `5f6fda8`: гейт зелёный (test 27 passed); строка полей есть в README, в `72a7e3d` — нет (`git grep` exit 1).
-- VAC 2 `3765724`: гейт зелёный (rust-test 116, test 372 passed); новые тесты на `1fad15d` — 2 failed; `shared::fs::`
-  гейт не выбрал (нет в карте влияния) — `just run rust-test -- shared::fs` вручную: 2 passed.
-- VAC 1 `ea5ba17`: гейт зелёный.
+- 2026-11-06, гейт VAC 1–5 и финального VAC зелёный (rust-test/test passed: 129/114, не выбран/189, 105/284, 130/216,
+  11/192, не выбран/24); VAC 4 — со второй попытки (первая: `ERROR [architecture]`, бюджет `dependents` каталога
+  `Project/shared/testing` 11 > 10 из-за импорта в `test_lint.py`; импорт заменён локальным помощником, бюджет не
+  менялся).
+- 2026-11-06, пин: `git rev-parse HEAD > tooling/distribution/stable.txt && just bootstrap` — сборка release
+  `a1743fc`, `agentrig 0.3.0`, код 0; stable.txt = `a1743fcb3c68f6bb8421e78a7463afd38b30fc3d`.
 
 ## Blockers
 
@@ -50,6 +41,5 @@ PATH `just write`/`just run` нет cargo — коммиты и тесты с к
 
 ## Next action
 
-Закоммитить финальный VAC через хук; затем пин D051 одной командой (`git rev-parse HEAD` → `stable.txt` и
-`just bootstrap`), коммит пина, `just feature-merge` (ветку сохранить, без push). Свободные ID: D111+, I022+, P070+,
-B066+.
+Закоммитить пин через хук, затем `just feature-merge` (ветку сохранить, без push). После слияния Plan пуст, выбранной
+работы нет. Свободные ID: D112+, I022+, P071+, B068+ (B066 и D111 зарезервированы).

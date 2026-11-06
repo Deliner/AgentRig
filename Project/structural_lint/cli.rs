@@ -24,6 +24,22 @@ pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -
         },
     )
 }
+pub fn failure(
+    root: &Path,
+    path: &Path,
+    error: anyhow::Error,
+    invocation: &[String],
+) -> Result<i32> {
+    let json = invocation.iter().any(|arg| arg == "--json");
+    let text = !json;
+    if text {
+        return Err(error);
+    }
+    let mut finding = super::configuration_error(path, error);
+    finding.rerun = crate::shared::diagnostics::rerun(root, invocation);
+    console::stdout(serde_json::to_string(&[finding])?);
+    Ok(2)
+}
 pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     let command = args
         .first()

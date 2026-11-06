@@ -1,4 +1,4 @@
-use super::{Measurement, justified_line};
+use super::{Measurement, justified_line, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
@@ -16,19 +16,23 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let mut cursor = node.walk();
     for token in node
         .children(&mut cursor)
-        .filter(|child| child.kind() == "unsafe" && !attribute_opener(node, *child))
+        .filter(|child| child.kind() == "unsafe" && !attribute_opener(node, *child, source))
     {
         report(token, "unsafe", source, output);
     }
 }
-fn attribute_opener(tree: Node<'_>, token: Node<'_>) -> bool {
-    let hashed = tree.prev_sibling().is_some_and(|hash| hash.kind() == "#");
-    let first = token.prev_sibling().is_some_and(|open| open.kind() == "[");
+fn attribute_opener(tree: Node<'_>, token: Node<'_>, source: &str) -> bool {
+    let previous = token.prev_sibling().map(|node| node.kind());
+    let head = tree.prev_sibling();
+    let hashed = head.is_some_and(|hash| hash.kind() == "#");
+    let direct = hashed && previous == Some("[");
+    let conditional = head.is_some_and(|name| text(name, source) == "cfg_attr");
+    let argument = conditional && previous == Some(",");
     let arguments = token
         .next_sibling()
         .and_then(|next| next.child(0))
         .is_some_and(|open| open.kind() == "(");
-    hashed && first && arguments
+    (direct || argument) && arguments
 }
 fn site(node: Node<'_>) -> Option<&'static str> {
     match node.kind() {

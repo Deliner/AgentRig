@@ -65,3 +65,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P067](Plan/067.md) | complete | - | [B061](Backlog/061.md): владелец консольного вывода ([D109](../Decisions/109.md)) | Источник любой строки вывода — одно место. |
 | [P068](Plan/068.md) | complete | P066 | [B063](Backlog/063.md): нормы N1/N2 и вердикты дуги ([D110](../Decisions/110.md)) | Две переносимые дисциплины у потребителя; отклонённые кандидаты не предлагаются заново. |
 | [P069](Plan/069.md) | complete | - | [B065](Backlog/065.md): shipped-contract — поставка `init` и диагностика lint соответствуют записанным решениям | Консумер получает `init`-поставку и диагностику lint, совпадающие с решениями Ledger. |
+| [P070](Plan/070.md) | complete | - | [B067](Backlog/067.md): delivery-repairs — поставка D1 без расхождений с контрактом B065 и D103 | Потребитель получает поставку `init`/lint, совпадающую с контрактом B065 и D103. |

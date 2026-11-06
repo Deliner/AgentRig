@@ -88,21 +88,14 @@ fn hook(root: &Path) -> Result<i32> {
 }
 fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let explicit = take_option(args, "--config")?;
-    let config = match explicit {
-        Some(path) => root.join(path),
-        None if root.join(project_config::FILE).is_file() => {
-            let context = project_config::Context::load(root)?;
-            anyhow::ensure!(
-                context.config.capabilities.lint,
-                "capabilities.lint is disabled"
-            );
-            context.path(&context.config.paths.lint)?
-        }
-        None => root.join("lint.yaml"),
+    let resolved = match explicit {
+        Some(path) => Ok(root.join(path)),
+        None if root.join(project_config::FILE).is_file() => project_lint(root),
+        None => Ok(root.join("lint.yaml")),
     };
     let explain = command == "lint-explain";
     if explain {
-        return structural_lint::explain::run(root, &config, args);
+        return structural_lint::explain::run(root, &resolved?, args);
     }
     let config_check = command == "lint-config-check";
     let mode = if config_check {
@@ -110,7 +103,24 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     } else {
         structural_lint::Mode::Lint
     };
-    structural_lint::cli::execute(root, &config, args, mode)
+    match resolved {
+        Ok(config) => structural_lint::cli::execute(root, &config, args, mode),
+        Err(error) => {
+            let invocation: Vec<String> = std::iter::once(command.to_owned())
+                .chain(args.iter().cloned())
+                .collect();
+            let path = root.join(project_config::FILE);
+            structural_lint::cli::failure(root, &path, error, &invocation)
+        }
+    }
+}
+fn project_lint(root: &Path) -> Result<PathBuf> {
+    let context = project_config::Context::load(root)?;
+    anyhow::ensure!(
+        context.config.capabilities.lint,
+        "capabilities.lint is disabled"
+    );
+    context.path(&context.config.paths.lint)
 }
 fn main() {
     let code = match run() {

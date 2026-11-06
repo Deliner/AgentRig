@@ -28,6 +28,17 @@ name = "agentrig-lint"
 path = "structural_lint/standalone.rs"
 """
 
+PARENT_PATHS = """[package]
+name = "x"
+
+[lib]
+path = "../shared/lib.rs"
+
+[[bin]]
+name = "outside"
+path = "../../../outside.rs"
+"""
+
 
 # DECISION: D040
 def test_default_layout_keeps_memory_in_ledger_and_sources_in_project(
@@ -88,6 +99,51 @@ def test_rust_init_keeps_the_agentrig_layout(worker: Path, tmp_path: Path) -> No
         "roots": roots,
         "crates": {"agentrig": "Project/lib.rs"},
         "test": ["cargo", "test", "--manifest-path", "Project/Cargo.toml"],
+    }
+
+
+def test_rust_init_expands_recursive_member_globs(worker: Path, tmp_path: Path) -> None:
+    (tmp_path / "Cargo.toml").write_text('[workspace]\nmembers = ["crates/**"]\n')
+    package(tmp_path / "crates/a/b", "b", "lib.rs")
+    package(tmp_path / "crates/c", "c", "main.rs")
+    result = invoke(worker, tmp_path, "init", "--language", "rust", "--source", "crates")
+    assert result.returncode == 0, result.stderr
+    assert rust_layout(tmp_path) == {
+        "roots": ["crates/a/b/src/lib.rs", "crates/c/src/main.rs"],
+        "crates": {"b": "crates/a/b/src/lib.rs"},
+        "test": ["cargo", "test", "--manifest-path", "Cargo.toml"],
+    }
+
+
+def test_rust_init_accepts_parent_paths_inside_the_root(worker: Path, tmp_path: Path) -> None:
+    root = tmp_path / "repo"
+    (root / "crates/x").mkdir(parents=True)
+    (root / "crates/shared").mkdir()
+    (root / "crates/shared/lib.rs").write_text("")
+    (tmp_path / "outside.rs").write_text("")
+    (root / "Cargo.toml").write_text('[workspace]\nmembers = ["crates/x"]\n')
+    (root / "crates/x/Cargo.toml").write_text(PARENT_PATHS)
+    result = invoke(worker, root, "init", "--language", "rust", "--source", "crates")
+    assert result.returncode == 0, result.stderr
+    assert rust_layout(root) == {
+        "roots": ["crates/shared/lib.rs"],
+        "crates": {"x": "crates/shared/lib.rs"},
+        "test": ["cargo", "test", "--manifest-path", "Cargo.toml"],
+    }
+
+
+def test_rust_init_skips_excluded_workspace_members(worker: Path, tmp_path: Path) -> None:
+    (tmp_path / "Cargo.toml").write_text(
+        '[workspace]\nmembers = ["crates/*"]\nexclude = ["crates/skip"]\n'
+    )
+    package(tmp_path / "crates/a", "a", "lib.rs")
+    package(tmp_path / "crates/skip", "skip", "lib.rs")
+    result = invoke(worker, tmp_path, "init", "--language", "rust", "--source", "crates")
+    assert result.returncode == 0, result.stderr
+    assert rust_layout(tmp_path) == {
+        "roots": ["crates/a/src/lib.rs"],
+        "crates": {"a": "crates/a/src/lib.rs"},
+        "test": ["cargo", "test", "--manifest-path", "Cargo.toml"],
     }
 
 

@@ -76,6 +76,30 @@ def test_missing_skill_is_named_in_the_finding(worker: Path, tmp_path: Path) -> 
     assert str(tmp_path.resolve() / SKILL) in items[0]["message"]
 
 
+def test_project_mode_reports_a_missing_skill_as_a_json_finding(
+    worker: Path, tmp_path: Path
+) -> None:
+    def run(*args: str) -> subprocess.CompletedProcess[str]:
+        argv = [str(worker), args[0], "--root", str(tmp_path), *args[1:]]
+        return subprocess.run(argv, capture_output=True, text=True, check=False)
+
+    assert run("init").returncode == 0
+    skill = tmp_path.resolve() / ".agentrig/skills/remove-debug/SKILL.md"
+    skill.unlink()
+    result = run("lint", "--json")
+    findings = json.loads(result.stdout)
+    assert (result.returncode, [item["rule"] for item in findings]) == (2, ["configuration"])
+    assert str(skill) in findings[0]["message"]
+    rerun = subprocess.run(
+        shlex.split(findings[0]["rerun"]), capture_output=True, text=True, check=False
+    )
+    assert (rerun.returncode, json.loads(rerun.stdout)) == (2, findings)
+    text = run("lint")
+    assert (text.returncode, text.stdout) == (2, "")
+    assert "ERROR [lint]" in text.stderr
+    assert str(skill) in text.stderr
+
+
 def test_overrides_and_exclusions(worker: Path, tmp_path: Path) -> None:
     config = CONFIG.replace(
         'extensions: [".rs", ".py", ".ts"]',
