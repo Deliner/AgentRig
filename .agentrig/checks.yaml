@@ -42,6 +42,8 @@
     targets: ['shared::arguments::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/diagnostics/**', 'Project/shared/syntax/**']
     targets: ['shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/shared/fs/**']
+    targets: ['shared::fs::', 'shared::artifacts::', 'shared::paths::', 'shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
 - id: ruff-format
   kind: command
   skill: .agents/skills/repair/SKILL.md
