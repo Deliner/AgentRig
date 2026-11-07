@@ -36,9 +36,12 @@ removes paths from the inventory; a rule's exclude only hides its findings. Glob
 path component and `**` any depth; the root directory is `.`. The inventory is Git's tracked and non-ignored files.
 
 Rust (`.rs`) and Python (`.py`, `.pyi`) files are parsed once per run with Tree-sitter; a file that does not parse
-fails with its location. Syntax rules reject extensions without a handler. Analysis is syntactic: no type checking,
-macro expansion, decorator alias resolution or generated declarations. Repository policy and installed defaults block
-every language rule. Do not add exceptions to turn the gate green; change policy through a recorded decision.
+fails with its location. Rust uses the fork of tree-sitter-rust 0.24.2 in `shared/syntax/tree-sitter-rust`, which also
+parses `safe` items of `unsafe extern` blocks, macros named after primitive types and lifetimes first after `dyn`;
+other valid Rust the grammar does not know still fails. Syntax rules reject extensions without a handler. Analysis is
+syntactic: no type checking, macro expansion, decorator alias resolution or generated declarations. Repository policy
+and installed defaults block every language rule. Do not add exceptions to turn the gate green; change policy through a
+recorded decision.
 
 `structural_lint/rules` owns each kind's identity, target, metric, parameters, skill and defaults; the catalog,
 validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection functions to

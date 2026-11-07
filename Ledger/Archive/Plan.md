@@ -76,3 +76,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P078](Plan/078.md) | complete | - | [B071](Backlog/071.md): boolean-expression — длинное логическое выражение ([D120](../Decisions/120.md)) | Каждое условие читается с одного взгляда. |
 | [P079](Plan/079.md) | complete | - | [B072](Backlog/072.md): file-fan-out — исходящие связи файла ([D121](../Decisions/121.md)) | Файл-свалка видна по списку `use`. |
 | [P080](Plan/080.md) | complete | - | [B073](Backlog/073.md): embedded-text — большой текст внутри кода ([D122](../Decisions/122.md)) | Данные лежат отдельным файлом, код читается как код. |
+| [P081](Plan/081.md) | complete | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig ([D112](../Decisions/112.md)) | Правильный Rust трёх частых форм разбирается и попадает под правила. |
