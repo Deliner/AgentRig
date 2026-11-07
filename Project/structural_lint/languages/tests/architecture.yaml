@@ -7,6 +7,7 @@ files:
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
+  panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
   recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
   super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
   tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis

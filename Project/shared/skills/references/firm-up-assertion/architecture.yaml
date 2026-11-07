@@ -1,4 +1,4 @@
-purpose: "Promote a release-stripped Rust debug_assert to a real assert, remove it, or justify the debug-only check with a reference"
+purpose: "Promote a release-stripped Rust debug_assert or debug-gated assert to a real assert, remove it, or justify the debug-only check with a reference"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to firm up a debug_assert contract"

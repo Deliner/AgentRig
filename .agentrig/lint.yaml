@@ -43,6 +43,9 @@ rules:
   - .txt
   - .yaml
   - .yml
+  exclude:
+  # DECISION: D116 -- the lint configuration is a flat rule registry read as one file.
+  - .agentrig/lint.yaml
   warning: 300
   error: 500
   warning_skill: .agents/skills/refactor-large-file/SKILL.md
@@ -292,6 +295,20 @@ rules:
   level: error
   warning_skill: .agents/skills/firm-up-assertion/SKILL.md
   error_skill: .agents/skills/firm-up-assertion/SKILL.md
+# DECISION: D115
+- id: unwind-justification
+  kind: unwind-justification
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/justify-unwind/SKILL.md
+  error_skill: .agents/skills/justify-unwind/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

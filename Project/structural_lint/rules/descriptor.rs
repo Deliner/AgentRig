@@ -67,6 +67,7 @@ impl Kind {
             Self::GlobalState => &GLOBALSTATE,
             Self::SuperSuperReach => &SUPERSUPERREACH,
             Self::RecursiveDeletion => &RECURSIVEDELETION,
+            Self::UnwindJustification => &UNWINDJUSTIFICATION,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -281,25 +282,27 @@ const DEBUGARTIFACT: Descriptor = Descriptor {
     },
 };
 // DECISION: D084
+// DECISION: D115
 const DEBUGASSERTION: Descriptor = Descriptor {
     default_id: "debug-assertion",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust debug_assert!, debug_assert_eq! or debug_assert_ne! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust debug_assert!, debug_assert_eq! or debug_assert_ne! macro, and every assert!, assert_eq! or assert_ne! macro under a cfg(debug_assertions) attribute or in the then-branch of if cfg!(debug_assertions), outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "firm-up-assertion",
     parameters: Parameters::Level {
-        violation: "a debug_assert is stripped from release builds, so the contract it states goes unchecked where it matters; promote it to assert! to hold in every build, remove it if redundant, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the debug-only check",
+        violation: "a debug_assert, or an assert compiled only with debug_assertions, is stripped from release builds, so the contract it states goes unchecked where it matters; promote it to an unconditional assert! to hold in every build, remove it if redundant, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the debug-only check",
     },
 };
 // DECISION: D082
+// DECISION: D115
 const PANICPATH: Descriptor = Descriptor {
     default_id: "panic-path",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust .unwrap() or .expect(...) call and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust .unwrap(), .expect(...), .unwrap_err() or .expect_err(...) call, resume_unwind call by path or bare name, and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-panic",
     parameters: Parameters::Level {
-        violation: "an unwrap, expect or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the panic",
+        violation: "an unwrap, expect, unwrap_err, expect_err, resume_unwind or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the panic",
     },
 };
 // DECISION: D085
@@ -403,5 +406,16 @@ const RECURSIVEDELETION: Descriptor = Descriptor {
     skill: "contain-the-deletion",
     parameters: Parameters::Level {
         violation: "a recursive directory deletion is the most destructive file-system operation, and a wrong argument erases a working tree; delete through an owner that checks the path lies inside its own area, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify the deletion",
+    },
+};
+// DECISION: D115
+const UNWINDJUSTIFICATION: Descriptor = Descriptor {
+    default_id: "unwind-justification",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust call whose function path or bare name ends in catch_unwind or AssertUnwindSafe, or whose method is catch_unwind, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "justify-unwind",
+    parameters: Parameters::Level {
+        violation: "catching a panic turns a crash into a value and AssertUnwindSafe vouches that state touched by the panic is still consistent, so a bug can continue silently on broken state; let the panic propagate and return errors with Result, or catch only at a boundary that must not unwind, such as FFI or task isolation, and put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
     },
 };

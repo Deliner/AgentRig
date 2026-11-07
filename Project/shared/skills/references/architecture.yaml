@@ -1,4 +1,4 @@
-purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, eager fallback arguments that propagate an error, bare statements that discard a Result or combined value, and paths that reach two module levels up through super::super instead of naming the owner"
+purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, eager fallback arguments that propagate an error, bare statements that discard a Result or combined value, panic catches, and paths that reach two module levels up through super::super instead of naming the owner"
 files: {}
 directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
@@ -7,9 +7,10 @@ directories:
   justify-skip: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
   justify-allow: "Remove a Rust allow, expect, cfg_attr or TOML allow-level suppression and fix the finding, or record why it is suppressed with a reference"
   remove-debug: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
-  handle-panic: "Return or handle a Rust error instead of unwrap, expect or a panic macro, or justify the panic with a reference"
-  firm-up-assertion: "Promote a release-stripped Rust debug_assert to a real assert, remove it, or justify the debug-only check with a reference"
+  handle-panic: "Return or handle a Rust error instead of unwrap, expect, their _err forms, resume_unwind or a panic macro, or justify the panic with a reference"
+  firm-up-assertion: "Promote a release-stripped Rust debug_assert or debug-gated assert to a real assert, remove it, or justify the debug-only check with a reference"
   narrow-import: "Replace a glob import with an explicit import list, or justify the deliberate wildcard with a reference"
   eager-to-lazy: "Move a fallback argument that can fail into the lazy *_else closure, or justify the eager evaluation with a reference"
   handle-discarded: "Handle or propagate a Result or combined value instead of dropping it in a bare statement, or justify the ignored outcome with a reference"
+  justify-unwind: "Let a Rust panic propagate instead of catching it with catch_unwind or AssertUnwindSafe, or justify the catch at a boundary with a reference"
   anchor-at-crate: "Replace a super::super path with a crate:: path or a re-export at the parent module, or justify the intended reach with a reference"

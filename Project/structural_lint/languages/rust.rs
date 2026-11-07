@@ -1,4 +1,4 @@
-use super::test_context::in_test_context;
+use super::test_context::{in_debug_only_context, in_test_context, last_segment};
 use super::{
     Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
     function, justified, nesting, text,
@@ -29,13 +29,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             macro_body(node, source, output);
             super::global_state::macro_items(node, source, output);
         }
-        "call_expression" => {
-            panic_call(node, source, output);
-            eager_fallback(node, source, output);
-            disabled_raii(node, source, output);
-            super::silent_error::collapsed_read_dir(node, source, output);
-            super::recursive_deletion::inspect(node, source, output);
-        }
+        "call_expression" => call(node, source, output),
         "expression_statement" => discarded_result(node, source, output),
         "scoped_identifier" => super::super_reach::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
@@ -47,6 +41,14 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         }
         _ => {}
     }
+}
+fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    panic_call(node, source, output);
+    eager_fallback(node, source, output);
+    disabled_raii(node, source, output);
+    super::silent_error::collapsed_read_dir(node, source, output);
+    super::recursive_deletion::inspect(node, source, output);
+    super::unwind_catch::inspect(node, source, output);
 }
 fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {
@@ -169,12 +171,16 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D084
+// DECISION: D115
 fn assertion_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(path) = node.child_by_field_name("macro") else {
         return;
     };
     let name = text(path, source);
-    let assertion = matches!(name, "debug_assert" | "debug_assert_eq" | "debug_assert_ne");
+    let debug = matches!(name, "debug_assert" | "debug_assert_eq" | "debug_assert_ne");
+    let gated =
+        matches!(name, "assert" | "assert_eq" | "assert_ne") && in_debug_only_context(node, source);
+    let assertion = debug || gated;
     if assertion {
         report_assertion(node, source, name, output);
     }
@@ -192,16 +198,20 @@ fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec
     });
 }
 // DECISION: D082
+// DECISION: D115
 fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
-    let Some(field) = function.child_by_field_name("field") else {
-        return;
+    let name = match function.child_by_field_name("field") {
+        Some(field) if field.kind() == "field_identifier" => text(field, source),
+        Some(_) => return,
+        None => last_segment(function, source),
     };
-    let method = field.kind() == "field_identifier";
-    let name = text(field, source);
-    let panic = method && matches!(name, "unwrap" | "expect");
+    let method = function.kind() == "field_expression";
+    let path = matches!(function.kind(), "identifier" | "scoped_identifier");
+    let panic = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err")
+        || path && name == "resume_unwind";
     if panic {
         report_panic(node, source, name, output);
     }

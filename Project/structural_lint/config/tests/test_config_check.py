@@ -167,6 +167,7 @@ def test_rule_examples_exclude_test_files_only_where_decided(worker: Path) -> No
         "disabled-raii",
         "global-state",
         "super-super-reach",
+        "unwind-justification",
     ]
     shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}
     assert shipped == dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])

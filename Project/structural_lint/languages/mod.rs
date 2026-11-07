@@ -11,6 +11,7 @@ mod test_context;
 #[cfg(test)]
 mod tests;
 mod unsafe_site;
+mod unwind_catch;
 use super::rules::kind::Kind;
 pub use registry::{HANDLERS, handler};
 

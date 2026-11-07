@@ -6,6 +6,7 @@ use std::path::Path;
 mod global_state;
 mod manifest;
 mod markers;
+mod panic_surface;
 mod recursive_deletion;
 mod silent_error;
 mod super_reach;

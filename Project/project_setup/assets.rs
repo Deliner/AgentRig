@@ -108,6 +108,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/firm-up-assertion/SKILL.md"),
     ),
     (
+        "justify-unwind",
+        include_str!("../shared/skills/references/justify-unwind/SKILL.md"),
+    ),
+    (
         "narrow-import",
         include_str!("../shared/skills/references/narrow-import/SKILL.md"),
     ),
