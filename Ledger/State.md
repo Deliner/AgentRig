@@ -10,10 +10,10 @@
 ## Workspace
 
 Branch: `feature/unchecked-deserialize`
-Revision: `fcc4f1ef017b4a83a20410b994875a26efc08a2c` (VAC A; VAC B не закоммичен)
+Revision: `84aba7f28538a11aaa79ecf5a6c349507fd5a5fd` (VAC B; коммит мид-пина следует)
 
-`stash@{0}` применён к VAC B и ещё не удалён; удалить после коммита VAC B. Ветки `feature/clippy-delivery`,
-`feature/init-probe` и прежние сохранены. Установленный рантайм — `5ba1aaf`. macOS: коммиты, слияние и вызовы с cargo
+Stash P089 применён и удалён. Ветки `feature/clippy-delivery`,
+`feature/init-probe` и прежние сохранены. Установленный рантайм — `84aba7f`. macOS: коммиты, слияние и вызовы с cargo
 через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
@@ -23,8 +23,9 @@ Revision: `fcc4f1ef017b4a83a20410b994875a26efc08a2c` (VAC A; VAC B не зако
   (D130) и `unchecked_deserialize` (D131); `type_name` и `plain_name` в `languages/rust/context`; восемь тестов в
   `languages/tests/derived_trait.rs`; вид `Signature::UncheckedDeserialize` с дескриптором в `rules/signature.rs`;
   D131 и строка индекса; ссылки D130 перенесены на `derived_trait.rs`. Вид не входит в `catalog::ALL` и в
-  обработчик Rust: фаза 1 инертна.
-- Осталось: коммит VAC B, мид-пин D051; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр, навык
+  обработчик Rust: фаза 1 инертна. VAC B `84aba7f`, гейт коммита PASS: rust-test 137, test 226.
+- Мид-пин D051: `stable.txt` — `84aba7f`, `just bootstrap` установил его.
+- Осталось: коммит мид-пина; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр, навык
   `check-deserialize`, `assets.rs`, список решённых в `test_config_check.py`, проверка AC1–AC4, ротация, пин,
   `just feature-merge`.
 
@@ -41,5 +42,5 @@ Revision: `fcc4f1ef017b4a83a20410b994875a26efc08a2c` (VAC A; VAC B не зако
 
 ## Next action
 
-Закоммитить VAC B через хук, `git stash drop`, мид-пин D051: HEAD в `stable.txt`, `just bootstrap`, коммит пина.
+Закоммитить мид-пин, затем фаза 2 P089 одним VAC.
 Свободные ID: D134+, I022+, P091+, B083+ (B066 и D111 зарезервированы).
