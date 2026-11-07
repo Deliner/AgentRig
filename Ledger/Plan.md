@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P085](Plan/085.md) | pending | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов | Ошибка команды не становится молча ответом «нет». |
 | [P086](Plan/086.md) | pending | - | [B075](Backlog/075.md): clippy-types — пять линтов clippy с типами в dev-гейте | Гейт ловит классы дефектов, которым нужны типы. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.

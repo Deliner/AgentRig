@@ -11,7 +11,11 @@ went wrong. A Rust `read_dir` chain collapsed by `.flatten()`,
 `.filter_map(Result::ok)`, `.filter_map(|e| e.ok())` or `.map_while(Result::ok)`
 drops every entry that failed to read, so an unreadable directory silently
 reads as empty. A Rust `Err(_)` arm that answers `Ok(false)` or `Ok(true)` in a
-function returning `Result<bool, …>` turns a failed check into a verdict.
+function returning `Result<bool, …>` turns a failed check into a verdict. A
+returned `Ok(status.success())` in such a function, with the status from
+`.status()?` or `.output()?.status` and no `.code()` read, turns a failed
+command into the answer no: `git merge-base --is-ancestor` exits 1 for no and
+128 for an error, and `.success()` is false for both.
 Decide what the handler owes its caller instead of discarding the error.
 
 1. Read the guarded operation and establish which error it catches and what
@@ -24,10 +28,14 @@ Decide what the handler owes its caller instead of discarding the error.
    `for entry in read_dir(..)? { let entry = entry?; … }` or collect the
    entries into `Result<Vec<_>, _>`, and propagate the error from a check with
    `?` or `Err(error) => Err(error.into())` instead of answering a verdict.
+   For a command whose exit code is the answer, compare `status.code()` with
+   the codes the command documents as answers, such as `Some(0 | 1)`, refuse
+   every other code with an error, then answer; or call an owner that already
+   does, such as the repository's VCS owner.
 3. When the error is genuinely safe to ignore, record why as a decision or bind
    it to an existing invariant, then put its `DECISION: DNNN` or
    `INVARIANT: INNN` reference comment on the line directly above the `pass`,
-   the chain or the arm.
+   the chain, the arm or the return.
 4. Keep one reason per handler: distinct swallowing handlers that rely on the
    same recorded reason each carry that reference on their own line above.
 5. Rerun the reported lint check and the affected behavior checks.
@@ -39,11 +47,14 @@ broadened `except`, or by widening the rule.
 ## Rule binding
 
 The measurement flags every Python except clause whose body is only `pass`,
-every Rust `read_dir` call chain collapsed by one of the listed operations, and
+every Rust `read_dir` call chain collapsed by one of the listed operations,
 every Rust `match`/`if let` arm `Err(_)`/`Err(..)` whose body is `Ok(true)`,
 `Ok(false)` or a `return` of one inside a function declared to return
-`Result<bool, …>`, outside Rust test code, without a DECISION: or INVARIANT:
-reference comment on the line directly above. Rerun the reported lint check and
+`Result<bool, …>`, and every `Ok(<status>.success())` such a function returns
+as its tail or with `return` when the status comes from `.status()?`,
+`.output()?.status` or a `let` binding of them and the body reads no `.code()`,
+outside Rust test code, without a DECISION: or INVARIANT: reference comment on
+the line directly above. Rerun the reported lint check and
 relevant behavior checks. Do not weaken the rule or its selectors merely to
 pass. Apply complexity-discipline; stop when the finding is resolved and the
 error is either handled or justified.

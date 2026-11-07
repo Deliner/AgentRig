@@ -52,6 +52,8 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output);
             unsafe_site::inspect(node, source, output);
+            // DECISION: D126
+            silent_error::exit_verdict(node, source, output);
         }
         _ => {}
     }

@@ -1,5 +1,5 @@
 use super::test_context::in_test_context;
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
@@ -221,14 +221,4 @@ fn derives_partial_eq(attribute: Node<'_>, source: &str) -> bool {
                 .into_iter()
                 .any(|token| token.kind() == "identifier" && text(token, source) == "PartialEq")
         })
-}
-fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
-    let mut found = Vec::new();
-    let mut pending = vec![node];
-    while let Some(current) = pending.pop() {
-        let mut cursor = current.walk();
-        pending.extend(current.named_children(&mut cursor));
-        found.push(current);
-    }
-    found
 }

@@ -222,15 +222,16 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
 };
 // DECISION: D069
 // DECISION: D097
+// DECISION: D126
 const SILENTERROR: Descriptor = Descriptor {
     default_id: "silent-error",
     exclude: &[],
     target: "file",
-    metric: "every Python except clause whose body is only pass, every Rust read_dir call chain collapsed by .flatten(), .filter_map(Result::ok), .filter_map(|e| e.ok()) or .map_while(Result::ok), and every Rust match or if-let arm Err(_)/Err(..) whose body is Ok(true), Ok(false) or a return of one inside a function declared to return Result<bool, ...>, outside Rust test code, without a DECISION: or INVARIANT: reference comment on the line directly above the pass, the chain or the arm",
+    metric: "every Python except clause whose body is only pass, every Rust read_dir call chain collapsed by .flatten(), .filter_map(Result::ok), .filter_map(|e| e.ok()) or .map_while(Result::ok), every Rust match or if-let arm Err(_)/Err(..) whose body is Ok(true), Ok(false) or a return of one inside a function declared to return Result<bool, ...>, and every Ok(<status>.success()) returned as the tail or by return from such a function whose status comes from .status()?, .output()?.status or a let binding of them while its body reads no .code(), outside Rust test code, without a DECISION: or INVARIANT: reference comment on the line directly above the pass, the chain, the arm or the return",
     skill: "handle-error",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "an except that only passes, a read_dir chain that drops its failed entries or an Err arm that answers a verdict swallows the error; handle it, propagate or re-raise it, or put a DECISION: or INVARIANT: reference on the line directly above to justify ignoring it",
+        violation: "an except that only passes, a read_dir chain that drops its failed entries, an Err arm that answers a verdict or a returned .success() of a process status that never reads .code() swallows the error; handle it, propagate or re-raise it, compare code() with the codes the command documents as answers and refuse the others or call an owner that does, or put a DECISION: or INVARIANT: reference on the line directly above to justify ignoring it",
     },
 };
 // DECISION: D074

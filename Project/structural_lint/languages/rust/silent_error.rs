@@ -1,5 +1,5 @@
 use super::test_context::{in_test_context, last_segment};
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
@@ -244,4 +244,143 @@ fn bool_result(annotation: Node<'_>, source: &str) -> bool {
         .and_then(|arguments| arguments.named_child(0))
         .is_some_and(|first| first.kind() == "primitive_type" && text(first, source) == "bool");
     result && flag
+}
+// DECISION: D126
+pub(super) fn exit_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let verdict = node.kind() == "function_item"
+        && node
+            .child_by_field_name("return_type")
+            .is_some_and(|annotation| bool_result(annotation, source));
+    let Some(body) = node.child_by_field_name("body").filter(|_| verdict) else {
+        return;
+    };
+    let coded = descendants(body)
+        .into_iter()
+        .any(|item| code_read(item, source));
+    if coded {
+        return;
+    }
+    for exit in returned(body) {
+        let answered = success_answer(exit, body, source);
+        let allowed = justified(exit, source) || in_test_context(exit, source);
+        let flagged = answered && !allowed;
+        if flagged {
+            output.push(Measurement {
+                kind: Kind::SilentError,
+                line: exit.start_position().row + 1,
+                symbol: "success".into(),
+                actual: 1,
+            });
+        }
+    }
+}
+fn code_read(node: Node<'_>, source: &str) -> bool {
+    let named =
+        matches!(node.kind(), "field_identifier" | "identifier") && text(node, source) == "code";
+    named
+        && node
+            .prev_sibling()
+            .is_some_and(|previous| previous.kind() == ".")
+}
+fn returned(body: Node<'_>) -> Vec<Node<'_>> {
+    let mut cursor = body.walk();
+    let tail = body
+        .named_children(&mut cursor)
+        .filter(|child| !child.is_extra())
+        .last();
+    let mut found: Vec<_> = tail
+        .filter(|node| node.kind() == "call_expression")
+        .into_iter()
+        .collect();
+    let mut pending = vec![body];
+    while let Some(current) = pending.pop() {
+        let nested = matches!(current.kind(), "closure_expression" | "function_item");
+        if nested {
+            continue;
+        }
+        let exit = current.kind() == "return_expression";
+        if exit {
+            found.push(current);
+        }
+        let mut cursor = current.walk();
+        pending.extend(current.named_children(&mut cursor));
+    }
+    found
+}
+fn success_answer<'a>(exit: Node<'a>, body: Node<'a>, source: &str) -> bool {
+    let value = match exit.kind() {
+        "return_expression" => exit.named_child(0),
+        _ => Some(exit),
+    };
+    value
+        .and_then(|value| ok_argument(value, source))
+        .and_then(|argument| method_receiver(argument, "success", source))
+        .is_some_and(|receiver| process_status(receiver, body, source))
+}
+fn ok_argument<'a>(call: Node<'a>, source: &str) -> Option<Node<'a>> {
+    let constructor = call
+        .child_by_field_name("function")
+        .is_some_and(|function| function.kind() == "identifier" && text(function, source) == "Ok");
+    let arguments = call
+        .child_by_field_name("arguments")
+        .filter(|_| constructor)?;
+    let mut cursor = arguments.walk();
+    let values: Vec<_> = arguments
+        .named_children(&mut cursor)
+        .filter(|child| !child.is_extra())
+        .collect();
+    match values.as_slice() {
+        [value] => Some(*value),
+        _ => None,
+    }
+}
+fn method_receiver<'a>(call: Node<'a>, method: &str, source: &str) -> Option<Node<'a>> {
+    let bare = call.kind() == "call_expression"
+        && call
+            .child_by_field_name("arguments")
+            .is_some_and(|arguments| arguments.named_child_count() == 0);
+    let function = call.child_by_field_name("function").filter(|_| bare)?;
+    let named = function
+        .child_by_field_name("field")
+        .is_some_and(|field| text(field, source) == method);
+    function.child_by_field_name("value").filter(|_| named)
+}
+fn process_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool {
+    let receiver = binding(receiver, body, source).unwrap_or(receiver);
+    match receiver.kind() {
+        "try_expression" => launched(receiver, "status", source),
+        "field_expression" => output_status(receiver, body, source),
+        _ => false,
+    }
+}
+fn output_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool {
+    let field = receiver
+        .child_by_field_name("field")
+        .is_some_and(|field| text(field, source) == "status");
+    receiver
+        .child_by_field_name("value")
+        .filter(|_| field)
+        .map(|value| binding(value, body, source).unwrap_or(value))
+        .is_some_and(|value| launched(value, "output", source))
+}
+fn launched(node: Node<'_>, method: &str, source: &str) -> bool {
+    let propagated = node.kind() == "try_expression";
+    propagated
+        && node
+            .named_child(0)
+            .and_then(|call| method_receiver(call, method, source))
+            .is_some()
+}
+fn binding<'a>(node: Node<'a>, body: Node<'a>, source: &str) -> Option<Node<'a>> {
+    let identifier = node.kind() == "identifier";
+    let name = identifier.then(|| text(node, source))?;
+    descendants(body)
+        .into_iter()
+        .filter(|item| item.kind() == "let_declaration")
+        .filter(|item| {
+            item.child_by_field_name("pattern").is_some_and(|pattern| {
+                pattern.kind() == "identifier" && text(pattern, source) == name
+            })
+        })
+        .find_map(|item| item.child_by_field_name("value"))
 }
