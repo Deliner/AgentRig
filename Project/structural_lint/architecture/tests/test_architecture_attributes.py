@@ -13,6 +13,7 @@ ATTR_EXTERNALS = {
     "label": "[std, serde]",
     "test": "[std]",
     "platform": "[std]",
+    "feature": "[std]",
 }
 
 
@@ -43,14 +44,14 @@ def test_rust_attributes_preserve_dependency_evidence(
         )
     )
     code, findings = parity(worker, tmp_path)
-    unsupported = case in {"unknown", "derive", "alias", "feature"}
+    unsupported = case in {"unknown", "derive", "alias"}
     if unsupported:
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
     else:
         assert code == 0, findings
         back_edge(target, "rs")
         code, findings = parity(worker, tmp_path)
-        edge = case in {"callback", "test", "platform"}
+        edge = case in {"callback", "test", "platform", "feature"}
         assert code == int(edge), findings
         assert all("directory dependency cycle" in item["message"] for item in findings)
 

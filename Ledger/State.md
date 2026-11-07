@@ -21,9 +21,13 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 
 ## Progress
 
-- VAC 1 этой ветки: выбор P071–P082 в Plan.
-- Следующий VAC: B074 — `conditions.rs` принимает `feature = "…"`; тест `test_architecture_attributes.py` ожидает для
-  модуля под фичей полный анализ и находку цикла.
+- VAC 1 `e4295d6`: выбор P071–P082 в Plan; завершённая история выбора P017–P070 заменена ссылкой на ревизию
+  `c1935e4`, иначе Plan.md превышал 500 строк.
+- VAC 2: B074 — `conditions.rs` принимает `feature = "…"` в том числе внутри `all`/`any`/`not`; тест
+  `test_architecture_attributes.py` для модуля под фичей ожидает полный анализ и находку цикла.
+- Проба на копии voxel-rust `voxel-lint2`: находки «conditional expansion» на `src/core/lib.rs:18` и `:21` исчезли,
+  «incomplete» 4727 → 4705; корень `src/core/lib.rs` всё ещё не анализируется из-за
+  `include!(concat!(env!("OUT_DIR"), …))` в `src/schema/mod.rs` — вне границ B074, кандидат в новую карточку.
 
 ## Verification
 

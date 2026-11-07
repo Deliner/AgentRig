@@ -9,10 +9,19 @@ fn predicate(text: &str) -> bool {
         return combination(operator, rest);
     }
     if let Some((key, value)) = text.split_once('=') {
-        let target = matches!(key, "target_os" | "target_family");
-        return target && literal(value);
+        return match key {
+            "target_os" | "target_family" => literal(value, platform_character),
+            "feature" => literal(value, feature_character),
+            _ => false,
+        };
     }
     matches!(text, "test" | "unix" | "windows")
+}
+fn platform_character(c: char) -> bool {
+    c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_'
+}
+fn feature_character(c: char) -> bool {
+    c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '+' | '.')
 }
 fn combination(operator: &str, rest: &str) -> bool {
     let arguments = rest.strip_suffix(')').and_then(split);
@@ -22,16 +31,11 @@ fn combination(operator: &str, rest: &str) -> bool {
         _ => false,
     }
 }
-fn literal(value: &str) -> bool {
+fn literal(value: &str, allowed: fn(char) -> bool) -> bool {
     value
         .strip_prefix('"')
         .and_then(|value| value.strip_suffix('"'))
-        .is_some_and(|name| {
-            !name.is_empty()
-                && name
-                    .chars()
-                    .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == '_')
-        })
+        .is_some_and(|name| !name.is_empty() && name.chars().all(allowed))
 }
 fn split(text: &str) -> Option<Vec<&str>> {
     let mut depth = 0usize;
@@ -58,7 +62,7 @@ mod tests {
     use super::supported;
 
     #[test]
-    fn platform_and_test_predicates_are_supported() {
+    fn platform_feature_and_test_predicates_are_supported() {
         for condition in [
             "(test)",
             "(unix)",
@@ -66,18 +70,25 @@ mod tests {
             "(target_family=\"unix\")",
             "(not(target_os=\"linux\"))",
             "(all(unix,not(any(target_os=\"macos\",target_os=\"ios\"))))",
+            "(feature=\"extra\")",
+            "(feature=\"serde-json\")",
+            "(any(unix,feature=\"extra\"))",
+            "(not(feature=\"Std_2.x+alloc\"))",
+            "(all(feature=\"native\",not(target_family=\"wasm\")))",
         ] {
             assert!(supported(condition), "{condition}");
         }
     }
 
     #[test]
-    fn feature_unknown_and_malformed_predicates_are_unsupported() {
+    fn unknown_and_malformed_predicates_are_unsupported() {
         for condition in [
-            "(feature=\"extra\")",
             "(debug_assertions)",
+            "(target_arch=\"x86_64\")",
+            "(feature=extra)",
+            "(feature=\"\")",
+            "(feature=\"a b\")",
             "(not(unix,windows))",
-            "(any(unix,feature=\"extra\"))",
             "(all(unix,))",
             "(target_os=linux)",
             "(target_os=\"Linux\")",
