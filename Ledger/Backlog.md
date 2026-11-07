@@ -11,4 +11,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
 | [B080](Backlog/080.md) | Правило `unchecked-deserialize`: `derive(Deserialize)` у типа с проверяющим конструктором в том же файле — ошибка | Значение из файла или сети не обходит проверку и не роняет программу позже. |
-| [B082](Backlog/082.md) | `init` поставляет новым Rust-проектам профиль clippy dev-гейта командой и проверкой `clippy` | Новый Rust-проект с первого коммита проходит тот же clippy, что и AgentRig. |

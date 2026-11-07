@@ -1,4 +1,5 @@
 use super::cargo::{self, Layout};
+use super::clippy;
 use crate::project_config::{
     self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, Tools,
     View, Views,
@@ -96,7 +97,7 @@ fn config(options: &Options<'_>, rust: &Layout) -> Config {
         },
         git: git(options),
         commands: commands(options, rust),
-        checks: checks(&options["source"], skill_root),
+        checks: checks(options, skill_root),
         hooks: Hooks {
             routes: routes(&options["memory"], &options["source"], skill_root),
             reminder: Some(format!("{service}/reminder.json")),
@@ -202,14 +203,6 @@ fn commands(options: &Options<'_>, rust: &Layout) -> BTreeMap<String, Command> {
         programs: programs(table),
         ..command(purpose, Vec::new(), access)
     };
-    let test = Command {
-        output: Some(test_views(options)),
-        ..command(
-            "Run the project tests",
-            test_command(options, rust),
-            Access::Writable,
-        )
-    };
     [
         (
             "read",
@@ -227,11 +220,33 @@ fn commands(options: &Options<'_>, rust: &Layout) -> BTreeMap<String, Command> {
                 WRITE,
             ),
         ),
-        ("test", test),
     ]
     .into_iter()
+    .chain(language_commands(options, rust))
     .map(|(id, command)| (id.into(), command))
     .collect()
+}
+// DECISION: D132
+fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str, Command)> {
+    let test = Command {
+        output: Some(test_views(options)),
+        ..command(
+            "Run the project tests",
+            test_command(options, rust),
+            Access::Writable,
+        )
+    };
+    let mut commands = vec![("test", test)];
+    let rust_project = options["language"] == "rust";
+    if rust_project {
+        let clippy = command(
+            "Check Rust code with Clippy, denying warnings and the AgentRig profile",
+            clippy::argv(rust),
+            Access::Writable,
+        );
+        commands.push(("clippy", clippy));
+    }
+    commands
 }
 // DECISION: D062
 #[derive(Clone, Copy)]
@@ -340,19 +355,25 @@ fn memory_routes(memory: &str, skill_root: &str) -> Vec<Route> {
     })
     .collect()
 }
-fn checks(source: &str, skill_root: &str) -> Vec<Check> {
+fn checks(options: &Options<'_>, skill_root: &str) -> Vec<Check> {
     let skill = |name| format!("{skill_root}/{name}/SKILL.md");
-    let tests = Check {
-        command: Some("test".into()),
+    let source = &options["source"];
+    let run = |id, command: &str| Check {
+        command: Some(command.into()),
         include: vec![format!("{source}/**")],
-        ..check("tests", CheckKind::Command, skill("repair"))
+        ..check(id, CheckKind::Command, skill("repair"))
     };
-    vec![
+    let mut checks = vec![
         check("lint", CheckKind::Lint, skill("repair")),
         check("memory", CheckKind::Memory, skill("repair")),
-        tests,
+        run("tests", "test"),
         check("tools", CheckKind::Tools, skill("develop-tools")),
-    ]
+    ];
+    let rust_project = options["language"] == "rust";
+    if rust_project {
+        checks.push(run("clippy", "clippy"));
+    }
+    checks
 }
 fn check(id: &str, kind: CheckKind, skill: String) -> Check {
     Check {
