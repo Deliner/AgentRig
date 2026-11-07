@@ -10,9 +10,10 @@
 ## Workspace
 
 Branch: `feature/embedded-text`
-Revision: `680cbb459e0120e74f8275616a8c3941ce5c5280`
+Revision: `c0ffe2e88344ccf485e2043481efd1e550e37e76`
 
-База — master `680cbb4`. Этот снимок входит в VAC фазы 1. Ветки `feature/file-fan-out`, `feature/boolean-expression`
+База — master `680cbb4`. VAC фазы 1 `c0ffe2e`; stable.txt указывает на `c0ffe2e`, установлен через `just bootstrap`.
+Этот снимок входит в коммит мид-бранч пина. Ветки `feature/file-fan-out`, `feature/boolean-expression`
 и прежние, а также `feature/init-probe`, сохранены. macOS: в PATH `just write`/`just run`/`just check`/
 `just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
@@ -20,7 +21,7 @@ Revision: `680cbb459e0120e74f8275616a8c3941ce5c5280`
 
 ## Progress
 
-- Фаза 1 P080, VAC в рабочем дереве: вид `EmbeddedText` в `rules/kind.rs` и дескриптор в `rules/descriptor.rs`
+- Фаза 1 P080, VAC `c0ffe2e`: вид `EmbeddedText` в `rules/kind.rs` и дескриптор в `rules/descriptor.rs`
   (ошибка выше 20 строк, исключение тестов), вне `catalog::ALL` и `HANDLERS`; замер `literal` в
   `languages/rust/mod.rs`; тесты в `languages/tests/mod.rs` с общим помощником `line_actuals`; решение
   [D122](Decisions/122.md).
@@ -30,8 +31,9 @@ Revision: `680cbb459e0120e74f8275616a8c3941ce5c5280`
 
 ## Verification
 
-- 2026-11-07, рабочее дерево фазы 1: `cargo test -- structural_lint::languages::tests` — 61 passed; clippy
-  `-D warnings` чист; `just candidate lint --root .` без находок.
+- 2026-11-07, гейт pre-commit VAC `c0ffe2e`: все проверки PASS, rust-test 124 passed, test 221 passed. Ссылки
+  D088 и D101 перенесены на `rust/tuple_record.rs` после замечания проверки memory.
+- Пин: stable.txt = `c0ffe2e`, `just bootstrap` установил `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -39,7 +41,7 @@ Revision: `680cbb459e0120e74f8275616a8c3941ce5c5280`
 
 ## Next action
 
-Коммит VAC фазы 1, затем мид-бранч пин D051 и фаза 2: активация в `catalog::ALL` и `HANDLERS`, навык
+Фаза 2: активация в `catalog::ALL` и `HANDLERS`, навык
 `extract-embedded-text`, правило в `.agentrig/lint.yaml`, `decided` в `test_config_check.py`, проверка AC1–AC2 на
 потребителе, Delivery и ротация. Свободные ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан
 B069).
