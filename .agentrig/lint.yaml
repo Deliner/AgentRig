@@ -205,6 +205,20 @@ rules:
   error: 3
   warning_skill: .agents/skills/split-boolean-expression/SKILL.md
   error_skill: .agents/skills/split-boolean-expression/SKILL.md
+# DECISION: D122
+- id: embedded-text
+  kind: embedded-text
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  error: 20
+  warning_skill: .agents/skills/extract-embedded-text/SKILL.md
+  error_skill: .agents/skills/extract-embedded-text/SKILL.md
 # DECISION: D065
 - id: unsafe-justification
   kind: unsafe-justification

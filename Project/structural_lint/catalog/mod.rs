@@ -40,6 +40,7 @@ pub const ALL: &[Kind] = &[
     Kind::BlockingInAsync,
     Kind::OrdEqMismatch,
     Kind::BooleanExpression,
+    Kind::EmbeddedText,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

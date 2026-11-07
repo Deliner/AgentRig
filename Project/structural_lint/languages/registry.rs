@@ -49,6 +49,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::BlockingInAsync,
             Kind::OrdEqMismatch,
             Kind::BooleanExpression,
+            Kind::EmbeddedText,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

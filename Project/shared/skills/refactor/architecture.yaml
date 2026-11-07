@@ -1,6 +1,7 @@
-purpose: "Decompose an oversized or ill-structured unit by responsibility while preserving its contract"
+purpose: "Decompose an oversized or ill-structured unit by responsibility, or move long embedded text into its own file, while preserving its contract"
 files: {}
 directories:
+  extract-embedded-text: "Move long string literals out of code into their own files while preserving their values"
   refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"

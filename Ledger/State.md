@@ -3,37 +3,37 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P079 завершены и слиты в master, последняя — `680cbb4`. **P080** (B073 embedded-text) активна:
-фаза 1 двухфазной поставки нового вида правила (D051). Дальше P081 (B069), P082 (B064), затем новые карточки Backlog
-из `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md` по уже данному согласию пользователя.
+одной за ветку. P071–P079 завершены и слиты в master, последняя — `680cbb4`. **P080** (B073 embedded-text) доставлена
+на ветке двумя VAC; этот снимок входит в VAC 2, затем финальный пин и слияние. Дальше P081 (B069), P082 (B064),
+затем новые карточки Backlog из `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md` по уже
+данному согласию пользователя.
 
 ## Workspace
 
 Branch: `feature/embedded-text`
-Revision: `c0ffe2e88344ccf485e2043481efd1e550e37e76`
+Revision: `6af7dff5ca136106f01e13e3db85719e0a102b29`
 
-База — master `680cbb4`. VAC фазы 1 `c0ffe2e`; stable.txt указывает на `c0ffe2e`, установлен через `just bootstrap`.
-Этот снимок входит в коммит мид-бранч пина. Ветки `feature/file-fan-out`, `feature/boolean-expression`
-и прежние, а также `feature/init-probe`, сохранены. macOS: в PATH `just write`/`just run`/`just check`/
-`just feature-merge` нет cargo — коммиты и вызовы с cargo через
+База — master `680cbb4`. VAC 1 `c0ffe2e`, мид-бранч пин `6af7dff`; stable.txt указывает на `c0ffe2e`. Ветки
+`feature/file-fan-out`, `feature/boolean-expression` и прежние, а также `feature/init-probe`, сохранены. macOS: в
+PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
 `cargo fmt --manifest-path Project/Cargo.toml`; поставка — `just candidate <команда> --root <каталог>`.
 
 ## Progress
 
-- Фаза 1 P080, VAC `c0ffe2e`: вид `EmbeddedText` в `rules/kind.rs` и дескриптор в `rules/descriptor.rs`
-  (ошибка выше 20 строк, исключение тестов), вне `catalog::ALL` и `HANDLERS`; замер `literal` в
-  `languages/rust/mod.rs`; тесты в `languages/tests/mod.rs` с общим помощником `line_actuals`; решение
-  [D122](Decisions/122.md).
-- Ради лимитов размера: `Parameters` вынесен в `rules/parameters.rs`, сигнатуры-кортежи — в
-  `languages/rust/tuple_record.rs`.
-- Замер корпуса r8 без bun: литералов длиннее 20 строк 149, все в выборке — данные; в AgentRig один литерал на 4 строки.
+- VAC 1 `c0ffe2e`: инертный вид `EmbeddedText`, замер `literal` в `languages/rust/mod.rs`, тесты, решение
+  [D122](Decisions/122.md); ради лимитов `rules/parameters.rs` и `languages/rust/tuple_record.rs`.
+- VAC 2 в рабочем дереве: вид в `catalog::ALL` и `HANDLERS`, правило `embedded-text` в `.agentrig/lint.yaml`
+  (error 20), навык `refactor/extract-embedded-text` с ассетом, `decided` в `test_config_check.py`. Delivery в
+  [Archive/Plan/080.md](Archive/Plan/080.md); P080 и B073 перенесены в архив.
 
 ## Verification
 
-- 2026-11-07, гейт pre-commit VAC `c0ffe2e`: все проверки PASS, rust-test 124 passed, test 221 passed. Ссылки
-  D088 и D101 перенесены на `rust/tuple_record.rs` после замечания проверки memory.
-- Пин: stable.txt = `c0ffe2e`, `just bootstrap` установил `agentrig 0.3.0`.
+- 2026-11-07, гейт pre-commit VAC 1 `c0ffe2e`: все проверки PASS, rust-test 124 passed, test 221 passed.
+- Рабочее дерево VAC 2: `just candidate lint --root .` — код 0; `just candidate config-check` и
+  `just candidate lint-config-check` — валидно; `cargo test --lib` — 149 passed; pytest `config/tests`,
+  `project_setup/tests`, `languages/tests` — 53 passed. Потребитель `init --language rust`: находка на литерале в
+  21 строку, литерал в 20 строк и литералы в тестах без находок.
 
 ## Blockers
 
@@ -41,7 +41,6 @@ Revision: `c0ffe2e88344ccf485e2043481efd1e550e37e76`
 
 ## Next action
 
-Фаза 2: активация в `catalog::ALL` и `HANDLERS`, навык
-`extract-embedded-text`, правило в `.agentrig/lint.yaml`, `decided` в `test_config_check.py`, проверка AC1–AC2 на
-потребителе, Delivery и ротация. Свободные ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан
-B069).
+Коммит VAC 2, финальный пин D051 (stable.txt = голова ветки, `just bootstrap`), `just feature-merge`; затем P081
+(B069 grammar-fork) на новой ветке. Свободные ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112
+обещан B069).

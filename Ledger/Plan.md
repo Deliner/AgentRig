@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P080](Plan/080.md) | active | - | [B073](Backlog/073.md): embedded-text — большой текст внутри кода | Данные лежат отдельным файлом, код читается как код. |
 | [P081](Plan/081.md) | pending | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig | Правильный Rust трёх частых форм разбирается и попадает под правила. |
 | [P082](Plan/082.md) | pending | - | [B064](Backlog/064.md): ratchet-baseline — внедрение строгих правил в проект с историей | Строгие правила включаются без выключения гейта. |
 

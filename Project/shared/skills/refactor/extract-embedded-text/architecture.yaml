@@ -1,0 +1,5 @@
+purpose: "Move long string literals out of code into their own files while preserving their values"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move a long string literal into a file read at compile time"
+directories: {}
