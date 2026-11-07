@@ -124,6 +124,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/signature/name-the-record/SKILL.md"),
     ),
     (
+        "align-order-with-equality",
+        include_str!("../shared/skills/signature/align-order-with-equality/SKILL.md"),
+    ),
+    (
         "eager-to-lazy",
         include_str!("../shared/skills/references/eager-to-lazy/SKILL.md"),
     ),

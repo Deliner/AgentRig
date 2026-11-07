@@ -47,6 +47,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::UnwindJustification,
             Kind::GuardAcrossAwait,
             Kind::BlockingInAsync,
+            Kind::OrdEqMismatch,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

@@ -1,0 +1,5 @@
+purpose: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to align a Rust Ord or PartialOrd with PartialEq or justify the difference"
+directories: {}
