@@ -23,7 +23,7 @@ fn tail(path: &Path) -> Result<Value> {
         }
         Err(error) => return Err(error.into()),
     };
-    let size = file.metadata()?.len();
+    let size = fs::file_metadata(&file, path)?.len();
     let offset = size.saturating_sub(65536);
     file.seek(SeekFrom::Start(offset))?;
     let mut bytes = Vec::new();

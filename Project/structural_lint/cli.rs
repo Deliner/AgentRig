@@ -64,8 +64,8 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     let root = match take_option(&mut args, "--root")? {
         Some(value) => PathBuf::from(value),
         None => env::current_dir()?,
-    }
-    .canonicalize()?;
+    };
+    let root = crate::shared::fs::canonicalize(root)?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
     let explain = command == "lint-explain";
     if explain {

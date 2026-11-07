@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P084](Plan/084.md) | active | - | [B078](Backlog/078.md): disallowed-methods — методы ФС с ошибкой без пути | Ошибка файловой системы всегда называет действие и путь. |
 | [P085](Plan/085.md) | pending | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов | Ошибка команды не становится молча ответом «нет». |
 | [P086](Plan/086.md) | pending | - | [B075](Backlog/075.md): clippy-types — пять линтов clippy с типами в dev-гейте | Гейт ловит классы дефектов, которым нужны типы. |
 

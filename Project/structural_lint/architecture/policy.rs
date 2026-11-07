@@ -227,7 +227,7 @@ fn load(root: &Path, directory: &Path) -> Result<Declaration> {
         "contract must be a regular file"
     );
     ensure!(
-        path.canonicalize()?.starts_with(root.canonicalize()?),
+        fs::canonicalize(&path)?.starts_with(fs::canonicalize(root)?),
         "contract escapes project root"
     );
     let declaration: Declaration = crate::shared::yaml::read(&path)?;

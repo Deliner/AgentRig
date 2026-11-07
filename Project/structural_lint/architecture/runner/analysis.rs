@@ -33,7 +33,7 @@ pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf,
 }
 
 fn read(root: &Path, path: &Path) -> Result<References> {
-    let file = root.join(path).canonicalize()?;
+    let file = fs::canonicalize(root.join(path))?;
     ensure!(file.starts_with(root), "source escapes project root");
     source::extract(path, &fs::read_to_string(file)?)
 }
@@ -122,7 +122,7 @@ impl<'a> Resolvers<'a> {
         }?;
         for file in &resolved.files {
             ensure!(
-                self.root.join(file).canonicalize()?.starts_with(self.root),
+                fs::canonicalize(self.root.join(file))?.starts_with(self.root),
                 "dependency target escapes project root: {}",
                 file.display()
             );

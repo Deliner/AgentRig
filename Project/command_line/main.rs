@@ -64,7 +64,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
     if initializing {
         agentrig::shared::fs::create_dir_all(&root)?;
     }
-    root.canonicalize().map_err(Into::into)
+    Ok(agentrig::shared::fs::canonicalize(&root)?)
 }
 fn print_help() {
     console::stdout(

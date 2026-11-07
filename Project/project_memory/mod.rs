@@ -112,7 +112,7 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
     let mut ids = HashSet::new();
     for root in [memory.to_path_buf(), memory.join("Archive")] {
         let path = root.join("Backlog.md");
-        let adopted = path.try_exists()?;
+        let adopted = fs::try_exists(&path)?;
         if adopted {
             let rows = table(&path, Catalog::Backlog)?;
             details(context, &root, &rows, Catalog::Backlog)?;
@@ -132,7 +132,7 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
 fn plan(context: &Context, memory: &Path) -> Result<()> {
     let mut rows = plan_rows(context, memory)?;
     let archive = memory.join("Archive");
-    let archived = archive.join("Plan.md").try_exists()?;
+    let archived = fs::try_exists(archive.join("Plan.md"))?;
     if archived {
         let completed = plan_rows(context, &archive)?;
         ensure!(

@@ -287,6 +287,9 @@ pub fn files(config: &Config) -> Result<Vec<ModuleFile>> {
     });
     Ok(files)
 }
+pub fn project_root(path: &Path) -> Result<PathBuf> {
+    Ok(crate::shared::fs::canonicalize(path)?)
+}
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
     ensure!(

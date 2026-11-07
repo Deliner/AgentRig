@@ -9,7 +9,7 @@ use std::{
 // DECISION: D015
 pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
     let file = fs::open(path)?;
-    let truncated = offset > file.metadata()?.len();
+    let truncated = offset > fs::file_metadata(&file, path)?.len();
     if truncated {
         offset = 0;
     }

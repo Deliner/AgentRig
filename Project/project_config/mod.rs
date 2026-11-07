@@ -14,7 +14,7 @@ pub struct Context {
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
-        let root = root.canonicalize()?;
+        let root = settings::project_root(root)?;
         let config = read(&root)?;
         config.validate(&root)?;
         let runtime = relative(&root, &config.paths.runtime)?;
