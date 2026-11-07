@@ -112,6 +112,8 @@ clippy:
   - clippy::iter_over_hash_type
   - -D
   - clippy::collection_is_never_read
+  - -D
+  - clippy::read_zero_byte_vec
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
