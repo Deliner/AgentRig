@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P092](Plan/092.md) | active | - | [B084](Backlog/084.md): option-option — общий профиль Clippy запрещает `Option<Option<_>>` | Два разных «нет значения» не прячутся в одном типе: состояние получает имя через перечисление. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
@@ -40,4 +39,4 @@ B078 и B076, обе опираются на политику `disallowed`, по
 2026-11-07 пользователь поручил подготовить карточку о запрете `Option<Option<_>>` и реализовать её до работ в
 voxel-rust («Подготовь черновик и реализуй его перед voxel»): выбрано **P092** (B084). P091 (B083) остаётся на ветке
 `feature/rust-expansion` и ждёт проверки AC5 на voxel-rust; P092 идёт отдельной веткой от master. Карточка в Git на
-ревизии первого VAC ветки `feature/option-option`.
+ревизии `3033a2b`.

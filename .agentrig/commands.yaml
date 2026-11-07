@@ -122,6 +122,8 @@ clippy:
   - clippy::partial_pub_fields
   - -D
   - clippy::struct_excessive_bools
+  - -D
+  - clippy::option_option
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

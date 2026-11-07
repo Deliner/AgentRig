@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B084](Backlog/084.md) | Общий профиль Clippy запрещает `Option<Option<_>>` через `clippy::option_option` | Два разных «нет значения» не прячутся в одном типе: состояние получает имя через перечисление. |
