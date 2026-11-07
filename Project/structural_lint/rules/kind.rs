@@ -31,6 +31,7 @@ pub enum Kind {
     GlobalState,
     SuperSuperReach,
     RecursiveDeletion,
+    UnwindJustification,
     CommentReference,
     DirectoryArchitecture,
 }
