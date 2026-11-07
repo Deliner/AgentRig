@@ -110,6 +110,8 @@ clippy:
   - clippy::string_slice
   - -D
   - clippy::iter_over_hash_type
+  - -D
+  - clippy::collection_is_never_read
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
