@@ -445,6 +445,34 @@ mod tests {
     assert_eq!(discarded_findings("source.rs", source), [2, 5]);
 }
 
+// DECISION: D114
+#[test]
+fn rust_flags_discarded_option_combinator_and_err_statements() {
+    let source = "fn run(value: Option<u8>) -> Option<u8> {
+    value.map(|item| store(item));
+    value.and_then(|item| load(item));
+    value.map_or(0, |item| send(item));
+    value.map_or_else(|| 0, |item| send(item));
+    outcome.err();
+    // DECISION: D001
+    value.map(|item| store(item));
+    let kept = value.map(|item| store(item));
+    saved = value.and_then(|item| load(item));
+    check(value.map(|item| store(item)));
+    value.map(|item| store(item))?;
+    value.filter(|item| *item > 0);
+    value.map(|item| item + 1)
+}
+#[cfg(test)]
+mod tests {
+    fn check() {
+        value.map(|item| store(item));
+    }
+}
+";
+    assert_eq!(discarded_findings("source.rs", source), [2, 3, 4, 5, 6]);
+}
+
 // DECISION: D092
 fn raii_findings(path: &str, source: &str) -> Vec<usize> {
     let analysis = analyze(Path::new(path), source).unwrap();

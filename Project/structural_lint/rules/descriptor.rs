@@ -350,14 +350,15 @@ const EAGERFALLBACK: Descriptor = Descriptor {
 };
 // DECISION: D090
 // DECISION: D099
+// DECISION: D114
 const DISCARDEDRESULT: Descriptor = Descriptor {
     default_id: "discarded-result",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust bare .ok() statement that drops a Result, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust bare .ok() or .err() statement that drops a Result, every bare statement whose last call is .map, .and_then, .map_or or .map_or_else and drops the combined value, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-discarded",
     parameters: Parameters::Level {
-        violation: "a bare .ok() statement converts a Result to Option and throws the outcome away, and a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, so a failure passes silently; handle the error or check the status, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
+        violation: "a bare .ok() or .err() statement converts a Result to Option and throws the outcome away, a bare .map, .and_then, .map_or or .map_or_else statement throws away the value the closure produced, and a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, so a failure passes silently; handle the error or the value, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
     },
 };
 // DECISION: D092

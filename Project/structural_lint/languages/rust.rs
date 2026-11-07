@@ -280,6 +280,7 @@ fn propagates(node: Node<'_>) -> bool {
 }
 // DECISION: D090
 // DECISION: D099
+// DECISION: D114
 fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(inner) = node
@@ -325,7 +326,7 @@ fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
         let nullary = call.child_by_field_name("arguments")?.named_child_count() == 0;
         ["status", "output"].contains(&name) && nullary
     } else {
-        name == "ok"
+        ["ok", "err", "map", "and_then", "map_or", "map_or_else"].contains(&name)
     };
     dropped.then_some(name)
 }
