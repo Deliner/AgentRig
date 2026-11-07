@@ -11,10 +11,10 @@
 ## Workspace
 
 Branch: `feature/guard-across-await`
-Revision: `1f023eab22257246c38e99a0b353b17cf6644ffe`
+Revision: `8d84ef8cffa044651c39219ddca3bb0e1a110fa6`
 
-База — master `2a52e3e`. VAC 1 `1f023ea`, затем мид-бранч пин `stable.txt` = `1f023ea` с выполненным
-`just bootstrap`; этот снимок входит в коммит VAC 2.
+База — master `2a52e3e`. VAC 1 `1f023ea`, мид-бранч пин, VAC 2 `8d84ef8`; этот снимок входит в коммит финального
+пина D051: `stable.txt` = `8d84ef8`, `just bootstrap` выполнен.
 
 Ветки `feature/panic-surface`, `feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`,
 `feature/backlog-research-cards`, `feature/delivery-repairs`, `feature/state-refresh` и `feature/init-probe`
@@ -34,9 +34,8 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 ## Verification
 
 - 2026-11-07: гейт VAC 1 `1f023ea` зелёный — rust-test 124 passed, test 383 passed, остальные проверки PASS.
-- 2026-11-07, рабочее дерево VAC 2 до коммита: `just candidate lint` — код 0; `just config-check` и
-  `just lint-config-check` — валидно; `just run rust-test -- structural_lint` — 100 passed; потребитель после
-  `just candidate init` получает `WARNING [guard-across-await]` с `--warnings`.
+- 2026-11-07: гейт VAC 2 `8d84ef8` зелёный — rust-test 136 passed, test 331 passed, остальные проверки PASS;
+  потребитель после `just candidate init` получает `WARNING [guard-across-await]` с `--warnings`.
 
 ## Blockers
 
@@ -44,5 +43,5 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 
 ## Next action
 
-Закоммитить VAC 2, затем финальный пин D051 и `just feature-merge` ветки `feature/guard-across-await`; далее P076
+`just feature-merge` ветки `feature/guard-across-await`; далее P076
 (B070). Свободные ID: D118+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан B069).
