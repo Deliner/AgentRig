@@ -1,3 +1,4 @@
+pub(super) mod async_code;
 use crate::structural_lint::languages::measure::text;
 use tree_sitter::Node;
 
@@ -49,7 +50,7 @@ fn debug_branch(block: Node<'_>, source: &str) -> bool {
         .find(|child| child.kind() == "token_tree")
         .is_some_and(|tree| cfg_requires(tree, source, "debug_assertions"))
 }
-fn attributed(item: Node<'_>, source: &str, marked: fn(Node<'_>, &str) -> bool) -> bool {
+pub(super) fn attributed(item: Node<'_>, source: &str, marked: fn(Node<'_>, &str) -> bool) -> bool {
     let mut sibling = item.prev_named_sibling();
     while let Some(node) = sibling {
         let marker = node.kind() == "attribute_item" && marked(node, source);

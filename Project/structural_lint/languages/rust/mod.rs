@@ -1,13 +1,13 @@
-mod async_context;
 mod blocking_async;
+mod context;
 mod global_state;
 mod guard_await;
 mod ord_equality;
 mod recursive_deletion;
+mod secret_debug;
 mod silent_error;
 mod super_reach;
 mod suppression;
-mod test_context;
 mod tuple_record;
 mod unsafe_site;
 mod unwind_catch;
@@ -16,7 +16,7 @@ use crate::structural_lint::languages::measure::{
     condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
-use test_context::{in_debug_only_context, in_test_context, last_segment};
+use context::{in_debug_only_context, in_test_context, last_segment};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -24,6 +24,7 @@ use tree_sitter::Node;
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "source_file" => ord_equality::inspect(node, source, output),
+        "struct_item" => secret_debug::inspect(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {

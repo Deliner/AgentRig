@@ -37,6 +37,7 @@ pub enum Kind {
     OrdEqMismatch,
     BooleanExpression,
     EmbeddedText,
+    SecretDebug,
     CommentReference,
     DirectoryArchitecture,
 }

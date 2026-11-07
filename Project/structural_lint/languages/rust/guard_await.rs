@@ -1,5 +1,5 @@
-use super::async_context::scope_boundary;
-use super::test_context::{in_test_context, last_segment};
+use super::context::async_code::scope_boundary;
+use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;

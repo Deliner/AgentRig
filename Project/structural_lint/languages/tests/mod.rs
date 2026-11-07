@@ -10,6 +10,7 @@ mod markers;
 mod ord_equality;
 mod panic_surface;
 mod recursive_deletion;
+mod secret_debug;
 mod silent_error;
 mod super_reach;
 mod tuple_as_record;

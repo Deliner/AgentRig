@@ -53,7 +53,7 @@ I014:
 I015:
   check: test
   runner: pytest
-  target: Project/structural_lint/languages/tests/test_language.py::test_language_conditions
+  target: Project/structural_lint/languages/tests/consumer/test_language.py::test_language_conditions
 I016:
   check: test
   runner: pytest

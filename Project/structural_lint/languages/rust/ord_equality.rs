@@ -1,4 +1,4 @@
-use super::test_context::in_test_context;
+use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use std::collections::BTreeSet;
