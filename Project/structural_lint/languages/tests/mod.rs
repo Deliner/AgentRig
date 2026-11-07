@@ -163,6 +163,74 @@ def outer():
     );
 }
 
+// DECISION: D120
+fn boolean_operands(path: &str, source: &str) -> Vec<(usize, u64)> {
+    let analysis = analyze(Path::new(path), source).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut counts: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::BooleanExpression)
+        .map(|item| (item.line, item.actual))
+        .collect();
+    counts.sort();
+    counts
+}
+
+#[test]
+fn rust_counts_operands_of_each_boolean_expression_wherever_it_stands() {
+    let source = "fn ready() -> bool {
+    let ready = active && !banned || admin && valid() && !maintenance;
+    while !empty && budget > 0 && !cancelled && retries < 3 {}
+    match value {
+        Some(v) if v.a && v.b && v.c && v.d => {}
+        _ => {}
+    }
+    let short = a && b && c;
+    work(a || b);
+    left == right && done
+}
+";
+    assert_eq!(
+        boolean_operands("source.rs", source),
+        [(2, 5), (3, 4), (5, 4), (8, 3), (9, 2), (10, 2)]
+    );
+}
+
+#[test]
+fn rust_groups_parentheses_and_measures_negations_let_bindings_and_macros_apart() {
+    let source = "fn group() {
+    let grouped = (a && b) || (c && d);
+    let negated = x && !(a && b && c && d);
+    if let Some(user) = session && user.active && !user.banned && admin {}
+    if let Some(a) = left && let Some(b) = right && ready {}
+    let call = f(a && b, c || d || e);
+    assert!(a && b && c && d && e);
+}
+";
+    assert_eq!(
+        boolean_operands("source.rs", source),
+        [(2, 4), (3, 2), (3, 4), (4, 3), (5, 1), (6, 2), (6, 3)]
+    );
+}
+
+#[test]
+fn python_counts_and_or_operands_with_parentheses_and_not_as_one() {
+    let source = "def ready():
+    ready = active and not banned or admin and valid() and not maintenance
+    while queue and budget > 0 and not cancelled and retries < 3:
+        pass
+    grouped = (a and b) or (c and d)
+    negated = x and not (a and b and c and d)
+    items = [x for x in values if x.a and x.b and x.c]
+    return left == right and done
+";
+    assert_eq!(
+        boolean_operands("source.py", source),
+        [(2, 5), (3, 4), (5, 4), (6, 2), (6, 4), (7, 3), (8, 2)]
+    );
+}
+
 // DECISION: D062
 fn boolean_params(path: &str, source: &str) -> Vec<String> {
     let analysis = analyze(Path::new(path), source).unwrap();

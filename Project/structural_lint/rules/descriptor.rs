@@ -79,6 +79,7 @@ impl Kind {
             Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
             Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::OrdEqMismatch => &ORDEQMISMATCH,
+            Self::BooleanExpression => &BOOLEANEXPRESSION,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -487,5 +488,17 @@ const ORDEQMISMATCH: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "order and equality that read different fields break the standard library contract that a == b exactly when the comparison is Equal, so BTreeSet, BTreeMap, sort with dedup and binary search disagree with ==; compare the same fields in both, derive both or express both through one key method, or put a DECISION: or INVARIANT: reference on the line directly above the impl to justify a field derived from the compared ones, such as a cache",
+    },
+};
+// DECISION: D120
+const BOOLEANEXPRESSION: Descriptor = Descriptor {
+    default_id: "boolean-expression",
+    exclude: &[],
+    target: "file",
+    metric: "operands of one Rust && and || or Python and and or expression anywhere in code: parentheses group operands without ending the expression, a let binding of a Rust let chain is not an operand, and a negation, comparison, call, closure or macro is one operand whose inner expressions are measured on their own",
+    skill: "split-boolean-expression",
+    parameters: Parameters::Thresholds {
+        warning: None,
+        error: 3,
     },
 };
