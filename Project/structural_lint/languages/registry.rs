@@ -46,6 +46,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::RecursiveDeletion,
             Kind::UnwindJustification,
             Kind::GuardAcrossAwait,
+            Kind::BlockingInAsync,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],

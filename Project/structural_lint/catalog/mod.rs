@@ -37,6 +37,7 @@ pub const ALL: &[Kind] = &[
     Kind::RecursiveDeletion,
     Kind::UnwindJustification,
     Kind::GuardAcrossAwait,
+    Kind::BlockingInAsync,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

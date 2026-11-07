@@ -323,6 +323,20 @@ rules:
   level: warning
   warning_skill: .agents/skills/release-the-guard/SKILL.md
   error_skill: .agents/skills/release-the-guard/SKILL.md
+# DECISION: D118
+- id: blocking-in-async
+  kind: blocking-in-async
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: warning
+  warning_skill: .agents/skills/await-not-block/SKILL.md
+  error_skill: .agents/skills/await-not-block/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import
