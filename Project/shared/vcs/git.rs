@@ -12,18 +12,16 @@ pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
 }
 
 pub(super) fn branch_name(value: &str) -> bool {
-    !value.is_empty()
-        && value != "HEAD"
-        && !value.starts_with('-')
-        && !value.ends_with('.')
-        && !value.contains("..")
-        && !value.contains("@{")
-        && !value
-            .bytes()
-            .any(|byte| byte <= 32 || byte == 127 || b"~^:?*[\\".contains(&byte))
-        && value
-            .split('/')
-            .all(|part| !part.is_empty() && !part.starts_with('.') && !part.ends_with(".lock"))
+    let reserved = value.is_empty() || value == "HEAD" || value.starts_with('-');
+    let malformed = value.ends_with('.') || value.contains("..") || value.contains("@{");
+    let forbidden_byte = value
+        .bytes()
+        .any(|byte| byte <= 32 || byte == 127 || b"~^:?*[\\".contains(&byte));
+    let valid_parts = value
+        .split('/')
+        .all(|part| !part.is_empty() && !part.starts_with('.') && !part.ends_with(".lock"));
+    let rejected = reserved || malformed || forbidden_byte;
+    !rejected && valid_parts
 }
 
 pub(super) fn command(root: &Path, args: &[&str]) -> Command {

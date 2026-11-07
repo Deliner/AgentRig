@@ -4,15 +4,16 @@
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
 одной за ветку. P071–P077 завершены и слиты в master, последняя — `2ddd7c8`. **P078** (B071 boolean-expression)
-активна: фаза 1 в коммите VAC 1. Исследования вне Ledger завершены: `agentrig-research/clippy-triage.md` и
-`agentrig-research/agent-errors.md`; их итог станет новыми карточками Backlog по уже данному согласию пользователя.
+доставлена на ветке, фаза 2 в коммите VAC 2; осталось финальный пин и слияние. Исследования вне Ledger завершены:
+`agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md`; их итог станет новыми карточками
+Backlog по уже данному согласию пользователя.
 
 ## Workspace
 
 Branch: `feature/boolean-expression`
-Revision: `2ddd7c8ffcc0aab47b5c839a4394d893d6bf3ef0`
+Revision: `93191148ef07fc9e21619c6abdf8192c17bab65b`
 
-База — master `2ddd7c8`, слияние P077; этот снимок входит в коммит VAC 1.
+База — master `2ddd7c8`. VAC 1 `073c9cf`, мид-бранч пин `9319114`; этот снимок входит в коммит VAC 2.
 
 Ветки `feature/ord-eq-mismatch`, `feature/blocking-in-async`, `feature/guard-across-await`, `feature/panic-surface`,
 `feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`, `feature/backlog-research-cards`,
@@ -23,24 +24,21 @@ Revision: `2ddd7c8ffcc0aab47b5c839a4394d893d6bf3ef0`
 
 ## Progress
 
-- P078 фаза 1 (VAC 1): решение [D120](Decisions/120.md), инертный пороговый вид `BooleanExpression`, ошибка выше 3;
-  измерение `boolean_expression` в `languages/measure/mod.rs`, вызовы из Rust и Python; три теста в
-  `languages/tests/mod.rs`.
-- Замер на корпусе r8 без bun: 1 357 из 21 136 выражений длиннее трёх частей; в самом AgentRig 12 мест в Rust:
-  `command_runner/registry/check.rs:99`, `project_memory/evidence/mod.rs:210` и `:215`, `shared/vcs/export.rs:43`,
-  `shared/vcs/git.rs:15`, `architecture/resolution/rust/macros.rs:32` и `:47`, `resolution/rust/paths.rs:141`,
-  `architecture/source/python.rs:48`, `structural_lint/config/mod.rs:145`, `languages/rust/mod.rs:227`,
-  `rules/architecture.rs:147`.
-- Осталось по P078: мид-бранч пин; фаза 2 — `ALL`, `HANDLERS` для Rust и Python, ремонт 12 мест, правило в
-  `.agentrig/lint.yaml`, навык `control-flow/split-boolean-expression` с симлинком и ассетом, список `decided`,
-  Delivery, ротация P078 и B071, финальный пин, `just feature-merge`.
+- P078 фаза 1 (VAC 1 `073c9cf`): решение [D120](Decisions/120.md), инертный пороговый вид `BooleanExpression`,
+  измерение в `languages/measure/mod.rs`, три теста в `languages/tests/mod.rs`.
+- P078 фаза 2 (VAC 2): вид в `ALL` и `HANDLERS` Rust и Python, правило `boolean-expression` с `error: 3` в
+  `.agentrig/lint.yaml`, навык `control-flow/split-boolean-expression` с симлинком и ассетом, ремонт 12
+  своих выражений именами групп; тесты не исключены, поэтому правила нет в списке `decided`. Delivery в [Archive/Plan/078.md](Archive/Plan/078.md); P078 и B071
+  перенесены в архив, ссылки D120 обновлены.
+- Осталось по P078: финальный пин stable.txt на голову VAC 2 с bootstrap, `just feature-merge`.
 
 ## Verification
 
-- 2026-11-07, гейт pre-commit VAC 2 P077 `4709a23`: все проверки PASS, rust-test 144 passed, test 331 passed;
-  слияние `2ddd7c8`.
-- Рабочее дерево VAC 1 P078 до коммита: `cargo test -- operands parentheses` — 3 passed. Образец
-  `just candidate lint` с временной регистрацией вида даёт ожидаемые числа частей для Rust и Python.
+- 2026-11-07, гейт pre-commit VAC 1 `073c9cf`: все проверки PASS, rust-test 122 passed, test 216 passed.
+- Рабочее дерево VAC 2 до коммита: `just config-check` и `just lint-config-check` валидны; `just candidate lint`
+  чист. Потребители после `just candidate init` с `--language rust` и `--language python` получают правило и навык;
+  `just candidate lint` даёт `boolean-expression measures 4, exceeds 3` на `Project/src/lib.rs:3` и
+  `Project/app.py:3`, выражения из двух и трёх частей молчат.
 
 ## Blockers
 
@@ -48,5 +46,6 @@ Revision: `2ddd7c8ffcc0aab47b5c839a4394d893d6bf3ef0`
 
 ## Next action
 
-Закоммитить VAC 1 P078 через pre-commit, затем мид-бранч пин с bootstrap. Свободные ID: D121+, I022+, P083+, B075+
-(B066 и D111 зарезервированы, D112 обещан B069).
+Закоммитить VAC 2 через pre-commit, затем финальный пин с bootstrap и `just feature-merge`; дальше P079 (B072
+file-fan-out) на новой ветке. Свободные ID: D121+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан
+B069).

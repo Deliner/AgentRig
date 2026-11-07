@@ -224,8 +224,8 @@ fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     };
     let method = function.kind() == "field_expression";
     let path = matches!(function.kind(), "identifier" | "scoped_identifier");
-    let panic = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err")
-        || path && name == "resume_unwind";
+    let unwrapping = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err");
+    let panic = unwrapping || path && name == "resume_unwind";
     if panic {
         report_panic(node, source, name, output);
     }

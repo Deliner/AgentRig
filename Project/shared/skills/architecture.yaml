@@ -6,7 +6,7 @@ files: {}
 directories:
   complexity-discipline: "Keep implementation and workflow complexity within current requirements"
   condense-markdown: "Keep README and AGENTS.md within limits and other Markdown out of Project"
-  control-flow: "Repair function control-flow complexity: deep nesting and branch overload"
+  control-flow: "Repair function control-flow complexity: deep nesting, branch overload and long boolean expressions"
   develop-tools: "Develop, repair and remove registered project tools without duplicating capabilities"
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"

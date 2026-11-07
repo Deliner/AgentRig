@@ -55,6 +55,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/reduce-branching/SKILL.md"),
     ),
     (
+        "split-boolean-expression",
+        include_str!("../shared/skills/control-flow/split-boolean-expression/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),

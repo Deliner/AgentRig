@@ -1,5 +1,6 @@
-purpose: "Repair function control-flow complexity: deep nesting and branch overload"
+purpose: "Repair function control-flow complexity: deep nesting, branch overload and long boolean expressions"
 files: {}
 directories:
   flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
   reduce-branching: "Reduce the decision points per function while preserving behavior"
+  split-boolean-expression: "Split long boolean expressions into named parts while preserving behavior"

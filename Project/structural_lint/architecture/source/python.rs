@@ -45,10 +45,9 @@ fn loader_aliases(source: &mut Source<'_>, node: Node<'_>, module: &str) {
             continue;
         };
         let imported = source.text(original);
-        let loader = imported == "importlib"
-            || imported.starts_with("importlib.")
-            || imported == "builtins"
-            || (loader_module && matches!(imported, "import_module" | "__import__"));
+        let importlib = imported == "importlib" || imported.starts_with("importlib.");
+        let loader_function = loader_module && matches!(imported, "import_module" | "__import__");
+        let loader = importlib || imported == "builtins" || loader_function;
         if loader {
             source.unsupported(name, "aliased Python module loader needs binding analysis");
         }

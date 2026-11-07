@@ -207,12 +207,10 @@ fn observed(context: &Context) -> Result<Value> {
         .as_ref()
         .map(|saved| content::index(&context.root).map(|current| current == *saved))
         .transpose()?;
-    let current = revision_matches
-        && content_matches
-        && index_matches.unwrap_or(true)
-        && record.status == "completed";
-    let full_gate_passed =
-        current && record.only.is_none() && !record.selective && record.code == Some(0);
+    let unchanged = revision_matches && content_matches && index_matches.unwrap_or(true);
+    let current = unchanged && record.status == "completed";
+    let full_run = record.only.is_none() && !record.selective;
+    let full_gate_passed = current && full_run && record.code == Some(0);
     Ok(
         json!({"last_run": record, "revision_matches": revision_matches, "worktree_matches": content_matches, "index_matches": index_matches,
         "current": current, "full_gate_passed": full_gate_passed}),

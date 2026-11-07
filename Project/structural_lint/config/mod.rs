@@ -142,10 +142,9 @@ impl Rule {
             rules::Parameters::Level { .. }
         );
         if policy {
-            let invalid_level = self.level.is_none()
-                || self.warning.is_some()
-                || self.error.is_some()
-                || !self.overrides.is_empty();
+            let thresholds =
+                self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
+            let invalid_level = self.level.is_none() || thresholds;
             if invalid_level {
                 bail!(
                     "{}: {} needs level, no thresholds or overrides",

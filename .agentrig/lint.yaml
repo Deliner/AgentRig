@@ -192,6 +192,19 @@ rules:
   error: 5
   warning_skill: .agents/skills/reduce-branching/SKILL.md
   error_skill: .agents/skills/reduce-branching/SKILL.md
+# DECISION: D120
+- id: boolean-expression
+  kind: boolean-expression
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  - .py
+  - .pyi
+  error: 3
+  warning_skill: .agents/skills/split-boolean-expression/SKILL.md
+  error_skill: .agents/skills/split-boolean-expression/SKILL.md
 # DECISION: D065
 - id: unsafe-justification
   kind: unsafe-justification

@@ -144,6 +144,7 @@ impl Settings {
 fn identifier(name: &str) -> bool {
     !name.is_empty()
         && name.chars().enumerate().all(|(index, c)| {
-            c == '_' || c.is_ascii_alphabetic() || (index > 0 && c.is_ascii_digit())
+            let later_digit = index > 0 && c.is_ascii_digit();
+            c == '_' || c.is_ascii_alphabetic() || later_digit
         })
 }

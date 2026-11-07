@@ -138,10 +138,10 @@ impl Rust<'_> {
     fn external_name(&self, scope: &[String], name: &str) -> bool {
         let mut key = scope.to_vec();
         key.push(name.into());
-        self.external.contains(name)
-            && !self.modules.contains_key(&key)
-            && !self.items.contains(&key)
-            && !self.imports.contains_key(&key)
+        let local = self.modules.contains_key(&key)
+            || self.items.contains(&key)
+            || self.imports.contains_key(&key);
+        self.external.contains(name) && !local
     }
 
     fn external_path(&self, path: &str, first: &str) -> Result<Located> {

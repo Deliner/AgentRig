@@ -1,0 +1,5 @@
+purpose: "Split long boolean expressions into named parts while preserving behavior"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to name groups of boolean operands while preserving behavior"
+directories: {}

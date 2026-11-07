@@ -96,10 +96,10 @@ fn catalog(context: &Context, findings: &mut Findings) {
     }
 }
 fn path_like(argument: &str) -> bool {
-    argument.contains('/')
-        && !argument.starts_with(['-', '/'])
-        && !argument.contains("://")
-        && !argument.contains(char::is_whitespace)
+    let other_form = argument.starts_with(['-', '/'])
+        || argument.contains("://")
+        || argument.contains(char::is_whitespace);
+    argument.contains('/') && !other_form
 }
 fn record_problems(context: &Context, name: &str, item: &Removed) -> Vec<String> {
     let entry = format!("tools.removed.{name}");
