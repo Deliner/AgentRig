@@ -7,7 +7,7 @@ files:
   guard_await.rs: Rust std lock guard bound by let and still alive at a later .await of the same block, lacking a reference on the line above
   silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries or an Err arm answering a bool verdict
   super_reach.rs: Rust path reaching two module levels up through super::super in a use declaration, an expression or a type
-  secret_debug.rs: Rust named field of a struct deriving Debug, directly or inside cfg_attr, with a secret name and a string or byte type
+  derived_trait.rs: Rust struct whose derived trait bypasses its own handling, a Debug printing a field with a secret name and a string or byte type, or a Deserialize skipping the check of a constructor in the same file
   recursive_deletion.rs: Rust remove_dir_all call reached through a path, a bare name or a method, in source and in macro bodies
   suppression.rs: Rust allow, expect and ignore attributes, direct or as a cfg_attr argument, lacking a reference on the line above
   tuple_record.rs: Rust function signature using a tuple of three or more elements with a scalar as a record, top-level or nested in a generic or array type, outside test code and lacking a reference above it

@@ -8,13 +8,13 @@ use crate::structural_lint::rules::structure::Structure;
 use std::path::Path;
 
 mod async_code;
+mod derived_trait;
 mod global_state;
 mod manifest;
 mod markers;
 mod ord_equality;
 mod panic_surface;
 mod recursive_deletion;
-mod secret_debug;
 mod silent_error;
 mod super_reach;
 mod tuple_as_record;

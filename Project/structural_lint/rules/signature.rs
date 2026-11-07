@@ -12,6 +12,7 @@ pub enum Signature {
     TupleAsRecord,
     OrdEqMismatch,
     SecretDebug,
+    UncheckedDeserialize,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -21,6 +22,7 @@ impl Signature {
             Self::TupleAsRecord => &TUPLEASRECORD,
             Self::OrdEqMismatch => &ORDEQMISMATCH,
             Self::SecretDebug => &SECRETDEBUG,
+            Self::UncheckedDeserialize => &UNCHECKEDDESERIALIZE,
         }
     }
 }
@@ -82,5 +84,17 @@ const SECRETDEBUG: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a derived Debug prints the secret in full wherever the struct reaches {:?}, a log macro or a panic message; wrap the secret in a type whose Debug prints a placeholder, or write Debug by hand without the value",
+    },
+};
+// DECISION: D131
+const UNCHECKEDDESERIALIZE: Descriptor = Descriptor {
+    default_id: "unchecked-deserialize",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust struct deriving Deserialize, directly or inside cfg_attr, with a checking constructor in the same file: a function without self in its inherent impl, impl TryFrom or impl FromStr, returning a Result or Option of Self, that refuses on a parameter tested by an if returning Err or None, calling bail! or panic! or ending in Err or None, by ensure! or by then or then_some, and stores that parameter in a named or tuple field without serde deserialize_with or with; one finding per struct, none with serde try_from or from on the struct, a manual Deserialize impl in the file or in test code",
+    skill: "check-deserialize",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the derived Deserialize builds the value without the check its constructor enforces, so data from a file or the network bypasses the invariant; route deserialization through the same check, for example serde(try_from = ...) from a raw shape",
     },
 };

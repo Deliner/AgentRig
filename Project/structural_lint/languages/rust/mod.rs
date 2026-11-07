@@ -1,10 +1,10 @@
 mod blocking_async;
 mod context;
+mod derived_trait;
 mod global_state;
 mod guard_await;
 mod ord_equality;
 mod recursive_deletion;
-mod secret_debug;
 mod silent_error;
 mod super_reach;
 mod suppression;
@@ -26,8 +26,8 @@ use tree_sitter::Node;
 // DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
-        "source_file" => ord_equality::inspect(node, source, output),
-        "struct_item" => secret_debug::inspect(node, source, output),
+        "source_file" => file_items(node, source, output),
+        "struct_item" => derived_trait::secret_debug(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
@@ -76,6 +76,10 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         symbol: "literal".into(),
         actual: (node.end_position().row - first + 1) as u64,
     });
+}
+fn file_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    ord_equality::inspect(node, source, output);
+    derived_trait::unchecked_deserialize(node, source, output);
 }
 fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     panic_call(node, source, output);
