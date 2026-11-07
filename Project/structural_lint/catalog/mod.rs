@@ -12,11 +12,11 @@ use serde_json::{Value, json};
 use std::path::Path;
 
 // DECISION: D133
+// DECISION: D134
 impl<'de> Deserialize<'de> for Kind {
     fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
         let name = String::deserialize(deserializer)?;
-        let known = ALL.iter().copied().find(|kind| kind.to_string() == name);
-        known.ok_or_else(|| {
+        family(&name).ok_or_else(|| {
             let names: Vec<String> = ALL.iter().map(|kind| format!("`{kind}`")).collect();
             de::Error::custom(format!(
                 "unknown variant `{name}`, expected one of {}",
@@ -24,6 +24,16 @@ impl<'de> Deserialize<'de> for Kind {
             ))
         })
     }
+}
+fn family(name: &str) -> Option<Kind> {
+    let value = || Value::from(name);
+    serde_json::from_value(value())
+        .map(Kind::Structure)
+        .or_else(|_| serde_json::from_value(value()).map(Kind::ControlFlow))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Signature))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Ownership))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Reference))
+        .ok()
 }
 
 // DECISION: D016

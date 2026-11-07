@@ -4,37 +4,36 @@
 
 Пользователь 2026-11-07 выбрал для P089 разбиение `Kind` на семейные перечисления («Ок, принимаем 1 пункт. Делай все
 оставшиеся карточки»). Выбрано **P087 → P090**; P087, P088 и P090 слиты в master, последний merge `5f02cdc`.
-**P089** (B080, `unchecked-deserialize`) активен, см. [P089](Plan/089.md). VAC A, разбиение `Kind` по
-[D133](Decisions/133.md), закоммичен. VAC B: фаза 1 нового вида, инертно.
+**P089** (B080, `unchecked-deserialize`) активен, см. [P089](Plan/089.md). Текущий VAC C: разбор имени вида через
+семейства по [D134](Decisions/134.md), потому что рантайм мид-пина не принял инертный вид в `lint.yaml`.
 
 ## Workspace
 
 Branch: `feature/unchecked-deserialize`
-Revision: `84aba7f28538a11aaa79ecf5a6c349507fd5a5fd` (VAC B; коммит мид-пина следует)
+Revision: `ec9eebe5ce63f9f4b1ef8ba3646fa367b10d2a35` (мид-пин `84aba7f`; VAC C не закоммичен)
 
-Stash P089 применён и удалён. Ветки `feature/clippy-delivery`,
-`feature/init-probe` и прежние сохранены. Установленный рантайм — `84aba7f`. macOS: коммиты, слияние и вызовы с cargo
-через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
+В рабочем дереве также лежат незакоммиченные части фазы 2: навык `signature/check-deserialize`, его symlink и
+описания в `architecture.yaml` групп навыков. В коммит VAC C они не входят. Ветки `feature/clippy-delivery`,
+`feature/init-probe` и прежние сохранены. Установленный рантайм — `84aba7f`. macOS: коммиты, слияние и вызовы с
+cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
-- VAC A `fcc4f1e`: `Kind` разбит на пять семейств по D133, ссылки решений перенесены; гейт коммита PASS.
-- VAC B: работа из stash; `languages/rust/derived_trait.rs` вместо `secret_debug.rs` с детекторами `secret_debug`
-  (D130) и `unchecked_deserialize` (D131); `type_name` и `plain_name` в `languages/rust/context`; восемь тестов в
-  `languages/tests/derived_trait.rs`; вид `Signature::UncheckedDeserialize` с дескриптором в `rules/signature.rs`;
-  D131 и строка индекса; ссылки D130 перенесены на `derived_trait.rs`. Вид не входит в `catalog::ALL` и в
-  обработчик Rust: фаза 1 инертна. VAC B `84aba7f`, гейт коммита PASS: rust-test 137, test 226.
-- Мид-пин D051: `stable.txt` — `84aba7f`, `just bootstrap` установил его.
-- Осталось: коммит мид-пина; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр, навык
-  `check-deserialize`, `assets.rs`, список решённых в `test_config_check.py`, проверка AC1–AC4, ротация, пин,
-  `just feature-merge`.
+- VAC A `fcc4f1e`: `Kind` разбит на пять семейств по D133, ссылки решений перенесены; гейт PASS.
+- VAC B `84aba7f`: инертный вид `Signature::UncheckedDeserialize`, детектор в `languages/rust/derived_trait.rs`,
+  восемь тестов, D131; гейт PASS: rust-test 137, test 226. Мид-пин `ec9eebe`.
+- Фаза 2 упёрлась в D133: установленный `84aba7f` разбирает имя только среди `catalog::ALL`, и хук заблокировал
+  правки после добавления правила в `lint.yaml`. Правило убрано, `just config-check` проходит.
+- VAC C: семейства выводят `Deserialize`, `Kind` разбирает имя через них в `catalog/mod.rs`, сообщение об ошибке
+  прежнее; D134 и строка индекса со строкой о замене D133.
+- Осталось: коммит VAC C, второй мид-пин; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр,
+  навык, `assets.rs`, список решённых в `test_config_check.py`, проверка AC1–AC4, ротация, пин, `just feature-merge`.
 
 ## Verification
 
-- `cargo test`: 163 passed; `just run clippy`: код 0; `just candidate lint`: код 0.
-- `just candidate memory-check`: только прежнее предупреждение D112 о `tree-sitter-rust/grammar.js`.
-- VAC A: `lint-rules` установленного рантайма и кандидата совпадают побайтно; `lint-rule panic-pathx` выдаёт
-  «unknown variant `panic-pathx`, expected one of …», код 2.
+- VAC C: `cargo test` 163 passed; `just run clippy` код 0. Кандидат: `lint-rule unchecked-deserialize --example`
+  выводит правило; `lint-rule nope` выдаёт «unknown variant `nope`, expected one of …». Установленный `84aba7f` на
+  `lint-rule unchecked-deserialize` выдаёт «unknown variant».
 
 ## Blockers
 
@@ -42,5 +41,5 @@ Stash P089 применён и удалён. Ветки `feature/clippy-delivery
 
 ## Next action
 
-Закоммитить мид-пин, затем фаза 2 P089 одним VAC.
-Свободные ID: D134+, I022+, P091+, B083+ (B066 и D111 зарезервированы).
+Закоммитить VAC C только с файлами разбора и Ledger, затем второй мид-пин D051 и фаза 2 P089.
+Свободные ID: D135+, I022+, P091+, B083+ (B066 и D111 зарезервированы).

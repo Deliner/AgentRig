@@ -1,10 +1,10 @@
 use super::descriptor::Descriptor;
 use super::parameters::Parameters;
 use crate::shared::diagnostics::lint::Level as Severity;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 // DECISION: D133
-#[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
 pub enum ControlFlow {
     NamedIfCondition,
