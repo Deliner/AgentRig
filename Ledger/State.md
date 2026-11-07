@@ -2,42 +2,30 @@
 
 ## Focus
 
-Программа **P083 → P086** (пользователь 2026-11-07: «бери все и делай») — карточки B075–B078 по одной за ветку,
-автономно. P083, P084 и P085 выполнены и слиты, master `52cfe55`. Сейчас **P086** (B075 clippy-types), VAC 5 —
-пин D051 после VAC 5 `51423f2`; осталось слияние.
+Пользователь 2026-11-07: «сохраняй все карточки, заведи отдельную карточку на клипе, и после этого автономно
+реализуй все это». Сохраняются B079 `secret-debug`, B080 `unchecked-deserialize`, B081 профиль dev-гейта
+(`map_err_ignore`, `partial_pub_fields`, `struct_excessive_bools`), B082 поставка профиля clippy через `init` и решение
+D128 о стандарте для нового кода. Затем по одной ветке на карточку: P087 B081 → P088 B079 → P089 B080 → P090 B082
+(B082 зависит от B081).
 
 ## Workspace
 
-Branch: `feature/clippy-types`
-Revision: `51423f2bc540ba6848a07ebd0847737254c35b30`
+Branch: `feature/list-rule-cards`
+Revision: `cb258b786f120cb189f925c485b4aeb3c03fdba4`
 
-База — master `52cfe55`. Ветки `feature/exit-code`, `feature/disallowed-methods` и прежние, а также
-`feature/init-probe`, сохранены. Установленный рантайм — `51423f2`. macOS: в PATH `just write`/`just run`/
-`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
+База — master `cb258b7`, P086 слит. Ветки `feature/clippy-types` и прежние, а также `feature/init-probe`, сохранены.
+Установленный рантайм — `51423f2`. macOS: в PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo —
+коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
-Диск был заполнен до 128 МБ: первый коммит VAC 1 упал с «No space left on device»; `cargo clean --profile dev` для
-`.cache/worker` освободил 19,2 ГБ.
 
 ## Progress
 
-- P086 VAC 1 `666e61a`: `-D clippy::string_slice`, 15 сайтов без среза строки, `text()` в
-  `structural_lint/languages/measure/mod.rs` под justified allow, решение D127 на весь набор.
-- P086 VAC 2 `b28b9bd`: `-D clippy::iter_over_hash_type`; `graph` в `plan` и параметр `acyclic` — `BTreeMap`.
-- P086 VAC 3 `211b6b1` и VAC 4 `0073f22`: `-D clippy::collection_is_never_read` и `-D clippy::read_zero_byte_vec`.
-- P086 VAC 5 `51423f2`: `-D clippy::unchecked_time_subtraction`; Delivery в Archive/Plan/086.md; P086 и B075
-  перенесены в Archive, ссылка card в индексе D127 ведёт в Archive/Backlog/075.md; Plan и Backlog пусты.
-- Пин D051: `stable.txt` — `51423f2`, `just bootstrap` — код 0.
-- Осталось: слияние.
+- Карточки B079–B082 и строки индекса Backlog записаны; D128 и строка индекса записаны. Не закоммичено.
+- Замер clippy на `cb258b7` для B081: `map_err_ignore` 3, `partial_pub_fields` 3, `struct_excessive_bools` 0.
 
 ## Verification
 
-- `just run clippy` с новым `-D` — код 0; проба в `Project/lib.rs`: `timeout - elapsed` для `Duration` — код 101 с
-  ошибкой «unchecked subtraction of a `Duration`», после удаления — код 0.
-- Гейт коммита `51423f2`: все проверки PASS, rust-test 155 и test 114 passed.
-- `just bootstrap` на `51423f2`: код 0, `agentrig 0.3.0`.
-- Гейт коммита `0073f22`: все проверки PASS, test 114 passed; проба `read` в `Vec::with_capacity(8192)` — код 101 с
-  «reading zero byte data to `Vec`».
-- Гейты `666e61a` (rust-test 155, test 352), `b28b9bd` (test 233), `211b6b1` (test 114): все проверки PASS.
+Нет проверки для текущего содержимого ветки.
 
 ## Blockers
 
@@ -45,4 +33,5 @@ Revision: `51423f2bc540ba6848a07ebd0847737254c35b30`
 
 ## Next action
 
-Коммит пина D051 через хук, затем `just feature-merge` для `feature/clippy-types`; ветку сохранить. Свободные ID: D128+, I022+, P087+, B079+ (B066 и D111 зарезервированы).
+Коммит карточек и D128 через хук, `just feature-merge`, затем ветка P087 для B081 с выбором P087–P090 в Plan.
+Свободные ID: D129+, I022+, P087+, B083+ (B066 и D111 зарезервированы).
