@@ -3,39 +3,42 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P074 завершены и слиты в master `2a52e3e`. **P075** (B050 guard-across-await) завершена и в
-архиве; ветка ждёт финального пина и слияния. Следующая — P076 (B070 blocking-in-async).
+одной за ветку. P071–P075 завершены и слиты в master `edc76fa`. Активна **P076** (B070 blocking-in-async), фаза 1.
 Исследования вне Ledger завершены: `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md`;
 их итог станет новыми карточками Backlog по уже данному согласию пользователя.
 
 ## Workspace
 
-Branch: `feature/guard-across-await`
-Revision: `8d84ef8cffa044651c39219ddca3bb0e1a110fa6`
+Branch: `feature/blocking-in-async`
+Revision: `edc76fac39d902170ab26c4a315bb85c8eb6da0c`
 
-База — master `2a52e3e`. VAC 1 `1f023ea`, мид-бранч пин, VAC 2 `8d84ef8`; этот снимок входит в коммит финального
-пина D051: `stable.txt` = `8d84ef8`, `just bootstrap` выполнен.
+База — master `edc76fa`, слияние `feature/guard-across-await`. Этот снимок входит в коммит VAC 1 фазы 1.
 
-Ветки `feature/panic-surface`, `feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`,
-`feature/backlog-research-cards`, `feature/delivery-repairs`, `feature/state-refresh` и `feature/init-probe`
-сохранены. macOS: в PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с
-cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
+Ветки `feature/guard-across-await`, `feature/panic-surface`, `feature/discarded-variants`, `feature/self-hygiene`,
+`feature/feature-cfg`, `feature/backlog-research-cards`, `feature/delivery-repairs`, `feature/state-refresh` и
+`feature/init-probe` сохранены. macOS: в PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo —
+коммиты и вызовы с cargo через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
 `cargo fmt --manifest-path Project/Cargo.toml`; поставка — `just candidate <команда> --root <каталог>`.
 
 ## Progress
 
-- VAC 2, фаза 2: вид `GuardAcrossAwait` подключён в `catalog::ALL` и обработчик Rust, правило
-  `guard-across-await` с `level: warning` в `.agentrig/lint.yaml`, навык `ownership/release-the-guard` и его ассет,
-  список `decided` в `test_config_check.py`; Delivery в [Archive/Plan/075.md](Archive/Plan/075.md), P075 и B050 в
-  архиве.
-- VAC 1 `1f023ea`, фаза 1: решение [D117](Decisions/117.md), дескриптор с уровнем по умолчанию, детектор
-  `languages/rust/guard_await.rs`, тесты; `languages` стал составным с частями `rust/` и `measure/`.
+- VAC 1, фаза 1: решение [D118](Decisions/118.md). Инертный вид `BlockingInAsync`, дескриптор
+  `blocking-in-async` с уровнем warning, детектор `languages/rust/blocking_async.rs`; общий модуль
+  `languages/rust/async_context.rs` задаёт границу области для обоих async-правил, `guard_await.rs` его использует.
+  Тесты обоих правил объединены в `languages/tests/async_code.rs`, каталог тестов остаётся в лимите 15 записей.
+- Замер на корпусе r8: 565 Rust-файлов с `async` и `sleep` или `block_on`, 6 находок, все по критерию AC1; 4 похожи
+  на ошибки (rustdesk `ipc.rs:2272`, zed `predict.rs:792`, `repair.rs:511`, `server.rs:1174`), 2 намеренные
+  (zed `db.rs:254` тестовая поддержка, `hang_detection.rs:50` отладочное зависание). Для замера вид временно
+  подключался в каталог и обработчик, затем отключён.
+- Осталось: коммит VAC 1, мид-бранч пин, фаза 2 — каталог `ALL`, `HANDLERS`, правило `.agentrig/lint.yaml` с
+  `level: warning`, навык `await-not-block` и его ассет, список `decided`, Delivery, ротация P076/B070, финальный
+  пин, `just feature-merge`.
 
 ## Verification
 
-- 2026-11-07: гейт VAC 1 `1f023ea` зелёный — rust-test 124 passed, test 383 passed, остальные проверки PASS.
-- 2026-11-07: гейт VAC 2 `8d84ef8` зелёный — rust-test 136 passed, test 331 passed, остальные проверки PASS;
-  потребитель после `just candidate init` получает `WARNING [guard-across-await]` с `--warnings`.
+- 2026-11-07, рабочее дерево до коммита VAC 1: `just candidate lint` чист; `just run rust-test -- structural_lint`
+  102 passed, включая 4 теста `async_code`.
 
 ## Blockers
 
@@ -43,5 +46,5 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 
 ## Next action
 
-`just feature-merge` ветки `feature/guard-across-await`; далее P076
-(B070). Свободные ID: D118+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан B069).
+Закоммитить VAC 1 через pre-commit, затем мид-бранч пин и фаза 2 P076. Свободные ID: D119+, I022+, P083+, B075+
+(B066 и D111 зарезервированы, D112 обещан B069).

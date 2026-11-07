@@ -1,3 +1,5 @@
+mod async_context;
+mod blocking_async;
 mod global_state;
 mod guard_await;
 mod recursive_deletion;
@@ -57,6 +59,7 @@ fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     silent_error::collapsed_read_dir(node, source, output);
     recursive_deletion::inspect(node, source, output);
     unwind_catch::inspect(node, source, output);
+    blocking_async::inspect(node, source, output);
 }
 fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {

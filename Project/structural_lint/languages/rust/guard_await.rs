@@ -1,3 +1,4 @@
+use super::async_context::scope_boundary;
 use super::test_context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
@@ -89,10 +90,7 @@ fn dropped(statement: Node<'_>, name: &str, source: &str) -> bool {
     statement.kind() == "expression_statement" && drop && guard
 }
 fn awaits(node: Node<'_>) -> bool {
-    let nested = matches!(
-        node.kind(),
-        "closure_expression" | "async_block" | "function_item"
-    );
+    let nested = scope_boundary(node);
     if nested {
         return false;
     }

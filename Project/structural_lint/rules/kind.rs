@@ -33,6 +33,7 @@ pub enum Kind {
     RecursiveDeletion,
     UnwindJustification,
     GuardAcrossAwait,
+    BlockingInAsync,
     CommentReference,
     DirectoryArchitecture,
 }

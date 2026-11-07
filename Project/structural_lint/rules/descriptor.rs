@@ -77,6 +77,7 @@ impl Kind {
             Self::RecursiveDeletion => &RECURSIVEDELETION,
             Self::UnwindJustification => &UNWINDJUSTIFICATION,
             Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
+            Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -461,5 +462,17 @@ const GUARDACROSSAWAIT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Warning,
         violation: "a std lock guard held across .await blocks every task that needs the lock while this one is suspended, deadlocks a single-threaded executor and makes the future !Send; drop the guard in an inner block or with drop before the .await, use an async-aware lock, or put a DECISION: or INVARIANT: reference on the line directly above the binding to justify it",
+    },
+};
+// DECISION: D118
+const BLOCKINGINASYNC: Descriptor = Descriptor {
+    default_id: "blocking-in-async",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust call whose path ends in thread::sleep, a bare sleep imported from a thread module in the same file, or a function or method named block_on, inside an async fn or async block with no closure or ordinary fn between the call and that boundary, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    skill: "await-not-block",
+    parameters: Parameters::Level {
+        default: Severity::Warning,
+        violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
     },
 };
