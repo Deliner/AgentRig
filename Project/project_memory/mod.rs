@@ -21,7 +21,7 @@ use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
 use format::{Catalog, Row, sections, table, target};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeMap, HashMap, HashSet},
     path::Path,
 };
 
@@ -154,7 +154,7 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
         index.len() == rows.len(),
         "duplicate ID across Plan and Archive"
     );
-    let mut graph = HashMap::new();
+    let mut graph = BTreeMap::new();
     for row in &rows {
         graph.insert(row.id.as_str(), dependencies(row, &index)?);
     }
@@ -211,7 +211,8 @@ fn dependencies<'a>(row: &'a Row, index: &HashMap<&str, &Row>) -> Result<Vec<&'a
     }
     Ok(dependencies)
 }
-fn acyclic(graph: &HashMap<&str, Vec<&str>>) -> Result<()> {
+// DECISION: D127
+fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
     let mut done = HashSet::new();
     while done.len() < graph.len() {
         let before = done.len();

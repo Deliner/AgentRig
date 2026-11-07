@@ -108,6 +108,8 @@ clippy:
   - clippy::print_stderr
   - -D
   - clippy::string_slice
+  - -D
+  - clippy::iter_over_hash_type
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
