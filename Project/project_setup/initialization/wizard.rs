@@ -34,6 +34,7 @@ pub fn run(root: &Path) -> Result<i32> {
         crate::shared::fs::create_dir_all(&root)?;
         super::init::install(&root, config, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
+        super::init::offer_ratchet(&root, config)?;
         package::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()

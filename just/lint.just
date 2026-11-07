@@ -10,6 +10,10 @@ lint-rules:
 lint-config-check *args:
     @tooling/worker/run lint-config-check "$@"
 
+# What: record the lint baseline; Why: accept existing errors and fail only when they grow.
+lint-baseline *args:
+    @tooling/worker/run lint-baseline "$@"
+
 # What: describe a lint rule; Why: inspect supported parameters and valid examples.
 lint-rule *args:
     @tooling/worker/run lint-rule "$@"

@@ -2,8 +2,8 @@ purpose: Compose lint capabilities into configuration checks, source evaluation 
 files:
   mod.rs: Configuration checks and configured diagnostic output
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings
+  baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
   cli.rs: Embedded and standalone command arguments and rule discovery output
-  standalone.rs: Standalone lint executable entry and process exit reporting
   explain.rs: Explain why a configured rule selects or excludes a target
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers

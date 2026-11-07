@@ -21,7 +21,24 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
         options["language"],
         project_config::VERSION
     ));
+    offer_ratchet(root, &scaffold.config)?;
     Ok(0)
+}
+// DECISION: D123
+pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
+    let disabled = !config.capabilities.lint;
+    if disabled {
+        return Ok(());
+    }
+    let lint = project_config::relative(root, &config.paths.lint)?;
+    let errors = crate::structural_lint::baseline::errors(root, &lint)?;
+    let existing = errors > 0;
+    if existing {
+        console::stdout(format!(
+            "Lint errors in existing files: {errors}. To adopt the rules without blocking the gate, run just lint-baseline: lint then fails only when a rule's errors in a path grow."
+        ));
+    }
+    Ok(())
 }
 pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()> {
     check_collisions(root, files)?;

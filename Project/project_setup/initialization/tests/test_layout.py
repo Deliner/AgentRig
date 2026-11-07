@@ -44,10 +44,27 @@ path = "../../../outside.rs"
 def test_default_layout_keeps_memory_in_ledger_and_sources_in_project(
     worker: Path, tmp_path: Path
 ) -> None:
-    assert invoke(worker, tmp_path, "init").returncode == 0
+    result = invoke(worker, tmp_path, "init")
+    assert result.returncode == 0
+    assert "lint-baseline" not in result.stdout
     paths = read_config(tmp_path)["paths"]
     assert (paths["memory"], paths["sources"]) == ("Ledger", ["Project/**"])
     assert (tmp_path / "Ledger/State.md").is_file()
+
+
+# DECISION: D123
+def test_init_offers_a_lint_baseline_for_errors_in_existing_files(
+    worker: Path, tmp_path: Path
+) -> None:
+    (tmp_path / "README.md").write_text("x" * 130 + "\n", encoding="utf-8")
+    result = invoke(worker, tmp_path, "init")
+    assert result.returncode == 0, result.stderr
+    assert "Lint errors in existing files: 1." in result.stdout
+    assert "just lint-baseline" in result.stdout
+    assert "lint-baseline *args:" in (tmp_path / "just/lint.just").read_text()
+    assert invoke(worker, tmp_path, "lint").returncode == 1
+    assert invoke(worker, tmp_path, "lint-baseline").returncode == 0
+    assert invoke(worker, tmp_path, "lint").returncode == 0
 
 
 def test_rust_init_derives_a_binary_crate_from_the_root_manifest(

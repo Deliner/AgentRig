@@ -35,6 +35,13 @@ Policy rules take a level. Ordered overrides change thresholds for matching path
 removes paths from the inventory; a rule's exclude only hides its findings. Globs are case-sensitive, `*` matches one
 path component and `**` any depth; the root directory is `.`. The inventory is Git's tracked and non-ignored files.
 
+Ratchet mode holds while `lint-baseline.yaml` lies beside `lint.yaml`, named after the configuration file. It maps
+rule IDs to paths and their accepted error counts. Errors within a path's count become warnings; a rule's errors in
+a path above it all stay errors, and counts below it are reported for lowering. `just lint-baseline` records the
+current counts, later only lowers them and never adds new pairs; delete the file to accept new errors. `init` offers
+it when existing files already have errors. The gate reads the baseline from the tree it checks, staged under
+`--staged`.
+
 Rust (`.rs`) and Python (`.py`, `.pyi`) files are parsed once per run with Tree-sitter; a file that does not parse
 fails with its location. Rust uses the fork of tree-sitter-rust 0.24.2 in `shared/syntax/tree-sitter-rust`, which also
 parses `safe` items of `unsafe extern` blocks, macros named after primitive types and lifetimes first after `dyn`;
