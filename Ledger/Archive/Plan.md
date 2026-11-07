@@ -81,3 +81,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P083](Plan/083.md) | complete | - | [B077](Backlog/077.md): impact-coverage — `config-check` находит пути вне карты влияния ([D124](../Decisions/124.md)) | Новый путь без записи в карте виден до коммита. |
 | [P084](Plan/084.md) | complete | - | [B078](Backlog/078.md): disallowed-methods — методы ФС с ошибкой без пути ([D125](../Decisions/125.md)) | Ошибка файловой системы всегда называет действие и путь. |
 | [P085](Plan/085.md) | complete | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов ([D126](../Decisions/126.md)) | Ошибка команды не становится молча ответом «нет». |
+| [P086](Plan/086.md) | complete | - | [B075](Backlog/075.md): clippy-types — пять линтов clippy с типами в dev-гейте ([D127](../Decisions/127.md)) | Гейт ловит классы дефектов, которым нужны типы. |

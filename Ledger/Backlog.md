@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B075](Backlog/075.md) | Профиль dev-гейта: `string_slice`, `iter_over_hash_type`, `collection_is_never_read`, `read_zero_byte_vec`, `unchecked_time_subtraction` с ремонтом 17 сайтов | Гейт ловит паники среза строк, нестабильный порядок вывода, потерянные находки, обрезанное чтение и паники вычитания времени — классы, которым нужны типы. |
