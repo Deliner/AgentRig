@@ -1,3 +1,4 @@
+use crate::structural_lint::architecture::source::model::PropagatedCall;
 use crate::structural_lint::architecture::{self as architecture, Disallowed, Issue};
 use anyhow::Result;
 use globset::GlobSet;
@@ -28,6 +29,28 @@ impl<'a> Policy<'a> {
             message: format!(
                 "`{path}` is disallowed here: {}; use {}",
                 entry.reason, entry.replacement
+            ),
+        })
+    }
+
+    // DECISION: D125
+    pub fn methods(&self, file: &Path, calls: &[PropagatedCall]) -> Vec<Issue> {
+        calls
+            .iter()
+            .filter_map(|call| self.method(file, call))
+            .collect()
+    }
+
+    fn method(&self, file: &Path, call: &PropagatedCall) -> Option<Issue> {
+        let (entry, _) = self.entries.iter().find(|(entry, allowed)| {
+            entry.methods.contains(&call.method) && !allowed.is_match(file)
+        })?;
+        Some(Issue {
+            path: file.into(),
+            line: Some(call.line),
+            message: format!(
+                "`.{}()` with its error propagated is disallowed here: {}; use {}",
+                call.method, entry.reason, entry.replacement
             ),
         })
     }

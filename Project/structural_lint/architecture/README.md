@@ -29,11 +29,10 @@ or regular non-symlink files outside Git; Git metadata and symlinked directories
 
 `architecture` and explicit extensions are required. `python_root` defaults to the project root. `rust_roots` lists
 the actual crate roots (`[]` without Rust); `rust_crates` maps further local crate names to roots also listed there.
-External names are module or package prefixes, not globs; Rust defaults to `std`, `core` and `alloc`. An external name
-cannot hide a locally resolved path. `disallowed` entries (`path`, `reason`, `replacement`, `allow` file globs) flag a
-reference resolved to that Rust path or a `::` subpath from a file outside `allow`, naming the reason and replacement.
-
-`level: warning` reports without failing, `error` exits 1 and configuration errors exit 2.
+External names are literal module or package prefixes; Rust defaults to `std`, `core` and `alloc`, and none hides a
+locally resolved path. `disallowed` entries (`path`, `reason`, `replacement`, `allow` globs, optional `methods`) flag,
+outside `allow`, references to the path or a `::` subpath and bare calls of listed methods whose result goes straight
+to `?` or `.map_err(Into::into)`, by name. `warning` level only reports; `error` exits 1, configuration errors 2.
 
 ## Directory contracts
 
