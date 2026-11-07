@@ -10,9 +10,10 @@
 ## Workspace
 
 Branch: `feature/discarded-variants`
-Revision: `db422161c53988c8276e32f0c9d118940190598c`
+Revision: `42f40ba2d784a012a40f78a5ebdd14e2eb3aefa0`
 
-База — master `edd3715`, слияние `feature/self-hygiene`. VAC 1 `db42216`; этот снимок входит в финальный VAC.
+База — master `edd3715`, слияние `feature/self-hygiene`. VAC 1 `db42216`, финальный VAC `42f40ba`; этот снимок
+входит в коммит пина D051: `stable.txt` = `42f40ba`, `just bootstrap` выполнен.
 
 Ветки `feature/self-hygiene`, `feature/feature-cfg`, `feature/backlog-research-cards`, `feature/delivery-repairs`,
 `feature/state-refresh` и `feature/init-probe` сохранены. macOS: в PATH `just write`/`just run`/`just check`/
@@ -22,7 +23,7 @@ Revision: `db422161c53988c8276e32f0c9d118940190598c`
 
 ## Progress
 
-- Финальный VAC: Delivery в [Archive/Plan/073.md](Archive/Plan/073.md), P073 и B047 в архиве.
+- Финальный VAC `42f40ba`: Delivery в [Archive/Plan/073.md](Archive/Plan/073.md), P073 и B047 в архиве.
 - VAC 1 `db42216`: B047 AC1–AC2 — решение [D114](Decisions/114.md); `discarded_method` в `structural_lint/languages/rust.rs`
   ловит голые инструкции с последним вызовом `.err()`, `.map`, `.and_then`, `.map_or`, `.map_or_else`; дескриптор,
   навык `handle-discarded` и назначения его каталогов называют новые формы; тест
@@ -39,5 +40,5 @@ Revision: `db422161c53988c8276e32f0c9d118940190598c`
 
 ## Next action
 
-Закоммитить финальный VAC, пин D051, `just feature-merge`; затем
+`just feature-merge` ветки `feature/discarded-variants`; затем
 P074 (B048). Свободные ID: D115+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан B069).
