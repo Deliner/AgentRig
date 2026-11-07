@@ -1,5 +1,5 @@
 use super::{Source, Target, compact, scope};
-use crate::structural_lint::architecture::source::model::RustMacro;
+use crate::structural_lint::architecture::source::model::{RustItem, RustMacro};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
@@ -8,8 +8,12 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
         let source_inclusion =
             matches!(path.as_str(), "include" | "std::include" | "core::include");
         if source_inclusion {
-            source.unsupported(node, "Rust source include expansion is not analyzed");
+            include(source, node);
             return;
+        }
+        let defines_items = item_position(node);
+        if defines_items {
+            source.output.rust_generated.push(scope(source, node));
         }
         let local_import = !path.contains("::") && lexical_import(source, node, &path);
         if local_import {
@@ -33,6 +37,59 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
         let tokens = child.kind() == "token_tree";
         if tokens {
             inspect_tokens(source, child);
+        }
+    }
+}
+
+// DECISION: D136
+fn item_position(node: Node<'_>) -> bool {
+    let statement = node
+        .parent()
+        .filter(|parent| parent.kind() == "expression_statement");
+    super::module_item(statement.unwrap_or(node))
+}
+
+// DECISION: D136
+fn include(source: &mut Source<'_>, node: Node<'_>) {
+    let tokens = node
+        .named_children(&mut node.walk())
+        .find(|child| child.kind() == "token_tree");
+    let scope = scope(source, node);
+    if let Some(file) = tokens.and_then(|tokens| literal(source, tokens)) {
+        source.record(node, Target::RustInclude { file, scope });
+        return;
+    }
+    let generated = tokens.is_some_and(|tokens| build_output(source.text(tokens)));
+    if generated {
+        source.output.rust_generated.push(scope);
+    } else {
+        source.unsupported(
+            node,
+            "Rust source include needs a literal path or OUT_DIR build output",
+        );
+    }
+}
+
+fn build_output(tokens: &str) -> bool {
+    let compact: String = tokens.split_whitespace().collect();
+    compact
+        .strip_prefix("(concat!(env!(\"OUT_DIR\"),\"")
+        .and_then(|rest| rest.strip_suffix("\"))"))
+        .is_some_and(|name| !name.contains('"'))
+}
+
+// DECISION: D136
+pub(super) fn definition(source: &mut Source<'_>, node: Node<'_>) {
+    if let Some(name) = node.child_by_field_name("name") {
+        let item = RustItem {
+            name: compact(source.text(name)),
+            scope: scope(source, node),
+        };
+        source.output.rust_macros.push(item);
+    }
+    for rule in node.named_children(&mut node.walk()) {
+        if let Some(body) = rule.child_by_field_name("right") {
+            inspect_tokens(source, body);
         }
     }
 }
@@ -72,6 +129,11 @@ fn identifier(node: Node<'_>) -> bool {
     matches!(node.kind(), "identifier" | "crate" | "self" | "super")
 }
 
+// DECISION: D136
+fn path_start(source: &Source<'_>, node: Node<'_>) -> bool {
+    identifier(node) || (node.kind() == "metavariable" && source.text(node) == "$crate")
+}
+
 fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {
     let children: Vec<_> = tree
         .children(&mut tree.walk())
@@ -88,11 +150,11 @@ fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {
                 "declarations inside macro arguments require expansion and lexical analysis",
             );
         }
-        let nested = node.kind() == "token_tree";
+        let nested = matches!(node.kind(), "token_tree" | "token_repetition");
         if nested {
             inspect_tokens(source, node);
         }
-        let starts_path = identifier(node);
+        let starts_path = path_start(source, node);
         if starts_path {
             let TokenPath { path, next } = token_path(source, &children, index);
             let macro_call = children.get(next).is_some_and(|node| node.kind() == "!");
@@ -110,7 +172,7 @@ struct TokenPath {
     next: usize,
 }
 fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> TokenPath {
-    let mut path = compact(source.text(nodes[start]));
+    let mut path = compact(source.text(nodes[start])).replace("$crate", "crate");
     let mut index = start + 1;
     while let Some(pair) = nodes.get(index..index + 2) {
         let continuation = pair[0].kind() == "::" && identifier(pair[1]);
@@ -138,9 +200,10 @@ fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Opti
             }),
         );
     } else {
-        let qualified = path.contains("::");
-        if qualified {
-            let path = super::self_path(source, node, path);
+        let path = super::self_path(source, node, path);
+        // DECISION: D136
+        let resolvable = path.contains("::") && !path.starts_with("Self::");
+        if resolvable {
             super::record(source, node, Target::RustPath { path, scope });
         }
     }

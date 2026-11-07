@@ -162,11 +162,50 @@ fn malformed_syntax_never_returns_successful_empty_analysis() {
     assert!(extract(Path::new("app.go"), "package app").is_err());
 }
 
+// DECISION: D136
+#[test]
+fn rust_expansion_forms_become_includes_macro_paths_and_generated_scopes() {
+    let source = "include!(\"part.rs\");\nmod out { include!(concat!(env!(\"OUT_DIR\"), \"/gen.rs\")); }\nmacro_rules! make { () => { $crate::b::value(); Self::new() } }\nmake!();\n#[unsafe(no_mangle)] fn f() { use crate::c as d; d::run(); }\n#[custom::attr] fn g() {}";
+    let result = parse("src/lib.rs", source);
+    let found = targets(&result);
+    let include = Target::RustInclude {
+        file: "part.rs".into(),
+        scope: Vec::new(),
+    };
+    assert_eq!(found.first(), Some(&include), "{found:?}");
+    assert!(found.contains(&rust_path("crate::b::value")), "{found:?}");
+    assert!(found.contains(&rust_path("crate::c::run")), "{found:?}");
+    assert!(
+        found
+            .iter()
+            .all(|target| !format!("{target:?}").contains("Self"))
+    );
+    let attributes: Vec<_> = found
+        .iter()
+        .filter_map(|target| match target {
+            Target::RustMacro(call)
+                if call.path.contains("attr") || call.path.contains("mangle") =>
+            {
+                Some(call.path.as_str())
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(attributes, ["custom::attr"]);
+    let macros: Vec<_> = result
+        .rust_macros
+        .iter()
+        .map(|item| item.name.as_str())
+        .collect();
+    assert_eq!(macros, ["make"]);
+    assert_eq!(result.rust_generated, [vec!["out".to_owned()], Vec::new()]);
+}
+
 #[test]
 fn unsupported_dependency_forms_are_located_and_reported() {
     for (path, source) in [
         ("a.py", "importlib.import_module('.x', package)"),
-        ("a.rs", "include!(\"module.rs\");"),
+        ("a.rs", "include!(concat!(\"module\", \".rs\"));"),
         ("a.rs", "mod inline { #[path = \"other.rs\"] mod a; }"),
         ("a.rs", "macro_rules! make { () => { use crate::hidden; } }"),
     ] {

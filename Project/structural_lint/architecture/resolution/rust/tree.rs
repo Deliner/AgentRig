@@ -1,11 +1,34 @@
-use super::{Module, Rust, joined};
-use crate::structural_lint::architecture::resolution::normalize;
+use super::{Module, Pending, Rust, joined};
+use crate::structural_lint::architecture::resolution::{Resolved, normalize};
 use crate::structural_lint::architecture::source::{Reference, Target};
 use anyhow::{Context, Result, bail, ensure};
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeSet,
+    path::{Path, PathBuf},
+};
 
 impl Rust<'_> {
-    pub(super) fn load(&mut self, file: &Path) -> Result<Vec<PathBuf>> {
+    // DECISION: D136
+    pub(super) fn load_tree(&mut self, root: &Path) -> Result<()> {
+        self.modules.insert(
+            Vec::new(),
+            Module {
+                file: root.into(),
+                directory: root.parent().context("crate root has no parent")?.into(),
+            },
+        );
+        self.files.insert(root.into(), Vec::new());
+        let mut pending = vec![Pending {
+            file: root.to_path_buf(),
+            base: Vec::new(),
+        }];
+        while let Some(next) = pending.pop() {
+            pending.extend(self.load(&next.file, &next.base)?);
+        }
+        self.validate_expansions()
+    }
+
+    fn load(&mut self, file: &Path, base: &[String]) -> Result<Vec<Pending>> {
         let sources = self.sources;
         let source = sources
             .get(file)
@@ -18,20 +41,19 @@ impl Rust<'_> {
                 issue.message
             );
         }
-        let base = self.files[file].clone();
         let mut pending = Vec::new();
         for reference in &source.items {
-            if let Some(file) = self.declare(&base, reference)? {
-                pending.push(file);
-            }
+            pending.extend(self.declare(base, reference)?);
+            pending.extend(self.include(file, base, reference)?);
         }
         for item in &source.rust_items {
-            let mut key = joined(&base, &item.scope);
+            let mut key = joined(base, &item.scope);
             key.push(item.name.clone());
             self.items.insert(key);
         }
+        self.expansions(file, base);
         for import in &source.rust_imports {
-            let mut key = joined(&base, &import.scope);
+            let mut key = joined(base, &import.scope);
             key.push(import.name.clone());
             let ordinary = !matches!(import.name.as_str(), "_" | "*");
             if ordinary {
@@ -46,7 +68,66 @@ impl Rust<'_> {
         Ok(pending)
     }
 
-    fn declare(&mut self, base: &[String], reference: &Reference) -> Result<Option<PathBuf>> {
+    // DECISION: D136
+    fn expansions(&mut self, file: &Path, base: &[String]) {
+        let source = &self.sources[file];
+        for item in &source.rust_macros {
+            let mut key = joined(base, &item.scope);
+            key.push(item.name.clone());
+            self.macros.insert(key, file.into());
+        }
+        for scope in &source.rust_generated {
+            self.generated.insert(joined(base, scope));
+        }
+        for import in source
+            .rust_imports
+            .iter()
+            .filter(|import| import.name == "*")
+        {
+            let globs = self.globs.entry(joined(base, &import.scope)).or_default();
+            globs.push(import.path.clone());
+        }
+    }
+
+    // DECISION: D136
+    fn include(
+        &mut self,
+        file: &Path,
+        base: &[String],
+        reference: &Reference,
+    ) -> Result<Option<Pending>> {
+        let Target::RustInclude {
+            file: included,
+            scope,
+        } = &reference.target
+        else {
+            return Ok(None);
+        };
+        let target = included_file(file, included)?;
+        let base = joined(base, scope);
+        let fresh = self.sources.contains_key(&target)
+            && self
+                .included
+                .entry(target.clone())
+                .or_default()
+                .insert(base.clone());
+        Ok(fresh.then_some(Pending { file: target, base }))
+    }
+
+    pub(super) fn include_result(&self, source: &Path, file: &str) -> Result<Resolved> {
+        let target = included_file(source, file)?;
+        ensure!(
+            self.sources.contains_key(&target),
+            "included Rust source is absent from source inventory: {}",
+            target.display()
+        );
+        Ok(Resolved {
+            files: BTreeSet::from([target]),
+            external: None,
+        })
+    }
+
+    fn declare(&mut self, base: &[String], reference: &Reference) -> Result<Option<Pending>> {
         let Target::RustModule { path, inline, .. } = &reference.target else {
             return Ok(None);
         };
@@ -57,16 +138,19 @@ impl Rust<'_> {
             .get(&joined(base, parent))
             .context("parent module is unresolved")?;
         let module = self.module_location(parent, reference)?;
-        let pending = (!inline).then(|| module.file.clone());
+        let pending = (!inline).then(|| Pending {
+            file: module.file.clone(),
+            base: key.clone(),
+        });
         let duplicate = self.modules.insert(key.clone(), module).is_some();
         ensure!(!duplicate, "duplicate Rust module {}", key.join("::"));
-        if let Some(file) = &pending {
+        if let Some(next) = &pending {
             ensure!(
-                !self.files.contains_key(file),
+                !self.files.contains_key(&next.file),
                 "Rust source is declared by multiple modules: {}",
-                file.display()
+                next.file.display()
             );
-            self.files.insert(file.clone(), key);
+            self.files.insert(next.file.clone(), key);
         }
         Ok(pending)
     }
@@ -125,4 +209,9 @@ impl Rust<'_> {
         );
         Ok(candidates[0].clone())
     }
+}
+
+fn included_file(source: &Path, file: &str) -> Result<PathBuf> {
+    let parent = source.parent().context("included source has no parent")?;
+    normalize(&parent.join(file))
 }

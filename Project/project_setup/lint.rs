@@ -1,10 +1,11 @@
 // DECISION: D021
 // DECISION: D036
 use super::cargo::Layout;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rules::{architecture::RUST_SEED, structure::Structure};
 use crate::structural_lint::{catalog, rules};
 use anyhow::Result;
 use serde_json::{Value, json};
+use std::collections::BTreeSet;
 
 pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let skills = &settings.paths.skills;
@@ -60,6 +61,13 @@ fn architecture(skills: &str, sources: &[String], rust: &Layout) -> Value {
     let crates = !rust.crates.is_empty();
     if crates {
         rule["architecture"]["rust_crates"] = json!(rust.crates);
+    }
+    // DECISION: D136
+    let externals = !rust.externals.is_empty();
+    if externals {
+        let seed = RUST_SEED.map(str::to_owned);
+        let names: BTreeSet<_> = seed.into_iter().chain(rust.externals.clone()).collect();
+        rule["architecture"]["external"] = json!({"rust": names});
     }
     rule
 }

@@ -28,6 +28,12 @@ struct Query<'a> {
     visiting: BTreeSet<Vec<String>>,
 }
 
+// DECISION: D136
+struct Pending {
+    file: PathBuf,
+    base: Vec<String>,
+}
+
 pub struct Rust<'a> {
     sources: &'a BTreeMap<PathBuf, References>,
     external: BTreeSet<String>,
@@ -36,6 +42,11 @@ pub struct Rust<'a> {
     files: BTreeMap<PathBuf, Vec<String>>,
     items: BTreeSet<Vec<String>>,
     imports: BTreeMap<Vec<String>, String>,
+    // DECISION: D136
+    included: BTreeMap<PathBuf, BTreeSet<Vec<String>>>,
+    generated: BTreeSet<Vec<String>>,
+    macros: BTreeMap<Vec<String>, PathBuf>,
+    globs: BTreeMap<Vec<String>, Vec<String>>,
 }
 
 impl<'a> Rust<'a> {
@@ -44,7 +55,7 @@ impl<'a> Rust<'a> {
     }
 
     pub fn contains_source(&self, path: &Path) -> bool {
-        self.files.contains_key(path)
+        self.files.contains_key(path) || self.included.contains_key(path)
     }
 
     pub fn new(
@@ -66,33 +77,40 @@ impl<'a> Rust<'a> {
             files: BTreeMap::new(),
             items: BTreeSet::new(),
             imports: BTreeMap::new(),
+            included: BTreeMap::new(),
+            generated: BTreeSet::new(),
+            macros: BTreeMap::new(),
+            globs: BTreeMap::new(),
         };
-        resolver.modules.insert(
-            Vec::new(),
-            Module {
-                file: root.into(),
-                directory: root.parent().context("crate root has no parent")?.into(),
-            },
-        );
-        resolver.files.insert(root.into(), Vec::new());
-        let mut pending = vec![root.to_path_buf()];
-        while let Some(file) = pending.pop() {
-            pending.extend(resolver.load(&file)?);
-        }
-        resolver.validate_expansions()?;
+        resolver.load_tree(root)?;
         Ok(resolver)
     }
 
+    // DECISION: D136
     pub fn resolve(&self, source: &Path, target: &Target) -> Result<Resolved> {
-        let base = self
+        let bases: Vec<_> = self
             .files
             .get(source)
-            .context("source is not in the declared crate module tree")?;
+            .into_iter()
+            .chain(self.included.get(source).into_iter().flatten())
+            .collect();
+        ensure!(
+            !bases.is_empty(),
+            "source is not in the declared crate module tree"
+        );
+        let mut combined = Resolved::default();
+        for base in bases {
+            let resolved = self.resolve_in(source, base, target)?;
+            combined.files.extend(resolved.files);
+            combined.external = combined.external.or(resolved.external);
+        }
+        Ok(combined)
+    }
+
+    fn resolve_in(&self, source: &Path, base: &[String], target: &Target) -> Result<Resolved> {
         match target {
-            Target::RustMacro(call) => self.macro_result(source, call),
-            Target::RustDerive { path, scope } => {
-                self.derive_result(source, path, &joined(base, scope))
-            }
+            Target::RustMacro(call) => self.macro_result(source, base, call),
+            Target::RustDerive { path, scope } => self.derive_result(path, &joined(base, scope)),
             Target::RustModule { path, .. } => {
                 let key = joined(base, path);
                 let module = self
@@ -104,9 +122,8 @@ impl<'a> Rust<'a> {
                     external: None,
                 })
             }
-            Target::RustPath { path, scope } => {
-                self.path_result(source, path, &joined(base, scope))
-            }
+            Target::RustPath { path, scope } => self.path_result(path, &joined(base, scope)),
+            Target::RustInclude { file, .. } => self.include_result(source, file),
             _ => bail!("not a Rust module reference"),
         }
     }

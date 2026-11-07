@@ -14,6 +14,10 @@ MACRO_EXTERNALS = {
     "module": "[std]",
     "anyhow": "[std, anyhow]",
     "json": "[std, serde_json]",
+    "alias": "[std, custom]",
+    "wildcard": "[std, custom]",
+    "definition": "[std]",
+    "generated": "[std]",
 }
 
 
@@ -30,6 +34,8 @@ MACRO_EXTERNALS = {
         "local",
         "wildcard",
         "inner",
+        "definition",
+        "generated",
     ],
 )
 def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: str) -> None:
@@ -45,6 +51,8 @@ def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: s
         "local": "pub fn run() { use custom::assert; assert!(true); }",
         "wildcard": "use custom::*; pub fn run() { assert!(true); }",
         "inner": "pub fn run() { assert!({ use custom::assert; assert!(true); true }); }",
+        "definition": "macro_rules! value { ($x:expr) => { $crate::b::value() + $x }; } pub fn run() -> i32 { value!(0) }",
+        "generated": "macro_rules! make { ($name:ident) => { pub struct $name; impl $name { pub fn get() -> i32 { crate::b::value() } } }; } make!(Made); pub fn run() -> i32 { self::Made::get() }",
     }
     source.write_text(sources[case])
     declared = MACRO_EXTERNALS.get(case, "[std, anyhow, serde_json, custom]")
@@ -56,9 +64,13 @@ def test_macro_dependencies_and_provenance(worker: Path, tmp_path: Path, case: s
         )
     )
     code, findings = parity(worker, tmp_path)
-    unknown = case in {"unknown", "alias", "local", "wildcard", "inner"}
+    unknown = case in {"unknown", "local", "inner"}
+    # DECISION: D136
+    external = case in {"alias", "wildcard"}
     if unknown:
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
+    elif external:
+        assert (code, findings) == (0, [])
     else:
         assert code == 0, findings
         assert_back_edge_forms_cycle(worker, tmp_path, target)

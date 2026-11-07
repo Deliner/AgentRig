@@ -10,3 +10,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B083](Backlog/083.md) | Анализатор зависимостей Rust разбирает `include!`, `macro_rules!` и атрибуты без кодогенерации | Rust-проект с генерацией кода, FFI-экспортом и wasm проходит проверку архитектуры по реальным зависимостям, а не тысячами ошибок анализатора. |

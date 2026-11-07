@@ -2,11 +2,14 @@ use super::{Located, Query, Resolved, Rust};
 use crate::structural_lint::architecture::resolution::normalize;
 use crate::structural_lint::architecture::source::RustMacro;
 use anyhow::{Context, Result, bail, ensure};
-use std::{collections::BTreeSet, path::Path};
+use std::{
+    collections::BTreeSet,
+    path::{Path, PathBuf},
+};
 
 impl Rust<'_> {
     pub(super) fn validate_expansions(&self) -> Result<()> {
-        for file in self.files.keys() {
+        for file in self.files.keys().chain(self.included.keys()) {
             for reference in &self.sources[file].items {
                 let expansion = matches!(
                     reference.target,
@@ -20,13 +23,8 @@ impl Rust<'_> {
         Ok(())
     }
 
-    pub(super) fn derive_result(
-        &self,
-        source: &Path,
-        path: &str,
-        scope: &[String],
-    ) -> Result<Resolved> {
-        let origin = self.macro_origin(source, path, scope)?;
+    pub(super) fn derive_result(&self, path: &str, scope: &[String]) -> Result<Resolved> {
+        let origin = self.macro_origin(path, scope)?;
         self.require_external_macro(&origin)?;
         let known = origin.split_once("::").is_some_and(|(namespace, name)| {
             let standard_derive = matches!(namespace, "std" | "core") && derive(name);
@@ -40,18 +38,22 @@ impl Rust<'_> {
         })
     }
 
-    pub(super) fn macro_result(&self, source: &Path, call: &RustMacro) -> Result<Resolved> {
-        let scope = super::joined(&self.files[source], &call.scope);
-        let origin = self.macro_origin(source, &call.path, &scope)?;
+    // DECISION: D136
+    pub(super) fn macro_result(
+        &self,
+        source: &Path,
+        base: &[String],
+        call: &RustMacro,
+    ) -> Result<Resolved> {
+        let scope = super::joined(base, &call.scope);
+        if let Some(file) = self.local_macro(&scope, &call.path) {
+            return Ok(Resolved {
+                files: BTreeSet::from([file.to_path_buf()]),
+                external: None,
+            });
+        }
+        let origin = self.macro_origin(&call.path, &scope)?;
         self.require_external_macro(&origin)?;
-        let known = origin.split_once("::").is_some_and(|(namespace, name)| {
-            let standard_macro = matches!(namespace, "std" | "core" | "alloc") && standard(name);
-            let anyhow_macro =
-                namespace == "anyhow" && matches!(name, "anyhow" | "bail" | "ensure");
-            let json_macro = namespace == "serde_json" && name == "json";
-            standard_macro || anyhow_macro || json_macro
-        });
-        ensure!(known, "Rust macro expansion is not analyzed: {origin}");
         let resource = matches!(
             origin.as_str(),
             "std::include_str" | "core::include_str" | "std::include_bytes" | "core::include_bytes"
@@ -73,6 +75,19 @@ impl Rust<'_> {
         })
     }
 
+    // DECISION: D136
+    fn local_macro(&self, scope: &[String], name: &str) -> Option<&Path> {
+        let qualified = name.contains("::");
+        if qualified {
+            return None;
+        }
+        (0..=scope.len()).rev().find_map(|depth| {
+            let mut key = scope[..depth].to_vec();
+            key.push(name.into());
+            self.macros.get(&key).map(PathBuf::as_path)
+        })
+    }
+
     fn require_external_macro(&self, origin: &str) -> Result<()> {
         let namespace = origin.split("::").next().unwrap_or(origin);
         ensure!(
@@ -82,33 +97,33 @@ impl Rust<'_> {
         Ok(())
     }
 
-    fn macro_origin(&self, source: &Path, path: &str, scope: &[String]) -> Result<String> {
+    fn macro_origin(&self, path: &str, scope: &[String]) -> Result<String> {
         let mut key = scope.to_vec();
         key.push(path.into());
-        let prelude = (standard(path) || derive(path)) && !self.imports.contains_key(&key);
-        let wildcard = self.sources[source].rust_imports.iter().any(|import| {
-            import.name == "*" && super::joined(&self.files[source], &import.scope) == scope
-        });
-        ensure!(
-            !prelude || !wildcard,
-            "Rust macro origin is ambiguous through a wildcard import: {path}"
-        );
-        let origin = if prelude {
-            format!("std::{path}")
-        } else {
-            let mut query = Query {
-                source,
-                visiting: BTreeSet::new(),
-            };
-            match self.path(scope, path, &mut query)? {
-                Located::External(origin) => origin,
-                Located::Module(_) if (standard(path) || derive(path)) && !wildcard => {
-                    format!("std::{path}")
-                }
-                _ => bail!("Rust local macro expansion is not analyzed: {path}"),
-            }
+        let module = self
+            .modules
+            .get(scope)
+            .context("Rust module scope is unresolved")?;
+        let mut query = Query {
+            source: &module.file,
+            visiting: BTreeSet::new(),
         };
-        Ok(origin)
+        let builtin = standard(path) || derive(path);
+        // DECISION: D136
+        let prelude = builtin
+            && !self.imports.contains_key(&key)
+            && !self
+                .glob_sources(scope, &mut query)?
+                .iter()
+                .any(|glob| matches!(glob, Located::Module(target) if self.binds(target, path)));
+        if prelude {
+            return Ok(format!("std::{path}"));
+        }
+        match self.path(scope, path, &mut query)? {
+            Located::External(origin) => Ok(origin),
+            Located::Module(_) if builtin => Ok(format!("std::{path}")),
+            _ => bail!("Rust local macro expansion is not analyzed: {path}"),
+        }
     }
 }
 
@@ -147,5 +162,14 @@ fn standard(name: &str) -> bool {
             | "option_env"
             | "include_str"
             | "include_bytes"
+            | "column"
+            | "compile_error"
+            | "concat"
+            | "dbg"
+            | "file"
+            | "line"
+            | "module_path"
+            | "stringify"
+            | "thread_local"
     )
 }

@@ -2,37 +2,33 @@ use super::{Source, compact};
 use tree_sitter::Node;
 
 pub fn path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
-    let (name, suffix) = path.split_once("::").unwrap_or((&path, ""));
-    let origin = match name {
-        "String" => "std::string::String",
-        "Vec" => "std::vec::Vec",
-        "Default" => "std::default::Default",
-        "Option" => "std::option::Option",
-        "Into" => "std::convert::Into",
-        "str" | "bool" | "char" | "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8"
-        | "u16" | "u32" | "u64" | "u128" | "usize" | "f32" | "f64" => {
-            return primitive(source, node, path);
-        }
-        _ => return path,
-    };
-    let shadowed = shadowed(source, node, name);
-    if shadowed {
-        return path;
-    }
-    match suffix.is_empty() {
-        true => format!("::{origin}"),
-        false => format!("::{origin}::{suffix}"),
+    let name = path.split("::").next().unwrap_or(&path);
+    match origin(&path) {
+        Some(origin) if !shadowed(source, node, name) => origin,
+        _ => path,
     }
 }
 
-fn primitive(source: &Source<'_>, node: Node<'_>, path: String) -> String {
-    let name = path.split("::").next().unwrap_or(&path);
-    let shadowed = shadowed(source, node, name);
-    if shadowed {
-        path
-    } else {
-        format!("::core::primitive::{path}")
-    }
+// DECISION: D136
+pub fn origin(path: &str) -> Option<String> {
+    let (name, suffix) = path.split_once("::").unwrap_or((path, ""));
+    let origin = match name {
+        "String" => "std::string::String".to_owned(),
+        "Vec" => "std::vec::Vec".to_owned(),
+        "Box" => "std::boxed::Box".to_owned(),
+        "Default" => "std::default::Default".to_owned(),
+        "Option" => "std::option::Option".to_owned(),
+        "Into" => "std::convert::Into".to_owned(),
+        "str" | "bool" | "char" | "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8"
+        | "u16" | "u32" | "u64" | "u128" | "usize" | "f32" | "f64" => {
+            format!("core::primitive::{name}")
+        }
+        _ => return None,
+    };
+    Some(match suffix.is_empty() {
+        true => format!("::{origin}"),
+        false => format!("::{origin}::{suffix}"),
+    })
 }
 
 fn shadowed(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
@@ -63,6 +59,20 @@ fn shadowed(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
         parent = owner.parent();
     }
     false
+}
+
+// DECISION: D136
+pub(super) fn imported(source: &Source<'_>, item: Node<'_>, name: &str) -> Option<String> {
+    let declaration = item.kind() == "use_declaration";
+    let argument = item
+        .child_by_field_name("argument")
+        .filter(|_| declaration)?;
+    super::use_leaves(source, argument, "")
+        .into_iter()
+        .find_map(|leaf| {
+            let path = super::leaf_path(source, leaf.node, &leaf.prefix)?;
+            (super::leaf_name(&leaf, &path) == name).then_some(path)
+        })
 }
 
 pub(super) fn names(source: &Source<'_>, item: Node<'_>, name: &str) -> bool {

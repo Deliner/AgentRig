@@ -55,6 +55,44 @@ def test_module_declaration_does_not_invent_use_cycles(
     assert [item["message"].split(":")[0].split(" src/")[0] for item in findings] == expected
 
 
+# DECISION: D136
+@pytest.mark.parametrize(
+    ("case", "expected"),
+    [
+        ("literal", "directory dependency cycle"),
+        ("generated", None),
+        ("missing", "incomplete"),
+        ("computed", "incomplete"),
+    ],
+)
+def test_source_includes_compose_the_including_module(
+    worker: Path, tmp_path: Path, case: str, expected: str | None
+) -> None:
+    consumer(tmp_path, "declaration")
+    child = tmp_path / "src/child"
+    includes = {
+        "literal": ('include!("api.rs");\n', "pub use child::consume;\n"),
+        "generated": (
+            'include!(concat!(env!("OUT_DIR"), "/gen.rs"));\n',
+            "pub use child::Value;\n",
+        ),
+        "missing": ('include!("absent.rs");\n', ""),
+        "computed": ('include!(concat!("api", ".rs"));\n', ""),
+    }
+    text, usage = includes[case]
+    (child / "mod.rs").write_text(text)
+    literal_include = case == "literal"
+    if literal_include:
+        (child / "api.rs").write_text("pub fn consume(_: crate::Shared) {}\n")
+    lib = tmp_path / "src/lib.rs"
+    lib.write_text(lib.read_text() + usage)
+    contract(child)
+    code, findings = lint(worker, tmp_path)
+    assert code == bool(expected), findings
+    if expected:
+        assert any(expected in item["message"] for item in findings), findings
+
+
 @pytest.mark.parametrize("edition", ["integrated", "standalone"])
 def test_explicit_module_path_outside_crate_directory_is_measured(
     worker: Path, tmp_path: Path, edition: str
