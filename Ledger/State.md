@@ -11,10 +11,10 @@
 ## Workspace
 
 Branch: `feature/panic-surface`
-Revision: `f7b024666040b6b7bc907dbc0bfc8ba6c5d1b747`
+Revision: `481eb3707ed631cde491b189b0e470b465ef0479`
 
-База — master `75b2689`, слияние `feature/discarded-variants`. VAC 1 `a313bf2`, мид-бранч пин `f7b0246`; этот снимок
-входит в VAC 2 второй фазы с ротацией.
+База — master `75b2689`, слияние `feature/discarded-variants`. VAC 1 `a313bf2`, мид-бранч пин `f7b0246`, VAC 2
+`481eb37`; этот снимок входит в коммит финального пина D051: `stable.txt` = `481eb37`, `just bootstrap` выполнен.
 
 Ветки `feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`, `feature/backlog-research-cards`,
 `feature/delivery-repairs`, `feature/state-refresh` и `feature/init-probe` сохранены. macOS: в PATH `just write`/
@@ -24,7 +24,7 @@ Revision: `f7b024666040b6b7bc907dbc0bfc8ba6c5d1b747`
 
 ## Progress
 
-- VAC 2, фаза 2: вид подключён в каталог, обработчик Rust, правило `.agentrig/lint.yaml`, навык `justify-unwind` и
+- VAC 2 `481eb37`, фаза 2: вид подключён в каталог, обработчик Rust, правило `.agentrig/lint.yaml`, навык `justify-unwind` и
   его ассет; решение [D116](Decisions/116.md) исключает реестр `.agentrig/lint.yaml` из `file-size`, потому что
   он перерос 500 строк; Delivery в [Archive/Plan/074.md](Archive/Plan/074.md), P074 и B048 в архиве.
 - VAC 1 `a313bf2`, фаза 1: решение [D115](Decisions/115.md). AC1 — `assertion_macro` в `structural_lint/languages/rust.rs`
@@ -36,9 +36,8 @@ Revision: `f7b024666040b6b7bc907dbc0bfc8ba6c5d1b747`
 ## Verification
 
 - 2026-11-07: гейт VAC 1 `a313bf2` зелёный — rust-test 109 passed, test 288 passed, остальные проверки PASS.
-- 2026-11-07, рабочее дерево VAC 2: `just candidate lint` — код 0; `just config-check` и `just lint-config-check`
-  валидны; `just run rust-test -- structural_lint project_setup` — 98 passed; тесты конфигурации и установки —
-  72 passed; потребитель после `just candidate init` получает находку `unwind-justification`.
+- 2026-11-07: гейт VAC 2 `481eb37` зелёный — rust-test 134 passed, test 331 passed, остальные проверки PASS;
+  потребитель после `just candidate init` получает находку `unwind-justification`.
 
 ## Blockers
 
@@ -46,5 +45,4 @@ Revision: `f7b024666040b6b7bc907dbc0bfc8ba6c5d1b747`
 
 ## Next action
 
-Коммит VAC 2, финальный пин D051 с `just bootstrap`, затем `just feature-merge` ветки `feature/panic-surface`;
-далее P075 (B050). Свободные ID: D117+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан B069).
+`just feature-merge` ветки `feature/panic-surface`; далее P075 (B050). Свободные ID: D117+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан B069).
