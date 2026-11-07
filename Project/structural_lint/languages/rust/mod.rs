@@ -2,6 +2,7 @@ mod async_context;
 mod blocking_async;
 mod global_state;
 mod guard_await;
+mod ord_equality;
 mod recursive_deletion;
 mod silent_error;
 mod super_reach;
@@ -21,6 +22,7 @@ use tree_sitter::Node;
 // DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
+        "source_file" => ord_equality::inspect(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {

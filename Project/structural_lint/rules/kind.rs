@@ -34,6 +34,7 @@ pub enum Kind {
     UnwindJustification,
     GuardAcrossAwait,
     BlockingInAsync,
+    OrdEqMismatch,
     CommentReference,
     DirectoryArchitecture,
 }

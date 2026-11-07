@@ -8,6 +8,7 @@ files:
   silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
+  ord_equality.rs: Rust manual order and equality reading different fields, and consistent, justified or unresolvable comparisons, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
   recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
   super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
