@@ -21,6 +21,9 @@ exclude:
 - '**/.venv/**'
 - '**/target'
 - '**/target/**'
+# DECISION: D112
+- Project/shared/syntax/tree-sitter-rust
+- Project/shared/syntax/tree-sitter-rust/**
 rules:
 - id: file-size
   kind: nonblank-lines

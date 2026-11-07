@@ -125,3 +125,16 @@ macro_rules! raw { () => { unsafe { work() } }; }
         [11, 13, 16, 17, 18, 19]
     );
 }
+
+// DECISION: D112
+#[test]
+fn rust_flags_unsafe_but_not_safe_items_of_unsafe_extern_blocks() {
+    let source = "unsafe extern \"C\" {
+    pub safe fn abs(x: i32) -> i32;
+    pub unsafe fn free(pointer: *mut u8);
+    safe static ERRNO: i32;
+    unsafe static mut ENVIRON: *const u8;
+}
+";
+    assert_eq!(unsafe_findings("source.rs", source), [3, 5]);
+}

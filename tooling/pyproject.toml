@@ -30,6 +30,10 @@ known-first-party = ["Project"]
 "**/testing/**/*.py" = ["S101", "S603", "S607"]
 "**/conftest.py" = ["S101", "S603", "S607"]
 
+# DECISION: D112
+[tool.typos.files]
+extend-exclude = ["Project/shared/syntax/tree-sitter-rust/"]
+
 [tool.typos.default]
 extend-ignore-identifiers-re = ["^[0-9a-f]*[0-9][0-9a-f]*$"]
 

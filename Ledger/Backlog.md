@@ -11,4 +11,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
 | [B064](Backlog/064.md) | ratchet-baseline: внедрение строгих правил в проект с историей через зафиксированный baseline находок | Строгие правила включаются без выключения гейта (идея, не выбрана). |
-| [B069](Backlog/069.md) | Форк tree-sitter-rust в составе AgentRig: `safe fn` в `unsafe extern`, `str![…]`, `dyn 'static + Trait` разбираются; решение D112 о причинах | 85 % файлов корпуса, которые компилируются, но не разбираются, возвращаются под правила; причина форка и правило обновления записаны. |

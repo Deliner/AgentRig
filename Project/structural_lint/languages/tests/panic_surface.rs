@@ -121,3 +121,17 @@ mod tests {
     .map(|(line, symbol)| (line, symbol.to_string()));
     assert_eq!(found, expected);
 }
+
+// DECISION: D112
+#[test]
+fn rust_flags_panic_paths_beside_primitive_named_macros_and_lifetimes_first_after_dyn() {
+    let source =
+        "fn check(callback: Box<dyn 'static + Fn() + Send>) -> &'static (dyn 'static + Sync) {
+    let expected = str![[r#\"done\"#]];
+    let bytes = u8![1, 2];
+    load(expected, bytes).unwrap()
+}
+";
+    let found = findings(Kind::PanicPath, source);
+    assert_eq!(found, [(4, "unwrap".to_string())]);
+}
