@@ -1,6 +1,7 @@
 use super::cargo::Layout;
 
 // DECISION: D132
+// DECISION: D137
 const PROFILE: &[&str] = &[
     "panic",
     "todo",
@@ -25,6 +26,7 @@ const PROFILE: &[&str] = &[
     "map_err_ignore",
     "partial_pub_fields",
     "struct_excessive_bools",
+    "option_option",
 ];
 
 pub(super) fn argv(rust: &Layout) -> Vec<String> {
