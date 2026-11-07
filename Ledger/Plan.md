@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P078](Plan/078.md) | pending | - | [B071](Backlog/071.md): boolean-expression — длинное логическое выражение | Каждое условие читается с одного взгляда. |
 | [P079](Plan/079.md) | pending | - | [B072](Backlog/072.md): file-fan-out — исходящие связи файла | Файл-свалка видна по списку `use`. |
 | [P080](Plan/080.md) | pending | - | [B073](Backlog/073.md): embedded-text — большой текст внутри кода | Данные лежат отдельным файлом, код читается как код. |
 | [P081](Plan/081.md) | pending | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig | Правильный Rust трёх частых форм разбирается и попадает под правила. |

@@ -3,8 +3,8 @@ files:
   manifest.rs: TOML manifest lint tables, a lint set to allow under lints or workspace.lints without a reference above
   mod.rs: Scalar measurement traversal of a parsed source with located results
   registry.rs: Rule and measurement capabilities exposed for supported extensions
-  python.rs: Python conditions, function lengths, parameters and comments
+  python.rs: Python conditions, boolean expressions, function lengths, parameters and comments
 directories:
-  measure: Located measurement record and the condition, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers
+  measure: Located measurement record and the condition, boolean expression, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers
   rust: Measure Rust conditions, function lengths, parameters, comments and the Rust-only source rules
   tests: Verify language measurements and delivery enforcement

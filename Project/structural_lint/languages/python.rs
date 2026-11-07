@@ -1,6 +1,6 @@
 use super::measure::{
-    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
-    function, justified, nesting, text,
+    Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
+    condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
@@ -48,6 +48,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "except_clause" => silent_except(node, source, output),
         "decorator" => disabled_test(node, source, output),
         "import_from_statement" => wildcard_import(node, source, output),
+        "boolean_operator" => boolean_expression(node, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
                 return;

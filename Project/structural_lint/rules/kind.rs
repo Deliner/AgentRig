@@ -35,6 +35,7 @@ pub enum Kind {
     GuardAcrossAwait,
     BlockingInAsync,
     OrdEqMismatch,
+    BooleanExpression,
     CommentReference,
     DirectoryArchitecture,
 }

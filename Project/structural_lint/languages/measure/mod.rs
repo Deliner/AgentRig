@@ -53,6 +53,61 @@ pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measureme
         });
     }
 }
+// DECISION: D120
+pub fn boolean_expression(node: Node<'_>, output: &mut Vec<Measurement>) {
+    let nested = enclosing(node).is_some_and(connective);
+    let measured = connective(node) && !nested;
+    if measured {
+        output.push(Measurement {
+            kind: Kind::BooleanExpression,
+            line: node.start_position().row + 1,
+            symbol: "expression".into(),
+            actual: operands(node),
+        });
+    }
+}
+fn connective(node: Node<'_>) -> bool {
+    match node.kind() {
+        "boolean_operator" | "let_chain" => true,
+        "binary_expression" => node
+            .child_by_field_name("operator")
+            .is_some_and(|operator| matches!(operator.kind(), "&&" | "||")),
+        _ => false,
+    }
+}
+fn enclosing(node: Node<'_>) -> Option<Node<'_>> {
+    let mut parent = node.parent()?;
+    while parent.kind() == "parenthesized_expression" {
+        parent = parent.parent()?;
+    }
+    Some(parent)
+}
+fn operands(node: Node<'_>) -> u64 {
+    let inner = ungrouped(node);
+    match inner.kind() {
+        "let_condition" => 0,
+        _ if connective(inner) => {
+            let mut cursor = inner.walk();
+            inner
+                .named_children(&mut cursor)
+                .filter(|child| !child.is_extra())
+                .map(operands)
+                .sum()
+        }
+        _ => 1,
+    }
+}
+fn ungrouped(node: Node<'_>) -> Node<'_> {
+    let grouped = node.kind() == "parenthesized_expression";
+    let mut cursor = node.walk();
+    let inner = node
+        .named_children(&mut cursor)
+        .find(|child| !child.is_extra());
+    match inner {
+        Some(inner) if grouped => ungrouped(inner),
+        _ => node,
+    }
+}
 // DECISION: D037
 pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();

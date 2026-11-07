@@ -11,8 +11,8 @@ mod test_context;
 mod unsafe_site;
 mod unwind_catch;
 use crate::structural_lint::languages::measure::{
-    Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
-    function, justified, nesting, text,
+    Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
+    condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use test_context::{in_debug_only_context, in_test_context, last_segment};
@@ -46,6 +46,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "scoped_identifier" => super_reach::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, source, output),
+        "binary_expression" | "let_chain" => boolean_expression(node, output),
         "match_arm" => silent_error::verdict_arm(node, source, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output);
@@ -223,8 +224,8 @@ fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     };
     let method = function.kind() == "field_expression";
     let path = matches!(function.kind(), "identifier" | "scoped_identifier");
-    let panic = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err")
-        || path && name == "resume_unwind";
+    let unwrapping = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err");
+    let panic = unwrapping || path && name == "resume_unwind";
     if panic {
         report_panic(node, source, name, output);
     }

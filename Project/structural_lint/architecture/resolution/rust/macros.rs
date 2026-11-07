@@ -29,8 +29,9 @@ impl Rust<'_> {
         let origin = self.macro_origin(source, path, scope)?;
         self.require_external_macro(&origin)?;
         let known = origin.split_once("::").is_some_and(|(namespace, name)| {
-            matches!(namespace, "std" | "core") && derive(name)
-                || namespace == "serde" && matches!(name, "Serialize" | "Deserialize")
+            let standard_derive = matches!(namespace, "std" | "core") && derive(name);
+            let serde_derive = namespace == "serde" && matches!(name, "Serialize" | "Deserialize");
+            standard_derive || serde_derive
         });
         ensure!(known, "Rust derive expansion is not analyzed: {origin}");
         Ok(Resolved {
@@ -44,9 +45,11 @@ impl Rust<'_> {
         let origin = self.macro_origin(source, &call.path, &scope)?;
         self.require_external_macro(&origin)?;
         let known = origin.split_once("::").is_some_and(|(namespace, name)| {
-            matches!(namespace, "std" | "core" | "alloc") && standard(name)
-                || namespace == "anyhow" && matches!(name, "anyhow" | "bail" | "ensure")
-                || namespace == "serde_json" && name == "json"
+            let standard_macro = matches!(namespace, "std" | "core" | "alloc") && standard(name);
+            let anyhow_macro =
+                namespace == "anyhow" && matches!(name, "anyhow" | "bail" | "ensure");
+            let json_macro = namespace == "serde_json" && name == "json";
+            standard_macro || anyhow_macro || json_macro
         });
         ensure!(known, "Rust macro expansion is not analyzed: {origin}");
         let resource = matches!(
