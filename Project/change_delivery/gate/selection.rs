@@ -2,6 +2,7 @@
 use crate::project_config::Check;
 use crate::shared::paths::patterns::globs;
 use anyhow::{Context, Result};
+use globset::GlobSet;
 use std::{
     collections::BTreeSet,
     path::{Path, PathBuf},
@@ -33,6 +34,40 @@ pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Option<V
     Ok(Some(changes.into_iter().map(PathBuf::from).collect()))
 }
 
+struct Group<'a> {
+    include: GlobSet,
+    targets: &'a [String],
+}
+
+pub struct AffectedMap<'a> {
+    groups: Vec<Group<'a>>,
+}
+
+impl<'a> AffectedMap<'a> {
+    pub fn new(check: &'a Check) -> Result<Self> {
+        let groups = check
+            .affected
+            .iter()
+            .map(|group| {
+                Ok(Group {
+                    include: globs(&group.include)?,
+                    targets: &group.targets,
+                })
+            })
+            .collect::<Result<Vec<_>>>()?;
+        Ok(Self { groups })
+    }
+    pub fn targets(&self, path: &Path) -> Option<Vec<&'a String>> {
+        let mut matching = self
+            .groups
+            .iter()
+            .filter(|group| group.include.is_match(path))
+            .peekable();
+        let matched = matching.peek().is_some();
+        matched.then(|| matching.flat_map(|group| group.targets).collect())
+    }
+}
+
 pub fn targets(check: &Check, changes: Option<&[PathBuf]>) -> Result<Option<Vec<String>>> {
     let Some(changes) = changes else {
         return Ok(None);
@@ -41,25 +76,13 @@ pub fn targets(check: &Check, changes: Option<&[PathBuf]>) -> Result<Option<Vec<
     if unmapped {
         return Ok(None);
     }
-    let groups = check
-        .affected
-        .iter()
-        .map(|group| Ok((globs(&group.include)?, &group.targets)))
-        .collect::<Result<Vec<_>>>()?;
+    let map = AffectedMap::new(check)?;
     let mut targets = BTreeSet::new();
     for path in changes {
-        let mut covered = false;
-        for (include, selected) in &groups {
-            let matches = include.is_match(path);
-            if matches {
-                covered = true;
-                targets.extend(selected.iter().cloned());
-            }
-        }
-        let unknown = !covered;
-        if unknown {
+        let Some(selected) = map.targets(path) else {
             return Ok(None);
-        }
+        };
+        targets.extend(selected.into_iter().cloned());
     }
     Ok(Some(targets.into_iter().collect()))
 }

@@ -78,3 +78,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P080](Plan/080.md) | complete | - | [B073](Backlog/073.md): embedded-text — большой текст внутри кода ([D122](../Decisions/122.md)) | Данные лежат отдельным файлом, код читается как код. |
 | [P081](Plan/081.md) | complete | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig ([D112](../Decisions/112.md)) | Правильный Rust трёх частых форм разбирается и попадает под правила. |
 | [P082](Plan/082.md) | complete | - | [B064](Backlog/064.md): ratchet-baseline — внедрение строгих правил в проект с историей ([D123](../Decisions/123.md)) | Строгие правила включаются без выключения гейта. |
+| [P083](Plan/083.md) | complete | - | [B077](Backlog/077.md): impact-coverage — `config-check` находит пути вне карты влияния ([D124](../Decisions/124.md)) | Новый путь без записи в карте виден до коммита. |

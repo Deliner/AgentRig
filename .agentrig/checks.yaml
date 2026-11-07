@@ -26,7 +26,7 @@
   command: rust-test
   affected:
   - {include: ['**'], targets: []}
-  - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs']
+  - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
     targets: ['::']
   - include: ['Project/structural_lint/**']
     targets: ['structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
@@ -102,6 +102,7 @@
     - Project/change_delivery/gate/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests
+    - Project/shared/testing/examples/python/application/test_sample.py
     - tooling/distribution/tests/test_launcher.py
   - include:
     - Project/project_memory/**
