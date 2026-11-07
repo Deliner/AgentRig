@@ -72,3 +72,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P074](Plan/074.md) | complete | - | [B048](Backlog/048.md): panic-surface-extension — debug-only assert и unwind-поверхность ([D115](../Decisions/115.md)) | Debug-only проверки не выдают себя за release-контракт. |
 | [P075](Plan/075.md) | complete | - | [B050](Backlog/050.md): guard-across-await — гард std-блокировки через `.await` ([D117](../Decisions/117.md)) | Гард std-блокировки через точку ожидания не проходит незаметно. |
 | [P076](Plan/076.md) | complete | P075 | [B070](Backlog/070.md): blocking-in-async — блокирующий вызов внутри async-кода ([D118](../Decisions/118.md)) | Блокирующий сон и вложенный `block_on` в async-коде ловятся до рантайма. |
+| [P077](Plan/077.md) | complete | - | [B068](Backlog/068.md): ord-eq-mismatch — ручной порядок и равенство читают разные поля ([D119](../Decisions/119.md)) | Нарушение контракта порядка и равенства ловится на любом Rust-коде. |

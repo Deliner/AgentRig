@@ -38,6 +38,7 @@ pub const ALL: &[Kind] = &[
     Kind::UnwindJustification,
     Kind::GuardAcrossAwait,
     Kind::BlockingInAsync,
+    Kind::OrdEqMismatch,
     Kind::NamedIfCondition,
     Kind::CommentReference,
     Kind::DirectoryArchitecture,

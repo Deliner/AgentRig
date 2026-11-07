@@ -78,6 +78,7 @@ impl Kind {
             Self::UnwindJustification => &UNWINDJUSTIFICATION,
             Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
             Self::BlockingInAsync => &BLOCKINGINASYNC,
+            Self::OrdEqMismatch => &ORDEQMISMATCH,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -474,5 +475,17 @@ const BLOCKINGINASYNC: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Warning,
         violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
+    },
+};
+// DECISION: D119
+const ORDEQMISMATCH: Descriptor = Descriptor {
+    default_id: "ord-eq-mismatch",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every manual Rust impl of Ord, or of PartialOrd for a type without a manual Ord in the same file, whose cmp or partial_cmp reads a different set of self fields than equality reads, the eq of a manual PartialEq or every named field of a struct deriving PartialEq in the same file, following self method calls into methods of the same type in that file, skipping a comparison with a self use or method call that file does not resolve, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the impl",
+    skill: "align-order-with-equality",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "order and equality that read different fields break the standard library contract that a == b exactly when the comparison is Equal, so BTreeSet, BTreeMap, sort with dedup and binary search disagree with ==; compare the same fields in both, derive both or express both through one key method, or put a DECISION: or INVARIANT: reference on the line directly above the impl to justify a field derived from the compared ones, such as a cache",
     },
 };

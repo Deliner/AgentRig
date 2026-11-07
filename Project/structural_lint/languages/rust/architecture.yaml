@@ -5,6 +5,7 @@ files:
   async_context.rs: Decide whether a Rust node is a scope boundary for async code and whether its nearest boundary is an async fn or async block
   blocking_async.rs: Rust thread::sleep or block_on call inside an async fn or async block with no closure or plain fn in between, lacking a reference on the line above
   global_state.rs: Rust process-global state, a static lock or public cell, declared directly or inside lazy_static!/thread_local!
+  ord_equality.rs: Rust manual Ord or PartialOrd whose compared self fields differ from the fields equality reads, a manual eq or a derived PartialEq, in the same file, lacking a reference on the line above the impl
   guard_await.rs: Rust std lock guard bound by let and still alive at a later .await of the same block, lacking a reference on the line above
   silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries or an Err arm answering a bool verdict
   super_reach.rs: Rust path reaching two module levels up through super::super in a use declaration, an expression or a type

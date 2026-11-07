@@ -7,6 +7,7 @@ mod async_code;
 mod global_state;
 mod manifest;
 mod markers;
+mod ord_equality;
 mod panic_surface;
 mod recursive_deletion;
 mod silent_error;

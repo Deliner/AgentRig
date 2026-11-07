@@ -337,6 +337,20 @@ rules:
   level: warning
   warning_skill: .agents/skills/await-not-block/SKILL.md
   error_skill: .agents/skills/await-not-block/SKILL.md
+# DECISION: D119
+- id: ord-eq-mismatch
+  kind: ord-eq-mismatch
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/align-order-with-equality/SKILL.md
+  error_skill: .agents/skills/align-order-with-equality/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import
