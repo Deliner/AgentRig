@@ -19,6 +19,9 @@ pub struct Settings {
     pub feature_root: Option<PathBuf>,
     // DECISION: D105
     pub disallowed: Vec<Disallowed>,
+    // DECISION: D121
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub fan_out: Option<usize>,
 }
 
 // DECISION: D105
@@ -73,6 +76,7 @@ impl Settings {
             "rust_crates": "local Rust crate name to a root listed in rust_roots; resolved to measured file edges before external classification",
             "external": "literal module prefixes by rust/python namespace; Rust defaults std/core/alloc",
             "disallowed": "resolved Rust external paths forbidden outside their owner: entries of path, reason, replacement and allow file globs; a reference resolved to the path or a :: subpath from a file outside allow is a finding naming the reason and replacement",
+            "fan_out": "maximum number of other project directories whose source files one source file may use through resolved non-declaration references; default 10; crate roots listed in rust_roots and Python __main__.py are program entry points and exempt",
             "resolution": {
                 "rust": "Rust 2018+ declared module trees, literal path attributes on file-level external modules, local crate mappings and module-level aliases; Self and single inline trait bounds; observed prelude names with syntactic shadow checks; known macro/resource paths, standard/serde attributes and cfg over test and target platform predicates (all configurations measured); unsupported expansion and binding ambiguity remain incomplete",
                 "python": "one import root, package initializers and namespace submodules; recognized loader aliases/values report incomplete binding analysis; package export ambiguity and runtime path changes unsupported"

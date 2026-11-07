@@ -1,4 +1,4 @@
-use super::{Dependency, Issue};
+use super::{Dependency, Issue, Settings};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -51,6 +51,50 @@ fn add_edge<'a>(graph: &mut Adjacency<'a>, edge: &'a Dependency) {
             .entry(directory_key(target))
             .or_insert(edge);
     }
+}
+
+// DECISION: D121
+const FAN_OUT: usize = 10;
+
+// DECISION: D121
+pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<Issue> {
+    let budget = settings.fan_out.unwrap_or(FAN_OUT);
+    let mut used: BTreeMap<&Path, BTreeSet<&Path>> = BTreeMap::new();
+    for edge in dependencies {
+        let (Some(own), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
+            continue;
+        };
+        let extension = edge
+            .target
+            .extension()
+            .and_then(|extension| extension.to_str());
+        let module = matches!(extension, Some("rs" | "py" | "pyi"));
+        let foreign = module && !edge.module_declaration && own != target;
+        if foreign {
+            used.entry(&edge.source).or_default().insert(target);
+        }
+    }
+    used.into_iter()
+        .filter(|(file, directories)| directories.len() > budget && !entry_point(file, settings))
+        .map(|(file, directories)| {
+            let names: Vec<_> = directories.iter().map(|path| directory_key(path).display().to_string()).collect();
+            Issue {
+                path: file.to_owned(),
+                line: None,
+                message: format!(
+                    "file uses {} other project directories (budget {budget}): {}; split it by responsibility or move the wiring into a program entry point",
+                    names.len(),
+                    names.join(", ")
+                ),
+            }
+        })
+        .collect()
+}
+
+// DECISION: D121
+fn entry_point(file: &Path, settings: &Settings) -> bool {
+    let python_main = file.file_name().is_some_and(|name| name == "__main__.py");
+    python_main || settings.rust_roots.iter().any(|root| root == file)
 }
 
 fn directory_key(path: &Path) -> PathBuf {

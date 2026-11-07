@@ -162,3 +162,23 @@ pub(super) fn hooks_registered(
         })
     }))
 }
+pub fn config_check(context: &Context) -> Result<i32> {
+    let code = if context.config.capabilities.lint {
+        crate::structural_lint::run(
+            &context.root,
+            &context.path(&context.config.paths.lint)?,
+            crate::structural_lint::Format::Json,
+            crate::structural_lint::Mode::ConfigCheck,
+        )?
+    } else {
+        0
+    };
+    let valid = code == 0;
+    if valid {
+        console::stdout(format!(
+            "Scaffold configuration is valid (runtime {})",
+            crate::project_config::VERSION
+        ));
+    }
+    Ok(code)
+}

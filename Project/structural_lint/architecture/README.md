@@ -33,8 +33,7 @@ External names are module or package prefixes, not globs; Rust defaults to `std`
 cannot hide a locally resolved path. `disallowed` entries (`path`, `reason`, `replacement`, `allow` file globs) flag a
 reference resolved to that Rust path or a `::` subpath from a file outside `allow`, naming the reason and replacement.
 
-`level: warning` reports without failing, `error` exits 1 and configuration errors exit 2. Findings name the source
-line or the contract with the repair skill and rerun command.
+`level: warning` reports without failing, `error` exits 1 and configuration errors exit 2.
 
 ## Directory contracts
 
@@ -70,7 +69,8 @@ them, and nothing outside `tests` uses `tests`. Module declarations and dependen
 direction findings, and flat and custom features add no direction rule.
 
 Cycles use actual resolved edges and report source evidence across sibling subsystems. Rust module declarations
-(`mod child;`) express composition and form no cycle, so a child may use a parent-owned type.
+(`mod child;`) express composition and form no cycle, so a child may use a parent-owned type. A source file may use
+source files in at most `fan_out` (default 10) other project directories; crate roots and `__main__.py` are exempt.
 
 ## Analysis limits
 

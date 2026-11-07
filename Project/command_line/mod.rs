@@ -1,11 +1,9 @@
-use crate::shared::console;
+mod project;
 use crate::{
     change_delivery::{gate, git},
     command_runner::{self, jobs},
-    project_config::{self, Context},
-    project_memory::{self, evidence},
+    project_config::Context,
     project_setup,
-    shared::arguments::forwarded,
 };
 
 use anyhow::{Result, bail};
@@ -84,7 +82,7 @@ pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
         Command::JobStart => command_runner::background(&context, args),
         Command::JobRun => command_runner::background_run(&context, args),
         Command::Scratch => command_runner::scratch::run(&context, args),
-        _ => configured_command(&context, command, args),
+        _ => project::configured_command(&context, command, args),
     }
 }
 fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
@@ -115,81 +113,4 @@ fn validate_arguments(command: Command, args: &[String]) -> Result<()> {
         bail!("feature-start NAME");
     }
     Ok(())
-}
-fn configured_command(context: &Context, command: Command, args: &[String]) -> Result<i32> {
-    let root = &context.root;
-    let git = &context.config.git;
-    match command {
-        Command::Doctor => project_setup::doctor(context),
-        Command::ConfigCheck => config_check(context),
-        Command::GuardReference => {
-            git::guard_reference_with(root, args.first().map(String::as_str).unwrap_or(""), git)
-        }
-        Command::FeatureStart => git::start(context, &args[0]),
-        Command::FeatureMerge => git::merge(context),
-        Command::MemoryCheck => project_memory::check(context),
-        Command::Resume => {
-            project_memory::resume(context)?;
-            Ok(0)
-        }
-        Command::Commands => {
-            command_runner::registry::list(context)?;
-            Ok(0)
-        }
-        Command::Run => {
-            let (name, extra) = args
-                .split_first()
-                .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
-            run_command(context, name, forwarded(extra))
-        }
-        Command::Report => {
-            command_runner::report(context)?;
-            evidence::report(context)?;
-            Ok(0)
-        }
-        _ => bail!("unknown scaffold command {}", command.name()),
-    }
-}
-fn run_command(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
-    let code = command_runner::run(context, name, extra)?;
-    let failed = code != 0;
-    let check = context
-        .config
-        .checks
-        .iter()
-        .find(|check| check.command.as_deref() == Some(name));
-    if let Some(check) = check.filter(|_| failed) {
-        let mut args = vec!["run".into(), name.into(), "--".into()];
-        args.extend_from_slice(extra);
-        let rerun = crate::shared::diagnostics::rerun(&context.root, &args);
-        console::stderr(crate::shared::diagnostics::Guidance {
-            level: "ERROR",
-            id: &check.id,
-            location: &context.config.commands[name].cwd,
-            message: &format!("exited {code}; see original output above"),
-            skill: &check.skill,
-            rerun: &rerun,
-        });
-    }
-    Ok(code)
-}
-fn config_check(context: &Context) -> Result<i32> {
-    let code = if context.config.capabilities.lint {
-        crate::structural_lint::run(
-            &context.root,
-            &context.path(&context.config.paths.lint)?,
-            crate::structural_lint::Format::Json,
-            crate::structural_lint::Mode::ConfigCheck,
-        )?
-    } else {
-        0
-    };
-    let valid = code == 0;
-    if valid {
-        console::stdout(format!(
-            "Scaffold configuration is valid (runtime {})",
-            project_config::VERSION
-        ));
-    }
-    Ok(code)
 }

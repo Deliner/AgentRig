@@ -74,3 +74,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P076](Plan/076.md) | complete | P075 | [B070](Backlog/070.md): blocking-in-async — блокирующий вызов внутри async-кода ([D118](../Decisions/118.md)) | Блокирующий сон и вложенный `block_on` в async-коде ловятся до рантайма. |
 | [P077](Plan/077.md) | complete | - | [B068](Backlog/068.md): ord-eq-mismatch — ручной порядок и равенство читают разные поля ([D119](../Decisions/119.md)) | Нарушение контракта порядка и равенства ловится на любом Rust-коде. |
 | [P078](Plan/078.md) | complete | - | [B071](Backlog/071.md): boolean-expression — длинное логическое выражение ([D120](../Decisions/120.md)) | Каждое условие читается с одного взгляда. |
+| [P079](Plan/079.md) | complete | - | [B072](Backlog/072.md): file-fan-out — исходящие связи файла ([D121](../Decisions/121.md)) | Файл-свалка видна по списку `use`. |
