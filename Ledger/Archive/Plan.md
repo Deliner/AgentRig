@@ -68,3 +68,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P070](Plan/070.md) | complete | - | [B067](Backlog/067.md): delivery-repairs — поставка D1 без расхождений с контрактом B065 и D103 | Потребитель получает поставку `init`/lint, совпадающую с контрактом B065 и D103. |
 | [P071](Plan/071.md) | complete | - | [B074](Backlog/074.md): feature-cfg — проверка архитектуры видит модули под фичами | Проверка архитектуры работает на крейтах с модулями под фичами. |
 | [P072](Plan/072.md) | complete | - | [B051](Backlog/051.md): self-hygiene — находки межпроектного обзора в собственном коде | Обоснования не переобещают, PID согласован, предусловие zeroed явно. |
+| [P073](Plan/073.md) | complete | - | [B047](Backlog/047.md): discarded-result-variants — отброшенные Option-комбинаторы и `.err()` | Отброшенные результаты Option-комбинаторов ловятся из коробки. |

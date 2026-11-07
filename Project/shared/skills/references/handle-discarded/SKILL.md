@@ -1,21 +1,26 @@
 ---
 name: handle-discarded
-description: Handle or propagate a Result instead of dropping it with a bare .ok() statement or a bare .status()? or .output()? statement, or record why the outcome is ignored.
+description: Handle or propagate a Result or a combined value instead of dropping it with a bare .ok(), .err(), Option-combinator, .status()? or .output()? statement, or record why the outcome is ignored.
 ---
 
 # Handle the Result instead of discarding it
 
-A bare `expr.ok();` statement converts a `Result` to an `Option` and immediately
-drops it, so a failure passes with no handling and no trace — the same silent
-swallow that `silent-error` catches for a Python `except: pass`. A bare
-`cmd.status()?;` or `cmd.output()?;` statement propagates only the error of
-launching the command and drops its `ExitStatus` or `Output`, so a command that
-ran and failed looks like a success.
+A bare `expr.ok();` or `expr.err();` statement converts a `Result` to an
+`Option` and immediately drops it, so a failure passes with no handling and no
+trace — the same silent swallow that `silent-error` catches for a Python
+`except: pass`. A bare statement ending in `.map(…)`, `.and_then(…)`,
+`.map_or(…)` or `.map_or_else(…)` drops the value its closure produced, often a
+`Result` the compiler cannot see through an `Option`; on a lazy iterator the
+closure never runs at all. A bare `cmd.status()?;` or `cmd.output()?;` statement
+propagates only the error of launching the command and drops its `ExitStatus`
+or `Output`, so a command that ran and failed looks like a success.
 
 1. Decide what the failure means here. Propagate it with `?`, return a `Result`,
    or match the variants and handle both.
 2. Keep the outcome when it matters: `let kept = expr.ok();` or an assignment
-   preserves the `Option` for a later decision; `let status = cmd.status()?;`
+   preserves the `Option` for a later decision; `if let Some(value) = option`
+   with the fallible call inside handles the combined value, and `for` or
+   `.for_each` runs a side effect on every item; `let status = cmd.status()?;`
    followed by a check of `status.success()`, or `let output = cmd.output()?;`
    followed by a check of `output.status` and its streams, turns a failed
    command into an error.
@@ -30,12 +35,15 @@ keeps it; without one it is a finding. Test code is out of scope.
 
 ## Rule binding
 
-The measurement flags every Rust statement that is a bare call whose method is
-`.ok()`, and every bare statement `….status()?` or `….output()?` whose call has
-no arguments, outside test code, without a `DECISION:`/`INVARIANT:` reference on
-the line directly above it. A `let`-binding, an assignment, `expr.ok()?`, a
-`….status()?.success()` chain and an argument position keep or propagate the
-outcome and are not flagged. Rerun the reported lint check and relevant behavior
-checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the Result is handled or justified by an owned
-reference.
+The measurement flags every Rust statement that is a bare call whose last method
+is `.ok()`, `.err()`, `.map(…)`, `.and_then(…)`, `.map_or(…)` or
+`.map_or_else(…)`, and every bare statement `….status()?` or `….output()?` whose
+call has no arguments, outside test code, without a `DECISION:`/`INVARIANT:`
+reference on the line directly above it. A `let`-binding, an assignment, a
+returned tail expression, `expr.ok()?`, a `….status()?.success()` chain and an
+argument position keep or propagate the outcome and are not flagged. The
+receiver type is not resolved, so a closure without effects is flagged too;
+binding or removing the statement resolves it. Rerun the reported lint check and
+relevant behavior checks. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when the Result is handled or justified
+by an owned reference.
