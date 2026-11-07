@@ -1,0 +1,5 @@
+purpose: "Await a sleep or future instead of blocking an executor thread with thread::sleep or a nested block_on, or justify the intended block with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace a blocking call inside async Rust or justify blocking that executor thread"
+directories: {}

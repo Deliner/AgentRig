@@ -3,16 +3,17 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P075 завершены и слиты в master `edc76fa`. Активна **P076** (B070 blocking-in-async), фаза 1.
-Исследования вне Ledger завершены: `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md`;
-их итог станет новыми карточками Backlog по уже данному согласию пользователя.
+одной за ветку. P071–P075 завершены и слиты в master `edc76fa`. **P076** (B070 blocking-in-async) доставлена на
+ветке, фаза 2 в коммите VAC 2; осталось финальный пин и слияние. Исследования вне Ledger завершены:
+`agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md`; их итог станет новыми карточками Backlog
+по уже данному согласию пользователя.
 
 ## Workspace
 
 Branch: `feature/blocking-in-async`
-Revision: `edc76fac39d902170ab26c4a315bb85c8eb6da0c`
+Revision: `5ad4e6832c4f9f4a415b435ecd5c6faa1ae68fcc`
 
-База — master `edc76fa`, слияние `feature/guard-across-await`. Этот снимок входит в коммит VAC 1 фазы 1.
+База — master `edc76fa`. VAC 1 `2f9be20`, мид-бранч пин `5ad4e68`; этот снимок входит в коммит VAC 2.
 
 Ветки `feature/guard-across-await`, `feature/panic-surface`, `feature/discarded-variants`, `feature/self-hygiene`,
 `feature/feature-cfg`, `feature/backlog-research-cards`, `feature/delivery-repairs`, `feature/state-refresh` и
@@ -23,22 +24,20 @@ Revision: `edc76fac39d902170ab26c4a315bb85c8eb6da0c`
 
 ## Progress
 
-- VAC 1, фаза 1: решение [D118](Decisions/118.md). Инертный вид `BlockingInAsync`, дескриптор
-  `blocking-in-async` с уровнем warning, детектор `languages/rust/blocking_async.rs`; общий модуль
-  `languages/rust/async_context.rs` задаёт границу области для обоих async-правил, `guard_await.rs` его использует.
-  Тесты обоих правил объединены в `languages/tests/async_code.rs`, каталог тестов остаётся в лимите 15 записей.
-- Замер на корпусе r8: 565 Rust-файлов с `async` и `sleep` или `block_on`, 6 находок, все по критерию AC1; 4 похожи
-  на ошибки (rustdesk `ipc.rs:2272`, zed `predict.rs:792`, `repair.rs:511`, `server.rs:1174`), 2 намеренные
-  (zed `db.rs:254` тестовая поддержка, `hang_detection.rs:50` отладочное зависание). Для замера вид временно
-  подключался в каталог и обработчик, затем отключён.
-- Осталось: коммит VAC 1, мид-бранч пин, фаза 2 — каталог `ALL`, `HANDLERS`, правило `.agentrig/lint.yaml` с
-  `level: warning`, навык `await-not-block` и его ассет, список `decided`, Delivery, ротация P076/B070, финальный
-  пин, `just feature-merge`.
+- P076 фаза 1 (VAC 1 `2f9be20`): решение [D118](Decisions/118.md), инертный вид `BlockingInAsync`, детектор
+  `languages/rust/blocking_async.rs`, общий модуль `languages/rust/async_context.rs`, тесты в
+  `languages/tests/async_code.rs`.
+- P076 фаза 2 (VAC 2): вид в каталоге `ALL` и `HANDLERS`, правило `blocking-in-async` в `.agentrig/lint.yaml` с
+  `level: warning`, навык `references/await-not-block` с симлинком и ассетом, список `decided`. Delivery в
+  [Archive/Plan/076.md](Archive/Plan/076.md); P076 и B070 перенесены в архив, ссылки D118 обновлены.
+- Осталось по P076: финальный пин stable.txt на голову VAC 2 с bootstrap, `just feature-merge`.
 
 ## Verification
 
-- 2026-11-07, рабочее дерево до коммита VAC 1: `just candidate lint` чист; `just run rust-test -- structural_lint`
-  102 passed, включая 4 теста `async_code`.
+- 2026-11-07, рабочее дерево VAC 2 до коммита: `just config-check` и `just lint-config-check` валидны;
+  `just candidate lint` чист. Потребитель после `just candidate init --language rust` получает правило и навык;
+  `just candidate lint --warnings` даёт `WARNING [blocking-in-async]` на `lib.rs:4 (sleep)` и `lib.rs:8 (block_on)`,
+  вызов в замыкании не отмечен, без `--warnings` находки скрыты.
 
 ## Blockers
 
@@ -46,5 +45,6 @@ Revision: `edc76fac39d902170ab26c4a315bb85c8eb6da0c`
 
 ## Next action
 
-Закоммитить VAC 1 через pre-commit, затем мид-бранч пин и фаза 2 P076. Свободные ID: D119+, I022+, P083+, B075+
-(B066 и D111 зарезервированы, D112 обещан B069).
+Закоммитить VAC 2 через pre-commit, затем финальный пин с bootstrap и `just feature-merge`; дальше P077 (B068
+ord-eq-mismatch) на новой ветке. Свободные ID: D119+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан
+B069).

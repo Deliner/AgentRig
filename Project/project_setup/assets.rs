@@ -112,6 +112,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/justify-unwind/SKILL.md"),
     ),
     (
+        "await-not-block",
+        include_str!("../shared/skills/references/await-not-block/SKILL.md"),
+    ),
+    (
         "narrow-import",
         include_str!("../shared/skills/references/narrow-import/SKILL.md"),
     ),

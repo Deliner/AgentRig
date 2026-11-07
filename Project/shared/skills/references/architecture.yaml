@@ -1,4 +1,4 @@
-purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, eager fallback arguments that propagate an error, bare statements that discard a Result or combined value, panic catches, and paths that reach two module levels up through super::super instead of naming the owner"
+purpose: "Repair source quality findings: comments, unsafe, swallowed errors, disabled tests and broad allows that must carry an owned DECISION: or INVARIANT: reference, leftover debug artifacts, panic paths, release-stripped debug assertions, glob imports that bind a file to another module's whole surface, eager fallback arguments that propagate an error, bare statements that discard a Result or combined value, panic catches, blocking calls inside async code, and paths that reach two module levels up through super::super instead of naming the owner"
 files: {}
 directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
@@ -13,4 +13,5 @@ directories:
   eager-to-lazy: "Move a fallback argument that can fail into the lazy *_else closure, or justify the eager evaluation with a reference"
   handle-discarded: "Handle or propagate a Result or combined value instead of dropping it in a bare statement, or justify the ignored outcome with a reference"
   justify-unwind: "Let a Rust panic propagate instead of catching it with catch_unwind or AssertUnwindSafe, or justify the catch at a boundary with a reference"
+  await-not-block: "Await a sleep or future instead of blocking an executor thread with thread::sleep or a nested block_on, or justify the intended block with a reference"
   anchor-at-crate: "Replace a super::super path with a crate:: path or a re-export at the parent module, or justify the intended reach with a reference"
