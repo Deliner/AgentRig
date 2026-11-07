@@ -33,6 +33,9 @@ pub struct Disallowed {
     pub replacement: String,
     #[serde(default)]
     pub allow: Vec<String>,
+    // DECISION: D125
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub methods: Vec<String>,
 }
 
 // DECISION: D105
@@ -75,7 +78,7 @@ impl Settings {
             "rust_roots": "explicit project-relative crate root files; required for selected Rust sources",
             "rust_crates": "local Rust crate name to a root listed in rust_roots; resolved to measured file edges before external classification",
             "external": "literal module prefixes by rust/python namespace; Rust defaults std/core/alloc",
-            "disallowed": "resolved Rust external paths forbidden outside their owner: entries of path, reason, replacement and allow file globs; a reference resolved to the path or a :: subpath from a file outside allow is a finding naming the reason and replacement",
+            "disallowed": "resolved Rust external paths forbidden outside their owner: entries of path, reason, replacement and allow file globs; a reference resolved to the path or a :: subpath from a file outside allow is a finding naming the reason and replacement; optional methods lists method names, and a call of one without arguments whose result is propagated directly by ? or .map_err(Into::into) from a file outside allow is a finding at the call line, matched by name without the receiver type",
             "fan_out": "maximum number of other project directories whose source files one source file may use through resolved non-declaration references; default 10; crate roots listed in rust_roots and Python __main__.py are program entry points and exempt",
             "resolution": {
                 "rust": "Rust 2018+ declared module trees, literal path attributes on file-level external modules, local crate mappings and module-level aliases; Self and single inline trait bounds; observed prelude names with syntactic shadow checks; known macro/resource paths, standard/serde attributes and cfg over test and target platform predicates (all configurations measured); unsupported expansion and binding ambiguity remain incomplete",
@@ -137,6 +140,13 @@ impl Settings {
             ensure!(
                 explained,
                 "disallowed path needs a nonempty reason and replacement: {}",
+                entry.path
+            );
+            // DECISION: D125
+            let named = entry.methods.iter().all(|method| identifier(method));
+            ensure!(
+                named,
+                "disallowed methods must be nonempty Rust identifiers: {}",
                 entry.path
             );
             entry.allowed()?;

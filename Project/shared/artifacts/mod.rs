@@ -21,7 +21,10 @@ pub fn read_regular(path: &Path, max_bytes: u64) -> Result<Vec<u8>> {
             .custom_flags(libc::O_NOFOLLOW | libc::O_NONBLOCK),
         path,
     )?;
-    ensure!(file.metadata()?.is_file(), "response is not a regular file");
+    ensure!(
+        fs::file_metadata(&file, path)?.is_file(),
+        "response is not a regular file"
+    );
     let mut bytes = Vec::new();
     file.take(max_bytes.saturating_add(1))
         .read_to_end(&mut bytes)?;

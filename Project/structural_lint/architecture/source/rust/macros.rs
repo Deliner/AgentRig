@@ -79,6 +79,8 @@ fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {
         .collect();
     let mut index = 0;
     while let Some(node) = children.get(index).copied() {
+        // DECISION: D125
+        super::calls::token(source, &children, index);
         let declaration = matches!(node.kind(), "use" | "mod");
         if declaration {
             source.unsupported(

@@ -30,7 +30,7 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     if empty {
         return Ok(Vec::new());
     }
-    let root = root.canonicalize()?;
+    let root = crate::shared::fs::canonicalize(root)?;
     let no_exclusions = globs(&[])?;
     let files: BTreeSet<_> = inventory::collect(&root, &no_exclusions)?
         .files

@@ -58,10 +58,62 @@ def test_disallowed_paths_flag_references_outside_allowed_files(
     assert "disallowed" in rows["directory-architecture"]["architecture"]
 
 
+METHODS = POLICY + "          methods: [canonicalize, metadata]\n"
+METHOD_CALLS = """pub fn run(path: &std::path::Path, world: &str) -> std::io::Result<i32> {
+    let _ = path.canonicalize()?;
+    let _ = path
+        .metadata()
+        .map_err(Into::into)?;
+    let _ = path.metadata().map_err(std::io::Error::other)?;
+    let _ = path.metadata().ok();
+    let _ = path.canonicalize();
+    if let Ok(found) = path.metadata() {}
+    let _ = world.metadata(1)?;
+    let _ = path.read_link()?;
+    assert!(path.starts_with(path.canonicalize()?));
+    assert!(path.metadata().is_ok());
+    assert!(path.metadata().map_err(Into::into)?.is_file());
+    Ok(0)
+}
+"""
+
+
+# DECISION: D125
+def test_disallowed_methods_flag_bare_calls_whose_errors_propagate(
+    worker: Path, tmp_path: Path
+) -> None:
+    source, target = consumer(tmp_path, "rs")
+    source.write_text(METHOD_CALLS)
+    target.write_text(METHOD_CALLS.replace("run", "value"))
+    config = tmp_path / "lint.yaml"
+    config.write_text(
+        config.read_text().replace(
+            "rust_roots: [src/lib.rs]\n", "rust_roots: [src/lib.rs]\n" + METHODS
+        )
+    )
+    code, findings = lint(worker, tmp_path)
+    assert code == 1, findings
+    located = [(item["path"], item["line"], item["message"]) for item in findings]
+    reason = "is disallowed here: filesystem access belongs to the owner; use crate::b"
+    assert located == [
+        ("src/a/mod.rs", 2, f"`.canonicalize()` with its error propagated {reason}"),
+        ("src/a/mod.rs", 4, f"`.metadata()` with its error propagated {reason}"),
+        ("src/a/mod.rs", 12, f"`.canonicalize()` with its error propagated {reason}"),
+        ("src/a/mod.rs", 14, f"`.metadata()` with its error propagated {reason}"),
+    ], findings
+    catalog = subprocess.run(
+        [str(worker), "lint-rules"], capture_output=True, text=True, check=True
+    )
+    rows = {item["kind"]: item for item in json.loads(catalog.stdout)}
+    assert "methods" in rows["directory-architecture"]["architecture"]["disallowed"]
+
+
 # DECISION: D105
 @pytest.mark.parametrize(
     "broken",
     [
+        ("allow: ['src/b/**']", "allow: ['src/b/**']\n          methods: ['']"),
+        ("allow: ['src/b/**']", "allow: ['src/b/**']\n          methods: [path.exists]"),
         ("path: std::fs", "path: 'std::*'"),
         ("path: std::fs", "path: os.path"),
         ("reason: filesystem access belongs to the owner", "reason: ''"),

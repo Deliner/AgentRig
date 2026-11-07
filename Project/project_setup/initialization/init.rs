@@ -76,7 +76,7 @@ fn check_collisions(root: &Path, files: &Files) -> Result<()> {
 }
 fn validate_bundle(files: &Files) -> Result<()> {
     let preview = tempfile::tempdir()?;
-    let root = preview.path().canonicalize()?;
+    let root = fs::canonicalize(preview.path())?;
     for (path, contents) in files {
         let path = project_config::relative(&root, path)?;
         let parent = path

@@ -44,6 +44,14 @@ pub struct References {
     pub issues: Vec<Issue>,
     pub rust_items: Vec<RustItem>,
     pub rust_imports: Vec<RustImport>,
+    pub propagated_calls: Vec<PropagatedCall>,
+}
+
+// DECISION: D125
+#[derive(Debug)]
+pub struct PropagatedCall {
+    pub method: String,
+    pub line: usize,
 }
 
 #[derive(Debug)]

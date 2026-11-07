@@ -1,4 +1,5 @@
 mod attributes;
+mod calls;
 mod conditions;
 mod macros;
 pub(super) mod prelude;
@@ -46,6 +47,7 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
             macros::inspect(source, node);
             return false;
         }
+        "call_expression" => calls::inspect(source, node),
         _ => {}
     }
     true

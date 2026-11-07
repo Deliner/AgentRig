@@ -34,6 +34,21 @@ fn errors_name_the_action_and_path_and_keep_the_kind() {
     assert_eq!(error.to_string(), format!("write {}", link.display()));
 }
 
+// DECISION: D125
+#[test]
+fn existence_and_handle_metadata_name_the_path() {
+    let directory = tempfile::tempdir().unwrap();
+    let file = directory.path().join("file");
+    super::write(&file, "text").unwrap();
+    assert!(super::try_exists(&file).unwrap());
+    assert!(!super::try_exists(directory.path().join("missing")).unwrap());
+    let beneath = file.join("child");
+    let error = super::try_exists(&beneath).unwrap_err();
+    assert_eq!(error.to_string(), format!("inspect {}", beneath.display()));
+    let handle = super::open(&file).unwrap();
+    assert_eq!(super::file_metadata(&handle, &file).unwrap().len(), 4);
+}
+
 #[test]
 fn wrappers_perform_the_operations_they_name() {
     let directory = tempfile::tempdir().unwrap();

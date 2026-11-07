@@ -86,6 +86,15 @@ pub fn metadata(path: impl AsRef<Path>) -> Result<Metadata> {
     at("inspect", path.as_ref(), std::fs::metadata(&path))
 }
 
+// DECISION: D125
+pub fn file_metadata(file: &File, path: impl AsRef<Path>) -> Result<Metadata> {
+    at("inspect", path.as_ref(), file.metadata())
+}
+
+pub fn try_exists(path: impl AsRef<Path>) -> Result<bool> {
+    at("inspect", path.as_ref(), path.as_ref().try_exists())
+}
+
 pub fn symlink_metadata(path: impl AsRef<Path>) -> Result<Metadata> {
     at("inspect", path.as_ref(), std::fs::symlink_metadata(&path))
 }

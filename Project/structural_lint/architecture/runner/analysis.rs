@@ -33,7 +33,7 @@ pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf,
 }
 
 fn read(root: &Path, path: &Path) -> Result<References> {
-    let file = root.join(path).canonicalize()?;
+    let file = fs::canonicalize(root.join(path))?;
     ensure!(file.starts_with(root), "source escapes project root");
     source::extract(path, &fs::read_to_string(file)?)
 }
@@ -122,7 +122,7 @@ impl<'a> Resolvers<'a> {
         }?;
         for file in &resolved.files {
             ensure!(
-                self.root.join(file).canonicalize()?.starts_with(self.root),
+                fs::canonicalize(self.root.join(file))?.starts_with(self.root),
                 "dependency target escapes project root: {}",
                 file.display()
             );
@@ -208,16 +208,7 @@ impl<'a> Resolvers<'a> {
                 Ok(resolved) => {
                     if let Some(external) = &resolved.external {
                         used.record(&reference.target, external);
-                        // DECISION: D078
-                        // DECISION: D083
-                        // DECISION: D104
-                        let impure = architecture::effect(external).is_some();
-                        if impure {
-                            environment.push(EnvironmentUse {
-                                line: reference.line,
-                                path: external.trim_start_matches("::").to_owned(),
-                            });
-                        }
+                        environment.extend(environment_use(reference.line, external));
                         // DECISION: D105
                         issues.extend(self.disallowed.check(path, reference.line, external));
                     }
@@ -231,6 +222,8 @@ impl<'a> Resolvers<'a> {
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
             }
         }
+        // DECISION: D125
+        issues.extend(self.disallowed.methods(path, &references.propagated_calls));
         Dependencies {
             edges,
             issues,
@@ -238,6 +231,16 @@ impl<'a> Resolvers<'a> {
             environment,
         }
     }
+}
+
+// DECISION: D078
+// DECISION: D083
+// DECISION: D104
+fn environment_use(line: usize, external: &str) -> Option<EnvironmentUse> {
+    architecture::effect(external).map(|_| EnvironmentUse {
+        line,
+        path: external.trim_start_matches("::").to_owned(),
+    })
 }
 
 pub struct Dependencies {
