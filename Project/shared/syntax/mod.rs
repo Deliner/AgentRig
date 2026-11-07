@@ -42,7 +42,7 @@ struct Token {
 impl Token {
     fn find(&self, literal: &str) -> Option<&'static str> {
         literal.match_indices(self.prefix).find_map(|(index, _)| {
-            let tail = &literal[index + self.prefix.len()..];
+            let tail = literal.get(index + self.prefix.len()..)?;
             let run = tail
                 .chars()
                 .take_while(|character| (self.class)(*character))

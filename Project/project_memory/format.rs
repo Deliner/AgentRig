@@ -167,9 +167,8 @@ fn parse_row(
         path: detail,
     } = link(&cells[0])?;
     ensure!(
-        id.starts_with(catalog.prefix())
-            && id.len() > 1
-            && id[1..].chars().all(|c| c.is_ascii_digit())
+        id.strip_prefix(catalog.prefix())
+            .is_some_and(|number| !number.is_empty() && number.chars().all(|c| c.is_ascii_digit()))
             && ids.insert(id.clone()),
         "{}: invalid or duplicate ID {id}",
         path.display()

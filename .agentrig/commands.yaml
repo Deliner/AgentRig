@@ -106,6 +106,8 @@ clippy:
   - clippy::print_stdout
   - -D
   - clippy::print_stderr
+  - -D
+  - clippy::string_slice
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

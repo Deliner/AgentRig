@@ -68,7 +68,9 @@ fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> 
     let mut known = HashSet::new();
     for row in rows {
         ensure!(
-            row.detail == format!("{directory}/{}.md", &row.id[1..]),
+            row.id
+                .get(1..)
+                .is_some_and(|number| row.detail == format!("{directory}/{number}.md")),
             "{}: detail path does not match ID",
             row.id
         );

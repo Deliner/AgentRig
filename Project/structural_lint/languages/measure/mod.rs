@@ -8,6 +8,8 @@ pub struct Measurement {
     pub symbol: String,
     pub actual: u64,
 }
+// DECISION: D127
+#[allow(clippy::string_slice)]
 pub fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
     &source[node.byte_range()]
 }

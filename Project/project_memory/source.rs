@@ -43,8 +43,11 @@ impl Source {
     fn visit(&mut self, node: Node<'_>, source: &str) {
         match node.kind() {
             "comment" | "line_comment" => {
-                self.comments
-                    .insert(source[node.byte_range()].trim().to_owned());
+                self.comments.extend(
+                    source
+                        .get(node.byte_range())
+                        .map(|comment| comment.trim().to_owned()),
+                );
             }
             "function_definition" | "function_item" | "function_signature_item" => {
                 if let Some(name) = node.child_by_field_name("name") {
@@ -81,16 +84,20 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
     loop {
         let original = node;
         while let Some(previous) = node.prev_named_sibling() {
-            let adjacent = source[previous.end_byte()..node.start_byte()]
-                .trim()
-                .is_empty();
+            let adjacent = source
+                .get(previous.end_byte()..node.start_byte())
+                .is_some_and(|gap| gap.trim().is_empty());
             let separated = !adjacent;
             if separated {
                 break;
             }
             match previous.kind() {
                 "comment" | "line_comment" => {
-                    markers.insert(source[previous.byte_range()].trim().to_owned());
+                    markers.extend(
+                        source
+                            .get(previous.byte_range())
+                            .map(|comment| comment.trim().to_owned()),
+                    );
                 }
                 "attribute_item" => {}
                 _ => break,
@@ -109,7 +116,7 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
 }
 
 fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
-    let mut parts = vec![source[name.byte_range()].to_owned()];
+    let mut parts: Vec<&str> = source.get(name.byte_range()).into_iter().collect();
     let mut parent = node.parent();
     while let Some(node) = parent {
         let scope = matches!(
@@ -117,7 +124,7 @@ fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
             "mod_item" | "class_definition" | "function_definition" | "function_item"
         );
         if let Some(name) = node.child_by_field_name("name").filter(|_| scope) {
-            parts.push(source[name.byte_range()].to_owned());
+            parts.extend(source.get(name.byte_range()));
         }
         parent = node.parent();
     }

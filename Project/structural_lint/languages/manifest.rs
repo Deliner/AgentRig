@@ -68,5 +68,9 @@ fn allow_level(value: &DeValue<'_>) -> bool {
     level.and_then(DeValue::as_str) == Some("allow")
 }
 fn row(source: &str, offset: usize) -> usize {
-    source[..offset.min(source.len())].matches('\n').count()
+    source
+        .bytes()
+        .take(offset)
+        .filter(|byte| *byte == b'\n')
+        .count()
 }

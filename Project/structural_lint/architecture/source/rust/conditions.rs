@@ -46,13 +46,13 @@ fn split(text: &str) -> Option<Vec<&str>> {
             '(' => depth += 1,
             ')' => depth = depth.checked_sub(1)?,
             ',' if depth == 0 => {
-                parts.push(&text[start..index]);
+                parts.push(text.get(start..index)?);
                 start = index + 1;
             }
             _ => {}
         }
     }
-    parts.push(&text[start..]);
+    parts.push(text.get(start..)?);
     let balanced = depth == 0;
     balanced.then_some(parts)
 }
