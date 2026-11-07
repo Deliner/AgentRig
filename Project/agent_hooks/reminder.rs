@@ -57,9 +57,13 @@ pub fn start_at(event: &Value, directory: &Path) -> Result<()> {
 pub struct Session {
     _lock: File,
     path: PathBuf,
-    pub state: Value,
+    state: Value,
 }
+// DECISION: D129
 impl Session {
+    pub fn state_mut(&mut self) -> &mut Value {
+        &mut self.state
+    }
     pub fn save(&self) -> Result<()> {
         save(&self.path, &self.state)
     }

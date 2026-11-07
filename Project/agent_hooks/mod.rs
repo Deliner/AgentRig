@@ -173,8 +173,8 @@ fn respond(
 ) -> Result<Option<Value>> {
     let answer = match reminder::open(event, &state_directory(configured)?) {
         Ok(mut session) => {
-            let mut answer = remind(event, configured, &mut session.state, reminding);
-            answer.found = requirements::pending(&mut session.state, configured, found);
+            let mut answer = remind(event, configured, session.state_mut(), reminding);
+            answer.found = requirements::pending(session.state_mut(), configured, found);
             if let Err(error) = session.save() {
                 console::stderr(format!("complexity reminder: {error}"));
                 answer.discipline = None;

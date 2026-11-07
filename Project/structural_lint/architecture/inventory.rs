@@ -23,8 +23,8 @@ pub(super) fn check(
 ) -> Vec<Issue> {
     let mut messages = Vec::new();
     for (entries, kind) in [
-        (&declaration.files, Entries::Files),
-        (&declaration.directories, Entries::Directories),
+        (declaration.files(), Entries::Files),
+        (declaration.directories(), Entries::Directories),
     ] {
         validate(&root.join(directory), entries, kind, &mut messages);
     }
@@ -47,9 +47,9 @@ fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -
         let path = path.strip_prefix(".").unwrap_or(&path);
         let child_directory = inventory.directories.contains_key(path);
         let entries = if child_directory {
-            &declaration.directories
+            declaration.directories()
         } else {
-            &declaration.files
+            declaration.files()
         };
         let missing = !entries.contains_key(name);
         if missing {

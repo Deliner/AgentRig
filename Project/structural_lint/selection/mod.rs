@@ -79,9 +79,13 @@ pub fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Resu
 pub struct Selector {
     include: GlobSet,
     exclude: GlobSet,
-    pub overrides: Vec<GlobSet>,
+    overrides: Vec<GlobSet>,
 }
+// DECISION: D129
 impl Selector {
+    pub fn overrides(&self) -> &[GlobSet] {
+        &self.overrides
+    }
     pub fn new(rule: &Rule) -> Result<Self> {
         Ok(Self {
             include: globs(&rule.include)?,
