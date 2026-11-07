@@ -2,7 +2,7 @@ purpose: Verify language-specific measurements and enforcement through real lint
 files:
   test_language.py: Rust and Python condition, function and parameter measurement scenarios
   test_language_delivery.py: Configured enforcement and repair guidance for language measurements
-  mod.rs: Comment, control-flow, boolean-expression, signature, credential and silent-error measurements from native analysis
+  mod.rs: Comment, control-flow, boolean-expression, signature, credential, string literal span and silent-error measurements from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis

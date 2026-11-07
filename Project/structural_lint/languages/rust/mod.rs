@@ -8,6 +8,7 @@ mod silent_error;
 mod super_reach;
 mod suppression;
 mod test_context;
+mod tuple_record;
 mod unsafe_site;
 mod unwind_catch;
 use crate::structural_lint::languages::measure::{
@@ -24,7 +25,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "source_file" => ord_equality::inspect(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
-        "string_literal" | "raw_string_literal" => credential(node, source, output),
+        "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
             unsafe_site::inspect(node, source, output)
         }
@@ -54,6 +55,21 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         }
         _ => {}
     }
+}
+// DECISION: D122
+fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    credential(node, source, output);
+    let exempt = in_test_context(node, source);
+    if exempt {
+        return;
+    }
+    let first = node.start_position().row;
+    output.push(Measurement {
+        kind: Kind::EmbeddedText,
+        line: first + 1,
+        symbol: "literal".into(),
+        actual: (node.end_position().row - first + 1) as u64,
+    });
 }
 fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     panic_call(node, source, output);
@@ -96,78 +112,7 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
-    record_signature(node, source, output);
-}
-// DECISION: D088
-// DECISION: D101
-fn record_signature(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let named = matches!(node.kind(), "function_item" | "function_signature_item");
-    let tuple = annotations(node).any(|annotation| {
-        let top = named && annotation.kind() == "tuple_type";
-        top || nested_record(annotation, source)
-    });
-    let plain = !tuple;
-    if plain {
-        return;
-    }
-    let allowed = justified(node, source) || in_test_context(node, source);
-    if allowed {
-        return;
-    }
-    output.push(Measurement {
-        kind: Kind::TupleAsRecord,
-        line: node.start_position().row + 1,
-        symbol: "signature".into(),
-        actual: 1,
-    });
-}
-fn annotations<'a>(node: Node<'a>) -> impl Iterator<Item = Node<'a>> {
-    let parameters = node
-        .child_by_field_name("parameters")
-        .into_iter()
-        .flat_map(|parameters| {
-            let mut cursor = parameters.walk();
-            parameters
-                .named_children(&mut cursor)
-                .filter_map(|parameter| parameter.child_by_field_name("type"))
-                .collect::<Vec<_>>()
-        });
-    parameters.chain(node.child_by_field_name("return_type"))
-}
-fn nested_record(node: Node<'_>, source: &str) -> bool {
-    let container = matches!(node.kind(), "generic_type" | "array_type");
-    if container {
-        return contained_record(node, source);
-    }
-    let mut cursor = node.walk();
-    node.named_children(&mut cursor)
-        .any(|child| nested_record(child, source))
-}
-fn contained_record(node: Node<'_>, source: &str) -> bool {
-    let record = node.kind() == "tuple_type" && unnamed_record(node, source);
-    if record {
-        return true;
-    }
-    let mut cursor = node.walk();
-    node.named_children(&mut cursor)
-        .any(|child| contained_record(child, source))
-}
-fn unnamed_record(tuple: Node<'_>, source: &str) -> bool {
-    let mut cursor = tuple.walk();
-    tuple.named_child_count() >= 3
-        && tuple
-            .named_children(&mut cursor)
-            .any(|element| scalar(element, source))
-}
-fn scalar(node: Node<'_>, source: &str) -> bool {
-    match node.kind() {
-        "primitive_type" => true,
-        "type_identifier" => text(node, source) == "String",
-        "reference_type" => node
-            .child_by_field_name("type")
-            .is_some_and(|inner| inner.kind() == "primitive_type"),
-        _ => false,
-    }
+    tuple_record::record_signature(node, source, output);
 }
 // DECISION: D081
 fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {

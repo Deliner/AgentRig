@@ -1,6 +1,6 @@
 use super::kind::Kind;
+use super::parameters::Parameters;
 use crate::shared::diagnostics::lint::Level as Severity;
-use serde_json::{Value, json};
 
 pub struct Descriptor {
     pub default_id: &'static str,
@@ -11,40 +11,6 @@ pub struct Descriptor {
     pub parameters: Parameters,
 }
 const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
-pub enum Parameters {
-    Thresholds {
-        warning: Option<u64>,
-        error: u64,
-    },
-    // DECISION: D117
-    Level {
-        violation: &'static str,
-        default: Severity,
-    },
-}
-impl Parameters {
-    pub fn describe(&self) -> Value {
-        match self {
-            Self::Thresholds { .. } => {
-                json!({"type": "thresholds", "warning": "optional nonnegative integer", "error": "optional nonnegative integer", "constraint": "at least one threshold; warning < error; finding when actual > threshold", "overrides": "ordered; last matching value wins"})
-            }
-            Self::Level { .. } => {
-                json!({"type": "policy", "level": ["warning", "error"], "constraint": "level required; thresholds and overrides forbidden"})
-            }
-        }
-    }
-    pub fn apply(&self, value: &mut Value) {
-        match self {
-            Self::Level { default, .. } => value["level"] = json!(default),
-            Self::Thresholds { warning, error } => {
-                value["error"] = json!(error);
-                if let Some(warning) = warning {
-                    value["warning"] = json!(warning);
-                }
-            }
-        }
-    }
-}
 impl Kind {
     pub fn descriptor(self) -> &'static Descriptor {
         match self {
@@ -80,6 +46,7 @@ impl Kind {
             Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::OrdEqMismatch => &ORDEQMISMATCH,
             Self::BooleanExpression => &BOOLEANEXPRESSION,
+            Self::EmbeddedText => &EMBEDDEDTEXT,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -500,5 +467,17 @@ const BOOLEANEXPRESSION: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 3,
+    },
+};
+// DECISION: D122
+const EMBEDDEDTEXT: Descriptor = Descriptor {
+    default_id: "embedded-text",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "lines spanned by one Rust string literal, plain, raw or byte, including one inside macro arguments, outside test code",
+    skill: "extract-embedded-text",
+    parameters: Parameters::Thresholds {
+        warning: None,
+        error: 20,
     },
 };
