@@ -3,6 +3,7 @@ use super::{catalog, config, inventory, languages, rules, selection};
 use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::Result;
 use std::{collections::HashMap, path::Path};
 
@@ -15,7 +16,7 @@ pub(super) fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagn
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
     let mut evaluation = Evaluation::default();
     for rule in &config.rules {
-        let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
+        let architecture = rule.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
         if architecture {
             evaluation
                 .output
@@ -67,7 +68,7 @@ fn structural_measurements(
         Ok(String::from_utf8(fs::read(root.join(selected.path))?).ok())
     };
     Ok(match rule.kind {
-        rules::Kind::NonblankLines => text()?
+        rules::Kind::Structure(Structure::NonblankLines) => text()?
             .map(|source| {
                 let count = source
                     .lines()
@@ -76,7 +77,7 @@ fn structural_measurements(
                 vec![(None, count as u64)]
             })
             .unwrap_or_default(),
-        rules::Kind::LineWidth => text()?
+        rules::Kind::Structure(Structure::LineWidth) => text()?
             .map(|source| {
                 source
                     .lines()
@@ -85,9 +86,11 @@ fn structural_measurements(
                     .collect()
             })
             .unwrap_or_default(),
-        rules::Kind::ForbiddenFile => vec![(None, 1)],
-        rules::Kind::DirectoryEntries => vec![(None, inventory.file_entries(selected.path) as u64)],
-        rules::Kind::DumpName => {
+        rules::Kind::Structure(Structure::ForbiddenFile) => vec![(None, 1)],
+        rules::Kind::Structure(Structure::DirectoryEntries) => {
+            vec![(None, inventory.file_entries(selected.path) as u64)]
+        }
+        rules::Kind::Structure(Structure::DumpName) => {
             let name = selected.path.file_name().and_then(|name| name.to_str());
             let dump = name.is_some_and(|name| DUMP_NAMES.contains(&name));
             if dump { vec![(None, 1)] } else { Vec::new() }

@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D065
@@ -9,7 +10,7 @@ fn unsafe_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::UnsafeJustification)
+        .filter(|item| item.kind == Kind::Reference(Reference::UnsafeJustification))
         .map(|item| item.line)
         .collect();
     lines.sort();

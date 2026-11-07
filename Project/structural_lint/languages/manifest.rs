@@ -1,6 +1,7 @@
 use super::Analysis;
 use super::measure::{Measurement, justified_line};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use toml::Spanned;
 use toml::de::{DeString, DeTable, DeValue};
 
@@ -54,7 +55,7 @@ fn report(
         return;
     }
     output.push(Measurement {
-        kind: Kind::AllowJustification,
+        kind: Kind::Reference(Reference::AllowJustification),
         line: line + 1,
         symbol: name.get_ref().to_string(),
         actual: 1,

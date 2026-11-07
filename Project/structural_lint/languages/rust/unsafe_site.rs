@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::measure::{Measurement, justified_line, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D065
@@ -68,7 +69,7 @@ fn report(node: Node<'_>, symbol: &str, source: &str, output: &mut Vec<Measureme
         return;
     }
     output.push(Measurement {
-        kind: Kind::UnsafeJustification,
+        kind: Kind::Reference(Reference::UnsafeJustification),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,

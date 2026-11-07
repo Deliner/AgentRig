@@ -1,6 +1,7 @@
 use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
 use tree_sitter::Node;
 
 // DECISION: D102
@@ -17,7 +18,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         return;
     }
     output.push(Measurement {
-        kind: Kind::RecursiveDeletion,
+        kind: Kind::Ownership(Ownership::RecursiveDeletion),
         line: node.start_position().row + 1,
         symbol: "remove_dir_all".into(),
         actual: 1,

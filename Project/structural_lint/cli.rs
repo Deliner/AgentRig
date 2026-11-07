@@ -1,5 +1,6 @@
 use crate::shared::arguments::take_option;
 use crate::shared::console;
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, ensure};
 use std::{
     env,
@@ -124,7 +125,7 @@ fn print_rule(kind: super::rules::Kind) {
     if syntax {
         console::stdout(format!("Languages: {}", super::catalog::support(kind)));
     }
-    let architecture = kind == super::rules::Kind::DirectoryArchitecture;
+    let architecture = kind == super::rules::Kind::Structure(Structure::DirectoryArchitecture);
     if architecture {
         console::stdout(format!(
             "Architecture settings and limits: {}",

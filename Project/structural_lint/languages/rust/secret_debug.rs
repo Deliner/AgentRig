@@ -1,6 +1,7 @@
 use super::context::{attributed, in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, descendants, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use tree_sitter::Node;
 
 const SECRET_NAMES: &[&str] = &[
@@ -46,7 +47,7 @@ pub(super) fn inspect(definition: Node<'_>, source: &str, output: &mut Vec<Measu
         let secret = SECRET_NAMES.contains(&field_name) && printable(declared, source);
         if secret {
             output.push(Measurement {
-                kind: Kind::SecretDebug,
+                kind: Kind::Signature(Signature::SecretDebug),
                 line: name.start_position().row + 1,
                 symbol: format!("{owner}.{field_name}"),
                 actual: 1,

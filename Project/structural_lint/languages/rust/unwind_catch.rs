@@ -1,6 +1,7 @@
 use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D115
@@ -16,7 +17,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         return;
     }
     output.push(Measurement {
-        kind: Kind::UnwindJustification,
+        kind: Kind::Reference(Reference::UnwindJustification),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,

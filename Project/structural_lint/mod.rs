@@ -18,6 +18,7 @@ pub use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::diagnostics::lint::{Level, print_diagnostics};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::Result;
 use std::path::Path;
 
@@ -128,7 +129,8 @@ fn analyze(root: &Path, path: &Path, mode: Mode) -> Result<Vec<Diagnostic>> {
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
                 selection::select(rule, &inventory)?;
-                let architecture = rule.kind == rules::Kind::DirectoryArchitecture;
+                let architecture =
+                    rule.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
                 if architecture {
                     architecture::runner::validate(rule, &inventory)?;
                 }

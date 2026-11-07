@@ -16,6 +16,9 @@ use crate::structural_lint::languages::measure::{
     condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rules::structure::Structure;
 use context::{in_debug_only_context, in_test_context, last_segment};
 use tree_sitter::Node;
 
@@ -68,7 +71,7 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
     let first = node.start_position().row;
     output.push(Measurement {
-        kind: Kind::EmbeddedText,
+        kind: Kind::Structure(Structure::EmbeddedText),
         line: first + 1,
         symbol: "literal".into(),
         actual: (node.end_position().row - first + 1) as u64,
@@ -125,7 +128,7 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let debug = text(path, source) == "dbg";
     if debug {
         output.push(Measurement {
-            kind: Kind::DebugArtifact,
+            kind: Kind::Reference(Reference::DebugArtifact),
             line: node.start_position().row + 1,
             symbol: "dbg".into(),
             actual: 1,
@@ -153,7 +156,7 @@ fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec
         return;
     }
     output.push(Measurement {
-        kind: Kind::DebugAssertion,
+        kind: Kind::Reference(Reference::DebugAssertion),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -194,7 +197,7 @@ fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Mea
         return;
     }
     output.push(Measurement {
-        kind: Kind::PanicPath,
+        kind: Kind::Reference(Reference::PanicPath),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -232,7 +235,7 @@ fn eager_fallback(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::EagerFallback,
+        kind: Kind::Reference(Reference::EagerFallback),
         line: node.start_position().row + 1,
         symbol: name.into(),
         actual: 1,
@@ -269,7 +272,7 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         return;
     }
     output.push(Measurement {
-        kind: Kind::DiscardedResult,
+        kind: Kind::Reference(Reference::DiscardedResult),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -315,7 +318,7 @@ fn disabled_raii(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::DisabledRaii,
+        kind: Kind::Ownership(Ownership::DisabledRaii),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -405,7 +408,7 @@ fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::WildcardImport,
+        kind: Kind::Reference(Reference::WildcardImport),
         line: node.start_position().row + 1,
         symbol: "glob".into(),
         actual: 1,

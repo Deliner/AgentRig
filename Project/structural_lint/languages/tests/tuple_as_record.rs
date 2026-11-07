@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use std::path::Path;
 
 // DECISION: D088
@@ -9,7 +10,7 @@ fn record_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::TupleAsRecord)
+        .filter(|item| item.kind == Kind::Signature(Signature::TupleAsRecord))
         .map(|item| item.line)
         .collect();
     lines.sort();

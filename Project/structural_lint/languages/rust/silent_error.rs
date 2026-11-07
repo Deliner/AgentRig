@@ -1,6 +1,7 @@
 use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D097
@@ -35,7 +36,7 @@ pub(super) fn collapsed_read_dir(node: Node<'_>, source: &str, output: &mut Vec<
         return;
     }
     output.push(Measurement {
-        kind: Kind::SilentError,
+        kind: Kind::Reference(Reference::SilentError),
         line: node.start_position().row + 1,
         symbol: name.into(),
         actual: 1,
@@ -170,7 +171,7 @@ fn report_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::SilentError,
+        kind: Kind::Reference(Reference::SilentError),
         line: node.start_position().row + 1,
         symbol: function.into(),
         actual: 1,
@@ -266,7 +267,7 @@ pub(super) fn exit_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measur
         let flagged = answered && !allowed;
         if flagged {
             output.push(Measurement {
-                kind: Kind::SilentError,
+                kind: Kind::Reference(Reference::SilentError),
                 line: exit.start_position().row + 1,
                 symbol: "success".into(),
                 actual: 1,

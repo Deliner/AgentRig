@@ -1,45 +1,20 @@
-use serde::{Deserialize, Serialize};
+use super::control_flow::ControlFlow;
+use super::ownership::Ownership;
+use super::reference::Reference;
+use super::signature::Signature;
+use super::structure::Structure;
+use serde::Serialize;
 use std::fmt;
 
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
+// DECISION: D133
+#[derive(Clone, Copy, Debug, Serialize, PartialEq, Eq)]
+#[serde(untagged)]
 pub enum Kind {
-    NonblankLines,
-    LineWidth,
-    ForbiddenFile,
-    DirectoryEntries,
-    DumpName,
-    NamedIfCondition,
-    FunctionLines,
-    ParameterCount,
-    NestingDepth,
-    BooleanParameter,
-    BranchBudget,
-    UnsafeJustification,
-    HardcodedSecret,
-    SilentError,
-    DisabledTest,
-    AllowJustification,
-    DebugArtifact,
-    DebugAssertion,
-    PanicPath,
-    WildcardImport,
-    TupleAsRecord,
-    EagerFallback,
-    DiscardedResult,
-    DisabledRaii,
-    GlobalState,
-    SuperSuperReach,
-    RecursiveDeletion,
-    UnwindJustification,
-    GuardAcrossAwait,
-    BlockingInAsync,
-    OrdEqMismatch,
-    BooleanExpression,
-    EmbeddedText,
-    SecretDebug,
-    CommentReference,
-    DirectoryArchitecture,
+    Structure(Structure),
+    ControlFlow(ControlFlow),
+    Signature(Signature),
+    Ownership(Ownership),
+    Reference(Reference),
 }
 impl fmt::Display for Kind {
     // DECISION: D129

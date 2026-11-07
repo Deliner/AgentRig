@@ -1,5 +1,6 @@
 use super::super::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D100
@@ -9,7 +10,7 @@ fn reach_findings(path: &str, source: &str) -> Vec<String> {
     let mut sites: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::SuperSuperReach)
+        .filter(|item| item.kind == Kind::Reference(Reference::SuperSuperReach))
         .map(|item| (item.line, item.symbol))
         .collect();
     sites.sort();

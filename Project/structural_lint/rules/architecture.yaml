@@ -3,8 +3,13 @@ type: flat
 dependents: 9
 files:
   mod.rs: Declare the definition modules and export the rule identity and descriptor types
-  kind.rs: Stable rule identities and their serialized names
-  descriptor.rs: Rule metrics, defaults and repair skill bindings
+  kind.rs: Stable rule identity as a wrapper over the family enums, and its serialized names
+  descriptor.rs: The rule descriptor shape, shared test-code exclusion and dispatch to the family descriptors
+  structure.rs: File, line, directory and architecture rule identities with their metrics, defaults and repair skills
+  control_flow.rs: Condition, nesting, branching and boolean-expression rule identities with their metrics, defaults and repair skills
+  signature.rs: Function signature and derived-trait rule identities with their metrics, defaults and repair skills
+  ownership.rs: Resource, global-state, deletion and lock-guard rule identities with their metrics, defaults and repair skills
+  reference.rs: Code-site rule identities repaired by handling, removing or justifying the site, with their metrics, defaults and repair skills
   parameters.rs: Threshold and policy-level parameter contracts, their description and example defaults
   architecture.rs: Architecture rule settings, schema validation and capability description
 directories: {}

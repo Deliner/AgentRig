@@ -1,6 +1,7 @@
 use super::catalog as rules;
 pub use crate::shared::diagnostics::lint::Level;
 use crate::shared::{diagnostics::skills, paths::patterns::globs};
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -122,7 +123,7 @@ impl Rule {
         }
         globs(&self.include)?;
         globs(&self.exclude)?;
-        let architecture = self.kind == rules::Kind::DirectoryArchitecture;
+        let architecture = self.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
         let extension_target = if architecture { "file" } else { &self.target };
         validate_extensions(&self.extensions, extension_target)?;
         self.validate_architecture()?;
@@ -162,7 +163,7 @@ impl Rule {
         Ok(())
     }
     fn validate_architecture(&self) -> Result<()> {
-        let architecture = self.kind == rules::Kind::DirectoryArchitecture;
+        let architecture = self.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
         if architecture {
             let settings = self.architecture.as_ref().ok_or_else(|| {
                 anyhow::anyhow!(

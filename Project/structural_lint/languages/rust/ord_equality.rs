@@ -1,6 +1,7 @@
 use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 
@@ -39,7 +40,7 @@ pub(super) fn inspect<'a>(root: Node<'a>, source: &'a str, output: &mut Vec<Meas
         };
         if let Some(symbol) = symbol {
             output.push(Measurement {
-                kind: Kind::OrdEqMismatch,
+                kind: Kind::Signature(Signature::OrdEqMismatch),
                 line: ordering.node.start_position().row + 1,
                 symbol,
                 actual: 1,

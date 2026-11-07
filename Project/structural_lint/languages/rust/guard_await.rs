@@ -2,6 +2,7 @@ use super::context::async_code::scope_boundary;
 use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
 use tree_sitter::Node;
 
 // DECISION: D117
@@ -16,7 +17,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let held = held_across_await(node, name, source);
     if held {
         output.push(Measurement {
-            kind: Kind::GuardAcrossAwait,
+            kind: Kind::Ownership(Ownership::GuardAcrossAwait),
             line: node.start_position().row + 1,
             symbol: name.into(),
             actual: 1,

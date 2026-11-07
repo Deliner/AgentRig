@@ -1,5 +1,6 @@
 use super::{config, inventory, selection};
 use crate::shared::console;
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
@@ -73,7 +74,7 @@ fn explain(
         (_, Exclusion::Global) => Some("global exclude matches"),
         _ => inventory_reason(rule, path, inventory).or_else(|| selector.reason(rule, path)),
     };
-    let architecture = rule.kind == super::rules::Kind::DirectoryArchitecture;
+    let architecture = rule.kind == super::rules::Kind::Structure(Structure::DirectoryArchitecture);
     let selected_architecture = architecture && reason.is_none();
     if selected_architecture {
         let lacks_sources =

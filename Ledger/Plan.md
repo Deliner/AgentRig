@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P089](Plan/089.md) | paused | - | [B080](Backlog/080.md): unchecked-deserialize — десериализация проходит через проверку конструктора | Значение из файла или сети не обходит проверку. |
+| [P089](Plan/089.md) | active | - | [B080](Backlog/080.md): unchecked-deserialize — десериализация проходит через проверку конструктора | Значение из файла или сети не обходит проверку. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 

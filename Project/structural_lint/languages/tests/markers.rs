@@ -1,5 +1,7 @@
 use super::super::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D074
@@ -9,7 +11,7 @@ fn disabled_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::DisabledTest)
+        .filter(|item| item.kind == Kind::Reference(Reference::DisabledTest))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -67,7 +69,7 @@ fn allow_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::AllowJustification)
+        .filter(|item| item.kind == Kind::Reference(Reference::AllowJustification))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -136,7 +138,7 @@ fn debug_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::DebugArtifact)
+        .filter(|item| item.kind == Kind::Reference(Reference::DebugArtifact))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -150,7 +152,7 @@ fn panic_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::PanicPath)
+        .filter(|item| item.kind == Kind::Reference(Reference::PanicPath))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -251,7 +253,7 @@ fn assertion_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::DebugAssertion)
+        .filter(|item| item.kind == Kind::Reference(Reference::DebugAssertion))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -287,7 +289,7 @@ fn wildcard_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::WildcardImport)
+        .filter(|item| item.kind == Kind::Reference(Reference::WildcardImport))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -332,7 +334,7 @@ fn eager_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::EagerFallback)
+        .filter(|item| item.kind == Kind::Reference(Reference::EagerFallback))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -389,7 +391,7 @@ fn discarded_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::DiscardedResult)
+        .filter(|item| item.kind == Kind::Reference(Reference::DiscardedResult))
         .map(|item| item.line)
         .collect();
     lines.sort();
@@ -480,7 +482,7 @@ fn raii_findings(path: &str, source: &str) -> Vec<usize> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::DisabledRaii)
+        .filter(|item| item.kind == Kind::Ownership(Ownership::DisabledRaii))
         .map(|item| item.line)
         .collect();
     lines.sort();

@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use std::path::Path;
 
 // DECISION: D130
@@ -9,7 +10,7 @@ fn secrets(source: &str) -> Vec<(usize, String)> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::SecretDebug)
+        .filter(|item| item.kind == Kind::Signature(Signature::SecretDebug))
         .map(|item| (item.line, item.symbol))
         .collect();
     found.sort();

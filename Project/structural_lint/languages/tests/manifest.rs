@@ -1,5 +1,6 @@
 use super::super::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D098
@@ -9,7 +10,7 @@ fn allow_findings(path: &str, source: &str) -> Vec<String> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::AllowJustification)
+        .filter(|item| item.kind == Kind::Reference(Reference::AllowJustification))
         .map(|item| (item.line, item.symbol))
         .collect();
     found.sort();

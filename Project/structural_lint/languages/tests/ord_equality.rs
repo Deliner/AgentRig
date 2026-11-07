@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use std::path::Path;
 
 // DECISION: D119
@@ -9,7 +10,7 @@ fn mismatches(source: &str) -> Vec<(usize, String)> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::OrdEqMismatch)
+        .filter(|item| item.kind == Kind::Signature(Signature::OrdEqMismatch))
         .map(|item| (item.line, item.symbol))
         .collect();
     found.sort();

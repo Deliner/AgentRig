@@ -1,6 +1,7 @@
 use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
 use std::path::Path;
 use tree_sitter::Node;
 
@@ -120,7 +121,7 @@ fn measure(item: Node<'_>, source: &str) -> Option<Measurement> {
         .map(|name| text(name, source))
         .unwrap_or("static");
     Some(Measurement {
-        kind: Kind::GlobalState,
+        kind: Kind::Ownership(Ownership::GlobalState),
         line: item.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,

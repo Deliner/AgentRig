@@ -1,9 +1,9 @@
 purpose: Verify language-specific measurements from native analysis and, in consumer, their enforcement through real lint consumers
 files:
-  mod.rs: Comment, control-flow, boolean-expression, signature, credential, string literal span and silent-error measurements from native analysis
+  mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
-  silent_error.rs: Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
+  silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
   ord_equality.rs: Rust manual order and equality reading different fields, and consistent, justified or unresolvable comparisons, from native analysis

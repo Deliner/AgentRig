@@ -1,6 +1,10 @@
 // DECISION: D037
 use super::analyze;
+use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rules::structure::Structure;
 use std::path::Path;
 
 mod async_code;
@@ -22,7 +26,7 @@ fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::CommentReference)
+        .filter(|item| item.kind == Kind::Reference(Reference::CommentReference))
         .map(|item| (item.line, item.symbol))
         .collect();
     lines.sort();
@@ -84,7 +88,7 @@ fn nesting_depths(path: &str, source: &str) -> Vec<(String, u64)> {
     let mut depths: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::NestingDepth)
+        .filter(|item| item.kind == Kind::ControlFlow(ControlFlow::NestingDepth))
         .map(|item| (item.symbol, item.actual))
         .collect();
     depths.sort();
@@ -194,7 +198,11 @@ fn rust_counts_operands_of_each_boolean_expression_wherever_it_stands() {
 }
 ";
     assert_eq!(
-        line_actuals(Kind::BooleanExpression, "source.rs", source),
+        line_actuals(
+            Kind::ControlFlow(ControlFlow::BooleanExpression),
+            "source.rs",
+            source
+        ),
         [(2, 5), (3, 4), (5, 4), (8, 3), (9, 2), (10, 2)]
     );
 }
@@ -211,7 +219,11 @@ fn rust_groups_parentheses_and_measures_negations_let_bindings_and_macros_apart(
 }
 ";
     assert_eq!(
-        line_actuals(Kind::BooleanExpression, "source.rs", source),
+        line_actuals(
+            Kind::ControlFlow(ControlFlow::BooleanExpression),
+            "source.rs",
+            source
+        ),
         [(2, 4), (3, 2), (3, 4), (4, 3), (5, 1), (6, 2), (6, 3)]
     );
 }
@@ -228,7 +240,11 @@ fn python_counts_and_or_operands_with_parentheses_and_not_as_one() {
     return left == right and done
 ";
     assert_eq!(
-        line_actuals(Kind::BooleanExpression, "source.py", source),
+        line_actuals(
+            Kind::ControlFlow(ControlFlow::BooleanExpression),
+            "source.py",
+            source
+        ),
         [(2, 5), (3, 4), (5, 4), (6, 2), (6, 4), (7, 3), (8, 2)]
     );
 }
@@ -240,7 +256,7 @@ fn boolean_params(path: &str, source: &str) -> Vec<String> {
     let mut names: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::BooleanParameter)
+        .filter(|item| item.kind == Kind::Signature(Signature::BooleanParameter))
         .map(|item| item.symbol)
         .collect();
     names.sort();
@@ -309,7 +325,7 @@ fn branch_budgets(path: &str, source: &str) -> Vec<(String, u64)> {
     let mut budgets: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::BranchBudget)
+        .filter(|item| item.kind == Kind::ControlFlow(ControlFlow::BranchBudget))
         .map(|item| (item.symbol, item.actual))
         .collect();
     budgets.sort();
@@ -403,53 +419,11 @@ fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::HardcodedSecret)
+        .filter(|item| item.kind == Kind::Reference(Reference::HardcodedSecret))
         .map(|item| (item.line, item.symbol))
         .collect();
     found.sort();
     found
-}
-
-// DECISION: D069
-fn silent_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut lines: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| item.kind == Kind::SilentError)
-        .map(|item| item.line)
-        .collect();
-    lines.sort();
-    lines
-}
-
-#[test]
-fn python_flags_except_pass_without_a_justifying_reference() {
-    let source = "def guarded():
-    try:
-        work()
-    except ValueError:
-        pass
-    try:
-        work()
-    except KeyError:
-        # DECISION: D001
-        pass
-    try:
-        work()
-    except OSError as error:
-        log(error)
-    try:
-        work()
-    except TypeError:
-        cleanup()
-        pass
-    try:
-        work()
-    except IndexError: pass
-";
-    assert_eq!(silent_findings("source.py", source), [4, 22]);
 }
 
 #[test]
@@ -486,7 +460,7 @@ back") + short
 }
 "##;
     assert_eq!(
-        line_actuals(Kind::EmbeddedText, "text.rs", source),
+        line_actuals(Kind::Structure(Structure::EmbeddedText), "text.rs", source),
         [(1, 4), (6, 1), (7, 2), (9, 3)]
     );
 }
@@ -515,7 +489,7 @@ y";
 }
 "##;
     assert_eq!(
-        line_actuals(Kind::EmbeddedText, "text.rs", source),
+        line_actuals(Kind::Structure(Structure::EmbeddedText), "text.rs", source),
         [(2, 2)]
     );
 }

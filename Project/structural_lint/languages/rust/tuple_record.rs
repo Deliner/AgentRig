@@ -1,6 +1,7 @@
 use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use tree_sitter::Node;
 
 // DECISION: D088
@@ -20,7 +21,7 @@ pub(super) fn record_signature(node: Node<'_>, source: &str, output: &mut Vec<Me
         return;
     }
     output.push(Measurement {
-        kind: Kind::TupleAsRecord,
+        kind: Kind::Signature(Signature::TupleAsRecord),
         line: node.start_position().row + 1,
         symbol: "signature".into(),
         actual: 1,

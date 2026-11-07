@@ -2,43 +2,44 @@
 
 ## Focus
 
-Пользователь 2026-11-07: «сохраняй все карточки, заведи отдельную карточку на клипе, и после этого автономно
-реализуй все это». Выбрано **P087 → P090**. P087 и P088 слиты в master, последний merge `21c0b30`. **P089**
-(B080, `unchecked-deserialize`) приостановлен: нужен выбор пользователя о структуре реестра видов, см. Delivery
-[P089](Plan/089.md). **P090** (B082, поставка clippy в `init`) выполнен на ветке, P090 и B082 в Archive.
+Пользователь 2026-11-07 выбрал для P089 разбиение `Kind` на семейные перечисления («Ок, принимаем 1 пункт. Делай все
+оставшиеся карточки»). Выбрано **P087 → P090**; P087, P088 и P090 слиты в master, последний merge `5f02cdc`.
+**P089** (B080, `unchecked-deserialize`) активен, см. [P089](Plan/089.md). VAC A: разбиение `Kind` по
+[D133](Decisions/133.md) без изменения поведения.
 
 ## Workspace
 
-Branch: `feature/clippy-delivery`
-Revision: `5ba1aafcc4101e427678957bb18b19010339dc4f` (VAC P090; коммит пина следует)
+Branch: `feature/unchecked-deserialize`
+Revision: `5f02cdcea46bb84ef3d404216aba36a6142e5e58` (master; VAC A не закоммичен)
 
-Ветка `feature/unchecked-deserialize` без коммитов, работа P089 в `stash@{0}` и в патче
-`agentrig-research/scratchpad/meta/wip/p089-unchecked-deserialize.patch`. Ветки `feature/secret-debug`,
+Работа фазы 1 P089 лежит в `stash@{0}` этой ветки и в патче
+`agentrig-research/scratchpad/meta/wip/p089-unchecked-deserialize.patch`. Ветки `feature/clippy-delivery`,
 `feature/init-probe` и прежние сохранены. Установленный рантайм — `5ba1aaf`. macOS: коммиты, слияние и вызовы с cargo
 через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
-- P090: `project_setup/clippy.rs` с профилем из 23 линтов; `template.rs` создаёт Rust-проекту команду и проверку
-  `clippy`; мастер `init --interactive` предлагает созданные шаблоном проверки; тест `test_clippy_profile.py`; README;
-  D132; Delivery и ротация P090, B082. VAC `5ba1aaf`.
-- Пин D051: `stable.txt` — `5ba1aaf`, `just bootstrap` — код 0.
-- Осталось: коммит пина, `just feature-merge`.
+- VAC A: `rules/{structure,control_flow,signature,ownership,reference}.rs` с перечислениями, `descriptor` и
+  константами; `descriptor.rs` — форма и диспетчеризация; `kind.rs` — обёртка `#[serde(untagged)]`; разбор имени по
+  `catalog::ALL` в `catalog/mod.rs`; потребители пишут `Kind::Family(Family::Variant)`. Тест Python except-pass
+  перенесён в `tests/silent_error.rs`, повторяющиеся виды в двух тестовых файлах названы константами. Ссылки 36
+  решений перенесены с `descriptor.rs` на файлы семейств, ссылка тестов D069 — на `tests/silent_error.rs`; D133;
+  контракты `architecture.yaml`; P089 — active.
+- Осталось: коммит VAC A; затем stash, вид `UncheckedDeserialize` в `Signature`, D131, мид-пин; затем фаза 2.
 
 ## Verification
 
-- Гейт коммита `5ba1aaf`: все проверки PASS, rust-test 11 и test 206 passed.
-- `pytest Project/project_setup`: 62 passed.
-- `just candidate lint`: код 0.
-- Проба AC1 в scratchpad: `check --only clippy` с `Some(1).unwrap()` — `ERROR [clippy]`, `clippy::unwrap_used`;
-  полный `check` с `&text[..1]` — `ERROR [clippy]` после PASS остальных; после исправления `check` — код 0.
+- `cargo test`: 157 passed; `just run clippy`: код 0; `just candidate lint`: код 0.
+- `just candidate memory-check`: только прежнее предупреждение D112 о `tree-sitter-rust/grammar.js`.
+- `lint-rules` установленного рантайма и кандидата совпадают побайтно; `lint-rule --example` для трёх видов тоже.
+  `lint-rule panic-pathx`: «unknown variant `panic-pathx`, expected one of …», код 2.
 
 ## Blockers
 
-P089 ждёт выбора пользователя; P090 не блокирован.
+Нет.
 
 ## Next action
 
-Коммит пина D051 через хук, `just feature-merge` для `feature/clippy-delivery`, ветку сохранить; затем
-итоговый отчёт с вариантами для P089. Свободные ID: D133+, I022+, P091+, B083+ (D131 занят работой P089, B066 и D111
-зарезервированы).
+Закоммитить VAC A через хук. Затем `git stash pop`, привести `derived_trait.rs` к `Kind::Signature(...)`, добавить
+`UncheckedDeserialize` с дескриптором и D131, коммит, мид-пин D051. Свободные ID: D134+, I022+, P091+, B083+ (D131
+занят работой P089, B066 и D111 зарезервированы).

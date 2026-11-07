@@ -3,6 +3,7 @@ use super::measure::{
     condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -33,7 +34,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
         values.next().is_some_and(|value| value.kind() == "string") && values.next().is_none();
     if lone_string {
         output.push(Measurement {
-            kind: Kind::CommentReference,
+            kind: Kind::Reference(Reference::CommentReference),
             line: node.start_position().row + 1,
             symbol: "docstring".into(),
             actual: 1,
@@ -98,7 +99,7 @@ fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let unjustified = disabled && !justified(node, source);
     if unjustified {
         output.push(Measurement {
-            kind: Kind::DisabledTest,
+            kind: Kind::Reference(Reference::DisabledTest),
             line: node.start_position().row + 1,
             symbol: "skip".into(),
             actual: 1,
@@ -114,7 +115,7 @@ fn wildcard_import(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) 
     let unjustified = glob && !justified(node, source);
     if unjustified {
         output.push(Measurement {
-            kind: Kind::WildcardImport,
+            kind: Kind::Reference(Reference::WildcardImport),
             line: node.start_position().row + 1,
             symbol: "glob".into(),
             actual: 1,
@@ -140,7 +141,7 @@ fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let swallowed = silent && !justified(first, source);
     if swallowed {
         output.push(Measurement {
-            kind: Kind::SilentError,
+            kind: Kind::Reference(Reference::SilentError),
             line: node.start_position().row + 1,
             symbol: "except".into(),
             actual: 1,
