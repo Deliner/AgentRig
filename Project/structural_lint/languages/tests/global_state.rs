@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
 use std::path::Path;
 
 // DECISION: D096
@@ -9,7 +10,7 @@ fn global_findings(path: &str, source: &str) -> Vec<String> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::GlobalState)
+        .filter(|item| item.kind == Kind::Ownership(Ownership::GlobalState))
         .collect();
     found.sort_by_key(|item| item.line);
     found

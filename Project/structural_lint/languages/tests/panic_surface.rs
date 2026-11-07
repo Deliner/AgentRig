@@ -1,6 +1,11 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
+
+const DEBUG_ASSERTION: Kind = Kind::Reference(Reference::DebugAssertion);
+const PANIC_PATH: Kind = Kind::Reference(Reference::PanicPath);
+const UNWIND: Kind = Kind::Reference(Reference::UnwindJustification);
 
 // DECISION: D115
 fn findings(kind: Kind, source: &str) -> Vec<(usize, String)> {
@@ -57,8 +62,8 @@ mod tests {
     }
 }
 ";
-    assert_eq!(lines(Kind::DebugAssertion, source), [3, 5, 13, 24]);
-    assert_eq!(lines(Kind::PanicPath, source), [] as [usize; 0]);
+    assert_eq!(lines(DEBUG_ASSERTION, source), [3, 5, 13, 24]);
+    assert_eq!(lines(PANIC_PATH, source), [] as [usize; 0]);
 }
 
 #[test]
@@ -81,7 +86,7 @@ mod tests {
     }
 }
 ";
-    let found = findings(Kind::PanicPath, source);
+    let found = findings(PANIC_PATH, source);
     let expected = [
         (2, "unwrap_err"),
         (3, "expect_err"),
@@ -111,7 +116,7 @@ mod tests {
     }
 }
 ";
-    let found = findings(Kind::UnwindJustification, source);
+    let found = findings(UNWIND, source);
     let expected = [
         (2, "catch_unwind"),
         (3, "AssertUnwindSafe"),
@@ -132,6 +137,6 @@ fn rust_flags_panic_paths_beside_primitive_named_macros_and_lifetimes_first_afte
     load(expected, bytes).unwrap()
 }
 ";
-    let found = findings(Kind::PanicPath, source);
+    let found = findings(PANIC_PATH, source);
     assert_eq!(found, [(4, "unwrap".to_string())]);
 }

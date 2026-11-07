@@ -1,10 +1,10 @@
 mod blocking_async;
 mod context;
+mod derived_trait;
 mod global_state;
 mod guard_await;
 mod ord_equality;
 mod recursive_deletion;
-mod secret_debug;
 mod silent_error;
 mod super_reach;
 mod suppression;
@@ -16,6 +16,9 @@ use crate::structural_lint::languages::measure::{
     condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rules::structure::Structure;
 use context::{in_debug_only_context, in_test_context, last_segment};
 use tree_sitter::Node;
 
@@ -23,8 +26,8 @@ use tree_sitter::Node;
 // DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
-        "source_file" => ord_equality::inspect(node, source, output),
-        "struct_item" => secret_debug::inspect(node, source, output),
+        "source_file" => file_items(node, source, output),
+        "struct_item" => derived_trait::secret_debug(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
@@ -68,11 +71,15 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
     let first = node.start_position().row;
     output.push(Measurement {
-        kind: Kind::EmbeddedText,
+        kind: Kind::Structure(Structure::EmbeddedText),
         line: first + 1,
         symbol: "literal".into(),
         actual: (node.end_position().row - first + 1) as u64,
     });
+}
+fn file_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    ord_equality::inspect(node, source, output);
+    derived_trait::unchecked_deserialize(node, source, output);
 }
 fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     panic_call(node, source, output);
@@ -125,7 +132,7 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let debug = text(path, source) == "dbg";
     if debug {
         output.push(Measurement {
-            kind: Kind::DebugArtifact,
+            kind: Kind::Reference(Reference::DebugArtifact),
             line: node.start_position().row + 1,
             symbol: "dbg".into(),
             actual: 1,
@@ -153,7 +160,7 @@ fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec
         return;
     }
     output.push(Measurement {
-        kind: Kind::DebugAssertion,
+        kind: Kind::Reference(Reference::DebugAssertion),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -194,7 +201,7 @@ fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Mea
         return;
     }
     output.push(Measurement {
-        kind: Kind::PanicPath,
+        kind: Kind::Reference(Reference::PanicPath),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -232,7 +239,7 @@ fn eager_fallback(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::EagerFallback,
+        kind: Kind::Reference(Reference::EagerFallback),
         line: node.start_position().row + 1,
         symbol: name.into(),
         actual: 1,
@@ -269,7 +276,7 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         return;
     }
     output.push(Measurement {
-        kind: Kind::DiscardedResult,
+        kind: Kind::Reference(Reference::DiscardedResult),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -315,7 +322,7 @@ fn disabled_raii(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::DisabledRaii,
+        kind: Kind::Ownership(Ownership::DisabledRaii),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -405,7 +412,7 @@ fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         return;
     }
     output.push(Measurement {
-        kind: Kind::WildcardImport,
+        kind: Kind::Reference(Reference::WildcardImport),
         line: node.start_position().row + 1,
         symbol: "glob".into(),
         actual: 1,

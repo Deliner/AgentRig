@@ -1,4 +1,8 @@
+use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rules::structure::Structure;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -58,7 +62,7 @@ pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measureme
     let invalid = !named_value(condition);
     if invalid {
         output.push(Measurement {
-            kind: Kind::NamedIfCondition,
+            kind: Kind::ControlFlow(ControlFlow::NamedIfCondition),
             line: node.start_position().row + 1,
             symbol: "if".into(),
             actual: 1,
@@ -71,7 +75,7 @@ pub fn boolean_expression(node: Node<'_>, output: &mut Vec<Measurement>) {
     let measured = connective(node) && !nested;
     if measured {
         output.push(Measurement {
-            kind: Kind::BooleanExpression,
+            kind: Kind::ControlFlow(ControlFlow::BooleanExpression),
             line: node.start_position().row + 1,
             symbol: "expression".into(),
             actual: operands(node),
@@ -125,7 +129,7 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();
     if forbidden {
         output.push(Measurement {
-            kind: Kind::CommentReference,
+            kind: Kind::Reference(Reference::CommentReference),
             line: node.start_position().row + 1,
             symbol: "comment".into(),
             actual: 1,
@@ -137,7 +141,7 @@ pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let found = crate::shared::syntax::secret(text(node, source));
     if let Some(name) = found {
         output.push(Measurement {
-            kind: Kind::HardcodedSecret,
+            kind: Kind::Reference(Reference::HardcodedSecret),
             line: node.start_position().row + 1,
             symbol: name.into(),
             actual: 1,
@@ -150,7 +154,7 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
         .map(|name| text(name, source))
         .unwrap_or("<anonymous>");
     output.push(Measurement {
-        kind: Kind::ParameterCount,
+        kind: Kind::Signature(Signature::ParameterCount),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: count,
@@ -158,7 +162,7 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
     let has_body = node.child_by_field_name("body").is_some();
     if has_body {
         output.push(Measurement {
-            kind: Kind::FunctionLines,
+            kind: Kind::Structure(Structure::FunctionLines),
             line: node.start_position().row + 1,
             symbol: symbol.into(),
             actual: text(node, source)
@@ -189,7 +193,7 @@ pub fn nesting(
         let mut max = 0;
         descend(node, classify, 0, &mut max);
         output.push(Measurement {
-            kind: Kind::NestingDepth,
+            kind: Kind::ControlFlow(ControlFlow::NestingDepth),
             line: node.start_position().row + 1,
             symbol: symbol.into(),
             actual: max,
@@ -225,7 +229,7 @@ pub fn boolean_parameters(
         let boolean = flag(parameter, source);
         if boolean {
             output.push(Measurement {
-                kind: Kind::BooleanParameter,
+                kind: Kind::Signature(Signature::BooleanParameter),
                 line: parameter.start_position().row + 1,
                 symbol: text(parameter, source).trim().into(),
                 actual: 1,
@@ -254,7 +258,7 @@ pub fn branching(
         let mut total = 0;
         accumulate(node, classify, &mut total);
         output.push(Measurement {
-            kind: Kind::BranchBudget,
+            kind: Kind::ControlFlow(ControlFlow::BranchBudget),
             line: node.start_position().row + 1,
             symbol: symbol.into(),
             actual: total,

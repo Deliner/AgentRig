@@ -1,6 +1,11 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
+
+const GUARD: Kind = Kind::Ownership(Ownership::GuardAcrossAwait);
+const BLOCKING: Kind = Kind::Reference(Reference::BlockingInAsync);
 
 // DECISION: D117
 // DECISION: D118
@@ -31,7 +36,7 @@ async fn variants(lock: &RwLock<u8>) -> Result<()> {
 ";
     let expected = [(2, "guard"), (6, "reader"), (7, "writer"), (8, "other")]
         .map(|(line, symbol)| (line, symbol.to_string()));
-    assert_eq!(findings(Kind::GuardAcrossAwait, source), expected);
+    assert_eq!(findings(GUARD, source), expected);
 }
 
 #[test]
@@ -73,7 +78,7 @@ mod tests {
     }
 }
 ";
-    assert_eq!(findings(Kind::GuardAcrossAwait, source), []);
+    assert_eq!(findings(GUARD, source), []);
 }
 
 #[test]
@@ -110,7 +115,7 @@ impl Worker {
         (19, "block_on"),
     ]
     .map(|(line, symbol)| (line, symbol.to_string()));
-    assert_eq!(findings(Kind::BlockingInAsync, source), expected);
+    assert_eq!(findings(BLOCKING, source), expected);
 }
 
 #[test]
@@ -139,5 +144,5 @@ mod tests {
     }
 }
 ";
-    assert_eq!(findings(Kind::BlockingInAsync, source), []);
+    assert_eq!(findings(BLOCKING, source), []);
 }

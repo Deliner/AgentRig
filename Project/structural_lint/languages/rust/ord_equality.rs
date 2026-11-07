@@ -1,6 +1,7 @@
-use super::context::in_test_context;
+use super::context::{in_test_context, plain_name, type_name};
 use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 
@@ -39,7 +40,7 @@ pub(super) fn inspect<'a>(root: Node<'a>, source: &'a str, output: &mut Vec<Meas
         };
         if let Some(symbol) = symbol {
             output.push(Measurement {
-                kind: Kind::OrdEqMismatch,
+                kind: Kind::Signature(Signature::OrdEqMismatch),
                 line: ordering.node.start_position().row + 1,
                 symbol,
                 actual: 1,
@@ -56,19 +57,6 @@ fn implementation<'a>(node: Node<'a>, source: &'a str) -> Option<Implementation<
             .child_by_field_name("trait")
             .and_then(|contract| plain_name(contract, source)),
     })
-}
-fn type_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
-    match node.kind() {
-        "generic_type" => type_name(node.child_by_field_name("type")?, source),
-        _ => plain_name(node, source),
-    }
-}
-fn plain_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
-    match node.kind() {
-        "type_identifier" => Some(text(node, source)),
-        "scoped_type_identifier" => Some(text(node.child_by_field_name("name")?, source)),
-        _ => None,
-    }
 }
 fn mismatch<'a>(ordering: &Implementation<'a>, owner: &Owner<'_, 'a>) -> Option<String> {
     let method = match ordering.contract? {

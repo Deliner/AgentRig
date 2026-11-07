@@ -2,43 +2,39 @@
 
 ## Focus
 
-Пользователь 2026-11-07: «сохраняй все карточки, заведи отдельную карточку на клипе, и после этого автономно
-реализуй все это». Выбрано **P087 → P090**. P087 и P088 слиты в master, последний merge `21c0b30`. **P089**
-(B080, `unchecked-deserialize`) приостановлен: нужен выбор пользователя о структуре реестра видов, см. Delivery
-[P089](Plan/089.md). **P090** (B082, поставка clippy в `init`) выполнен на ветке, P090 и B082 в Archive.
+Пользователь 2026-11-07 выбрал для P089 разбиение `Kind` на семейные перечисления («Ок, принимаем 1 пункт. Делай все
+оставшиеся карточки»). Выбрано **P087 → P090**; P087, P088 и P090 слиты в master, последний merge `5f02cdc`.
+**P089** (B080, `unchecked-deserialize`) выполнен по AC1–AC4 и перенесён в архив, см.
+[P089](Archive/Plan/089.md). Текущий шаг: финальный пин D051 и слияние ветки.
 
 ## Workspace
 
-Branch: `feature/clippy-delivery`
-Revision: `5ba1aafcc4101e427678957bb18b19010339dc4f` (VAC P090; коммит пина следует)
+Branch: `feature/unchecked-deserialize`
+Revision: `95ee9dc779582ba5c0584dc1e3c5b38df014bb7d` (фаза 2; коммит финального пина следует)
 
-Ветка `feature/unchecked-deserialize` без коммитов, работа P089 в `stash@{0}` и в патче
-`agentrig-research/scratchpad/meta/wip/p089-unchecked-deserialize.patch`. Ветки `feature/secret-debug`,
-`feature/init-probe` и прежние сохранены. Установленный рантайм — `5ba1aaf`. macOS: коммиты, слияние и вызовы с cargo
-через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
+Ветки `feature/clippy-delivery`, `feature/init-probe` и прежние сохранены. Установленный рантайм — `95ee9dc`. macOS:
+коммиты, слияние и вызовы с cargo через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
-- P090: `project_setup/clippy.rs` с профилем из 23 линтов; `template.rs` создаёт Rust-проекту команду и проверку
-  `clippy`; мастер `init --interactive` предлагает созданные шаблоном проверки; тест `test_clippy_profile.py`; README;
-  D132; Delivery и ротация P090, B082. VAC `5ba1aaf`.
-- Пин D051: `stable.txt` — `5ba1aaf`, `just bootstrap` — код 0.
-- Осталось: коммит пина, `just feature-merge`.
+- VAC A `fcc4f1e` (D133), VAC B `84aba7f` (D131), VAC C `2166104` (D134) и фаза 2 `95ee9dc` (правило, навык,
+  поставка `init`, D135, ротация P089 и B080) закоммичены с гейтом PASS; мид-пины `ec9eebe` и `fd08725`.
+- Финальный пин: `stable.txt` — `95ee9dc`, `just bootstrap` код 0.
+- Осталось: коммит пина и `just feature-merge` с сохранением ветки.
 
 ## Verification
 
-- Гейт коммита `5ba1aaf`: все проверки PASS, rust-test 11 и test 206 passed.
-- `pytest Project/project_setup`: 62 passed.
-- `just candidate lint`: код 0.
-- Проба AC1 в scratchpad: `check --only clippy` с `Some(1).unwrap()` — `ERROR [clippy]`, `clippy::unwrap_used`;
-  полный `check` с `&text[..1]` — `ERROR [clippy]` после PASS остальных; после исправления `check` — код 0.
+- Гейт `95ee9dc`: все проверки PASS, rust-test 164 и test 342 passed.
+- Установленный `95ee9dc`: `lint-rule unchecked-deserialize` выводит метрику с `let`.
+- Проба в scratchpad: до ремонта `ERROR [unchecked-deserialize]` на `src/lib.rs:20 (Port::try_from)` и
+  `src/lib.rs:4 (Interval::new)`, `Span` и `Label` без находок; после ремонта через `serde(try_from)` — код 0.
 
 ## Blockers
 
-P089 ждёт выбора пользователя; P090 не блокирован.
+Нет.
 
 ## Next action
 
-Коммит пина D051 через хук, `just feature-merge` для `feature/clippy-delivery`, ветку сохранить; затем
-итоговый отчёт с вариантами для P089. Свободные ID: D133+, I022+, P091+, B083+ (D131 занят работой P089, B066 и D111
-зарезервированы).
+Закоммитить финальный пин, затем `just feature-merge`.
+Свободные ID: D136+, I022+, P091+, B083+ (B066 и D111 зарезервированы).

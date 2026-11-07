@@ -97,6 +97,19 @@ pub(super) fn last_segment<'a>(path: Node<'_>, source: &'a str) -> &'a str {
     }
     text(path, source)
 }
+pub(super) fn type_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+    match node.kind() {
+        "generic_type" => type_name(node.child_by_field_name("type")?, source),
+        _ => plain_name(node, source),
+    }
+}
+pub(super) fn plain_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+    match node.kind() {
+        "type_identifier" => Some(text(node, source)),
+        "scoped_type_identifier" => Some(text(node.child_by_field_name("name")?, source)),
+        _ => None,
+    }
+}
 fn cfg_requires(arguments: Node<'_>, source: &str, flag: &str) -> bool {
     predicate_groups(arguments)
         .iter()

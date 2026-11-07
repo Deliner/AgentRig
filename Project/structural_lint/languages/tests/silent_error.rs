@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D097
@@ -9,13 +10,45 @@ fn silent_findings(path: &str, source: &str) -> Vec<String> {
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::SilentError)
+        .filter(|item| item.kind == Kind::Reference(Reference::SilentError))
         .collect();
     found.sort_by_key(|item| item.line);
     found
         .into_iter()
         .map(|item| format!("{}:{}", item.line, item.symbol))
         .collect()
+}
+
+// DECISION: D069
+#[test]
+fn python_flags_except_pass_without_a_justifying_reference() {
+    let source = "def guarded():
+    try:
+        work()
+    except ValueError:
+        pass
+    try:
+        work()
+    except KeyError:
+        # DECISION: D001
+        pass
+    try:
+        work()
+    except OSError as error:
+        log(error)
+    try:
+        work()
+    except TypeError:
+        cleanup()
+        pass
+    try:
+        work()
+    except IndexError: pass
+";
+    assert_eq!(
+        silent_findings("source.py", source),
+        ["4:except", "22:except"]
+    );
 }
 
 #[test]

@@ -1,5 +1,6 @@
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D074
@@ -12,8 +13,8 @@ pub(super) fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measureme
         return;
     };
     let kind = match name {
-        "ignore" => Kind::DisabledTest,
-        _ => Kind::AllowJustification,
+        "ignore" => Kind::Reference(Reference::DisabledTest),
+        _ => Kind::Reference(Reference::AllowJustification),
     };
     let unjustified = !justified(node, source);
     if unjustified {

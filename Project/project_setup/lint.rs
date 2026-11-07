@@ -1,6 +1,7 @@
 // DECISION: D021
 // DECISION: D036
 use super::cargo::Layout;
+use crate::structural_lint::rules::structure::Structure;
 use crate::structural_lint::{catalog, rules};
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -13,9 +14,9 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         .filter(|kind| {
             !matches!(
                 kind,
-                rules::Kind::DirectoryArchitecture
-                    | rules::Kind::LineWidth
-                    | rules::Kind::ForbiddenFile
+                rules::Kind::Structure(Structure::DirectoryArchitecture)
+                    | rules::Kind::Structure(Structure::LineWidth)
+                    | rules::Kind::Structure(Structure::ForbiddenFile)
             )
         })
         .map(|kind| catalog::example(*kind, skills, sources))
@@ -49,7 +50,11 @@ fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {
 }
 
 fn architecture(skills: &str, sources: &[String], rust: &Layout) -> Value {
-    let mut rule = catalog::example(rules::Kind::DirectoryArchitecture, skills, sources);
+    let mut rule = catalog::example(
+        rules::Kind::Structure(Structure::DirectoryArchitecture),
+        skills,
+        sources,
+    );
     rule["extensions"] = json!([".rs", ".py", ".pyi"]);
     rule["architecture"]["rust_roots"] = json!(rust.roots);
     let crates = !rust.crates.is_empty();

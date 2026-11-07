@@ -140,6 +140,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/signature/redact-secret/SKILL.md"),
     ),
     (
+        "check-deserialize",
+        include_str!("../shared/skills/signature/check-deserialize/SKILL.md"),
+    ),
+    (
         "eager-to-lazy",
         include_str!("../shared/skills/references/eager-to-lazy/SKILL.md"),
     ),

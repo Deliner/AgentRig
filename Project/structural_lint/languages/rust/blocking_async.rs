@@ -2,6 +2,7 @@ use super::context::async_code::in_async_context;
 use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D118
@@ -16,7 +17,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let reported = !allowed && in_async_context(node);
     if reported {
         output.push(Measurement {
-            kind: Kind::BlockingInAsync,
+            kind: Kind::Reference(Reference::BlockingInAsync),
             line: node.start_position().row + 1,
             symbol: symbol.into(),
             actual: 1,

@@ -1,50 +1,82 @@
 use super::languages;
 pub use super::rules::kind::Kind;
 pub use super::rules::{Descriptor, Parameters};
+use crate::structural_lint::rules::control_flow::ControlFlow;
+use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, bail};
+use serde::{Deserialize, Deserializer, de};
 use serde_json::{Value, json};
 use std::path::Path;
+
+// DECISION: D133
+// DECISION: D134
+impl<'de> Deserialize<'de> for Kind {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let name = String::deserialize(deserializer)?;
+        family(&name).ok_or_else(|| {
+            let names: Vec<String> = ALL.iter().map(|kind| format!("`{kind}`")).collect();
+            de::Error::custom(format!(
+                "unknown variant `{name}`, expected one of {}",
+                names.join(", ")
+            ))
+        })
+    }
+}
+fn family(name: &str) -> Option<Kind> {
+    let value = || Value::from(name);
+    serde_json::from_value(value())
+        .map(Kind::Structure)
+        .or_else(|_| serde_json::from_value(value()).map(Kind::ControlFlow))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Signature))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Ownership))
+        .or_else(|_| serde_json::from_value(value()).map(Kind::Reference))
+        .ok()
+}
 
 // DECISION: D016
 // DECISION: D017
 // DECISION: D018
 pub const ALL: &[Kind] = &[
-    Kind::NonblankLines,
-    Kind::LineWidth,
-    Kind::ForbiddenFile,
-    Kind::DirectoryEntries,
-    Kind::DumpName,
-    Kind::FunctionLines,
-    Kind::ParameterCount,
-    Kind::NestingDepth,
-    Kind::BooleanParameter,
-    Kind::BranchBudget,
-    Kind::UnsafeJustification,
-    Kind::HardcodedSecret,
-    Kind::SilentError,
-    Kind::DisabledTest,
-    Kind::AllowJustification,
-    Kind::DebugArtifact,
-    Kind::DebugAssertion,
-    Kind::PanicPath,
-    Kind::WildcardImport,
-    Kind::TupleAsRecord,
-    Kind::EagerFallback,
-    Kind::DiscardedResult,
-    Kind::DisabledRaii,
-    Kind::GlobalState,
-    Kind::SuperSuperReach,
-    Kind::RecursiveDeletion,
-    Kind::UnwindJustification,
-    Kind::GuardAcrossAwait,
-    Kind::BlockingInAsync,
-    Kind::OrdEqMismatch,
-    Kind::SecretDebug,
-    Kind::BooleanExpression,
-    Kind::EmbeddedText,
-    Kind::NamedIfCondition,
-    Kind::CommentReference,
-    Kind::DirectoryArchitecture,
+    Kind::Structure(Structure::NonblankLines),
+    Kind::Structure(Structure::LineWidth),
+    Kind::Structure(Structure::ForbiddenFile),
+    Kind::Structure(Structure::DirectoryEntries),
+    Kind::Structure(Structure::DumpName),
+    Kind::Structure(Structure::FunctionLines),
+    Kind::Signature(Signature::ParameterCount),
+    Kind::ControlFlow(ControlFlow::NestingDepth),
+    Kind::Signature(Signature::BooleanParameter),
+    Kind::ControlFlow(ControlFlow::BranchBudget),
+    Kind::Reference(Reference::UnsafeJustification),
+    Kind::Reference(Reference::HardcodedSecret),
+    Kind::Reference(Reference::SilentError),
+    Kind::Reference(Reference::DisabledTest),
+    Kind::Reference(Reference::AllowJustification),
+    Kind::Reference(Reference::DebugArtifact),
+    Kind::Reference(Reference::DebugAssertion),
+    Kind::Reference(Reference::PanicPath),
+    Kind::Reference(Reference::WildcardImport),
+    Kind::Signature(Signature::TupleAsRecord),
+    Kind::Reference(Reference::EagerFallback),
+    Kind::Reference(Reference::DiscardedResult),
+    Kind::Ownership(Ownership::DisabledRaii),
+    Kind::Ownership(Ownership::GlobalState),
+    Kind::Reference(Reference::SuperSuperReach),
+    Kind::Ownership(Ownership::RecursiveDeletion),
+    Kind::Reference(Reference::UnwindJustification),
+    Kind::Ownership(Ownership::GuardAcrossAwait),
+    Kind::Reference(Reference::BlockingInAsync),
+    Kind::Signature(Signature::OrdEqMismatch),
+    Kind::Signature(Signature::SecretDebug),
+    Kind::Signature(Signature::UncheckedDeserialize),
+    Kind::ControlFlow(ControlFlow::BooleanExpression),
+    Kind::Structure(Structure::EmbeddedText),
+    Kind::ControlFlow(ControlFlow::NamedIfCondition),
+    Kind::Reference(Reference::CommentReference),
+    Kind::Structure(Structure::DirectoryArchitecture),
 ];
 pub fn syntax(kind: Kind) -> bool {
     languages::HANDLERS
@@ -123,7 +155,7 @@ pub fn describe(kind: Kind) -> Value {
         value["handlers"] = json!(handlers);
         value["extensions"] = json!(extensions(kind));
     }
-    let architecture = kind == Kind::DirectoryArchitecture;
+    let architecture = kind == Kind::Structure(Structure::DirectoryArchitecture);
     if architecture {
         value["architecture"] = super::rules::architecture::Settings::describe();
     }
@@ -144,7 +176,7 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     if language_rule {
         value["extensions"] = json!(extensions(kind));
     }
-    let architecture = kind == Kind::DirectoryArchitecture;
+    let architecture = kind == Kind::Structure(Structure::DirectoryArchitecture);
     if architecture {
         value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
     }
