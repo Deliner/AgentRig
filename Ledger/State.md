@@ -10,11 +10,11 @@
 ## Workspace
 
 Branch: `feature/unchecked-deserialize`
-Revision: `ec9eebe5ce63f9f4b1ef8ba3646fa367b10d2a35` (мид-пин `84aba7f`; VAC C не закоммичен)
+Revision: `2166104997d04c88288c4da936385462d381d969` (VAC C; коммит второго мид-пина следует)
 
 В рабочем дереве также лежат незакоммиченные части фазы 2: навык `signature/check-deserialize`, его symlink и
 описания в `architecture.yaml` групп навыков. В коммит VAC C они не входят. Ветки `feature/clippy-delivery`,
-`feature/init-probe` и прежние сохранены. Установленный рантайм — `84aba7f`. macOS: коммиты, слияние и вызовы с
+`feature/init-probe` и прежние сохранены. Установленный рантайм — `2166104`. macOS: коммиты, слияние и вызовы с
 cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
@@ -25,8 +25,10 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 - Фаза 2 упёрлась в D133: установленный `84aba7f` разбирает имя только среди `catalog::ALL`, и хук заблокировал
   правки после добавления правила в `lint.yaml`. Правило убрано, `just config-check` проходит.
 - VAC C: семейства выводят `Deserialize`, `Kind` разбирает имя через них в `catalog/mod.rs`, сообщение об ошибке
-  прежнее; D134 и строка индекса со строкой о замене D133.
-- Осталось: коммит VAC C, второй мид-пин; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр,
+  прежнее; D134 и строка индекса со строкой о замене D133. VAC C `2166104`, гейт PASS: test 226.
+- Второй мид-пин: `stable.txt` — `2166104`, `just bootstrap` код 0; установленный рантайм выводит
+  `lint-rule unchecked-deserialize`.
+- Осталось: коммит второго мид-пина; затем фаза 2: правило в `.agentrig/lint.yaml`, `catalog::ALL`, реестр,
   навык, `assets.rs`, список решённых в `test_config_check.py`, проверка AC1–AC4, ротация, пин, `just feature-merge`.
 
 ## Verification
@@ -41,5 +43,5 @@ cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && 
 
 ## Next action
 
-Закоммитить VAC C только с файлами разбора и Ledger, затем второй мид-пин D051 и фаза 2 P089.
+Закоммитить второй мид-пин, затем фаза 2 P089 одним VAC.
 Свободные ID: D135+, I022+, P091+, B083+ (B066 и D111 зарезервированы).
