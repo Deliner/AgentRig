@@ -3,4 +3,5 @@ files:
   test_doctor.py: Diagnose installed hooks, client registration, tools and runtime compatibility
   test_lint_defaults.py: Verify installed Rust and Python lint limits block delivery and accept boundaries
   test_coverage.py: Report affected-map sources and tests left without selected tests through config-check
+  test_clippy_profile.py: Verify a Rust scaffold delivers the AgentRig Clippy profile as a command and check, equal to the dev gate, and a Python scaffold none
 directories: {}

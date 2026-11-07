@@ -12,7 +12,8 @@ compile the worker or run its tests. A distributor builds both executables with
 configuration, rejects collisions before writing, creates a Git repository on the base branch when none exists and
 registers the Git hooks through `core.hooksPath`. Options: `--language python|rust`, `--frontend codex|claude-code`,
 `--source` (default `Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There
-is no update or rollback: a changed release is installed into a fresh project.
+is no update or rollback: a changed release is installed into a fresh project. Rust projects also receive a `clippy`
+command and check that runs the Clippy profile of the AgentRig development gate on the project's own toolchain.
 
 `paths.service` (default `.agentrig`) holds the binary, Git hooks, skills, lint settings, reminders and runtime data;
 the configuration modules always stay in `.agentrig`. Adapters quote the service path; newlines and Just interpolation
@@ -56,10 +57,9 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 
 - `git.yaml`: base branch and feature-branch prefix.
 - `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args`, `read_only`, `lifetime`, `programs` and
-  `output`. An empty
-  `argv` (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing `deny` argument
-  prefixes. `output` holds `success` and `failure` views of lines containing a `matching` part plus the last `tail`
-  lines; such a run prints only its view, exit status and log directory.
+  `output`. An empty `argv` (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing
+  `deny` argument prefixes. `output` holds `success` and `failure` views of lines containing a `matching` part plus the
+  last `tail` lines; such a run prints only its view, exit status and log directory.
 - `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`, `tools`), command, `include`, `skill`, `warning`
   and [`affected`](../change_delivery/gate/README.md).
 - `tools.yaml`: `recognize` globs besides files with a shebang or executable bit, permitted `locations`, `entries`

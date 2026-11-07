@@ -54,11 +54,8 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {
     let Some(mut scaffold) = project_config(&root)? else {
         return Ok(None);
     };
-    let Some(checks) = ask(
-        "Checks, comma-separated: lint,memory,tests,tools",
-        "lint,memory,tests,tools",
-    )?
-    else {
+    let available = check_names(&scaffold.config);
+    let Some(checks) = ask(&format!("Checks, comma-separated: {available}"), &available)? else {
         return Ok(None);
     };
     select_checks(&mut scaffold.config, &checks)?;
@@ -101,13 +98,23 @@ fn select_checks(config: &mut Config, value: &str) -> Result<()> {
     for name in &selected {
         ensure!(
             config.checks.iter().any(|check| check.id == *name),
-            "unknown check {name}; supported: lint,memory,tests,tools"
+            "unknown check {name}; supported: {}",
+            check_names(config)
         );
     }
     config
         .checks
         .retain(|check| unique.contains(check.id.as_str()));
     Ok(())
+}
+
+fn check_names(config: &Config) -> String {
+    let names: Vec<&str> = config
+        .checks
+        .iter()
+        .map(|check| check.id.as_str())
+        .collect();
+    names.join(",")
 }
 
 fn ask(label: &str, default: &str) -> Result<Option<String>> {
