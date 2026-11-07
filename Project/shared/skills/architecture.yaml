@@ -15,6 +15,6 @@ directories:
   repair: "Diagnose and repair configuration and verification failures"
   references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"
   ownership: "Give a resource, process-global state or a recursive file-system deletion an owner with a bounded responsibility, or justify the intended exception with a reference"
-  signature: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality and a derived Debug that prints a secret"
+  signature: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived Debug that prints a secret and a derived Deserialize that skips a constructor's check"
   discipline: "Review disciplines without an executable oracle: test placement, type-driven modelling and fail-closed verdicts"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"

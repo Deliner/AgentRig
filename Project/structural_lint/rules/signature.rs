@@ -87,11 +87,12 @@ const SECRETDEBUG: Descriptor = Descriptor {
     },
 };
 // DECISION: D131
+// DECISION: D135
 const UNCHECKEDDESERIALIZE: Descriptor = Descriptor {
     default_id: "unchecked-deserialize",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust struct deriving Deserialize, directly or inside cfg_attr, with a checking constructor in the same file: a function without self in its inherent impl, impl TryFrom or impl FromStr, returning a Result or Option of Self, that refuses on a parameter tested by an if returning Err or None, calling bail! or panic! or ending in Err or None, by ensure! or by then or then_some, and stores that parameter in a named or tuple field without serde deserialize_with or with; one finding per struct, none with serde try_from or from on the struct, a manual Deserialize impl in the file or in test code",
+    metric: "every Rust struct deriving Deserialize, directly or inside cfg_attr, with a checking constructor in the same file: a function without self in its inherent impl, impl TryFrom or impl FromStr, returning a Result or Option of Self, that refuses on a parameter tested, directly or through a local bound by let from it, by an if returning Err or None, calling bail! or panic! or ending in Err or None, by ensure! or by then or then_some, and stores that parameter in a named or tuple field without serde deserialize_with or with; one finding per struct, none with serde try_from or from on the struct, a manual Deserialize impl in the file or in test code",
     skill: "check-deserialize",
     parameters: Parameters::Level {
         default: Severity::Error,

@@ -236,24 +236,44 @@ fn parameter_names<'a>(parameters: Node<'_>, source: &'a str) -> Vec<&'a str> {
         .collect()
 }
 fn checked(body: Node<'_>, parameter: &str, source: &str) -> bool {
+    let names = derived(body, parameter, source);
     descendants(body).into_iter().any(|node| match node.kind() {
-        "if_expression" => guarded(node, parameter, source),
-        "macro_invocation" => ensured(node, parameter, source),
-        "call_expression" => gated(node, parameter, source),
+        "if_expression" => guarded(node, &names, source),
+        "macro_invocation" => ensured(node, &names, source),
+        "call_expression" => gated(node, &names, source),
         _ => false,
     })
 }
-fn guarded(branch: Node<'_>, parameter: &str, source: &str) -> bool {
+// DECISION: D135
+fn derived<'a>(body: Node<'_>, parameter: &'a str, source: &'a str) -> Vec<&'a str> {
+    let mut declarations: Vec<_> = descendants(body)
+        .into_iter()
+        .filter(|node| node.kind() == "let_declaration")
+        .collect();
+    declarations.sort_by_key(|declaration| declaration.start_byte());
+    let mut names = vec![parameter];
+    for declaration in declarations {
+        let bound = declaration
+            .child_by_field_name("pattern")
+            .filter(|pattern| pattern.kind() == "identifier");
+        let tainted = declaration
+            .child_by_field_name("value")
+            .is_some_and(|value| mentions(value, &names, source));
+        names.extend(bound.filter(|_| tainted).map(|bound| text(bound, source)));
+    }
+    names
+}
+fn guarded(branch: Node<'_>, names: &[&str], source: &str) -> bool {
     let tested = branch
         .child_by_field_name("condition")
-        .is_some_and(|condition| mentions(condition, parameter, source));
+        .is_some_and(|condition| mentions(condition, names, source));
     let refused = ["consequence", "alternative"]
         .into_iter()
         .filter_map(|arm| branch.child_by_field_name(arm))
         .any(|arm| refuses(arm, source));
     tested && refused
 }
-fn ensured(invocation: Node<'_>, parameter: &str, source: &str) -> bool {
+fn ensured(invocation: Node<'_>, names: &[&str], source: &str) -> bool {
     let named = invocation
         .child_by_field_name("macro")
         .is_some_and(|path| last_segment(path, source) == "ensure");
@@ -267,11 +287,11 @@ fn ensured(invocation: Node<'_>, parameter: &str, source: &str) -> bool {
         tokens
             .into_iter()
             .take_while(|token| token.kind() != ",")
-            .any(|token| mentions(token, parameter, source))
+            .any(|token| mentions(token, names, source))
     });
     named && condition
 }
-fn gated(call: Node<'_>, parameter: &str, source: &str) -> bool {
+fn gated(call: Node<'_>, names: &[&str], source: &str) -> bool {
     let Some(method) = call
         .child_by_field_name("function")
         .filter(|function| function.kind() == "field_expression")
@@ -284,7 +304,7 @@ fn gated(call: Node<'_>, parameter: &str, source: &str) -> bool {
     named
         && method
             .child_by_field_name("value")
-            .is_some_and(|receiver| mentions(receiver, parameter, source))
+            .is_some_and(|receiver| mentions(receiver, names, source))
 }
 fn refuses(arm: Node<'_>, source: &str) -> bool {
     let explicit = descendants(arm).into_iter().any(|node| match node.kind() {
@@ -318,9 +338,9 @@ fn refusal(value: Node<'_>, source: &str) -> bool {
         _ => false,
     }
 }
-fn mentions(node: Node<'_>, parameter: &str, source: &str) -> bool {
+fn mentions(node: Node<'_>, names: &[&str], source: &str) -> bool {
     descendants(node).into_iter().any(|token| {
-        let named = token.kind() == "identifier" && text(token, source) == parameter;
+        let named = token.kind() == "identifier" && names.contains(&text(token, source));
         let qualified = token
             .prev_sibling()
             .is_some_and(|previous| matches!(previous.kind(), "." | "::"));

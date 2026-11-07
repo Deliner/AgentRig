@@ -160,6 +160,36 @@ impl Ratio {
     assert_eq!(measured(source, UNCHECKED), [ratio]);
 }
 
+// DECISION: D135
+#[test]
+fn rust_flags_a_refusal_on_a_named_condition_bound_from_the_parameter() {
+    let source = "#[derive(Deserialize)]
+struct Window {
+    start: u32,
+    end: u32,
+}
+impl Window {
+    fn new(start: u32, end: u32) -> Result<Self, Error> {
+        let reversed = start > end;
+        let invalid = reversed || end == 0;
+        if invalid { return Err(Error::Reversed); }
+        Ok(Self { start, end })
+    }
+}
+#[derive(Deserialize)]
+struct Gate(u8);
+impl Gate {
+    fn new(level: u8) -> Option<Self> {
+        let closed = locked();
+        if closed { return None; }
+        Some(Self(level))
+    }
+}
+";
+    let window = (2, "Window::new".to_string());
+    assert_eq!(measured(source, UNCHECKED), [window]);
+}
+
 #[test]
 fn rust_skips_deserialization_routed_through_serde_conversion_or_field_attributes() {
     let source = "#[derive(Deserialize)]

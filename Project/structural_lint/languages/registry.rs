@@ -54,6 +54,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Reference(Reference::BlockingInAsync),
             Kind::Signature(Signature::OrdEqMismatch),
             Kind::Signature(Signature::SecretDebug),
+            Kind::Signature(Signature::UncheckedDeserialize),
             Kind::ControlFlow(ControlFlow::BooleanExpression),
             Kind::Structure(Structure::EmbeddedText),
             Kind::Reference(Reference::CommentReference),

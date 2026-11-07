@@ -1,0 +1,5 @@
+purpose: "Route a derived Deserialize through the check its constructor enforces"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make a Rust struct's deserialization pass the same check as its checking constructor"
+directories: {}
