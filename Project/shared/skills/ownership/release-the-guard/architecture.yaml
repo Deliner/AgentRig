@@ -1,0 +1,5 @@
+purpose: "Release a std lock guard before the next .await, switch to an async-aware lock, or justify holding it across the suspension with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to end a std lock guard before an .await or justify holding it across the suspension"
+directories: {}

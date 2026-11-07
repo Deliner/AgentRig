@@ -1,5 +1,5 @@
 use super::test_context::{in_test_context, last_segment};
-use super::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 

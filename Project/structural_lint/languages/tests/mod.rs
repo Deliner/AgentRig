@@ -4,6 +4,7 @@ use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;
 
 mod global_state;
+mod guard_await;
 mod manifest;
 mod markers;
 mod panic_surface;
