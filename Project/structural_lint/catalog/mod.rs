@@ -1,6 +1,6 @@
 use super::languages;
-pub use super::rules::descriptor::{Descriptor, Parameters};
 pub use super::rules::kind::Kind;
+pub use super::rules::{Descriptor, Parameters};
 use anyhow::{Result, bail};
 use serde_json::{Value, json};
 use std::path::Path;

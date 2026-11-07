@@ -164,13 +164,14 @@ def outer():
 }
 
 // DECISION: D120
-fn boolean_operands(path: &str, source: &str) -> Vec<(usize, u64)> {
+// DECISION: D122
+fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, u64)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut counts: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::BooleanExpression)
+        .filter(|item| item.kind == kind)
         .map(|item| (item.line, item.actual))
         .collect();
     counts.sort();
@@ -192,7 +193,7 @@ fn rust_counts_operands_of_each_boolean_expression_wherever_it_stands() {
 }
 ";
     assert_eq!(
-        boolean_operands("source.rs", source),
+        line_actuals(Kind::BooleanExpression, "source.rs", source),
         [(2, 5), (3, 4), (5, 4), (8, 3), (9, 2), (10, 2)]
     );
 }
@@ -209,7 +210,7 @@ fn rust_groups_parentheses_and_measures_negations_let_bindings_and_macros_apart(
 }
 ";
     assert_eq!(
-        boolean_operands("source.rs", source),
+        line_actuals(Kind::BooleanExpression, "source.rs", source),
         [(2, 4), (3, 2), (3, 4), (4, 3), (5, 1), (6, 2), (6, 3)]
     );
 }
@@ -226,7 +227,7 @@ fn python_counts_and_or_operands_with_parentheses_and_not_as_one() {
     return left == right and done
 ";
     assert_eq!(
-        boolean_operands("source.py", source),
+        line_actuals(Kind::BooleanExpression, "source.py", source),
         [(2, 5), (3, 4), (5, 4), (6, 2), (6, 4), (7, 3), (8, 2)]
     );
 }
@@ -465,5 +466,55 @@ fn rust_flags_literals_matching_known_credential_formats() {
             (3, "github-token".into()),
             (4, "private-key".into()),
         ]
+    );
+}
+
+#[test]
+fn rust_measures_lines_spanned_by_each_string_literal() {
+    let source = r##"const QUERY: &str = r#"
+SELECT id
+FROM report
+"#;
+fn render(name: &str) -> String {
+    let short = "one line";
+    let bytes = b"first
+second";
+    format!("Hello {name},
+welcome
+back") + short
+}
+"##;
+    assert_eq!(
+        line_actuals(Kind::EmbeddedText, "text.rs", source),
+        [(1, 4), (6, 1), (7, 2), (9, 3)]
+    );
+}
+
+#[test]
+fn rust_skips_string_literals_in_test_code() {
+    let source = r##"fn shipped() -> &'static str {
+    "kept
+here"
+}
+#[cfg(test)]
+mod tests {
+    const EXPECTED: &str = "a
+b
+c";
+    #[test]
+    fn output() {
+        assert_eq!(super::shipped(), "kept
+here");
+    }
+}
+#[test]
+fn standalone() {
+    let _ = "x
+y";
+}
+"##;
+    assert_eq!(
+        line_actuals(Kind::EmbeddedText, "text.rs", source),
+        [(2, 2)]
     );
 }

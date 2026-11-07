@@ -36,6 +36,7 @@ pub enum Kind {
     BlockingInAsync,
     OrdEqMismatch,
     BooleanExpression,
+    EmbeddedText,
     CommentReference,
     DirectoryArchitecture,
 }
