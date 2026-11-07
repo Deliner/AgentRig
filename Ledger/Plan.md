@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P087](Plan/087.md) | active | - | [B081](Backlog/081.md): clippy-shape — `map_err_ignore`, `partial_pub_fields`, `struct_excessive_bools` в dev-гейте | Причина ошибки не теряется; запись и абстракция различимы по объявлению типа. |
 | [P088](Plan/088.md) | pending | - | [B079](Backlog/079.md): secret-debug — секрет не печатается через `Debug` | Секрет не попадает в лог и в вывод `{:?}`. |
 | [P089](Plan/089.md) | pending | - | [B080](Backlog/080.md): unchecked-deserialize — десериализация проходит через проверку конструктора | Значение из файла или сети не обходит проверку. |
 | [P090](Plan/090.md) | pending | P087 | [B082](Backlog/082.md): clippy-delivery — `init` поставляет профиль clippy новым Rust-проектам | Новый Rust-проект с первого коммита проходит тот же clippy, что и AgentRig. |

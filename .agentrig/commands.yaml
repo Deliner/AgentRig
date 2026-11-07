@@ -120,6 +120,8 @@ clippy:
   - clippy::map_err_ignore
   - -D
   - clippy::partial_pub_fields
+  - -D
+  - clippy::struct_excessive_bools
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
