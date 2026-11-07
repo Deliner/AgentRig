@@ -16,7 +16,7 @@ path = "command_line/main.rs"
 
 [[bin]]
 name = "agentrig-lint"
-path = "structural_lint/standalone.rs"
+path = "command_line/lint.rs"
 
 [dependencies]
 serde = { version = "1", features = ["derive"] }

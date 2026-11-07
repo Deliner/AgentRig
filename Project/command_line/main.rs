@@ -31,7 +31,9 @@ fn run() -> Result<i32> {
     }
     match command.as_str() {
         "hook" => hook(&root),
-        "lint" | "lint-config-check" | "lint-explain" => run_lint(&root, &mut args, &command),
+        "lint" | "lint-config-check" | "lint-explain" | "lint-baseline" => {
+            run_lint(&root, &mut args, &command)
+        }
         "lint-rules" | "lint-rule" => structural_lint::cli::discovery(&command, &args),
         _ => bail!("unknown command {command:?}; run agentrig --help for the command table"),
     }
@@ -66,7 +68,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     console::stdout(
-        "agentrig\ninit [--interactive] | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix.",
+        "agentrig\ninit [--interactive] | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix.",
     );
 }
 fn hook(root: &Path) -> Result<i32> {
@@ -96,6 +98,15 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let explain = command == "lint-explain";
     if explain {
         return structural_lint::explain::run(root, &resolved?, args);
+    }
+    // DECISION: D123
+    let baseline = command == "lint-baseline";
+    if baseline {
+        anyhow::ensure!(
+            args.is_empty(),
+            "lint-baseline takes only --root and --config"
+        );
+        return structural_lint::baseline::record(root, &resolved?);
     }
     let config_check = command == "lint-config-check";
     let mode = if config_check {

@@ -1,4 +1,5 @@
 pub mod architecture;
+pub mod baseline;
 pub mod catalog;
 pub mod cli;
 // DECISION: D007
@@ -134,7 +135,9 @@ fn analyze(root: &Path, path: &Path, mode: Mode) -> Result<Vec<Diagnostic>> {
             }
             Ok(Vec::new())
         } else {
-            evaluation::evaluate(root, &config)
+            let mut diagnostics = evaluation::evaluate(root, &config)?;
+            baseline::ratchet(path, &mut diagnostics)?;
+            Ok(diagnostics)
         }
     })
 }

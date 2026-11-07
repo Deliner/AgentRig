@@ -3,40 +3,38 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P080 завершены и слиты в master, последняя — `a0a6865`. **P081** (B069 grammar-fork)
-доставлена на ветке двумя VAC; этот снимок входит в коммит пина, осталось слияние. Дальше P082 (B064), затем новые
+одной за ветку. P071–P081 завершены и слиты в master, последняя — `0bf9d8d`. **P082** (B064 ratchet-baseline)
+доставлена VAC `af7906b`; в этом коммите пин D051, дальше слияние. После неё Plan и Backlog пусты; дальше новые
 карточки Backlog из `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md` по уже данному
 согласию пользователя.
 
 ## Workspace
 
-Branch: `feature/grammar-fork`
-Revision: `a12958df7d7677599decc18d197cef872e96df9a`
+Branch: `feature/ratchet-baseline`
+Revision: `af7906b8f7f9abc1916eb782afda37602ab1107d`
 
-База — master `a0a6865`. VAC 1 `38ddf9c`, VAC 2 `a12958d`; stable.txt указывает на `a12958d`, установлен через
-`just bootstrap`. Ветки `feature/embedded-text` и прежние, а также `feature/init-probe`, сохранены. macOS: в PATH
-`just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
+База — master `0bf9d8d`. Ветки `feature/grammar-fork` и прежние, а также `feature/init-probe`, сохранены. macOS: в
+PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
 `cargo fmt --manifest-path Project/Cargo.toml`; поставка — `just candidate <команда> --root <каталог>`.
-cargo-about 0.9.2 установлен в scratchpad сессии `p081/cargo-about/bin`.
 
 ## Progress
 
-- VAC 1 `38ddf9c`: копия крейта 0.24.2 без изменений, зависимость-путь, исключения линта и typos, решение
-  [D112](Decisions/112.md).
-- VAC 2 `a12958d`: правка `grammar.js` с маркерами D112 и `src` от CLI 0.26.13, тесты в
-  `languages/tests/unsafe_site.rs` и `panic_surface.rs`, абзац `Project/README.md`. Delivery в
-  [Archive/Plan/081.md](Archive/Plan/081.md); P081 и B069 перенесены в архив, ссылки D112 обновлены.
+- VAC `af7906b`: `structural_lint/baseline.rs` — запись и применение baseline; точка входа `agentrig-lint`
+  переехала из `structural_lint/standalone.rs` в `command_line/lint.rs` рядом с `main.rs`, иначе в каталоге линта
+  16 записей при лимите 15. Команда `lint-baseline` в `command_line/main.rs`, рецепт в `just/lint.just` и в
+  шаблоне `init`, предложение в `init` и мастере, тесты `structural_lint/tests/test_lint_baseline.py` и в
+  `initialization/tests/test_layout.py`, README и руководство по настройке, решение [D123](Decisions/123.md).
+  Delivery в [Archive/Plan/082.md](Archive/Plan/082.md); P082 и B064 перенесены в архив.
+- Пин D051, в этом коммите: `tooling/distribution/stable.txt` = `af7906b`, `just bootstrap` установил его.
 
 ## Verification
 
-- 2026-11-07, гейт pre-commit VAC 1 `38ddf9c`: все проверки PASS, rust-test 149 passed, test 307 passed.
-- Гейт pre-commit VAC 2 `a12958d`: все проверки PASS, rust-test 139 passed, test 221 passed; memory предупреждает,
-  что маркер в `grammar.js` не проверяется, это поведение проверки для `.js`.
-- До коммита VAC 2: оба новых теста на копии с грамматикой 0.24.2 падают на ошибке разбора;
-  `just candidate lint --root .` — код 0. После: `just release` из чистого дерева — пакет собран, tree-sitter-rust
-  0.24.2 MIT в `THIRD_PARTY_LICENSES.json`; `just bootstrap` на `a12958d` — `agentrig 0.3.0`.
-- Корпус r8, AC2: `syntax` 838 с 0.24.2 и 125 с форком, починено 713; у 17 789 разобранных файлов 0 отличий вывода.
+- 2026-11-07, гейт коммита `af7906b`: build, lint, memory, rustfmt, clippy, rust-test 151 passed, ruff-format, ruff,
+  mypy, test 339 passed, typos, vulture — PASS; memory выдал ожидаемое WARNING о `grammar.js` под D112.
+- Потребитель в scratchpad `p082/staged.sh`: `check --staged --only lint` — 1 без baseline и с baseline только в
+  рабочем дереве, 0 после `git add` baseline.
+- `just bootstrap` на `af7906b`: код 0, `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -44,5 +42,6 @@ cargo-about 0.9.2 установлен в scratchpad сессии `p081/cargo-ab
 
 ## Next action
 
-`just feature-merge` ветки `feature/grammar-fork`; затем P082 (B064 ratchet-baseline) на новой ветке. Свободные
-ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы).
+`just feature-merge` на чистой ветке. Затем черновики новых карточек Backlog из исследований clippy и ошибок
+агентов, каждая показывается в чате при сохранении. Свободные ID: D124+, I022+, P083+, B075+ (B066 и D111
+зарезервированы).

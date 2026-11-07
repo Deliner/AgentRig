@@ -563,7 +563,7 @@ rules:
     - Project/shared/testing/examples/rust/crates/engine/src/lib.rs
     - Project/lib.rs
     - Project/command_line/main.rs
-    - Project/structural_lint/standalone.rs
+    - Project/command_line/lint.rs
     python_root: .
     feature_root: Project
     disallowed:
