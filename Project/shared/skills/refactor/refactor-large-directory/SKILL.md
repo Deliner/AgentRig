@@ -67,6 +67,11 @@ ownership. A wider description cannot justify an accidental arrangement.
   owner, use an existing public boundary, or relocate misplaced responsibility
   or a genuinely shared contract when that corrects dependency direction. Add an
   interface only for a current need.
+- Wide file: a file that uses many other directories usually mixes
+  responsibilities or performs program wiring. Split it by responsibility so
+  each part uses its owners' public surfaces, or move the wiring into a crate
+  root or `__main__.py`. Do not route uses through reexports or raise the
+  budget merely to pass.
 - Incomplete analysis: inspect the reported source and resolver limits. An
   unresolved local relationship cannot be called external or excluded merely
   to obtain a clean graph.
@@ -98,7 +103,7 @@ appropriate; do not require empty entries or ban standard names. When a finding
 may describe module wiring rather than an architectural dependency, inspect the
 measured edge and analyzer semantics before moving code.
 
-Lint enforces the inventory, acyclic measured dependencies and feature types;
+Lint enforces the inventory, acyclic measured dependencies, file fan-out and feature types;
 other dependency direction and public surfaces follow from ownership. Depth, extensive sharing,
 abstraction and asymmetry prompt analysis; they are not violations by themselves.
 Preserve configured hard size limits. Inventory and measured edges are mechanical

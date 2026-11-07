@@ -3,45 +3,41 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P077 завершены и слиты в master, последняя — `2ddd7c8`. **P078** (B071 boolean-expression)
-доставлена на ветке: VAC 2 `8f674a1`, финальный пин в этом коммите; осталось слияние. Исследования вне Ledger завершены:
-`agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md`; их итог станет новыми карточками
-Backlog по уже данному согласию пользователя.
+одной за ветку. P071–P078 завершены и слиты в master, последняя — `25a5a97`. **P079** (B072 file-fan-out) доставлена
+на ветке одним VAC `33a255b` без нового вида правила; финальный пин в этом коммите, осталось слияние. Дальше P080
+(B073), P081 (B069), P082 (B064), затем новые карточки Backlog из `agentrig-research/clippy-triage.md` и
+`agentrig-research/agent-errors.md` по уже данному согласию пользователя.
 
 ## Workspace
 
-Branch: `feature/boolean-expression`
-Revision: `8f674a181ad25793c7c4fcb7d794da6022fc185a`
+Branch: `feature/file-fan-out`
+Revision: `33a255b5e761b6e53ee4a6df795f688b3b927d59`
 
-База — master `2ddd7c8`. VAC 1 `073c9cf`, мид-бранч пин `9319114`, VAC 2 `8f674a1`; stable.txt указывает на
-`8f674a1`, установлен через `just bootstrap`. Этот снимок входит в коммит финального пина.
-
-Ветки `feature/ord-eq-mismatch`, `feature/blocking-in-async`, `feature/guard-across-await`, `feature/panic-surface`,
-`feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`, `feature/backlog-research-cards`,
-`feature/delivery-repairs`, `feature/state-refresh` и `feature/init-probe` сохранены. macOS: в PATH `just write`/
-`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
+База — master `25a5a97`. VAC `33a255b`; stable.txt указывает на `33a255b`, установлен через `just bootstrap`. Этот
+снимок входит в коммит финального пина. Ветки
+`feature/boolean-expression`, `feature/ord-eq-mismatch`, `feature/blocking-in-async`, `feature/guard-across-await`,
+`feature/panic-surface`, `feature/discarded-variants`, `feature/self-hygiene`, `feature/feature-cfg`,
+`feature/backlog-research-cards`, `feature/delivery-repairs`, `feature/state-refresh` и `feature/init-probe`
+сохранены. macOS: в PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с
+cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
 `cargo fmt --manifest-path Project/Cargo.toml`; поставка — `just candidate <команда> --root <каталог>`.
 
 ## Progress
 
-- P078 фаза 1 (VAC 1 `073c9cf`): решение [D120](Decisions/120.md), инертный пороговый вид `BooleanExpression`,
-  измерение в `languages/measure/mod.rs`, три теста в `languages/tests/mod.rs`.
-- P078 фаза 2 (VAC 2 `8f674a1`): вид в `ALL` и `HANDLERS` Rust и Python, правило `boolean-expression` с `error: 3` в
-  `.agentrig/lint.yaml`, навык `control-flow/split-boolean-expression` с симлинком и ассетом, ремонт 12
-  своих выражений именами групп; тесты не исключены, поэтому правила нет в списке `decided`. Delivery в [Archive/Plan/078.md](Archive/Plan/078.md); P078 и B071
-  перенесены в архив, ссылки D120 обновлены.
-- Финальный пин: stable.txt = `8f674a1`, bootstrap выполнен, `agentrig 0.3.0`.
-- Осталось по P078: `just feature-merge`.
+- P079 VAC: проверка `fan_out` в `structural_lint/architecture/graph.rs`, вызов в `runner/mod.rs`, настройка в
+  `rules/architecture.rs`, решение [D121](Decisions/121.md), тесты `test_architecture_fan_out.py`, ремонт широкого
+  файла в навыке `refactor-large-directory`, строка в README архитектуры.
+- Свои три широких файла разделены: `change_delivery/gate/check.rs`, `structural_lint/evaluation.rs`,
+  `command_line/project.rs`, `config_check` перенесён в `project_setup/doctor.rs`; ссылки D036 и D072 перенесены в
+  `evaluation.rs`.
+- Delivery в [Archive/Plan/079.md](Archive/Plan/079.md); P079 и B072 перенесены в архив.
 
 ## Verification
 
-- 2026-11-07, гейт pre-commit VAC 1 `073c9cf`: все проверки PASS, rust-test 122 passed, test 216 passed.
-- 2026-11-07, гейт pre-commit VAC 2 `8f674a1`: все проверки PASS, rust-test 147 passed, test 384 passed.
-- Рабочее дерево VAC 2 до коммита: `just config-check` и `just lint-config-check` валидны; `just candidate lint`
-  чист. Потребители после `just candidate init` с `--language rust` и `--language python` получают правило и навык;
-  `just candidate lint` даёт `boolean-expression measures 4, exceeds 3` на `Project/src/lib.rs:3` и
-  `Project/app.py:3`, выражения из двух и трёх частей молчат.
+- 2026-11-07, гейт pre-commit VAC `33a255b`: все проверки PASS, rust-test 122 passed, test 394 passed.
+- Рабочее дерево VAC до коммита: `just candidate lint --root .` — код 0; `test_architecture_fan_out.py` — 5 passed;
+  `just config-check` и `just lint-config-check` валидны.
+- Пин: stable.txt = `33a255b`, `just bootstrap` установил `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -49,6 +45,5 @@ Revision: `8f674a181ad25793c7c4fcb7d794da6022fc185a`
 
 ## Next action
 
-`just feature-merge` ветки `feature/boolean-expression`; дальше P079 (B072
-file-fan-out) на новой ветке. Свободные ID: D121+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112 обещан
-B069).
+`just feature-merge` ветки `feature/file-fan-out`; дальше P080 (B073 embedded-text) на новой ветке. Свободные ID: D122+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112
+обещан B069).

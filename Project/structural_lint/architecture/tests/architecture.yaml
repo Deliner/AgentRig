@@ -6,6 +6,7 @@ files:
   test_architecture_bindings.py: Rust binding, alias and reexport dependency scenarios
   test_architecture_crates.py: Local Rust crate identity and cross-crate consumer resolution
   test_architecture_disallowed.py: Disallowed-path policy findings, allow globs and configuration rejections
+  test_architecture_fan_out.py: Per-file fan-out budget, its setting and program entry point exemptions
   test_architecture_incomplete.py: Explicit diagnostics for unsupported and unresolved dependencies
   test_architecture_inventory.py: Exact file and directory inventories including source-free trees
   test_architecture_macros.py: Rust macro dependency extraction and provenance scenarios

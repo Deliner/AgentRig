@@ -9,7 +9,7 @@ mod template;
 use crate::project_config::{self, Config};
 use crate::shared::fs;
 use anyhow::{Result, ensure};
-pub use doctor::run as doctor;
+pub use doctor::{config_check, run as doctor};
 use std::collections::BTreeMap;
 type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(scaffold: &template::Scaffold) -> Result<Files> {

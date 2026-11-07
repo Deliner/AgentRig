@@ -51,6 +51,8 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(analyzed.issues);
     issues.extend(unused_externals(settings, &analyzed.used));
     issues.extend(super::graph::cycles(&analyzed.edges));
+    // DECISION: D121
+    issues.extend(super::graph::fan_out(&analyzed.edges, settings));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &analyzed.edges));
     // DECISION: D078

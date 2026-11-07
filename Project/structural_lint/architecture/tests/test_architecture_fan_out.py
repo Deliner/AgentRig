@@ -1,0 +1,85 @@
+import json
+import subprocess
+from pathlib import Path
+
+import pytest
+
+from Project.structural_lint.architecture.tests.test_architecture import (
+    CONFIG,
+    consumer,
+    contract,
+)
+from Project.structural_lint.testing.consumer import lint, prepare
+
+WIDE = "pub fn wide() -> i32 { crate::b::value() + crate::c::value() }\n"
+
+
+def python_hub(root: Path, packages: int, filename: str) -> None:
+    prepare(root, CONFIG.replace("EXTENSION", ".py").replace("ROOTS", "[]"))
+    names = [f"p{index}" for index in range(packages)]
+    for name in names:
+        (root / "src" / name).mkdir()
+        (root / "src" / name / "api.py").write_text("def value():\n    return 1\n")
+    (root / "src/hub").mkdir()
+    (root / "src/hub" / filename).write_text("".join(f"import {name}.api\n" for name in names))
+    for name in [*names, "hub"]:
+        contract(root / "src" / name)
+    contract(root / "src")
+
+
+OVER_DEFAULT = ("src/hub/api.py", None, "file uses 11 other project directories (budget 10)")
+OVER_SETTING = (
+    "src/a/mod.rs",
+    None,
+    "file uses 2 other project directories (budget 1): src/b, src/c",
+)
+
+
+# DECISION: D121
+@pytest.mark.parametrize(("packages", "expected"), [(10, []), (11, [OVER_DEFAULT])])
+def test_fan_out_default_budget_flags_files_above_ten_directories(
+    worker: Path, tmp_path: Path, packages: int, expected: list[tuple[str, None, str]]
+) -> None:
+    python_hub(tmp_path, packages, "api.py")
+    code, findings = lint(worker, tmp_path)
+    assert code == (1 if expected else 0), findings
+    summary = [(item["path"], item.get("line"), item["message"].split(":")[0]) for item in findings]
+    assert summary == expected, findings
+
+
+# DECISION: D121
+def test_fan_out_exempts_python_main_entry_point(worker: Path, tmp_path: Path) -> None:
+    python_hub(tmp_path, 11, "__main__.py")
+    assert lint(worker, tmp_path) == (0, [])
+
+
+# DECISION: D121
+@pytest.mark.parametrize(
+    ("hub", "expected"), [("src/a/mod.rs", [OVER_SETTING]), ("src/lib.rs", [])]
+)
+def test_fan_out_setting_flags_wide_files_but_not_crate_roots(
+    worker: Path, tmp_path: Path, hub: str, expected: list[tuple[str, None, str]]
+) -> None:
+    consumer(tmp_path, "rs")
+    (tmp_path / "src/c").mkdir()
+    (tmp_path / "src/c/mod.rs").write_text("pub fn value() -> i32 { 3 }\n")
+    (tmp_path / "src/lib.rs").write_text("pub mod a; pub mod b; pub mod c;\n")
+    source = tmp_path / hub
+    source.write_text(source.read_text() + WIDE)
+    contract(tmp_path / "src/c")
+    contract(tmp_path / "src")
+    config = tmp_path / "lint.yaml"
+    config.write_text(
+        config.read_text().replace(
+            "rust_roots: [src/lib.rs]\n", "rust_roots: [src/lib.rs]\n      fan_out: 1\n"
+        )
+    )
+    code, findings = lint(worker, tmp_path)
+    assert code == (1 if expected else 0), findings
+    located = [(item["path"], item.get("line"), item["message"].split(";")[0]) for item in findings]
+    assert located == expected, findings
+    catalog = subprocess.run(
+        [str(worker), "lint-rules"], capture_output=True, text=True, check=True
+    )
+    rows = {item["kind"]: item for item in json.loads(catalog.stdout)}
+    assert "fan_out" in rows["directory-architecture"]["architecture"]

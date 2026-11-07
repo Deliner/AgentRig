@@ -1,17 +1,16 @@
 use crate::project_memory::evidence::{Input, native_index};
 use crate::shared::console;
+mod check;
 mod selection;
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
 // DECISION: D004
+use crate::project_config::{self, Check, CheckKind, Context};
 use crate::shared::paths::patterns::globs;
-use crate::structural_lint::{self, inventory};
-use crate::{
-    command_runner,
-    project_config::{self, Check, CheckKind, Context},
-};
+use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
+use check::{CheckRun, Outcome};
 use std::path::{Path, PathBuf};
 
 #[derive(Default)]
@@ -170,15 +169,6 @@ struct Selected<'a> {
     root: &'a Path,
     targets: &'a [String],
 }
-struct CheckRun<'a> {
-    root: &'a Path,
-    revision: Option<&'a str>,
-    targets: &'a [String],
-}
-struct Outcome {
-    code: i32,
-    broken: bool,
-}
 fn execute_selected(
     context: &Context,
     source: Selected<'_>,
@@ -191,7 +181,7 @@ fn execute_selected(
         revision: attempt.exported_revision(),
         targets: source.targets,
     };
-    let Outcome { code, broken } = checked(context, input, check, &rerun);
+    let Outcome { code, broken } = check::checked(context, input, check, &rerun);
     attempt.checked(check, code, rerun)?;
     let passed = code == 0;
     if passed {
@@ -202,51 +192,6 @@ fn execute_selected(
     Ok(stop.then_some(code))
 }
 
-fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str) -> Result<i32> {
-    match check.kind {
-        CheckKind::Command => {
-            let command = check
-                .command
-                .as_deref()
-                .ok_or_else(|| anyhow::anyhow!("command check without a command"))?;
-            command_runner::run(context, command, source.targets)
-        }
-        CheckKind::Lint => structural_lint::check(
-            &context.root,
-            &context.path(&context.config.paths.lint)?,
-            rerun,
-        ),
-        CheckKind::Memory => {
-            crate::project_memory::check_with_history(context, source.root, source.revision)
-        }
-        CheckKind::Tools => command_runner::registry::check::run(context, check, rerun),
-    }
-}
-fn checked(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str) -> Outcome {
-    let result = run_check(context, source, check, rerun);
-    let (code, message, broken) = match result {
-        Ok(code) => (
-            code,
-            format!("exited {code}; see original output above"),
-            false,
-        ),
-        Err(error) => (2, format!("{error:#}"), true),
-    };
-    let failed = code != 0;
-    if failed {
-        let advisory = check.warning && !broken;
-        let level = if advisory { "WARNING" } else { "ERROR" };
-        console::stderr(crate::shared::diagnostics::Guidance {
-            level,
-            id: &check.id,
-            location: &check.include.join(", "),
-            message: &message,
-            skill: &check.skill,
-            rerun,
-        });
-    }
-    Outcome { code, broken }
-}
 fn export(root: &Path) -> Result<tempfile::TempDir> {
     let repository = crate::shared::vcs::Repository::discover(root)?
         .ok_or_else(|| anyhow::anyhow!("index export requires a VCS repository"))?;
