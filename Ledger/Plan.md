@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P072](Plan/072.md) | pending | - | [B051](Backlog/051.md): self-hygiene — находки межпроектного обзора в собственном коде | Обоснования не переобещают, PID согласован, предусловие zeroed явно. |
 | [P073](Plan/073.md) | pending | - | [B047](Backlog/047.md): discarded-result-variants — отброшенные Option-комбинаторы и `.err()` | Отброшенные результаты Option-комбинаторов ловятся из коробки. |
 | [P074](Plan/074.md) | pending | - | [B048](Backlog/048.md): panic-surface-extension — debug-only assert и unwind-поверхность | Debug-only проверки не выдают себя за release-контракт. |
 | [P075](Plan/075.md) | pending | - | [B050](Backlog/050.md): guard-across-await — гард std-блокировки через `.await` | Гард std-блокировки через точку ожидания не проходит незаметно. |
