@@ -215,7 +215,7 @@ fn finding(
 fn rule_message(rule: &config::Rule, limit: Option<u64>, actual: u64) -> Result<String> {
     Ok(match (limit, &rule.kind.descriptor().parameters) {
         (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
-        (None, rules::Parameters::Level { violation }) => (*violation).into(),
+        (None, rules::Parameters::Level { violation, .. }) => (*violation).into(),
         (None, rules::Parameters::Thresholds { .. }) => {
             anyhow::bail!("threshold rule reported no limit")
         }

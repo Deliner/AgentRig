@@ -1,4 +1,4 @@
-use super::text;
+use crate::structural_lint::languages::measure::text;
 use tree_sitter::Node;
 
 pub(super) fn in_test_context(node: Node<'_>, source: &str) -> bool {

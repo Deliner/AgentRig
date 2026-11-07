@@ -1,6 +1,6 @@
 purpose: Represent actionable findings, validate their skill references and render diagnostic guidance with reproducible rerun commands
 type: flat
-dependents: 10
+dependents: 11
 files:
   mod.rs: Shared guidance formatting and command failure recovery instructions
   lint.rs: Serializable lint findings and their text rendering grouped by shared cause

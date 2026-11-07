@@ -1,4 +1,5 @@
-use super::{Analysis, Measurement, justified_line};
+use super::Analysis;
+use super::measure::{Measurement, justified_line};
 use crate::structural_lint::rules::kind::Kind;
 use toml::Spanned;
 use toml::de::{DeString, DeTable, DeValue};

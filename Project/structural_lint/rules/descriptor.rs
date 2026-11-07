@@ -1,4 +1,5 @@
 use super::kind::Kind;
+use crate::shared::diagnostics::lint::Level as Severity;
 use serde_json::{Value, json};
 
 pub struct Descriptor {
@@ -11,8 +12,15 @@ pub struct Descriptor {
 }
 const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
 pub enum Parameters {
-    Thresholds { warning: Option<u64>, error: u64 },
-    Level { violation: &'static str },
+    Thresholds {
+        warning: Option<u64>,
+        error: u64,
+    },
+    // DECISION: D117
+    Level {
+        violation: &'static str,
+        default: Severity,
+    },
 }
 impl Parameters {
     pub fn describe(&self) -> Value {
@@ -27,7 +35,7 @@ impl Parameters {
     }
     pub fn apply(&self, value: &mut Value) {
         match self {
-            Self::Level { .. } => value["level"] = json!("error"),
+            Self::Level { default, .. } => value["level"] = json!(default),
             Self::Thresholds { warning, error } => {
                 value["error"] = json!(error);
                 if let Some(warning) = warning {
@@ -68,6 +76,7 @@ impl Kind {
             Self::SuperSuperReach => &SUPERSUPERREACH,
             Self::RecursiveDeletion => &RECURSIVEDELETION,
             Self::UnwindJustification => &UNWINDJUSTIFICATION,
+            Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -103,6 +112,7 @@ const FORBIDDENFILE: Descriptor = Descriptor {
     metric: "every selected file is a finding, regardless of content",
     skill: "condense-markdown",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "file is not allowed here; move needed content to its owner and delete the file",
     },
 };
@@ -114,6 +124,7 @@ const COMMENTREFERENCE: Descriptor = Descriptor {
     metric: "every comment and lone string statement except an exact DECISION: DNNN or INVARIANT: INNN reference",
     skill: "replace-comment",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "only an exact DECISION: DNNN or INVARIANT: INNN comment is allowed; move the explanation to its owner or delete it",
     },
 };
@@ -124,6 +135,7 @@ const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     metric: "architecture.yaml inventories and directory cycles in resolved source dependencies; incomplete analysis is a finding",
     skill: "refactor-large-directory",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "architecture contract is violated",
     },
 };
@@ -148,6 +160,7 @@ const DUMPNAME: Descriptor = Descriptor {
     metric: "a directory whose name is a generic dumping ground: utils, helpers, misc or common; shared is allowed",
     skill: "refactor-large-directory",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a directory named for a generic dumping ground hides mixed responsibilities; name it for what it owns or distribute its contents to cohesive owners; shared is for genuine cross-feature leaves",
     },
 };
@@ -159,6 +172,7 @@ const NAMEDIFCONDITION: Descriptor = Descriptor {
     metric: "one named value per boolean if condition; Rust if-let bindings excluded; named field paths accepted",
     skill: "name-if-condition",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "if condition must be one named value; give the branch reason a name",
     },
 };
@@ -208,6 +222,7 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
     metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding",
     skill: "split-boolean-parameter",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a boolean parameter hides two behaviors; split the function or name the modes with a dedicated type",
     },
 };
@@ -231,6 +246,7 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
     metric: "every string literal matching a known credential format: a private-key block, or an AWS, GitHub, Google or Slack token",
     skill: "remove-secret",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a hardcoded credential does not belong in source; move it to configuration or a secret store and rotate the exposed value",
     },
 };
@@ -243,6 +259,7 @@ const SILENTERROR: Descriptor = Descriptor {
     metric: "every Python except clause whose body is only pass, every Rust read_dir call chain collapsed by .flatten(), .filter_map(Result::ok), .filter_map(|e| e.ok()) or .map_while(Result::ok), and every Rust match or if-let arm Err(_)/Err(..) whose body is Ok(true), Ok(false) or a return of one inside a function declared to return Result<bool, ...>, outside Rust test code, without a DECISION: or INVARIANT: reference comment on the line directly above the pass, the chain or the arm",
     skill: "handle-error",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "an except that only passes, a read_dir chain that drops its failed entries or an Err arm that answers a verdict swallows the error; handle it, propagate or re-raise it, or put a DECISION: or INVARIANT: reference on the line directly above to justify ignoring it",
     },
 };
@@ -255,6 +272,7 @@ const DISABLEDTEST: Descriptor = Descriptor {
     metric: "every Rust #[ignore] attribute, also as a direct #[cfg_attr(...)] argument, or Python @pytest.mark.skip or skipif decorator without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "justify-skip",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a silently disabled test drops coverage; re-enable it, delete it if obsolete, or put a DECISION: or INVARIANT: reference on the line directly above it to justify skipping",
     },
 };
@@ -267,6 +285,7 @@ const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, and every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute or the key",
     skill: "justify-allow",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a blanket allow, expect or conditional suppression silences a rule, and a reason = \"...\" inside the attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
     },
 };
@@ -278,6 +297,7 @@ const DEBUGARTIFACT: Descriptor = Descriptor {
     metric: "every Rust dbg! macro invocation",
     skill: "remove-debug",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a dbg! macro is a leftover debugging artifact; remove it and keep any value it wrapped",
     },
 };
@@ -290,6 +310,7 @@ const DEBUGASSERTION: Descriptor = Descriptor {
     metric: "every Rust debug_assert!, debug_assert_eq! or debug_assert_ne! macro, and every assert!, assert_eq! or assert_ne! macro under a cfg(debug_assertions) attribute or in the then-branch of if cfg!(debug_assertions), outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "firm-up-assertion",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a debug_assert, or an assert compiled only with debug_assertions, is stripped from release builds, so the contract it states goes unchecked where it matters; promote it to an unconditional assert! to hold in every build, remove it if redundant, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the debug-only check",
     },
 };
@@ -302,6 +323,7 @@ const PANICPATH: Descriptor = Descriptor {
     metric: "every Rust .unwrap(), .expect(...), .unwrap_err() or .expect_err(...) call, resume_unwind call by path or bare name, and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-panic",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "an unwrap, expect, unwrap_err, expect_err, resume_unwind or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the panic",
     },
 };
@@ -313,6 +335,7 @@ const WILDCARDIMPORT: Descriptor = Descriptor {
     metric: "every Rust use glob (`use path::*`) outside test code, or Python wildcard import (`from module import *`), without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "narrow-import",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a glob import binds the whole, evolving surface of another module, so a name added or renamed upstream silently changes what is in scope; replace it with an explicit import list, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the glob",
     },
 };
@@ -325,6 +348,7 @@ const UNSAFEJUSTIFICATION: Descriptor = Descriptor {
     metric: "every Rust unsafe site (an unsafe block, unsafe function, unsafe impl, unsafe trait or static mut item, and every unsafe keyword inside a macro_rules! body or a macro invocation's arguments except one opening a #[unsafe(..)] or #[cfg_attr(cond, unsafe(..))] attribute) without a DECISION: or INVARIANT: reference comment on the line directly above it, where attribute lines between the comment and an item keep the adjacency",
     skill: "justify-unsafe",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "unsafe needs a recorded justification; put a DECISION: or INVARIANT: reference on the line directly above it (above its attributes for an item), or remove the unsafe",
     },
 };
@@ -337,6 +361,7 @@ const TUPLEASRECORD: Descriptor = Descriptor {
     metric: "every Rust function parameter type or return type that is a tuple, or that nests inside a generic or slice type, at any depth, a tuple of three or more elements with a primitive, String or &str element (closure signatures included for the nested form), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
     skill: "name-the-record",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a tuple in a signature is an unnamed record that evades the parameter-count and boolean-parameter budgets and hides what each position means, whether it stands alone or inside Vec<(..)>, Option<(..)> or &[(..)]; give it a named struct, or put a DECISION: or INVARIANT: reference on the line directly above the function to justify the tuple",
     },
 };
@@ -348,6 +373,7 @@ const EAGERFALLBACK: Descriptor = Descriptor {
     metric: "every Rust .unwrap_or, .ok_or or .map_or call whose eager first argument propagates with ? outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "eager-to-lazy",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "the fallback argument of unwrap_or, ok_or or map_or is evaluated unconditionally, so a ? inside it propagates even when the value is present; move the fallback into the lazy unwrap_or_else, ok_or_else or map_or_else closure, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the eager form",
     },
 };
@@ -361,6 +387,7 @@ const DISCARDEDRESULT: Descriptor = Descriptor {
     metric: "every Rust bare .ok() or .err() statement that drops a Result, every bare statement whose last call is .map, .and_then, .map_or or .map_or_else and drops the combined value, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-discarded",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a bare .ok() or .err() statement converts a Result to Option and throws the outcome away, a bare .map, .and_then, .map_or or .map_or_else statement throws away the value the closure produced, and a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, so a failure passes silently; handle the error or the value, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
     },
 };
@@ -372,6 +399,7 @@ const DISABLEDRAII: Descriptor = Descriptor {
     metric: "every Rust .keep() or .into_path() method call, or mem::forget, ManuallyDrop::new or Box::leak path call, outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "own-the-resource",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "this call defeats RAII, so a guard's cleanup never runs and a resource outlives its owner silently; let the value drop, hold the guard for the lifetime it protects, or put a DECISION: or INVARIANT: reference on the line directly above it to justify keeping, forgetting or leaking it",
     },
 };
@@ -383,6 +411,7 @@ const GLOBALSTATE: Descriptor = Descriptor {
     metric: "every Rust static item outside test code, excluding static mut, whose type (following same-file type aliases up to three levels) contains a lock (Mutex, RwLock, DashMap, DashSet), or a public static whose type contains any cell (also RefCell, Cell, UnsafeCell, Atomic*), including items declared inside lazy_static! or thread_local!, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "own-the-state",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a static lock or a public static cell is process-global mutable state with no owner in the directory tree, so every writer has to be found by search; give the state an owner (a parameter, a context field or a private cell behind one owning function), or put a DECISION: or INVARIANT: reference on the line directly above it to justify the global",
     },
 };
@@ -394,6 +423,7 @@ const SUPERSUPERREACH: Descriptor = Descriptor {
     metric: "every Rust path that reaches two module levels up through super::super, in a use declaration, an expression or a type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "anchor-at-crate",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a super::super path binds the file to its position in the module tree instead of to the item's owner, so moving a directory breaks it and a reader cannot see whose item it is; write the path from crate::, or re-export the item at the parent module and reach it through a single super::, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the reach",
     },
 };
@@ -405,6 +435,7 @@ const RECURSIVEDELETION: Descriptor = Descriptor {
     metric: "every Rust call whose function path ends in remove_dir_all, whose bare function name is remove_dir_all or whose method is remove_dir_all, from any source such as std::fs, tokio::fs, a local wrapper or a method, in source and in macro bodies, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "contain-the-deletion",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "a recursive directory deletion is the most destructive file-system operation, and a wrong argument erases a working tree; delete through an owner that checks the path lies inside its own area, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify the deletion",
     },
 };
@@ -416,6 +447,19 @@ const UNWINDJUSTIFICATION: Descriptor = Descriptor {
     metric: "every Rust call whose function path or bare name ends in catch_unwind or AssertUnwindSafe, or whose method is catch_unwind, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "justify-unwind",
     parameters: Parameters::Level {
+        default: Severity::Error,
         violation: "catching a panic turns a crash into a value and AssertUnwindSafe vouches that state touched by the panic is still consistent, so a bug can continue silently on broken state; let the panic propagate and return errors with Result, or catch only at a boundary that must not unwind, such as FFI or task isolation, and put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
+    },
+};
+// DECISION: D117
+const GUARDACROSSAWAIT: Descriptor = Descriptor {
+    default_id: "guard-across-await",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust let binding of a plain name whose initializer, without an .await, ends in a .lock(), .read() or .write() call, optionally followed by ?, .unwrap(), .expect(...) or .unwrap_or_else(...), when a later statement of the same block contains an .await, also inside a macro body, before a drop of that name, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the binding",
+    skill: "release-the-guard",
+    parameters: Parameters::Level {
+        default: Severity::Warning,
+        violation: "a std lock guard held across .await blocks every task that needs the lock while this one is suspended, deadlocks a single-threaded executor and makes the future !Send; drop the guard in an inner block or with drop before the .await, use an async-aware lock, or put a DECISION: or INVARIANT: reference on the line directly above the binding to justify it",
     },
 };

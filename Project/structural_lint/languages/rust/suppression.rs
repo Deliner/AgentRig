@@ -1,4 +1,4 @@
-use super::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 

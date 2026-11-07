@@ -1,9 +1,18 @@
-use super::test_context::{in_debug_only_context, in_test_context, last_segment};
-use super::{
+mod global_state;
+mod guard_await;
+mod recursive_deletion;
+mod silent_error;
+mod super_reach;
+mod suppression;
+mod test_context;
+mod unsafe_site;
+mod unwind_catch;
+use crate::structural_lint::languages::measure::{
     Branch, Measurement, Nest, boolean_parameters, branching, comment, condition, credential,
     function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use test_context::{in_debug_only_context, in_test_context, last_segment};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -13,31 +22,30 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => credential(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
-            super::unsafe_site::inspect(node, source, output)
+            unsafe_site::inspect(node, source, output)
         }
-        "attribute_item" | "inner_attribute_item" => {
-            super::suppression::attribute(node, source, output)
-        }
+        "attribute_item" | "inner_attribute_item" => suppression::attribute(node, source, output),
         "static_item" => {
-            super::global_state::inspect(node, source, output);
-            super::unsafe_site::inspect(node, source, output);
+            global_state::inspect(node, source, output);
+            unsafe_site::inspect(node, source, output);
         }
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
             panic_macro(node, source, output);
             macro_body(node, source, output);
-            super::global_state::macro_items(node, source, output);
+            global_state::macro_items(node, source, output);
         }
         "call_expression" => call(node, source, output),
         "expression_statement" => discarded_result(node, source, output),
-        "scoped_identifier" => super::super_reach::inspect(node, source, output),
+        "let_declaration" => guard_await::inspect(node, source, output),
+        "scoped_identifier" => super_reach::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, source, output),
-        "match_arm" => super::silent_error::verdict_arm(node, source, output),
+        "match_arm" => silent_error::verdict_arm(node, source, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output);
-            super::unsafe_site::inspect(node, source, output);
+            unsafe_site::inspect(node, source, output);
         }
         _ => {}
     }
@@ -46,9 +54,9 @@ fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     panic_call(node, source, output);
     eager_fallback(node, source, output);
     disabled_raii(node, source, output);
-    super::silent_error::collapsed_read_dir(node, source, output);
-    super::recursive_deletion::inspect(node, source, output);
-    super::unwind_catch::inspect(node, source, output);
+    silent_error::collapsed_read_dir(node, source, output);
+    recursive_deletion::inspect(node, source, output);
+    unwind_catch::inspect(node, source, output);
 }
 fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {
@@ -56,7 +64,7 @@ fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     };
     let binding = test.kind() == "let_condition";
     if binding {
-        super::silent_error::verdict_if(node, source, output);
+        silent_error::verdict_if(node, source, output);
         return;
     }
     condition(node, test, output);
@@ -424,7 +432,7 @@ fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             panic_call(node, source, output);
             eager_fallback(node, source, output);
             disabled_raii(node, source, output);
-            super::recursive_deletion::inspect(node, source, output);
+            recursive_deletion::inspect(node, source, output);
         }
         "macro_invocation" => panic_macro(node, source, output),
         _ => {}

@@ -32,6 +32,7 @@ pub enum Kind {
     SuperSuperReach,
     RecursiveDeletion,
     UnwindJustification,
+    GuardAcrossAwait,
     CommentReference,
     DirectoryArchitecture,
 }

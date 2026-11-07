@@ -1,18 +1,10 @@
 purpose: Measure scalar rules in supported source languages through registered syntax handlers
-type: flat
 files:
-  global_state.rs: Rust process-global state, a static lock or public cell, declared directly or inside lazy_static!/thread_local!
   manifest.rs: TOML manifest lint tables, a lint set to allow under lints or workspace.lints without a reference above
-  mod.rs: Scalar measurement traversal with located results
+  mod.rs: Scalar measurement traversal of a parsed source with located results
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, function lengths, parameters and comments
-  rust.rs: Rust conditions, function lengths, parameters and comments
-  silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries or an Err arm answering a bool verdict
-  super_reach.rs: Rust path reaching two module levels up through super::super in a use declaration, an expression or a type
-  recursive_deletion.rs: Rust remove_dir_all call reached through a path, a bare name or a method, in source and in macro bodies
-  suppression.rs: Rust allow, expect and ignore attributes, direct or as a cfg_attr argument, lacking a reference on the line above
-  test_context.rs: Decide whether a Rust node sits inside test-only code for rule exemptions or debug-only code for debug assertions
-  unsafe_site.rs: Rust unsafe surface, a block, function, impl, trait, static mut or unsafe token in a macro token tree, lacking a reference above its attributes
-  unwind_catch.rs: Rust panic catch, a catch_unwind call or AssertUnwindSafe wrapper, lacking a reference on the line above
 directories:
+  measure: Located measurement record and the condition, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers
+  rust: Measure Rust conditions, function lengths, parameters, comments and the Rust-only source rules
   tests: Verify language measurements and delivery enforcement

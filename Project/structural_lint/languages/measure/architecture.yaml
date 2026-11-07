@@ -1,0 +1,5 @@
+purpose: Define the located measurement record and the language-neutral measurements shared by syntax handlers and their detectors
+type: flat
+files:
+  mod.rs: Located measurement record, node text, line-above references, named conditions, comments, credentials, function size, nesting, boolean parameters and branch budgets
+directories: {}

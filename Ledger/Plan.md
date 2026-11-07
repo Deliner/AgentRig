@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P075](Plan/075.md) | pending | - | [B050](Backlog/050.md): guard-across-await — гард std-блокировки через `.await` | Гард std-блокировки через точку ожидания не проходит незаметно. |
+| [P075](Plan/075.md) | active | - | [B050](Backlog/050.md): guard-across-await — гард std-блокировки через `.await` | Гард std-блокировки через точку ожидания не проходит незаметно. |
 | [P076](Plan/076.md) | pending | P075 | [B070](Backlog/070.md): blocking-in-async — блокирующий вызов внутри async-кода | Блокирующий сон и вложенный `block_on` в async-коде ловятся до рантайма. |
 | [P077](Plan/077.md) | pending | - | [B068](Backlog/068.md): ord-eq-mismatch — ручной порядок и равенство читают разные поля | Нарушение контракта порядка и равенства ловится на любом Rust-коде. |
 | [P078](Plan/078.md) | pending | - | [B071](Backlog/071.md): boolean-expression — длинное логическое выражение | Каждое условие читается с одного взгляда. |
