@@ -48,6 +48,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::GuardAcrossAwait,
             Kind::BlockingInAsync,
             Kind::OrdEqMismatch,
+            Kind::SecretDebug,
             Kind::BooleanExpression,
             Kind::EmbeddedText,
             Kind::CommentReference,

@@ -171,6 +171,7 @@ def test_rule_examples_exclude_test_files_only_where_decided(worker: Path) -> No
         "guard-across-await",
         "blocking-in-async",
         "ord-eq-mismatch",
+        "secret-debug",
         "embedded-text",
     ]
     shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}

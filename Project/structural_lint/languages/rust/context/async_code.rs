@@ -1,13 +1,13 @@
 use tree_sitter::Node;
 
 // DECISION: D118
-pub(super) fn scope_boundary(node: Node<'_>) -> bool {
+pub fn scope_boundary(node: Node<'_>) -> bool {
     matches!(
         node.kind(),
         "closure_expression" | "async_block" | "function_item"
     )
 }
-pub(super) fn in_async_context(node: Node<'_>) -> bool {
+pub fn in_async_context(node: Node<'_>) -> bool {
     let mut current = node.parent();
     while let Some(ancestor) = current {
         let bounded = scope_boundary(ancestor);

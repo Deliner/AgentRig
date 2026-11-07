@@ -1,7 +1,8 @@
-purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record and an order that disagrees with equality"
+purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality and a derived Debug that prints a secret"
 files: {}
 directories:
   align-order-with-equality: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with a reference"
   name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
+  redact-secret: "Keep a secret field out of a derived Debug through a redacting type or a hand-written Debug"
   reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
   split-boolean-parameter: "Replace a boolean parameter with named modes while preserving behavior"

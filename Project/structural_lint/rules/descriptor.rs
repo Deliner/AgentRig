@@ -47,6 +47,7 @@ impl Kind {
             Self::OrdEqMismatch => &ORDEQMISMATCH,
             Self::BooleanExpression => &BOOLEANEXPRESSION,
             Self::EmbeddedText => &EMBEDDEDTEXT,
+            Self::SecretDebug => &SECRETDEBUG,
             Self::CommentReference => &COMMENTREFERENCE,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
         }
@@ -480,5 +481,17 @@ const EMBEDDEDTEXT: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 20,
+    },
+};
+// DECISION: D130
+const SECRETDEBUG: Descriptor = Descriptor {
+    default_id: "secret-debug",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every named field of a Rust struct deriving Debug, directly or inside cfg_attr, whose name is exactly password, passwd, secret, token, api_key, apikey, private_key, access_token, refresh_token, client_secret, jwt or cvv and whose type is String, &str, Vec<u8> or an Option of one of them, outside test code",
+    skill: "redact-secret",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a derived Debug prints the secret in full wherever the struct reaches {:?}, a log macro or a panic message; wrap the secret in a type whose Debug prints a placeholder, or write Debug by hand without the value",
     },
 };

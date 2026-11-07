@@ -39,6 +39,7 @@ pub const ALL: &[Kind] = &[
     Kind::GuardAcrossAwait,
     Kind::BlockingInAsync,
     Kind::OrdEqMismatch,
+    Kind::SecretDebug,
     Kind::BooleanExpression,
     Kind::EmbeddedText,
     Kind::NamedIfCondition,
