@@ -3,37 +3,37 @@
 ## Focus
 
 Программа **P083 → P086** (пользователь 2026-11-07: «бери все и делай») — карточки B075–B078 по одной за ветку,
-автономно. P083 (B077) выполнена и слита в master `d0d4f2e`. **P084** (B078 disallowed-methods) выполнена в VAC
-фазы 2 `757bc30`: сайты AgentRig вызывают обёртки `shared/fs`, запись `std::fs` в `.agentrig/lint.yaml` перечисляет
-методы ФС; P084 и B078 в Archive, решение D125. Этот коммит — финальный пин D051.
+автономно. P083 (B077) и P084 (B078) выполнены и слиты, master `36f3dbe`. Сейчас **P085** (B076 exit-code), VAC 1 —
+AC1: новая форма `silent-error` для `Ok(<status>.success())` в функции `Result<bool>` без чтения `.code()`, навыки
+`handle-error` и `handle-discarded`, решение D126.
 
 ## Workspace
 
-Branch: `feature/disallowed-methods`
-Revision: `757bc30f299aece4d54d5f385af5be750fa90144`
+Branch: `feature/exit-code`
+Revision: `36f3dbeb413b1327e52e73ff50b633414d59279a`
 
-База — master `d0d4f2e`. Ветки `feature/impact-coverage`, `feature/rule-cards` и прежние, а также
-`feature/init-probe`, сохранены. macOS: в PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo —
-коммиты и вызовы с cargo через
+База — master `36f3dbe`. Ветки `feature/disallowed-methods`, `feature/impact-coverage` и прежние, а также
+`feature/init-probe`, сохранены. Установленный рантайм — `757bc30`. macOS: в PATH `just write`/`just run`/
+`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
-- P084 фаза 1 — VAC `f7a539f`: поле `methods`, извлечение вызовов в `architecture/source/rust/calls.rs`, в том
-  числе в аргументах макросов, политика, тест, README, D125. Пин D051 `5a05e0b`: `stable.txt` = `f7a539f`.
-- P084 фаза 2: обёртки `file_metadata` и `try_exists` в `Project/shared/fs/mod.rs` с тестом, 15 строк переведены на
-  владельца; корень проекта разрешает `project_root` в `project_config/settings`, иначе `project_config` стал бы
-  21-м зависимым `shared/fs` при бюджете 20.
-- Plan: P085 (B076) и P086 (B075) — pending.
+- P085 VAC 1: `exit_verdict` в `Project/structural_lint/languages/rust/silent_error.rs`, вызов из
+  `languages/rust/mod.rs`; обход `descendants` перенесён из `ord_equality.rs` в `languages/measure/mod.rs`; три
+  теста в `languages/tests/silent_error.rs`; текст правила в `rules/descriptor.rs`; оба навыка; D126 с индексом.
+  Конфигурация не меняется, поэтому нужен только финальный пин D051.
+- Осталось для P085 — VAC 2, AC2: `std::process::Command` в `disallowed` вне `Project/shared/vcs`,
+  `Project/command_runner` и тестов; сайты `change_delivery/git/mod.rs`, `change_delivery/git/integration.rs` и
+  `project_setup/doctor.rs` вызывают владельцев; Delivery, ротация P085 и B076.
+- Plan: P085 — active, P086 (B075) — pending.
 
 ## Verification
 
-- Проба кандидата с копией конфига в scratch до ремонта: 15 строк, 16 вызовов, как в карточке B078.
-- После ремонта: `cargo clippy --all-targets -- -D warnings` чисто; `cargo test shared::fs` — 3 passed;
-  `just candidate lint` — код 0; `just candidate config-check` — «Scaffold configuration is valid (runtime 0.3.0)».
-- Гейт коммита `f7a539f`: все проверки PASS, test 226 passed; `just bootstrap` на `f7a539f` прошёл.
-- Гейт коммита `757bc30`: все проверки PASS, rust-test 152 и test 385 passed; `just bootstrap` на `757bc30` —
-  установлен `agentrig 0.3.0`.
+- Проба кандидата на копиях исторических файлов в scratch: `src/change_delivery_git.rs:151` на `04e7200^` и
+  `src/scaffold_git.rs:15` на `50853e0^`, символ `success`, код выхода 1.
+- На рабочем дереве: `cargo fmt` и `cargo clippy --all-targets -- -D warnings` чисто; `cargo test structural_lint` —
+  118 passed; `just candidate lint --root /Users/admin/projects/AgentRig` — код 0.
 
 ## Blockers
 
@@ -41,5 +41,5 @@ Revision: `757bc30f299aece4d54d5f385af5be750fa90144`
 
 ## Next action
 
-`just feature-merge` ветки `feature/disallowed-methods`. Затем ветка
-`feature/exit-code` для P085 (B076). Свободные ID: D126+, I022+, P087+, B079+ (B066 и D111 зарезервированы).
+Коммит VAC 1 через хук, затем VAC 2 для AC2 P085. Свободные ID: D127+, I022+, P087+, B079+ (B066 и D111
+зарезервированы).

@@ -11,6 +11,16 @@ pub struct Measurement {
 pub fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
     &source[node.byte_range()]
 }
+pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
+    let mut found = Vec::new();
+    let mut pending = vec![node];
+    while let Some(current) = pending.pop() {
+        let mut cursor = current.walk();
+        pending.extend(current.named_children(&mut cursor));
+        found.push(current);
+    }
+    found
+}
 pub fn justified(node: Node<'_>, source: &str) -> bool {
     justified_line(node.start_position().row, source)
 }

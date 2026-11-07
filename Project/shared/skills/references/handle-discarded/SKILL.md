@@ -21,9 +21,12 @@ or `Output`, so a command that ran and failed looks like a success.
    preserves the `Option` for a later decision; `if let Some(value) = option`
    with the fallible call inside handles the combined value, and `for` or
    `.for_each` runs a side effect on every item; `let status = cmd.status()?;`
-   followed by a check of `status.success()`, or `let output = cmd.output()?;`
-   followed by a check of `output.status` and its streams, turns a failed
-   command into an error.
+   or `let output = cmd.output()?;` followed by a check of the exit code and,
+   for output, its streams turns a failed command into an error. Use
+   `status.success()` alone only when every nonzero code means failure; when
+   a nonzero code is an answer, such as git's 1 for no, compare `code()` with
+   the documented answer codes and refuse the others, or call an owner that
+   does.
 3. For a deliberate best-effort call whose failure is genuinely ignorable (a
    cleanup on an already-failing path, a command whose exit status carries no
    meaning here), record the reasoning as an owned `DECISION:`/`INVARIANT:`
@@ -41,7 +44,9 @@ is `.ok()`, `.err()`, `.map(…)`, `.and_then(…)`, `.map_or(…)` or
 call has no arguments, outside test code, without a `DECISION:`/`INVARIANT:`
 reference on the line directly above it. A `let`-binding, an assignment, a
 returned tail expression, `expr.ok()?`, a `….status()?.success()` chain and an
-argument position keep or propagate the outcome and are not flagged. The
+argument position keep or propagate the outcome and are not flagged here; a
+`.success()` returned from a `Result<bool>` function that never reads `.code()`
+is a `silent-error` finding instead. The
 receiver type is not resolved, so a closure without effects is flagged too;
 binding or removing the statement resolves it. Rerun the reported lint check and
 relevant behavior checks. Do not weaken the rule or its selectors merely to
