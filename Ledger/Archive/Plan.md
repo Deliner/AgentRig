@@ -70,3 +70,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P072](Plan/072.md) | complete | - | [B051](Backlog/051.md): self-hygiene — находки межпроектного обзора в собственном коде | Обоснования не переобещают, PID согласован, предусловие zeroed явно. |
 | [P073](Plan/073.md) | complete | - | [B047](Backlog/047.md): discarded-result-variants — отброшенные Option-комбинаторы и `.err()` | Отброшенные результаты Option-комбинаторов ловятся из коробки. |
 | [P074](Plan/074.md) | complete | - | [B048](Backlog/048.md): panic-surface-extension — debug-only assert и unwind-поверхность ([D115](../Decisions/115.md)) | Debug-only проверки не выдают себя за release-контракт. |
+| [P075](Plan/075.md) | complete | - | [B050](Backlog/050.md): guard-across-await — гард std-блокировки через `.await` ([D117](../Decisions/117.md)) | Гард std-блокировки через точку ожидания не проходит незаметно. |

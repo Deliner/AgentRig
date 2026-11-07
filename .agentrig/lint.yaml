@@ -309,6 +309,20 @@ rules:
   level: error
   warning_skill: .agents/skills/justify-unwind/SKILL.md
   error_skill: .agents/skills/justify-unwind/SKILL.md
+# DECISION: D117
+- id: guard-across-await
+  kind: guard-across-await
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: warning
+  warning_skill: .agents/skills/release-the-guard/SKILL.md
+  error_skill: .agents/skills/release-the-guard/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

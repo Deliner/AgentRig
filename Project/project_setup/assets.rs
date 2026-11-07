@@ -132,6 +132,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/ownership/own-the-resource/SKILL.md"),
     ),
     (
+        "release-the-guard",
+        include_str!("../shared/skills/ownership/release-the-guard/SKILL.md"),
+    ),
+    (
         "own-the-state",
         include_str!("../shared/skills/ownership/own-the-state/SKILL.md"),
     ),
