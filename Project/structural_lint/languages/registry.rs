@@ -44,6 +44,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::GlobalState,
             Kind::SuperSuperReach,
             Kind::RecursiveDeletion,
+            Kind::UnwindJustification,
             Kind::CommentReference,
             Kind::DirectoryArchitecture,
         ],
