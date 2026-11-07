@@ -1,6 +1,7 @@
 use crate::shared::fs::File;
 use anyhow::Result;
 use std::{
+    any::Any,
     io::{Read, Write},
     os::unix::io::{AsRawFd, RawFd},
     sync::{
@@ -164,9 +165,19 @@ fn forward(bytes: &[u8], channel: Channel) -> Result<()> {
 }
 pub fn join(thread: Option<JoinHandle<Result<Vec<u8>>>>) -> Result<Vec<u8>> {
     match thread {
-        Some(thread) => thread
-            .join()
-            .map_err(|_| anyhow::anyhow!("output reader failed"))?,
+        Some(thread) => thread.join().map_err(|payload| {
+            anyhow::anyhow!("output reader panicked: {}", panic_text(payload.as_ref()))
+        })?,
         None => Ok(Vec::new()),
+    }
+}
+// DECISION: D129
+pub fn panic_text(payload: &(dyn Any + Send)) -> &str {
+    match payload.downcast_ref::<String>() {
+        Some(text) => text,
+        None => payload
+            .downcast_ref::<&str>()
+            .copied()
+            .unwrap_or("panic without a text payload"),
     }
 }

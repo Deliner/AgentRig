@@ -91,7 +91,7 @@ fn explain(
     }
     let selected = reason.is_none();
     if selected {
-        let effective = selection::effective(rule, path, &selector.overrides)?;
+        let effective = selection::effective(rule, path, selector.overrides())?;
         row["warning"] = json!(effective.warning);
         row["error"] = json!(effective.error);
         row["level"] = json!(rule.level.map(|level| level.name()));

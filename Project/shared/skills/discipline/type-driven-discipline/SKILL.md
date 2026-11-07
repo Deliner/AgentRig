@@ -28,9 +28,11 @@ value is correct and the type would be ceremony.
 4. Encode an operation order in types only where it forbids a dangerous
    operation: `fn step(self) -> Next` consumes the earlier state so the misuse
    cannot be written. Ordinary sequencing needs no typestate.
-5. Keep `pub` fields for a record without an invariant between its fields. A
-   field that a constructor validates, or that another field depends on, is
-   private behind an accessor; a record of independent values stays open.
+5. A struct is either a record or an abstraction. A record of independent
+   values without an invariant between its fields keeps every field `pub`.
+   When a constructor validates a field or another field depends on it, every
+   field is private behind the constructor and accessors. Do not mix open and
+   closed fields in one struct.
 
 ## Related forms
 
@@ -71,6 +73,7 @@ the newtype and typestate forms need the type resolution the engine omits.
 Whether an operation carries a completeness contract is not syntactic either,
 so exhaustive destructuring stays a review norm. The
 decidable slices already ship as rules: `boolean-parameter`, `tuple-as-record`
-and `global-state`. The rest apply in review, where a finding is repaired here.
+and `global-state`. The mix of open and closed fields in item 5 fails Clippy's
+`partial_pub_fields` in the AgentRig clippy profile. The rest apply in review, where a finding is repaired here.
 Apply complexity-discipline: a type that closes no named invariant is not
 required.

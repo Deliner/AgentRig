@@ -1,6 +1,6 @@
 use super::{
     Capture, Grouping, Job,
-    streams::{Readers, Sink},
+    streams::{self, Readers, Sink},
 };
 use anyhow::{Context, Result};
 use signal_hook::{
@@ -39,9 +39,12 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
     let status = child.wait();
     readers.mark_exited();
     handle.close();
-    forwarding
-        .join()
-        .map_err(|_| anyhow::anyhow!("signal forwarding thread failed"))?;
+    forwarding.join().map_err(|payload| {
+        anyhow::anyhow!(
+            "signal forwarding thread panicked: {}",
+            streams::panic_text(payload.as_ref())
+        )
+    })?;
     restore_default_signals();
     readers.finish(status)
 }

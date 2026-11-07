@@ -51,17 +51,29 @@ const DEFAULT_DEPENDENTS: usize = 6;
 pub(super) struct Declaration {
     purpose: String,
     #[serde(default)]
-    pub files: BTreeMap<String, String>,
+    files: BTreeMap<String, String>,
     #[serde(default)]
-    pub directories: BTreeMap<String, String>,
+    directories: BTreeMap<String, String>,
     #[serde(default, rename = "type")]
-    pub kind: Option<super::features::Kind>,
+    kind: Option<super::features::Kind>,
     // DECISION: D078
     #[serde(default)]
     zone: Option<Zone>,
     // DECISION: D079
     #[serde(default)]
     dependents: Option<usize>,
+}
+// DECISION: D129
+impl Declaration {
+    pub(super) fn files(&self) -> &BTreeMap<String, String> {
+        &self.files
+    }
+    pub(super) fn directories(&self) -> &BTreeMap<String, String> {
+        &self.directories
+    }
+    pub(super) fn kind(&self) -> Option<super::features::Kind> {
+        self.kind
+    }
 }
 
 pub struct Contracts {

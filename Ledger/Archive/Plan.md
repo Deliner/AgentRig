@@ -82,3 +82,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P084](Plan/084.md) | complete | - | [B078](Backlog/078.md): disallowed-methods — методы ФС с ошибкой без пути ([D125](../Decisions/125.md)) | Ошибка файловой системы всегда называет действие и путь. |
 | [P085](Plan/085.md) | complete | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов ([D126](../Decisions/126.md)) | Ошибка команды не становится молча ответом «нет». |
 | [P086](Plan/086.md) | complete | - | [B075](Backlog/075.md): clippy-types — пять линтов clippy с типами в dev-гейте ([D127](../Decisions/127.md)) | Гейт ловит классы дефектов, которым нужны типы. |
+| [P087](Plan/087.md) | complete | - | [B081](Backlog/081.md): clippy-shape — `map_err_ignore`, `partial_pub_fields`, `struct_excessive_bools` в dev-гейте ([D129](../Decisions/129.md)) | Причина ошибки не теряется; запись и абстракция различимы по объявлению типа. |

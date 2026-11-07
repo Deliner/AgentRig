@@ -63,7 +63,7 @@ pub(super) fn check(
         features.visit(&feature);
     }
     for (directory, declaration) in declarations {
-        let misplaced = declaration.kind.is_some() && !features.typed.contains_key(directory);
+        let misplaced = declaration.kind().is_some() && !features.typed.contains_key(directory);
         if misplaced {
             features.contract(
                 directory,
@@ -90,7 +90,7 @@ impl Features<'_> {
         let Some(declaration) = self.declarations.get(feature) else {
             return;
         };
-        if let Some(kind) = declaration.kind {
+        if let Some(kind) = declaration.kind() {
             self.typed.insert(feature.into(), kind);
             self.parts(feature, kind);
             return;
