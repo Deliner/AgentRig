@@ -1,7 +1,6 @@
 // DECISION: D010
 use crate::shared::vcs::{Repository, Settings};
 use anyhow::{Result, ensure};
-use std::process::Command;
 
 pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) -> Result<String> {
     ensure!(
@@ -32,7 +31,7 @@ pub(super) fn integrate(
     repository: &Repository,
     settings: &Settings,
     mut check: impl FnMut() -> Result<i32>,
-    mut run: impl FnMut(&mut Command) -> Result<i32>,
+    mut run: impl FnMut(&[&str]) -> Result<i32>,
 ) -> Result<(String, i32)> {
     let feature = repository.observe()?.branch;
     ensure!(
@@ -43,7 +42,7 @@ pub(super) fn integrate(
     clean(repository)?;
     let divergent = !repository.ancestor(&settings.base, &feature)?;
     if divergent {
-        let code = run(&mut repository.command(&["rebase", "--rebase-merges", &settings.base]))?;
+        let code = run(&["rebase", "--rebase-merges", &settings.base])?;
         let failed = code != 0;
         if failed {
             return Ok((feature, code));
@@ -56,7 +55,7 @@ pub(super) fn integrate(
     }
     clean(repository)?;
     select_base(repository, settings, &feature)?;
-    let code = run(&mut repository.command(&["merge", "--no-ff", "--no-edit", &feature]))?;
+    let code = run(&["merge", "--no-ff", "--no-edit", &feature])?;
     Ok((feature, code))
 }
 

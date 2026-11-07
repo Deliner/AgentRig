@@ -2,7 +2,7 @@ use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use anyhow::Result;
-use std::{env, path::Path, process::Command};
+use std::{env, path::Path};
 
 fn available(program: &str, cwd: &Path) -> bool {
     let executable = |path: &Path| {
@@ -44,13 +44,18 @@ pub fn run(context: &Context) -> Result<i32> {
     Ok(i32::from(failed))
 }
 fn installed_binary(context: &Context) -> bool {
-    let installed = Command::new(
-        context
-            .root
-            .join(context.config.paths.service_path("bin/agentrig")),
-    )
-    .arg("--version")
-    .output();
+    let binary = context
+        .root
+        .join(context.config.paths.service_path("bin/agentrig"));
+    let installed = crate::command_runner::sandbox::tracked(
+        &context.root,
+        &[binary.to_string_lossy().into_owned(), "--version".into()],
+        crate::command_runner::sandbox::Sandboxing {
+            read_only: false,
+            capture: crate::command_runner::jobs::Capture::Collect,
+        },
+        None,
+    );
     let matches = installed.is_ok_and(|output| {
         output.status.success()
             && String::from_utf8_lossy(&output.stdout).trim()

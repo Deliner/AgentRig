@@ -80,3 +80,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P082](Plan/082.md) | complete | - | [B064](Backlog/064.md): ratchet-baseline — внедрение строгих правил в проект с историей ([D123](../Decisions/123.md)) | Строгие правила включаются без выключения гейта. |
 | [P083](Plan/083.md) | complete | - | [B077](Backlog/077.md): impact-coverage — `config-check` находит пути вне карты влияния ([D124](../Decisions/124.md)) | Новый путь без записи в карте виден до коммита. |
 | [P084](Plan/084.md) | complete | - | [B078](Backlog/078.md): disallowed-methods — методы ФС с ошибкой без пути ([D125](../Decisions/125.md)) | Ошибка файловой системы всегда называет действие и путь. |
+| [P085](Plan/085.md) | complete | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов ([D126](../Decisions/126.md)) | Ошибка команды не становится молча ответом «нет». |

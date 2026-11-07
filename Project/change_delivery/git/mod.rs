@@ -10,7 +10,6 @@ use anyhow::{Result, ensure};
 use std::{
     io::{self, Read},
     path::Path,
-    process::Command,
 };
 
 pub fn start(context: &Context, name: &str) -> Result<i32> {
@@ -26,8 +25,12 @@ pub fn merge(context: &Context) -> Result<i32> {
     let settings = &context.config.git;
     let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
-    let (feature, code) =
-        integration::integrate(&repository, settings, || checked(context), execute_vcs)?;
+    let (feature, code) = integration::integrate(
+        &repository,
+        settings,
+        || checked(context),
+        |args| execute_vcs(&repository, args),
+    )?;
     let passed = code == 0;
     if passed {
         console::stdout(format!("merged {feature}; branch retained"));
@@ -48,9 +51,9 @@ fn checked(context: &Context) -> Result<i32> {
     Ok(code)
 }
 
-fn execute_vcs(command: &mut Command) -> Result<i32> {
+fn execute_vcs(repository: &crate::shared::vcs::Repository<'_>, args: &[&str]) -> Result<i32> {
     let output = crate::command_runner::jobs::process::execute(
-        command,
+        &mut repository.command(args),
         crate::command_runner::jobs::Capture::Stream,
         None,
     )?;

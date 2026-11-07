@@ -3,14 +3,14 @@
 ## Focus
 
 Программа **P083 → P086** (пользователь 2026-11-07: «бери все и делай») — карточки B075–B078 по одной за ветку,
-автономно. P083 (B077) и P084 (B078) выполнены и слиты, master `36f3dbe`. Сейчас **P085** (B076 exit-code), VAC 1 —
-AC1: новая форма `silent-error` для `Ok(<status>.success())` в функции `Result<bool>` без чтения `.code()`, навыки
-`handle-error` и `handle-discarded`, решение D126.
+автономно. P083 (B077) и P084 (B078) выполнены и слиты, master `36f3dbe`. **P085** (B076 exit-code) выполнена в VAC 2:
+`std::process::Command` вне владельцев запрещён в `.agentrig/lint.yaml`, три сайта вызывают владельцев; P085 и B076 в
+Archive, решение D126.
 
 ## Workspace
 
 Branch: `feature/exit-code`
-Revision: `36f3dbeb413b1327e52e73ff50b633414d59279a`
+Revision: `f0670610447c3dbcb7b493cba6242a8aa7d5867b`
 
 База — master `36f3dbe`. Ветки `feature/disallowed-methods`, `feature/impact-coverage` и прежние, а также
 `feature/init-probe`, сохранены. Установленный рантайм — `757bc30`. macOS: в PATH `just write`/`just run`/
@@ -19,21 +19,19 @@ Revision: `36f3dbeb413b1327e52e73ff50b633414d59279a`
 
 ## Progress
 
-- P085 VAC 1: `exit_verdict` в `Project/structural_lint/languages/rust/silent_error.rs`, вызов из
-  `languages/rust/mod.rs`; обход `descendants` перенесён из `ord_equality.rs` в `languages/measure/mod.rs`; три
-  теста в `languages/tests/silent_error.rs`; текст правила в `rules/descriptor.rs`; оба навыка; D126 с индексом.
-  Конфигурация не меняется, поэтому нужен только финальный пин D051.
-- Осталось для P085 — VAC 2, AC2: `std::process::Command` в `disallowed` вне `Project/shared/vcs`,
-  `Project/command_runner` и тестов; сайты `change_delivery/git/mod.rs`, `change_delivery/git/integration.rs` и
-  `project_setup/doctor.rs` вызывают владельцев; Delivery, ротация P085 и B076.
-- Plan: P085 — active, P086 (B075) — pending.
+- P085 VAC 1 `f067061`: форма `silent-error` для `Ok(<status>.success())` в функции `Result<bool>` без `.code()`,
+  тесты, текст правила, навыки `handle-error` и `handle-discarded`, D126.
+- P085 VAC 2: запись `std::process::Command` в `disallowed`; колбэк `integration::integrate` получает аргументы git,
+  `execute_vcs` строит команду через `Repository::command`; `doctor` запускает бинарник через `sandbox::tracked`.
+  Delivery в `Archive/Plan/085.md`, ротация P085 и B076, ссылки D126 на Archive и конфиг.
+- Plan: P086 (B075) — pending.
 
 ## Verification
 
-- Проба кандидата на копиях исторических файлов в scratch: `src/change_delivery_git.rs:151` на `04e7200^` и
-  `src/scaffold_git.rs:15` на `50853e0^`, символ `success`, код выхода 1.
-- На рабочем дереве: `cargo fmt` и `cargo clippy --all-targets -- -D warnings` чисто; `cargo test structural_lint` —
-  118 passed; `just candidate lint --root /Users/admin/projects/AgentRig` — код 0.
+- Запись `std::process::Command` до ремонта: `just candidate lint` — 4 находки в трёх файлах, как в карточке.
+- После ремонта: `cargo fmt` и `cargo clippy --all-targets -- -D warnings` чисто; `just candidate lint` — код 0;
+  `test_doctor.py` и `test_git.py` — 13 passed.
+- Гейт коммита `f067061`: все проверки PASS, test 299 passed.
 
 ## Blockers
 
@@ -41,5 +39,5 @@ Revision: `36f3dbeb413b1327e52e73ff50b633414d59279a`
 
 ## Next action
 
-Коммит VAC 1 через хук, затем VAC 2 для AC2 P085. Свободные ID: D127+, I022+, P087+, B079+ (B066 и D111
-зарезервированы).
+Коммит VAC 2 через хук, затем финальный пин D051 и `just feature-merge`. Потом ветка `feature/clippy-types` для
+P086 (B075). Свободные ID: D127+, I022+, P087+, B079+ (B066 и D111 зарезервированы).
