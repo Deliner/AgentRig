@@ -5,15 +5,15 @@
 Программа **P083 → P086** (пользователь 2026-11-07: «бери все и делай») — карточки B075–B078 по одной за ветку,
 автономно. P083 (B077) и P084 (B078) выполнены и слиты, master `36f3dbe`. **P085** (B076 exit-code) выполнена в VAC 2:
 `std::process::Command` вне владельцев запрещён в `.agentrig/lint.yaml`, три сайта вызывают владельцев; P085 и B076 в
-Archive, решение D126.
+Archive, решение D126. Этот коммит — финальный пин D051.
 
 ## Workspace
 
 Branch: `feature/exit-code`
-Revision: `f0670610447c3dbcb7b493cba6242a8aa7d5867b`
+Revision: `76de95940766aa62c233b42fe89a481728848bd8`
 
 База — master `36f3dbe`. Ветки `feature/disallowed-methods`, `feature/impact-coverage` и прежние, а также
-`feature/init-probe`, сохранены. Установленный рантайм — `757bc30`. macOS: в PATH `just write`/`just run`/
+`feature/init-probe`, сохранены. Установленный рантайм — `76de959`. macOS: в PATH `just write`/`just run`/
 `just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
@@ -32,6 +32,8 @@ Revision: `f0670610447c3dbcb7b493cba6242a8aa7d5867b`
 - После ремонта: `cargo fmt` и `cargo clippy --all-targets -- -D warnings` чисто; `just candidate lint` — код 0;
   `test_doctor.py` и `test_git.py` — 13 passed.
 - Гейт коммита `f067061`: все проверки PASS, test 299 passed.
+- Гейт коммита `76de959`: все проверки PASS, rust-test 155 и test 224 passed; `just bootstrap` на `76de959` —
+  установлен `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -39,5 +41,5 @@ Revision: `f0670610447c3dbcb7b493cba6242a8aa7d5867b`
 
 ## Next action
 
-Коммит VAC 2 через хук, затем финальный пин D051 и `just feature-merge`. Потом ветка `feature/clippy-types` для
+`just feature-merge` ветки `feature/exit-code`. Потом ветка `feature/clippy-types` для
 P086 (B075). Свободные ID: D127+, I022+, P087+, B079+ (B066 и D111 зарезервированы).
