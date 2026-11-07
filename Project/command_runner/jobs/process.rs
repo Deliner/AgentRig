@@ -32,7 +32,7 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
     let mut child = command
         .spawn()
         .with_context(|| format!("cannot execute {}", command.get_program().to_string_lossy()))?;
-    let pid = child.id() as i32;
+    let pid = i32::try_from(child.id())?;
     attach(&mut child, job, grouping)?;
     let forwarding = forward_signals(signals, pid, grouping);
     let readers = Readers::start(&mut child, logs, sink);
@@ -45,9 +45,10 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
     restore_default_signals();
     readers.finish(status)
 }
+// DECISION: D095
 fn restore_default_signals() {
     for signal in [SIGINT, SIGTERM, SIGHUP] {
-        // DECISION: D095
+        // DECISION: D113
         unsafe {
             libc::signal(signal, libc::SIG_DFL);
         }
@@ -92,7 +93,7 @@ fn forward_signals(
 ) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         for signal in signals.forever() {
-            // DECISION: D066
+            // DECISION: D113
             unsafe {
                 libc::kill(grouping.target(pid), signal);
             }
@@ -105,10 +106,10 @@ fn attach(
     job: Option<&mut Job>,
     grouping: Grouping,
 ) -> Result<()> {
-    let pid = child.id() as i32;
+    let pid = i32::try_from(child.id())?;
     let attached = job.map(|job| job.attach(child.id(), grouping)).transpose();
     if let Err(error) = attached {
-        // DECISION: D066
+        // DECISION: D113
         unsafe {
             libc::kill(grouping.target(pid), SIGTERM);
         }

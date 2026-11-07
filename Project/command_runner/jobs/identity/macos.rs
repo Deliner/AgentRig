@@ -42,6 +42,7 @@ pub fn sample(pid: u32) -> Result<Sample> {
     })
 }
 fn info<T>(pid: u32, flavor: c_int) -> Result<T> {
+    // DECISION: D113
     let mut value = MaybeUninit::<T>::zeroed();
     let size = c_int::try_from(size_of::<T>())?;
     // DECISION: D066
