@@ -10,22 +10,24 @@
 ## Workspace
 
 Branch: `feature/clippy-delivery`
-Revision: `21c0b3005d838fdcdc1c0b0d7c4922ffa95c9a2f` (база; коммит VAC следует)
+Revision: `5ba1aafcc4101e427678957bb18b19010339dc4f` (VAC P090; коммит пина следует)
 
 Ветка `feature/unchecked-deserialize` без коммитов, работа P089 в `stash@{0}` и в патче
 `agentrig-research/scratchpad/meta/wip/p089-unchecked-deserialize.patch`. Ветки `feature/secret-debug`,
-`feature/init-probe` и прежние сохранены. Установленный рантайм — `b4920cf`. macOS: коммиты, слияние и вызовы с cargo
+`feature/init-probe` и прежние сохранены. Установленный рантайм — `5ba1aaf`. macOS: коммиты, слияние и вызовы с cargo
 через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
 - P090: `project_setup/clippy.rs` с профилем из 23 линтов; `template.rs` создаёт Rust-проекту команду и проверку
   `clippy`; мастер `init --interactive` предлагает созданные шаблоном проверки; тест `test_clippy_profile.py`; README;
-  D132; Delivery и ротация P090, B082.
-- Осталось: коммит VAC, пин D051 (`stable.txt` и `just bootstrap`), коммит пина, `just feature-merge`.
+  D132; Delivery и ротация P090, B082. VAC `5ba1aaf`.
+- Пин D051: `stable.txt` — `5ba1aaf`, `just bootstrap` — код 0.
+- Осталось: коммит пина, `just feature-merge`.
 
 ## Verification
 
+- Гейт коммита `5ba1aaf`: все проверки PASS, rust-test 11 и test 206 passed.
 - `pytest Project/project_setup`: 62 passed.
 - `just candidate lint`: код 0.
 - Проба AC1 в scratchpad: `check --only clippy` с `Some(1).unwrap()` — `ERROR [clippy]`, `clippy::unwrap_used`;
@@ -37,6 +39,6 @@ P089 ждёт выбора пользователя; P090 не блокиров�
 
 ## Next action
 
-Коммит VAC P090 через хук, пин D051, `just feature-merge` для `feature/clippy-delivery`, ветку сохранить; затем
+Коммит пина D051 через хук, `just feature-merge` для `feature/clippy-delivery`, ветку сохранить; затем
 итоговый отчёт с вариантами для P089. Свободные ID: D133+, I022+, P091+, B083+ (D131 занят работой P089, B066 и D111
 зарезервированы).
