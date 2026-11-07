@@ -32,7 +32,7 @@ Every command accepts `--root PATH`, by default the current directory.
 | Command | Result |
 | --- | --- |
 | `init [--interactive]` | Create configuration, memory, skills, binary and adapters without overwriting files. |
-| `config-check` / `doctor` | Validate configuration; diagnose the runtime, executables, sandbox and hooks. |
+| `config-check` / `doctor` | Validate configuration and affected maps; diagnose runtime, executables, sandbox, hooks. |
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
 | `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |

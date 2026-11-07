@@ -2,6 +2,7 @@ pub(super) mod adapters;
 mod assets;
 mod cargo;
 mod claude;
+mod coverage;
 mod doctor;
 pub(super) mod initialization;
 mod lint;

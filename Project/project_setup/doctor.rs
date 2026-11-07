@@ -163,7 +163,7 @@ pub(super) fn hooks_registered(
     }))
 }
 pub fn config_check(context: &Context) -> Result<i32> {
-    let code = if context.config.capabilities.lint {
+    let lint = if context.config.capabilities.lint {
         crate::structural_lint::run(
             &context.root,
             &context.path(&context.config.paths.lint)?,
@@ -173,6 +173,9 @@ pub fn config_check(context: &Context) -> Result<i32> {
     } else {
         0
     };
+    let uncovered = super::coverage::report(context)?;
+    let linted = lint == 0;
+    let code = if linted { i32::from(uncovered) } else { lint };
     let valid = code == 0;
     if valid {
         console::stdout(format!(
