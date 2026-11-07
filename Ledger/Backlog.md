@@ -10,3 +10,7 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
+| [B075](Backlog/075.md) | Профиль dev-гейта: `string_slice`, `iter_over_hash_type`, `collection_is_never_read`, `read_zero_byte_vec`, `unchecked_time_subtraction` с ремонтом 17 сайтов | Гейт ловит паники среза строк, нестабильный порядок вывода, потерянные находки, обрезанное чтение и паники вычитания времени — классы, которым нужны типы. |
+| [B076](Backlog/076.md) | Код выхода процесса: вердикт `.success()` в `Result<bool>` без `.code()` и `std::process::Command` только у владельцев | Ошибка команды не становится молча ответом «нет», которым разрешается деструктивное действие. |
+| [B077](Backlog/077.md) | `config-check` находит исходники и тесты, которые карта влияния проверки не покрывает | Новый путь без записи в карте виден до коммита, а не после молча пропущенных тестов. |
+| [B078](Backlog/078.md) | Политика `disallowed` перечисляет методы ФС (`canonicalize`, `metadata`, `try_exists`…), проброшенные через `?` без пути | Ошибка файловой системы всегда называет действие и путь; обход владельца `shared/fs` через метод виден гейту. |
