@@ -1,0 +1,5 @@
+purpose: "Keep a secret field out of a derived Debug through a redacting type or a hand-written Debug"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to redact a secret-named string or byte field from a Rust struct's derived Debug"
+directories: {}

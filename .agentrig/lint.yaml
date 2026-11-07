@@ -381,6 +381,20 @@ rules:
   level: error
   warning_skill: .agents/skills/align-order-with-equality/SKILL.md
   error_skill: .agents/skills/align-order-with-equality/SKILL.md
+# DECISION: D130
+- id: secret-debug
+  kind: secret-debug
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/redact-secret/SKILL.md
+  error_skill: .agents/skills/redact-secret/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

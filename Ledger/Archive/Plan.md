@@ -83,3 +83,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P085](Plan/085.md) | complete | - | [B076](Backlog/076.md): exit-code — вердикт `.success()` и один владелец процессов ([D126](../Decisions/126.md)) | Ошибка команды не становится молча ответом «нет». |
 | [P086](Plan/086.md) | complete | - | [B075](Backlog/075.md): clippy-types — пять линтов clippy с типами в dev-гейте ([D127](../Decisions/127.md)) | Гейт ловит классы дефектов, которым нужны типы. |
 | [P087](Plan/087.md) | complete | - | [B081](Backlog/081.md): clippy-shape — `map_err_ignore`, `partial_pub_fields`, `struct_excessive_bools` в dev-гейте ([D129](../Decisions/129.md)) | Причина ошибки не теряется; запись и абстракция различимы по объявлению типа. |
+| [P088](Plan/088.md) | complete | - | [B079](Backlog/079.md): secret-debug — секрет не печатается через `Debug` ([D130](../Decisions/130.md)) | Секрет не попадает в лог и в вывод `{:?}`. |
