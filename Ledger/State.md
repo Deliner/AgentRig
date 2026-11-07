@@ -2,33 +2,32 @@
 
 ## Focus
 
-Пользователь 2026-11-07 выбрал для P089 разбиение `Kind` на семейные перечисления («Ок, принимаем 1 пункт. Делай все
-оставшиеся карточки»). Выбрано **P087 → P090**; P087, P088 и P090 слиты в master, последний merge `5f02cdc`.
-**P089** (B080, `unchecked-deserialize`) выполнен по AC1–AC4 и перенесён в архив, см.
-[P089](Archive/Plan/089.md). Текущий шаг: финальный пин D051 и слияние ветки.
+Пользователь 2026-11-07 поручил довести voxel-rust до готовности в AgentRig и затем подготовить и реализовать до работ
+в voxel карточку о запрете `Option<Option<_>>` («Подготовь черновик и реализуй его перед voxel»). Выбран **P092**
+(B084, `clippy::option_option` в общем профиле Clippy). P091 (B083, анализатор Rust, D136) ждёт на ветке
+`feature/rust-expansion` проверки AC5 на voxel-rust.
 
 ## Workspace
 
-Branch: `feature/unchecked-deserialize`
-Revision: `95ee9dc779582ba5c0584dc1e3c5b38df014bb7d` (фаза 2; коммит финального пина следует)
+Branch: `feature/option-option`
+Revision: `ef216b2bd9c72dd5abdd073623f6998290075cc8` (база master; первый VAC — карточка B084 и P092)
 
-Ветки `feature/clippy-delivery`, `feature/init-probe` и прежние сохранены. Установленный рантайм — `95ee9dc`. macOS:
-коммиты, слияние и вызовы с cargo через
+Ветка `feature/rust-expansion` с VAC A `12ccecc` сохранена, как и `feature/init-probe` и прежние. Установленный
+рантайм — `95ee9dc`. macOS: вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
 
 ## Progress
 
-- VAC A `fcc4f1e` (D133), VAC B `84aba7f` (D131), VAC C `2166104` (D134) и фаза 2 `95ee9dc` (правило, навык,
-  поставка `init`, D135, ротация P089 и B080) закоммичены с гейтом PASS; мид-пины `ec9eebe` и `fd08725`.
-- Финальный пин: `stable.txt` — `95ee9dc`, `just bootstrap` код 0.
-- Осталось: коммит пина и `just feature-merge` с сохранением ветки.
+- Карточка B084 сохранена, P092 выбран.
+- Не сделано: линт в `clippy.rs` и `.agentrig/commands.yaml`, проба фрагментом, D137, пин D051, ротация P092 и B084,
+  `just feature-merge`; затем возврат к P091 и voxel-rust.
 
 ## Verification
 
-- Гейт `95ee9dc`: все проверки PASS, rust-test 164 и test 342 passed.
-- Установленный `95ee9dc`: `lint-rule unchecked-deserialize` выводит метрику с `let`.
-- Проба в scratchpad: до ремонта `ERROR [unchecked-deserialize]` на `src/lib.rs:20 (Port::try_from)` и
-  `src/lib.rs:4 (Interval::new)`, `Span` и `Label` без находок; после ремонта через `serde(try_from)` — код 0.
+- Проба clippy 1.98.1 в scratchpad: `-D clippy::option_option` ловит закрытые поле, вариант, параметр, возвращаемый
+  тип и `Vec<Option<Option<u8>>>`; открытый API — только с `avoid-breaking-exported-api = false`; `type` и `let` —
+  нет.
+- `git grep` по master: `Option<Option` в Project и tooling не найден.
 
 ## Blockers
 
@@ -36,5 +35,6 @@ Revision: `95ee9dc779582ba5c0584dc1e3c5b38df014bb7d` (фаза 2; коммит �
 
 ## Next action
 
-Закоммитить финальный пин, затем `just feature-merge`.
-Свободные ID: D136+, I022+, P091+, B083+ (B066 и D111 зарезервированы).
+Добавить `option_option` в профиль, доказать пробным фрагментом, записать D137 и пройти гейт.
+Свободные ID: D137+, I022+, P093+, B085+ (B066 и D111 зарезервированы; D136, P091 и B083 заняты на ветке
+`feature/rust-expansion`).
