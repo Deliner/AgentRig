@@ -68,7 +68,9 @@ fn items_source(tree: Node<'_>, source: &str) -> Option<String> {
     if empty {
         return None;
     }
-    let mut fragment = source[tree.start_byte() + 1..tree.end_byte() - 1].to_string();
+    let mut fragment = source
+        .get(tree.start_byte() + 1..tree.end_byte() - 1)?
+        .to_string();
     let terminated = fragment.trim_end().ends_with(';');
     if terminated {
         return Some(fragment);

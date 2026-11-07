@@ -106,7 +106,7 @@ impl<'a> Python<'a> {
             "relative import escapes its package: {module}"
         );
         parts.truncate(parts.len() + 1 - depth);
-        let suffix = &module[depth..];
+        let suffix = module.trim_start_matches('.');
         let has_suffix = !suffix.is_empty();
         if has_suffix {
             parts.extend(module_parts(suffix)?.into_iter().map(Into::into));

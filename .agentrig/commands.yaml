@@ -106,6 +106,16 @@ clippy:
   - clippy::print_stdout
   - -D
   - clippy::print_stderr
+  - -D
+  - clippy::string_slice
+  - -D
+  - clippy::iter_over_hash_type
+  - -D
+  - clippy::collection_is_never_read
+  - -D
+  - clippy::read_zero_byte_vec
+  - -D
+  - clippy::unchecked_time_subtraction
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

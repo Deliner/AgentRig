@@ -3,37 +3,41 @@
 ## Focus
 
 Программа **P083 → P086** (пользователь 2026-11-07: «бери все и делай») — карточки B075–B078 по одной за ветку,
-автономно. P083 (B077) и P084 (B078) выполнены и слиты, master `36f3dbe`. **P085** (B076 exit-code) выполнена в VAC 2:
-`std::process::Command` вне владельцев запрещён в `.agentrig/lint.yaml`, три сайта вызывают владельцев; P085 и B076 в
-Archive, решение D126. Этот коммит — финальный пин D051.
+автономно. P083, P084 и P085 выполнены и слиты, master `52cfe55`. Сейчас **P086** (B075 clippy-types), VAC 5 —
+пин D051 после VAC 5 `51423f2`; осталось слияние.
 
 ## Workspace
 
-Branch: `feature/exit-code`
-Revision: `76de95940766aa62c233b42fe89a481728848bd8`
+Branch: `feature/clippy-types`
+Revision: `51423f2bc540ba6848a07ebd0847737254c35b30`
 
-База — master `36f3dbe`. Ветки `feature/disallowed-methods`, `feature/impact-coverage` и прежние, а также
-`feature/init-probe`, сохранены. Установленный рантайм — `76de959`. macOS: в PATH `just write`/`just run`/
+База — master `52cfe55`. Ветки `feature/exit-code`, `feature/disallowed-methods` и прежние, а также
+`feature/init-probe`, сохранены. Установленный рантайм — `51423f2`. macOS: в PATH `just write`/`just run`/
 `just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
+Диск был заполнен до 128 МБ: первый коммит VAC 1 упал с «No space left on device»; `cargo clean --profile dev` для
+`.cache/worker` освободил 19,2 ГБ.
 
 ## Progress
 
-- P085 VAC 1 `f067061`: форма `silent-error` для `Ok(<status>.success())` в функции `Result<bool>` без `.code()`,
-  тесты, текст правила, навыки `handle-error` и `handle-discarded`, D126.
-- P085 VAC 2: запись `std::process::Command` в `disallowed`; колбэк `integration::integrate` получает аргументы git,
-  `execute_vcs` строит команду через `Repository::command`; `doctor` запускает бинарник через `sandbox::tracked`.
-  Delivery в `Archive/Plan/085.md`, ротация P085 и B076, ссылки D126 на Archive и конфиг.
-- Plan: P086 (B075) — pending.
+- P086 VAC 1 `666e61a`: `-D clippy::string_slice`, 15 сайтов без среза строки, `text()` в
+  `structural_lint/languages/measure/mod.rs` под justified allow, решение D127 на весь набор.
+- P086 VAC 2 `b28b9bd`: `-D clippy::iter_over_hash_type`; `graph` в `plan` и параметр `acyclic` — `BTreeMap`.
+- P086 VAC 3 `211b6b1` и VAC 4 `0073f22`: `-D clippy::collection_is_never_read` и `-D clippy::read_zero_byte_vec`.
+- P086 VAC 5 `51423f2`: `-D clippy::unchecked_time_subtraction`; Delivery в Archive/Plan/086.md; P086 и B075
+  перенесены в Archive, ссылка card в индексе D127 ведёт в Archive/Backlog/075.md; Plan и Backlog пусты.
+- Пин D051: `stable.txt` — `51423f2`, `just bootstrap` — код 0.
+- Осталось: слияние.
 
 ## Verification
 
-- Запись `std::process::Command` до ремонта: `just candidate lint` — 4 находки в трёх файлах, как в карточке.
-- После ремонта: `cargo fmt` и `cargo clippy --all-targets -- -D warnings` чисто; `just candidate lint` — код 0;
-  `test_doctor.py` и `test_git.py` — 13 passed.
-- Гейт коммита `f067061`: все проверки PASS, test 299 passed.
-- Гейт коммита `76de959`: все проверки PASS, rust-test 155 и test 224 passed; `just bootstrap` на `76de959` —
-  установлен `agentrig 0.3.0`.
+- `just run clippy` с новым `-D` — код 0; проба в `Project/lib.rs`: `timeout - elapsed` для `Duration` — код 101 с
+  ошибкой «unchecked subtraction of a `Duration`», после удаления — код 0.
+- Гейт коммита `51423f2`: все проверки PASS, rust-test 155 и test 114 passed.
+- `just bootstrap` на `51423f2`: код 0, `agentrig 0.3.0`.
+- Гейт коммита `0073f22`: все проверки PASS, test 114 passed; проба `read` в `Vec::with_capacity(8192)` — код 101 с
+  «reading zero byte data to `Vec`».
+- Гейты `666e61a` (rust-test 155, test 352), `b28b9bd` (test 233), `211b6b1` (test 114): все проверки PASS.
 
 ## Blockers
 
@@ -41,5 +45,4 @@ Revision: `76de95940766aa62c233b42fe89a481728848bd8`
 
 ## Next action
 
-`just feature-merge` ветки `feature/exit-code`. Потом ветка `feature/clippy-types` для
-P086 (B075). Свободные ID: D127+, I022+, P087+, B079+ (B066 и D111 зарезервированы).
+Коммит пина D051 через хук, затем `just feature-merge` для `feature/clippy-types`; ветку сохранить. Свободные ID: D128+, I022+, P087+, B079+ (B066 и D111 зарезервированы).

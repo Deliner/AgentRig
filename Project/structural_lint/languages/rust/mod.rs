@@ -359,7 +359,9 @@ fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     if empty {
         return;
     }
-    let inner = &source[tree.start_byte() + 1..tree.end_byte() - 1];
+    let Some(inner) = source.get(tree.start_byte() + 1..tree.end_byte() - 1) else {
+        return;
+    };
     let fragment = ["fn probe(){call(", inner, ")}"].concat();
     let Ok(Some(parsed)) =
         crate::shared::syntax::parse(std::path::Path::new("macro.rs"), &fragment)

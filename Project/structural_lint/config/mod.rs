@@ -210,8 +210,9 @@ fn validate_extensions(extensions: &[String], target: &str) -> Result<()> {
         bail!("directory rules do not accept extensions");
     }
     for ext in extensions {
-        let invalid_suffix =
-            !ext.starts_with('.') || ext.len() < 2 || ext[1..].contains(['/', '*', '?', '.']);
+        let invalid_suffix = ext
+            .strip_prefix('.')
+            .is_none_or(|suffix| suffix.is_empty() || suffix.contains(['/', '*', '?', '.']));
         if invalid_suffix {
             bail!("extensions must be literal suffixes such as .rs: {ext}");
         }
