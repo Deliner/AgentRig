@@ -3,39 +3,36 @@
 ## Focus
 
 Программа **P071 → P082** (/goal пользователя 2026-11-07): все открытые карточки Backlog выполняются автономно по
-одной за ветку. P071–P079 завершены и слиты в master, последняя — `680cbb4`. **P080** (B073 embedded-text) доставлена
-на ветке двумя VAC; этот снимок входит в коммит финального пина, осталось слияние. Дальше P081 (B069), P082 (B064),
-затем новые карточки Backlog из `agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md` по уже
-данному согласию пользователя.
+одной за ветку. P071–P080 завершены и слиты в master, последняя — `a0a6865`. **P081** (B069 grammar-fork) активна:
+VAC 1 кладёт в `Project/shared/syntax/tree-sitter-rust` неизменённую копию крейта 0.24.2 и решение
+[D112](Decisions/112.md). Дальше VAC 2 с правкой `grammar.js`, затем P082 (B064), затем новые карточки Backlog из
+`agentrig-research/clippy-triage.md` и `agentrig-research/agent-errors.md` по уже данному согласию пользователя.
 
 ## Workspace
 
-Branch: `feature/embedded-text`
-Revision: `c38457be036af3a37bf50ef68c290273d04d1cd5`
+Branch: `feature/grammar-fork`
+Revision: `a0a6865d69002df247e0e3fd69c1af4e4a6fcf71`
 
-База — master `680cbb4`. VAC 1 `c0ffe2e`, мид-бранч пин `6af7dff`, VAC 2 `c38457b`; stable.txt указывает на
-`c38457b`, установлен через `just bootstrap`. Ветки
-`feature/file-fan-out`, `feature/boolean-expression` и прежние, а также `feature/init-probe`, сохранены. macOS: в
+База — master `a0a6865`. Ветки `feature/embedded-text` и прежние, а также `feature/init-probe`, сохранены. macOS: в
 PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — коммиты и вызовы с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`;
 `cargo fmt --manifest-path Project/Cargo.toml`; поставка — `just candidate <команда> --root <каталог>`.
+Рабочие файлы форка в scratchpad сессии `p081/`: `regen-0.26.13/` — правленная и перегенерированная грамматика,
+`ac2.sh` и `ac2_compare.py` — сравнение на корпусе, генератор CLI 0.26.13 в `cli-0.26.13/`.
 
 ## Progress
 
-- VAC 1 `c0ffe2e`: инертный вид `EmbeddedText`, замер `literal` в `languages/rust/mod.rs`, тесты, решение
-  [D122](Decisions/122.md); ради лимитов `rules/parameters.rs` и `languages/rust/tuple_record.rs`.
-- VAC 2 `c38457b`: вид в `catalog::ALL` и `HANDLERS`, правило `embedded-text` в `.agentrig/lint.yaml`
-  (error 20), навык `refactor/extract-embedded-text` с ассетом, `decided` в `test_config_check.py`. Delivery в
-  [Archive/Plan/080.md](Archive/Plan/080.md); P080 и B073 перенесены в архив.
+- VAC 1, в этом коммите: копия крейта 0.24.2 без изменений, зависимость-путь в `Project/Cargo.toml`, исключения
+  линта и typos, маркеры D112, решение D112 и строка индекса.
+- Проверено на корпусе r8 до VAC 2 с правленной грамматикой: из 18 627 файлов `syntax` у 838 с 0.24.2 и у 125 с
+  форком, починено 713, все из списка потерянных; у разобранных файлов вывод линта не изменился ни в одном пути.
 
 ## Verification
 
-- 2026-11-07, гейт pre-commit VAC 1 `c0ffe2e`: все проверки PASS, rust-test 124 passed, test 221 passed.
-- Гейт pre-commit VAC 2 `c38457b`: все проверки PASS, rust-test 149 passed, test 336 passed.
-- Рабочее дерево VAC 2 до коммита: `just candidate lint --root .` — код 0; `just candidate config-check` и
-  `just candidate lint-config-check` — валидно; `cargo test --lib` — 149 passed; pytest `config/tests`,
-  `project_setup/tests`, `languages/tests` — 53 passed. Потребитель `init --language rust`: находка на литерале в
-  21 строку, литерал в 20 строк и литералы в тестах без находок.
+- 2026-11-07, `cargo update --offline -p tree-sitter-rust` убрал источник и контрольную сумму крейта из
+  `Cargo.lock`; проба typos подтвердила исключение каталога форка.
+- AC2 на корпусе: сборки `target-base` из рабочего дерева и `target-fork` с правленной грамматикой, 18 репозиториев,
+  0 отличий вывода у разобранных файлов.
 
 ## Blockers
 
@@ -43,6 +40,6 @@ PATH `just write`/`just run`/`just check`/`just feature-merge` нет cargo — 
 
 ## Next action
 
-`just feature-merge` ветки `feature/embedded-text`; затем P081
-(B069 grammar-fork) на новой ветке. Свободные ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы, D112
-обещан B069).
+Коммит VAC 1; затем VAC 2: маркеры D112 у правил PR #256 в `regen-0.26.13/grammar.js`, перегенерация, копирование
+`grammar.js` и `src` в каталог форка, тесты в `languages/tests/unsafe_site.rs` и `panic_surface.rs`, абзац README,
+проверка AC3. Свободные ID: D123+, I022+, P083+, B075+ (B066 и D111 зарезервированы).

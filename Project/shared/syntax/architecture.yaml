@@ -1,4 +1,4 @@
-purpose: Parse Rust, Python and shell sources and recognize exact decision and invariant reference comments
+purpose: Parse Rust, Python and shell sources and recognize exact decision and invariant reference comments; the vendored tree-sitter-rust fork beside mod.rs is excluded from lint and typos
 type: flat
 files:
   mod.rs: Grammar selection by extension, parsing and the reference comment format

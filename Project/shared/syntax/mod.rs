@@ -4,6 +4,7 @@ use tree_sitter::{Language, Parser, Tree};
 
 pub fn parse(path: &Path, source: &str) -> Result<Option<Tree>> {
     let language: Language = match path.extension().and_then(|extension| extension.to_str()) {
+        // DECISION: D112
         Some("rs") => tree_sitter_rust::LANGUAGE.into(),
         Some("py" | "pyi") => tree_sitter_python::LANGUAGE.into(),
         Some("sh") => tree_sitter_bash::LANGUAGE.into(),

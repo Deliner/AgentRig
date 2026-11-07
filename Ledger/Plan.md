@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P081](Plan/081.md) | pending | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig | Правильный Rust трёх частых форм разбирается и попадает под правила. |
+| [P081](Plan/081.md) | active | - | [B069](Backlog/069.md): grammar-fork — форк tree-sitter-rust в составе AgentRig | Правильный Rust трёх частых форм разбирается и попадает под правила. |
 | [P082](Plan/082.md) | pending | - | [B064](Backlog/064.md): ratchet-baseline — внедрение строгих правил в проект с историей | Строгие правила включаются без выключения гейта. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
