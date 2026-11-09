@@ -10,4 +10,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B085](Backlog/085.md) | `config-check` проверяет карту affected каждой проверки только на файлах из её include | Проекты с отдельными наборами тестов под разные фичи проходят `config-check` честной картой, без целей, которые ничего не выбирают. |

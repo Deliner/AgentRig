@@ -10,7 +10,7 @@ voxel-rust без push.
 ## Workspace
 
 Branch: `feature/coverage-include`
-Revision: `d7d7dc759ffca2a2ebacaf83a8383a5b852accca` (master после слияния P091)
+Revision: `b74548ab906d1655c4a60bb4110628f2aa6a70e7` (VAC A поверх master `d7d7dc7`)
 
 Ветки `feature/rust-expansion`, `feature/option-option`, `feature/init-probe` и прежние сохранены.
 Установленный рантайм — `f31c6ea`. macOS: вызовы с cargo через
@@ -23,10 +23,14 @@ cargo-apk, openjdk@21, Android SDK 36, build-tools 36.0.0 и NDK 29.0.14206865 �
 
 - VAC A: карточка B085, выбор P093, сопоставление include проверки в `included` из `change_delivery/gate/mod.rs`,
   которым пользуются `skip_reason` и `project_setup/coverage.rs`, три случая в `test_coverage.py`, README гейта, D138.
-- Не сделано: ротация P093 и B085, пин D051, `just feature-merge`.
+- VAC B: ротация P093 и B085 в Archive с Delivery по AC1–AC3 — в рабочем дереве.
+- Не сделано: коммит VAC B, пин D051, `just feature-merge`.
+- Пользователь 2026-11-09 напомнил: voxel-rust проверяет работу AgentRig, риг под voxel не переделывается и остаётся
+  переносимым для любых Rust-проектов. Находки voxel правятся в voxel; дефекты AgentRig идут в отчёт как наблюдения.
 
 ## Verification
 
+- Гейт коммита `b74548a`: все проверки PASS, rust-test 11 и test 199 passed.
 - `just run test -- Project/project_setup/tests/test_coverage.py Project/change_delivery/gate/tests`: 48 passed на
   итоговом коде. Без фильтра по include два новых случая вне include падают.
 - Кандидатный `config-check` на voxel-rust `52dac3e` с итоговым кодом: ошибок нет, конфигурация валидна; до правки
@@ -38,5 +42,6 @@ cargo-apk, openjdk@21, Android SDK 36, build-tools 36.0.0 и NDK 29.0.14206865 �
 
 ## Next action
 
-Закоммитить VAC A, затем ротация P093, пин D051, `just feature-merge`; затем voxel-rust.
+Закоммитить VAC B, пин D051, `just feature-merge`; затем скопировать установленный рантайм в voxel-rust и продолжить
+там.
 Свободные ID: D139+, I022+, P094+, B086+ (B066 и D111 зарезервированы).
