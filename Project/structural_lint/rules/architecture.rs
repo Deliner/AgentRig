@@ -68,6 +68,7 @@ impl Default for External {
 }
 
 // DECISION: D104
+// DECISION: D136
 impl Settings {
     pub fn describe() -> serde_json::Value {
         serde_json::json!({
@@ -81,7 +82,7 @@ impl Settings {
             "disallowed": "resolved Rust external paths forbidden outside their owner: entries of path, reason, replacement and allow file globs; a reference resolved to the path or a :: subpath from a file outside allow is a finding naming the reason and replacement; optional methods lists method names, and a call of one without arguments whose result is propagated directly by ? or .map_err(Into::into) from a file outside allow is a finding at the call line, matched by name without the receiver type",
             "fan_out": "maximum number of other project directories whose source files one source file may use through resolved non-declaration references; default 10; crate roots listed in rust_roots and Python __main__.py are program entry points and exempt",
             "resolution": {
-                "rust": "Rust 2018+ declared module trees, literal path attributes on file-level external modules, local crate mappings and module-level aliases; Self and single inline trait bounds; observed prelude names with syntactic shadow checks; known macro/resource paths, standard/serde attributes and cfg over test and target platform predicates (all configurations measured); unsupported expansion and binding ambiguity remain incomplete",
+                "rust": "Rust 2018+ declared module trees, literal path attributes on file-level external modules, local crate mappings and module-level aliases; local and single external globs; Self and single inline trait bounds; observed prelude names with syntactic shadow checks; macro argument and macro_rules! body paths, literal and OUT_DIR include!, generated names of item-position macros, resource paths, standard/serde/external attributes and cfg over test and target platform predicates (all configurations measured); unsupported expansion and binding ambiguity remain incomplete",
                 "python": "one import root, package initializers and namespace submodules; recognized loader aliases/values report incomplete binding analysis; package export ambiguity and runtime path changes unsupported"
             },
             "incomplete_analysis": "reported at configured level; remaining semantic coverage is not a proof of absence"

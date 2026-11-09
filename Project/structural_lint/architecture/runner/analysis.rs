@@ -216,7 +216,11 @@ impl<'a> Resolvers<'a> {
                         source: path.into(),
                         target,
                         line: reference.line,
-                        module_declaration: matches!(reference.target, Target::RustModule { .. }),
+                        // DECISION: D136
+                        module_declaration: matches!(
+                            reference.target,
+                            Target::RustModule { .. } | Target::RustInclude { .. }
+                        ),
                     }));
                 }
                 Err(error) => issues.push(incomplete(path, Some(reference.line), error)),

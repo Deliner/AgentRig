@@ -18,6 +18,11 @@ pub enum Target {
         inline: bool,
         file: Option<String>,
     },
+    // DECISION: D136
+    RustInclude {
+        file: String,
+        scope: Vec<String>,
+    },
     PythonModule(String),
     PythonFrom {
         module: String,
@@ -44,6 +49,8 @@ pub struct References {
     pub issues: Vec<Issue>,
     pub rust_items: Vec<RustItem>,
     pub rust_imports: Vec<RustImport>,
+    pub rust_macros: Vec<RustItem>,
+    pub rust_generated: Vec<Vec<String>>,
     pub propagated_calls: Vec<PropagatedCall>,
 }
 

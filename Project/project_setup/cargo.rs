@@ -1,9 +1,9 @@
 use crate::shared::fs;
 use anyhow::{Context, Result};
 use globset::Glob;
-use serde::Deserialize;
+use serde::{Deserialize, de::IgnoredAny};
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     path::{Component, Path, PathBuf},
 };
 
@@ -11,6 +11,8 @@ pub(super) struct Layout {
     pub manifest: String,
     pub roots: Vec<String>,
     pub crates: BTreeMap<String, String>,
+    // DECISION: D136
+    pub externals: BTreeSet<String>,
 }
 
 #[derive(Default, Deserialize)]
@@ -19,12 +21,29 @@ struct Manifest {
     package: Option<Package>,
     lib: Target,
     bin: Vec<Target>,
+    example: Vec<Target>,
+    test: Vec<Target>,
+    bench: Vec<Target>,
     workspace: Workspace,
+    #[serde(flatten)]
+    dependencies: Dependencies,
+    target: BTreeMap<String, Dependencies>,
 }
 
 #[derive(Deserialize)]
 struct Package {
     name: String,
+    build: Option<toml::Value>,
+}
+
+#[derive(Default, Deserialize)]
+#[serde(default)]
+struct Dependencies {
+    dependencies: BTreeMap<String, IgnoredAny>,
+    #[serde(rename = "dev-dependencies")]
+    development: BTreeMap<String, IgnoredAny>,
+    #[serde(rename = "build-dependencies")]
+    build: BTreeMap<String, IgnoredAny>,
 }
 
 #[derive(Default, Deserialize)]
@@ -46,6 +65,7 @@ impl Layout {
             manifest: format!("{source}/Cargo.toml"),
             roots: vec![format!("{source}/src/lib.rs")],
             crates: BTreeMap::new(),
+            externals: BTreeSet::new(),
         }
     }
 }
@@ -63,6 +83,7 @@ pub(super) fn layout(root: &Path, source: &str) -> Result<Layout> {
         manifest: manifest.clone(),
         roots: Vec::new(),
         crates: BTreeMap::new(),
+        externals: BTreeSet::new(),
     };
     add_package(root, directory, &parsed, &mut layout);
     for member in members(root, directory, &parsed.workspace)? {
@@ -91,18 +112,46 @@ fn add_package(root: &Path, directory: &Path, manifest: &Manifest, layout: &mut 
             .crates
             .insert(package.name.replace('-', "_"), path.clone());
     }
-    let binaries = manifest
-        .bin
-        .iter()
-        .filter_map(|bin| bin.path.as_deref())
-        .chain(["src/main.rs"])
-        .filter_map(|path| existing(root, directory, path));
+    // DECISION: D136
+    let build = match &package.build {
+        None | Some(toml::Value::Boolean(true)) => Some("build.rs"),
+        Some(toml::Value::String(path)) => Some(path.as_str()),
+        Some(_) => None,
+    };
+    let binaries = [
+        &manifest.bin,
+        &manifest.example,
+        &manifest.test,
+        &manifest.bench,
+    ]
+    .into_iter()
+    .flatten()
+    .filter_map(|target| target.path.as_deref())
+    .chain(["src/main.rs"])
+    .chain(build)
+    .filter_map(|path| existing(root, directory, path));
     for path in library.into_iter().chain(binaries) {
         let fresh = !layout.roots.contains(&path);
         if fresh {
             layout.roots.push(path);
         }
     }
+    layout.externals.extend(dependency_names(manifest));
+}
+
+// DECISION: D136
+fn dependency_names(manifest: &Manifest) -> impl Iterator<Item = String> + '_ {
+    std::iter::once(&manifest.dependencies)
+        .chain(manifest.target.values())
+        .flat_map(|table| {
+            let development = table.development.keys();
+            table
+                .dependencies
+                .keys()
+                .chain(development)
+                .chain(table.build.keys())
+        })
+        .map(|name| name.replace('-', "_"))
 }
 
 fn existing(root: &Path, directory: &Path, path: &str) -> Option<String> {

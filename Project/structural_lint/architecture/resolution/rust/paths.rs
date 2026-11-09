@@ -1,21 +1,17 @@
 use super::{Located, Query, Rust};
 use crate::structural_lint::architecture::resolution::Resolved;
+use crate::structural_lint::architecture::source::prelude_origin;
 use anyhow::{Context, Result, bail, ensure};
-use std::{collections::BTreeSet, path::Path};
+use std::collections::BTreeSet;
 
 impl Rust<'_> {
-    pub(super) fn path_result(
-        &self,
-        source: &Path,
-        path: &str,
-        scope: &[String],
-    ) -> Result<Resolved> {
-        ensure!(
-            self.modules.contains_key(scope),
-            "Rust module scope is unresolved"
-        );
+    pub(super) fn path_result(&self, path: &str, scope: &[String]) -> Result<Resolved> {
+        let module = self
+            .modules
+            .get(scope)
+            .context("Rust module scope is unresolved")?;
         let mut query = Query {
-            source,
+            source: &module.file,
             visiting: BTreeSet::new(),
         };
         match self.path(scope, path, &mut query)? {
@@ -82,12 +78,80 @@ impl Rust<'_> {
             if item {
                 return Ok(Located::Item(module));
             }
-            bail!(
-                "unresolved Rust name {}; imported, generated or lexical bindings require analysis",
-                key.join("::")
-            );
+            // DECISION: D136
+            return self.unbound(module, &parts[index..], query);
         }
         Ok(Located::Module(module))
+    }
+
+    // DECISION: D136
+    fn unbound(
+        &self,
+        module: Vec<String>,
+        parts: &[&str],
+        query: &mut Query<'_>,
+    ) -> Result<Located> {
+        let name = parts[0];
+        let globs = self.glob_sources(&module, query)?;
+        if let Some(target) = glob_module(&globs, |target| self.binds(target, name)) {
+            let found = self.walk(target, &parts[..1], query)?;
+            return self.reexport(&module, found, &parts[1..], query);
+        }
+        let prelude = (!globs.is_empty())
+            .then(|| prelude_origin(&parts.join("::")))
+            .flatten();
+        if let Some(origin) = prelude {
+            return Ok(Located::External(origin));
+        }
+        let generated_here = self.generated.contains(&module);
+        if generated_here {
+            return Ok(Located::Item(module));
+        }
+        if let Some(target) = glob_module(&globs, |target| self.generated.contains(target)) {
+            return self.reexport(&module, Located::Item(target), &parts[1..], query);
+        }
+        if let Some(path) = external_glob(&globs, name) {
+            let found = Located::External(path);
+            return self.reexport(&module, found, &parts[1..], query);
+        }
+        bail!(
+            "unresolved Rust name {}; imported, generated or lexical bindings require analysis",
+            [module.as_slice(), &[name.to_owned()]].concat().join("::")
+        );
+    }
+
+    // DECISION: D136
+    pub(super) fn glob_sources(
+        &self,
+        scope: &[String],
+        query: &mut Query<'_>,
+    ) -> Result<Vec<Located>> {
+        let mut key = scope.to_vec();
+        key.push("*".into());
+        let cyclic = !query.visiting.insert(key.clone());
+        if cyclic {
+            return Ok(Vec::new());
+        }
+        let mut sources = Vec::new();
+        for glob in self.globs.get(scope).into_iter().flatten() {
+            let found = self.path(scope, glob, query)?;
+            let nested = match &found {
+                Located::Module(target) => self.glob_sources(target, query)?,
+                _ => Vec::new(),
+            };
+            sources.push(found);
+            sources.extend(nested);
+        }
+        query.visiting.remove(&key);
+        Ok(sources)
+    }
+
+    pub(super) fn binds(&self, module: &[String], name: &str) -> bool {
+        let mut key = module.to_vec();
+        key.push(name.into());
+        self.modules.contains_key(&key)
+            || self.items.contains(&key)
+            || self.imports.contains_key(&key)
     }
 
     fn import(&self, key: &[String], suffix: &[&str], query: &mut Query<'_>) -> Result<Located> {
@@ -99,7 +163,17 @@ impl Rust<'_> {
         let owner = &key[..key.len() - 1];
         let imported = self.path(owner, &self.imports[key], query);
         query.visiting.remove(key);
-        match imported? {
+        self.reexport(owner, imported?, suffix, query)
+    }
+
+    fn reexport(
+        &self,
+        owner: &[String],
+        imported: Located,
+        suffix: &[&str],
+        query: &mut Query<'_>,
+    ) -> Result<Located> {
+        match imported {
             Located::Module(module) => self.walk(module, suffix, query),
             Located::Item(module) => {
                 let through_facade = self.modules[owner].file != query.source;
@@ -136,12 +210,7 @@ impl Rust<'_> {
     }
 
     fn external_name(&self, scope: &[String], name: &str) -> bool {
-        let mut key = scope.to_vec();
-        key.push(name.into());
-        let local = self.modules.contains_key(&key)
-            || self.items.contains(&key)
-            || self.imports.contains_key(&key);
-        self.external.contains(name) && !local
+        self.external.contains(name) && !self.binds(scope, name)
     }
 
     fn external_path(&self, path: &str, first: &str) -> Result<Located> {
@@ -151,4 +220,26 @@ impl Rust<'_> {
         );
         Ok(Located::External(path.into()))
     }
+}
+
+// DECISION: D136
+fn external_glob(globs: &[Located], name: &str) -> Option<String> {
+    let external: Vec<_> = globs
+        .iter()
+        .filter_map(|glob| match glob {
+            Located::External(path) => Some(format!("{path}::{name}")),
+            _ => None,
+        })
+        .collect();
+    let [path] = external.as_slice() else {
+        return None;
+    };
+    Some(path.clone())
+}
+
+fn glob_module(globs: &[Located], bound: impl Fn(&[String]) -> bool) -> Option<Vec<String>> {
+    globs.iter().find_map(|glob| match glob {
+        Located::Module(target) if bound(target) => Some(target.clone()),
+        _ => None,
+    })
 }

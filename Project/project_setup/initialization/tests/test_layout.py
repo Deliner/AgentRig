@@ -100,6 +100,39 @@ def test_rust_init_derives_workspace_member_roots(
     }
 
 
+# DECISION: D136
+def test_rust_init_adds_target_roots_build_script_and_dependency_externals(
+    worker: Path, tmp_path: Path
+) -> None:
+    package(tmp_path, "tool", "lib.rs")
+    manifest = tmp_path / "Cargo.toml"
+    manifest.write_text(
+        manifest.read_text()
+        + '[[example]]\nname = "demo"\npath = "examples/demo.rs"\n'
+        + '[[test]]\nname = "flow"\npath = "tests/flow.rs"\n'
+        + '[dependencies]\nserde-json = "1"\n'
+        + '[dev-dependencies]\nproptest = "1"\n'
+        + '[build-dependencies]\nprost-build = "1"\n'
+        + "[target.'cfg(unix)'.dependencies]\nlibc = \"0.2\"\n"
+    )
+    for path in ("examples/demo.rs", "tests/flow.rs", "build.rs"):
+        (tmp_path / path).parent.mkdir(exist_ok=True)
+        (tmp_path / path).write_text("")
+    result = invoke(worker, tmp_path, "init", "--language", "rust", "--source", "src")
+    assert result.returncode == 0, result.stderr
+    assert rust_layout(tmp_path)["roots"] == [
+        "src/lib.rs",
+        "examples/demo.rs",
+        "tests/flow.rs",
+        "build.rs",
+    ]
+    lint = yaml.safe_load((tmp_path / ".agentrig/lint.yaml").read_text())
+    rules = {rule["id"]: rule for rule in lint["rules"]}
+    assert rules["architecture"]["architecture"]["external"] == {
+        "rust": ["alloc", "core", "libc", "proptest", "prost_build", "serde_json", "std"]
+    }
+
+
 def test_rust_init_keeps_the_agentrig_layout(worker: Path, tmp_path: Path) -> None:
     roots = [
         "Project/lib.rs",

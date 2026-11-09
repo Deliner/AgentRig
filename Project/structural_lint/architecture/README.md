@@ -76,11 +76,11 @@ source files in at most `fan_out` (default 10) other project directories; crate 
 Tree-sitter extracts references without executing project code. Malformed syntax, unresolved references and
 unsupported forms are incomplete-analysis findings at the configured level; this is not a compiler.
 
-- Rust 2018+: crate roots, file and inline modules, literal `#[path]`, `crate`/`self`/`super`, imports, aliases,
-  qualified paths, public facades and `Self`. Explicit paths inside known standard macros, `anyhow` and
-  `serde_json::json`, static `include_str!`/`include_bytes!` targets, standard derives and serde callbacks are measured.
+- Rust 2018+: modules, literal `#[path]`, imports, aliases, globs and `Self`; paths in macro arguments and
+  `macro_rules!` bodies, literal `include!` and resource includes, standard derives, serde callbacks and external
+  attribute macros. `OUT_DIR` includes and item-position macro calls generate their module's unresolved names.
   `#[cfg]` over test and platform predicates keeps every branch; duplicate bindings under exclusive predicates fail.
-  Unknown macros, attributes and expansion are incomplete.
+  Metavariable paths are invisible; unresolved macros, local attribute macros and computed includes are incomplete.
 - Python: one import root, absolute and relative imports, package initializers, namespace submodules and literal
   runtime imports. Ambiguous members, wildcard exports, namespace-only imports and loader aliases fail or are
   incomplete. `.pyi` is parsed but is not a runtime target.

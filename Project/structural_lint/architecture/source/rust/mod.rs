@@ -4,7 +4,7 @@ mod conditions;
 mod macros;
 pub(super) mod prelude;
 
-use super::model::{RustImport, RustItem, Source, Target};
+use super::model::{RustImport, RustItem, RustMacro, Source, Target};
 use tree_sitter::Node;
 
 fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {
@@ -22,7 +22,9 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
     match node.kind() {
         "use_declaration" => {
             if let Some(argument) = node.child_by_field_name("argument") {
-                use_tree(source, argument, "");
+                for leaf in use_leaves(source, argument, "") {
+                    import_leaf(source, leaf);
+                }
             }
             return false;
         }
@@ -39,10 +41,10 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
             attributes::inspect(source, node);
             return false;
         }
-        "macro_definition" => source.unsupported(
-            node,
-            "Rust macro definitions may generate dependencies; expansion is not analyzed",
-        ),
+        "macro_definition" => {
+            macros::definition(source, node);
+            return false;
+        }
         "macro_invocation" => {
             macros::inspect(source, node);
             return false;
@@ -86,10 +88,16 @@ fn scope(source: &Source<'_>, node: Node<'_>) -> Vec<String> {
     scope
 }
 
-fn use_tree(source: &mut Source<'_>, node: Node<'_>, prefix: &str) {
+struct UseLeaf<'t> {
+    node: Node<'t>,
+    prefix: String,
+    alias: Option<String>,
+}
+
+fn use_leaves<'t>(source: &Source<'_>, node: Node<'t>, prefix: &str) -> Vec<UseLeaf<'t>> {
     let comment = node.is_extra();
     if comment {
-        return;
+        return Vec::new();
     }
     match node.kind() {
         "scoped_use_list" => {
@@ -98,37 +106,49 @@ fn use_tree(source: &mut Source<'_>, node: Node<'_>, prefix: &str) {
                 .and_then(|n| path_text(source, n))
                 .unwrap_or_default();
             let prefix = joined(prefix, &path);
-            if let Some(list) = node.child_by_field_name("list") {
-                use_tree(source, list, &prefix);
-            }
+            node.child_by_field_name("list")
+                .map(|list| use_leaves(source, list, &prefix))
+                .unwrap_or_default()
         }
-        "use_list" => {
-            let mut cursor = node.walk();
-            for child in node.named_children(&mut cursor) {
-                use_tree(source, child, prefix);
-            }
-        }
+        "use_list" => node
+            .named_children(&mut node.walk())
+            .flat_map(|child| use_leaves(source, child, prefix))
+            .collect(),
         "use_as_clause" => {
             let alias = node
                 .child_by_field_name("alias")
                 .map(|n| compact(source.text(n)));
-            if let Some(path) = node.child_by_field_name("path") {
-                import_leaf(source, path, prefix, alias);
-            }
+            let path = node.child_by_field_name("path");
+            path.map(|node| UseLeaf {
+                node,
+                prefix: prefix.into(),
+                alias,
+            })
+            .into_iter()
+            .collect()
         }
-        _ => import_leaf(source, node, prefix, None),
+        _ => vec![UseLeaf {
+            node,
+            prefix: prefix.into(),
+            alias: None,
+        }],
     }
 }
 
-fn import_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str, alias: Option<String>) {
-    let Some(path) = use_leaf(source, node, prefix) else {
-        return;
-    };
-    let wildcard = node.kind() == "use_wildcard";
-    let name = alias.unwrap_or_else(|| match wildcard {
+fn leaf_name(leaf: &UseLeaf<'_>, path: &str) -> String {
+    let wildcard = leaf.node.kind() == "use_wildcard";
+    leaf.alias.clone().unwrap_or_else(|| match wildcard {
         true => "*".into(),
         false => path.rsplit("::").next().unwrap_or("").into(),
-    });
+    })
+}
+
+fn import_leaf(source: &mut Source<'_>, leaf: UseLeaf<'_>) {
+    let Some(path) = use_leaf(source, leaf.node, &leaf.prefix) else {
+        return;
+    };
+    let name = leaf_name(&leaf, &path);
+    let node = leaf.node;
     let mut declaration = node;
     while let Some(parent) = declaration.parent() {
         let use_item = declaration.kind() == "use_declaration";
@@ -147,18 +167,22 @@ fn import_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str, alias: Opt
     }
 }
 
-fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<String> {
-    let Some(value) = path_text(source, node) else {
-        source.unsupported(node, "Rust qualified path requires type resolution");
-        return None;
-    };
+fn leaf_path(source: &Source<'_>, node: Node<'_>, prefix: &str) -> Option<String> {
+    let value = path_text(source, node)?;
     let grouped_self = matches!(value.as_str(), "self" | "*") && !prefix.is_empty();
     let path = if grouped_self {
         prefix.into()
     } else {
         joined(prefix, &value)
     };
-    let path = self_path(source, node, path);
+    Some(self_path(source, node, path))
+}
+
+fn use_leaf(source: &mut Source<'_>, node: Node<'_>, prefix: &str) -> Option<String> {
+    let Some(path) = leaf_path(source, node, prefix) else {
+        source.unsupported(node, "Rust qualified path requires type resolution");
+        return None;
+    };
     record(
         source,
         node,
@@ -205,24 +229,11 @@ pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) ->
     };
     let mut parent = node.parent();
     while let Some(owner) = parent {
-        let local_binding = owner.kind() == "block"
-            && owner
-                .named_children(&mut owner.walk())
-                .any(|item| prelude::names(source, item, name));
-        if local_binding {
-            return path;
-        }
-        if let Some(parameters) = owner.child_by_field_name("type_parameters") {
-            let parameter = parameters
-                .named_children(&mut parameters.walk())
-                .find(|item| {
-                    item.child_by_field_name("name")
-                        .is_some_and(|binding| source.text(binding) == name)
-                });
-            if let Some(parameter) = parameter {
-                let bound = single_bound(source, parameter);
-                return bound.map(|bound| joined(&bound, suffix)).unwrap_or(path);
-            }
+        if let Some(binding) = lexical_binding(source, owner, name) {
+            return match binding {
+                Binding::Path(bound) => joined(&bound, suffix),
+                Binding::Opaque => path,
+            };
         }
         let separate_scope = owner.kind() == "mod_item"
             || (owner.kind() == "function_item"
@@ -233,6 +244,32 @@ pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) ->
         parent = owner.parent();
     }
     path
+}
+
+// DECISION: D136
+enum Binding {
+    Path(String),
+    Opaque,
+}
+
+fn lexical_binding(source: &Source<'_>, owner: Node<'_>, name: &str) -> Option<Binding> {
+    let block = owner.kind() == "block";
+    let bound = if block {
+        let binding = owner
+            .named_children(&mut owner.walk())
+            .find(|item| prelude::names(source, *item, name))?;
+        prelude::imported(source, binding, name)
+    } else {
+        let parameters = owner.child_by_field_name("type_parameters")?;
+        let parameter = parameters
+            .named_children(&mut parameters.walk())
+            .find(|item| {
+                item.child_by_field_name("name")
+                    .is_some_and(|binding| source.text(binding) == name)
+            })?;
+        single_bound(source, parameter)
+    };
+    Some(bound.map_or(Binding::Opaque, Binding::Path))
 }
 
 fn single_bound(source: &Source<'_>, parameter: Node<'_>) -> Option<String> {
@@ -322,43 +359,51 @@ fn item(source: &mut Source<'_>, node: Node<'_>) {
     }
 }
 
+// DECISION: D136
 fn attribute(source: &mut Source<'_>, node: Node<'_>) {
-    let name = node
+    let path = node
         .named_children(&mut node.walk())
         .find(|child| child.kind() == "attribute")
-        .and_then(|attribute| attribute.named_child(0))
-        .map(|name| source.text(name))
-        .unwrap_or("");
-    let path_override = name == "path";
-    if path_override {
-        source.unsupported(
-            node,
-            "Rust path attributes require explicit module resolution",
-        );
-    } else {
-        let needs_expansion = !matches!(
-            name,
-            "allow"
-                | "warn"
-                | "deny"
-                | "forbid"
-                | "doc"
-                | "inline"
-                | "cold"
-                | "must_use"
-                | "deprecated"
-                | "repr"
-                | "non_exhaustive"
-                | "test"
-                | "ignore"
-                | "should_panic"
-                | "track_caller"
-        );
-        if needs_expansion {
-            source.unsupported(
-                node,
-                "Rust attribute or conditional expansion is not analyzed",
-            );
-        }
+        .and_then(|attribute| attribute_path(source, attribute))
+        .unwrap_or_default();
+    let builtin = matches!(
+        path.as_str(),
+        "allow"
+            | "warn"
+            | "deny"
+            | "forbid"
+            | "doc"
+            | "inline"
+            | "cold"
+            | "must_use"
+            | "deprecated"
+            | "repr"
+            | "non_exhaustive"
+            | "test"
+            | "ignore"
+            | "should_panic"
+            | "track_caller"
+            | "no_mangle"
+            | "export_name"
+    );
+    if builtin {
+        return;
     }
+    let call = RustMacro {
+        path,
+        scope: scope(source, node),
+        literal: None,
+    };
+    record(source, node, Target::RustMacro(call));
+}
+
+fn attribute_path(source: &Source<'_>, attribute: Node<'_>) -> Option<String> {
+    let path = compact(source.text(attribute.named_child(0)?));
+    let unsafe_wrapper = path == "unsafe";
+    if unsafe_wrapper {
+        let arguments = attribute.child_by_field_name("arguments")?;
+        let inner = arguments.named_child(0)?;
+        return Some(compact(source.text(inner)));
+    }
+    Some(path)
 }

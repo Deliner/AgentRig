@@ -14,11 +14,27 @@ ATTR_EXTERNALS = {
     "test": "[std]",
     "platform": "[std]",
     "feature": "[std]",
+    # DECISION: D136
+    "export": "[std]",
+    "bindgen": "[std, wasm_bindgen]",
 }
 
 
 @pytest.mark.parametrize(
-    "case", ["callback", "label", "unknown", "derive", "alias", "test", "platform", "feature"]
+    "case",
+    [
+        "callback",
+        "label",
+        "unknown",
+        "derive",
+        "alias",
+        "test",
+        "platform",
+        "feature",
+        "export",
+        "bindgen",
+        "local",
+    ],
 )
 def test_rust_attributes_preserve_dependency_evidence(
     worker: Path, tmp_path: Path, case: str
@@ -33,6 +49,9 @@ def test_rust_attributes_preserve_dependency_evidence(
         "test": "#[cfg(test)] mod checks { pub fn run() -> i32 { crate::b::value() } }",
         "platform": '#[cfg(not(target_os = "none"))] mod checks { pub fn run() -> i32 { crate::b::value() } }',
         "feature": '#[cfg(feature = "extra")] mod checks { pub fn run() -> i32 { crate::b::value() } }',
+        "export": '#[unsafe(no_mangle)] pub extern "C" fn run() -> i32 { crate::b::value() } #[export_name = "other"] pub fn other() {}',
+        "bindgen": "use wasm_bindgen::prelude::*; #[wasm_bindgen] pub fn run() -> i32 { crate::b::value() }",
+        "local": "#[crate::b::attribute] pub fn run() {}",
     }
     source.write_text(samples[case])
     declared = ATTR_EXTERNALS.get(case, "[std, serde, custom]")
@@ -44,14 +63,14 @@ def test_rust_attributes_preserve_dependency_evidence(
         )
     )
     code, findings = parity(worker, tmp_path)
-    unsupported = case in {"unknown", "derive", "alias"}
+    unsupported = case in {"unknown", "derive", "alias", "local"}
     if unsupported:
         assert code == 1 and any("incomplete" in item["message"] for item in findings), findings
     else:
         assert code == 0, findings
         back_edge(target, "rs")
         code, findings = parity(worker, tmp_path)
-        edge = case in {"callback", "test", "platform", "feature"}
+        edge = case in {"callback", "test", "platform", "feature", "export", "bindgen"}
         assert code == int(edge), findings
         assert all("directory dependency cycle" in item["message"] for item in findings)
 
