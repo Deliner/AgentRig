@@ -1,5 +1,6 @@
 // DECISION: D124
-use crate::change_delivery::gate::{AffectedMap, files};
+// DECISION: D138
+use crate::change_delivery::gate::{AffectedMap, files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs};
@@ -57,7 +58,7 @@ pub(super) fn report(context: &Context) -> Result<bool> {
             continue;
         };
         let extension = Some(std::ffi::OsStr::new(mapped.runner.source()));
-        let sources = files.iter().filter(|path| path.extension() == extension);
+        let sources = included(check, &files)?.filter(|path| path.extension() == extension);
         for path in sources {
             let Some(message) = finding(&mapped, path)? else {
                 continue;
