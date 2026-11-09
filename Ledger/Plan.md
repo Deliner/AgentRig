@@ -14,6 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
+| [P093](Plan/093.md) | active | - | [B085](Backlog/085.md): coverage-include — `config-check` проверяет карту affected только на файлах из include проверки | Проекты с отдельными наборами тестов под разные фичи проходят `config-check` честной картой. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
@@ -44,3 +45,7 @@ B078 и B076, обе опираются на политику `disallowed`, по
 voxel-rust («Подготовь черновик и реализуй его перед voxel»): выбрано **P092** (B084). P091 (B083) остаётся на ветке
 `feature/rust-expansion` и ждёт проверки AC5 на voxel-rust; P092 идёт отдельной веткой от master. Карточка в Git на
 ревизии `3033a2b`.
+
+2026-11-09 пользователь поручил «реализуй карточки все и продолжи с voxel»: показанная в чате карточка B085 сохранена
+и выбрана как **P093**, до продолжения работ в voxel-rust. Карточка в Git на ветке `feature/coverage-include`, ревизия
+первого VAC ветки. Новое правило не вводит вид проверки, пин D051 нужен в конце ветки.

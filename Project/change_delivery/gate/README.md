@@ -35,7 +35,8 @@ Keep pytest targets nonoverlapping: a file together with a node inside it narrow
 directory and file overlaps can drop cases.
 
 `config-check` reports, as errors, the gaps a map leaves for a check whose command runs `cargo … test` or `pytest`;
-other commands are not inspected. Among the inventory files with that language's extension (`.rs` or `.py`), it names
+other commands are not inspected. Among the inventory files with that language's extension (`.rs` or `.py`) that the
+check's include matches, it names
 each file that matches only groups without targets, because changing it selects no tests, and each test that no target
 selects: a `test_*.py` file outside every target path, resolved from the command's working directory, or a Rust file
 containing `#[test]` whose module prefix below the nearest `lib.rs`, else `main.rs`, neither contains a target nor

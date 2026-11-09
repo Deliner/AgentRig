@@ -157,14 +157,21 @@ fn skip_reason(
     files: &[PathBuf],
     options: &Options<'_>,
 ) -> Result<Option<&'static str>> {
-    let include = globs(&check.include)?;
-    let applies = files.iter().any(|path| include.is_match(path));
+    let applies = included(check, files)?.next().is_some();
     let commit_of_merge_check = options.staged && check.kind == CheckKind::Tools;
     Ok(match (applies, commit_of_merge_check) {
         (false, _) => Some("no selected files"),
         (true, true) => Some("checked before merge"),
         (true, false) => None,
     })
+}
+// DECISION: D138
+pub fn included<'a>(
+    check: &Check,
+    files: &'a [PathBuf],
+) -> Result<impl Iterator<Item = &'a PathBuf> + use<'a>> {
+    let include = globs(&check.include)?;
+    Ok(files.iter().filter(move |path| include.is_match(path)))
 }
 struct Selected<'a> {
     root: &'a Path,

@@ -1,4 +1,5 @@
 # DECISION: D124
+# DECISION: D138
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -28,6 +29,7 @@ class Case:
     groups: list[dict[str, Any]]
     findings: dict[str, str] = field(default_factory=dict)
     cwd: str = "."
+    include: list[str] = field(default_factory=lambda: ["**"])
 
 
 CASES = {
@@ -51,6 +53,17 @@ CASES = {
         [{"include": ["src/**"], "targets": ["core::other::"]}],
         {"src/core/mesh_tests.rs": UNSELECTED},
     ),
+    "rust-test-outside-check-include": Case(
+        CARGO,
+        [{"include": ["src/**"], "targets": ["core::other::"]}],
+        include=["src/lib.rs"],
+    ),
+    "rust-unselected-test-inside-check-include": Case(
+        CARGO,
+        [{"include": ["src/**"], "targets": ["core::other::"]}],
+        {"src/core/mesh_tests.rs": UNSELECTED},
+        include=["src/core/**"],
+    ),
     "python-covered": Case(PYTEST, [{"include": ["**"], "targets": ["tests"]}]),
     "python-nodes": Case(
         PYTEST,
@@ -66,6 +79,14 @@ CASES = {
             {"include": ["tests/**"], "targets": ["tests"]},
         ],
         {"src/app.py": SILENT_PYTHON},
+    ),
+    "python-silent-source-outside-check-include": Case(
+        PYTEST,
+        [
+            {"include": ["src/**"], "targets": []},
+            {"include": ["tests/**"], "targets": ["tests"]},
+        ],
+        include=["tests/**"],
     ),
     "python-sibling-unselected": Case(
         PYTEST,
@@ -90,6 +111,7 @@ def test_config_check_reports_paths_the_affected_map_leaves_untested(
         "id": "tests",
         "kind": "command",
         "command": "test",
+        "include": case.include,
         "skill": "guides/repair/SKILL.md",
         "affected": case.groups,
     }
