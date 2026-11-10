@@ -40,8 +40,21 @@ impl Reminding {
     }
 }
 
-pub fn context(event: &str, message: &str) -> Value {
-    json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
+#[derive(Clone, Copy)]
+pub enum Event {
+    SessionStart,
+    PreToolUse,
+}
+impl Event {
+    fn name(self) -> &'static str {
+        match self {
+            Self::SessionStart => "SessionStart",
+            Self::PreToolUse => "PreToolUse",
+        }
+    }
+}
+pub fn context(event: Event, message: &str) -> Value {
+    json!({"hookSpecificOutput": {"hookEventName": event.name(), "additionalContext": message}})
 }
 pub fn deny(reason: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": "PreToolUse",
@@ -119,7 +132,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         console::stderr(format!("session reminder state: {error}"));
         message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
-    Ok(Some(context("SessionStart", &message)))
+    Ok(Some(context(Event::SessionStart, &message)))
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     let validated = guard::arguments(guard::command(event))
@@ -206,7 +219,7 @@ fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Rem
         .filter(|_| reminding.active());
     let due = schedule.map_or(Ok(None), |path| {
         let config = input::object(&configured.path(path)?);
-        reminder::due(event, &config, state)
+        reminder::Schedule::read(&config)?.due(event, state)
     });
     let mut answer = Answer {
         discipline: None,
