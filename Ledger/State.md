@@ -6,12 +6,14 @@
 написал, и все карточки, и вообще все карточки в бэклоге, которые есть, автономно реализуй сам. У меня ничего не
 спрашиваю, я на все даю подтверждение». Все карточки Backlog B086–B101 выбраны в Plan как P094–P109, выполнены и
 слиты. Риг проверялся на voxel-rust и под него не подгонялся. Затем пользователь поручил: «тебе надо Linux VM
-поднять и на ней слияние сделать», а также приёмку GPU, Web и Android и подготовку Mac; это сделано.
+поднять и на ней слияние сделать», а также приёмку GPU, Web и Android и подготовку Mac; это сделано. Последнее
+поручение: «Найди корректное архитектурное решение на долгосрок и примени его» про Vulkan, RHI и texture-smoke;
+выполнено в voxel-rust как P022 по одобренной карточке B001, AgentRig не менялся.
 
 ## Workspace
 
-Branch: `feature/linux-merge-state`, от master.
-Revision: `647acbabca81e5da5410203a6449ed94f53f2b3b`; этот снимок закоммичен поверх.
+Branch: `feature/voxel-portable-gpu-state`, от master.
+Revision: `10676f148de3a3853d5d0137910091cd75a141a3`; этот снимок закоммичен поверх.
 
 Установленный рантайм `6c13aa2` (пин P109): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
 коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
@@ -32,6 +34,10 @@ Revision: `647acbabca81e5da5410203a6449ed94f53f2b3b`; этот снимок за
   `377aaa7` прошли через хуки. Результат перенесён на Mac бандлом перемоткой без слияния; Mac voxel-rust на main
   `377aaa7`. Ничего не отправлено в origin.
 - Mac подготовлен: `JAVA_HOME` openjdk@21 в ~/.zshenv, ripgrep, platform-tools в ~/Android/Sdk, Rosetta.
+- voxel-rust P022 слит в main `20f2c74` через `feature-merge`, ветка `feature/portable-gpu` сохранена. wgpu остаётся
+  слоем над графическими API, у него включены vulkan и metal, решение D010 voxel-rust: нативный клиент работает на
+  macOS через Metal. Сценарии Web требуют адаптер без isFallbackAdapter, нативные сценарии требуют тип устройства не
+  Cpu вместо NVIDIA. P022 в voxel-rust paused: по решению пользователя слито с отметкой непроверенного.
 
 ## Verification
 
@@ -46,13 +52,19 @@ Revision: `647acbabca81e5da5410203a6449ed94f53f2b3b`; этот снимок за
 - Web voxel-rust: на Mac через Metal precision-smoke и lod/journey-smoke PASS; smoke, world-smoke, mining-smoke,
   streaming-smoke и storage/web-smoke падают на main в тех же строках, в контейнере с программным GPU smoke
   одинаково падает на main и на ветке.
+- voxel-rust P022: гейт `feature-merge` прошёл lint, memory, tests, clippy, build-checks, native-tests и tools. На Mac
+  smoke и пример native-input PASS через Metal, texture-smoke PASS с разбросом 0, ещё семь сценариев Web PASS,
+  ui-smoke падает на захвате указателя, с `SOFTWARE_GPU=1` texture-smoke падает на проверке адаптера. Android
+  input-smoke и lifecycle PASS через Vulkan, экран возвращён к плотности 560. В контейнере Linux `native-check` и
+  `clippy` PASS.
 
 ## Blockers
 
-Не приняты: нативный клиент Linux voxel-rust на настоящем GPU, texture-smoke на NVIDIA и пять сценариев Web, которые
-не проходят ни на main, ни на ветке в доступных средах.
+Не приняты: нативный клиент и пять нативных сценариев node voxel-rust на опорном ноутбуке с Linux и NVIDIA, пять
+сценариев Web, которые не проходят ни на main, ни на ветке в доступных средах, и ui-smoke на Mac.
 
 ## Next action
 
-Ждать пользователя: приёмка непринятого из Blockers на Linux с GPU. Свободные ID: D151+, I022+, P110+, B102+ (B066
+Ждать пользователя: приёмка непринятого из Blockers на опорном ноутбуке по условию возобновления в Plan/022.md
+voxel-rust. Свободные ID: D151+, I022+, P110+, B102+ (B066
 и D111 зарезервированы).
