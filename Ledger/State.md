@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/unused-external` (P100, B100)
-Revision: `dff2005` (master после слияния P099; VAC P100 ещё не закоммичен)
+Branch: `feature/false-edges` (P101, B087)
+Revision: `08e58da` (master после слияния P100; VAC P101 ещё не закоммичен)
 
-Установленный рантайм `a617589` (пин P099). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `a4113fa` (пин P100). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,19 +23,21 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P099 (B093, B098, B101 с D139, B092 с D140, B094, B095) завершены и слиты в master, пин `a617589`.
-- P100 в рабочем дереве: находка о неиспользуемой внешней зависимости называет число читаемых файлов и их корень и
-  молчит при незавершённом анализе (D141); тесты, Delivery и ротация.
+- P094–P100 (B093, B098, B101 с D139, B092 с D140, B094, B095, B100 с D141) завершены и слиты в master, пин
+  `a4113fa`.
+- P101 в рабочем дереве: путь в `pub(in …)` не даёт ребра, `#[expect]` не выключает анализ крейта; тесты, Delivery и
+  ротация.
+- Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
+  `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`.
 - Для финального прохода voxel-rust: ручные исключения file-size `src/Cargo.lock` и `src/package-lock.json` можно
   заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P100: тесты архитектуры на кандидате — 134 passed; пять новых и изменённых тестов падают на установленном
-  `a617589`. Клон voxel-rust `71440d0` в scratchpad `voxel-b101`: с исключённым `src/schema/build.rs` кандидат даёт
-  новый текст про `prost_build` и `protoc_bin_vendored`; с `mod missing_module;` в `src/core/lib.rs` установленный
-  рантайм пишет «never imported» про wgpu, winit и ещё четыре зависимости, кандидат — ни одной такой находки. Правки
-  клона откачены, рабочее дерево voxel-rust не тронуто.
+- P101: тесты архитектуры на кандидате — 137 passed; новые случаи видимости и `expect` падают на установленном
+  `a4113fa`. Клон voxel-rust `71440d0` в scratchpad `voxel-b101`: с возвращённым `pub(in crate::native)` установленный
+  рантайм даёт цикл и fan-out, кандидат — 0 находок; с `#[expect]` в `src/core/control/local.rs` установленный даёт
+  4310 находок о незавершённом анализе, кандидат — 0. Правки клона откачены, рабочее дерево voxel-rust не тронуто.
 
 ## Blockers
 
@@ -43,5 +45,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P100; пин D051, коммит пина, `just feature-merge`; затем P101 (B087, ложные рёбра).
+Закоммитить VAC P101; пин D051, коммит пина, `just feature-merge`; затем P102 (B088, находки о рёбрах).
 Свободные ID: D142+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

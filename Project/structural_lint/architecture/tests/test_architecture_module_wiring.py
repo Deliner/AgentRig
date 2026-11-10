@@ -115,3 +115,27 @@ def test_explicit_module_path_outside_crate_directory_is_measured(
     code, findings = lint(binary, tmp_path)
     assert code == 1
     assert any("directory dependency cycle" in item["message"] for item in findings), findings
+
+
+@pytest.mark.parametrize(
+    ("body", "expected"), [("7", []), ("crate::a::seven()", ["directory dependency cycle"])]
+)
+def test_visibility_path_is_not_a_dependency(
+    worker: Path, tmp_path: Path, body: str, expected: list[str]
+) -> None:
+    prepare(tmp_path, CONFIG.replace("EXTENSION", ".rs").replace("ROOTS", "[src/lib.rs]"))
+    inner = tmp_path / "src/a/b"
+    inner.mkdir(parents=True)
+    (tmp_path / "src/lib.rs").write_text("pub mod a;\n")
+    (tmp_path / "src/a/mod.rs").write_text(
+        "pub mod b;\npub fn seven() -> i32 { 7 }\npub fn run() -> i32 { b::value() }\n"
+    )
+    (inner / "mod.rs").write_text(f"pub(in crate::a) fn value() -> i32 {{ {body} }}\n")
+    for directory in (inner, tmp_path / "src/a", tmp_path / "src"):
+        contract(directory)
+    library = [str(tmp_path / "src/lib.rs"), "-o", str(tmp_path / "consumer.rlib")]
+    compile = ["rustc", "--edition=2024", "--crate-type=lib", *library]
+    subprocess.run(compile, check=True, capture_output=True, text=True)
+    code, findings = lint(worker, tmp_path)
+    assert code == bool(expected), findings
+    assert [item["message"].split(":")[0].split(" src/")[0] for item in findings] == expected
