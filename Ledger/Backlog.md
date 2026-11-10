@@ -11,3 +11,4 @@ Earlier requirements and related ideas are context for later selection, not a de
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
 | [B105](Backlog/105.md) | Свои структурные правила, первая партия | Формы ошибок, которые Clippy не видит, запрещены и в риге, и у потребителей. |
+| [B106](Backlog/106.md) | Свои структурные правила, вторая партия | Формы ошибок, которые не видят ни Clippy, ни правила рига, запрещены и в риге, и у потребителей. |
