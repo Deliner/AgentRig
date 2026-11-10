@@ -209,10 +209,13 @@ def test_architecture_rejects_git_target_through_escaping_symlink(
 
 
 # DECISION: D076
-def test_architecture_flags_declared_python_external_that_is_never_imported(
+# DECISION: D141
+def test_architecture_flags_declared_python_external_named_only_outside_the_selection(
     worker: Path, tmp_path: Path
 ) -> None:
     source, _ = consumer(tmp_path, "py")
+    (tmp_path / "tools").mkdir()
+    (tmp_path / "tools/build.py").write_text("import unused_dep\n")
     source.write_text(
         "from __future__ import annotations\n"
         "import os\n"
@@ -229,9 +232,7 @@ def test_architecture_flags_declared_python_external_that_is_never_imported(
     code, findings = lint(worker, tmp_path)
     assert code == 1, findings
     messages = [item["message"] for item in findings]
-    assert messages == ["declared external Python dependency is never imported: unused_dep"], (
-        findings
-    )
+    assert messages == [unused("Python", 2)], findings
 
 
 # DECISION: D076
@@ -255,7 +256,15 @@ def test_architecture_unused_external_rust_ignores_the_standard_library_seed(
     code, findings = lint(worker, tmp_path)
     assert code == 1, findings
     messages = [item["message"] for item in findings]
-    assert messages == ["declared external Rust dependency is never imported: unused_dep"], findings
+    assert messages == [unused("Rust", 3)], findings
+
+
+def unused(language: str, files: int) -> str:
+    return (
+        f"declared external {language} dependency unused_dep is not named in the {files} files "
+        "this rule reads under src; add the file that uses it to this rule's selection, "
+        "or remove the declaration"
+    )
 
 
 @pytest.mark.parametrize(("setting", "code"), [("true", 2), ("false", 0)])

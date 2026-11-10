@@ -199,7 +199,8 @@ impl<'a> Resolvers<'a> {
     }
 
     pub fn dependencies(&self, path: &Path, references: References) -> Dependencies {
-        let mut issues = references.issues;
+        let mut gaps = references.issues;
+        let mut violations = Vec::new();
         let mut edges = Vec::new();
         let mut used = Externals::default();
         let mut environment = Vec::new();
@@ -210,7 +211,7 @@ impl<'a> Resolvers<'a> {
                         used.record(&reference.target, external);
                         environment.extend(environment_use(reference.line, external));
                         // DECISION: D105
-                        issues.extend(self.disallowed.check(path, reference.line, external));
+                        violations.extend(self.disallowed.check(path, reference.line, external));
                     }
                     edges.extend(resolved.files.into_iter().map(|target| Dependency {
                         source: path.into(),
@@ -223,14 +224,15 @@ impl<'a> Resolvers<'a> {
                         ),
                     }));
                 }
-                Err(error) => issues.push(incomplete(path, Some(reference.line), error)),
+                Err(error) => gaps.push(incomplete(path, Some(reference.line), error)),
             }
         }
         // DECISION: D125
-        issues.extend(self.disallowed.methods(path, &references.propagated_calls));
+        violations.extend(self.disallowed.methods(path, &references.propagated_calls));
         Dependencies {
             edges,
-            issues,
+            incomplete: gaps,
+            violations,
             used,
             environment,
         }
@@ -247,9 +249,11 @@ fn environment_use(line: usize, external: &str) -> Option<EnvironmentUse> {
     })
 }
 
+// DECISION: D141
 pub struct Dependencies {
     pub edges: Vec<Dependency>,
-    pub issues: Vec<Issue>,
+    pub incomplete: Vec<Issue>,
+    pub violations: Vec<Issue>,
     pub used: Externals,
     pub environment: Vec<EnvironmentUse>,
 }
