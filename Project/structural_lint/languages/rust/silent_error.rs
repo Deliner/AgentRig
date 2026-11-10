@@ -261,8 +261,9 @@ pub(super) fn exit_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Me
     if coded {
         return;
     }
+    let answers = VerdictBody { body, source };
     for exit in returned(body) {
-        let answered = success_answer(exit, body, source);
+        let answered = answers.success_answer(exit);
         let allowed = justified(exit, source) || in_test_context(exit, source);
         let flagged = answered && !allowed;
         if flagged {
@@ -308,15 +309,53 @@ fn returned(body: Node<'_>) -> Vec<Node<'_>> {
     }
     found
 }
-fn success_answer<'a>(exit: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
-    let value = match exit.kind() {
-        "return_expression" => exit.named_child(0),
-        _ => Some(exit),
-    };
-    value
-        .and_then(|value| ok_argument(value, source))
-        .and_then(|argument| method_receiver(argument, "success", source))
-        .is_some_and(|receiver| process_status(receiver, body, source))
+#[derive(Clone, Copy)]
+struct VerdictBody<'a> {
+    body: Node<'a>,
+    source: Code<'a>,
+}
+impl<'a> VerdictBody<'a> {
+    fn success_answer(self, exit: Node<'a>) -> bool {
+        let value = match exit.kind() {
+            "return_expression" => exit.named_child(0),
+            _ => Some(exit),
+        };
+        value
+            .and_then(|value| ok_argument(value, self.source))
+            .and_then(|argument| method_receiver(argument, "success", self.source))
+            .is_some_and(|receiver| self.process_status(receiver))
+    }
+    fn process_status(self, receiver: Node<'a>) -> bool {
+        let receiver = self.binding(receiver).unwrap_or(receiver);
+        match receiver.kind() {
+            "try_expression" => launched(receiver, "status", self.source),
+            "field_expression" => self.output_status(receiver),
+            _ => false,
+        }
+    }
+    fn output_status(self, receiver: Node<'a>) -> bool {
+        let field = receiver
+            .child_by_field_name("field")
+            .is_some_and(|field| text(field, self.source) == "status");
+        receiver
+            .child_by_field_name("value")
+            .filter(|_| field)
+            .map(|value| self.binding(value).unwrap_or(value))
+            .is_some_and(|value| launched(value, "output", self.source))
+    }
+    fn binding(self, node: Node<'a>) -> Option<Node<'a>> {
+        let identifier = node.kind() == "identifier";
+        let name = identifier.then(|| text(node, self.source))?;
+        descendants(self.body)
+            .into_iter()
+            .filter(|item| item.kind() == "let_declaration")
+            .filter(|item| {
+                item.child_by_field_name("pattern").is_some_and(|pattern| {
+                    pattern.kind() == "identifier" && text(pattern, self.source) == name
+                })
+            })
+            .find_map(|item| item.child_by_field_name("value"))
+    }
 }
 fn ok_argument<'a>(call: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let constructor = call
@@ -346,24 +385,6 @@ fn method_receiver<'a>(call: Node<'a>, method: &str, source: Code<'_>) -> Option
         .is_some_and(|field| text(field, source) == method);
     function.child_by_field_name("value").filter(|_| named)
 }
-fn process_status<'a>(receiver: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
-    let receiver = binding(receiver, body, source).unwrap_or(receiver);
-    match receiver.kind() {
-        "try_expression" => launched(receiver, "status", source),
-        "field_expression" => output_status(receiver, body, source),
-        _ => false,
-    }
-}
-fn output_status<'a>(receiver: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
-    let field = receiver
-        .child_by_field_name("field")
-        .is_some_and(|field| text(field, source) == "status");
-    receiver
-        .child_by_field_name("value")
-        .filter(|_| field)
-        .map(|value| binding(value, body, source).unwrap_or(value))
-        .is_some_and(|value| launched(value, "output", source))
-}
 fn launched(node: Node<'_>, method: &str, source: Code<'_>) -> bool {
     let propagated = node.kind() == "try_expression";
     propagated
@@ -371,17 +392,4 @@ fn launched(node: Node<'_>, method: &str, source: Code<'_>) -> bool {
             .named_child(0)
             .and_then(|call| method_receiver(call, method, source))
             .is_some()
-}
-fn binding<'a>(node: Node<'a>, body: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
-    let identifier = node.kind() == "identifier";
-    let name = identifier.then(|| text(node, source))?;
-    descendants(body)
-        .into_iter()
-        .filter(|item| item.kind() == "let_declaration")
-        .filter(|item| {
-            item.child_by_field_name("pattern").is_some_and(|pattern| {
-                pattern.kind() == "identifier" && text(pattern, source) == name
-            })
-        })
-        .find_map(|item| item.child_by_field_name("value"))
 }

@@ -1,5 +1,5 @@
 mod fixture;
-use super::{FileKind, Repository};
+use super::{FileKind, Repository, Revisions};
 use fixture::{command, commit, initialize, revisions};
 use std::{fs, os::unix::fs::PermissionsExt, path::Path};
 
@@ -9,14 +9,16 @@ fn revisions_are_read_exactly_and_preserve_worktrees() {
         let root = tempfile::tempdir().unwrap();
         let (base, candidate) = revisions(root.path());
         let repository = Repository::new(root.path());
+        let (renamed, binary) = (Path::new("new name"), Path::new("binary"));
+        let range = Revisions {
+            from: &base,
+            to: &candidate,
+        };
+        assert_eq!(repository.read(&candidate, renamed).unwrap(), b"before\n");
+        assert_eq!(repository.read(&base, binary).unwrap(), [0, 255, 10]);
+        assert_eq!(repository.read(&candidate, binary).unwrap(), [0, 255, 20]);
         assert_eq!(
-            repository.read(&candidate, "new name").unwrap(),
-            b"before\n"
-        );
-        assert_eq!(repository.read(&base, "binary").unwrap(), [0, 255, 10]);
-        assert_eq!(repository.read(&candidate, "binary").unwrap(), [0, 255, 20]);
-        assert_eq!(
-            repository.changed_paths(&base, &candidate).unwrap(),
+            repository.changed_paths(range).unwrap(),
             ["binary", "new name", "old name"]
         );
         let tree = repository.tree(&candidate).unwrap();
@@ -24,7 +26,7 @@ fn revisions_are_read_exactly_and_preserve_worktrees() {
         assert_eq!(tree["link"].kind, FileKind::Symlink);
         assert_eq!(tree["new name"].kind, FileKind::File);
         assert!(!tree["binary"].object.is_empty());
-        let diff = repository.diff(&base, &candidate).unwrap();
+        let diff = repository.diff(range).unwrap();
         assert!(diff.contains("new name") && diff.contains("old name") && diff.contains("binary"));
         assert_eq!(
             fs::read(root.path().join("new name")).unwrap(),

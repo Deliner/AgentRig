@@ -133,7 +133,7 @@ fn record_problems(
     let unrestorable = item
         .revision
         .as_ref()
-        .is_some_and(|revision| repository.read(revision, &item.path).is_err());
+        .is_some_and(|revision| repository.read(revision, Path::new(&item.path)).is_err());
     if unrestorable {
         problems.push(format!("{entry}: revision does not contain {}", item.path));
     }

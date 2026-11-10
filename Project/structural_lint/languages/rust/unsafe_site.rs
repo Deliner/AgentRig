@@ -18,14 +18,14 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     let mut cursor = node.walk();
     for token in node
         .children(&mut cursor)
-        .filter(|child| child.kind() == "unsafe" && !attribute_opener(node, *child, source))
+        .filter(|child| child.kind() == "unsafe" && !attribute_opener(*child, source))
     {
         report(token, "unsafe", source, output);
     }
 }
-fn attribute_opener(tree: Node<'_>, token: Node<'_>, source: Code<'_>) -> bool {
+fn attribute_opener(token: Node<'_>, source: Code<'_>) -> bool {
     let previous = token.prev_sibling().map(|node| node.kind());
-    let head = tree.prev_sibling();
+    let head = token.parent().and_then(|tree| tree.prev_sibling());
     let hashed = head.is_some_and(|hash| hash.kind() == "#");
     let direct = hashed && previous == Some("[");
     let conditional = head.is_some_and(|name| text(name, source) == "cfg_attr");

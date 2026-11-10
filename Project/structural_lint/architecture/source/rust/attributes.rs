@@ -24,12 +24,13 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
             }
         }
         "default" => {}
-        "path" => validate_module_path(source, node, attribute),
+        "path" => validate_module_path(source, attribute),
         _ => super::attribute(source, node),
     }
 }
 
-fn validate_module_path(source: &mut Source<'_>, node: Node<'_>, attribute: Node<'_>) {
+fn validate_module_path(source: &mut Source<'_>, attribute: Node<'_>) {
+    let node = attribute.parent().unwrap_or(attribute);
     let mut next = node.next_named_sibling();
     while next.is_some_and(|item| item.is_extra() || item.kind() == "attribute_item") {
         next = next.and_then(|item| item.next_named_sibling());

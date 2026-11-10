@@ -5,7 +5,7 @@ mod integration;
 use super::gate;
 use crate::project_config::Context;
 use crate::shared::console;
-use crate::shared::vcs::git_context as git;
+use crate::shared::vcs::{Revisions, git_context as git};
 use anyhow::{Result, ensure};
 use std::{
     io::{self, Read},
@@ -140,7 +140,7 @@ pub fn guard_reference_with(
             let deletion = new.chars().all(|ch| ch == '0')
                 && reference.starts_with(&format!("refs/heads/{}", settings.prefix));
             if deletion {
-                let merged = merged_reference(root, old, reference, &settings.base)?;
+                let merged = Deletion { old, reference }.merged(root, &settings.base)?;
                 if merged {
                     console::stderr("merged feature branches must be retained");
                     return Ok(1);
@@ -151,15 +151,24 @@ pub fn guard_reference_with(
     Ok(0)
 }
 
-fn merged_reference(root: &Path, old: &str, reference: &str, base: &str) -> Result<bool> {
-    let unknown_tip = old.chars().all(|ch| ch == '0');
-    let tip = if unknown_tip {
-        git(
-            root,
-            &["rev-parse", "--verify", &format!("{reference}^{{commit}}")],
-        )?
-    } else {
-        old.to_owned()
-    };
-    crate::shared::vcs::Repository::new(root).ancestor(&tip, base)
+struct Deletion<'a> {
+    old: &'a str,
+    reference: &'a str,
+}
+
+impl Deletion<'_> {
+    fn merged(self, root: &Path, base: &str) -> Result<bool> {
+        let unknown_tip = self.old.chars().all(|ch| ch == '0');
+        let tip = if unknown_tip {
+            let commit = format!("{reference}^{{commit}}", reference = self.reference);
+            git(root, &["rev-parse", "--verify", &commit])?
+        } else {
+            self.old.to_owned()
+        };
+        let revisions = Revisions {
+            from: &tip,
+            to: base,
+        };
+        crate::shared::vcs::Repository::new(root).ancestor(revisions)
+    }
 }

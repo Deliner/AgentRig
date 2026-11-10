@@ -26,7 +26,7 @@ pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<te
             .parent()
             .ok_or_else(|| anyhow::anyhow!("exported path has no parent"))?;
         fs::create_dir_all(parent)?;
-        let bytes = repository.read(revision, &name)?;
+        let bytes = repository.read(revision, Path::new(&name))?;
         match file_mode {
             Some(mode) => {
                 fs::write(&path, bytes)?;

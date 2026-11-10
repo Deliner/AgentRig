@@ -1,6 +1,7 @@
 // DECISION: D035
 use crate::project_config::Check;
 use crate::shared::paths::patterns::globs;
+use crate::shared::vcs::Revisions;
 use anyhow::{Context, Result};
 use globset::GlobSet;
 use std::{
@@ -37,7 +38,10 @@ pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Scope<Pa
     let repository = crate::shared::vcs::Repository::discover(root)?
         .context("affected test selection requires a repository")?;
     let changes = match base {
-        Some(base) => repository.changed_paths(base, "HEAD")?,
+        Some(base) => repository.changed_paths(Revisions {
+            from: base,
+            to: "HEAD",
+        })?,
         None => repository.staged_changes()?,
     };
     Ok(Scope::Only(

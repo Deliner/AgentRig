@@ -1,4 +1,4 @@
-use super::{Entry, FileKind};
+use super::{Entry, FileKind, Revisions};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
 
@@ -46,8 +46,9 @@ pub fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
     Ok(output.stdout)
 }
 
-pub(super) fn ancestor(root: &Path, older: &str, newer: &str) -> Result<bool> {
-    let status = command(root, &["merge-base", "--is-ancestor", older, newer]).status()?;
+pub(super) fn ancestor(root: &Path, revisions: Revisions<'_>) -> Result<bool> {
+    let arguments = ["merge-base", "--is-ancestor", revisions.from, revisions.to];
+    let status = command(root, &arguments).status()?;
     ensure!(
         matches!(status.code(), Some(0 | 1)),
         "cannot inspect Git ancestry"
@@ -125,7 +126,7 @@ pub(super) fn export_index(root: &Path) -> Result<tempfile::TempDir> {
     Ok(directory)
 }
 
-pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8>> {
+pub(super) fn changes(root: &Path, revisions: Revisions<'_>) -> Result<Vec<u8>> {
     run(
         root,
         &[
@@ -135,8 +136,8 @@ pub(super) fn changes(root: &Path, base: &str, candidate: &str) -> Result<Vec<u8
             "--no-renames",
             "--name-only",
             "-z",
-            base,
-            candidate,
+            revisions.from,
+            revisions.to,
             "--",
         ],
     )

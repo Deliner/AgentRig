@@ -93,7 +93,7 @@ fn conditional(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) 
         silent_error::verdict_if(node, source, output);
         return;
     }
-    condition(node, test, output);
+    condition(test, output);
 }
 fn declaration(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(parameters) = node.child_by_field_name("parameters") else {

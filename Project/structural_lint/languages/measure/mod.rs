@@ -78,12 +78,13 @@ pub fn named_value(node: Node<'_>) -> bool {
         _ => false,
     }
 }
-pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measurement>) {
-    let invalid = !named_value(condition);
+pub fn condition(test: Node<'_>, output: &mut Vec<Measurement>) {
+    let invalid = !named_value(test);
     if invalid {
+        let conditional = test.parent().unwrap_or(test);
         output.push(Measurement {
             kind: Kind::ControlFlow(ControlFlow::NamedIfCondition),
-            line: node.start_position().row + 1,
+            line: conditional.start_position().row + 1,
             symbol: "if".into(),
             actual: 1,
         });

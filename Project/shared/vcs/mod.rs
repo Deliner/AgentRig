@@ -15,6 +15,12 @@ use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, path::Path};
 
+#[derive(Clone, Copy)]
+pub struct Revisions<'a> {
+    pub from: &'a str,
+    pub to: &'a str,
+}
+
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Settings {
@@ -86,8 +92,8 @@ impl<'a> Repository<'a> {
         git::command(self.root, args)
     }
 
-    pub fn ancestor(&self, older: &str, newer: &str) -> Result<bool> {
-        git::ancestor(self.root, older, newer)
+    pub fn ancestor(&self, revisions: Revisions<'_>) -> Result<bool> {
+        git::ancestor(self.root, revisions)
     }
 
     pub fn commit_context(&self) -> Result<(String, bool)> {
@@ -116,15 +122,19 @@ impl<'a> Repository<'a> {
         git::tree(self.root, revision)
     }
 
-    pub fn read(&self, revision: &str, path: &str) -> Result<Vec<u8>> {
+    pub fn read(&self, revision: &str, path: &Path) -> Result<Vec<u8>> {
         git::run(
             self.root,
-            &["cat-file", "blob", &format!("{revision}:{path}")],
+            &[
+                "cat-file",
+                "blob",
+                &format!("{revision}:{path}", path = path.display()),
+            ],
         )
     }
 
-    pub fn changed_paths(&self, base: &str, candidate: &str) -> Result<Vec<String>> {
-        paths(&git::changes(self.root, base, candidate)?)
+    pub fn changed_paths(&self, revisions: Revisions<'_>) -> Result<Vec<String>> {
+        paths(&git::changes(self.root, revisions)?)
     }
 
     // DECISION: D140
@@ -188,7 +198,7 @@ impl<'a> Repository<'a> {
         export::revision(self, &revision)
     }
 
-    pub fn diff(&self, base: &str, candidate: &str) -> Result<String> {
+    pub fn diff(&self, revisions: Revisions<'_>) -> Result<String> {
         let bytes = git::run(
             self.root,
             &[
@@ -197,8 +207,8 @@ impl<'a> Repository<'a> {
                 "--no-textconv",
                 "--binary",
                 "--no-renames",
-                base,
-                candidate,
+                revisions.from,
+                revisions.to,
                 "--",
             ],
         )?;

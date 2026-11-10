@@ -52,7 +52,7 @@ impl Source {
             "function_definition" | "function_item" | "function_signature_item" => {
                 if let Some(name) = node.child_by_field_name("name") {
                     self.functions
-                        .entry(qualified_name(node, source, name))
+                        .entry(qualified_name(name, source))
                         .or_default()
                         .push(preceding_markers(node, source));
                 }
@@ -119,9 +119,9 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
     markers
 }
 
-fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
+fn qualified_name(name: Node<'_>, source: &str) -> String {
     let mut parts: Vec<&str> = source.get(name.byte_range()).into_iter().collect();
-    let mut parent = node.parent();
+    let mut parent = name.parent().and_then(|item| item.parent());
     while let Some(node) = parent {
         let scope = matches!(
             node.kind(),

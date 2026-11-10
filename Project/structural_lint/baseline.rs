@@ -141,20 +141,21 @@ fn limit(root: &Path, path: &Path, working: Counts) -> Result<Counts> {
     let (Some(head), Ok(relative)) = (repository.head()?, path.strip_prefix(root)) else {
         return Ok(working);
     };
-    let committed = committed(&repository, &head, &relative.to_string_lossy())?;
+    let committed = committed(&repository, &head, relative)?;
     let renames = repository.renames(&head)?;
     Ok(ceiling(&working, committed.as_ref(), &renames))
 }
 
-fn committed(repository: &Repository<'_>, head: &str, relative: &str) -> Result<Option<Counts>> {
-    let listed = repository.run(&["ls-tree", "--name-only", head, "--", relative])?;
+fn committed(repository: &Repository<'_>, head: &str, relative: &Path) -> Result<Option<Counts>> {
+    let name = relative.to_string_lossy();
+    let listed = repository.run(&["ls-tree", "--name-only", head, "--", &name])?;
     let uncommitted = listed.is_empty();
     if uncommitted {
         return Ok(None);
     }
     let source = String::from_utf8(repository.read(head, relative)?)?;
     let counts = crate::shared::yaml::decode(&source)
-        .with_context(|| format!("committed lint baseline {relative}"))?;
+        .with_context(|| format!("committed lint baseline {name}"))?;
     Ok(Some(counts))
 }
 

@@ -58,7 +58,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, _pairs: &[Pair], analysis: &mut
             let Some(test) = node.child_by_field_name("condition") else {
                 return;
             };
-            condition(node, test, output);
+            condition(test, output);
         }
         "conditional_expression" => ternary(node, output),
         "if_clause" => {
@@ -69,7 +69,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, _pairs: &[Pair], analysis: &mut
             else {
                 return;
             };
-            condition(node, test, output);
+            condition(test, output);
         }
         "function_definition" | "lambda" => measure(node, source, output),
         _ => {}
@@ -84,7 +84,7 @@ fn ternary(node: Node<'_>, output: &mut Vec<Measurement>) {
     let Some(test) = operands.next() else {
         return;
     };
-    condition(node, test, output);
+    condition(test, output);
 }
 // DECISION: D069
 // DECISION: D074
