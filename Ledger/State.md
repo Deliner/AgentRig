@@ -9,18 +9,18 @@
 ## Workspace
 
 Branch: `feature/clippy-config`, от master `7990589`.
-Revision: `79905895dfe258c62123217f6e90bef9320f5f3c`; этот снимок входит в VAC P112 поверх неё.
+Revision: `3b88a613a0c541b1e89cb9ca72803f4256c5451e`; этот снимок закоммичен поверх вместе с пином.
 
-Установленный рантайм `e0eb185` (пин P111): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
+Установленный рантайм `3b88a61` (пин P112): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
 коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 
 ## Progress
 
 - P110 и P111 слиты в master; последний merge `7990589`, пин P111 `06e6137`.
-- P112 собран одним VAC: `Project/clippy.toml` с `avoid-breaking-exported-api = false` и `max-struct-bools = 1`,
-  семь структур с двумя `bool` и `Reference::Comment` переведены на enum, `Scope` в выборе гейта, `init` дополняет
-  файл Clippy проекта, D154, P112 и B104 в архиве. Осталось закоммитить через хук, пин D051, `feature-merge`.
+- P112 выполнена VAC `3b88a61`: `Project/clippy.toml` с `avoid-breaking-exported-api = false` и
+  `max-struct-bools = 1`, семь структур с двумя `bool` и `Reference::Comment` переведены на enum, `Scope` в выборе
+  гейта, `init` дополняет файл Clippy проекта, D154, P112 и B104 в архиве. Пин D051 и `just bootstrap` сделаны.
 - P113 ждёт.
 - voxel-rust P022 слит в main `20f2c74` и paused. Ветка voxel-rust `feature/p022-laptop` от `20f2c74`: коммит
   `621b999` переносит проверку аппаратного адаптера в начало нативного smoke.
@@ -33,11 +33,9 @@ Revision: `79905895dfe258c62123217f6e90bef9320f5f3c`; этот снимок вх
 
 ## Verification
 
-- P112, рабочее дерево до коммита: `cargo check --all-targets`, `just run clippy` и lint кандидата PASS; тесты
-  `project_setup`, `command_runner`, `project_config` и `agent_hooks` — 157 PASS. Пробы двух порогов роняют
-  `just run clippy` с кодом 101. Живая проба `init` на потребителе со своим `clippy.toml`: Clippy 0 до и 101 после.
-- P111 `e0eb185`: хук коммита — build, lint, memory, rustfmt, clippy, rust-test 171, test 423, ruff, mypy, typos
-  и vulture PASS.
+- P112 `3b88a61`: хук коммита — build, lint, memory, rustfmt, clippy, rust-test 171, test 423, ruff, mypy, typos
+  и vulture PASS. Пробы двух порогов роняют `just run clippy` с кодом 101. Живая проба `init` на потребителе со
+  своим `clippy.toml`: Clippy 0 до и 101 после. Рантайм `3b88a61` читает `checks.json` прежнего вида.
 - voxel-rust `621b999`: хук коммита прошёл, в том числе native-tests 160.
 
 ## Blockers
@@ -46,6 +44,6 @@ Revision: `79905895dfe258c62123217f6e90bef9320f5f3c`; этот снимок вх
 
 ## Next action
 
-Закоммитить VAC P112 через хук, записать пин D051 с хэшем в Delivery, `feature-merge`; затем P113 на новой ветке.
+`feature-merge` ветки P112, затем P113 на новой ветке `feature/structural-bans`.
 Записать итоги ноутбука в Plan/022.md voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с
 ноутбука и локальный файл askpass. Свободные ID: D155+, I022+, P114+, B106+ (B066 и D111 зарезервированы).
