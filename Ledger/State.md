@@ -12,7 +12,7 @@ Backlog B086–B101 выбраны в Plan как P094–P109 и выполня�
 ## Workspace
 
 Branch: `feature/revision-gate` (P094, B093)
-Revision: `e9fc137` (master после слияния выбора P094–P109; VAC A ветки ещё не закоммичен)
+Revision: `cca748c` (VAC A; завершающий VAC с ротацией ещё не закоммичен)
 
 Установленный рантайм `9ba4fad`. macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
@@ -31,7 +31,8 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 - Установленный рантайм `9ba4fad`: `just check --revision HEAD --only tools` — «not a git repository», код 2.
 - Кандидат: тот же запуск на AgentRig и на voxel-rust — PASS [tools].
 - Новый тест отказанного переключения падал до правки со смешанным деревом (` M .agentrig/hooks/reference-transaction`).
-- После правки: test_git.py, test_registry.py и gate/tests — 50 passed.
+- Гейт коммита `cca748c`: все проверки PASS, rust-test 11 и test 136 passed.
+- В рабочем дереве: Delivery P094 и ротация P094/B093 в Archive.
 
 ## Blockers
 
@@ -39,5 +40,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC A; затем Delivery, ротация P094/B093, пин D051 и `just feature-merge`; затем P095 (B098).
+Закоммитить ротацию; пин D051 (`git rev-parse HEAD > tooling/distribution/stable.txt && just bootstrap`), коммит пина,
+`just feature-merge`; затем P095 (B098).
 Свободные ID: D139+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
