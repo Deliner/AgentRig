@@ -151,7 +151,7 @@ fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
 fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let count = parameter_count(node);
     let receiver = method_receiver(node, source) && count > 0;
-    function(node, source, count - u64::from(receiver), output);
+    function(node, source, count - usize::from(receiver), output);
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
@@ -186,7 +186,7 @@ fn classify(node: Node<'_>) -> Nest {
     }
 }
 
-fn parameter_count(node: Node<'_>) -> u64 {
+fn parameter_count(node: Node<'_>) -> usize {
     node.child_by_field_name("parameters")
         .map(|parameters| {
             let mut cursor = parameters.walk();
@@ -198,7 +198,7 @@ fn parameter_count(node: Node<'_>) -> u64 {
                         "keyword_separator" | "positional_separator" | "comment"
                     )
                 })
-                .count() as u64
+                .count()
         })
         .unwrap_or(0)
 }

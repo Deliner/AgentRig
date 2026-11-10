@@ -63,7 +63,7 @@ mod tests {
 }
 ";
     assert_eq!(lines(DEBUG_ASSERTION, source), [3, 5, 13, 24]);
-    assert_eq!(lines(PANIC_PATH, source), [] as [usize; 0]);
+    assert_eq!(lines(PANIC_PATH, source), Vec::<usize>::new());
 }
 
 #[test]

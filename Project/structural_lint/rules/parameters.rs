@@ -3,8 +3,8 @@ use serde_json::{Value, json};
 
 pub enum Parameters {
     Thresholds {
-        warning: Option<u64>,
-        error: u64,
+        warning: Option<usize>,
+        error: usize,
     },
     // DECISION: D117
     Level {

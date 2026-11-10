@@ -1,4 +1,4 @@
-use super::Command;
+use super::Configured;
 use crate::{
     change_delivery::git,
     command_runner,
@@ -7,45 +7,44 @@ use crate::{
     project_setup,
     shared::{arguments::forwarded, console, diagnostics},
 };
-use anyhow::{Result, bail};
+use anyhow::Result;
 
 pub(super) fn configured_command(
     context: &Context,
-    command: Command,
+    command: Configured,
     args: &[String],
 ) -> Result<i32> {
     let root = &context.root;
     let git = &context.config.git;
     match command {
-        Command::Doctor => project_setup::doctor(context),
-        Command::RuntimeAdd => project_setup::runtime_add(context),
-        Command::ConfigCheck => project_setup::config_check(context),
-        Command::GuardReference => {
+        Configured::Doctor => project_setup::doctor(context),
+        Configured::RuntimeAdd => project_setup::runtime_add(context),
+        Configured::ConfigCheck => project_setup::config_check(context),
+        Configured::GuardReference => {
             git::guard_reference_with(root, args.first().map(String::as_str).unwrap_or(""), git)
         }
-        Command::FeatureStart => git::start(context, &args[0]),
-        Command::FeatureMerge => git::merge(context),
-        Command::MemoryCheck => project_memory::check(context),
-        Command::Resume => {
+        Configured::FeatureStart => git::start(context, &args[0]),
+        Configured::FeatureMerge => git::merge(context),
+        Configured::MemoryCheck => project_memory::check(context),
+        Configured::Resume => {
             project_memory::resume(context)?;
             Ok(0)
         }
-        Command::Commands => {
+        Configured::Commands => {
             command_runner::registry::list(context)?;
             Ok(0)
         }
-        Command::Run => {
+        Configured::Run => {
             let (name, extra) = args
                 .split_first()
                 .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
             run_command(context, name, forwarded(extra))
         }
-        Command::Report => {
+        Configured::Report => {
             command_runner::report(context)?;
             evidence::report(context)?;
             Ok(0)
         }
-        _ => bail!("unknown scaffold command {}", command.name()),
     }
 }
 

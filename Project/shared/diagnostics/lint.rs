@@ -20,8 +20,8 @@ pub struct Diagnostic {
     pub(crate) rule: String,
     pub(crate) path: String,
     pub(crate) level: Level,
-    pub(crate) actual: Option<u64>,
-    pub(crate) limit: Option<u64>,
+    pub(crate) actual: Option<usize>,
+    pub(crate) limit: Option<usize>,
     pub(crate) skill: String,
     pub(crate) message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -95,7 +95,7 @@ fn format_location(item: &Diagnostic) -> String {
 mod tests {
     use super::{Diagnostic, Level, grouped};
 
-    fn finding(path: &str, actual: u64, limit: u64) -> Diagnostic {
+    fn finding(path: &str, actual: usize, limit: usize) -> Diagnostic {
         Diagnostic {
             rule: "size".into(),
             path: path.into(),

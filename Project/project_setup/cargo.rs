@@ -171,7 +171,7 @@ fn existing(root: &Path, directory: &Path, path: &str) -> Option<String> {
                     return None;
                 }
             }
-            _ => return None,
+            Component::Prefix(_) | Component::RootDir => return None,
         }
     }
     let file = root.join(&relative).is_file();

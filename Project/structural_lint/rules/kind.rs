@@ -18,7 +18,7 @@ pub enum Kind {
 }
 impl fmt::Display for Kind {
     // DECISION: D129
-    #[allow(clippy::map_err_ignore)]
+    #[expect(clippy::map_err_ignore)]
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         let value = serde_json::to_value(self).map_err(|_| fmt::Error)?;
         formatter.write_str(value.as_str().ok_or(fmt::Error)?)

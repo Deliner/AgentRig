@@ -3,6 +3,7 @@ use super::cargo::Layout;
 // DECISION: D132
 // DECISION: D137
 // DECISION: D152
+// DECISION: D153
 const PROFILE: &[&str] = &[
     "panic",
     "todo",
@@ -33,6 +34,9 @@ const PROFILE: &[&str] = &[
     "multiple_unsafe_ops_per_block",
     "significant_drop_in_scrutinee",
     "uninlined_format_args",
+    "wildcard_enum_match_arm",
+    "as_conversions",
+    "allow_attributes",
 ];
 
 pub(super) fn argv(rust: &Layout) -> Vec<String> {

@@ -14,7 +14,9 @@ fn normalize(path: &Path) -> Result<PathBuf> {
             Component::CurDir => {}
             Component::Normal(name) => normalized.push(name),
             Component::ParentDir => ensure!(normalized.pop(), "module path escapes project root"),
-            _ => bail!("module path must stay project-relative"),
+            Component::Prefix(_) | Component::RootDir => {
+                bail!("module path must stay project-relative")
+            }
         }
     }
     Ok(normalized)

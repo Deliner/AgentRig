@@ -14,7 +14,12 @@ fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {
             path: prelude::path(source, node, generic_path(source, node, path)),
             scope,
         },
-        target => target,
+        target @ (Target::RustMacro(_)
+        | Target::RustDerive { .. }
+        | Target::RustModule { .. }
+        | Target::RustInclude { .. }
+        | Target::PythonModule(_)
+        | Target::PythonFrom { .. }) => target,
     };
     // DECISION: D146
     let test = languages::in_test_context(node, source.text);

@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P111](Plan/111.md) | pending | - | [B103](Backlog/103.md): clippy-revisit — полный match, числа без `as`, `#[expect]` вместо `#[allow]` | При добавлении варианта или смене типа компилятор показывает каждое затронутое место. |
 | [P112](Plan/112.md) | pending | - | [B104](Backlog/104.md): clippy-config — init отвечает за пороги Clippy в clippy.toml | Недопустимые сочетания флагов нельзя записать ни в риге, ни в проектах. |
 | [P113](Plan/113.md) | pending | - | [B105](Backlog/105.md): structural-bans — свои структурные правила, первая партия | Формы ошибок, которые Clippy не видит, запрещены и в риге, и у потребителей. |
 

@@ -146,7 +146,7 @@ const PANICPATH: Descriptor = Descriptor {
     skill: "handle-panic",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "an unwrap, expect, unwrap_err, expect_err, resume_unwind or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it, or above an #[allow] of its Clippy lint on an enclosing item, to justify the panic",
+        violation: "an unwrap, expect, unwrap_err, expect_err, resume_unwind or panic macro aborts the program on failure; return or handle the error with ?, Result or match, or put a DECISION: or INVARIANT: reference on the line directly above it, or above an #[expect] of its Clippy lint on an enclosing item, to justify the panic",
     },
 };
 // DECISION: D085

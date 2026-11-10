@@ -64,40 +64,54 @@ fn structural_measurements(
     rule: &config::Rule,
     selected: &selection::Selected<'_>,
     inventory: &inventory::Inventory,
-) -> Result<Vec<(Option<usize>, u64)>> {
+) -> Result<Vec<(Option<usize>, usize)>> {
     let text = || -> Result<Option<String>> {
         Ok(String::from_utf8(fs::read(root.join(selected.path))?).ok())
     };
     Ok(match rule.kind {
         rules::Kind::Structure(Structure::NonblankLines) => text()?
-            .map(|source| {
-                let count = source
-                    .lines()
-                    .filter(|line| !line.trim().is_empty())
-                    .count();
-                vec![(None, count as u64)]
-            })
+            .map(|source| nonblank_lines(&source))
             .unwrap_or_default(),
         rules::Kind::Structure(Structure::LineWidth) => text()?
-            .map(|source| {
-                source
-                    .lines()
-                    .enumerate()
-                    .map(|(index, line)| (Some(index + 1), line.chars().count() as u64))
-                    .collect()
-            })
+            .map(|source| line_widths(&source))
             .unwrap_or_default(),
         rules::Kind::Structure(Structure::ForbiddenFile) => vec![(None, 1)],
         rules::Kind::Structure(Structure::DirectoryEntries) => {
-            vec![(None, inventory.file_entries(selected.path, FILENAME) as u64)]
+            vec![(None, inventory.file_entries(selected.path, FILENAME))]
         }
-        rules::Kind::Structure(Structure::DumpName) => {
-            let name = selected.path.file_name().and_then(|name| name.to_str());
-            let dump = name.is_some_and(|name| DUMP_NAMES.contains(&name));
-            if dump { vec![(None, 1)] } else { Vec::new() }
+        rules::Kind::Structure(Structure::DumpName) => dump_name(selected.path),
+        rules::Kind::Structure(
+            Structure::FunctionLines
+            | Structure::EmbeddedText
+            | Structure::DirectoryArchitecture
+            | Structure::TestPlacement,
+        )
+        | rules::Kind::ControlFlow(_)
+        | rules::Kind::Signature(_)
+        | rules::Kind::Ownership(_)
+        | rules::Kind::Reference(_) => {
+            anyhow::bail!("rule kind {} has no structural metric", rule.kind)
         }
-        _ => anyhow::bail!("rule kind {} has no structural metric", rule.kind),
     })
+}
+fn nonblank_lines(source: &str) -> Vec<(Option<usize>, usize)> {
+    let count = source
+        .lines()
+        .filter(|line| !line.trim().is_empty())
+        .count();
+    vec![(None, count)]
+}
+fn line_widths(source: &str) -> Vec<(Option<usize>, usize)> {
+    source
+        .lines()
+        .enumerate()
+        .map(|(index, line)| (Some(index + 1), line.chars().count()))
+        .collect()
+}
+fn dump_name(path: &Path) -> Vec<(Option<usize>, usize)> {
+    let name = path.file_name().and_then(|name| name.to_str());
+    let dump = name.is_some_and(|name| DUMP_NAMES.contains(&name));
+    if dump { vec![(None, 1)] } else { Vec::new() }
 }
 fn syntax_findings(
     rule: &config::Rule,
@@ -144,7 +158,7 @@ fn syntax_error(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
 fn finding(
     rule: &config::Rule,
     selected: &selection::Selected<'_>,
-    actual: u64,
+    actual: usize,
 ) -> Result<Option<Diagnostic>> {
     let (warning, error) = (selected.warning, selected.error);
     let (level, limit) = if let Some(level) = rule.level {
@@ -176,7 +190,7 @@ fn finding(
         rerun: String::new(),
     }))
 }
-fn rule_message(rule: &config::Rule, limit: Option<u64>, actual: u64) -> Result<String> {
+fn rule_message(rule: &config::Rule, limit: Option<usize>, actual: usize) -> Result<String> {
     Ok(match (limit, &rule.kind.descriptor().parameters) {
         (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
         (None, rules::Parameters::Level { violation, .. }) => (*violation).into(),

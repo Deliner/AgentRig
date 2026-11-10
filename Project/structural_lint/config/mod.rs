@@ -35,8 +35,8 @@ pub struct Rule {
     pub exclude: Vec<String>,
     #[serde(default)]
     pub extensions: Vec<String>,
-    pub warning: Option<u64>,
-    pub error: Option<u64>,
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
     pub level: Option<Level>,
     pub warning_skill: String,
     pub error_skill: String,
@@ -51,13 +51,13 @@ pub struct Override {
     pub include: Vec<String>,
     #[serde(default)]
     pub extensions: Vec<String>,
-    pub warning: Option<u64>,
-    pub error: Option<u64>,
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
 }
 fn enabled_by_default() -> bool {
     true
 }
-pub fn thresholds(warning: Option<u64>, error: Option<u64>) -> Result<()> {
+pub fn thresholds(warning: Option<usize>, error: Option<usize>) -> Result<()> {
     match (warning, error) {
         (None, None) => bail!("at least one warning/error threshold is required"),
         (Some(warning), Some(error)) if warning >= error => bail!("warning must be below error"),

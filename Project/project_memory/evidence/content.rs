@@ -45,20 +45,21 @@ fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Res
         if runtime_file {
             continue;
         }
-        feed(&mut digest, path.as_os_str().as_encoded_bytes());
+        feed(&mut digest, path.as_os_str().as_encoded_bytes())?;
         hash_file(&mut digest, &tree.join(path))?;
     }
     Ok(format!("{:x}", digest.finalize()))
 }
-fn feed(digest: &mut Sha256, bytes: &[u8]) {
-    digest.update((bytes.len() as u64).to_le_bytes());
+fn feed(digest: &mut Sha256, bytes: &[u8]) -> Result<()> {
+    digest.update(u64::try_from(bytes.len())?.to_le_bytes());
     digest.update(bytes);
+    Ok(())
 }
 fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     let meta = match fs::symlink_metadata(path) {
         Ok(meta) => meta,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            feed(digest, b"absent");
+            feed(digest, b"absent")?;
             return Ok(());
         }
         Err(error) => return Err(error.into()),
@@ -66,13 +67,13 @@ fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     let symlink = meta.file_type().is_symlink();
     let file = meta.is_file();
     if symlink {
-        feed(digest, b"symlink");
-        feed(digest, fs::read_link(path)?.as_os_str().as_encoded_bytes());
+        feed(digest, b"symlink")?;
+        feed(digest, fs::read_link(path)?.as_os_str().as_encoded_bytes())?;
     } else if file {
-        feed(digest, &(meta.permissions().mode() & 0o111).to_le_bytes());
-        feed(digest, &fs::read(path)?);
+        feed(digest, &(meta.permissions().mode() & 0o111).to_le_bytes())?;
+        feed(digest, &fs::read(path)?)?;
     } else {
-        feed(digest, b"directory");
+        feed(digest, b"directory")?;
     }
     Ok(())
 }

@@ -77,7 +77,7 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         kind: Kind::Structure(Structure::EmbeddedText),
         line: first + 1,
         symbol: "literal".into(),
-        actual: (node.end_position().row - first + 1) as u64,
+        actual: node.end_position().row - first + 1,
     });
 }
 fn file_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
@@ -120,7 +120,7 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
                 .is_some_and(|pattern| pattern.kind() == "self");
             !excluded
         })
-        .count() as u64;
+        .count();
     function(node, source, count, output);
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
