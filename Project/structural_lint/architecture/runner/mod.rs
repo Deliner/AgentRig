@@ -2,7 +2,9 @@ mod analysis;
 mod disallowed;
 mod scope;
 
-use super::{Contracts, Issue, Loaded, PYTHON_SEED, RUST_SEED, Settings, source::References};
+use super::{
+    Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, source::References,
+};
 use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
@@ -24,11 +26,35 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
     Ok(Scope::new(rule, inventory)?.directories.contains(path))
 }
 
-pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
+// DECISION: D143
+pub fn edges(
+    root: &Path,
+    rule: &Rule,
+    inventory: &Inventory,
+    directory: &Path,
+) -> Result<Option<Neighbours>> {
+    let unselected = !contains_directory(rule, directory, inventory)?;
+    if unselected {
+        return Ok(None);
+    }
+    let measured = measure(root, rule, inventory)?;
+    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory)))
+}
+
+struct Measured<'r> {
+    root: PathBuf,
+    scope: Scope,
+    settings: &'r Settings,
+    issues: Vec<Issue>,
+    analyzed: Analysis,
+}
+
+// DECISION: D143
+fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Option<Measured<'r>>> {
     let scope = Scope::new(rule, inventory)?;
     let empty = scope.directories.is_empty();
     if empty {
-        return Ok(Vec::new());
+        return Ok(None);
     }
     let root = crate::shared::fs::canonicalize(root)?;
     let no_exclusions = globs(&[])?;
@@ -41,13 +67,33 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
     let rust_sources = analysis::rust_sources(&root, &files);
-    let (resolvers, mut issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
+    let (resolvers, issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
+    let sources = analysis::extract(&root, &scope.files);
+    let analyzed = dependencies(&resolvers, sources);
+    Ok(Some(Measured {
+        root,
+        scope,
+        settings,
+        issues,
+        analyzed,
+    }))
+}
+
+pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
+    let Some(Measured {
+        root,
+        scope,
+        settings,
+        mut issues,
+        analyzed,
+    }) = measure(root, rule, inventory)?
+    else {
+        return Ok(Vec::new());
+    };
     let loaded: Loaded = Contracts::load(&root, &scope.directories);
     issues.extend(loaded.issues);
     let contracts = loaded.contracts;
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
-    let sources = analysis::extract(&root, &scope.files);
-    let analyzed = dependencies(&resolvers, sources);
     issues.extend(analyzed.issues);
     issues.extend(unused_externals(settings, &scope, analyzed.used.as_ref()));
     issues.extend(super::graph::cycles(&analyzed.edges));

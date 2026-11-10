@@ -4,7 +4,7 @@ files:
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
   cli.rs: Embedded and standalone command arguments and rule discovery output
-  explain.rs: Explain why a configured rule selects or excludes a target
+  explain.rs: Explain why a configured rule selects or excludes a target and list measured directory edges
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   testing: Build isolated lint CLI consumers shared across rule behavior tests

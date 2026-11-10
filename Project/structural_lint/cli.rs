@@ -58,9 +58,9 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     ensure!(
         matches!(
             command.as_str(),
-            "lint" | "lint-config-check" | "lint-explain"
+            "lint" | "lint-config-check" | "lint-explain" | "lint-edges"
         ),
-        "expected lint, lint-config-check, lint-explain, lint-rule or lint-rules"
+        "expected lint, lint-config-check, lint-explain, lint-edges, lint-rule or lint-rules"
     );
     let root = match take_option(&mut args, "--root")? {
         Some(value) => PathBuf::from(value),
@@ -68,9 +68,9 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     };
     let root = crate::shared::fs::canonicalize(root)?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
-    let explain = command == "lint-explain";
-    if explain {
-        return super::explain::run(&root, &root.join(config), &args);
+    // DECISION: D143
+    if let Some(inspect) = super::explain::inspection(&command) {
+        return inspect(&root, &root.join(config), &args);
     }
     let config_check = command == "lint-config-check";
     let mode = if config_check {

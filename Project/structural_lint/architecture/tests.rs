@@ -150,7 +150,9 @@ fn cycles_report_the_closing_measured_edge() {
     let issues = super::graph::cycles(&edges);
     assert_eq!(
         messages(&issues),
-        ["directory dependency cycle: a -> b -> c -> a"]
+        [
+            "directory dependency cycle: a -> b -> c -> a; a/api.rs:7 uses b/api.py; b/api.py:7 uses c/api.ts; c/api.ts:7 uses a/api.rs"
+        ]
     );
     assert_eq!(issues[0].path, PathBuf::from("c/api.ts"));
     assert_eq!(issues[0].line, Some(7));
@@ -178,7 +180,12 @@ fn cycles_crossing_different_subdirectories_are_visible_at_the_boundary() {
         edge("src/b/impl/write.rs", "src/a/api/entry.rs"),
     ];
     let issues = super::graph::cycles(&edges);
-    assert!(messages(&issues).contains(&"directory dependency cycle: src/a -> src/b -> src/a"));
+    assert_eq!(
+        messages(&issues),
+        [
+            "directory dependency cycle: src/a -> src/b -> src/a; src/a/impl/read.rs:7 uses src/b/api/entry.rs; src/b/impl/write.rs:7 uses src/a/api/entry.rs"
+        ]
+    );
     assert_eq!(issues[0].line, Some(7));
 }
 
@@ -474,10 +481,11 @@ fn coupling_ignores_same_directory_and_module_declaration_edges() {
         found[0].path,
         PathBuf::from("Project/hub/architecture.yaml")
     );
-    assert!(
-        found[0]
-            .message
-            .contains("depended on by 2 other directories (budget 1)")
+    assert_eq!(
+        messages(&found),
+        [
+            "directory is depended on by 2 other directories (budget 1): Project/a (Project/a/f.rs:7 uses Project/hub/mod.rs), Project/b (Project/b/f.rs:7 uses Project/hub/mod.rs); reduce incoming coupling or raise the declared dependents budget"
+        ]
     );
 }
 
@@ -496,11 +504,15 @@ fn coupling_uses_the_default_budget_when_unspecified() {
             .collect()
     };
     let over = loaded.check_coupling(&into_wide(7));
+    let named: Vec<_> = (0..7)
+        .map(|n| format!("Project/d{n} (Project/d{n}/f.rs:7 uses Project/wide/f.rs)"))
+        .collect();
     assert_eq!(
         messages(&over),
-        [
-            "directory is depended on by 7 other directories (budget 6); reduce incoming coupling or raise the declared dependents budget"
-        ]
+        [format!(
+            "directory is depended on by 7 other directories (budget 6): {}; reduce incoming coupling or raise the declared dependents budget",
+            named.join(", ")
+        )]
     );
     assert!(loaded.check_coupling(&into_wide(6)).is_empty());
 }

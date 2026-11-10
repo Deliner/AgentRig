@@ -26,6 +26,7 @@ repair skill; an error finding exits 1; warnings exit 0 and are printed only wit
 - `just lint-config-check` validates configuration, skills and selectors against the current inventory without
   reading sources.
 - `just lint-explain PATH` shows why each rule selects or skips a path, with effective thresholds and overrides.
+- `just lint-edges DIR` lists the measured incoming and outgoing edges of a directory that architecture findings count.
 - `just lint --json` prints each finding's rule, path, line, symbol, actual, limit, level, message, skill and rerun
   command.
 

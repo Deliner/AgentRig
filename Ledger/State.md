@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/false-edges` (P101, B087)
-Revision: `08e58da` (master после слияния P100; VAC P101 ещё не закоммичен)
+Branch: `feature/edge-findings` (P102, B088)
+Revision: `71fdfba` (VAC1 P102; VAC2 в этом коммите)
 
-Установленный рантайм `a4113fa` (пин P100). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `6874047` (пин P101). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,21 +23,21 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P100 (B093, B098, B101 с D139, B092 с D140, B094, B095, B100 с D141) завершены и слиты в master, пин
-  `a4113fa`.
-- P101 в рабочем дереве: путь в `pub(in …)` не даёт ребра, `#[expect]` не выключает анализ крейта; тесты, Delivery и
-  ротация.
+- P094–P101 завершены и слиты в master, пин `6874047`.
+- P102 выполнен двумя VAC и ротирован в Archive: `71fdfba` — рёбра в находках бюджета и цикла и единый формат
+  печати (D142); второй — команда `lint-edges DIR [--json]` из того же измерения, что и lint (D143), README
+  архитектуры со всеми полями контракта. Осталось: пин D051 и `just feature-merge`.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
-  `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`.
-- Для финального прохода voxel-rust: ручные исключения file-size `src/Cargo.lock` и `src/package-lock.json` можно
-  заменить поставляемыми шаблонами.
+  `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
+  file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P101: тесты архитектуры на кандидате — 137 passed; новые случаи видимости и `expect` падают на установленном
-  `a4113fa`. Клон voxel-rust `71440d0` в scratchpad `voxel-b101`: с возвращённым `pub(in crate::native)` установленный
-  рантайм даёт цикл и fan-out, кандидат — 0 находок; с `#[expect]` в `src/core/control/local.rs` установленный даёт
-  4310 находок о незавершённом анализе, кандидат — 0. Правки клона откачены, рабочее дерево voxel-rust не тронуто.
+- P102 VAC1: гейт коммита `71fdfba` — 420 passed. VAC2: `Project/structural_lint`, `test_hooks.py` и
+  `Project/project_setup` на кандидате — 319 passed; Rust-тесты — 167 passed; `just lint`, `memory-check` чистые.
+  Тест команды и проверка охраны падают на установленном `6874047`.
+- AC3 на клоне voxel-rust `71440d0` с `dependents: 0` у `src/core/world`: lint насчитал и назвал 13 зависимых,
+  `lint-edges` показал те же 13 каталогов (171 различное ребро); правка клона откачена.
 
 ## Blockers
 
@@ -45,5 +45,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P101; пин D051, коммит пина, `just feature-merge`; затем P102 (B088, находки о рёбрах).
-Свободные ID: D142+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Пин D051 на голову ветки, коммит пина, `just feature-merge`; дальше P103 (B090, цели тестов в `config-check`).
+Свободные ID: D144+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

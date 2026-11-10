@@ -11,6 +11,7 @@ mod tests;
 use std::path::PathBuf;
 
 pub use super::rules::architecture::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
+pub use graph::Neighbours;
 pub use policy::{Contracts, Loaded, describe};
 
 #[derive(Clone, Debug)]

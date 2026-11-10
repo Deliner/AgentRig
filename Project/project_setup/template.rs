@@ -421,6 +421,7 @@ const RECIPES: [(&str, &[Recipe]); 5] = [
             ("lint-baseline", "lint-baseline", true),
             ("lint-rule", "lint-rule", true),
             ("lint-explain", "lint-explain", true),
+            ("lint-edges", "lint-edges", true),
         ],
     ),
     (

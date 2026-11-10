@@ -97,6 +97,7 @@ def test_architecture_cli_contracts(
         assert all(item["actual"] is None and item["limit"] is None for item in findings)
 
 
+# DECISION: D142
 @pytest.mark.parametrize("edition", ["integrated", "standalone"])
 def test_architecture_warning_level_and_nonmutation(
     worker: Path, tmp_path: Path, edition: str
@@ -111,9 +112,11 @@ def test_architecture_warning_level_and_nonmutation(
     code, findings = lint(binary, tmp_path)
     assert code == 0 and len(findings) == 1, findings
     assert findings[0]["level"] == "warning"
-    assert "directory dependency cycle: src/a -> src/b -> src/a" in findings[0]["message"]
+    cycle = "src/a -> src/b -> src/a; src/a/api.py:1 uses src/b/api.py; src/b/api.py:3 uses src/a/api.py"
+    assert findings[0]["message"] == f"directory dependency cycle: {cycle}"
     assert findings[0]["path"] == "src/b/api.py" and findings[0]["line"] == 3
     assert before == snapshot(tmp_path)
+    assert lint(binary, tmp_path) == (code, findings)
 
 
 def snapshot(root: Path) -> dict[str, bytes]:

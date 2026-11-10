@@ -5,7 +5,7 @@ files:
   policy.rs: Strict directory contracts with purpose, inventory and feature type
   features.rs: Feature classification, required type parts and inward part dependencies
   inventory.rs: Exact file and child-directory responsibility coverage checks
-  graph.rs: Cycle detection and per-file fan-out over measured directory dependencies
+  graph.rs: Cycles, per-file fan-out, dependents and directory edges over measured dependencies
   tests.rs: Contract validation, feature types and measured cycle behavior
   README.md: Rule configuration, contract format, feature types and source analysis limits
 directories:
