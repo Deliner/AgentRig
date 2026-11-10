@@ -12,6 +12,7 @@ use std::path::Path;
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Command {
     Init,
+    RuntimeAdd,
     GuardCommit,
     GuardReference,
     Check,
@@ -31,6 +32,7 @@ pub enum Command {
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
+    ("runtime-add", Command::RuntimeAdd),
     ("guard-commit", Command::GuardCommit),
     ("guard-reference", Command::GuardReference),
     ("check", Command::Check),
@@ -98,6 +100,7 @@ fn validate_arguments(command: Command, args: &[String]) -> Result<()> {
     let unexpected = matches!(
         command,
         Command::Doctor
+            | Command::RuntimeAdd
             | Command::MemoryCheck
             | Command::Resume
             | Command::Report

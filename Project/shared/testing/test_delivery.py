@@ -93,7 +93,8 @@ class Consumer:
         git(self.root, "switch", "-c", self.layout.git.prefix + "bootstrap")
         result = invoke(worker, self.root, "init", *self.layout.init_args())
         assert result.returncode == 0, result.stderr
-        assert self.binary.read_bytes() == worker.read_bytes()
+        (runtime,) = self.binary.parent.glob("*/agentrig")
+        assert runtime.read_bytes() == worker.read_bytes()
         example = (
             Path(__file__).parent / "examples" / self.layout.language / self.layout.paths.source
         )
