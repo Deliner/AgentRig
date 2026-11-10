@@ -1,11 +1,11 @@
-use super::super::analyze;
+use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use std::path::Path;
 
 // DECISION: D100
 fn reach_findings(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut sites: Vec<_> = analysis
         .measurements

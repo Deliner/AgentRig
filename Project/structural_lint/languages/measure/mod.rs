@@ -3,6 +3,7 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
+use std::collections::BTreeSet;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -11,6 +12,13 @@ pub struct Measurement {
     pub line: usize,
     pub symbol: String,
     pub actual: usize,
+}
+#[derive(Default)]
+pub struct Analysis {
+    pub measurements: Vec<Measurement>,
+    // DECISION: D156
+    pub mixed_junctions: Vec<usize>,
+    pub parse_error: Option<usize>,
 }
 // DECISION: D127
 #[expect(clippy::string_slice)]
@@ -80,6 +88,34 @@ pub fn boolean_expression(node: Node<'_>, output: &mut Vec<Measurement>) {
             symbol: "expression".into(),
             actual: operands(node),
         });
+    }
+}
+// DECISION: D156
+pub fn mixed_junction(node: Node<'_>) -> Option<usize> {
+    let nested = enclosing(node).is_some_and(connective);
+    let measured = connective(node) && !nested;
+    let mut found = BTreeSet::new();
+    junctions(node, &mut found);
+    let mixed = measured && found.len() > 1;
+    mixed.then_some(node.start_position().row + 1)
+}
+fn junctions<'a>(node: Node<'a>, found: &mut BTreeSet<&'static str>) {
+    let inner = ungrouped(node);
+    let operator = match inner.kind() {
+        "let_chain" => Some("&&"),
+        _ => inner
+            .child_by_field_name("operator")
+            .map(|operator| operator.kind())
+            .filter(|_| connective(inner)),
+    };
+    let Some(operator) = operator else {
+        return;
+    };
+    found.insert(operator);
+    let mut cursor = inner.walk();
+    let children: Vec<_> = inner.named_children(&mut cursor).collect();
+    for child in children {
+        junctions(child, found);
     }
 }
 fn connective(node: Node<'_>) -> bool {

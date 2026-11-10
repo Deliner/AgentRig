@@ -1,11 +1,14 @@
-use super::super::analyze;
+mod mixed_junction;
+mod range_chain;
+mod variant_equality;
+use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;
 
 // DECISION: D155
 fn measured(source: &str, kind: ControlFlow) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

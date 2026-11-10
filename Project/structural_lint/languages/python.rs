@@ -1,8 +1,9 @@
 use super::measure::{
-    Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
-    condition, credential, function, justified, nesting, text,
+    Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
+    comment, condition, credential, function, justified, mixed_junction, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Pair;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
@@ -41,7 +42,9 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
         });
     }
 }
-pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub fn inspect(node: Node<'_>, source: &str, _pairs: &[Pair], analysis: &mut Analysis) {
+    analysis.mixed_junctions.extend(mixed_junction(node));
+    let output = &mut analysis.measurements;
     match node.kind() {
         "comment" => comment(node, source, output),
         "string" => credential(node, source, output),
@@ -56,17 +59,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             };
             condition(node, test, output);
         }
-        "conditional_expression" => {
-            let mut cursor = node.walk();
-            let mut operands = node
-                .named_children(&mut cursor)
-                .filter(|child| !child.is_extra());
-            let _consequence = operands.next();
-            let Some(test) = operands.next() else {
-                return;
-            };
-            condition(node, test, output);
-        }
+        "conditional_expression" => ternary(node, output),
         "if_clause" => {
             let mut cursor = node.walk();
             let Some(test) = node
@@ -80,6 +73,17 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "function_definition" | "lambda" => measure(node, source, output),
         _ => {}
     }
+}
+fn ternary(node: Node<'_>, output: &mut Vec<Measurement>) {
+    let mut cursor = node.walk();
+    let mut operands = node
+        .named_children(&mut cursor)
+        .filter(|child| !child.is_extra());
+    let _consequence = operands.next();
+    let Some(test) = operands.next() else {
+        return;
+    };
+    condition(node, test, output);
 }
 // DECISION: D069
 // DECISION: D074

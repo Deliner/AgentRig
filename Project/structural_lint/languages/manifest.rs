@@ -7,10 +7,7 @@ use toml::de::{DeString, DeTable, DeValue};
 
 // DECISION: D098
 pub(super) fn analyze(source: &str) -> Analysis {
-    let mut analysis = Analysis {
-        measurements: Vec::new(),
-        parse_error: None,
-    };
+    let mut analysis = Analysis::default();
     match DeTable::parse(source) {
         Ok(document) => scan(document.get_ref(), source, &mut analysis.measurements),
         Err(error) => {

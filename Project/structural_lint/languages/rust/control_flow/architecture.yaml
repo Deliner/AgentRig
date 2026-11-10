@@ -1,7 +1,9 @@
-purpose: Detect Rust loop exits and length subtractions whose shape hides which loop they leave or whether the length suffices
+purpose: Detect Rust control flow whose shape hides which loop it leaves, which case it handles or whether the length suffices
 type: flat
 files:
-  mod.rs: Dispatch loop exits and binary expressions to the control-flow detectors
+  mod.rs: Dispatch control-flow nodes to the control-flow detectors
   length_subtraction.rs: Rust subtraction from a .len() or .count() call that underflows on a shorter collection
+  range_chain.rs: Rust if-else chain or match guards that split one value into ranges by comparisons with literals
   unlabeled_exit.rs: Rust break or continue without a label inside a loop nested in another loop of the same function
+  variant_equality.rs: Rust equality test or matches! pattern that names an enum variant instead of matching all variants
 directories: {}

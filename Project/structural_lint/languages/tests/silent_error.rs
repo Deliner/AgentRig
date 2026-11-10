@@ -5,7 +5,7 @@ use std::path::Path;
 
 // DECISION: D097
 fn silent_findings(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

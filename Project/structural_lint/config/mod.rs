@@ -1,6 +1,8 @@
 use super::catalog as rules;
 pub use crate::shared::diagnostics::lint::Level;
 use crate::shared::{diagnostics::skills, paths::patterns::globs};
+use crate::structural_lint::rules::control_flow::{ControlFlow, Junctions};
+use crate::structural_lint::rules::ownership::{Ownership, Pair};
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
@@ -44,6 +46,11 @@ pub struct Rule {
     pub overrides: Vec<Override>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub architecture: Option<super::rules::architecture::Settings>,
+    // DECISION: D156
+    #[serde(default, skip_serializing_if = "Junctions::mixed")]
+    pub junctions: Junctions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pairs: Option<Vec<Pair>>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -90,10 +97,19 @@ pub fn load(root: &Path, path: &Path) -> Result<Config> {
         }
         rule.validate(resources)?;
     }
+    single_pairs(&config.rules)?;
     if let Some(resources) = external {
         resolve_guidance(&mut config, &resources);
     }
     Ok(config)
+}
+// DECISION: D156
+fn single_pairs(rules: &[Rule]) -> Result<()> {
+    let repeated = rules.iter().filter(|rule| rule.pairs.is_some()).count() > 1;
+    if repeated {
+        bail!("at most one rule lists pairs");
+    }
+    Ok(())
 }
 fn resolve_guidance(config: &mut Config, resources: &Path) {
     config.config_skill = resources
@@ -127,6 +143,8 @@ impl Rule {
         let extension_target = if architecture { "file" } else { &self.target };
         validate_extensions(&self.extensions, extension_target)?;
         self.validate_architecture()?;
+        self.validate_junctions()?;
+        self.validate_pairs()?;
         rules::validate_extensions(self.kind, &self.extensions)?;
         rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
@@ -183,6 +201,34 @@ impl Rule {
                 "{}: architecture settings require directory-architecture",
                 self.id
             );
+        }
+        Ok(())
+    }
+    // DECISION: D156
+    fn validate_junctions(&self) -> Result<()> {
+        let boolean = self.kind == rules::Kind::ControlFlow(ControlFlow::BooleanExpression);
+        let single = !self.junctions.mixed();
+        let misplaced = single && !boolean;
+        if misplaced {
+            bail!("{}: junctions apply only to boolean-expression", self.id);
+        }
+        Ok(())
+    }
+    // DECISION: D156
+    fn validate_pairs(&self) -> Result<()> {
+        let paired = self.kind == rules::Kind::Ownership(Ownership::PairedCalls);
+        match (&self.pairs, paired) {
+            (Some(pairs), true) => {
+                let valid = !pairs.is_empty() && pairs.iter().all(Pair::valid);
+                anyhow::ensure!(
+                    valid,
+                    "{}: pairs need distinct nonempty open and close names",
+                    self.id
+                );
+            }
+            (None, true) => bail!("{}: paired-calls needs pairs", self.id),
+            (Some(_), false) => bail!("{}: pairs require paired-calls", self.id),
+            (None, false) => {}
         }
         Ok(())
     }

@@ -1,9 +1,9 @@
 // DECISION: D033
 // DECISION: D098
-use super::{Analysis, Measurement, manifest, python, rust};
+use super::{Analysis, manifest, python, rust};
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::ownership::{Ownership, Pair};
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
@@ -11,7 +11,7 @@ use std::path::Path;
 use tree_sitter::Node;
 
 pub enum Inspect {
-    Tree(fn(Node<'_>, &str, &mut Vec<Measurement>)),
+    Tree(fn(Node<'_>, &str, &[Pair], &mut Analysis)),
     Document(fn(&str) -> Analysis),
 }
 pub struct Handler {

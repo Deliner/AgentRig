@@ -100,6 +100,52 @@ def test_config_check_reports_schema_errors(
     assert items[0]["rule"] == "configuration"
 
 
+PAIR = 'pairs: [{open: "begin", close: "commit"}]'
+
+
+def configure_rust(root: Path, kind: str, settings: str) -> None:
+    configure(root, kind, settings)
+    path = root / "lint.yaml"
+    path.write_text(path.read_text().replace('[".rs", ".py", ".pyi"]', '[".rs"]'))
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        ("named-if-condition", 'junctions: "single"', "junctions apply only to boolean-expression"),
+        ("named-if-condition", PAIR, "pairs require paired-calls"),
+        ("paired-calls", "", "paired-calls needs pairs"),
+        ("paired-calls", "pairs: []", "pairs need distinct nonempty"),
+        ("paired-calls", 'pairs: [{open: "lock", close: "lock"}]', "pairs need distinct nonempty"),
+    ],
+)
+# DECISION: D156
+def test_config_check_rejects_misplaced_rule_settings(
+    worker: Path, tmp_path: Path, case: tuple[str, str, str]
+) -> None:
+    kind, settings, message = case
+    configure_rust(tmp_path, kind, f'level: "error"\n{settings}')
+    code, items = check(worker, tmp_path)
+    assert code == 2
+    assert message in items[0]["message"]
+
+
+def test_config_check_accepts_settings_on_their_rule_and_pairs_once(
+    worker: Path, tmp_path: Path
+) -> None:
+    configure_rust(tmp_path, "boolean-expression", 'error: 3\njunctions: "single"')
+    assert check(worker, tmp_path) == (0, [])
+    configure_rust(tmp_path / "pairs", "paired-calls", f'level: "error"\n{PAIR}')
+    assert check(worker, tmp_path / "pairs") == (0, [])
+    path = tmp_path / "pairs/lint.yaml"
+    config = path.read_text()
+    second = config[config.index("  - id:") :].replace('id: "source"', 'id: "second"')
+    path.write_text(config + second)
+    code, items = check(worker, tmp_path / "pairs")
+    assert code == 2
+    assert "at most one rule lists pairs" in items[0]["message"]
+
+
 def test_config_check_effective_override(worker: Path, tmp_path: Path) -> None:
     prepare(
         tmp_path, CONFIG + '\n    overrides:\n      - include: ["src/**"]\n        warning: 9\n'

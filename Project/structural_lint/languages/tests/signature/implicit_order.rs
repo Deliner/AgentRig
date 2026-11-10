@@ -5,7 +5,7 @@ use std::path::Path;
 
 // DECISION: D155
 fn implicit_order_findings(source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

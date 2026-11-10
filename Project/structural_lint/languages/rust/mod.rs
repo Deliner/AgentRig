@@ -1,6 +1,7 @@
 mod blocking_async;
 mod context;
 mod control_flow;
+mod naming;
 mod ownership;
 mod panic_surface;
 mod signature;
@@ -10,10 +11,11 @@ mod suppression;
 mod test_placement;
 mod unsafe_site;
 use crate::structural_lint::languages::measure::{
-    Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
-    condition, credential, function, justified, nesting, text,
+    Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
+    comment, condition, credential, function, justified, mixed_junction, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Pair;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::structure::Structure;
 use context::in_debug_only_context;
@@ -21,10 +23,13 @@ pub(crate) use context::in_test_context;
 use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037
-pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub fn inspect(node: Node<'_>, source: &str, pairs: &[Pair], analysis: &mut Analysis) {
+    analysis.mixed_junctions.extend(mixed_junction(node));
+    let output = &mut analysis.measurements;
     signature::inspect(node, source, output);
-    ownership::inspect(node, source, output);
+    ownership::inspect(node, source, pairs, output);
     control_flow::inspect(node, source, output);
+    naming::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),

@@ -1,8 +1,9 @@
 use crate::structural_lint::languages::measure::{Measurement, descendants, text};
 use crate::structural_lint::languages::rust::context::{
-    attributed, derives, in_test_context, last_segment, listed, type_name,
+    attributed, derives, in_test_context, justified_item, last_segment, listed, type_name,
 };
 use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rules::ownership::Ownership;
 use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
@@ -97,30 +98,66 @@ fn bypass(definition: Node<'_>, implementations: &[Node<'_>], source: &str) -> O
         plain: plain_fields(definition.child_by_field_name("body")?, source),
         source,
     };
-    let mut constructors = Vec::new();
-    let owned = implementations.iter().filter(|implementation| {
-        let target = implementation.child_by_field_name("type");
-        target.and_then(|path| type_name(path, source)) == Some(name)
-    });
-    for implementation in owned {
+    let manual = implementations.iter().any(|implementation| {
         let contract = implementation.child_by_field_name("trait");
-        match contract.map(|path| type_name(path, source)) {
-            None | Some(Some("TryFrom" | "FromStr")) => {
-                constructors.extend(functions(*implementation))
-            }
-            Some(Some("Deserialize")) => return None,
-            Some(_) => {}
-        }
+        owned(*implementation, name, source)
+            && contract.and_then(|path| type_name(path, source)) == Some("Deserialize")
+    });
+    (!manual).then_some(())?;
+    owner.checked(implementations)
+}
+// DECISION: D156
+pub(super) fn open_checked_field(root: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let nodes = descendants(root);
+    let implementations: Vec<_> = nodes
+        .iter()
+        .copied()
+        .filter(|node| node.kind() == "impl_item")
+        .collect();
+    for definition in nodes.iter().filter(|node| node.kind() == "struct_item") {
+        let Some(symbol) = exposed(*definition, &implementations, source) else {
+            continue;
+        };
+        output.push(Measurement {
+            kind: Kind::Ownership(Ownership::OpenCheckedField),
+            line: definition.start_position().row + 1,
+            symbol,
+            actual: 1,
+        });
     }
-    let checked = constructors
-        .into_iter()
-        .find(|function| owner.checks(*function))?;
-    Some(format!(
-        "{name}::{}",
-        text(checked.child_by_field_name("name")?, source)
-    ))
+}
+fn exposed(definition: Node<'_>, implementations: &[Node<'_>], source: &str) -> Option<String> {
+    let skipped = in_test_context(definition, source) || justified_item(definition, source);
+    (!skipped).then_some(())?;
+    let owner = Owner {
+        name: text(definition.child_by_field_name("name")?, source),
+        plain: visible_fields(definition.child_by_field_name("body")?, source),
+        source,
+    };
+    (!owner.plain.is_empty()).then_some(())?;
+    owner.checked(implementations)
+}
+fn owned(implementation: Node<'_>, name: &str, source: &str) -> bool {
+    let target = implementation.child_by_field_name("type");
+    target.and_then(|path| type_name(path, source)) == Some(name)
 }
 impl Owner<'_> {
+    fn checked(&self, implementations: &[Node<'_>]) -> Option<String> {
+        let checked = implementations
+            .iter()
+            .filter(|implementation| owned(**implementation, self.name, self.source))
+            .filter(|implementation| {
+                implementation
+                    .child_by_field_name("trait")
+                    .is_none_or(|path| {
+                        matches!(type_name(path, self.source), Some("TryFrom" | "FromStr"))
+                    })
+            })
+            .flat_map(|implementation| functions(*implementation))
+            .find(|function| self.checks(*function))?;
+        let function = text(checked.child_by_field_name("name")?, self.source);
+        Some(format!("{}::{function}", self.name))
+    }
     fn checks(&self, function: Node<'_>) -> bool {
         let (Some(parameters), Some(returned), Some(body)) = (
             function.child_by_field_name("parameters"),
@@ -392,6 +429,32 @@ fn plain_fields(body: Node<'_>, source: &str) -> BTreeSet<String> {
         }
     }
     plain
+}
+fn visible_fields(body: Node<'_>, source: &str) -> BTreeSet<String> {
+    let mut visible = BTreeSet::new();
+    let mut exposed = false;
+    let mut position = 0;
+    let mut cursor = body.walk();
+    for child in body.named_children(&mut cursor) {
+        match child.kind() {
+            "visibility_modifier" => exposed = true,
+            "attribute_item" | "line_comment" | "block_comment" => {}
+            "field_declaration" => {
+                let mut parts = child.walk();
+                let public = child
+                    .named_children(&mut parts)
+                    .any(|part| part.kind() == "visibility_modifier");
+                let name = child.child_by_field_name("name").filter(|_| public);
+                visible.extend(name.map(|name| text(name, source).to_owned()));
+            }
+            _ => {
+                let public = std::mem::take(&mut exposed);
+                visible.extend(public.then(|| position.to_string()));
+                position += 1;
+            }
+        }
+    }
+    visible
 }
 fn converts(attribute_item: Node<'_>, source: &str) -> bool {
     listed(attribute_item, source, "serde", &["try_from", "from"])
