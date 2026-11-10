@@ -62,27 +62,22 @@ fn same_cause(left: &Diagnostic, right: &Diagnostic) -> bool {
     cause(left) == cause(right)
 }
 
+// DECISION: D142
 fn render(group: &[&Diagnostic]) -> String {
     let first = group[0];
-    let single = group.len() == 1;
-    let (location, message) = if single {
-        (format_location(first), first.message.clone())
-    } else {
-        (
-            format!("{} locations", group.len()),
-            "one cause, findings below".to_owned(),
-        )
-    };
+    let plural = group.len() > 1;
+    let suffix = if plural { "s" } else { "" };
+    let location = format!("{} location{suffix}", group.len());
     let mut text = super::Guidance {
         level: first.level.name(),
         id: &first.rule,
         location: &location,
-        message: &message,
+        message: "one cause, listed below",
         skill: &first.skill,
         rerun: &first.rerun,
     }
     .to_string();
-    for item in group.iter().filter(|_| !single) {
+    for item in group {
         text.push_str(&format!("\n  {}: {}", format_location(item), item.message));
     }
     text
@@ -125,8 +120,8 @@ mod tests {
         assert_eq!(
             grouped(&items),
             [
-                "WARNING [size] 2 locations: one cause, findings below. ACTION: Consider skill.md. RERUN: lint\n  a: lines measures 12, exceeds 10\n  c: lines measures 15, exceeds 10",
-                "WARNING [size] b: lines measures 30, exceeds 20. ACTION: Consider skill.md. RERUN: lint",
+                "WARNING [size] 2 locations: one cause, listed below. ACTION: Consider skill.md. RERUN: lint\n  a: lines measures 12, exceeds 10\n  c: lines measures 15, exceeds 10",
+                "WARNING [size] 1 location: one cause, listed below. ACTION: Consider skill.md. RERUN: lint\n  b: lines measures 30, exceeds 20",
             ]
         );
     }

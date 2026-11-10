@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/false-edges` (P101, B087)
-Revision: `08e58da` (master после слияния P100; VAC P101 ещё не закоммичен)
+Branch: `feature/edge-findings` (P102, B088)
+Revision: `d02dc83` (master после слияния P101; VAC1 P102 в этом коммите)
 
-Установленный рантайм `a4113fa` (пин P100). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `6874047` (пин P101). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,21 +23,24 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P100 (B093, B098, B101 с D139, B092 с D140, B094, B095, B100 с D141) завершены и слиты в master, пин
-  `a4113fa`.
-- P101 в рабочем дереве: путь в `pub(in …)` не даёт ребра, `#[expect]` не выключает анализ крейта; тесты, Delivery и
-  ротация.
+- P094–P101 завершены и слиты в master, пин `6874047`.
+- P102 VAC1 (D142): находка бюджета `dependents` перечисляет зависимые каталоги с первым ребром `файл:строка uses
+  цель`, находка цикла добавляет каждое своё ребро; оба берут рёбра из одной функции `graph::dependents` /
+  `directory_edges`. Текстовый вывод lint печатает одиночную находку как группу из одной. Тесты связности
+  переименованы в `test_architecture_coupling.py`.
+- P102 VAC2 впереди: команда `lint-edges PATH [--json]` с входящими и исходящими рёбрами каталога из того же
+  измерения, README архитектуры со всеми полями контракта, свидетельство AC3 на клоне voxel-rust, ротация.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
-  `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`.
-- Для финального прохода voxel-rust: ручные исключения file-size `src/Cargo.lock` и `src/package-lock.json` можно
-  заменить поставляемыми шаблонами.
+  `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
+  file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P101: тесты архитектуры на кандидате — 137 passed; новые случаи видимости и `expect` падают на установленном
-  `a4113fa`. Клон voxel-rust `71440d0` в scratchpad `voxel-b101`: с возвращённым `pub(in crate::native)` установленный
-  рантайм даёт цикл и fan-out, кандидат — 0 находок; с `#[expect]` в `src/core/control/local.rs` установленный даёт
-  4310 находок о незавершённом анализе, кандидат — 0. Правки клона откачены, рабочее дерево voxel-rust не тронуто.
+- P102 VAC1: тесты архитектуры и `test_lint.py` на кандидате — 162 passed; Rust-тесты `architecture` и
+  `diagnostics` — 54 passed. Новые проверки бюджета, цикла с рёбрами и повторного запуска, формата печати падают на
+  установленном `6874047` (4 failed). `memory-check`, `config-check` и `just lint` чистые.
+- Цикл на клоне voxel-rust установленным рантаймом три запуска подряд дал одну и ту же находку
+  (`src/native/host/game.rs:14`), так что AC2 уже выполнялся; тест повторного запуска его охраняет.
 
 ## Blockers
 
@@ -45,5 +48,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P101; пин D051, коммит пина, `just feature-merge`; затем P102 (B088, находки о рёбрах).
-Свободные ID: D142+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Закоммитить VAC1 P102, затем VAC2: команда `lint-edges`, README, AC3 на клоне voxel-rust (`dependents: 0` у
+`src/core/world`), ротация P102/B088, пин D051, `just feature-merge`; дальше P103 (B090).
+Свободные ID: D143+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

@@ -27,6 +27,33 @@ def python_hub(root: Path, packages: int, filename: str) -> None:
     contract(root / "src")
 
 
+def shared_hub(root: Path) -> None:
+    prepare(root, CONFIG.replace("EXTENSION", ".py").replace("ROOTS", "[]"))
+    (root / "src/hub").mkdir()
+    (root / "src/hub/api.py").write_text("def value():\n    return 1\n")
+    contract(root / "src/hub")
+    with (root / "src/hub/architecture.yaml").open("a") as file:
+        file.write("dependents: 1\n")
+    for name in ["p0", "p1"]:
+        (root / "src" / name).mkdir()
+        (root / "src" / name / "use.py").write_text("\nimport hub.api\n")
+        contract(root / "src" / name)
+    contract(root / "src")
+
+
+# DECISION: D079
+# DECISION: D142
+def test_dependents_budget_names_each_dependent_with_an_edge(worker: Path, tmp_path: Path) -> None:
+    shared_hub(tmp_path)
+    code, findings = lint(worker, tmp_path)
+    named = ", ".join(
+        f"src/{name} (src/{name}/use.py:2 uses src/hub/api.py)" for name in ["p0", "p1"]
+    )
+    expected = f"directory is depended on by 2 other directories (budget 1): {named}"
+    located = [(item["path"], item["message"].split("; ")[0]) for item in findings]
+    assert (code, located) == (1, [("src/hub/architecture.yaml", expected)]), findings
+
+
 OVER_DEFAULT = ("src/hub/api.py", None, "file uses 11 other project directories (budget 10)")
 OVER_SETTING = (
     "src/a/mod.rs",

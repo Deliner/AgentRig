@@ -143,32 +143,31 @@ impl Contracts {
     }
 
     // DECISION: D079
+    // DECISION: D142
     pub fn check_coupling(&self, edges: &[Dependency]) -> Vec<Issue> {
-        let mut dependents: BTreeMap<&Path, BTreeSet<&Path>> = BTreeMap::new();
-        for edge in edges {
-            if edge.module_declaration {
-                continue;
-            }
-            let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
-                continue;
-            };
-            let same_directory = source == target;
-            if same_directory {
-                continue;
-            }
-            dependents.entry(target).or_default().insert(source);
-        }
+        let dependents = super::graph::dependents(edges);
         let mut issues = Vec::new();
         for (directory, declaration) in &self.declarations {
             let budget = declaration.dependents.unwrap_or(DEFAULT_DEPENDENTS);
-            let incoming = dependents.get(directory.as_path()).map_or(0, BTreeSet::len);
-            let over_budget = incoming > budget;
+            let Some(sources) = dependents.get(directory.as_path()) else {
+                continue;
+            };
+            let over_budget = sources.len() > budget;
             if over_budget {
+                let named: Vec<_> = sources
+                    .iter()
+                    .map(|(source, edge)| {
+                        let source = super::graph::directory_key(source);
+                        format!("{} ({})", source.display(), super::graph::evidence(edge))
+                    })
+                    .collect();
                 issues.push(Issue {
                     path: directory.join(FILENAME),
                     line: None,
                     message: format!(
-                        "directory is depended on by {incoming} other directories (budget {budget}); reduce incoming coupling or raise the declared dependents budget"
+                        "directory is depended on by {} other directories (budget {budget}): {}; reduce incoming coupling or raise the declared dependents budget",
+                        sources.len(),
+                        named.join(", ")
                     ),
                 });
             }

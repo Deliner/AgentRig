@@ -53,6 +53,45 @@ fn add_edge<'a>(graph: &mut Adjacency<'a>, edge: &'a Dependency) {
     }
 }
 
+// DECISION: D079
+// DECISION: D142
+pub(super) fn directory_edges(
+    dependencies: &[Dependency],
+) -> impl Iterator<Item = (&Path, &Path, &Dependency)> {
+    dependencies.iter().filter_map(|edge| {
+        let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
+            return None;
+        };
+        let counted = !edge.module_declaration && source != target;
+        counted.then_some((source, target, edge))
+    })
+}
+
+// DECISION: D142
+pub(super) fn dependents(dependencies: &[Dependency]) -> Dependents<'_> {
+    let mut dependents: Dependents<'_> = BTreeMap::new();
+    for (source, target, edge) in directory_edges(dependencies) {
+        dependents
+            .entry(target)
+            .or_default()
+            .entry(source)
+            .or_insert(edge);
+    }
+    dependents
+}
+
+pub(super) type Dependents<'a> = BTreeMap<&'a Path, BTreeMap<&'a Path, &'a Dependency>>;
+
+// DECISION: D142
+pub(super) fn evidence(edge: &Dependency) -> String {
+    format!(
+        "{}:{} uses {}",
+        edge.source.display(),
+        edge.line,
+        edge.target.display()
+    )
+}
+
 // DECISION: D121
 const FAN_OUT: usize = 10;
 
@@ -97,7 +136,7 @@ fn entry_point(file: &Path, settings: &Settings) -> bool {
     python_main || settings.rust_roots.iter().any(|root| root == file)
 }
 
-fn directory_key(path: &Path) -> PathBuf {
+pub(super) fn directory_key(path: &Path) -> PathBuf {
     let root = path.as_os_str().is_empty();
     if root {
         PathBuf::from(".")
@@ -113,7 +152,7 @@ struct Traversal<'a> {
     issues: Vec<Issue>,
 }
 
-impl Traversal<'_> {
+impl<'a> Traversal<'a> {
     fn visit(&mut self, directory: &Path) {
         let finished = self.finished.contains(directory);
         if finished {
@@ -132,15 +171,24 @@ impl Traversal<'_> {
         self.finished.insert(directory.into());
     }
 
-    fn cycle(&mut self, index: usize, edge: &Dependency) {
-        let mut paths: Vec<_> = self.active[index..]
-            .iter()
-            .map(|p| p.display().to_string())
+    // DECISION: D142
+    fn cycle(&mut self, index: usize, edge: &'a Dependency) {
+        let cycle = &self.active[index..];
+        let mut hops: Vec<&Dependency> = cycle
+            .windows(2)
+            .filter_map(|pair| self.graph.get(&pair[0])?.get(&pair[1]).copied())
             .collect();
-        paths.push(self.active[index].display().to_string());
+        hops.push(edge);
+        let mut paths: Vec<_> = cycle.iter().map(|p| p.display().to_string()).collect();
+        paths.push(cycle[0].display().to_string());
+        let named: Vec<_> = hops.into_iter().map(evidence).collect();
         self.issues.push(Issue::dependency(
             edge,
-            format!("directory dependency cycle: {}", paths.join(" -> ")),
+            format!(
+                "directory dependency cycle: {}; {}",
+                paths.join(" -> "),
+                named.join("; ")
+            ),
         ));
     }
 }

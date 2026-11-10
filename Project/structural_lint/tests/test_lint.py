@@ -47,9 +47,12 @@ def test_warnings_are_shown_only_on_request(worker: Path, tmp_path: Path) -> Non
 
     default = run()
     assert default.returncode == 1
-    assert "ERROR [source] src/failed.rs" in default.stdout
+    assert "ERROR [source] 1 location: one cause, listed below." in default.stdout
+    assert "\n  src/failed.rs: " in default.stdout
     assert "WARNING" not in default.stdout + default.stderr
-    assert "WARNING [source] src/warned.rs" in run("--warnings").stdout
+    warned = run("--warnings").stdout
+    assert "WARNING [source] 1 location: one cause, listed below." in warned
+    assert "\n  src/warned.rs: " in warned
     (tmp_path / "src/failed.rs").unlink()
     quiet = run("--json")
     assert (quiet.returncode, quiet.stdout.strip()) == (0, "[]")
