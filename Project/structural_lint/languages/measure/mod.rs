@@ -129,7 +129,7 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();
     if forbidden {
         output.push(Measurement {
-            kind: Kind::Reference(Reference::CommentReference),
+            kind: Kind::Reference(Reference::Comment),
             line: node.start_position().row + 1,
             symbol: "comment".into(),
             actual: 1,

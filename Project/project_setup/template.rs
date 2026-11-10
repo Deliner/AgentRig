@@ -1,8 +1,8 @@
 use super::cargo::{self, Layout};
 use super::clippy;
 use crate::project_config::{
-    self, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent, Tools,
-    View, Views,
+    self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
+    Tools, View, Views,
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -60,18 +60,22 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
 pub(super) struct Scaffold {
     pub config: Config,
     pub rust: Layout,
+    pub clippy: Option<clippy::Settings>,
 }
 pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let source = &options["source"];
     let python = options["language"] == "python";
-    let rust = if python {
-        Layout::fallback(source)
+    let (rust, clippy) = if python {
+        (Layout::fallback(source), None)
     } else {
-        cargo::layout(root, source)?
+        let rust = cargo::layout(root, source)?;
+        let clippy = clippy::settings(root, &rust)?;
+        (rust, Some(clippy))
     };
     Ok(Scaffold {
         config: config(options, &rust),
         rust,
+        clippy,
     })
 }
 fn config(options: &Options<'_>, rust: &Layout) -> Config {
@@ -249,17 +253,6 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
     }
     commands
 }
-// DECISION: D062
-#[derive(Clone, Copy)]
-enum Access {
-    ReadOnly,
-    Writable,
-}
-impl Access {
-    fn reads(self) -> bool {
-        matches!(self, Self::ReadOnly)
-    }
-}
 fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
     Command {
         purpose: purpose.into(),
@@ -268,7 +261,7 @@ fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
         argv,
         cwd: ".".into(),
         accepts_args: true,
-        read_only: access.reads(),
+        access,
         programs: BTreeMap::new(),
         output: None,
     }

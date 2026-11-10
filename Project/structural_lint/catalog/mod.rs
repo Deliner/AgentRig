@@ -75,7 +75,7 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),
-    Kind::Reference(Reference::CommentReference),
+    Kind::Reference(Reference::Comment),
     Kind::Structure(Structure::DirectoryArchitecture),
     Kind::Structure(Structure::TestPlacement),
 ];

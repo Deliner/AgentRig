@@ -2,6 +2,7 @@ purpose: Implement the portable AgentRig runtime as first-level features with sh
 files:
   Cargo.toml: Library and executable build declarations
   Cargo.lock: Locked Rust dependency versions
+  clippy.toml: Clippy thresholds that init ships to Rust projects
   README.md: Runtime commands, build and lint rule user guide
   conftest.py: Shared pytest candidate binary construction and test environment fixtures
   lib.rs: Library declarations of the first-level features and shared support

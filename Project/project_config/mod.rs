@@ -1,9 +1,9 @@
 pub(crate) mod settings;
 use anyhow::Result;
 pub use settings::{
-    AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git, Hooks,
-    Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Tools, VERSION, View,
-    Views, files, module, read, relative, sources,
+    Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git,
+    Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Tools, VERSION,
+    View, Views, access, files, module, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 

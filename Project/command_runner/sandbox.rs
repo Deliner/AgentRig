@@ -1,5 +1,6 @@
 // DECISION: D034
 use super::jobs::Capture;
+use crate::project_config::Access;
 use anyhow::{Result, ensure};
 use std::{
     path::Path,
@@ -7,7 +8,7 @@ use std::{
 };
 
 pub struct Sandboxing {
-    pub read_only: bool,
+    pub access: Access,
     pub capture: Capture,
 }
 pub fn tracked(
@@ -16,15 +17,16 @@ pub fn tracked(
     options: Sandboxing,
     job: Option<&mut crate::command_runner::jobs::Job>,
 ) -> Result<Output> {
-    let Sandboxing { read_only, capture } = options;
+    let Sandboxing { access, capture } = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
-    let mut command = if read_only {
-        sandbox(root, argv, scratch.path())?
-    } else {
-        let mut command = Command::new(&argv[0]);
-        command.args(&argv[1..]);
-        command
+    let mut command = match access {
+        Access::ReadOnly => sandbox(root, argv, scratch.path())?,
+        Access::Writable => {
+            let mut command = Command::new(&argv[0]);
+            command.args(&argv[1..]);
+            command
+        }
     };
     command.current_dir(root);
     crate::command_runner::jobs::process::execute(&mut command, capture, job)

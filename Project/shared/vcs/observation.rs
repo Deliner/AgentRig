@@ -8,23 +8,33 @@ pub struct Observation {
     pub branch: String,
     pub revision: String,
     pub status: String,
-    pub merge_in_progress: bool,
-    pub rebase_in_progress: bool,
+    pub operation: Option<Operation>,
+}
+
+// DECISION: D154
+#[derive(Clone, Copy, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Operation {
+    Merge,
+    Rebase,
 }
 
 impl Repository<'_> {
     pub fn observe(&self) -> Result<Observation> {
         let branch = String::from_utf8(git::run(self.root, &["branch", "--show-current"])?)?;
         let status = String::from_utf8(git::run(self.root, &["status", "--short"])?)?;
-        let merge_in_progress = self.git_operation("MERGE_HEAD")?;
-        let rebase_in_progress =
-            self.git_operation("rebase-merge")? || self.git_operation("rebase-apply")?;
+        let merge = self.git_operation("MERGE_HEAD")?;
+        let rebase = self.git_operation("rebase-merge")? || self.git_operation("rebase-apply")?;
+        let operation = match (rebase, merge) {
+            (true, _) => Some(Operation::Rebase),
+            (false, true) => Some(Operation::Merge),
+            (false, false) => None,
+        };
         Ok(Observation {
             branch: branch.trim().into(),
             revision: self.head()?.unwrap_or_default(),
             status: status.trim().into(),
-            merge_in_progress,
-            rebase_in_progress,
+            operation,
         })
     }
 

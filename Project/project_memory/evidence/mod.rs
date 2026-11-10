@@ -26,10 +26,8 @@ struct Record {
     timestamp: u64,
     revision: Option<String>,
     #[serde(default)]
-    revision_export: bool,
+    source: Source,
     fingerprint: String,
-    staged: bool,
-    index_fingerprint: Option<String>,
     only: Option<String>,
     #[serde(default)]
     selective: bool,
@@ -42,23 +40,39 @@ pub enum Input {
     Index(String),
     Revision(String),
 }
+// DECISION: D154
+#[derive(Default, Serialize, Deserialize)]
+#[serde(rename_all = "kebab-case")]
+enum Source {
+    #[default]
+    Worktree,
+    Index(String),
+    Revision,
+}
 
 impl Record {
     fn exported_revision(&self) -> Option<&str> {
-        self.revision.as_deref().filter(|_| self.revision_export)
+        match self.source {
+            Source::Revision => self.revision.as_deref(),
+            Source::Worktree | Source::Index(_) => None,
+        }
+    }
+
+    fn index_fingerprint(&self) -> Option<&str> {
+        match &self.source {
+            Source::Index(saved) => Some(saved),
+            Source::Worktree | Source::Revision => None,
+        }
     }
 
     fn fingerprint(&self, context: &Context, origin: &Path) -> Result<String> {
+        let tree = match self.source {
+            Source::Index(_) => content::Tree::Staged,
+            Source::Worktree | Source::Revision => content::Tree::Working,
+        };
         match self.exported_revision() {
             Some(revision) => content::revision_fingerprint(context, origin, revision),
-            None => {
-                let tree = if self.staged {
-                    content::Tree::Staged
-                } else {
-                    content::Tree::Working
-                };
-                content::fingerprint(context, origin, tree)
-            }
+            None => content::fingerprint(context, origin, tree),
         }
     }
 }
@@ -75,23 +89,21 @@ impl Attempt {
         input: Input,
         only: Option<&str>,
     ) -> Result<Self> {
-        let (index_fingerprint, selected) = match input {
-            Input::Worktree => (None, None),
-            Input::Index(index) => (Some(index), None),
-            Input::Revision(revision) => (None, Some(revision)),
+        let (source, selected) = match input {
+            Input::Worktree => (Source::Worktree, None),
+            Input::Index(index) => (Source::Index(index), None),
+            Input::Revision(revision) => (Source::Revision, Some(revision)),
         };
         let directory = project_config::relative(origin, &context.config.paths.runtime)?;
         let path = directory.join("checks.json");
         let mut record = Record {
             timestamp: SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs(),
-            revision_export: selected.is_some(),
             revision: match selected {
                 Some(revision) => Some(revision),
                 None => content::head(origin)?,
             },
+            source,
             fingerprint: String::new(),
-            staged: index_fingerprint.is_some(),
-            index_fingerprint,
             only: only.map(str::to_owned),
             selective: false,
             status: "unfinished".into(),
@@ -116,7 +128,8 @@ impl Attempt {
     }
     pub fn rerun(&self, root: &Path, id: &str) -> String {
         let mut args = vec!["check".to_owned(), "--only".into(), id.into()];
-        if self.record.staged {
+        let staged = self.record.index_fingerprint().is_some();
+        if staged {
             args.push("--staged".into());
         }
         if let Some(revision) = self.exported_revision() {
@@ -152,9 +165,8 @@ impl Attempt {
         };
         let index_matches = self
             .record
-            .index_fingerprint
-            .as_ref()
-            .map(|saved| content::index(origin).map(|current| current == *saved))
+            .index_fingerprint()
+            .map(|saved| content::index(origin).map(|current| current == saved))
             .transpose()?;
         let stable = fingerprint == self.record.fingerprint
             && revision == self.record.revision
@@ -203,9 +215,8 @@ fn observed(context: &Context) -> Result<Value> {
     let revision_matches = revision.is_some() && revision == record.revision;
     let content_matches = worktree == record.fingerprint;
     let index_matches = record
-        .index_fingerprint
-        .as_ref()
-        .map(|saved| content::index(&context.root).map(|current| current == *saved))
+        .index_fingerprint()
+        .map(|saved| content::index(&context.root).map(|current| current == saved))
         .transpose()?;
     let unchanged = revision_matches && content_matches && index_matches.unwrap_or(true);
     let current = unchanged && record.status == "completed";

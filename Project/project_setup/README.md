@@ -12,7 +12,9 @@ configuration, rejects collisions before writing, creates a Git repository on th
 registers the Git hooks through `core.hooksPath`. Options: `--language python|rust`, `--frontend codex|claude-code`,
 `--source` (default `Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There
 is no update or rollback: a changed release is installed into a fresh project. Rust projects also receive a `clippy`
-command and check that runs the Clippy profile of the AgentRig development gate on the project's own toolchain.
+command and check that runs the Clippy profile of the AgentRig development gate on the project's own toolchain. Init
+prepends the AgentRig thresholds missing from the file Clippy reads, the first `.clippy.toml` or `clippy.toml` from the
+manifest directory up to the root, or creates a root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills, lint settings, reminders and runtime data;
 the configuration modules always stay in `.agentrig`. The root `justfile` imports the recipes under `just/`, which
@@ -32,7 +34,7 @@ Every command accepts `--root PATH`, by default the current directory.
 
 | Command | Result |
 | --- | --- |
-| `init [--interactive]` | Create configuration, memory, skills, runtime and adapters without overwriting files. |
+| `init [--interactive]` | Create configuration, memory, skills, runtime and adapters, keeping existing file contents. |
 | `runtime-add` | Install the launcher and this executable as this platform's runtime; converts a single binary. |
 | `config-check` / `doctor` | Validate configuration and affected maps; diagnose runtime, executables, sandbox, hooks. |
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
@@ -77,11 +79,9 @@ Unknown fields are errors naming their module; project-relative paths cannot esc
 
 `feature-start` requires the base branch, a clean tree and no pending merge or rebase. `feature-merge` rebases a
 divergent feature, requires a passing gate on unchanged inputs and merges into the base with an explicit merge commit,
-then empties the branch scratch area except `results/` and deletes its scratch run logs.
-The pre-commit hook runs `guard-commit` and `check --staged`; the latest gate attempt is stored in
-`paths.runtime/checks.json`.
+then empties the branch scratch area except `results/` and deletes its scratch run logs. The pre-commit hook runs
+`guard-commit` and `check --staged`; the latest gate attempt is stored in `paths.runtime/checks.json`.
 
 Memory holds Plan, Backlog, Decisions, Invariants and State. Decision links to Rust, Python or shell owners need a
-`DECISION: DNNN` comment; committed decisions are immutable and superseded by new ones. Invariants link a test carrying
-`INVARIANT: INNN` and a configured oracle. `resume` compares State's Branch and Revision with Git and never overwrites
-State.
+`DECISION: DNNN` comment; committed decisions are immutable and superseded by new ones. Invariants link a test with
+`INVARIANT: INNN` and a configured oracle. `resume` compares State's Branch and Revision with Git, never writing State.

@@ -1,4 +1,4 @@
-use crate::project_config::Lifetime;
+use crate::project_config::{Access, Lifetime, access};
 use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions};
 mod background;
@@ -15,7 +15,7 @@ mod streams;
 
 use anyhow::Result;
 use identity::Identity;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{Value, json};
 use std::{
     path::{Path, PathBuf},
@@ -23,31 +23,32 @@ use std::{
 };
 
 // DECISION: D062
-#[derive(Clone, Copy)]
-pub enum Access {
-    ReadOnly,
-    Writable,
-}
-impl Access {
-    fn reads(self) -> bool {
-        matches!(self, Self::ReadOnly)
-    }
-}
-// DECISION: D062
-#[derive(Clone, Copy)]
+// DECISION: D154
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum Grouping {
     Own,
     Inherited,
 }
 impl Grouping {
-    fn own(self) -> bool {
-        matches!(self, Self::Own)
-    }
     pub fn target(self, pid: i32) -> i32 {
         match self {
             Self::Own => -pid,
             Self::Inherited => pid,
         }
+    }
+}
+mod process_group {
+    use super::{Deserialize, Deserializer, Grouping, Serializer};
+    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Grouping, D::Error> {
+        let own = bool::deserialize(deserializer)?;
+        Ok(if own {
+            Grouping::Own
+        } else {
+            Grouping::Inherited
+        })
+    }
+    pub fn serialize<S: Serializer>(grouping: &Grouping, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_bool(*grouping == Grouping::Own)
     }
 }
 // DECISION: D062
@@ -78,13 +79,23 @@ pub struct Record {
     pub error: Option<String>,
     pub supervisor: Identity,
     pub child: Option<Identity>,
-    pub process_group: bool,
+    #[serde(
+        rename = "process_group",
+        deserialize_with = "process_group::deserialize",
+        serialize_with = "process_group::serialize"
+    )]
+    pub grouping: Grouping,
     #[serde(default)]
     pub duration_seconds: Option<f64>,
     #[serde(default)]
     pub group: Option<Identity>,
-    #[serde(default)]
-    pub read_only: bool,
+    #[serde(
+        default,
+        rename = "read_only",
+        deserialize_with = "access::deserialize",
+        serialize_with = "access::serialize"
+    )]
+    pub access: Access,
     #[serde(default)]
     pub lifetime: Lifetime,
     #[serde(default)]
@@ -122,10 +133,10 @@ impl Job {
             error: None,
             supervisor: Identity::read(std::process::id())?,
             child: None,
-            process_group: false,
+            grouping: Grouping::Inherited,
             duration_seconds: None,
             group: None,
-            read_only: false,
+            access: Access::Writable,
             lifetime: Lifetime::Task,
             background: false,
         };
@@ -142,7 +153,7 @@ impl Job {
     }
     pub fn prepare(&mut self, argv: &[String], access: Access, lifetime: Lifetime) -> Result<()> {
         self.record.argv = argv.into();
-        self.record.read_only = access.reads();
+        self.record.access = access;
         self.record.lifetime = lifetime;
         self.save()
     }
@@ -151,7 +162,7 @@ impl Job {
     }
     pub fn attach(&mut self, pid: u32, grouping: Grouping) -> Result<()> {
         self.record.child = Identity::read(pid).ok();
-        self.record.process_group = grouping.own();
+        self.record.grouping = grouping;
         self.save()
     }
     pub fn finish(&mut self, code: i32, error: Option<String>) -> Result<()> {

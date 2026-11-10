@@ -1,4 +1,4 @@
-use super::{Contracts, Dependency, EnvironmentUse, Issue, Loaded};
+use super::{Contracts, Dependency, EnvironmentUse, Issue, Loaded, Relation};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -16,7 +16,7 @@ fn edge(source: &str, target: &str) -> Dependency {
         source: source.into(),
         target: target.into(),
         line: 7,
-        module_declaration: false,
+        relation: Relation::Use,
         test: false,
     }
 }
@@ -121,7 +121,7 @@ fn typed_feature_dependencies_point_inward_and_never_reach_tests() {
         edge(&core("domain/d.rs"), "Project/other/x.rs"),
         edge("Project/plain/x.py", "Project/plain/tests/t.py"),
         Dependency {
-            module_declaration: true,
+            relation: Relation::Declaration,
             ..edge(&core("mod.rs"), &core("tests/t.rs"))
         },
     ];
@@ -473,7 +473,7 @@ fn coupling_ignores_same_directory_and_module_declaration_edges() {
         edge(&hub("one.rs"), &hub("two.rs")),
     ];
     edges.push(Dependency {
-        module_declaration: true,
+        relation: Relation::Declaration,
         ..edge("Project/c/f.rs", &hub("mod.rs"))
     });
     let found = loaded.check_coupling(&edges);

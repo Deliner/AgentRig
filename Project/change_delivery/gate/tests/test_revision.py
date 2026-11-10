@@ -33,9 +33,8 @@ def test_revision_gate_uses_exact_files_config_and_repeatable_diagnostics(
     repeated = subprocess.run(shlex.split(rerun), capture_output=True, text=True, check=False)
     assert repeated.returncode == 1, repeated.stderr
     record = evidence(tmp_path)
-    assert record["revision"] == candidate and record["revision_export"]
+    assert record["revision"] == candidate and record["source"] == "revision"
     assert record["status"] == "completed" and record["code"] == 1
-    assert not record["staged"] and record["index_fingerprint"] is None
     assert source.read_text() == "value = 1\n"
     assert "error: 100" in lint.read_text()
     assert invoke(worker, tmp_path, "check", "--revision", base, "--only", "lint").returncode == 0

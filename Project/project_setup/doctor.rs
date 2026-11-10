@@ -1,4 +1,4 @@
-use crate::project_config::Context;
+use crate::project_config::{Access, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use anyhow::Result;
@@ -51,7 +51,7 @@ fn installed_binary(context: &Context) -> bool {
         &context.root,
         &[binary.to_string_lossy().into_owned(), "--version".into()],
         crate::command_runner::sandbox::Sandboxing {
-            read_only: false,
+            access: Access::Writable,
             capture: crate::command_runner::jobs::Capture::Collect,
         },
         None,
@@ -91,7 +91,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .config
         .commands
         .values()
-        .any(|command| command.read_only);
+        .any(|command| command.access == Access::ReadOnly);
     if read_only {
         let works = crate::command_runner::sandbox::available();
         console::stdout(format!(

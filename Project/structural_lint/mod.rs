@@ -28,11 +28,6 @@ pub enum Format {
     Json,
     Text,
 }
-impl Format {
-    fn is_json(self) -> bool {
-        matches!(self, Self::Json)
-    }
-}
 // DECISION: D062
 #[derive(Clone, Copy)]
 pub enum Mode {
@@ -50,9 +45,9 @@ impl Mode {
 // DECISION: D018
 const CONFIG_SKILL: &str = "repair (set config_skill in the lint configuration)";
 struct Output<'a> {
-    json: bool,
+    format: Format,
     warnings: bool,
-    validate_only: bool,
+    mode: Mode,
     rerun: Option<&'a str>,
 }
 pub fn run(root: &Path, path: &Path, format: Format, mode: Mode) -> Result<i32> {
@@ -60,9 +55,9 @@ pub fn run(root: &Path, path: &Path, format: Format, mode: Mode) -> Result<i32> 
         root,
         path,
         Output {
-            json: format.is_json(),
+            format,
             warnings: false,
-            validate_only: mode.config_check(),
+            mode,
             rerun: None,
         },
     )
@@ -72,21 +67,20 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
         root,
         path,
         Output {
-            json: false,
+            format: Format::Text,
             warnings: false,
-            validate_only: false,
+            mode: Mode::Lint,
             rerun: Some(rerun),
         },
     )
 }
 // DECISION: D049
 fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
-    let (mode, command) = if output.validate_only {
-        (Mode::ConfigCheck, "lint-config-check")
-    } else {
-        (Mode::Lint, "lint")
+    let command = match output.mode {
+        Mode::ConfigCheck => "lint-config-check",
+        Mode::Lint => "lint",
     };
-    let result = analyze(root, path, mode);
+    let result = analyze(root, path, output.mode);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
@@ -100,14 +94,15 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
             .unwrap_or_else(|| crate::shared::diagnostics::rerun(root, &args));
     }
     let failed = diagnostics.iter().any(|item| item.level == Level::Error);
-    if output.json {
-        console::stdout(serde_json::to_string(&diagnostics)?);
-    } else {
-        let configuration_valid = output.validate_only && !config_error;
-        if configuration_valid {
-            console::stdout(format!("Lint configuration is valid: {}", path.display()));
+    match output.format {
+        Format::Json => console::stdout(serde_json::to_string(&diagnostics)?),
+        Format::Text => {
+            let configuration_valid = output.mode.config_check() && !config_error;
+            if configuration_valid {
+                console::stdout(format!("Lint configuration is valid: {}", path.display()));
+            }
+            print_diagnostics(&diagnostics);
         }
-        print_diagnostics(&diagnostics);
     }
     Ok(if config_error { 2 } else { i32::from(failed) })
 }
@@ -117,7 +112,7 @@ fn rerun_args(command: &str, path: &Path, output: &Output<'_>) -> Vec<String> {
         "--config".into(),
         path.to_string_lossy().into_owned(),
     ];
-    let json = output.json.then_some("--json");
+    let json = matches!(output.format, Format::Json).then_some("--json");
     let warnings = output.warnings.then_some("--warnings");
     args.extend([json, warnings].into_iter().flatten().map(String::from));
     args

@@ -19,8 +19,14 @@ pub struct Dependency {
     pub source: PathBuf,
     pub target: PathBuf,
     pub line: usize,
-    pub module_declaration: bool,
+    pub relation: Relation,
     pub test: bool,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Relation {
+    Declaration,
+    Use,
 }
 
 #[derive(Debug)]

@@ -37,7 +37,7 @@ def test_staged_evidence_does_not_verify_unstaged_source(worker: Path, tmp_path:
     (tmp_path / "src/value.py").write_text("line\n" * 61)
     assert invoke(worker, tmp_path, "check", "--staged", "--only", "lint").returncode == 0
     checks = resumed(worker, tmp_path)["checks"]
-    assert checks["last_run"]["staged"]
+    assert "index" in checks["last_run"]["source"]
     assert not checks["worktree_matches"]
     assert checks["revision_matches"]
     git(tmp_path, "restore", "src/value.py")

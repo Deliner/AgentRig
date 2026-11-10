@@ -4,12 +4,12 @@
 
 Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. По нему показаны карточки B102–B105, и
 пользователь поручил: «Все карточки подтверждаю, заводи и делай автономно». Выбрано P110 → P113. Параллельно идёт
-приёмка P022 voxel-rust на ноутбуке с Linux и NVIDIA.
+приёмка P022 voxel-rust на ноутбуке с Linux, NVIDIA и Radeon.
 
 ## Workspace
 
-Branch: `feature/clippy-revisit`, от master `48310aa`.
-Revision: `e0eb185968b606b27fd8071e9c6c823c48f36f8e`; этот снимок закоммичен поверх вместе с пином.
+Branch: `feature/clippy-config`, от master `7990589`.
+Revision: `79905895dfe258c62123217f6e90bef9320f5f3c`; этот снимок входит в VAC P112 поверх неё.
 
 Установленный рантайм `e0eb185` (пин P111): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
 коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
@@ -17,24 +17,27 @@ Revision: `e0eb185968b606b27fd8071e9c6c823c48f36f8e`; этот снимок за
 
 ## Progress
 
-- P110 слита в master `48310aa` с пином `7128bc3`.
-- P111 выполнена VAC `e0eb185`: профиль Clippy из 32 lint-ов, полный match, `TryFrom` и счётчики линтера в
-  `usize`, `#[expect]` вместо `#[allow]`, D153, P111 и B103 в архиве. Пин D051 и `just bootstrap` сделаны. P112 и
-  P113 ждут.
-- Замер P112 с `max-struct-bools = 1` и `avoid-breaking-exported-api = false`: 7 мест `struct_excessive_bools` и
-  одно `enum_variant_names` в `structural_lint/rules/reference.rs`.
+- P110 и P111 слиты в master; последний merge `7990589`, пин P111 `06e6137`.
+- P112 собран одним VAC: `Project/clippy.toml` с `avoid-breaking-exported-api = false` и `max-struct-bools = 1`,
+  семь структур с двумя `bool` и `Reference::Comment` переведены на enum, `Scope` в выборе гейта, `init` дополняет
+  файл Clippy проекта, D154, P112 и B104 в архиве. Осталось закоммитить через хук, пин D051, `feature-merge`.
+- P113 ждёт.
 - voxel-rust P022 слит в main `20f2c74` и paused. Ветка voxel-rust `feature/p022-laptop` от `20f2c74`: коммит
   `621b999` переносит проверку аппаратного адаптера в начало нативного smoke.
 - Ноутбук, `621b999`: smoke на lavapipe падает на проверке адаптера, с префиксом NVIDIA и без него проходит на
   RTX 5080. native-smoke, native-boundary, native-scene и native-profiles проходят в обоих режимах; native-ui прошёл
   один раз из трёх; native-settings устарел для экрана «Создание мира» из `4210251` и падает и на базе `377aaa7`.
-- На ноутбуке идёт прогон на встроенном Radeon через его ICD: smoke и native-smoke прошли, native-boundary упал на
-  xdotool BadWindow, native-ui превысил 900 с.
+- Radeon 890M через его ICD: smoke, native-smoke и native-profiles проходят; native-ui и native-scene превышают
+  время с пустым журналом; native-boundary и native-settings падают на xdotool BadWindow, окно игры пропадает при
+  вводе. Итог ещё не записан в voxel-rust.
 
 ## Verification
 
+- P112, рабочее дерево до коммита: `cargo check --all-targets`, `just run clippy` и lint кандидата PASS; тесты
+  `project_setup`, `command_runner`, `project_config` и `agent_hooks` — 157 PASS. Пробы двух порогов роняют
+  `just run clippy` с кодом 101. Живая проба `init` на потребителе со своим `clippy.toml`: Clippy 0 до и 101 после.
 - P111 `e0eb185`: хук коммита — build, lint, memory, rustfmt, clippy, rust-test 171, test 423, ruff, mypy, typos
-  и vulture PASS. Пробные фрагменты трёх новых lint-ов роняют `just run clippy` с кодом 101.
+  и vulture PASS.
 - voxel-rust `621b999`: хук коммита прошёл, в том числе native-tests 160.
 
 ## Blockers
@@ -43,6 +46,6 @@ Revision: `e0eb185968b606b27fd8071e9c6c823c48f36f8e`; этот снимок за
 
 ## Next action
 
-`feature-merge` ветки P111, затем P112 на ветке `feature/clippy-config`. По завершении прогона
-на Radeon записать итог в Plan/022.md voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с
-ноутбука и локальный файл askpass. Свободные ID: D154+, I022+, P114+, B106+ (B066 и D111 зарезервированы).
+Закоммитить VAC P112 через хук, записать пин D051 с хэшем в Delivery, `feature-merge`; затем P113 на новой ветке.
+Записать итоги ноутбука в Plan/022.md voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с
+ноутбука и локальный файл askpass. Свободные ID: D155+, I022+, P114+, B106+ (B066 и D111 зарезервированы).

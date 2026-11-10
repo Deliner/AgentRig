@@ -99,17 +99,12 @@ fn logged(
     let cwd = context.path(&spec.cwd)?;
     let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
-    let access = if spec.read_only {
-        jobs::Access::ReadOnly
-    } else {
-        jobs::Access::Writable
-    };
-    job.prepare(&argv, access, spec.lifetime)?;
+    job.prepare(&argv, spec.access, spec.lifetime)?;
     let result = sandbox::tracked(
         &cwd,
         &argv,
         sandbox::Sandboxing {
-            read_only: spec.read_only,
+            access: spec.access,
             capture,
         },
         Some(&mut job),
@@ -138,12 +133,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
         name,
         &context.path(&spec.cwd)?,
     )?;
-    let access = if spec.read_only {
-        jobs::Access::ReadOnly
-    } else {
-        jobs::Access::Writable
-    };
-    job.prepare(&argv, access, spec.lifetime)?;
+    job.prepare(&argv, spec.access, spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     console::stdout(serde_json::json!({"run_id": id}));
     Ok(0)
@@ -153,12 +143,12 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     let runtime = context.runtime.clone();
     let mut job = crate::command_runner::jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
-    let (cwd, argv, read_only) = (record.cwd.clone(), record.argv.clone(), record.read_only);
+    let (cwd, argv, access) = (record.cwd.clone(), record.argv.clone(), record.access);
     let result = sandbox::tracked(
         &cwd,
         &argv,
         sandbox::Sandboxing {
-            read_only,
+            access,
             capture: jobs::Capture::Stream,
         },
         Some(&mut job),

@@ -1,5 +1,5 @@
 use super::jobs::{self, Job};
-use crate::project_config::{Context, Lifetime};
+use crate::project_config::{Access, Context, Lifetime};
 use crate::shared::arguments::forwarded;
 use crate::shared::console;
 use crate::shared::fs;
@@ -14,7 +14,7 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     fs::create_dir_all(area.join("results"))?;
     let argv = vec!["sh".to_owned(), "-c".to_owned(), text];
     let mut job = Job::create(&runtime, &context.root, "scratch", &context.root)?;
-    job.prepare(&argv, jobs::Access::Writable, Lifetime::Task)?;
+    job.prepare(&argv, Access::Writable, Lifetime::Task)?;
     let mut command = Command::new(&argv[0]);
     command
         .args(&argv[1..])

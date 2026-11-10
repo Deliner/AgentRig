@@ -14,13 +14,19 @@ pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -
             .all(|arg| matches!(arg.as_str(), "--json" | "--warnings")),
         "unknown lint argument"
     );
+    let json = args.iter().any(|arg| arg == "--json");
+    let format = if json {
+        super::Format::Json
+    } else {
+        super::Format::Text
+    };
     super::run_output(
         root,
         config,
         super::Output {
-            json: args.iter().any(|arg| arg == "--json"),
+            format,
             warnings: args.iter().any(|arg| arg == "--warnings"),
-            validate_only: mode.config_check(),
+            mode,
             rerun: None,
         },
     )
