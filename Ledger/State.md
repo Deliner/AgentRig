@@ -11,7 +11,7 @@
 Branch: `feature/clippy-zero-hit`, от master.
 Revision: `44d1380f8135888420655e7b8c4ad4ebdeff3f06`; этот снимок закоммичен поверх.
 
-Установленный рантайм `6c13aa2` (пин P109): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
+Установленный рантайм `7128bc3` (пин P110): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
 коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 
@@ -32,6 +32,7 @@ Revision: `44d1380f8135888420655e7b8c4ad4ebdeff3f06`; этот снимок за
 ## Verification
 
 - master `44d1380`: гейт коммита D151 и `feature-merge` прошли.
+- P110 `7128bc3`: гейт коммита PASS, rust-test 171 и test 266 passed; пин и `just bootstrap` — код 0.
 - voxel-rust `621b999`: хук коммита прошёл, в том числе native-tests 160.
 
 ## Blockers
