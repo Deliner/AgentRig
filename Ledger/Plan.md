@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P095](Plan/095.md) | pending | - | [B098](Backlog/098.md): cleanup-self — очистка после слияния не помечает запуск, внутри которого работает | Пометка «inspect manually» появляется только там, где действительно нужно вмешаться. |
 | [P096](Plan/096.md) | pending | - | [B101](Backlog/101.md): baseline-head — повторный `lint-baseline` отсчитывает понижение от HEAD | Повторный `lint-baseline` исправляет преждевременное понижение без ручного возврата файла из Git. |
 | [P097](Plan/097.md) | pending | P096 | [B092](Backlog/092.md): baseline-rename — базовая линия следует за переименованием, распознанным Git | Перенос файла с принятыми находками не требует удалять и заново записывать базовую линию. |
 | [P098](Plan/098.md) | pending | - | [B094](Backlog/094.md): contract-slot — directory-size не считает architecture.yaml | Порог означает ровно столько записей, сколько проект может положить в каталог. |

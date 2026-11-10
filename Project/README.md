@@ -74,8 +74,9 @@ identified by PID, start time and boot identity, never by a bare PID. `just job-
 in the background as the leader of its own process group, and a delayed launch response never starts a duplicate.
 `just job-stop ID` sends SIGTERM, then SIGKILL, to that group; descendants that start their own session or group
 escape it. Owners come from WORKER_OWNER, else CODEX_THREAD_ID or CODEX_SESSION_ID. `just job-cleanup` and a
-successful feature-merge stop the owner's task runs and keep `lifetime: shared` services. Read-only commands run under
-bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary directory and no network.
+successful feature-merge stop the owner's task runs, skip the run they execute inside and keep `lifetime: shared`
+services. Read-only commands run under bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary
+directory and no network.
 
 [measure.py](shared/testing/examples/measure.py) measures first and repeated standalone process latency of a
 built binary.

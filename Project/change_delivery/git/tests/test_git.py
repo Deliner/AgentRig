@@ -282,6 +282,31 @@ def test_merge_cleans_only_owned_task_runs(
             assert result.returncode == 0, result.stderr
 
 
+def test_merge_inside_a_run_lists_only_other_live_runs(
+    worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    root = installed
+    assert invoke(worker, root, "feature-start", "inside").returncode == 0
+    background_commands(root)
+    commit(root, "work.txt", "feature")
+    monkeypatch.setenv("WORKER_OWNER", "merge-owner")
+    command = [str(worker), "run", "--root", str(root), "wait"]
+    foreign = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE)
+    try:
+        assert foreign.stdout is not None and foreign.stdout.readline() == b"ready\n"
+        rows = json.loads(invoke(worker, root, "jobs").stdout)
+        identifier = {row["command"]: row["run_id"] for row in rows}["wait"]
+        result = invoke(worker, root, "scratch", "--", f"{worker} feature-merge --root {root}")
+        assert result.returncode == 0, result.stdout + result.stderr
+        report = json.loads(result.stdout.split("post-merge cleanup: ", 1)[1].splitlines()[0])
+        reason = "uncontained run; inspect manually"
+        assert report["retained"] == [{"run_id": identifier, "reason": reason}]
+        assert report["stopped"] == [] and report["errors"] == []
+    finally:
+        foreign.terminate()
+        foreign.wait(timeout=5)
+
+
 def test_merge_keeps_scratch_results_and_removes_temporary_runs(
     worker: Path, installed: Path
 ) -> None:

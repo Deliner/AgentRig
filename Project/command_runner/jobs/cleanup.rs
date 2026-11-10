@@ -8,9 +8,11 @@ pub fn run(runtime: &Path, branch: Option<&str>) -> Result<Value> {
     let mut stopped = Vec::new();
     let mut retained = Vec::new();
     let mut errors = Vec::new();
+    let enclosing = std::env::var("WORKER_PARENT_RUN").ok();
     for record in storage::list(runtime)? {
         let selected = record.owner == owner
-            && branch.is_none_or(|branch| record.branch.as_deref() == Some(branch));
+            && branch.is_none_or(|branch| record.branch.as_deref() == Some(branch))
+            && enclosing.as_deref() != Some(record.run_id.as_str());
         let outside = !selected;
         if outside {
             continue;
