@@ -137,7 +137,7 @@ impl Rust<'_> {
             let found = self.path(scope, glob, query)?;
             let nested = match &found {
                 Located::Module(target) => self.glob_sources(target, query)?,
-                _ => Vec::new(),
+                Located::Item(_) | Located::External(_) => Vec::new(),
             };
             sources.push(found);
             sources.extend(nested);
@@ -228,7 +228,7 @@ fn external_glob(globs: &[Located], name: &str) -> Option<String> {
         .iter()
         .filter_map(|glob| match glob {
             Located::External(path) => Some(format!("{path}::{name}")),
-            _ => None,
+            Located::Module(_) | Located::Item(_) => None,
         })
         .collect();
     let [path] = external.as_slice() else {
@@ -240,6 +240,6 @@ fn external_glob(globs: &[Located], name: &str) -> Option<String> {
 fn glob_module(globs: &[Located], bound: impl Fn(&[String]) -> bool) -> Option<Vec<String>> {
     globs.iter().find_map(|glob| match glob {
         Located::Module(target) if bound(target) => Some(target.clone()),
-        _ => None,
+        Located::Module(_) | Located::Item(_) | Located::External(_) => None,
     })
 }

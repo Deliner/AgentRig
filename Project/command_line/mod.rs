@@ -12,10 +12,22 @@ use std::path::Path;
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Command {
     Init,
-    RuntimeAdd,
     GuardCommit,
-    GuardReference,
     Check,
+    Runner(Runner),
+    Configured(Configured),
+}
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum Runner {
+    Scratch,
+    JobStart,
+    JobRun,
+    Jobs(jobs::Command),
+}
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum Configured {
+    RuntimeAdd,
+    GuardReference,
     Doctor,
     ConfigCheck,
     Commands,
@@ -25,34 +37,51 @@ pub enum Command {
     Resume,
     FeatureStart,
     FeatureMerge,
-    Scratch,
-    JobStart,
-    JobRun,
-    Jobs(jobs::Command),
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
-    ("runtime-add", Command::RuntimeAdd),
+    ("runtime-add", Command::Configured(Configured::RuntimeAdd)),
     ("guard-commit", Command::GuardCommit),
-    ("guard-reference", Command::GuardReference),
+    (
+        "guard-reference",
+        Command::Configured(Configured::GuardReference),
+    ),
     ("check", Command::Check),
-    ("doctor", Command::Doctor),
-    ("config-check", Command::ConfigCheck),
-    ("commands", Command::Commands),
-    ("run", Command::Run),
-    ("report", Command::Report),
-    ("memory-check", Command::MemoryCheck),
-    ("resume", Command::Resume),
-    ("feature-start", Command::FeatureStart),
-    ("feature-merge", Command::FeatureMerge),
-    ("scratch", Command::Scratch),
-    ("job-start", Command::JobStart),
-    ("_job-run", Command::JobRun),
-    ("jobs", Command::Jobs(jobs::Command::List)),
-    ("job-status", Command::Jobs(jobs::Command::Status)),
-    ("job-logs", Command::Jobs(jobs::Command::Logs)),
-    ("job-stop", Command::Jobs(jobs::Command::Stop)),
-    ("job-cleanup", Command::Jobs(jobs::Command::Cleanup)),
+    ("doctor", Command::Configured(Configured::Doctor)),
+    ("config-check", Command::Configured(Configured::ConfigCheck)),
+    ("commands", Command::Configured(Configured::Commands)),
+    ("run", Command::Configured(Configured::Run)),
+    ("report", Command::Configured(Configured::Report)),
+    ("memory-check", Command::Configured(Configured::MemoryCheck)),
+    ("resume", Command::Configured(Configured::Resume)),
+    (
+        "feature-start",
+        Command::Configured(Configured::FeatureStart),
+    ),
+    (
+        "feature-merge",
+        Command::Configured(Configured::FeatureMerge),
+    ),
+    ("scratch", Command::Runner(Runner::Scratch)),
+    ("job-start", Command::Runner(Runner::JobStart)),
+    ("_job-run", Command::Runner(Runner::JobRun)),
+    ("jobs", Command::Runner(Runner::Jobs(jobs::Command::List))),
+    (
+        "job-status",
+        Command::Runner(Runner::Jobs(jobs::Command::Status)),
+    ),
+    (
+        "job-logs",
+        Command::Runner(Runner::Jobs(jobs::Command::Logs)),
+    ),
+    (
+        "job-stop",
+        Command::Runner(Runner::Jobs(jobs::Command::Stop)),
+    ),
+    (
+        "job-cleanup",
+        Command::Runner(Runner::Jobs(jobs::Command::Cleanup)),
+    ),
 ];
 impl Command {
     pub fn parse(name: &str) -> Option<Self> {
@@ -70,21 +99,22 @@ impl Command {
 }
 pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
     match command {
-        Command::Init => return project_setup::initialization::init(root, args),
-        Command::GuardCommit => return guard_commit(root, args),
-        Command::Check => {
-            return gate::selected(root, gate::arguments(args)?);
+        Command::Init => project_setup::initialization::init(root, args),
+        Command::GuardCommit => guard_commit(root, args),
+        Command::Check => gate::selected(root, gate::arguments(args)?),
+        Command::Runner(runner) => run_runner(&Context::load(root)?, runner, args),
+        Command::Configured(configured) => {
+            validate_arguments(configured, args)?;
+            project::configured_command(&Context::load(root)?, configured, args)
         }
-        _ => {}
     }
-    validate_arguments(command, args)?;
-    let context = Context::load(root)?;
+}
+fn run_runner(context: &Context, command: Runner, args: &[String]) -> Result<i32> {
     match command {
-        Command::Jobs(job) => jobs::cli(&context.path(&context.config.paths.runtime)?, job, args),
-        Command::JobStart => command_runner::background(&context, args),
-        Command::JobRun => command_runner::background_run(&context, args),
-        Command::Scratch => command_runner::scratch::run(&context, args),
-        _ => project::configured_command(&context, command, args),
+        Runner::Scratch => command_runner::scratch::run(context, args),
+        Runner::JobStart => command_runner::background(context, args),
+        Runner::JobRun => command_runner::background_run(context, args),
+        Runner::Jobs(job) => jobs::cli(&context.path(&context.config.paths.runtime)?, job, args),
     }
 }
 fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
@@ -96,22 +126,22 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
     git::guard_commit(root, &context.config.git)
 }
 
-fn validate_arguments(command: Command, args: &[String]) -> Result<()> {
+fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
     let unexpected = matches!(
         command,
-        Command::Doctor
-            | Command::RuntimeAdd
-            | Command::MemoryCheck
-            | Command::Resume
-            | Command::Report
-            | Command::ConfigCheck
-            | Command::Commands
-            | Command::FeatureMerge
+        Configured::Doctor
+            | Configured::RuntimeAdd
+            | Configured::MemoryCheck
+            | Configured::Resume
+            | Configured::Report
+            | Configured::ConfigCheck
+            | Configured::Commands
+            | Configured::FeatureMerge
     ) && !args.is_empty();
     if unexpected {
-        bail!("{} takes no arguments", command.name());
+        bail!("{} takes no arguments", Command::Configured(command).name());
     }
-    let invalid_start = command == Command::FeatureStart && args.len() != 1;
+    let invalid_start = command == Configured::FeatureStart && args.len() != 1;
     if invalid_start {
         bail!("feature-start NAME");
     }

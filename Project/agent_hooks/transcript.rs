@@ -23,15 +23,16 @@ pub fn tokens(path: &Path, mut offset: u64) -> Result<(Vec<u64>, u64)> {
         if end_of_file {
             break;
         }
+        let consumed = u64::try_from(count)?;
         let record: Value = match serde_json::from_slice(&line) {
             Ok(value) => value,
             Err(_) if !line.ends_with(b"\n") => break,
             Err(_) => {
-                offset += count as u64;
+                offset += consumed;
                 continue;
             }
         };
-        offset += count as u64;
+        offset += consumed;
         tokens.extend(observation(&record));
     }
     Ok((tokens, offset))

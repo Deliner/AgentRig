@@ -83,7 +83,7 @@ def run():
 }
 
 // DECISION: D061
-fn nesting_depths(path: &str, source: &str) -> Vec<(String, u64)> {
+fn nesting_depths(path: &str, source: &str) -> Vec<(String, usize)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut depths: Vec<_> = analysis
@@ -171,7 +171,7 @@ def outer():
 
 // DECISION: D120
 // DECISION: D122
-fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, u64)> {
+fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, usize)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut counts: Vec<_> = analysis
@@ -320,7 +320,7 @@ class Config:
 }
 
 // DECISION: D063
-fn branch_budgets(path: &str, source: &str) -> Vec<(String, u64)> {
+fn branch_budgets(path: &str, source: &str) -> Vec<(String, usize)> {
     let analysis = analyze(Path::new(path), source).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut budgets: Vec<_> = analysis

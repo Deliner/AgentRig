@@ -18,9 +18,9 @@ pub fn print(runtime: &Path) -> Result<()> {
     }
     console::stdout("command calls failures total_s avg_s max_s");
     for (name, (calls, failed, total, max)) in totals {
+        let average = total / f64::from(u32::try_from(calls)?);
         console::stdout(format!(
-            "{name} {calls} {failed} {total:.3} {:.3} {max:.3}",
-            total / calls as f64
+            "{name} {calls} {failed} {total:.3} {average:.3} {max:.3}"
         ));
     }
     Ok(())

@@ -64,7 +64,12 @@ fn report(
 fn allow_level(value: &DeValue<'_>) -> bool {
     let level = match value {
         DeValue::Table(table) => table.get("level").map(Spanned::get_ref),
-        _ => Some(value),
+        DeValue::String(_)
+        | DeValue::Integer(_)
+        | DeValue::Float(_)
+        | DeValue::Boolean(_)
+        | DeValue::Datetime(_)
+        | DeValue::Array(_) => Some(value),
     };
     level.and_then(DeValue::as_str) == Some("allow")
 }

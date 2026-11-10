@@ -134,6 +134,12 @@ clippy:
   - clippy::significant_drop_in_scrutinee
   - -D
   - clippy::uninlined_format_args
+  - -D
+  - clippy::wildcard_enum_match_arm
+  - -D
+  - clippy::as_conversions
+  - -D
+  - clippy::allow_attributes
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

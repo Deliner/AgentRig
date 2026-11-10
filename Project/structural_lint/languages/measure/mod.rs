@@ -10,10 +10,10 @@ pub struct Measurement {
     pub kind: Kind,
     pub line: usize,
     pub symbol: String,
-    pub actual: u64,
+    pub actual: usize,
 }
 // DECISION: D127
-#[allow(clippy::string_slice)]
+#[expect(clippy::string_slice)]
 pub fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
     &source[node.byte_range()]
 }
@@ -98,7 +98,7 @@ fn enclosing(node: Node<'_>) -> Option<Node<'_>> {
     }
     Some(parent)
 }
-fn operands(node: Node<'_>) -> u64 {
+fn operands(node: Node<'_>) -> usize {
     let inner = ungrouped(node);
     match inner.kind() {
         "let_condition" => 0,
@@ -148,7 +148,7 @@ pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
-pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measurement>) {
+pub fn function(node: Node<'_>, source: &str, count: usize, output: &mut Vec<Measurement>) {
     let symbol = node
         .child_by_field_name("name")
         .map(|name| text(name, source))
@@ -168,7 +168,7 @@ pub fn function(node: Node<'_>, source: &str, count: u64, output: &mut Vec<Measu
             actual: text(node, source)
                 .lines()
                 .filter(|line| !line.trim().is_empty())
-                .count() as u64,
+                .count(),
         });
     }
 }
@@ -200,7 +200,7 @@ pub fn nesting(
         });
     }
 }
-fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: u64, max: &mut u64) {
+fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: usize, max: &mut usize) {
     let mut cursor = node.walk();
     for child in node.named_children(&mut cursor) {
         match classify(child) {
@@ -265,7 +265,7 @@ pub fn branching(
         });
     }
 }
-fn accumulate(node: Node<'_>, classify: fn(Node<'_>) -> Branch, total: &mut u64) {
+fn accumulate(node: Node<'_>, classify: fn(Node<'_>) -> Branch, total: &mut usize) {
     let mut cursor = node.walk();
     for child in node.named_children(&mut cursor) {
         match classify(child) {

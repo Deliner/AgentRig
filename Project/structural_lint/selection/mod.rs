@@ -11,8 +11,8 @@ use std::path::Path;
 // DECISION: D018
 pub struct Selected<'a> {
     pub path: &'a Path,
-    pub warning: Option<u64>,
-    pub error: Option<u64>,
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
     pub overrides: Vec<usize>,
 }
 pub fn select<'a>(rule: &Rule, inventory: &'a Inventory) -> Result<Vec<Selected<'a>>> {

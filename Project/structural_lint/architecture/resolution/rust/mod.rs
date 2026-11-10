@@ -133,7 +133,9 @@ impl<'a> Rust<'a> {
             }
             Target::RustPath { path, scope } => self.path_result(path, &joined(base, scope)),
             Target::RustInclude { file, .. } => self.include_result(source, file),
-            _ => bail!("not a Rust module reference"),
+            Target::PythonModule(_) | Target::PythonFrom { .. } => {
+                bail!("not a Rust module reference")
+            }
         }
     }
 }

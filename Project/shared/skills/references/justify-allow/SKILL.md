@@ -30,7 +30,9 @@ attribute or the manifest key, recording why the suppression is right.
    API with no replacement or a generated construct, record the reason as a
    decision or bind it to an existing invariant, then put its `DECISION: DNNN`
    or `INVARIANT: INNN` reference comment on the line directly above the
-   attribute (`//`) or the manifest key (`#`).
+   attribute (`//`) or the manifest key (`#`). Write a Rust suppression as
+   `#[expect(...)]`, not `#[allow(...)]`: the shared Clippy profile denies
+   `allow_attributes`, and an expectation fails once the lint stops firing.
 5. Rerun the reported lint check and the affected behavior checks.
 
 The reference is the only accepted form: an exact `DECISION: DNNN` or

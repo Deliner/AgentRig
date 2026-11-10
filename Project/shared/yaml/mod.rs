@@ -83,7 +83,7 @@ fn values(root: &Value) -> Result<()> {
                 number.as_f64().is_some_and(f64::is_finite),
                 "YAML configuration numbers must be finite"
             ),
-            _ => {}
+            Value::Null | Value::Bool(_) | Value::String(_) | Value::Tagged(_) => {}
         }
     }
     Ok(())

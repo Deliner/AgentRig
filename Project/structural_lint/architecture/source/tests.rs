@@ -183,13 +183,12 @@ fn rust_expansion_forms_become_includes_macro_paths_and_generated_scopes() {
     );
     let attributes: Vec<_> = found
         .iter()
-        .filter_map(|target| match target {
-            Target::RustMacro(call)
-                if call.path.contains("attr") || call.path.contains("mangle") =>
-            {
-                Some(call.path.as_str())
-            }
-            _ => None,
+        .filter_map(|target| {
+            let Target::RustMacro(call) = target else {
+                return None;
+            };
+            let attribute = call.path.contains("attr") || call.path.contains("mangle");
+            attribute.then_some(call.path.as_str())
         })
         .collect();
     assert_eq!(attributes, ["custom::attr"]);

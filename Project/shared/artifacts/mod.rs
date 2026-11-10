@@ -29,7 +29,7 @@ pub fn read_regular(path: &Path, max_bytes: u64) -> Result<Vec<u8>> {
     file.take(max_bytes.saturating_add(1))
         .read_to_end(&mut bytes)?;
     ensure!(
-        bytes.len() as u64 <= max_bytes,
+        u64::try_from(bytes.len())? <= max_bytes,
         "response exceeds size limit"
     );
     Ok(bytes)

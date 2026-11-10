@@ -20,7 +20,9 @@ fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
                 result.pop();
             }
             Component::CurDir => {}
-            other => result.push(other.as_os_str()),
+            other @ (Component::Prefix(_) | Component::RootDir | Component::Normal(_)) => {
+                result.push(other.as_os_str());
+            }
         }
         let symlink = fs::symlink_metadata(&result).is_ok_and(|meta| meta.file_type().is_symlink());
         if symlink {

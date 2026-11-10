@@ -10,6 +10,5 @@ Earlier requirements and related ideas are context for later selection, not a de
 
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
-| [B103](Backlog/103.md) | Пересмотр D107: полный match, числа без `as`, `#[expect]` вместо `#[allow]` | При добавлении варианта или смене типа компилятор показывает каждое затронутое место. |
 | [B104](Backlog/104.md) | init отвечает за пороги Clippy в clippy.toml | Недопустимые сочетания флагов нельзя записать ни в риге, ни в проектах. |
 | [B105](Backlog/105.md) | Свои структурные правила, первая партия | Формы ошибок, которые Clippy не видит, запрещены и в риге, и у потребителей. |

@@ -122,7 +122,9 @@ impl Rust<'_> {
         match self.path(scope, path, &mut query)? {
             Located::External(origin) => Ok(origin),
             Located::Module(_) if builtin => Ok(format!("std::{path}")),
-            _ => bail!("Rust local macro expansion is not analyzed: {path}"),
+            Located::Module(_) | Located::Item(_) => {
+                bail!("Rust local macro expansion is not analyzed: {path}")
+            }
         }
     }
 }

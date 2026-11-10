@@ -62,7 +62,11 @@ impl Externals {
             Target::PythonModule(_) | Target::PythonFrom { .. } => {
                 (&mut self.python, external.split('.').next())
             }
-            _ => (
+            Target::RustPath { .. }
+            | Target::RustMacro(_)
+            | Target::RustDerive { .. }
+            | Target::RustModule { .. }
+            | Target::RustInclude { .. } => (
                 &mut self.rust,
                 external.trim_start_matches("::").split("::").next(),
             ),
@@ -124,7 +128,10 @@ impl<'a> Resolvers<'a> {
             Target::PythonModule(_) | Target::PythonFrom { .. } => {
                 self.python.resolve(path, target)
             }
-            _ => self.rust(path, target),
+            Target::RustPath { .. }
+            | Target::RustDerive { .. }
+            | Target::RustModule { .. }
+            | Target::RustInclude { .. } => self.rust(path, target),
         }?;
         for file in &resolved.files {
             ensure!(

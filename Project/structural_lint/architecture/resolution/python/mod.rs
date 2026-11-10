@@ -49,7 +49,11 @@ impl<'a> Python<'a> {
         let (module, names) = match target {
             Target::PythonModule(module) => (module, &[][..]),
             Target::PythonFrom { module, names } => (module, names.as_slice()),
-            _ => bail!("not a Python module reference"),
+            Target::RustPath { .. }
+            | Target::RustMacro(_)
+            | Target::RustDerive { .. }
+            | Target::RustModule { .. }
+            | Target::RustInclude { .. } => bail!("not a Python module reference"),
         };
         let absolute = self.absolute(source, module)?;
         let parts = module_parts(&absolute)?;
@@ -198,7 +202,7 @@ fn relative(path: &Path) -> Result<PathBuf> {
         match component {
             Component::Normal(name) => normalized.push(name),
             Component::CurDir => {}
-            _ => bail!(
+            Component::Prefix(_) | Component::RootDir | Component::ParentDir => bail!(
                 "Python resolution paths must stay project-relative: {}",
                 path.display()
             ),

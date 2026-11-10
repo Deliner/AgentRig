@@ -8,39 +8,41 @@
 
 ## Workspace
 
-Branch: `feature/clippy-zero-hit`, от master.
-Revision: `44d1380f8135888420655e7b8c4ad4ebdeff3f06`; этот снимок закоммичен поверх.
+Branch: `feature/clippy-revisit`, от master `48310aa`.
+Revision: `e0eb185968b606b27fd8071e9c6c823c48f36f8e`; этот снимок закоммичен поверх вместе с пином.
 
-Установленный рантайм `7128bc3` (пин P110): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
+Установленный рантайм `e0eb185` (пин P111): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
 коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 
 ## Progress
 
-- D151 и раздел «Quality standard» в AGENTS.md слиты в master `44d1380`.
-- Карточки B102–B105 сохранены и выбраны коммитом `d45f3a2`. P110 выполнена этим VAC: профиль Clippy из 29 lint-ов,
-  D152, P110 и B102 в архиве. P111–P113 ждут.
+- P110 слита в master `48310aa` с пином `7128bc3`.
+- P111 выполнена VAC `e0eb185`: профиль Clippy из 32 lint-ов, полный match, `TryFrom` и счётчики линтера в
+  `usize`, `#[expect]` вместо `#[allow]`, D153, P111 и B103 в архиве. Пин D051 и `just bootstrap` сделаны. P112 и
+  P113 ждут.
+- Замер P112 с `max-struct-bools = 1` и `avoid-breaking-exported-api = false`: 7 мест `struct_excessive_bools` и
+  одно `enum_variant_names` в `structural_lint/rules/reference.rs`.
 - voxel-rust P022 слит в main `20f2c74` и paused. Ветка voxel-rust `feature/p022-laptop` от `20f2c74`: коммит
   `621b999` переносит проверку аппаратного адаптера в начало нативного smoke.
-- Ноутбук, `20f2c74` против базы `377aaa7`: native-settings и три сценария Web падают на обеих с тем же текстом, то
-  есть не из-за P022. native-settings кликает по старому экрану, а приложение сначала показывает «Создание мира».
-  native-ui на базе прошёл, на `20f2c74` упал на проверке неверного создания мира. texture-smoke с программным GPU
-  падает на проверке fallbackAdapter, как требует A2.
-- На ноутбуке идёт прогон ветки `p022-laptop`: smoke на lavapipe, NVIDIA и адаптере по умолчанию и шесть нативных
-  сценариев node с префиксом NVIDIA и без него.
+- Ноутбук, `621b999`: smoke на lavapipe падает на проверке адаптера, с префиксом NVIDIA и без него проходит на
+  RTX 5080. native-smoke, native-boundary, native-scene и native-profiles проходят в обоих режимах; native-ui прошёл
+  один раз из трёх; native-settings устарел для экрана «Создание мира» из `4210251` и падает и на базе `377aaa7`.
+- На ноутбуке идёт прогон на встроенном Radeon через его ICD: smoke и native-smoke прошли, native-boundary упал на
+  xdotool BadWindow, native-ui превысил 900 с.
 
 ## Verification
 
-- master `44d1380`: гейт коммита D151 и `feature-merge` прошли.
-- P110 `7128bc3`: гейт коммита PASS, rust-test 171 и test 266 passed; пин и `just bootstrap` — код 0.
+- P111 `e0eb185`: хук коммита — build, lint, memory, rustfmt, clippy, rust-test 171, test 423, ruff, mypy, typos
+  и vulture PASS. Пробные фрагменты трёх новых lint-ов роняют `just run clippy` с кодом 101.
 - voxel-rust `621b999`: хук коммита прошёл, в том числе native-tests 160.
 
 ## Blockers
 
-Нет для P110–P113. Для P022 voxel-rust: native-settings устарел относительно экрана создания мира; это вне P022.
+Нет для P112–P113. Для P022 voxel-rust: native-settings устарел относительно экрана создания мира; это вне P022.
 
 ## Next action
 
-Пин D051 для P110, `feature-merge`, затем P111. По завершении прогона на ноутбуке записать итог в Plan/022.md
-voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с ноутбука и локальный файл askpass.
-Свободные ID: D153+, I022+, P114+, B106+ (B066 и D111 зарезервированы).
+`feature-merge` ветки P111, затем P112 на ветке `feature/clippy-config`. По завершении прогона
+на Radeon записать итог в Plan/022.md voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с
+ноутбука и локальный файл askpass. Свободные ID: D154+, I022+, P114+, B106+ (B066 и D111 зарезервированы).
