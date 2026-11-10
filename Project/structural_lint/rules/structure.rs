@@ -32,7 +32,7 @@ impl Structure {
 }
 const NONBLANKLINES: Descriptor = Descriptor {
     default_id: "file-size",
-    exclude: &[],
+    exclude: &["**/Cargo.lock", "**/package-lock.json", "**/uv.lock"],
     target: "file",
     metric: "nonempty lines, including comments; non-UTF-8 files skipped",
     skill: "refactor-large-file",

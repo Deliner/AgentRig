@@ -143,7 +143,7 @@ def test_catalog_examples_validate(worker: Path, tmp_path: Path, kind: str) -> N
     assert "--example" in human
 
 
-def test_rule_examples_exclude_test_files_only_where_decided(worker: Path) -> None:
+def test_rule_examples_ship_excludes_only_where_decided(worker: Path) -> None:
     catalog = subprocess.run(
         [str(worker), "lint-rules"], capture_output=True, text=True, check=True
     )
@@ -176,7 +176,9 @@ def test_rule_examples_exclude_test_files_only_where_decided(worker: Path) -> No
         "embedded-text",
     ]
     shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}
-    assert shipped == dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])
+    expected = dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])
+    expected["file-size"] = ["**/Cargo.lock", "**/package-lock.json", "**/uv.lock"]
+    assert shipped == expected
 
 
 @pytest.mark.parametrize(
