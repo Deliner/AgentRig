@@ -11,44 +11,44 @@
 
 ## Workspace
 
-Branch: `feature/test-placement` (P104, B091)
-Revision: `89baa3a` (пин D051 фазы 1 `2b6db8b`; фаза 2 P104 в этом коммите)
+Branch: `feature/test-dependents` (P105, B089)
+Revision: `8b814f3` (слияние P104 в master; VAC P105 в этом коммите)
 
-Установленный рантайм `2b6db8b` (пин фазы 1 P104). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `3ddf1cc` (пин P104). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, рабочее дерево чистое, в main не слита, push нет.
 В memory/State.md voxel-rust число тестовых модулей 21 неверно: живой счёт 13 файлов `*_tests.rs`.
-Клон voxel-rust в scratchpad `voxel-b101` несёт незакоммиченный перенос 13 тестовых файлов в `tests/` для AC4 B091;
-его копия — `p104-voxel.patch` и `p104-voxel-untracked.tgz` там же.
+Клон voxel-rust в scratchpad `voxel-b101` несёт незакоммиченный перенос 13 тестовых файлов в `tests/` для AC4 B091 и
+бюджет `src/core/terrain` 7; копия переноса — `p104-voxel.patch` и `p104-voxel-untracked.tgz` там же. Рабочее
+дерево `voxel-orig` в scratchpad — чистый `71440d0` того же клона для замеров.
 
 ## Progress
 
-- P094–P103 завершены и слиты в master.
-- P104: фаза 1 `2b6db8b` дала вид `test-placement`, измерение, навык `relocate-tests`, тесты и D145, пин `89baa3a`;
-  фаза 2 включает вид в каталог `init` и правило в `.agentrig/lint.yaml`. P104 на паузе до P105: AC4 требует, чтобы
-  тестовые каталоги не тратили бюджет входящих зависимостей (B089).
+- P094–P103 завершены и слиты в master. P104 слита на паузе: AC1–AC3 выполнены, AC4 ждал P105.
+- P105 (B089) выполнена в этом VAC: тестовые рёбра не тратят бюджет входящих зависимостей, D146, ротация P105 и B089.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
   `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
   file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами; в `.agentrig/checks.yaml`
-  снять префикс `host::` у целей `game`, `worker` и `hardware`; перенести 13 тестовых файлов и убрать `**/*_tests.rs`.
+  снять префикс `host::` у целей `game`, `worker` и `hardware`; перенести 13 тестовых файлов и убрать `**/*_tests.rs`;
+  снизить бюджет `src/core/terrain` с 10 до 7.
 
 ## Verification
 
-- Фаза 2 на кандидате: `test_config_check.py`, `test_delivery.py` и тесты project_setup — 62 passed; на
-  установленном `2b6db8b` падают тест поставляемых исключений и `test_dogfooding_capabilities_stay_universal`.
-  `just lint` установленным рантаймом с новым правилом чист, `just config-check` чист.
-- Фаза 1: Rust-тесты 168 passed; гейт коммита 322 passed.
-- Клон voxel-rust: правило даёт ровно 13 находок, из них две через `#[path]`; после переноса с `#[path]` и снятия 16
-  исключений находок test-placement нет, cargo `--lib` проходит 132 теста, из них 77 перенесённых; остаются пять
-  превышений бюджета входящих зависимостей.
+- Кандидат: тест `test_dependents_budget_counts_only_production_uses` и все тесты `Project/structural_lint/architecture`
+  — 140 passed; на установленном `3ddf1cc` новый тест падает с 4 зависимыми. Rust-тесты 168 passed, Clippy и
+  `lint` AgentRig кандидатом чисты, `memory-check` без ошибок.
+- Клон voxel-rust: кандидат насчитывает у `src/core/terrain` 7 зависимых на исходном и перенесённом дереве против 10 и
+  12 у установленного рантайма; с бюджетом 7 lint клона чист, с 6 даёт находку. С переносом P104 кандидат не даёт
+  находок, значит AC4 B091 выполним.
 
 ## Blockers
 
-AC4 B091 ждёт P105.
+Нет.
 
 ## Next action
 
-Коммит фазы 2 P104, пин D051 на голову ветки, коммит пина, `just feature-merge`; затем P105 (B089), после него
-проверка AC4 B091 на клоне и ротация P104. Свободные ID: D146+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Коммит VAC P105; затем отдельным VAC в этой ветке завершить P104: дополнить Delivery проверкой AC4 на клоне и
+ротировать P104 и B091; пин D051 на голову ветки, коммит пина, `just feature-merge`. Дальше P106 (B099). Свободные ID:
+D147+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

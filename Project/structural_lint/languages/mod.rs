@@ -7,6 +7,7 @@ mod rust;
 mod tests;
 pub use measure::{Measurement, text};
 pub use registry::{HANDLERS, handler};
+pub(crate) use rust::in_test_context;
 
 use anyhow::{Context, Result};
 use std::path::Path;

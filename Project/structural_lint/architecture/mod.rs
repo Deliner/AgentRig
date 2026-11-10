@@ -20,6 +20,7 @@ pub struct Dependency {
     pub target: PathBuf,
     pub line: usize,
     pub module_declaration: bool,
+    pub test: bool,
 }
 
 #[derive(Debug)]

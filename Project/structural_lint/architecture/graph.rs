@@ -55,6 +55,7 @@ fn add_edge<'a>(graph: &mut Adjacency<'a>, edge: &'a Dependency) {
 
 // DECISION: D079
 // DECISION: D142
+// DECISION: D146
 pub(super) fn directory_edges(
     dependencies: &[Dependency],
 ) -> impl Iterator<Item = (&Path, &Path, &Dependency)> {
@@ -62,7 +63,7 @@ pub(super) fn directory_edges(
         let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
             return None;
         };
-        let counted = !edge.module_declaration && source != target;
+        let counted = !edge.module_declaration && !edge.test && source != target;
         counted.then_some((source, target, edge))
     })
 }

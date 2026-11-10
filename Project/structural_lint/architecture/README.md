@@ -44,9 +44,9 @@ directories:
 
 A contract has `purpose`, one nonempty line, and `files` and `directories`, which register every immediate entry
 except the contract by literal name with a nonempty responsibility; stale entries, wrong kinds and unknown fields are
-errors. Optional fields: `type` (see Feature types); `zone: pure`, which bars the directory's own Rust files from the
-environment (`std::env`, `std::fs`, `std::process`), wall clock, entropy, network, threads and console; and
-`dependents`, the most other directories that may use its files (default 6). Contracts stay in the project.
+errors. Optional: `type` (see Feature types); `zone: pure`, barring its own Rust files from `std::env`, `std::fs`,
+`std::process`, wall clock, entropy, network, threads and console; `dependents`, the most other directories using
+its files (default 6), ignoring `tests/`, `tests.rs` and `#[cfg(test)]`/`#[test]` items. Contracts stay in the project.
 
 ## Feature types
 

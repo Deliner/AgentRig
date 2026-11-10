@@ -4,7 +4,8 @@ mod conditions;
 mod macros;
 pub(super) mod prelude;
 
-use super::model::{RustImport, RustItem, RustMacro, Source, Target};
+use super::model::{Reference, RustImport, RustItem, RustMacro, Source, Target};
+use crate::structural_lint::languages;
 use tree_sitter::Node;
 
 fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {
@@ -15,7 +16,13 @@ fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {
         },
         target => target,
     };
-    source.record(node, target);
+    // DECISION: D146
+    let test = languages::in_test_context(node, source.text);
+    source.add(Reference {
+        line: node.start_position().row + 1,
+        target,
+        test,
+    });
 }
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
