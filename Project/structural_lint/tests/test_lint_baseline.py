@@ -119,3 +119,23 @@ def test_recording_keeps_a_rerecorded_baseline_and_lowers_an_uncommitted_one(
     assert record(worker, tmp_path).returncode == 0
     assert record(worker, tmp_path).returncode == 0
     assert baseline(tmp_path) == {"source": {"src/a.rs": 2, "src/c.rs": 1}}
+
+
+# DECISION: D140
+def test_recording_follows_a_git_rename_without_accepting_a_new_finding(
+    worker: Path, tmp_path: Path
+) -> None:
+    prepare(tmp_path, WIDTH)
+    write(tmp_path, "a.rs", 2)
+    assert record(worker, tmp_path).returncode == 0
+    commit(tmp_path)
+    subprocess.run(["git", "mv", "src/a.rs", "src/b.rs"], cwd=tmp_path, check=True)
+    assert lint(worker, tmp_path)[0] == 1
+    assert record(worker, tmp_path).returncode == 0
+    assert baseline(tmp_path) == {"source": {"src/b.rs": 2}}
+    assert lint(worker, tmp_path)[0] == 0
+    write(tmp_path, "b.rs", 3)
+    recorded = record(worker, tmp_path)
+    assert "1 rule and path pairs exceed the baseline and were not raised" in recorded.stdout
+    assert baseline(tmp_path) == {"source": {"src/b.rs": 2}}
+    assert lint(worker, tmp_path)[0] == 1

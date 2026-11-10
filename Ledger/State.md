@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/baseline-head` (P096, B101)
-Revision: `2ef0722` (master после слияния P095; VAC P096 ещё не закоммичен)
+Branch: `feature/baseline-rename` (P097, B092)
+Revision: `98f4879` (master после слияния P096; VAC P097 ещё не закоммичен)
 
-Установленный рантайм `0f7d8bc` (пин P095). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `c268e8f` (пин P096). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,15 +23,15 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094 (B093) и P095 (B098) завершены и слиты в master, пин `0f7d8bc`.
-- P096 в рабочем дереве: `lint-baseline` берёт предел как большее из рабочего и HEAD-значения (D139); тесты, README,
-  решение, Delivery и ротация.
+- P094 (B093), P095 (B098) и P096 (B101, D139) завершены и слиты в master, пин `c268e8f`.
+- P097 в рабочем дереве: `lint-baseline` переносит предел по переименованиям, распознанным Git (D140,
+  `Repository::renames`); тест, README, решение, Delivery и ротация.
 
 ## Verification
 
-- P096: test_lint_baseline.py — 4 passed; новый тест восстановления падает на установленном `0f7d8bc`. Клон voxel-rust
-  на `1cc7a2c` с удалённой парой: старый рантайм не поднимает её, кандидат восстанавливает, `check --staged --only
-  lint` — PASS.
+- P097: test_lint_baseline.py — 5 passed; новый тест переименования падает на установленном `c268e8f`. Клон
+  voxel-rust на `3c91786` после `git mv` файла с 7 принятыми panic-path: старый рантайм теряет их, кандидат переносит.
+  Клон лежит в scratchpad `voxel-b101`, рабочее дерево voxel-rust не тронуто.
 
 ## Blockers
 
@@ -39,6 +39,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P096; пин D051, коммит пина, `just feature-merge`; затем P097 (B092, базовая линия следует за
-переименованием).
-Свободные ID: D140+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Закоммитить VAC P097; пин D051, коммит пина, `just feature-merge`; затем P098 (B094, directory-size не считает
+architecture.yaml).
+Свободные ID: D141+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

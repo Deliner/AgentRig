@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P097](Plan/097.md) | pending | P096 | [B092](Backlog/092.md): baseline-rename — базовая линия следует за переименованием, распознанным Git | Перенос файла с принятыми находками не требует удалять и заново записывать базовую линию. |
 | [P098](Plan/098.md) | pending | - | [B094](Backlog/094.md): contract-slot — directory-size не считает architecture.yaml | Порог означает ровно столько записей, сколько проект может положить в каталог. |
 | [P099](Plan/099.md) | pending | - | [B095](Backlog/095.md): lock-exclude — `init` исключает lock-файлы из file-size | Новый проект не получает находок размера по сгенерированным файлам. |
 | [P100](Plan/100.md) | pending | - | [B100](Backlog/100.md): unused-external — находка о неиспользуемой внешней зависимости называет, где искали | Находка ведёт к настоящей причине, а не к удалению нужной зависимости. |
