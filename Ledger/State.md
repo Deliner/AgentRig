@@ -11,39 +11,37 @@
 
 ## Workspace
 
-Branch: `feature/test-dependents` (P105, B089; завершение P104, B091)
-Revision: `acafddd` (VAC P105; завершение P104 в этом коммите)
+Branch: `feature/single-marker` (P106, B099)
+Revision: `b4560ce` (слияние P105; VAC P106 в этом коммите)
 
-Установленный рантайм `3ddf1cc` (пин P104). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `9efbe20` (пин P105). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, рабочее дерево чистое, в main не слита, push нет.
 В memory/State.md voxel-rust число тестовых модулей 21 неверно: живой счёт 13 файлов `*_tests.rs`.
-Клон voxel-rust в scratchpad `voxel-b101` несёт незакоммиченный перенос 13 тестовых файлов в `tests/` для AC4 B091 и
-бюджет `src/core/terrain` 7; копия переноса — `p104-voxel.patch` и `p104-voxel-untracked.tgz` там же. Рабочее
-дерево `voxel-orig` в scratchpad — чистый `71440d0` того же клона для замеров.
+Клон voxel-rust в scratchpad `voxel-b101` несёт незакоммиченный перенос 13 тестовых файлов в `tests/`, бюджет
+`src/core/terrain` 7 и снятые вторые ссылки D008 и D009; копия переноса — `p104-voxel.patch` и
+`p104-voxel-untracked.tgz` там же. Рабочее дерево `voxel-orig` в scratchpad — чистый `71440d0` того же клона.
 
 ## Progress
 
-- P094–P103 завершены и слиты в master.
-- P105 (B089) выполнена в `acafddd`: тестовые рёбра не тратят бюджет входящих зависимостей, D146, ротация.
-- P104 (B091) завершается в этом VAC: AC4 подтверждён на клоне кандидатом с P105, ротация P104 и B091.
+- P094–P105 завершены и слиты в master.
+- P106 (B099) выполняется в этом VAC: обоснованный `#[allow]` или `#[expect]` линта Clippy у охватывающего элемента
+  покрывает его паники, D147, ротация P106 и B099.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
   `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
   file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами; в `.agentrig/checks.yaml`
   снять префикс `host::` у целей `game`, `worker` и `hardware`; перенести 13 тестовых файлов и убрать `**/*_tests.rs`;
-  снизить бюджет `src/core/terrain` с 10 до 7.
+  снизить бюджет `src/core/terrain` с 10 до 7; снять вторые ссылки D008 в `controller.rs` и D009 в `local.rs`.
 
 ## Verification
 
-- Кандидат: тест `test_dependents_budget_counts_only_production_uses` и все тесты `Project/structural_lint/architecture`
-  — 140 passed; на установленном `3ddf1cc` новый тест падает с 4 зависимыми. Rust-тесты 168 passed, Clippy и
-  `lint` AgentRig кандидатом чисты, `memory-check` без ошибок.
-- Клон voxel-rust: кандидат насчитывает у `src/core/terrain` 7 зависимых на исходном и перенесённом дереве против 10 и
-  12 у установленного рантайма; с бюджетом 7 lint клона чист, с 6 даёт находку.
-- AC4 B091 на клоне после `acafddd`: исключений `_tests.rs` в lint.yaml 0, файлов `*_tests.rs` 0, в `tests/` 13;
-  кандидат с правилом test-placement даёт чистый `lint` и `config-check`. Гейт коммита `acafddd`: 249 passed.
+- Кандидат: Rust-тест `rust_referenced_clippy_allow_on_an_enclosing_item_covers_its_panics` проходит, все Rust-тесты
+  169 passed, тесты `Project/structural_lint/languages` 29 passed; Clippy и `lint` AgentRig кандидатом чисты,
+  `memory-check` без ошибок.
+- Клон voxel-rust со снятыми вторыми ссылками D008 и D009: установленный `9efbe20` даёт 3 находки panic-path,
+  кандидат ни одной.
 
 ## Blockers
 
@@ -51,5 +49,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Коммит завершения P104, пин D051 на голову ветки, коммит пина, `just feature-merge`. Дальше P106 (B099). Свободные
-ID: D147+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Коммит VAC P106, пин D051 на голову ветки, коммит пина, `just feature-merge`. Дальше P107 (B097). Свободные ID:
+D148+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

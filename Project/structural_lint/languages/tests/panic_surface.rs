@@ -140,3 +140,38 @@ fn rust_flags_panic_paths_beside_primitive_named_macros_and_lifetimes_first_afte
     let found = findings(PANIC_PATH, source);
     assert_eq!(found, [(4, "unwrap".to_string())]);
 }
+
+// DECISION: D147
+#[test]
+fn rust_referenced_clippy_allow_on_an_enclosing_item_covers_its_panics() {
+    let source = "// DECISION: D001
+#[allow(clippy::expect_used)]
+fn covered() {
+    value.expect(\"a\");
+    other.expect_err(\"b\");
+    println!(\"{}\", value.expect(\"c\"));
+    value.unwrap();
+}
+// DECISION: D001
+#[allow(clippy::unwrap_used)]
+fn other_lint() {
+    value.expect(\"d\");
+}
+#[allow(clippy::expect_used)]
+fn unreferenced() {
+    value.expect(\"e\");
+}
+// INVARIANT: I001
+#[expect(clippy::panic, clippy::unreachable)]
+mod checked {
+    impl Thing {
+        fn run(&self) {
+            unreachable!();
+            panic!(\"g\");
+            todo!();
+        }
+    }
+}
+";
+    assert_eq!(lines(PANIC_PATH, source), [7, 12, 16, 25]);
+}
