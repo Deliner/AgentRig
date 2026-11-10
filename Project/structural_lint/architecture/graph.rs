@@ -1,4 +1,4 @@
-use super::{Dependency, Issue, Relation, Settings};
+use super::{Dependency, Issue, Settings};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -9,7 +9,7 @@ type Adjacency<'a> = BTreeMap<PathBuf, BTreeMap<PathBuf, &'a Dependency>>;
 pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
     let mut graph: Adjacency<'_> = BTreeMap::new();
     for edge in dependencies {
-        let declaration = edge.relation == Relation::Declaration;
+        let declaration = edge.relation.declares();
         if declaration {
             continue;
         }
@@ -64,7 +64,7 @@ pub(super) fn directory_edges(
         let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
             return None;
         };
-        let counted = edge.relation == Relation::Use && !edge.test && source != target;
+        let counted = !edge.relation.declares() && !edge.test && source != target;
         counted.then_some((source, target, edge))
     })
 }
@@ -141,7 +141,7 @@ pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<I
             .extension()
             .and_then(|extension| extension.to_str());
         let module = matches!(extension, Some("rs" | "py" | "pyi"));
-        let foreign = module && edge.relation == Relation::Use && own != target;
+        let foreign = module && !edge.relation.declares() && own != target;
         if foreign {
             used.entry(&edge.source).or_default().insert(target);
         }

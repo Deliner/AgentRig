@@ -193,7 +193,7 @@ impl Attempt {
 fn read(path: &Path) -> Result<Option<Record>> {
     match fs::read(path) {
         Ok(bytes) => Ok(Some(serde_json::from_slice(&bytes)?)),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) if error.missing() => Ok(None),
         Err(error) => Err(error.into()),
     }
 }

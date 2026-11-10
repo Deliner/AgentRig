@@ -16,7 +16,10 @@ pub enum Index {
 }
 impl Index {
     fn staged(self) -> bool {
-        matches!(self, Self::Staged)
+        match self {
+            Self::Staged => true,
+            Self::Working => false,
+        }
     }
 }
 

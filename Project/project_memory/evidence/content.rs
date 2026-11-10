@@ -13,7 +13,10 @@ pub enum Tree {
 }
 impl Tree {
     fn staged(self) -> bool {
-        matches!(self, Self::Staged)
+        match self {
+            Self::Staged => true,
+            Self::Working => false,
+        }
     }
 }
 
@@ -58,7 +61,7 @@ fn feed(digest: &mut Sha256, bytes: &[u8]) -> Result<()> {
 fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
     let meta = match fs::symlink_metadata(path) {
         Ok(meta) => meta,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+        Err(error) if error.missing() => {
             feed(digest, b"absent")?;
             return Ok(());
         }

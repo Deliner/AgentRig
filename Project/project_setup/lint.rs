@@ -12,14 +12,7 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let sources = &settings.paths.sources;
     let mut rules: Vec<Value> = catalog::ALL
         .iter()
-        .filter(|kind| {
-            !matches!(
-                kind,
-                rules::Kind::Structure(Structure::DirectoryArchitecture)
-                    | rules::Kind::Structure(Structure::LineWidth)
-                    | rules::Kind::Structure(Structure::ForbiddenFile)
-            )
-        })
+        .filter(|kind| cataloged(**kind))
         .map(|kind| catalog::example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources, rust));
@@ -31,6 +24,26 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         "rules": rules,
     });
     crate::shared::yaml::encode(&config)
+}
+
+fn cataloged(kind: rules::Kind) -> bool {
+    match kind {
+        rules::Kind::Structure(
+            Structure::DirectoryArchitecture | Structure::LineWidth | Structure::ForbiddenFile,
+        ) => false,
+        rules::Kind::Structure(
+            Structure::NonblankLines
+            | Structure::DirectoryEntries
+            | Structure::DumpName
+            | Structure::FunctionLines
+            | Structure::EmbeddedText
+            | Structure::TestPlacement,
+        )
+        | rules::Kind::ControlFlow(_)
+        | rules::Kind::Signature(_)
+        | rules::Kind::Ownership(_)
+        | rules::Kind::Reference(_) => true,
+    }
 }
 
 fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {

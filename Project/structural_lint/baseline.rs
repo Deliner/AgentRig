@@ -4,7 +4,6 @@ use crate::shared::fs;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use std::collections::BTreeMap;
-use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 // DECISION: D123
@@ -19,7 +18,7 @@ pub fn location(config: &Path) -> PathBuf {
 fn load(path: &Path) -> Result<Option<Counts>> {
     let source = match fs::read_to_string(path) {
         Ok(source) => source,
-        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+        Err(error) if error.missing() => return Ok(None),
         Err(error) => return Err(error.into()),
     };
     let counts = crate::shared::yaml::decode(&source)
@@ -29,7 +28,7 @@ fn load(path: &Path) -> Result<Option<Counts>> {
 
 fn counts(diagnostics: &[Diagnostic]) -> Counts {
     let mut counts = Counts::new();
-    for item in diagnostics.iter().filter(|item| item.level == Level::Error) {
+    for item in diagnostics.iter().filter(|item| item.level.blocking()) {
         *counts
             .entry(item.rule.clone())
             .or_default()
@@ -70,10 +69,7 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
         return Ok(());
     };
     let current = counts(diagnostics);
-    for item in diagnostics
-        .iter_mut()
-        .filter(|item| item.level == Level::Error)
-    {
+    for item in diagnostics.iter_mut().filter(|item| item.level.blocking()) {
         let limit = allowed(&baseline, &item.rule, &item.path);
         let count = allowed(&current, &item.rule, &item.path);
         let accepted = count <= limit;

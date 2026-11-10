@@ -1,7 +1,7 @@
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::architecture::{
-    self as architecture, Dependency, EnvironmentUse, Issue, Relation, Settings,
+    self as architecture, Dependency, EnvironmentUse, Issue, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
     source::{self, Reference, References, Target},
 };
@@ -250,15 +250,7 @@ impl<'a> Resolvers<'a> {
         reference: &Reference,
         files: BTreeSet<PathBuf>,
     ) -> impl Iterator<Item = Dependency> {
-        let declaration = matches!(
-            reference.target,
-            Target::RustModule { .. } | Target::RustInclude { .. }
-        );
-        let relation = if declaration {
-            Relation::Declaration
-        } else {
-            Relation::Use
-        };
+        let relation = reference.target.relation();
         let test = reference.test || self.test_code.is_match(path);
         let (source, line) = (path.to_path_buf(), reference.line);
         files.into_iter().map(move |target| Dependency {

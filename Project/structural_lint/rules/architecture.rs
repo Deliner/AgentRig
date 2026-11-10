@@ -99,6 +99,7 @@ impl Settings {
         {
             let relative = path
                 .components()
+                // DECISION: D156
                 .all(|part| matches!(part, Component::Normal(_) | Component::CurDir));
             ensure!(
                 relative,

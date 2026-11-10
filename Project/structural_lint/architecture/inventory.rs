@@ -12,7 +12,10 @@ enum Entries {
 }
 impl Entries {
     fn directories(self) -> bool {
-        matches!(self, Self::Directories)
+        match self {
+            Self::Directories => true,
+            Self::Files => false,
+        }
     }
 }
 

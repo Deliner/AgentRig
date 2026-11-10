@@ -91,7 +91,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .config
         .commands
         .values()
-        .any(|command| command.access == Access::ReadOnly);
+        .any(|command| command.access.read_only());
     if read_only {
         let works = crate::command_runner::sandbox::available();
         console::stdout(format!(

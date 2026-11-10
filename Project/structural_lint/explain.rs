@@ -118,6 +118,7 @@ fn selected_path(value: &str) -> Result<PathBuf> {
     );
     let path = path
         .components()
+        // DECISION: D156
         .filter(|part| !matches!(part, Component::CurDir))
         .collect::<std::path::PathBuf>();
     Ok(match path.as_os_str().is_empty() {

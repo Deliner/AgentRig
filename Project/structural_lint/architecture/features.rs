@@ -1,5 +1,5 @@
 // DECISION: D044
-use super::{Dependency, Issue, Relation, policy::Declaration};
+use super::{Dependency, Issue, policy::Declaration};
 use crate::structural_lint::inventory::Inventory;
 use crate::structural_lint::rules::architecture::FILENAME;
 use serde::Deserialize;
@@ -156,7 +156,7 @@ impl Features<'_> {
     }
 
     fn direction(&self, edge: &Dependency) -> Option<Issue> {
-        let declared = edge.relation == Relation::Declaration;
+        let declared = edge.relation.declares();
         if declared {
             return None;
         }

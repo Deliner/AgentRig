@@ -27,14 +27,16 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
         target_function == function,
         "{id}: oracle target does not match linked function {function}"
     );
-    let python = matches!(oracle.runner, Runner::Pytest);
-    if python {
-        let file = oracle.target.split("::").next().unwrap_or("");
-        let cwd = context.path(&context.config.commands[name].cwd)?;
-        ensure!(
-            crate::shared::paths::resolve(&cwd.join(file))? == source,
-            "{id}: oracle target does not match linked source"
-        );
+    match oracle.runner {
+        Runner::Pytest => {
+            let file = oracle.target.split("::").next().unwrap_or("");
+            let cwd = context.path(&context.config.commands[name].cwd)?;
+            ensure!(
+                crate::shared::paths::resolve(&cwd.join(file))? == source,
+                "{id}: oracle target does not match linked source"
+            );
+        }
+        Runner::Cargo => {}
     }
     discover(context, id, name, oracle)
 }

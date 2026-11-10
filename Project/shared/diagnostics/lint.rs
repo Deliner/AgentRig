@@ -14,6 +14,12 @@ impl Level {
             Self::Error => "error",
         }
     }
+    pub fn blocking(self) -> bool {
+        match self {
+            Self::Warning => false,
+            Self::Error => true,
+        }
+    }
 }
 #[derive(Serialize)]
 pub struct Diagnostic {

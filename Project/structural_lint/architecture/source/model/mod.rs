@@ -1,4 +1,7 @@
-use crate::structural_lint::{architecture::Issue, languages};
+use crate::structural_lint::{
+    architecture::{Issue, Relation},
+    languages,
+};
 use std::path::Path;
 use tree_sitter::Node;
 
@@ -28,6 +31,39 @@ pub enum Target {
         module: String,
         names: Vec<String>,
     },
+}
+impl Target {
+    pub fn relation(&self) -> Relation {
+        match self {
+            Self::RustModule { .. } | Self::RustInclude { .. } => Relation::Declaration,
+            Self::RustPath { .. }
+            | Self::RustMacro(_)
+            | Self::RustDerive { .. }
+            | Self::PythonModule(_)
+            | Self::PythonFrom { .. } => Relation::Use,
+        }
+    }
+    pub fn expansion(&self) -> bool {
+        match self {
+            Self::RustMacro(_) | Self::RustDerive { .. } => true,
+            Self::RustPath { .. }
+            | Self::RustModule { .. }
+            | Self::RustInclude { .. }
+            | Self::PythonModule(_)
+            | Self::PythonFrom { .. } => false,
+        }
+    }
+    fn repeatable(&self) -> bool {
+        match self {
+            Self::RustModule { .. } => true,
+            Self::RustPath { .. }
+            | Self::RustMacro(_)
+            | Self::RustDerive { .. }
+            | Self::RustInclude { .. }
+            | Self::PythonModule(_)
+            | Self::PythonFrom { .. } => false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -107,8 +143,7 @@ impl Source<'_> {
     }
 
     pub(super) fn add(&mut self, reference: Reference) {
-        let declaration = matches!(&reference.target, Target::RustModule { .. });
-        let new = declaration || !self.output.items.contains(&reference);
+        let new = reference.target.repeatable() || !self.output.items.contains(&reference);
         if new {
             self.output.items.push(reference);
         }

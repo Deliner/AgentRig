@@ -28,6 +28,14 @@ pub enum Relation {
     Declaration,
     Use,
 }
+impl Relation {
+    pub fn declares(self) -> bool {
+        match self {
+            Self::Declaration => true,
+            Self::Use => false,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct Issue {

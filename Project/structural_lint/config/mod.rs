@@ -128,6 +128,12 @@ fn resolve_guidance(config: &mut Config, resources: &Path) {
     }
 }
 impl Rule {
+    pub fn skill(&self, level: Level) -> String {
+        match level {
+            Level::Warning => self.warning_skill.clone(),
+            Level::Error => self.error_skill.clone(),
+        }
+    }
     fn validate(&self, root: &Path) -> Result<()> {
         let incompatible_target = self.kind.descriptor().target != self.target;
         if incompatible_target {
@@ -156,27 +162,26 @@ impl Rule {
         Ok(())
     }
     fn validate_severity(&self) -> Result<()> {
-        let policy = matches!(
-            self.kind.descriptor().parameters,
-            rules::Parameters::Level { .. }
-        );
-        if policy {
-            let thresholds =
-                self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
-            let invalid_level = self.level.is_none() || thresholds;
-            if invalid_level {
-                bail!(
-                    "{}: {} needs level, no thresholds or overrides",
-                    self.id,
-                    self.kind
-                );
+        match self.kind.descriptor().parameters {
+            rules::Parameters::Level { .. } => {
+                let thresholds =
+                    self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
+                let invalid_level = self.level.is_none() || thresholds;
+                if invalid_level {
+                    bail!(
+                        "{}: {} needs level, no thresholds or overrides",
+                        self.id,
+                        self.kind
+                    );
+                }
             }
-        } else {
-            let has_level = self.level.is_some();
-            if has_level {
-                bail!("{}: numeric rules use thresholds, not level", self.id);
+            rules::Parameters::Thresholds { .. } => {
+                let has_level = self.level.is_some();
+                if has_level {
+                    bail!("{}: numeric rules use thresholds, not level", self.id);
+                }
+                thresholds(self.warning, self.error)?;
             }
-            thresholds(self.warning, self.error)?;
         }
         Ok(())
     }

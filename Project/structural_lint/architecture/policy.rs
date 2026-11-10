@@ -227,6 +227,7 @@ fn relative(path: &Path) -> bool {
     !path.as_os_str().is_empty()
         && path
             .components()
+            // DECISION: D156
             .all(|part| matches!(part, Component::Normal(_)))
 }
 

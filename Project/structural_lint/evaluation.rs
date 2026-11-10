@@ -212,18 +212,13 @@ fn finding(
         }
     };
     let message = rule_message(rule, limit, actual)?;
-    let blocking = level == Level::Error;
     Ok(Some(Diagnostic {
         rule: rule.id.clone(),
         path: selected.path.to_string_lossy().into_owned(),
         level,
         actual: Some(actual),
         limit,
-        skill: if blocking {
-            rule.error_skill.clone()
-        } else {
-            rule.warning_skill.clone()
-        },
+        skill: rule.skill(level),
         message,
         line: None,
         symbol: None,

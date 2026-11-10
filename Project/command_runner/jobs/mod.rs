@@ -48,7 +48,10 @@ mod process_group {
         })
     }
     pub fn serialize<S: Serializer>(grouping: &Grouping, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_bool(*grouping == Grouping::Own)
+        serializer.serialize_bool(match grouping {
+            Grouping::Own => true,
+            Grouping::Inherited => false,
+        })
     }
 }
 // DECISION: D062
@@ -59,7 +62,10 @@ pub enum Capture {
 }
 impl Capture {
     fn collects(self) -> bool {
-        matches!(self, Self::Collect)
+        match self {
+            Self::Collect => true,
+            Self::Stream => false,
+        }
     }
 }
 
@@ -272,12 +278,18 @@ struct Observation {
 }
 fn observe(runtime: &Path, record: &Record) -> Result<Value> {
     let observation = observe_once(runtime, record)?;
-    let interrupted = observation.state == JobState::Interrupted;
-    if interrupted {
-        let latest = storage::load(runtime, &record.run_id)?;
-        return Ok(observe_once(runtime, &latest)?.value);
+    match observation.state {
+        JobState::Interrupted => {
+            let latest = storage::load(runtime, &record.run_id)?;
+            Ok(observe_once(runtime, &latest)?.value)
+        }
+        JobState::Completed
+        | JobState::Running
+        | JobState::Orphaned
+        | JobState::StartingOrFinishing
+        | JobState::Stopping
+        | JobState::Cancelled => Ok(observation.value),
     }
-    Ok(observation.value)
 }
 fn observe_once(runtime: &Path, record: &Record) -> Result<Observation> {
     let child = record.child.as_ref().and_then(Identity::observe);

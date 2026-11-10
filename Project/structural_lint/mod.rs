@@ -36,7 +36,10 @@ pub enum Mode {
 }
 impl Mode {
     fn config_check(self) -> bool {
-        matches!(self, Self::ConfigCheck)
+        match self {
+            Self::ConfigCheck => true,
+            Self::Lint => false,
+        }
     }
 }
 
@@ -85,7 +88,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
-    diagnostics.retain(|item| output.warnings || item.level != Level::Warning);
+    diagnostics.retain(|item| output.warnings || item.level.blocking());
     let args = rerun_args(command, path, &output);
     for item in &mut diagnostics {
         item.rerun = output
@@ -93,7 +96,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
             .map(str::to_owned)
             .unwrap_or_else(|| crate::shared::diagnostics::rerun(root, &args));
     }
-    let failed = diagnostics.iter().any(|item| item.level == Level::Error);
+    let failed = diagnostics.iter().any(|item| item.level.blocking());
     match output.format {
         Format::Json => console::stdout(serde_json::to_string(&diagnostics)?),
         Format::Text => {
@@ -112,7 +115,10 @@ fn rerun_args(command: &str, path: &Path, output: &Output<'_>) -> Vec<String> {
         "--config".into(),
         path.to_string_lossy().into_owned(),
     ];
-    let json = matches!(output.format, Format::Json).then_some("--json");
+    let json = match output.format {
+        Format::Json => Some("--json"),
+        Format::Text => None,
+    };
     let warnings = output.warnings.then_some("--warnings");
     args.extend([json, warnings].into_iter().flatten().map(String::from));
     args

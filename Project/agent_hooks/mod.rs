@@ -18,7 +18,7 @@ mod transcript;
 
 use self::input::text;
 use self::requirements::Answer;
-use crate::project_config::{Access, Context, RouteEvent};
+use crate::project_config::{Context, RouteEvent};
 use crate::shared::console;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
@@ -33,7 +33,10 @@ enum Reminding {
 }
 impl Reminding {
     fn active(self) -> bool {
-        matches!(self, Self::Active)
+        match self {
+            Self::Active => true,
+            Self::Suppressed => false,
+        }
     }
 }
 
@@ -136,7 +139,7 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
                 .config
                 .commands
                 .get(name)
-                .is_some_and(|command| command.access == Access::Writable)
+                .is_some_and(|command| !command.access.read_only())
     });
     let mut found = Vec::new();
     if opaque {

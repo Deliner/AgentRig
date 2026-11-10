@@ -26,6 +26,10 @@ impl Error {
     pub fn kind(&self) -> io::ErrorKind {
         self.source.kind()
     }
+    pub fn missing(&self) -> bool {
+        // DECISION: D156
+        self.source.kind() == io::ErrorKind::NotFound
+    }
 }
 
 impl fmt::Display for Error {
