@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/lock-exclude` (P099, B095)
-Revision: `7eca1cc` (master после слияния P098; VAC P099 ещё не закоммичен)
+Branch: `feature/unused-external` (P100, B100)
+Revision: `dff2005` (master после слияния P099; VAC P100 ещё не закоммичен)
 
-Установленный рантайм `c21b07e` (пин P098). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `a617589` (пин P099). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,17 +23,19 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P098 (B093, B098, B101 с D139, B092 с D140, B094) завершены и слиты в master, пин `c21b07e`.
-- P099 в рабочем дереве: file-size по умолчанию исключает `**/Cargo.lock`, `**/package-lock.json`, `**/uv.lock`;
-  тест, Delivery и ротация.
+- P094–P099 (B093, B098, B101 с D139, B092 с D140, B094, B095) завершены и слиты в master, пин `a617589`.
+- P100 в рабочем дереве: находка о неиспользуемой внешней зависимости называет число читаемых файлов и их корень и
+  молчит при незавершённом анализе (D141); тесты, Delivery и ротация.
 - Для финального прохода voxel-rust: ручные исключения file-size `src/Cargo.lock` и `src/package-lock.json` можно
   заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P099: новый тест test_lint_defaults.py проходит на кандидате и падает на установленном `c21b07e`. Клон voxel-rust
-  `71440d0` в scratchpad `voxel-b101`: без исключений оба lock-файла дают ошибку file-size, с шаблонами — нет.
-  Рабочее дерево voxel-rust не тронуто.
+- P100: тесты архитектуры на кандидате — 134 passed; пять новых и изменённых тестов падают на установленном
+  `a617589`. Клон voxel-rust `71440d0` в scratchpad `voxel-b101`: с исключённым `src/schema/build.rs` кандидат даёт
+  новый текст про `prost_build` и `protoc_bin_vendored`; с `mod missing_module;` в `src/core/lib.rs` установленный
+  рантайм пишет «never imported» про wgpu, winit и ещё четыре зависимости, кандидат — ни одной такой находки. Правки
+  клона откачены, рабочее дерево voxel-rust не тронуто.
 
 ## Blockers
 
@@ -41,6 +43,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P099; пин D051, коммит пина, `just feature-merge`; затем P100 (B100, сообщение о неиспользуемой
-внешней зависимости).
-Свободные ID: D141+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Закоммитить VAC P100; пин D051, коммит пина, `just feature-merge`; затем P101 (B087, ложные рёбра).
+Свободные ID: D142+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
