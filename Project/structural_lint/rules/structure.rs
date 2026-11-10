@@ -68,7 +68,7 @@ const DIRECTORYENTRIES: Descriptor = Descriptor {
     default_id: "directory-size",
     exclude: &[],
     target: "directory",
-    metric: "immediate child names in the selected inventory",
+    metric: "immediate child names in the selected inventory, except the architecture.yaml contract",
     skill: "refactor-large-directory",
     parameters: Parameters::Thresholds {
         warning: Some(10),

@@ -150,20 +150,36 @@ def test_invalid_config_is_actionable(worker: Path, tmp_path: Path, old: str, ne
     assert items[0]["skill"].endswith("repair/SKILL.md")
 
 
+DIRECTORY = (
+    CONFIG.replace("nonblank-lines", "directory-entries")
+    .replace('target: "file"', 'target: "directory"')
+    .replace('include: ["src/**"]', 'include: ["src"]')
+    .replace('extensions: [".rs", ".py", ".ts"]', "")
+)
+
+
 def test_directory_counts_immediate_children(worker: Path, tmp_path: Path) -> None:
-    config = CONFIG.replace("nonblank-lines", "directory-entries").replace(
-        'target: "file"', 'target: "directory"'
-    )
-    config = config.replace('include: ["src/**"]', 'include: ["src"]').replace(
-        'extensions: [".rs", ".py", ".ts"]', ""
-    )
-    prepare(tmp_path, config)
+    prepare(tmp_path, DIRECTORY)
     (tmp_path / "src/group").mkdir()
     for index in range(20):
         (tmp_path / f"src/group/{index}.txt").touch()
     assert lint(worker, tmp_path) == (0, [])
     for index in range(5):
         (tmp_path / f"src/{index}.txt").touch()
+    code, items = lint(worker, tmp_path)
+    assert code == 1
+    assert items[0]["actual"] == 6
+
+
+def test_directory_count_leaves_out_the_architecture_contract(worker: Path, tmp_path: Path) -> None:
+    prepare(tmp_path, DIRECTORY)
+    (tmp_path / "src/architecture.yaml").touch()
+    for index in range(5):
+        (tmp_path / f"src/{index}.txt").touch()
+    code, items = lint(worker, tmp_path)
+    assert code == 0
+    assert [item["actual"] for item in items] == [5]
+    (tmp_path / "src/5.txt").touch()
     code, items = lint(worker, tmp_path)
     assert code == 1
     assert items[0]["actual"] == 6

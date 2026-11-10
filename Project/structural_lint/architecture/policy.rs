@@ -3,14 +3,13 @@
 // DECISION: D044
 use super::{Dependency, EnvironmentUse, Issue};
 use crate::shared::fs;
+use crate::structural_lint::rules::architecture::FILENAME;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Component, Path, PathBuf},
 };
-
-pub const FILENAME: &str = "architecture.yaml";
 
 // DECISION: D070
 const PLACEHOLDER_PURPOSES: &[&str] = &[

@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P098](Plan/098.md) | pending | - | [B094](Backlog/094.md): contract-slot — directory-size не считает architecture.yaml | Порог означает ровно столько записей, сколько проект может положить в каталог. |
 | [P099](Plan/099.md) | pending | - | [B095](Backlog/095.md): lock-exclude — `init` исключает lock-файлы из file-size | Новый проект не получает находок размера по сгенерированным файлам. |
 | [P100](Plan/100.md) | pending | - | [B100](Backlog/100.md): unused-external — находка о неиспользуемой внешней зависимости называет, где искали | Находка ведёт к настоящей причине, а не к удалению нужной зависимости. |
 | [P101](Plan/101.md) | pending | - | [B087](Backlog/087.md): false-edges — граф зависимостей Rust без ложных рёбер | Проверка архитектуры Rust видит только настоящие зависимости, и проекту не нужно менять видимость или атрибуты ради анализатора. |

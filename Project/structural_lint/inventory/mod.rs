@@ -12,12 +12,13 @@ pub struct Inventory {
     pub directories: BTreeMap<PathBuf, BTreeSet<String>>,
 }
 impl Inventory {
-    pub fn file_entries(&self, directory: &Path) -> usize {
+    pub fn file_entries(&self, directory: &Path, uncounted: &str) -> usize {
         let root = directory == Path::new(".");
         let prefix = if root { Path::new("") } else { directory };
         self.files
             .iter()
             .filter_map(|file| file.strip_prefix(prefix).ok()?.components().next())
+            .filter(|name| name.as_os_str() != uncounted)
             .collect::<BTreeSet<_>>()
             .len()
     }

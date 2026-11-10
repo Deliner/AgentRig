@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/baseline-rename` (P097, B092)
-Revision: `98f4879` (master после слияния P096; VAC P097 ещё не закоммичен)
+Branch: `feature/contract-slot` (P098, B094)
+Revision: `90da0bf` (master после слияния P097; VAC P098 ещё не закоммичен)
 
-Установленный рантайм `c268e8f` (пин P096). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `72d0300` (пин P097). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,15 +23,14 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094 (B093), P095 (B098) и P096 (B101, D139) завершены и слиты в master, пин `c268e8f`.
-- P097 в рабочем дереве: `lint-baseline` переносит предел по переименованиям, распознанным Git (D140,
-  `Repository::renames`); тест, README, решение, Delivery и ротация.
+- P094 (B093), P095 (B098), P096 (B101, D139) и P097 (B092, D140) завершены и слиты в master, пин `72d0300`.
+- P098 в рабочем дереве: `directory-size` не считает `architecture.yaml`; тест, текст метрики, Delivery и ротация.
 
 ## Verification
 
-- P097: test_lint_baseline.py — 5 passed; новый тест переименования падает на установленном `c268e8f`. Клон
-  voxel-rust на `3c91786` после `git mv` файла с 7 принятыми panic-path: старый рантайм теряет их, кандидат переносит.
-  Клон лежит в scratchpad `voxel-b101`, рабочее дерево voxel-rust не тронуто.
+- P098: тесты каталога в test_lint.py — 4 passed; новый тест падает на установленном `72d0300`. voxel-rust
+  `71440d0` в клоне scratchpad `voxel-b101`: 13 предупреждений directory-size у старого рантайма, 8 у кандидата.
+  Рабочее дерево voxel-rust не тронуто.
 
 ## Blockers
 
@@ -39,6 +38,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P097; пин D051, коммит пина, `just feature-merge`; затем P098 (B094, directory-size не считает
-architecture.yaml).
+Закоммитить VAC P098; пин D051, коммит пина, `just feature-merge`; затем P099 (B095, `init` исключает lock-файлы из
+file-size).
 Свободные ID: D141+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
