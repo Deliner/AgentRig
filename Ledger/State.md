@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/macro-panics` (P107, B097)
-Revision: `ae63ead` (слияние P106; VAC P107 в этом коммите)
+Branch: `feature/method-edges` (P108, B096)
+Revision: `fc7c4b4` (слияние P107; VAC P108 в этом коммите)
 
-Установленный рантайм `5b5a682` (пин P106). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `7bade55` (пин P107). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -26,9 +26,9 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P106 завершены и слиты в master.
-- P107 (B097) выполняется в этом VAC: panic-path видит паники в телах `macro_rules!`, D148; детекторы паник
-  вынесены в `languages/rust/panic_surface.rs`; ротация P107 и B097.
+- P094–P107 завершены и слиты в master.
+- P108 (B096) закрывается в этом VAC отчётом без изменения рига: замер потерянных рёбер через вызовы методов,
+  решение D149 оставить D059 в силе, ротация P108 и B096. Ветка не меняет Project, пин D051 не нужен.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
   `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
   file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами; в `.agentrig/checks.yaml`
@@ -39,12 +39,9 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Verification
 
-- Кандидат: Rust-тесты `rust_flags_unjustified_panics_inside_macro_rules_bodies` и
-  `rust_skips_macro_rules_bodies_in_test_code_or_under_a_referenced_clippy_allow` проходят, до правки первый падал;
-  все Rust-тесты 171 passed, тесты `Project/structural_lint/languages` 16 passed; Clippy и `lint` AgentRig кандидатом
-  чисты, `memory-check` без ошибок.
-- Клон voxel-rust `71440d0`: кандидат даёт 2 находки panic-path в телах `macro_rules!`, установленный `5b5a682` ни
-  одной; на AgentRig ноль у обоих.
+- Оракул `method_edges.py` в scratchpad против `lint-edges` установленного `7bade55`: потеряно 2 ребра каталогов из
+  235 в AgentRig и 1 из 105 на клоне voxel-rust `71440d0`, все три проверены вручную; ни одно не превышает бюджет
+  `dependents` и не замыкает цикл. `memory-check` установленным рантаймом без ошибок.
 
 ## Blockers
 
@@ -52,5 +49,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Коммит VAC P107, пин D051 на голову ветки, коммит пина, `just feature-merge`. Дальше P108 (B096). Свободные ID:
-D149+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Коммит VAC P108 и `just feature-merge` без пина. Дальше P109 (B086). Свободные ID: D150+, I022+, P110+, B102+
+(B066 и D111 зарезервированы).

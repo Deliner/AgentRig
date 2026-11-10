@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P108](Plan/108.md) | pending | P102 | [B096](Backlog/096.md): method-edges — рёбра зависимостей через вызовы методов | Бюджеты и циклы считаются по реальным зависимостям. |
 | [P109](Plan/109.md) | pending | - | [B086](Backlog/086.md): platform-runtime — рантайм проекта на нескольких платформах | Проект с AgentRig коммитит и сливает ветки на Linux и macOS с одной ревизии, без обхода хуков. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.

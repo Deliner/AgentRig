@@ -11,4 +11,3 @@ Earlier requirements and related ideas are context for later selection, not a de
 | ID | Idea | Expected benefit |
 | --- | --- | --- |
 | [B086](Backlog/086.md) | Рантайм проекта на нескольких платформах | Проект с AgentRig коммитит и сливает ветки на Linux и macOS с одной ревизии, без обхода хуков. |
-| [B096](Backlog/096.md) | Рёбра зависимостей через вызовы методов | Бюджеты и циклы считаются по реальным зависимостям. |
