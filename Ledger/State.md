@@ -11,10 +11,9 @@ P113. B107 о сверке имён узлов с грамматикой сох�
 ## Workspace
 
 Branch: `feature/structural-bans`, от master `3508e36`.
-Revision: `8cd9597c297d3745492816f181e9519e0f00642e` (B107 поверх выбора P114 `dc86001` и VAC A `4a5c4b0`);
-этот снимок входит в коммит фазы 1 P113 поверх него.
+Revision: `4122a4fb60a8f32a1c94764a67252c8fa97daa03` (фаза 1 P113); этот снимок входит в коммит пина поверх неё.
 
-Установленный рантайм `3b88a61` (пин P112). macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `4122a4f` (пин середины P113). macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -23,7 +22,7 @@ Revision: `8cd9597c297d3745492816f181e9519e0f00642e` (B107 поверх выбо
 - P110, P111 и P112 слиты в master; последний merge `3508e36`, пин P112 `a5a6af6`.
 - voxel-rust: итоги ноутбука для P022 записаны коммитом `0eafc8e` и слиты в main `37de3ff`; P022 там paused.
 - P113 VAC A `4a5c4b0`: детекторы Rust разнесены по семействам правил без смены поведения.
-- P113 фаза 1 в этом коммите, D155. Замер кандидатом на замороженных копиях voxel `src/` и рига `Project/` по
+- P113 фаза 1 `4122a4f`, D155; её голова записана в `stable.txt` и установлена. Замер кандидатом на замороженных копиях voxel `src/` и рига `Project/` по
   протоколу, зафиксированному до замера; верные находки из всех, тестовый код исключён:
 
 | Форма | Вид | voxel | риг | Итог |
@@ -52,8 +51,8 @@ Revision: `8cd9597c297d3745492816f181e9519e0f00642e` (B107 поверх выбо
 
 ## Verification
 
-- Фаза 1: rust-test 178 PASS, Clippy и rustfmt PASS, `just candidate lint` без находок, `config-check` и
-  `lint-config-check` PASS. Реестр без изменений; `lint-rules` кандидата отличается от прежнего только метрикой
+- Фаза 1: гейт коммита `4122a4f` PASS, rust-test 178 PASS, Clippy и rustfmt PASS, `just candidate lint` без находок,
+  `config-check` и `lint-config-check` PASS; `just bootstrap` установил `4122a4f`. Реестр без изменений; `lint-rules` кандидата отличается от прежнего только метрикой
   `discarded-result`. На копиях находки рига и voxel со всеми правилами рига совпадают с прежними, новых spawn нет.
 
 ## Blockers
@@ -62,8 +61,7 @@ Revision: `8cd9597c297d3745492816f181e9519e0f00642e` (B107 поверх выбо
 
 ## Next action
 
-Пин середины ветки: `git rev-parse HEAD > tooling/distribution/stable.txt && just bootstrap`, коммит пина. Фаза 2:
-четыре вида в `lint.yaml`, `catalog::ALL`, реестр, `project_setup/assets.rs` и `config/tests/test_config_check.py`;
+Фаза 2: четыре вида в `lint.yaml`, `catalog::ALL`, реестр, `project_setup/assets.rs` и `config/tests/test_config_check.py`;
 навыки label-the-exit, subtract-checked, pin-the-order и lock-the-data; исправить находки рига; ротация P113 и B105
 в Archive с Delivery по таблице выше; финальный пин и `just feature-merge`. Затем разметка списков запретов и P114
 своей веткой от master. Свободные ID: D156+, I022+, P115+, B108+ (B066 и D111 зарезервированы).
