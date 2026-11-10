@@ -124,6 +124,16 @@ clippy:
   - clippy::struct_excessive_bools
   - -D
   - clippy::option_option
+  - -D
+  - clippy::useless_let_if_seq
+  - -D
+  - clippy::return_self_not_must_use
+  - -D
+  - clippy::multiple_unsafe_ops_per_block
+  - -D
+  - clippy::significant_drop_in_scrutinee
+  - -D
+  - clippy::uninlined_format_args
 rust-test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
