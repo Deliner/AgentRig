@@ -42,8 +42,10 @@ rule IDs to paths and their accepted error counts. Errors within a path's count 
 a path above it all stay errors, and counts below it are reported for lowering. `just lint-baseline` records the
 current counts, later only lowers them and never adds new pairs; delete the file to accept new errors. A count lowered
 in the working file can be restored up to the baseline committed at `HEAD`: a rerun returns it when the errors come
-back. `init` offers it when existing files already have errors. The gate reads the baseline from the tree it checks,
-staged under `--staged`.
+back. When Git detects a renamed file between `HEAD` and the working tree, which needs the new path in the index as
+after `git mv`, recording moves its counts to the new path; a finding added by the move still exceeds them. `init`
+offers it when existing files already have errors. The gate reads the baseline from the tree it checks, staged under
+`--staged`.
 
 Rust (`.rs`) and Python (`.py`, `.pyi`) files are parsed once per run with Tree-sitter; a file that does not parse
 fails with its location. Rust uses the fork of tree-sitter-rust 0.24.2 in `shared/syntax/tree-sitter-rust`, which also

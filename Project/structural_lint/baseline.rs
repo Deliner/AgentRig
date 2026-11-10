@@ -114,7 +114,7 @@ pub fn record(root: &Path, config: &Path) -> Result<i32> {
     let current = current(root, config)?;
     let path = location(config);
     let findings = match load(&path)? {
-        Some(baseline) => lowered(&ceiling(baseline, committed(root, &path)?), &current),
+        Some(baseline) => lowered(&limit(root, &path, baseline)?, &current),
         None => current.clone(),
     };
     let exceeding = pairs(&current)
@@ -136,35 +136,48 @@ pub fn record(root: &Path, config: &Path) -> Result<i32> {
     Ok(0)
 }
 
-fn committed(root: &Path, path: &Path) -> Result<Option<Counts>> {
+// DECISION: D139
+// DECISION: D140
+fn limit(root: &Path, path: &Path, working: Counts) -> Result<Counts> {
     let Some(repository) = Repository::discover(root)? else {
-        return Ok(None);
+        return Ok(working);
     };
     let (Some(head), Ok(relative)) = (repository.head()?, path.strip_prefix(root)) else {
-        return Ok(None);
+        return Ok(working);
     };
-    let relative = relative.to_string_lossy();
-    let listed = repository.run(&["ls-tree", "--name-only", &head, "--", &relative])?;
+    let committed = committed(&repository, &head, &relative.to_string_lossy())?;
+    let renames = repository.renames(&head)?;
+    Ok(ceiling(&working, committed.as_ref(), &renames))
+}
+
+fn committed(repository: &Repository<'_>, head: &str, relative: &str) -> Result<Option<Counts>> {
+    let listed = repository.run(&["ls-tree", "--name-only", head, "--", relative])?;
     let uncommitted = listed.is_empty();
     if uncommitted {
         return Ok(None);
     }
-    let source = String::from_utf8(repository.read(&head, &relative)?)?;
+    let source = String::from_utf8(repository.read(head, relative)?)?;
     let counts = crate::shared::yaml::decode(&source)
         .with_context(|| format!("committed lint baseline {relative}"))?;
     Ok(Some(counts))
 }
 
-fn ceiling(mut working: Counts, committed: Option<Counts>) -> Counts {
-    for pair in committed.iter().flat_map(pairs) {
-        let count = working
+fn ceiling(
+    working: &Counts,
+    committed: Option<&Counts>,
+    renames: &BTreeMap<String, String>,
+) -> Counts {
+    let mut ceiling = Counts::new();
+    for pair in pairs(working).chain(committed.into_iter().flat_map(pairs)) {
+        let path = renames.get(pair.path).map_or(pair.path, String::as_str);
+        let count = ceiling
             .entry(pair.rule.to_owned())
             .or_default()
-            .entry(pair.path.to_owned())
+            .entry(path.to_owned())
             .or_default();
         *count = (*count).max(pair.count);
     }
-    working
+    ceiling
 }
 
 fn lowered(baseline: &Counts, current: &Counts) -> Counts {
