@@ -1,5 +1,6 @@
 use super::architecture::runner;
-use super::{config, inventory, selection};
+use super::{Location, config};
+use super::{inventory, selection};
 use crate::shared::console;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::rules::{Kind, structure::Structure};
@@ -14,7 +15,7 @@ enum Exclusion {
     Scoped,
 }
 
-pub type Inspection = fn(&Path, &Path, &[String]) -> Result<i32>;
+pub type Inspection = fn(Location<'_>, &[String]) -> Result<i32>;
 
 // DECISION: D143
 pub fn inspection(command: &str) -> Option<Inspection> {
@@ -25,10 +26,11 @@ pub fn inspection(command: &str) -> Option<Inspection> {
     }
 }
 
-fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-explain", args)?;
     let path = path.as_path();
-    let config = config::load(root, config_path)?;
+    let root = location.root;
+    let config = location.load()?;
     let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
     let inventory = inventory::collect(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
@@ -50,9 +52,10 @@ fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
 }
 
 // DECISION: D143
-fn edges(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
-    let config = config::load(root, config_path)?;
+    let root = location.root;
+    let config = location.load()?;
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
     let mut rows = Vec::new();
     for rule in &config.rules {

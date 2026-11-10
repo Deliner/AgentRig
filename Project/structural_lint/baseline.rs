@@ -1,3 +1,4 @@
+use super::Location;
 use crate::shared::console;
 use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::fs;
@@ -95,22 +96,22 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
     Ok(())
 }
 
-fn current(root: &Path, config: &Path) -> Result<Counts> {
-    let config = super::config::load(root, config)?;
-    Ok(counts(&super::evaluation::evaluate(root, &config)?))
+fn current(lint: Location<'_>) -> Result<Counts> {
+    let config = lint.load()?;
+    Ok(counts(&super::evaluation::evaluate(lint.root, &config)?))
 }
 
-pub fn errors(root: &Path, config: &Path) -> Result<u64> {
-    Ok(pairs(&current(root, config)?).map(|pair| pair.count).sum())
+pub fn errors(lint: Location<'_>) -> Result<u64> {
+    Ok(pairs(&current(lint)?).map(|pair| pair.count).sum())
 }
 
 // DECISION: D123
 // DECISION: D139
-pub fn record(root: &Path, config: &Path) -> Result<i32> {
-    let current = current(root, config)?;
-    let path = location(config);
+pub fn record(lint: Location<'_>) -> Result<i32> {
+    let current = current(lint)?;
+    let path = location(lint.config);
     let findings = match load(&path)? {
-        Some(baseline) => lowered(&limit(root, &path, baseline)?, &current),
+        Some(baseline) => lowered(&limit(lint.root, &path, baseline)?, &current),
         None => current.clone(),
     };
     let exceeding = pairs(&current)

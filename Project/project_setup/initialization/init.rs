@@ -4,6 +4,7 @@ use crate::project_setup::template::{self, Scaffold};
 use crate::project_setup::{Config, Files, bundle};
 use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
+use crate::structural_lint::Location;
 use anyhow::{Result, ensure};
 use std::{io::Write, path::Path};
 
@@ -32,7 +33,10 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
         return Ok(());
     }
     let lint = project_config::relative(root, &config.paths.lint)?;
-    let errors = crate::structural_lint::baseline::errors(root, &lint)?;
+    let errors = crate::structural_lint::baseline::errors(Location {
+        root,
+        config: &lint,
+    })?;
     let existing = errors > 0;
     if existing {
         console::stdout(format!(

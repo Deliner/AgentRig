@@ -1,14 +1,12 @@
+use super::Location;
 use crate::shared::arguments::take_option;
 use crate::shared::console;
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, ensure};
-use std::{
-    env,
-    path::{Path, PathBuf},
-};
+use std::{env, path::PathBuf};
 
 // DECISION: D049
-pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -> Result<i32> {
+pub fn execute(location: Location<'_>, args: &[String], mode: super::Mode) -> Result<i32> {
     ensure!(
         args.iter()
             .all(|arg| matches!(arg.as_str(), "--json" | "--warnings")),
@@ -21,8 +19,7 @@ pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -
         super::Format::Text
     };
     super::run_output(
-        root,
-        config,
+        location,
         super::Output {
             format,
             warnings: args.iter().any(|arg| arg == "--warnings"),
@@ -31,19 +28,14 @@ pub fn execute(root: &Path, config: &Path, args: &[String], mode: super::Mode) -
         },
     )
 }
-pub fn failure(
-    root: &Path,
-    path: &Path,
-    error: anyhow::Error,
-    invocation: &[String],
-) -> Result<i32> {
+pub fn failure(location: Location<'_>, error: anyhow::Error, invocation: &[String]) -> Result<i32> {
     let json = invocation.iter().any(|arg| arg == "--json");
     let text = !json;
     if text {
         return Err(error);
     }
-    let mut finding = super::configuration_error(path, error);
-    finding.rerun = crate::shared::diagnostics::rerun(root, invocation);
+    let mut finding = super::configuration_error(location.config, error);
+    finding.rerun = crate::shared::diagnostics::rerun(location.root, invocation);
     console::stdout(serde_json::to_string(&[finding])?);
     Ok(2)
 }
@@ -74,17 +66,16 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     };
     let root = crate::shared::fs::canonicalize(root)?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
+    let config = root.join(config);
+    let location = Location {
+        root: &root,
+        config: &config,
+    };
     // DECISION: D143
     if let Some(inspect) = super::explain::inspection(&command) {
-        return inspect(&root, &root.join(config), &args);
+        return inspect(location, &args);
     }
-    let config_check = command == "lint-config-check";
-    let mode = if config_check {
-        super::Mode::ConfigCheck
-    } else {
-        super::Mode::Lint
-    };
-    execute(&root, &root.join(config), &args, mode)
+    execute(location, &args, super::Mode::of(&command))
 }
 
 pub fn discovery(command: &str, args: &[String]) -> Result<i32> {

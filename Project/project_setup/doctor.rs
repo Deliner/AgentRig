@@ -1,6 +1,7 @@
 use crate::project_config::{Access, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
+use crate::structural_lint::Location;
 use anyhow::Result;
 use std::{env, path::Path};
 
@@ -169,9 +170,12 @@ pub(super) fn hooks_registered(
 }
 pub fn config_check(context: &Context) -> Result<i32> {
     let lint = if context.config.capabilities.lint {
+        let config = context.path(&context.config.paths.lint)?;
         crate::structural_lint::run(
-            &context.root,
-            &context.path(&context.config.paths.lint)?,
+            Location {
+                root: &context.root,
+                config: &config,
+            },
             crate::structural_lint::Format::Json,
             crate::structural_lint::Mode::ConfigCheck,
         )?

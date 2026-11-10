@@ -71,37 +71,44 @@ pub fn thresholds(warning: Option<usize>, error: Option<usize>) -> Result<()> {
         _ => Ok(()),
     }
 }
-pub fn load(root: &Path, path: &Path) -> Result<Config> {
-    let mut config: Config = crate::shared::yaml::read(path)?;
-    let external = config
-        .skill_root
-        .as_ref()
-        .map(|directory| path.parent().unwrap_or(root).join(directory).canonicalize())
-        .transpose()?;
-    let resources = external.as_deref().unwrap_or(root);
-    let unsupported_version = config.version != 1;
-    if unsupported_version {
-        bail!("unsupported config version {}", config.version);
-    }
-    skills::reference(resources, &config.config_skill)?;
-    globs(&config.exclude)?;
-    let missing_rules = config.rules.is_empty();
-    if missing_rules {
-        bail!("at least one rule is required");
-    }
-    let mut ids = HashSet::new();
-    for rule in &config.rules {
-        let invalid_id = rule.id.trim().is_empty() || !ids.insert(&rule.id);
-        if invalid_id {
-            bail!("empty or duplicate rule ID");
+impl Config {
+    pub fn validate(&self, resources: &Path) -> Result<()> {
+        let unsupported_version = self.version != 1;
+        if unsupported_version {
+            bail!("unsupported config version {}", self.version);
         }
-        rule.validate(resources)?;
+        skills::reference(resources, &self.config_skill)?;
+        globs(&self.exclude)?;
+        let missing_rules = self.rules.is_empty();
+        if missing_rules {
+            bail!("at least one rule is required");
+        }
+        let mut ids = HashSet::new();
+        for rule in &self.rules {
+            let invalid_id = rule.id.trim().is_empty() || !ids.insert(&rule.id);
+            if invalid_id {
+                bail!("empty or duplicate rule ID");
+            }
+            rule.validate(resources)?;
+        }
+        single_pairs(&self.rules)
     }
-    single_pairs(&config.rules)?;
-    if let Some(resources) = external {
-        resolve_guidance(&mut config, &resources);
+    pub fn resolve_guidance(&mut self, resources: &Path) {
+        self.config_skill = resources
+            .join(&self.config_skill)
+            .to_string_lossy()
+            .into_owned();
+        for rule in &mut self.rules {
+            rule.warning_skill = resources
+                .join(&rule.warning_skill)
+                .to_string_lossy()
+                .into_owned();
+            rule.error_skill = resources
+                .join(&rule.error_skill)
+                .to_string_lossy()
+                .into_owned();
+        }
     }
-    Ok(config)
 }
 // DECISION: D156
 fn single_pairs(rules: &[Rule]) -> Result<()> {
@@ -110,22 +117,6 @@ fn single_pairs(rules: &[Rule]) -> Result<()> {
         bail!("at most one rule lists pairs");
     }
     Ok(())
-}
-fn resolve_guidance(config: &mut Config, resources: &Path) {
-    config.config_skill = resources
-        .join(&config.config_skill)
-        .to_string_lossy()
-        .into_owned();
-    for rule in &mut config.rules {
-        rule.warning_skill = resources
-            .join(&rule.warning_skill)
-            .to_string_lossy()
-            .into_owned();
-        rule.error_skill = resources
-            .join(&rule.error_skill)
-            .to_string_lossy()
-            .into_owned();
-    }
 }
 impl Rule {
     pub fn skill(&self, level: Level) -> String {
