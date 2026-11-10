@@ -11,8 +11,8 @@ Backlog B086–B101 выбраны в Plan как P094–P109 и выполня�
 
 ## Workspace
 
-Branch: `feature/backlog-voxel-followups`
-Revision: `4518103` (VAC выбора P094–P109 и этот снимок ещё не закоммичены)
+Branch: `feature/revision-gate` (P094, B093)
+Revision: `e9fc137` (master после слияния выбора P094–P109; VAC A ветки ещё не закоммичен)
 
 Установленный рантайм `9ba4fad`. macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
@@ -22,13 +22,16 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- Карточки сохранены и прошли гейт коммита `4518103`.
-- В рабочем дереве: строки P094–P109 в Plan.md, абзац выбора, карточки Plan/094.md–109.md.
+- Выбор P094–P109 слит в master `e9fc137`.
+- P094 VAC A: проверка `tools` под `check --revision` берёт файлы из дерева ревизии и Git исходного репозитория;
+  `feature-merge` после отказанного `git switch` возвращает индекс и дерево к HEAD.
 
 ## Verification
 
-- Гейт коммита `4518103`: все проверки PASS.
-- Выбор в Plan ещё не проходил гейт.
+- Установленный рантайм `9ba4fad`: `just check --revision HEAD --only tools` — «not a git repository», код 2.
+- Кандидат: тот же запуск на AgentRig и на voxel-rust — PASS [tools].
+- Новый тест отказанного переключения падал до правки со смешанным деревом (` M .agentrig/hooks/reference-transaction`).
+- После правки: test_git.py, test_registry.py и gate/tests — 50 passed.
 
 ## Blockers
 
@@ -36,5 +39,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить выбор; `just feature-merge`; начать P094 (B093) веткой от master.
+Закоммитить VAC A; затем Delivery, ротация P094/B093, пин D051 и `just feature-merge`; затем P095 (B098).
 Свободные ID: D139+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

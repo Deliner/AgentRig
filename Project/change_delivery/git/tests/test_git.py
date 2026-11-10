@@ -199,6 +199,25 @@ def test_git_integration_rejects_mutated_gate_inputs(
     assert (root / "product.txt").read_text() == "changed\n"
 
 
+def test_refused_switch_to_base_keeps_the_feature_tree(worker: Path, installed: Path) -> None:
+    root = installed
+    hook = root / ".agentrig/hooks/reference-transaction"
+    generated = hook.read_text()
+    hook.write_text("#!/bin/sh\nexit 1\n")
+    unhooked = ("-c", "core.hooksPath=/dev/null")
+    git(root, *unhooked, "commit", "-qam", "base hook refuses every reference update")
+    git(root, *unhooked, "switch", "-c", "task/product")
+    commit(root, ".agentrig/hooks/reference-transaction", generated)
+    feature = git(root, "rev-parse", "HEAD")
+    result = invoke(worker, root, "feature-merge")
+    assert result.returncode == 2, result.stdout + result.stderr
+    assert "aborted by hook" in result.stderr
+    assert git(root, "branch", "--show-current") == "task/product"
+    assert git(root, "rev-parse", "HEAD") == feature
+    assert git(root, "status", "--porcelain") == ""
+    assert hook.read_text() == generated
+
+
 # INVARIANT: I006
 def test_staged_commit_preserves_unstaged_work(
     worker: Path, installed: Path, monkeypatch: pytest.MonkeyPatch
