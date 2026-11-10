@@ -1,15 +1,64 @@
 use super::{Module, Pending, Rust, joined};
 use crate::structural_lint::architecture::resolution::{Resolved, normalize};
-use crate::structural_lint::architecture::source::{Reference, Target};
+use crate::structural_lint::architecture::source::{Reference, References, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{
-    collections::BTreeSet,
+    collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
+
+impl<'a> Rust<'a> {
+    // DECISION: D144
+    pub fn modules(
+        root: &Path,
+        sources: &'a BTreeMap<PathBuf, References>,
+    ) -> BTreeMap<PathBuf, Vec<Vec<String>>> {
+        let mut tree = Self::empty(sources);
+        let planted = sources.contains_key(root) && tree.plant(root).is_ok();
+        let mut pending: Vec<_> = planted.then(|| Pending::root(root)).into_iter().collect();
+        while let Some(next) = pending.pop() {
+            for reference in &sources[&next.file].items {
+                pending.extend(tree.declare(&next.base, reference).ok().flatten());
+                pending.extend(
+                    tree.include(&next.file, &next.base, reference)
+                        .ok()
+                        .flatten(),
+                );
+            }
+        }
+        let files = tree.files.keys().chain(tree.included.keys());
+        files
+            .map(|file| {
+                (
+                    file.clone(),
+                    tree.bases(file).into_iter().cloned().collect(),
+                )
+            })
+            .collect()
+    }
+}
+
+impl Pending {
+    fn root(root: &Path) -> Self {
+        Self {
+            file: root.to_path_buf(),
+            base: Vec::new(),
+        }
+    }
+}
 
 impl Rust<'_> {
     // DECISION: D136
     pub(super) fn load_tree(&mut self, root: &Path) -> Result<()> {
+        self.plant(root)?;
+        let mut pending = vec![Pending::root(root)];
+        while let Some(next) = pending.pop() {
+            pending.extend(self.load(&next.file, &next.base)?);
+        }
+        self.validate_expansions()
+    }
+
+    fn plant(&mut self, root: &Path) -> Result<()> {
         self.modules.insert(
             Vec::new(),
             Module {
@@ -18,14 +67,7 @@ impl Rust<'_> {
             },
         );
         self.files.insert(root.into(), Vec::new());
-        let mut pending = vec![Pending {
-            file: root.to_path_buf(),
-            base: Vec::new(),
-        }];
-        while let Some(next) = pending.pop() {
-            pending.extend(self.load(&next.file, &next.base)?);
-        }
-        self.validate_expansions()
+        Ok(())
     }
 
     fn load(&mut self, file: &Path, base: &[String]) -> Result<Vec<Pending>> {

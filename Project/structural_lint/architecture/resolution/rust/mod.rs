@@ -69,10 +69,18 @@ impl<'a> Rust<'a> {
             "crate root is missing from source inventory: {}",
             root.display()
         );
-        let mut resolver = Self {
+        let mut resolver = Self::empty(sources);
+        resolver.external = external.iter().chain(local.keys()).cloned().collect();
+        resolver.local = local.keys().cloned().collect();
+        resolver.load_tree(root)?;
+        Ok(resolver)
+    }
+
+    fn empty(sources: &'a BTreeMap<PathBuf, References>) -> Self {
+        Self {
             sources,
-            external: external.iter().chain(local.keys()).cloned().collect(),
-            local: local.keys().cloned().collect(),
+            external: BTreeSet::new(),
+            local: BTreeSet::new(),
             modules: BTreeMap::new(),
             files: BTreeMap::new(),
             items: BTreeSet::new(),
@@ -81,19 +89,20 @@ impl<'a> Rust<'a> {
             generated: BTreeSet::new(),
             macros: BTreeMap::new(),
             globs: BTreeMap::new(),
-        };
-        resolver.load_tree(root)?;
-        Ok(resolver)
+        }
+    }
+
+    fn bases(&self, source: &Path) -> Vec<&Vec<String>> {
+        self.files
+            .get(source)
+            .into_iter()
+            .chain(self.included.get(source).into_iter().flatten())
+            .collect()
     }
 
     // DECISION: D136
     pub fn resolve(&self, source: &Path, target: &Target) -> Result<Resolved> {
-        let bases: Vec<_> = self
-            .files
-            .get(source)
-            .into_iter()
-            .chain(self.included.get(source).into_iter().flatten())
-            .collect();
+        let bases = self.bases(source);
         ensure!(
             !bases.is_empty(),
             "source is not in the declared crate module tree"

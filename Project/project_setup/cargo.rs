@@ -77,10 +77,15 @@ pub(super) fn layout(root: &Path, source: &str) -> Result<Layout> {
     let Some(manifest) = found else {
         return Ok(Layout::fallback(source));
     };
-    let directory = Path::new(&manifest).parent().unwrap_or(Path::new(""));
-    let parsed = read(&root.join(&manifest))?;
+    manifest_layout(root, &manifest)
+}
+
+// DECISION: D144
+pub(super) fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
+    let directory = Path::new(manifest).parent().unwrap_or(Path::new(""));
+    let parsed = read(&root.join(manifest))?;
     let mut layout = Layout {
-        manifest: manifest.clone(),
+        manifest: manifest.to_owned(),
         roots: Vec::new(),
         crates: BTreeMap::new(),
         externals: BTreeSet::new(),

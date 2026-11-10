@@ -39,6 +39,8 @@ other commands are not inspected. Among the inventory files with that language's
 check's include matches, it names
 each file that matches only groups without targets, because changing it selects no tests, and each test that no target
 selects: a `test_*.py` file outside every target path, resolved from the command's working directory, or a Rust file
-containing `#[test]` whose module prefix below the nearest `lib.rs`, else `main.rs`, neither contains a target nor
-begins one. Repair by adding the path to a group whose targets exercise it, or by mapping it to `::` or `.` when its
-consumers are unknown. A file that matches no group is not reported, since it already runs the whole command.
+containing `#[test]` whose module path neither contains a target nor ends in whole segments that begin one. The path
+follows `mod` declarations and `#[path]` from the crate roots of the manifest the command names, so `game::tests::`
+selects the tests of `native::host::game`; a file that no crate root reaches is not reported. Repair by adding the
+path to a group whose targets exercise it, or by mapping it to `::` or `.` when its consumers are unknown. A file that
+matches no group is not reported, since it already runs the whole command.

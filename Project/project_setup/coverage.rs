@@ -4,8 +4,12 @@ use crate::change_delivery::gate::{AffectedMap, files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs};
+use crate::structural_lint::architecture::{resolution::rust::Rust, source};
 use anyhow::Result;
+use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
+
+type Modules = BTreeMap<PathBuf, Vec<Vec<String>>>;
 
 const UNSELECTED: &str = "no affected group targets this test, so the gate never selects it; add it or its directory to the targets of the group whose changes it verifies";
 
@@ -47,6 +51,7 @@ struct Mapped<'a> {
     runner: Runner,
     cwd: &'a str,
     map: AffectedMap<'a>,
+    modules: Modules,
 }
 
 pub(super) fn report(context: &Context) -> Result<bool> {
@@ -54,7 +59,7 @@ pub(super) fn report(context: &Context) -> Result<bool> {
     let rerun = rerun(&context.root, &["config-check".into()]);
     let mut found = false;
     for check in &context.config.checks {
-        let Some(mapped) = mapped(context, check)? else {
+        let Some(mapped) = mapped(context, check, &files)? else {
             continue;
         };
         let extension = Some(std::ffi::OsStr::new(mapped.runner.source()));
@@ -77,7 +82,11 @@ pub(super) fn report(context: &Context) -> Result<bool> {
     Ok(found)
 }
 
-fn mapped<'a>(context: &'a Context, check: &'a Check) -> Result<Option<Mapped<'a>>> {
+fn mapped<'a>(
+    context: &'a Context,
+    check: &'a Check,
+    files: &[PathBuf],
+) -> Result<Option<Mapped<'a>>> {
     let command = check
         .command
         .as_ref()
@@ -92,13 +101,56 @@ fn mapped<'a>(context: &'a Context, check: &'a Check) -> Result<Option<Mapped<'a
     if unmapped {
         return Ok(None);
     }
+    let modules = match runner {
+        Runner::Cargo => modules(&context.root, files, &command.argv, &command.cwd)?,
+        Runner::Pytest => Modules::new(),
+    };
     Ok(Some(Mapped {
         root: &context.root,
         check,
         runner,
         cwd: &command.cwd,
         map: AffectedMap::new(check)?,
+        modules,
     }))
+}
+
+// DECISION: D144
+fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result<Modules> {
+    let manifest = manifest(argv, cwd);
+    let mut modules = Modules::new();
+    let absent = !root.join(&manifest).is_file();
+    if absent {
+        return Ok(modules);
+    }
+    let directory = manifest.parent().unwrap_or(Path::new(""));
+    let mut sources = BTreeMap::new();
+    let rust = |path: &&PathBuf| {
+        path.starts_with(directory) && path.extension().is_some_and(|extension| extension == "rs")
+    };
+    for path in files.iter().filter(rust) {
+        let text = fs::read_to_string(root.join(path))?;
+        sources.insert(path.clone(), source::extract(path, &text)?);
+    }
+    let layout = super::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
+    for crate_root in layout.roots {
+        for (file, bases) in Rust::modules(Path::new(&crate_root), &sources) {
+            modules.entry(file).or_default().extend(bases);
+        }
+    }
+    Ok(modules)
+}
+
+fn manifest(argv: &[String], cwd: &str) -> PathBuf {
+    let flag = argv.iter().position(|arg| arg == "--manifest-path");
+    let separate = flag
+        .and_then(|index| argv.get(index + 1))
+        .map(String::as_str);
+    let joined = argv
+        .iter()
+        .find_map(|arg| arg.strip_prefix("--manifest-path="));
+    let path = separate.or(joined).unwrap_or("Cargo.toml");
+    normalized(&Path::new(cwd).join(path))
 }
 
 fn finding(mapped: &Mapped<'_>, path: &Path) -> Result<Option<String>> {
@@ -140,11 +192,27 @@ fn selected(mapped: &Mapped<'_>, path: &Path) -> bool {
             let file = target.split("::").next().unwrap_or_default();
             path.starts_with(normalized(&Path::new(mapped.cwd).join(file)))
         }),
-        Runner::Cargo => module(mapped.root, path).is_none_or(|module| {
-            targets(mapped)
-                .any(|target| module.contains(target.as_str()) || target.starts_with(&module))
+        Runner::Cargo => mapped.modules.get(path).is_none_or(|modules| {
+            modules
+                .iter()
+                .any(|module| targets(mapped).any(|target| selects(module, target)))
         }),
     }
+}
+
+// DECISION: D144
+fn selects(module: &[String], target: &str) -> bool {
+    let suffix = |start: usize| -> String {
+        module
+            .iter()
+            .skip(start)
+            .map(|part| format!("{part}::"))
+            .collect()
+    };
+    let crate_root = module.is_empty();
+    let inside = suffix(0).contains(target);
+    let continued = (0..module.len()).any(|start| target.starts_with(&suffix(start)));
+    crate_root || inside || continued
 }
 
 fn normalized(path: &Path) -> PathBuf {
@@ -159,20 +227,4 @@ fn normalized(path: &Path) -> PathBuf {
         }
     }
     result
-}
-
-fn module(root: &Path, path: &Path) -> Option<String> {
-    let crate_root = |entry: &str| {
-        path.ancestors()
-            .skip(1)
-            .find(|directory| root.join(directory).join(entry).is_file())
-    };
-    let directory = crate_root("lib.rs").or_else(|| crate_root("main.rs"))?;
-    let relative = path.strip_prefix(directory).ok()?.with_extension("");
-    let mut parts: Vec<_> = relative.iter().filter_map(|part| part.to_str()).collect();
-    let entry = matches!(parts.as_slice(), ["lib" | "main"]) || parts.last() == Some(&"mod");
-    if entry {
-        parts.pop();
-    }
-    Some(parts.iter().map(|part| format!("{part}::")).collect())
 }

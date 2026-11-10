@@ -13,7 +13,22 @@ PYTEST = ["uv", "run", "pytest"]
 SILENT_RUST = "map it to '::' (every test)"
 SILENT_PYTHON = "map it to '.' (every test)"
 UNSELECTED = "the gate never selects it"
+MANIFEST = '[package]\nname = "sample"\nversion = "0.1.0"\n'
+TESTS = "#[cfg(test)]\nmod tests {\n    #[test]\n    fn runs() {}\n}\n"
+GAME = "native/host/game.rs"
+THING = "native/host/parts/thing.rs"
+MOUNTED = {
+    "Cargo.toml": MANIFEST + '\n[lib]\npath = "core/lib.rs"\n',
+    "core/lib.rs": '#[path = "../native/mod.rs"]\npub mod native;\n',
+    "native/main.rs": "fn main() {}\n",
+    "native/mod.rs": "mod host;\n\npub fn size() -> usize {\n    mod local {\n"
+    "        pub const SIZE: usize = 1;\n    }\n    local::SIZE\n}\n",
+    "native/host/mod.rs": 'mod game;\n#[path = "parts/thing.rs"]\nmod widget;\n',
+    GAME: TESTS,
+    THING: TESTS,
+}
 SOURCES = {
+    "Cargo.toml": MANIFEST,
     "src/lib.rs": "pub mod core;\n",
     "src/core/mod.rs": "mod mesh_tests;\n",
     "src/core/mesh_tests.rs": "#[test]\nfn mesh() {}\n",
@@ -101,9 +116,30 @@ CASES = {
 def test_config_check_reports_paths_the_affected_map_leaves_untested(
     worker: Path, tmp_path: Path, name: str
 ) -> None:
-    case = CASES[name]
+    verify(worker, tmp_path, SOURCES, CASES[name])
+
+
+@pytest.mark.parametrize(
+    "case",
+    [
+        (["native::host::game::tests::", "native::host::widget::tests::"], []),
+        (["game::tests::", "widget::"], []),
+        (["game::tests::", "host::parts::thing::tests::"], [THING]),
+        (["host::world::tests::"], [GAME, THING]),
+    ],
+)
+# DECISION: D144
+def test_cargo_targets_follow_the_declared_module_tree(
+    worker: Path, tmp_path: Path, case: tuple[list[str], list[str]]
+) -> None:
+    targets, unselected = case
+    groups = [{"include": ["**"], "targets": targets}]
+    verify(worker, tmp_path, MOUNTED, Case(CARGO, groups, dict.fromkeys(unselected, UNSELECTED)))
+
+
+def verify(worker: Path, tmp_path: Path, sources: dict[str, str], case: Case) -> None:
     project(tmp_path)
-    for path, text in SOURCES.items():
+    for path, text in sources.items():
         (tmp_path / path).parent.mkdir(parents=True, exist_ok=True)
         (tmp_path / path).write_text(text)
     command = {"argv": case.argv, "accepts_args": True, "cwd": case.cwd}
