@@ -11,10 +11,10 @@ P113 (B105) завершается этим VAC. Пользователь одо
 ## Workspace
 
 Branch: `feature/structural-bans`, от master `3508e36`.
-Revision: `4fe150758fdb00e9563b8f50f30ff625fb2d652e` (пин середины P113 поверх фазы 1 `4122a4f`); этот снимок входит в
-коммит фазы 2 поверх неё.
+Revision: `d97417e81e5378ba1f939ef8b5bc2ba11e65db03` (фаза 2 P113); этот снимок входит в коммит финального пина поверх
+неё.
 
-Установленный рантайм `4122a4f` (пин середины P113). macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `d97417e` (финальный пин P113). macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -22,7 +22,7 @@ Revision: `4fe150758fdb00e9563b8f50f30ff625fb2d652e` (пин середины P1
 
 - P110, P111 и P112 слиты в master; последний merge `3508e36`, пин P112 `a5a6af6`.
 - voxel-rust: итоги ноутбука для P022 записаны коммитом `0eafc8e` и слиты в main `37de3ff`; P022 там paused.
-- P113: VAC A `4a5c4b0`, фаза 1 `4122a4f` с D155, пин середины `4fe1507`. Фаза 2 в этом коммите: `unlabeled-exit`,
+- P113: VAC A `4a5c4b0`, фаза 1 `4122a4f` с D155, пин середины `4fe1507`, фаза 2 `d97417e`: `unlabeled-exit`,
   `length-subtraction`, `implicit-order` и `unit-lock` включены в `lint.yaml`, `catalog::ALL`, реестр Rust и `init`;
   навыки label-the-exit, subtract-checked, pin-the-order и lock-the-data; находки рига исправлены, пять меток циклов и
   `split_last` в `paths.rs`. P113 и B105 перенесены в Archive, Delivery с таблицей замера и причинами отказа в
@@ -30,9 +30,10 @@ Revision: `4fe150758fdb00e9563b8f50f30ff625fb2d652e` (пин середины P1
 
 ## Verification
 
-- Фаза 2 до коммита: `just candidate lint` без находок, rust-test 178 PASS, Python-тесты config, project_setup и
-  structural_lint 144 PASS, Clippy и rustfmt PASS, `config-check` PASS. Проба `init` кандидата: четыре правила в
-  `lint.yaml`, четыре навыка в `.agentrig/skills`, `config-check` PASS, пробный файл даёт по находке каждого вида.
+- Гейт коммита `d97417e` PASS: rust-test 178, test 408, Clippy, rustfmt, lint, memory, ruff, mypy, typos, vulture.
+  Проба `init` кандидата: четыре правила в `lint.yaml`, четыре навыка в `.agentrig/skills`, `config-check` PASS,
+  пробный файл даёт по находке каждого вида. `just bootstrap` установил `d97417e`; его `lint-rules` перечисляет
+  четыре вида, его `lint` рига без находок.
 
 ## Blockers
 
@@ -40,7 +41,6 @@ Revision: `4fe150758fdb00e9563b8f50f30ff625fb2d652e` (пин середины P1
 
 ## Next action
 
-Финальный пин D051: `git rev-parse HEAD > tooling/distribution/stable.txt && just bootstrap`, коммит пина с хешем в
-Delivery P113, затем `just feature-merge`. После слияния разметить списки запретов `list-2-bans.md` и `list-3-bans.md`
+`just feature-merge` ветки `feature/structural-bans`. После слияния разметить списки запретов `list-2-bans.md` и `list-3-bans.md`
 итогами замера и начать P114 своей веткой от master. Свободные ID: D156+, I022+, P115+, B108+ (B066 и D111
 зарезервированы).
