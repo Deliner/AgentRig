@@ -1,0 +1,5 @@
+purpose: "Name the fields of a tuple struct or tuple variant holding two values of one type, or justify the order with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace same-type tuple positions with named fields"
+directories: {}

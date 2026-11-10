@@ -1,4 +1,4 @@
-purpose: "Give a resource, a lock guard, the data a lock protects, process-global state or a recursive file-system deletion an owner with a bounded responsibility, or justify the intended exception with a reference"
+purpose: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction or a call pair an owner with a bounded responsibility, or justify the intended exception with a reference"
 files: {}
 directories:
   own-the-resource: "Let a Rust value drop or hold its guard instead of defeating RAII, or justify the intended leak with a reference"
@@ -6,3 +6,7 @@ directories:
   lock-the-data: "Move the data a unit lock protects inside the lock, or justify the external resource it serializes with a reference"
   own-the-state: "Give process-global mutable state an owner instead of a static lock or a public static cell, or justify the intended global with a reference"
   contain-the-deletion: "Delete a directory tree through an owner that checks the path lies inside its own area, or justify the intended recursive deletion with a reference"
+  hide-checked-field: "Make a field that a checking constructor fills private and read it through a method, or justify the visible field with a reference"
+  delegate-not-deref: "Replace Deref or DerefMut of a wrapper with methods that delegate what callers need, or justify the deref with a reference"
+  construct-explicitly: "Replace From of a raw value for a newtype with a named constructor or a checking TryFrom, or justify the conversion with a reference"
+  guard-the-pair: "Close a configured call pair on every path through a guard, or justify the early exit with a reference"

@@ -1,0 +1,5 @@
+purpose: "Repair a struct literal field set from a variable named after another of its fields, or justify the exchange with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to give each struct literal field a value named for it"
+directories: {}

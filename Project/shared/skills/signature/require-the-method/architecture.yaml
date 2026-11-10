@@ -1,0 +1,5 @@
+purpose: "Drop a trait method's default body that ignores self so each implementor decides, or justify the default with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to turn a constant trait default into a required method"
+directories: {}

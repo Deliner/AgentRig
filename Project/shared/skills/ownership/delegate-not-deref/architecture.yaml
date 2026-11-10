@@ -1,0 +1,5 @@
+purpose: "Replace Deref or DerefMut of a wrapper with methods that delegate what callers need, or justify the deref with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to expose a wrapper's inner value only through chosen methods"
+directories: {}

@@ -1,0 +1,5 @@
+purpose: "Replace a comparison with one enum variant with an exhaustive match, or justify the comparison with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make the compiler name each variant a comparison would send to the other branch"
+directories: {}

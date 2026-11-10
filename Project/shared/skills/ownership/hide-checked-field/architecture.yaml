@@ -1,0 +1,5 @@
+purpose: "Make a field that a checking constructor fills private and read it through a method, or justify the visible field with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a checked value behind its constructor"
+directories: {}

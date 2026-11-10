@@ -1,0 +1,5 @@
+purpose: "Close a configured call pair on every path through a guard, or justify the early exit with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep an early exit from skipping the closing call of a pair"
+directories: {}
