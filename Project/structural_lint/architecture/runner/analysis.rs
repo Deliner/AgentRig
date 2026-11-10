@@ -1,10 +1,13 @@
 use crate::shared::fs;
+use crate::shared::paths::patterns::globs;
 use crate::structural_lint::architecture::{
     self as architecture, Dependency, EnvironmentUse, Issue, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
-    source::{self, References, Target},
+    source::{self, Reference, References, Target},
 };
+use crate::structural_lint::rules::descriptor::TEST_CODE;
 use anyhow::{Result, ensure};
+use globset::GlobSet;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -77,6 +80,8 @@ pub struct Resolvers<'a> {
     rust: Vec<Rust<'a>>,
     crates: &'a BTreeMap<String, PathBuf>,
     disallowed: super::disallowed::Policy<'a>,
+    // DECISION: D146
+    test_code: GlobSet,
 }
 
 impl<'a> Resolvers<'a> {
@@ -107,6 +112,7 @@ impl<'a> Resolvers<'a> {
                 rust,
                 crates: &settings.rust_crates,
                 disallowed: super::disallowed::Policy::new(&settings.disallowed)?,
+                test_code: globs(&TEST_CODE.iter().map(|&p| p.into()).collect::<Vec<_>>())?,
             },
             issues,
         ))
@@ -213,16 +219,7 @@ impl<'a> Resolvers<'a> {
                         // DECISION: D105
                         violations.extend(self.disallowed.check(path, reference.line, external));
                     }
-                    edges.extend(resolved.files.into_iter().map(|target| Dependency {
-                        source: path.into(),
-                        target,
-                        line: reference.line,
-                        // DECISION: D136
-                        module_declaration: matches!(
-                            reference.target,
-                            Target::RustModule { .. } | Target::RustInclude { .. }
-                        ),
-                    }));
+                    edges.extend(self.edges(path, &reference, resolved.files));
                 }
                 Err(error) => gaps.push(incomplete(path, Some(reference.line), error)),
             }
@@ -236,6 +233,29 @@ impl<'a> Resolvers<'a> {
             used,
             environment,
         }
+    }
+
+    // DECISION: D136
+    // DECISION: D146
+    fn edges(
+        &self,
+        path: &Path,
+        reference: &Reference,
+        files: BTreeSet<PathBuf>,
+    ) -> impl Iterator<Item = Dependency> {
+        let module_declaration = matches!(
+            reference.target,
+            Target::RustModule { .. } | Target::RustInclude { .. }
+        );
+        let test = reference.test || self.test_code.is_match(path);
+        let (source, line) = (path.to_path_buf(), reference.line);
+        files.into_iter().map(move |target| Dependency {
+            source: source.clone(),
+            target,
+            line,
+            module_declaration,
+            test,
+        })
     }
 }
 

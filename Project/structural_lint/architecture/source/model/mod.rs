@@ -41,6 +41,7 @@ pub struct RustMacro {
 pub struct Reference {
     pub line: usize,
     pub target: Target,
+    pub test: bool,
 }
 
 #[derive(Default, Debug)]
@@ -98,10 +99,14 @@ impl Source<'_> {
     }
 
     pub(super) fn record(&mut self, node: Node<'_>, target: Target) {
-        let reference = Reference {
+        self.add(Reference {
             line: node.start_position().row + 1,
             target,
-        };
+            test: false,
+        });
+    }
+
+    pub(super) fn add(&mut self, reference: Reference) {
         let declaration = matches!(&reference.target, Target::RustModule { .. });
         let new = declaration || !self.output.items.contains(&reference);
         if new {

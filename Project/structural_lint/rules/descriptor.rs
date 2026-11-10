@@ -9,7 +9,7 @@ pub struct Descriptor {
     pub skill: &'static str,
     pub parameters: Parameters,
 }
-pub(super) const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
+pub(crate) const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
 impl Kind {
     pub fn descriptor(self) -> &'static Descriptor {
         match self {

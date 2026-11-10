@@ -75,6 +75,37 @@ def test_edges_command_lists_the_edges_the_budget_counts(worker: Path, tmp_path:
     assert unselected.returncode != 0 and "selects docs as a directory" in unselected.stderr
 
 
+TEST_ONLY_USERS = {
+    "src/lib.rs": "pub mod hub; pub mod a; pub mod b; pub mod c; pub mod p;\n",
+    "src/hub/mod.rs": "pub fn value() -> i32 { 7 }\n",
+    "src/a/mod.rs": "#[cfg(test)]\nmod tests;\n",
+    "src/a/tests.rs": "use crate::hub::value;\n",
+    "src/b/mod.rs": "#[cfg(test)]\nmod tests {\n    use crate::hub::value;\n}\n",
+    "src/c/mod.rs": '#[cfg(test)]\n#[path = "tests/check.rs"]\nmod check;\n',
+    "src/c/tests/check.rs": "use crate::hub::value;\n",
+    "src/p/mod.rs": "pub fn run() -> i32 { crate::hub::value() }\n",
+}
+
+
+# DECISION: D146
+def test_dependents_budget_counts_only_production_uses(worker: Path, tmp_path: Path) -> None:
+    prepare(tmp_path, CONFIG.replace("EXTENSION", ".rs").replace("ROOTS", "[src/lib.rs]"))
+    for name, text in TEST_ONLY_USERS.items():
+        (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / name).write_text(text)
+    for name in ["src/hub", "src/a", "src/b", "src/c/tests", "src/c", "src/p", "src"]:
+        contract(tmp_path / name)
+    with (tmp_path / "src/hub/architecture.yaml").open("a") as file:
+        file.write("dependents: 0\n")
+    production = "src/p/mod.rs:1 uses src/hub/mod.rs"
+    expected = f"directory is depended on by 1 other directories (budget 0): src/p ({production})"
+    code, findings = lint(worker, tmp_path)
+    located = [(item["path"], item["message"].split("; ")[0]) for item in findings]
+    assert (code, located) == (1, [("src/hub/architecture.yaml", expected)]), findings
+    hub = json.loads(edges(worker, tmp_path, "src/hub", "--json").stdout)
+    assert hub["rules"][0]["incoming"] == {"src/p": [production]}
+
+
 OVER_DEFAULT = ("src/hub/api.py", None, "file uses 11 other project directories (budget 10)")
 OVER_SETTING = (
     "src/a/mod.rs",

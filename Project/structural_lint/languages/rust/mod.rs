@@ -20,7 +20,8 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::structure::Structure;
-use context::{in_debug_only_context, in_test_context, last_segment};
+pub(crate) use context::in_test_context;
+use context::{in_debug_only_context, last_segment};
 use tree_sitter::Node;
 
 // DECISION: D017

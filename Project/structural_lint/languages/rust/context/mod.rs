@@ -2,7 +2,7 @@ pub(super) mod async_code;
 use crate::structural_lint::languages::measure::text;
 use tree_sitter::Node;
 
-pub(super) fn in_test_context(node: Node<'_>, source: &str) -> bool {
+pub(crate) fn in_test_context(node: Node<'_>, source: &str) -> bool {
     let mut current = node;
     while let Some(parent) = current.parent() {
         let item = matches!(

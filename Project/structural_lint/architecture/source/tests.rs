@@ -112,7 +112,8 @@ fn python_static_loading_is_extracted_and_dynamic_loading_is_incomplete() {
         result.items,
         [Reference {
             line: 1,
-            target: Target::PythonModule("domain.api".into())
+            target: Target::PythonModule("domain.api".into()),
+            test: false,
         }]
     );
     assert_eq!(result.issues.len(), 1);
