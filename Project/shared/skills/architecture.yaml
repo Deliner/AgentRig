@@ -10,7 +10,7 @@ directories:
   develop-tools: "Develop, repair and remove registered project tools without duplicating capabilities"
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"
-  refactor: "Decompose an oversized or ill-structured unit by responsibility, or move long embedded text into its own file, while preserving its contract"
+  refactor: "Decompose an oversized or ill-structured unit by responsibility, or move long embedded text or a misplaced test file where it belongs, while preserving its contract"
   remove-secret: "Remove a hardcoded credential from source and move it to configuration or a secret store"
   repair: "Diagnose and repair configuration and verification failures"
   references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"

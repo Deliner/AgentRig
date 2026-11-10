@@ -15,6 +15,7 @@ pub enum Structure {
     FunctionLines,
     EmbeddedText,
     DirectoryArchitecture,
+    TestPlacement,
 }
 impl Structure {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -27,6 +28,7 @@ impl Structure {
             Self::FunctionLines => &FUNCTIONLINES,
             Self::EmbeddedText => &EMBEDDEDTEXT,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
+            Self::TestPlacement => &TESTPLACEMENT,
         }
     }
 }
@@ -119,5 +121,17 @@ const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "architecture contract is violated",
+    },
+};
+// DECISION: D145
+const TESTPLACEMENT: Descriptor = Descriptor {
+    default_id: "test-placement",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust file module declared under #[cfg(test)] or inside a test-only module whose file is neither tests.rs nor under a tests directory, at its declaration line",
+    skill: "relocate-tests",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a test-only module file outside tests.rs and tests/ is measured as production code by every other rule; move it into a tests/ directory, keeping its module name through #[path], or into the tests.rs of the module it tests",
     },
 };

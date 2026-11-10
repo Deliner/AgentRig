@@ -59,6 +59,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Structure(Structure::EmbeddedText),
             Kind::Reference(Reference::CommentReference),
             Kind::Structure(Structure::DirectoryArchitecture),
+            Kind::Structure(Structure::TestPlacement),
         ],
         inspect: Inspect::Tree(rust::inspect),
     },

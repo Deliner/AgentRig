@@ -8,6 +8,7 @@ mod recursive_deletion;
 mod silent_error;
 mod super_reach;
 mod suppression;
+mod test_placement;
 mod tuple_record;
 mod unsafe_site;
 mod unwind_catch;
@@ -49,6 +50,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "expression_statement" => discarded_result(node, source, output),
         "let_declaration" => guard_await::inspect(node, source, output),
         "scoped_identifier" => super_reach::inspect(node, source, output),
+        "mod_item" => test_placement::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, source, output),
         "binary_expression" | "let_chain" => boolean_expression(node, output),

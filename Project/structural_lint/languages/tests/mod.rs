@@ -17,6 +17,7 @@ mod panic_surface;
 mod recursive_deletion;
 mod silent_error;
 mod super_reach;
+mod test_placement;
 mod tuple_as_record;
 mod unsafe_site;
 

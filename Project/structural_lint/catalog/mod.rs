@@ -77,6 +77,7 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::NamedIfCondition),
     Kind::Reference(Reference::CommentReference),
     Kind::Structure(Structure::DirectoryArchitecture),
+    Kind::Structure(Structure::TestPlacement),
 ];
 pub fn syntax(kind: Kind) -> bool {
     languages::HANDLERS
