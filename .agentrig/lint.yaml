@@ -409,6 +409,62 @@ rules:
   level: error
   warning_skill: .agents/skills/check-deserialize/SKILL.md
   error_skill: .agents/skills/check-deserialize/SKILL.md
+# DECISION: D155
+- id: implicit-order
+  kind: implicit-order
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/pin-the-order/SKILL.md
+  error_skill: .agents/skills/pin-the-order/SKILL.md
+# DECISION: D155
+- id: unit-lock
+  kind: unit-lock
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/lock-the-data/SKILL.md
+  error_skill: .agents/skills/lock-the-data/SKILL.md
+# DECISION: D155
+- id: unlabeled-exit
+  kind: unlabeled-exit
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/label-the-exit/SKILL.md
+  error_skill: .agents/skills/label-the-exit/SKILL.md
+# DECISION: D155
+- id: length-subtraction
+  kind: length-subtraction
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/subtract-checked/SKILL.md
+  error_skill: .agents/skills/subtract-checked/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

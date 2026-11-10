@@ -8,17 +8,16 @@ use crate::structural_lint::rules::structure::Structure;
 use std::path::Path;
 
 mod async_code;
-mod derived_trait;
-mod global_state;
+mod control_flow;
+mod discarded_result;
 mod manifest;
 mod markers;
-mod ord_equality;
+mod ownership;
 mod panic_surface;
-mod recursive_deletion;
+mod signature;
 mod silent_error;
 mod super_reach;
 mod test_placement;
-mod tuple_as_record;
 mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {

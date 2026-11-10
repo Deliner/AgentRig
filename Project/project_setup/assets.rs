@@ -59,6 +59,14 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/split-boolean-expression/SKILL.md"),
     ),
     (
+        "label-the-exit",
+        include_str!("../shared/skills/control-flow/label-the-exit/SKILL.md"),
+    ),
+    (
+        "subtract-checked",
+        include_str!("../shared/skills/control-flow/subtract-checked/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
@@ -148,6 +156,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/signature/check-deserialize/SKILL.md"),
     ),
     (
+        "pin-the-order",
+        include_str!("../shared/skills/signature/pin-the-order/SKILL.md"),
+    ),
+    (
         "eager-to-lazy",
         include_str!("../shared/skills/references/eager-to-lazy/SKILL.md"),
     ),
@@ -162,6 +174,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "release-the-guard",
         include_str!("../shared/skills/ownership/release-the-guard/SKILL.md"),
+    ),
+    (
+        "lock-the-data",
+        include_str!("../shared/skills/ownership/lock-the-data/SKILL.md"),
     ),
     (
         "own-the-state",

@@ -3,47 +3,44 @@
 ## Focus
 
 Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. По нему показаны карточки B102–B105, и
-пользователь поручил: «Все карточки подтверждаю, заводи и делай автономно». Выбрано P110 → P113. Параллельно идёт
-приёмка P022 voxel-rust на ноутбуке с Linux, NVIDIA и Radeon.
+пользователь поручил: «Все карточки подтверждаю, заводи и делай автономно». Выбрано P110 → P113; P110–P112 слиты,
+P113 (B105) завершается этим VAC. Пользователь одобрил карточку B106 и поручил запланировать её следом: выбрана P114
+после P113. B107 о сверке имён узлов с грамматикой сохранена по поручению пользователя, но в работу не взята: она
+требует дополнительного согласования, пользователь вернётся к ней сам.
 
 ## Workspace
 
-Branch: `feature/clippy-config`, от master `7990589`.
-Revision: `3b88a613a0c541b1e89cb9ca72803f4256c5451e`; этот снимок закоммичен поверх вместе с пином.
+Branch: `feature/structural-bans`, от master `3508e36`.
+Revision: `d97417e81e5378ba1f939ef8b5bc2ba11e65db03` (фаза 2 P113); этот снимок входит в коммит финального пина поверх
+неё.
 
-Установленный рантайм `3b88a61` (пин P112): `.agentrig/bin/agentrig` запускает `bin/macos-arm64/agentrig`. macOS:
-коммиты и `feature-merge` с cargo через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`.
-Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
+Установленный рантайм `d97417e` (финальный пин P113). macOS: cargo, кандидат, коммиты и `feature-merge` через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
+`feature/init-probe` не трогать.
 
 ## Progress
 
-- P110 и P111 слиты в master; последний merge `7990589`, пин P111 `06e6137`.
-- P112 выполнена VAC `3b88a61`: `Project/clippy.toml` с `avoid-breaking-exported-api = false` и
-  `max-struct-bools = 1`, семь структур с двумя `bool` и `Reference::Comment` переведены на enum, `Scope` в выборе
-  гейта, `init` дополняет файл Clippy проекта, D154, P112 и B104 в архиве. Пин D051 и `just bootstrap` сделаны.
-- P113 ждёт.
-- voxel-rust P022 слит в main `20f2c74` и paused. Ветка voxel-rust `feature/p022-laptop` от `20f2c74`: коммит
-  `621b999` переносит проверку аппаратного адаптера в начало нативного smoke.
-- Ноутбук, `621b999`: smoke на lavapipe падает на проверке адаптера, с префиксом NVIDIA и без него проходит на
-  RTX 5080. native-smoke, native-boundary, native-scene и native-profiles проходят в обоих режимах; native-ui прошёл
-  один раз из трёх; native-settings устарел для экрана «Создание мира» из `4210251` и падает и на базе `377aaa7`.
-- Radeon 890M через его ICD: smoke, native-smoke и native-profiles проходят; native-ui и native-scene превышают
-  время с пустым журналом; native-boundary и native-settings падают на xdotool BadWindow, окно игры пропадает при
-  вводе. Итог ещё не записан в voxel-rust.
+- P110, P111 и P112 слиты в master; последний merge `3508e36`, пин P112 `a5a6af6`.
+- voxel-rust: итоги ноутбука для P022 записаны коммитом `0eafc8e` и слиты в main `37de3ff`; P022 там paused.
+- P113: VAC A `4a5c4b0`, фаза 1 `4122a4f` с D155, пин середины `4fe1507`, фаза 2 `d97417e`: `unlabeled-exit`,
+  `length-subtraction`, `implicit-order` и `unit-lock` включены в `lint.yaml`, `catalog::ALL`, реестр Rust и `init`;
+  навыки label-the-exit, subtract-checked, pin-the-order и lock-the-data; находки рига исправлены, пять меток циклов и
+  `split_last` в `paths.rs`. P113 и B105 перенесены в Archive, Delivery с таблицей замера и причинами отказа в
+  `Archive/Plan/113.md`.
 
 ## Verification
 
-- P112 `3b88a61`: хук коммита — build, lint, memory, rustfmt, clippy, rust-test 171, test 423, ruff, mypy, typos
-  и vulture PASS. Пробы двух порогов роняют `just run clippy` с кодом 101. Живая проба `init` на потребителе со
-  своим `clippy.toml`: Clippy 0 до и 101 после. Рантайм `3b88a61` читает `checks.json` прежнего вида.
-- voxel-rust `621b999`: хук коммита прошёл, в том числе native-tests 160.
+- Гейт коммита `d97417e` PASS: rust-test 178, test 408, Clippy, rustfmt, lint, memory, ruff, mypy, typos, vulture.
+  Проба `init` кандидата: четыре правила в `lint.yaml`, четыре навыка в `.agentrig/skills`, `config-check` PASS,
+  пробный файл даёт по находке каждого вида. `just bootstrap` установил `d97417e`; его `lint-rules` перечисляет
+  четыре вида, его `lint` рига без находок.
 
 ## Blockers
 
-Нет для P112–P113. Для P022 voxel-rust: native-settings устарел относительно экрана создания мира; это вне P022.
+Нет.
 
 ## Next action
 
-`feature-merge` ветки P112, затем P113 на новой ветке `feature/structural-bans`.
-Записать итоги ноутбука в Plan/022.md voxel-rust на ветке `feature/p022-laptop` и убрать клон, бандлы и worktree с
-ноутбука и локальный файл askpass. Свободные ID: D155+, I022+, P114+, B106+ (B066 и D111 зарезервированы).
+`just feature-merge` ветки `feature/structural-bans`. После слияния разметить списки запретов `list-2-bans.md` и `list-3-bans.md`
+итогами замера и начать P114 своей веткой от master. Свободные ID: D156+, I022+, P115+, B108+ (B066 и D111
+зарезервированы).

@@ -2,17 +2,16 @@ purpose: Verify language-specific measurements from native analysis and, in cons
 files:
   mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
-  global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
+  control_flow.rs: Rust unlabeled exits of nested loops and subtractions from a length or count call from native analysis
+  discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
-  ord_equality.rs: Rust manual order and equality reading different fields, and consistent, justified or unresolvable comparisons, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
-  derived_trait.rs: Rust derived Debug printing secret-named string and byte fields, and derived Deserialize beside a same-file constructor that refuses a stored parameter, with their exemptions, from native analysis
-  recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
   super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
   test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
-  tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
 directories:
   consumer: Language measurements and their configured enforcement and repair guidance through a real lint consumer and its CLI
+  ownership: Verify Rust resource, lock and process-global state measurements from native analysis
+  signature: Verify Rust function signature and derived trait measurements from native analysis

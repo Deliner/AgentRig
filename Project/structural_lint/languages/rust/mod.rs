@@ -1,23 +1,19 @@
 mod blocking_async;
 mod context;
-mod derived_trait;
-mod global_state;
-mod guard_await;
-mod ord_equality;
+mod control_flow;
+mod ownership;
 mod panic_surface;
-mod recursive_deletion;
+mod signature;
 mod silent_error;
 mod super_reach;
 mod suppression;
 mod test_placement;
-mod tuple_record;
 mod unsafe_site;
 use crate::structural_lint::languages::measure::{
     Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
     condition, credential, function, justified, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::structure::Structure;
 use context::in_debug_only_context;
@@ -26,9 +22,10 @@ use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+    signature::inspect(node, source, output);
+    ownership::inspect(node, source, output);
+    control_flow::inspect(node, source, output);
     match node.kind() {
-        "source_file" => file_items(node, source, output),
-        "struct_item" => derived_trait::secret_debug(node, source, output),
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
@@ -36,20 +33,15 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             panic_surface::definition_tokens(node, source, output);
         }
         "attribute_item" | "inner_attribute_item" => suppression::attribute(node, source, output),
-        "static_item" => {
-            global_state::inspect(node, source, output);
-            unsafe_site::inspect(node, source, output);
-        }
+        "static_item" => unsafe_site::inspect(node, source, output),
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
             panic_surface::panic_macro(node, source, output);
             macro_body(node, source, output);
-            global_state::macro_items(node, source, output);
         }
         "call_expression" => call(node, source, output),
-        "expression_statement" => discarded_result(node, source, output),
-        "let_declaration" => guard_await::inspect(node, source, output),
+        "expression_statement" | "let_declaration" => discarded_result(node, source, output),
         "scoped_identifier" => super_reach::inspect(node, source, output),
         "mod_item" => test_placement::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
@@ -80,16 +72,10 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         actual: node.end_position().row - first + 1,
     });
 }
-fn file_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    ord_equality::inspect(node, source, output);
-    derived_trait::unchecked_deserialize(node, source, output);
-}
 fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     panic_surface::panic_call(node, source, output);
     eager_fallback(node, source, output);
-    disabled_raii(node, source, output);
     silent_error::collapsed_read_dir(node, source, output);
-    recursive_deletion::inspect(node, source, output);
     panic_surface::catch(node, source, output);
     blocking_async::inspect(node, source, output);
 }
@@ -125,7 +111,6 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
-    tuple_record::record_signature(node, source, output);
 }
 // DECISION: D081
 fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
@@ -223,14 +208,24 @@ fn propagates(node: Node<'_>) -> bool {
 // DECISION: D099
 // DECISION: D114
 fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let mut cursor = node.walk();
-    let Some(inner) = node
-        .named_children(&mut cursor)
-        .find(|child| !child.is_extra())
-    else {
-        return;
+    let binding = node.kind() == "let_declaration";
+    let symbol = if binding {
+        let wildcard = node
+            .child_by_field_name("pattern")
+            .is_some_and(|pattern| pattern.kind() == "_");
+        node.child_by_field_name("value")
+            .filter(|value| wildcard && spawned(*value, source))
+            .map(|_| "spawn")
+    } else {
+        let mut cursor = node.walk();
+        let inner = node
+            .named_children(&mut cursor)
+            .find(|child| !child.is_extra());
+        inner.and_then(|inner| {
+            discarded_method(inner, source).or_else(|| spawned(inner, source).then_some("spawn"))
+        })
     };
-    let Some(symbol) = discarded_method(inner, source) else {
+    let Some(symbol) = symbol else {
         return;
     };
     let allowed = justified(node, source) || in_test_context(node, source);
@@ -271,44 +266,38 @@ fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
     };
     dropped.then_some(name)
 }
-// DECISION: D092
-fn disabled_raii(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let Some(function) = node.child_by_field_name("function") else {
-        return;
-    };
-    let Some(symbol) = raii_marker(function, source) else {
-        return;
-    };
-    let allowed = justified(node, source) || in_test_context(node, source);
-    if allowed {
-        return;
-    }
-    output.push(Measurement {
-        kind: Kind::Ownership(Ownership::DisabledRaii),
-        line: node.start_position().row + 1,
-        symbol: symbol.into(),
-        actual: 1,
-    });
-}
-fn raii_marker<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
-    if let Some(field) = function.child_by_field_name("field") {
-        let method = field.kind() == "field_identifier";
-        let name = text(field, source);
-        let consumes = method && matches!(name, "keep" | "into_path");
-        return consumes.then_some(name);
-    }
-    let unscoped = function.kind() != "scoped_identifier";
-    if unscoped {
-        return None;
-    }
-    let mut segments = text(function, source).rsplit("::");
-    let last = segments.next()?;
-    let prior = segments.next()?;
-    match (prior, last) {
-        ("mem", "forget") => Some("forget"),
-        ("ManuallyDrop", "new") => Some("ManuallyDrop"),
-        ("Box", "leak") => Some("leak"),
-        _ => None,
+// DECISION: D155
+fn spawned(value: Node<'_>, source: &str) -> bool {
+    let mut current = value;
+    loop {
+        let propagated = current.kind() == "try_expression";
+        if propagated {
+            let Some(inner) = current.named_child(0) else {
+                return false;
+            };
+            current = inner;
+            continue;
+        }
+        let Some(function) = current
+            .child_by_field_name("function")
+            .filter(|_| current.kind() == "call_expression")
+        else {
+            return false;
+        };
+        let name = match function.kind() {
+            "identifier" => text(function, source),
+            "scoped_identifier" | "field_expression" => function
+                .child_by_field_name("name")
+                .or_else(|| function.child_by_field_name("field"))
+                .map_or("", |name| text(name, source)),
+            _ => "",
+        };
+        let unwrapped =
+            matches!(name, "unwrap" | "expect") && function.kind() == "field_expression";
+        let Some(receiver) = function.child_by_field_name("value").filter(|_| unwrapped) else {
+            return name == "spawn";
+        };
+        current = receiver;
     }
 }
 // DECISION: D094
@@ -363,8 +352,7 @@ fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "call_expression" => {
             panic_surface::panic_call(node, source, output);
             eager_fallback(node, source, output);
-            disabled_raii(node, source, output);
-            recursive_deletion::inspect(node, source, output);
+            ownership::call(node, source, output);
         }
         "macro_invocation" => panic_surface::panic_macro(node, source, output),
         _ => {}

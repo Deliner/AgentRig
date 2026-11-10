@@ -11,6 +11,7 @@ pub enum Ownership {
     GlobalState,
     RecursiveDeletion,
     GuardAcrossAwait,
+    UnitLock,
 }
 impl Ownership {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -19,6 +20,7 @@ impl Ownership {
             Self::GlobalState => &GLOBALSTATE,
             Self::RecursiveDeletion => &RECURSIVEDELETION,
             Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
+            Self::UnitLock => &UNITLOCK,
         }
     }
 }
@@ -68,5 +70,17 @@ const GUARDACROSSAWAIT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Warning,
         violation: "a std lock guard held across .await blocks every task that needs the lock while this one is suspended, deadlocks a single-threaded executor and makes the future !Send; drop the guard in an inner block or with drop before the .await, use an async-aware lock, or put a DECISION: or INVARIANT: reference on the line directly above the binding to justify it",
+    },
+};
+// DECISION: D155
+const UNITLOCK: Descriptor = Descriptor {
+    default_id: "unit-lock",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust Mutex<()> or RwLock<()> type from any path, and every Mutex::new(()) or RwLock::new(()) call that initializes, directly or as a call argument, a let binding without a type annotation, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "lock-the-data",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a lock around () guards nothing the compiler can see, so which data it protects lives only in comments and any access without the lock compiles; move the protected data inside the lock, or put a DECISION: or INVARIANT: reference on the line directly above it when it serializes an external resource",
     },
 };

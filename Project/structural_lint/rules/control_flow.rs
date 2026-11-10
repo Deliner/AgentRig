@@ -1,4 +1,4 @@
-use super::descriptor::Descriptor;
+use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
 use crate::shared::diagnostics::lint::Level as Severity;
 use serde::{Deserialize, Serialize};
@@ -11,6 +11,8 @@ pub enum ControlFlow {
     NestingDepth,
     BranchBudget,
     BooleanExpression,
+    UnlabeledExit,
+    LengthSubtraction,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -19,6 +21,8 @@ impl ControlFlow {
             Self::NestingDepth => &NESTINGDEPTH,
             Self::BranchBudget => &BRANCHBUDGET,
             Self::BooleanExpression => &BOOLEANEXPRESSION,
+            Self::UnlabeledExit => &UNLABELEDEXIT,
+            Self::LengthSubtraction => &LENGTHSUBTRACTION,
         }
     }
 }
@@ -67,5 +71,29 @@ const BOOLEANEXPRESSION: Descriptor = Descriptor {
     parameters: Parameters::Thresholds {
         warning: None,
         error: 3,
+    },
+};
+// DECISION: D155
+const UNLABELEDEXIT: Descriptor = Descriptor {
+    default_id: "unlabeled-exit",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust break or continue without a label whose nearest loop lies inside another loop of the same function, closures and async blocks bounding both searches, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "label-the-exit",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an unlabeled break or continue in a nested loop acts on the innermost loop, which a reader or a later edit easily mistakes for the outer one; label the loop it targets and name the label in the exit",
+    },
+};
+// DECISION: D155
+const LENGTHSUBTRACTION: Descriptor = Descriptor {
+    default_id: "length-subtraction",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust binary subtraction whose left operand is a .len() or .count() call without arguments, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "subtract-checked",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "subtracting from a length underflows when the collection is shorter, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the length",
     },
 };

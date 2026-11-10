@@ -1,0 +1,5 @@
+purpose: "Move the data a unit lock protects inside the lock, or justify the external resource it serializes with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace a Rust Mutex<()> or RwLock<()> with a lock that owns its data"
+directories: {}

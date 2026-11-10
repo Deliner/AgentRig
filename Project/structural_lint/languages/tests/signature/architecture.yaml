@@ -1,0 +1,8 @@
+purpose: Verify Rust function signature and derived trait measurements from native analysis
+files:
+  mod.rs: Declare the signature measurement test modules
+  derived_trait.rs: Rust derived Debug printing secret-named string and byte fields, and derived Deserialize beside a same-file constructor that refuses a stored parameter, with their exemptions, from native analysis
+  implicit_order.rs: Rust enums deriving PartialOrd or Ord whose variants order by declaration, directly or inside cfg_attr, and pinned, single-variant, unordered, justified or test-only enums, from native analysis
+  ord_equality.rs: Rust manual order and equality reading different fields, and consistent, justified or unresolvable comparisons, from native analysis
+  tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis
+directories: {}

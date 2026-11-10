@@ -1,5 +1,7 @@
-use super::context::{attributed, in_test_context, last_segment, type_name};
 use crate::structural_lint::languages::measure::{Measurement, descendants, text};
+use crate::structural_lint::languages::rust::context::{
+    attributed, derives, in_test_context, last_segment, listed, type_name,
+};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;
@@ -29,8 +31,7 @@ struct Owner<'a> {
 
 // DECISION: D130
 pub(super) fn secret_debug(definition: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let exempt =
-        in_test_context(definition, source) || !attributed(definition, source, derives_debug);
+    let exempt = in_test_context(definition, source) || !derives(definition, source, &["Debug"]);
     if exempt {
         return;
     }
@@ -87,7 +88,7 @@ pub(super) fn unchecked_deserialize(root: Node<'_>, source: &str, output: &mut V
     }
 }
 fn bypass(definition: Node<'_>, implementations: &[Node<'_>], source: &str) -> Option<String> {
-    let derived = attributed(definition, source, derives_deserialize);
+    let derived = derives(definition, source, &["Deserialize"]);
     let routed = attributed(definition, source, converts) || in_test_context(definition, source);
     (derived && !routed).then_some(())?;
     let name = text(definition.child_by_field_name("name")?, source);
@@ -392,12 +393,6 @@ fn plain_fields(body: Node<'_>, source: &str) -> BTreeSet<String> {
     }
     plain
 }
-fn derives_debug(attribute_item: Node<'_>, source: &str) -> bool {
-    listed(attribute_item, source, "derive", &["Debug"])
-}
-fn derives_deserialize(attribute_item: Node<'_>, source: &str) -> bool {
-    listed(attribute_item, source, "derive", &["Deserialize"])
-}
 fn converts(attribute_item: Node<'_>, source: &str) -> bool {
     listed(attribute_item, source, "serde", &["try_from", "from"])
 }
@@ -408,20 +403,6 @@ fn routes_field(attribute_item: Node<'_>, source: &str) -> bool {
         "serde",
         &["deserialize_with", "with"],
     )
-}
-fn listed(attribute_item: Node<'_>, source: &str, head: &str, wanted: &[&str]) -> bool {
-    descendants(attribute_item).into_iter().any(|node| {
-        let named = node.kind() == "identifier" && text(node, source) == head;
-        named
-            && node
-                .next_named_sibling()
-                .filter(|list| list.kind() == "token_tree")
-                .is_some_and(|list| {
-                    descendants(list).into_iter().any(|token| {
-                        token.kind() == "identifier" && wanted.contains(&text(token, source))
-                    })
-                })
-    })
 }
 fn printable(declared: Node<'_>, source: &str) -> bool {
     let optional = generic_argument(declared, source, "Option");

@@ -1,5 +1,5 @@
-use super::context::in_test_context;
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
 use tree_sitter::Node;

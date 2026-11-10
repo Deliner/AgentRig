@@ -1,0 +1,5 @@
+purpose: "Give a derived enum order explicit discriminants or a named rank, or justify the declaration order with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a Rust enum's derived order from depending on variant declaration order"
+directories: {}

@@ -155,12 +155,12 @@ impl Rust<'_> {
     }
 
     fn import(&self, key: &[String], suffix: &[&str], query: &mut Query<'_>) -> Result<Located> {
+        let (_, owner) = key.split_last().context("empty Rust import alias")?;
         ensure!(
             query.visiting.insert(key.into()),
             "cyclic Rust import alias {}",
             key.join("::")
         );
-        let owner = &key[..key.len() - 1];
         let imported = self.path(owner, &self.imports[key], query);
         query.visiting.remove(key);
         self.reexport(owner, imported?, suffix, query)

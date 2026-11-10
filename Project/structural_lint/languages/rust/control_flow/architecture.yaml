@@ -1,0 +1,7 @@
+purpose: Detect Rust loop exits and length subtractions whose shape hides which loop they leave or whether the length suffices
+type: flat
+files:
+  mod.rs: Dispatch loop exits and binary expressions to the control-flow detectors
+  length_subtraction.rs: Rust subtraction from a .len() or .count() call that underflows on a shorter collection
+  unlabeled_exit.rs: Rust break or continue without a label inside a loop nested in another loop of the same function
+directories: {}

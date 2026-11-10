@@ -1,0 +1,5 @@
+purpose: "Make a subtraction from a length checked or saturating, rearrange it away, or justify the guaranteed length with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a subtraction from a Rust len() or count() from underflowing"
+directories: {}

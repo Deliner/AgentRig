@@ -83,13 +83,13 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
     let mut markers = HashSet::new();
     loop {
         let original = node;
-        while let Some(previous) = node.prev_named_sibling() {
+        'siblings: while let Some(previous) = node.prev_named_sibling() {
             let adjacent = source
                 .get(previous.end_byte()..node.start_byte())
                 .is_some_and(|gap| gap.trim().is_empty());
             let separated = !adjacent;
             if separated {
-                break;
+                break 'siblings;
             }
             match previous.kind() {
                 "comment" | "line_comment" => {
@@ -100,7 +100,7 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
                     );
                 }
                 "attribute_item" => {}
-                _ => break,
+                _ => break 'siblings,
             }
             node = previous;
         }
