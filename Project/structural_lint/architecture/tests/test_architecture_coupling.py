@@ -9,7 +9,7 @@ from Project.structural_lint.architecture.tests.test_architecture import (
     consumer,
     contract,
 )
-from Project.structural_lint.testing.consumer import lint, prepare
+from Project.structural_lint.testing.consumer import edges, lint, prepare
 
 WIDE = "pub fn wide() -> i32 { crate::b::value() + crate::c::value() }\n"
 
@@ -52,6 +52,27 @@ def test_dependents_budget_names_each_dependent_with_an_edge(worker: Path, tmp_p
     expected = f"directory is depended on by 2 other directories (budget 1): {named}"
     located = [(item["path"], item["message"].split("; ")[0]) for item in findings]
     assert (code, located) == (1, [("src/hub/architecture.yaml", expected)]), findings
+
+
+# DECISION: D143
+def test_edges_command_lists_the_edges_the_budget_counts(worker: Path, tmp_path: Path) -> None:
+    shared_hub(tmp_path)
+    used = {f"src/{name}": [f"src/{name}/use.py:2 uses src/hub/api.py"] for name in ["p0", "p1"]}
+    hub = json.loads(edges(worker, tmp_path, "src/hub", "--json").stdout)
+    assert hub == {
+        "path": "src/hub",
+        "rules": [{"id": "architecture", "incoming": used, "outgoing": {}}],
+    }
+    _, findings = lint(worker, tmp_path)
+    assert f"depended on by {len(used)} other directories" in findings[0]["message"]
+    p0 = json.loads(edges(worker, tmp_path, "src/p0", "--json").stdout)
+    assert p0["rules"][0]["outgoing"] == {"src/hub": used["src/p0"]}
+    text = edges(worker, tmp_path, "src/hub").stdout
+    assert (
+        "  incoming: 2 directories\n    src/p0\n      src/p0/use.py:2 uses src/hub/api.py\n" in text
+    )
+    unselected = edges(worker, tmp_path, "docs")
+    assert unselected.returncode != 0 and "selects docs as a directory" in unselected.stderr
 
 
 OVER_DEFAULT = ("src/hub/api.py", None, "file uses 11 other project directories (budget 10)")

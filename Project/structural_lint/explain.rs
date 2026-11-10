@@ -1,6 +1,8 @@
+use super::architecture::runner;
 use super::{config, inventory, selection};
 use crate::shared::console;
-use crate::structural_lint::rules::structure::Structure;
+use crate::shared::paths::patterns::globs;
+use crate::structural_lint::rules::{Kind, structure::Structure};
 use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
@@ -12,15 +14,19 @@ enum Exclusion {
     Scoped,
 }
 
-pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
-    let (path, flags) = args
-        .split_first()
-        .ok_or_else(|| anyhow::anyhow!("lint-explain PATH [--json]"))?;
-    ensure!(
-        flags.iter().all(|flag| flag == "--json"),
-        "unknown lint-explain argument"
-    );
-    let path = selected_path(path)?;
+pub type Inspection = fn(&Path, &Path, &[String]) -> Result<i32>;
+
+// DECISION: D143
+pub fn inspection(command: &str) -> Option<Inspection> {
+    match command {
+        "lint-explain" => Some(run),
+        "lint-edges" => Some(edges),
+        _ => None,
+    }
+}
+
+fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+    let (path, json) = arguments("lint-explain", args)?;
     let path = path.as_path();
     let config = config::load(root, config_path)?;
     let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
@@ -35,13 +41,70 @@ pub fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
     for rule in &config.rules {
         rows.push(explain(rule, path, &inventory, exclusion)?);
     }
-    let json = !flags.is_empty();
     if json {
         console::stdout(json!({"path": path, "rules": rows}));
     } else {
         print(path, &rows);
     }
     Ok(0)
+}
+
+// DECISION: D143
+fn edges(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+    let (path, json) = arguments("lint-edges", args)?;
+    let config = config::load(root, config_path)?;
+    let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+    let mut rows = Vec::new();
+    for rule in &config.rules {
+        let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
+        let measured = match architecture {
+            true => runner::edges(root, rule, &inventory, &path)?,
+            false => None,
+        };
+        if let Some(neighbours) = measured {
+            rows.push(json!({"id": rule.id, "incoming": neighbours.incoming,
+                "outgoing": neighbours.outgoing}));
+        }
+    }
+    ensure!(
+        !rows.is_empty(),
+        "no enabled directory-architecture rule selects {} as a directory",
+        path.display()
+    );
+    if json {
+        console::stdout(json!({"path": path, "rules": rows}));
+    } else {
+        print_edges(&path, &rows);
+    }
+    Ok(0)
+}
+
+fn print_edges(path: &Path, rows: &[Value]) {
+    console::stdout(format!("Measured edges of {}", path.display()));
+    for row in rows {
+        console::stdout(format!("{}:", row["id"].as_str().unwrap_or("")));
+        for side in ["incoming", "outgoing"] {
+            let directories = row[side].as_object().cloned().unwrap_or_default();
+            console::stdout(format!("  {side}: {} directories", directories.len()));
+            for (directory, edges) in directories {
+                console::stdout(format!("    {directory}"));
+                for edge in edges.as_array().into_iter().flatten() {
+                    console::stdout(format!("      {}", edge.as_str().unwrap_or("")));
+                }
+            }
+        }
+    }
+}
+
+fn arguments(command: &str, args: &[String]) -> Result<(PathBuf, bool)> {
+    let (path, flags) = args
+        .split_first()
+        .ok_or_else(|| anyhow::anyhow!("{command} PATH [--json]"))?;
+    ensure!(
+        flags.iter().all(|flag| flag == "--json"),
+        "unknown {command} argument"
+    );
+    Ok((selected_path(path)?, !flags.is_empty()))
 }
 
 fn selected_path(value: &str) -> Result<PathBuf> {

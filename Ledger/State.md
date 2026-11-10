@@ -12,7 +12,7 @@
 ## Workspace
 
 Branch: `feature/edge-findings` (P102, B088)
-Revision: `d02dc83` (master после слияния P101; VAC1 P102 в этом коммите)
+Revision: `71fdfba` (VAC1 P102; VAC2 в этом коммите)
 
 Установленный рантайм `6874047` (пин P101). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
@@ -24,23 +24,20 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 ## Progress
 
 - P094–P101 завершены и слиты в master, пин `6874047`.
-- P102 VAC1 (D142): находка бюджета `dependents` перечисляет зависимые каталоги с первым ребром `файл:строка uses
-  цель`, находка цикла добавляет каждое своё ребро; оба берут рёбра из одной функции `graph::dependents` /
-  `directory_edges`. Текстовый вывод lint печатает одиночную находку как группу из одной. Тесты связности
-  переименованы в `test_architecture_coupling.py`.
-- P102 VAC2 впереди: команда `lint-edges PATH [--json]` с входящими и исходящими рёбрами каталога из того же
-  измерения, README архитектуры со всеми полями контракта, свидетельство AC3 на клоне voxel-rust, ротация.
+- P102 выполнен двумя VAC и ротирован в Archive: `71fdfba` — рёбра в находках бюджета и цикла и единый формат
+  печати (D142); второй — команда `lint-edges DIR [--json]` из того же измерения, что и lint (D143), README
+  архитектуры со всеми полями контракта. Осталось: пин D051 и `just feature-merge`.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
   `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
   file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P102 VAC1: тесты архитектуры и `test_lint.py` на кандидате — 162 passed; Rust-тесты `architecture` и
-  `diagnostics` — 54 passed. Новые проверки бюджета, цикла с рёбрами и повторного запуска, формата печати падают на
-  установленном `6874047` (4 failed). `memory-check`, `config-check` и `just lint` чистые.
-- Цикл на клоне voxel-rust установленным рантаймом три запуска подряд дал одну и ту же находку
-  (`src/native/host/game.rs:14`), так что AC2 уже выполнялся; тест повторного запуска его охраняет.
+- P102 VAC1: гейт коммита `71fdfba` — 420 passed. VAC2: `Project/structural_lint`, `test_hooks.py` и
+  `Project/project_setup` на кандидате — 319 passed; Rust-тесты — 167 passed; `just lint`, `memory-check` чистые.
+  Тест команды и проверка охраны падают на установленном `6874047`.
+- AC3 на клоне voxel-rust `71440d0` с `dependents: 0` у `src/core/world`: lint насчитал и назвал 13 зависимых,
+  `lint-edges` показал те же 13 каталогов (171 различное ребро); правка клона откачена.
 
 ## Blockers
 
@@ -48,6 +45,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC1 P102, затем VAC2: команда `lint-edges`, README, AC3 на клоне voxel-rust (`dependents: 0` у
-`src/core/world`), ротация P102/B088, пин D051, `just feature-merge`; дальше P103 (B090).
-Свободные ID: D143+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Пин D051 на голову ветки, коммит пина, `just feature-merge`; дальше P103 (B090, цели тестов в `config-check`).
+Свободные ID: D144+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

@@ -21,3 +21,7 @@ lint-rule *args:
 # What: explain lint selection; Why: inspect exclusion reasons and effective thresholds.
 lint-explain *args:
     @tooling/worker/run lint-explain "$@"
+
+# What: show measured edges of a directory; Why: trace the dependents and cycles architecture findings count.
+lint-edges *args:
+    @tooling/worker/run lint-edges "$@"

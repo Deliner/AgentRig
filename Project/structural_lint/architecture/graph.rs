@@ -82,6 +82,37 @@ pub(super) fn dependents(dependencies: &[Dependency]) -> Dependents<'_> {
 
 pub(super) type Dependents<'a> = BTreeMap<&'a Path, BTreeMap<&'a Path, &'a Dependency>>;
 
+// DECISION: D143
+pub(super) fn neighbours(dependencies: &[Dependency], directory: &Path) -> Neighbours {
+    let mut neighbours = Neighbours::default();
+    for (source, target, edge) in directory_edges(dependencies) {
+        let (source, target) = (directory_key(source), directory_key(target));
+        let incoming = target == directory;
+        let outgoing = source == directory;
+        let side = if incoming {
+            neighbours.incoming.entry(source)
+        } else if outgoing {
+            neighbours.outgoing.entry(target)
+        } else {
+            continue;
+        };
+        let edges = side.or_default();
+        let named = evidence(edge);
+        let fresh = !edges.contains(&named);
+        if fresh {
+            edges.push(named);
+        }
+    }
+    neighbours
+}
+
+// DECISION: D143
+#[derive(Default)]
+pub struct Neighbours {
+    pub incoming: BTreeMap<PathBuf, Vec<String>>,
+    pub outgoing: BTreeMap<PathBuf, Vec<String>>,
+}
+
 // DECISION: D142
 pub(super) fn evidence(edge: &Dependency) -> String {
     format!(
