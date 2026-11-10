@@ -31,7 +31,13 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
         CheckKind::Memory => {
             crate::project_memory::check_with_history(context, source.root, source.revision)
         }
-        CheckKind::Tools => command_runner::registry::check::run(context, check, rerun),
+        CheckKind::Tools => {
+            let tree = command_runner::registry::check::Source {
+                repository: source.root,
+                exported_revision: source.revision,
+            };
+            command_runner::registry::check::run(context, tree, check, rerun)
+        }
     }
 }
 pub(super) fn checked(

@@ -2,6 +2,7 @@ use crate::project_config::{Check, Context, Removed, module};
 use crate::shared::diagnostics::lint::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
+use crate::shared::vcs::Repository;
 use anyhow::Result;
 use std::path::Path;
 
@@ -10,13 +11,21 @@ struct Finding {
     message: String,
 }
 type Findings = Vec<Finding>;
-pub fn run(context: &Context, check: &Check, rerun: &str) -> Result<i32> {
-    let files = crate::shared::vcs::Repository::new(&context.root).working_files()?;
+pub struct Source<'a> {
+    pub repository: &'a Path,
+    pub exported_revision: Option<&'a str>,
+}
+pub fn run(context: &Context, source: Source<'_>, check: &Check, rerun: &str) -> Result<i32> {
+    let repository = Repository::new(source.repository);
+    let files = match source.exported_revision {
+        Some(revision) => repository.tree(revision)?.into_keys().collect(),
+        None => repository.working_files()?,
+    };
     let tools = super::tools(context, &files)?;
     let mut findings = Findings::new();
     placement(context, &tools, &mut findings)?;
     catalog(context, &mut findings);
-    removed(context, &files, &mut findings);
+    removed(context, &repository, &files, &mut findings);
     let diagnostics: Vec<_> = findings
         .into_iter()
         .map(|finding| Diagnostic {
@@ -101,7 +110,12 @@ fn path_like(argument: &str) -> bool {
         || argument.contains(char::is_whitespace);
     argument.contains('/') && !other_form
 }
-fn record_problems(context: &Context, name: &str, item: &Removed) -> Vec<String> {
+fn record_problems(
+    context: &Context,
+    repository: &Repository<'_>,
+    name: &str,
+    item: &Removed,
+) -> Vec<String> {
     let entry = format!("tools.removed.{name}");
     let mut problems = Vec::new();
     let incomplete = item.purpose.trim().is_empty() || item.reason.trim().is_empty();
@@ -116,7 +130,6 @@ fn record_problems(context: &Context, name: &str, item: &Removed) -> Vec<String>
     if present {
         problems.push(format!("{entry}: {} still exists", item.path));
     }
-    let repository = crate::shared::vcs::Repository::new(&context.root);
     let unrestorable = item
         .revision
         .as_ref()
@@ -126,7 +139,12 @@ fn record_problems(context: &Context, name: &str, item: &Removed) -> Vec<String>
     }
     problems
 }
-fn removed(context: &Context, files: &[String], findings: &mut Findings) {
+fn removed(
+    context: &Context,
+    repository: &Repository<'_>,
+    files: &[String],
+    findings: &mut Findings,
+) {
     let memory = Path::new(&context.config.paths.memory);
     let registry = module("tools");
     let readers: Vec<_> = files
@@ -136,7 +154,7 @@ fn removed(context: &Context, files: &[String], findings: &mut Findings) {
         .collect();
     for (name, item) in &context.config.tools.removed {
         findings.extend(
-            record_problems(context, name, item)
+            record_problems(context, repository, name, item)
                 .into_iter()
                 .map(|message| Finding {
                     path: registry.clone(),

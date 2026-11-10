@@ -1,6 +1,6 @@
 // DECISION: D010
 use crate::shared::vcs::{Repository, Settings};
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 
 pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) -> Result<String> {
     ensure!(
@@ -61,15 +61,25 @@ pub(super) fn integrate(
 
 fn select_base(repository: &Repository, settings: &Settings, feature: &str) -> Result<()> {
     let base = repository.resolve(&settings.base)?;
-    repository.run(&["switch", &settings.base])?;
+    switch_or_restore_head(repository, &settings.base)?;
     let unchanged = repository.resolve(&settings.base)? == base
         && repository.ancestor(&settings.base, feature)?;
     let base_advanced = !unchanged;
     if base_advanced {
-        repository.run(&["switch", feature])?;
+        switch_or_restore_head(repository, feature)?;
         anyhow::bail!("base advanced during integration; retry from the feature branch");
     }
     Ok(())
+}
+
+fn switch_or_restore_head(repository: &Repository, target: &str) -> Result<()> {
+    let Err(refused) = repository.run(&["switch", target]) else {
+        return Ok(());
+    };
+    repository
+        .run(&["read-tree", "-u", "--reset", "HEAD"])
+        .with_context(|| format!("{refused:#}"))?;
+    Err(refused)
 }
 
 fn clean(repository: &Repository) -> Result<()> {

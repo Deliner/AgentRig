@@ -106,3 +106,18 @@ def test_tools_check_reports_structure_before_merge(worker: Path, tmp_path: Path
     git(tmp_path, "add", "-A")
     staged = invoke(worker, tmp_path, "check", "--staged", "--only", "tools")
     assert "SKIP [tools]: checked before merge" in staged.stdout, staged.stdout + staged.stderr
+
+
+def test_tools_check_reads_the_checked_revision(worker: Path, tmp_path: Path) -> None:
+    consumer(worker, tmp_path)
+    loose = tmp_path / "loose.sh"
+    loose.write_text(TOOL)
+    stray = commit(tmp_path)
+    loose.unlink()
+    commit(tmp_path)
+    loose.write_text(TOOL)
+    passing = invoke(worker, tmp_path, "check", "--revision", "HEAD", "--only", "tools")
+    assert passing.returncode == 0, passing.stdout + passing.stderr
+    failing = invoke(worker, tmp_path, "check", "--revision", stray, "--only", "tools")
+    assert failing.returncode == 1, failing.stdout + failing.stderr
+    assert "loose.sh: tool is outside tools.locations" in failing.stdout
