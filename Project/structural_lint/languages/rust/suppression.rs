@@ -1,3 +1,4 @@
+use super::context::attributed;
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
@@ -25,6 +26,48 @@ pub(super) fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measureme
             actual: 1,
         });
     }
+}
+// DECISION: D147
+pub(super) fn clippy_allowed(node: Node<'_>, source: &str, symbol: &str) -> bool {
+    let Some(lint) = clippy_lint(symbol) else {
+        return false;
+    };
+    std::iter::successors(node.parent(), Node::parent).any(|item| {
+        attributed(item, source, |attribute, source| {
+            allows(attribute, source, lint)
+        })
+    })
+}
+fn clippy_lint(symbol: &str) -> Option<&'static str> {
+    match symbol {
+        "unwrap" | "unwrap_err" => Some("clippy::unwrap_used"),
+        "expect" | "expect_err" => Some("clippy::expect_used"),
+        "panic" => Some("clippy::panic"),
+        "todo" => Some("clippy::todo"),
+        "unimplemented" => Some("clippy::unimplemented"),
+        "unreachable" => Some("clippy::unreachable"),
+        _ => None,
+    }
+}
+fn allows(item: Node<'_>, source: &str, lint: &str) -> bool {
+    let Some(attribute) = item
+        .named_children(&mut item.walk())
+        .find(|child| child.kind() == "attribute")
+    else {
+        return false;
+    };
+    let suppressing = attribute
+        .named_child(0)
+        .is_some_and(|name| matches!(text(name, source), "allow" | "expect"));
+    let lints = attribute
+        .child_by_field_name("arguments")
+        .map_or("", |arguments| text(arguments, source));
+    let listed = lints
+        .trim_start_matches('(')
+        .trim_end_matches(')')
+        .split(',')
+        .any(|name| name.trim() == lint);
+    suppressing && listed && justified(item, source)
 }
 fn suppression<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
     let attribute = node

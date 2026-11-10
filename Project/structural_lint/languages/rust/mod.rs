@@ -199,7 +199,9 @@ fn panic_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = justified(node, source)
+        || in_test_context(node, source)
+        || suppression::clippy_allowed(node, source, symbol);
     if allowed {
         return;
     }
@@ -353,44 +355,51 @@ fn raii_marker<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
     }
 }
 // DECISION: D094
+// DECISION: D147
 fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     let exempt = in_test_context(node, source);
     if exempt {
         return;
     }
+    let scoped = fragment_measurements(node, source);
+    output.extend(scoped.into_iter().filter(|measurement| {
+        let panic = measurement.kind == Kind::Reference(Reference::PanicPath);
+        !(panic && suppression::clippy_allowed(node, source, &measurement.symbol))
+    }));
+}
+fn fragment_measurements(node: Node<'_>, source: &str) -> Vec<Measurement> {
     let mut cursor = node.walk();
     let Some(tree) = node
         .children(&mut cursor)
         .find(|child| child.kind() == "token_tree")
     else {
-        return;
+        return Vec::new();
     };
     let span = tree.end_byte().saturating_sub(tree.start_byte());
     let empty = span < 2;
     if empty {
-        return;
+        return Vec::new();
     }
     let Some(inner) = source.get(tree.start_byte() + 1..tree.end_byte() - 1) else {
-        return;
+        return Vec::new();
     };
     let fragment = ["fn probe(){call(", inner, ")}"].concat();
     let Ok(Some(parsed)) =
         crate::shared::syntax::parse(std::path::Path::new("macro.rs"), &fragment)
     else {
-        return;
+        return Vec::new();
     };
     let root = parsed.root_node();
     let broken = root.has_error();
     if broken {
-        return;
+        return Vec::new();
     }
-    let base = tree.start_position().row;
     let mut scoped = Vec::new();
     scan_fragment(root, &fragment, &mut scoped);
-    for mut measurement in scoped {
-        measurement.line += base;
-        output.push(measurement);
+    for measurement in &mut scoped {
+        measurement.line += tree.start_position().row;
     }
+    scoped
 }
 fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {

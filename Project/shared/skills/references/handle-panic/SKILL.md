@@ -25,6 +25,10 @@ cannot.
 
 A `DECISION:` or `INVARIANT:` reference on the line directly above the call
 keeps it, attesting the panic is unreachable; without one it is a finding.
+When the project's Clippy profile forbids the panic and an enclosing item
+already carries a referenced `#[allow]` or `#[expect]` of that lint, such as
+`clippy::expect_used` for `.expect(...)`, that one reference covers every
+such panic inside the item; do not repeat it above each call.
 
 ## Rule binding
 
@@ -32,8 +36,10 @@ The measurement flags every Rust `.unwrap()`, `.expect(...)`, `.unwrap_err()`
 and `.expect_err(...)` call, every `resume_unwind` call through a path or a bare
 name, and every `panic!`, `todo!`, `unimplemented!` and `unreachable!` macro,
 in source and in macro bodies, outside test code without a `DECISION:` or
-`INVARIANT:` reference on the line directly above it. Test code is out of
-scope. Rerun the reported lint check and relevant behavior checks. Do not weaken
+`INVARIANT:` reference on the line directly above it or above an `#[allow]`
+or `#[expect]` of its Clippy lint (`unwrap_used`, `expect_used`, `panic`,
+`todo`, `unimplemented`, `unreachable`) on an enclosing item. Test code is out
+of scope. Rerun the reported lint check and relevant behavior checks. Do not weaken
 the rule or its selectors merely to pass. Apply complexity-discipline; stop when
 the error is returned or handled, or the panic is justified by an owned
 reference.
