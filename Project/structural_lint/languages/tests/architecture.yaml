@@ -11,6 +11,7 @@ files:
   derived_trait.rs: Rust derived Debug printing secret-named string and byte fields, and derived Deserialize beside a same-file constructor that refuses a stored parameter, with their exemptions, from native analysis
   recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
   super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
+  test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
   tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
 directories:

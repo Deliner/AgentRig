@@ -79,6 +79,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/refactor/refactor-long-function/SKILL.md"),
     ),
     (
+        "relocate-tests",
+        include_str!("../shared/skills/refactor/relocate-tests/SKILL.md"),
+    ),
+    (
         "remove-secret",
         include_str!("../shared/skills/remove-secret/SKILL.md"),
     ),

@@ -69,7 +69,7 @@ pub(super) fn attributed(item: Node<'_>, source: &str, marked: fn(Node<'_>, &str
     }
     false
 }
-fn test_marker(node: Node<'_>, source: &str) -> bool {
+pub(super) fn test_marker(node: Node<'_>, source: &str) -> bool {
     let named_test = attribute_path(node).is_some_and(|path| last_segment(path, source) == "test");
     named_test || cfg_marker(node, source, "test")
 }
