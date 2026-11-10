@@ -174,6 +174,7 @@ def test_rule_examples_ship_excludes_only_where_decided(worker: Path) -> None:
         "secret-debug",
         "unchecked-deserialize",
         "embedded-text",
+        "test-placement",
     ]
     shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}
     expected = dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])

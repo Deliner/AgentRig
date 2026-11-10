@@ -509,6 +509,20 @@ rules:
   level: error
   warning_skill: .agents/skills/anchor-at-crate/SKILL.md
   error_skill: .agents/skills/anchor-at-crate/SKILL.md
+# DECISION: D145
+- id: test-placement
+  kind: test-placement
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/relocate-tests/SKILL.md
+  error_skill: .agents/skills/relocate-tests/SKILL.md
 # DECISION: D102
 - id: recursive-deletion
   kind: recursive-deletion
