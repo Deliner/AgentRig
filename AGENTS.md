@@ -1,5 +1,13 @@
 # Repository instructions
 
+## Quality standard
+
+AgentRig sets the code standard (D151): code kept 20 years, AI-first and agent-native, clear at once, well structured,
+its architecture minimizing corner cases, undefined states and error-prone places; lint rules derive from it. Code not
+conforming to the rig is repaired. Keep every check that raises quality, even if the rig lacks the construct;
+refactoring cost never rejects one, and decisions may be revised. The rig dogfoods its checks and fully configures any
+project as a controlled, deterministic environment where an agent cannot write code that its built-in linter rejects.
+
 ## Resume and scope
 
 Read Ledger/State.md, Ledger/Plan.md and any relevant feature detail, then inspect Git status and recent commits.
