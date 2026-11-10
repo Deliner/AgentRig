@@ -1,0 +1,9 @@
+purpose: Detect Rust resources, locks and process-global state whose lifetime or access bypasses an owner
+type: flat
+files:
+  mod.rs: Dispatch statics, macro invocations, calls and let bindings to the ownership detectors, and calls re-parsed from macro bodies
+  disabled_raii.rs: Rust call that defeats RAII, a keep or into_path method or a mem::forget, ManuallyDrop::new or Box::leak path, lacking a reference on the line above
+  global_state.rs: Rust process-global state, a static lock or public cell, declared directly or inside lazy_static!/thread_local!
+  guard_await.rs: Rust std lock guard bound by let and still alive at a later .await of the same block, lacking a reference on the line above
+  recursive_deletion.rs: Rust remove_dir_all call reached through a path, a bare name or a method, in source and in macro bodies
+directories: {}

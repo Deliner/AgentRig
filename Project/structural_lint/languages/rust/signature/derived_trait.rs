@@ -1,5 +1,7 @@
-use super::context::{attributed, in_test_context, last_segment, type_name};
 use crate::structural_lint::languages::measure::{Measurement, descendants, text};
+use crate::structural_lint::languages::rust::context::{
+    attributed, in_test_context, last_segment, type_name,
+};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;

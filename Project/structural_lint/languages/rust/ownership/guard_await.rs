@@ -1,6 +1,6 @@
-use super::context::async_code::scope_boundary;
-use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::rust::context::async_code::scope_boundary;
+use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
 use tree_sitter::Node;

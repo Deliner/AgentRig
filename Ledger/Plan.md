@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P113](Plan/113.md) | pending | - | [B105](Backlog/105.md): structural-bans — свои структурные правила, первая партия | Формы ошибок, которые Clippy не видит, запрещены и в риге, и у потребителей. |
+| [P113](Plan/113.md) | active | - | [B105](Backlog/105.md): structural-bans — свои структурные правила, первая партия | Формы ошибок, которые Clippy не видит, запрещены и в риге, и у потребителей. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
