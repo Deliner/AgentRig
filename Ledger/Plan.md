@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P107](Plan/107.md) | pending | - | [B097](Backlog/097.md): macro-panics — panic-path в телах `macro_rules!` | Паника в макросе требует того же обоснования, что и в обычном коде. |
 | [P108](Plan/108.md) | pending | P102 | [B096](Backlog/096.md): method-edges — рёбра зависимостей через вызовы методов | Бюджеты и циклы считаются по реальным зависимостям. |
 | [P109](Plan/109.md) | pending | - | [B086](Backlog/086.md): platform-runtime — рантайм проекта на нескольких платформах | Проект с AgentRig коммитит и сливает ветки на Linux и macOS с одной ревизии, без обхода хуков. |
 

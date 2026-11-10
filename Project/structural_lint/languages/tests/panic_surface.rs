@@ -175,3 +175,64 @@ mod checked {
 ";
     assert_eq!(lines(PANIC_PATH, source), [7, 12, 16, 25]);
 }
+
+// DECISION: D148
+#[test]
+fn rust_flags_unjustified_panics_inside_macro_rules_bodies() {
+    let source = "macro_rules! read {
+    ($values:expr, $($field:ident),+) => {
+        let first = $values.next().unwrap();
+        // DECISION: D001
+        let second = $values.next().expect(\"b\");
+        $( let $field = load(stringify!($field)).unwrap_err(); )+
+        writeln!(text, \"{}\", 1).unwrap();
+        std::panic::resume_unwind(payload);
+        panic!(\"c\");
+        todo![];
+        let kept = $values.unwrap_or(0);
+        self.resume_unwind(payload);
+        let field = value.unwrap;
+        let name = unreachable;
+    };
+}
+";
+    let found = findings(PANIC_PATH, source);
+    let expected = [
+        (3, "unwrap"),
+        (6, "unwrap_err"),
+        (7, "unwrap"),
+        (8, "resume_unwind"),
+        (9, "panic"),
+        (10, "todo"),
+    ]
+    .map(|(line, symbol)| (line, symbol.to_string()));
+    assert_eq!(found, expected);
+}
+
+// DECISION: D148
+#[test]
+fn rust_skips_macro_rules_bodies_in_test_code_or_under_a_referenced_clippy_allow() {
+    let source = "// DECISION: D001
+#[allow(clippy::unwrap_used)]
+macro_rules! allowed {
+    () => { value.unwrap() };
+}
+#[cfg(test)]
+mod tests {
+    macro_rules! check {
+        () => { value.unwrap() };
+    }
+}
+#[cfg(test)]
+macro_rules! helper {
+    () => { value.unwrap() };
+}
+macro_rules! open {
+    () => { value.unwrap() };
+}
+fn run() {
+    call!(value.unwrap());
+}
+";
+    assert_eq!(lines(PANIC_PATH, source), [17, 20]);
+}

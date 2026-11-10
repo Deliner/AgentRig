@@ -35,7 +35,7 @@ such panic inside the item; do not repeat it above each call.
 The measurement flags every Rust `.unwrap()`, `.expect(...)`, `.unwrap_err()`
 and `.expect_err(...)` call, every `resume_unwind` call through a path or a bare
 name, and every `panic!`, `todo!`, `unimplemented!` and `unreachable!` macro,
-in source and in macro bodies, outside test code without a `DECISION:` or
+in source, macro arguments and `macro_rules!` bodies, outside test code without a `DECISION:` or
 `INVARIANT:` reference on the line directly above it or above an `#[allow]`
 or `#[expect]` of its Clippy lint (`unwrap_used`, `expect_used`, `panic`,
 `todo`, `unimplemented`, `unreachable`) on an enclosing item. Test code is out
