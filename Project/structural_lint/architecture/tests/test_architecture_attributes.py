@@ -17,6 +17,7 @@ ATTR_EXTERNALS = {
     # DECISION: D136
     "export": "[std]",
     "bindgen": "[std, wasm_bindgen]",
+    "expect": "[std]",
 }
 
 
@@ -33,6 +34,7 @@ ATTR_EXTERNALS = {
         "feature",
         "export",
         "bindgen",
+        "expect",
         "local",
     ],
 )
@@ -52,6 +54,7 @@ def test_rust_attributes_preserve_dependency_evidence(
         "export": '#[unsafe(no_mangle)] pub extern "C" fn run() -> i32 { crate::b::value() } #[export_name = "other"] pub fn other() {}',
         "bindgen": "use wasm_bindgen::prelude::*; #[wasm_bindgen] pub fn run() -> i32 { crate::b::value() }",
         "local": "#[crate::b::attribute] pub fn run() {}",
+        "expect": "#![expect(unused)] #[expect(dead_code)] pub fn run() -> i32 { crate::b::value() }",
     }
     source.write_text(samples[case])
     declared = ATTR_EXTERNALS.get(case, "[std, serde, custom]")
@@ -70,7 +73,7 @@ def test_rust_attributes_preserve_dependency_evidence(
         assert code == 0, findings
         back_edge(target, "rs")
         code, findings = parity(worker, tmp_path)
-        edge = case in {"callback", "test", "platform", "feature", "export", "bindgen"}
+        edge = case in {"callback", "test", "platform", "feature", "export", "bindgen", "expect"}
         assert code == int(edge), findings
         assert all("directory dependency cycle" in item["message"] for item in findings)
 

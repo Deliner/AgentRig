@@ -50,6 +50,7 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) -> bool {
             return false;
         }
         "call_expression" => calls::inspect(source, node),
+        "visibility_modifier" => return false,
         _ => {}
     }
     true
@@ -372,6 +373,7 @@ fn attribute(source: &mut Source<'_>, node: Node<'_>) {
             | "warn"
             | "deny"
             | "forbid"
+            | "expect"
             | "doc"
             | "inline"
             | "cold"
