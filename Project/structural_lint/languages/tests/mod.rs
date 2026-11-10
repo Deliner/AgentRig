@@ -27,7 +27,7 @@ fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let mut lines: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::Reference(Reference::CommentReference))
+        .filter(|item| item.kind == Kind::Reference(Reference::Comment))
         .map(|item| (item.line, item.symbol))
         .collect();
     lines.sort();

@@ -29,8 +29,7 @@ def test_resume_resolves_state_revision(worker: Path, tmp_path: Path) -> None:
     assert value["state_revision"]["head_changed"] is False
     assert value["vcs"]["revision"] == saved
     assert value["vcs"]["branch"] == "trunk"
-    assert not value["vcs"]["merge_in_progress"]
-    assert not value["vcs"]["rebase_in_progress"]
+    assert value["vcs"]["operation"] is None
     commit(tmp_path)
     value = resumed(worker, tmp_path)
     assert value["snapshot"] == "stale"
@@ -67,7 +66,7 @@ def test_resume_observes_real_conflict(worker: Path, tmp_path: Path, operation: 
     assert git(tmp_path, operation, "trunk", expect="failure").returncode != 0
     before = file_contents(tmp_path)
     value = resumed(worker, tmp_path)
-    assert value["vcs"][f"{operation}_in_progress"]
+    assert value["vcs"]["operation"] == operation
     assert file_contents(tmp_path) == before
 
 
@@ -79,8 +78,7 @@ def test_resume_distinguishes_plain_and_unborn_repositories(worker: Path, tmp_pa
     before = file_contents(tmp_path)
     value = resumed(worker, tmp_path)
     assert value["vcs"]["revision"] == ""
-    assert not value["vcs"]["merge_in_progress"]
-    assert not value["vcs"]["rebase_in_progress"]
+    assert value["vcs"]["operation"] is None
     assert file_contents(tmp_path) == before
 
 

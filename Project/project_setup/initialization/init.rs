@@ -1,6 +1,7 @@
 use super::wizard;
 use crate::project_config;
-use crate::project_setup::{Config, Files, bundle, template};
+use crate::project_setup::template::{self, Scaffold};
+use crate::project_setup::{Config, Files, bundle};
 use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
 use anyhow::{Result, ensure};
@@ -15,7 +16,7 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     let scaffold = template::scaffold(root, &options)?;
     let files = bundle(&scaffold)?;
     prepare(root, &scaffold.config, &files)?;
-    install(root, &scaffold.config, &files)?;
+    install(root, &scaffold, &files)?;
     console::stdout(format!(
         "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
         options["language"],
@@ -88,7 +89,8 @@ fn validate_bundle(files: &Files) -> Result<()> {
     project_config::Context::load(&root)?;
     Ok(())
 }
-pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()> {
+pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result<()> {
+    let config = &scaffold.config;
     for (path, contents) in files {
         let executable = executable(path);
         let path = project_config::relative(root, path)?;
@@ -101,6 +103,9 @@ pub(super) fn install(root: &Path, config: &Config, files: &Files) -> Result<()>
         if executable {
             fs::set_permissions(&path, Permissions::from_mode(0o755))?;
         }
+    }
+    if let Some(settings) = &scaffold.clippy {
+        settings.write()?;
     }
     crate::shared::vcs::initialize(root, &config.git.base)?;
     fs::create_dir_all(project_config::relative(root, &config.paths.runtime)?)?;

@@ -18,7 +18,7 @@ mod transcript;
 
 use self::input::text;
 use self::requirements::Answer;
-use crate::project_config::{Context, RouteEvent};
+use crate::project_config::{Access, Context, RouteEvent};
 use crate::shared::console;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
@@ -137,7 +137,7 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
                 .config
                 .commands
                 .get(name)
-                .is_some_and(|command| !command.read_only)
+                .is_some_and(|command| command.access == Access::Writable)
     });
     let mut found = Vec::new();
     if opaque {

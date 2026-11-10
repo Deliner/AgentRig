@@ -20,10 +20,16 @@ impl Index {
     }
 }
 
-pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Option<Vec<PathBuf>>> {
+// DECISION: D154
+pub enum Scope<T> {
+    Full,
+    Only(Vec<T>),
+}
+
+pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Scope<PathBuf>> {
     let complete = !index.staged() && base.is_none();
     if complete {
-        return Ok(None);
+        return Ok(Scope::Full);
     }
     let repository = crate::shared::vcs::Repository::discover(root)?
         .context("affected test selection requires a repository")?;
@@ -31,7 +37,9 @@ pub fn changes(root: &Path, index: Index, base: Option<&str>) -> Result<Option<V
         Some(base) => repository.changed_paths(base, "HEAD")?,
         None => repository.staged_changes()?,
     };
-    Ok(Some(changes.into_iter().map(PathBuf::from).collect()))
+    Ok(Scope::Only(
+        changes.into_iter().map(PathBuf::from).collect(),
+    ))
 }
 
 struct Group<'a> {
@@ -68,21 +76,22 @@ impl<'a> AffectedMap<'a> {
     }
 }
 
-pub fn targets(check: &Check, changes: Option<&[PathBuf]>) -> Result<Option<Vec<String>>> {
-    let Some(changes) = changes else {
-        return Ok(None);
+pub fn targets(check: &Check, changes: &Scope<PathBuf>) -> Result<Scope<String>> {
+    let changes = match changes {
+        Scope::Full => return Ok(Scope::Full),
+        Scope::Only(changes) => changes,
     };
     let unmapped = check.affected.is_empty();
     if unmapped {
-        return Ok(None);
+        return Ok(Scope::Full);
     }
     let map = AffectedMap::new(check)?;
     let mut targets = BTreeSet::new();
     for path in changes {
         let Some(selected) = map.targets(path) else {
-            return Ok(None);
+            return Ok(Scope::Full);
         };
         targets.extend(selected.into_iter().cloned());
     }
-    Ok(Some(targets.into_iter().collect()))
+    Ok(Scope::Only(targets.into_iter().collect()))
 }

@@ -3,6 +3,7 @@ use crate::shared::console;
 mod check;
 mod selection;
 pub use selection::AffectedMap;
+use selection::Scope;
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
@@ -132,24 +133,33 @@ fn execute_checks(
             console::stdout(format!("SKIP [{}]: {reason}", check.id));
             continue;
         }
-        let targets = selection::targets(check, changes.as_deref())?;
-        if let Some(targets) = &targets {
-            attempt.selective()?;
-            console::stdout(format!("SELECT [{}]: {targets:?}", check.id));
-            let empty = targets.is_empty();
-            if empty {
-                continue;
-            }
-        }
+        let targets = match affected(check, &changes, attempt)? {
+            Scope::Full => Vec::new(),
+            Scope::Only(targets) if targets.is_empty() => continue,
+            Scope::Only(targets) => targets,
+        };
         let source = Selected {
             root,
-            targets: targets.as_deref().unwrap_or_default(),
+            targets: &targets,
         };
         if let Some(code) = execute_selected(context, source, check, attempt)? {
             return Ok(code);
         }
     }
     Ok(0)
+}
+
+fn affected(
+    check: &Check,
+    changes: &Scope<PathBuf>,
+    attempt: &mut crate::project_memory::evidence::Attempt,
+) -> Result<Scope<String>> {
+    let scope = selection::targets(check, changes)?;
+    if let Scope::Only(targets) = &scope {
+        attempt.selective()?;
+        console::stdout(format!("SELECT [{}]: {targets:?}", check.id));
+    }
+    Ok(scope)
 }
 
 fn skip_reason(

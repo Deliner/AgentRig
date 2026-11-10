@@ -1,5 +1,7 @@
+pub mod access;
 mod capabilities;
 mod validation;
+pub use access::Access;
 pub use capabilities::Capabilities;
 // DECISION: D005
 pub use crate::shared::vcs::Settings as Git;
@@ -97,8 +99,13 @@ pub struct Command {
     pub cwd: String,
     #[serde(default)]
     pub accepts_args: bool,
-    #[serde(default)]
-    pub read_only: bool,
+    #[serde(
+        default,
+        rename = "read_only",
+        deserialize_with = "access::deserialize",
+        serialize_with = "access::serialize"
+    )]
+    pub access: Access,
     #[serde(default)]
     pub lifetime: Lifetime,
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]

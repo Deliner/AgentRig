@@ -1,4 +1,4 @@
-purpose: Initialize configured agent environments without overwriting existing consumer files
+purpose: Initialize configured agent environments, keeping existing consumer file contents
 type: flat
 files:
   mod.rs: Expose declarative initialization

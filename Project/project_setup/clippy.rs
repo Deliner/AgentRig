@@ -1,4 +1,66 @@
 use super::cargo::Layout;
+use crate::shared::fs;
+use anyhow::{Context, Result, ensure};
+use std::path::{Path, PathBuf};
+
+// DECISION: D154
+const SETTINGS: &str = include_str!("../clippy.toml");
+const FILES: [&str; 2] = [".clippy.toml", "clippy.toml"];
+
+pub(super) struct Settings {
+    path: PathBuf,
+    contents: String,
+}
+
+impl Settings {
+    pub(super) fn path(&self) -> &Path {
+        &self.path
+    }
+    pub(super) fn write(&self) -> Result<()> {
+        Ok(fs::write(&self.path, &self.contents)?)
+    }
+}
+
+// DECISION: D154
+pub(super) fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
+    let manifest = root.join(&rust.manifest);
+    let directory = manifest
+        .parent()
+        .context("Cargo manifest has no directory")?;
+    let (path, existing) = match effective(root, directory) {
+        Some(path) => {
+            let existing = fs::read_to_string(&path)?;
+            (path, existing)
+        }
+        None => (root.join("clippy.toml"), String::new()),
+    };
+    let present: toml::Table =
+        toml::from_str(&existing).with_context(|| format!("parse {}", path.display()))?;
+    let required: toml::Table = toml::from_str(SETTINGS)?;
+    let mut missing = String::new();
+    for (key, value) in required {
+        match present.get(&key) {
+            Some(found) => ensure!(
+                *found == value,
+                "init collision: {} sets {key} = {found}, AgentRig requires {value}; existing files were preserved",
+                path.display()
+            ),
+            None => missing.push_str(&format!("{key} = {value}\n")),
+        }
+    }
+    Ok(Settings {
+        contents: missing + &existing,
+        path,
+    })
+}
+
+fn effective(root: &Path, directory: &Path) -> Option<PathBuf> {
+    directory
+        .ancestors()
+        .take_while(|ancestor| ancestor.starts_with(root))
+        .flat_map(|ancestor| FILES.map(|name| ancestor.join(name)))
+        .find(|path| path.is_file())
+}
 
 // DECISION: D132
 // DECISION: D137

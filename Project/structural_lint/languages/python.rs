@@ -34,7 +34,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
         values.next().is_some_and(|value| value.kind() == "string") && values.next().is_none();
     if lone_string {
         output.push(Measurement {
-            kind: Kind::Reference(Reference::CommentReference),
+            kind: Kind::Reference(Reference::Comment),
             line: node.start_position().row + 1,
             symbol: "docstring".into(),
             actual: 1,

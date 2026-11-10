@@ -19,7 +19,7 @@ pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) ->
         "working tree must be clean; preserve or commit pending changes before switching branches"
     );
     ensure!(
-        !observed.merge_in_progress && !observed.rebase_in_progress,
+        observed.operation.is_none(),
         "finish or abort the pending VCS operation before starting a feature"
     );
     repository.run(&["check-ref-format", "--branch", &branch])?;

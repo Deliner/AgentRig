@@ -104,20 +104,26 @@ pub fn due(event: &Value, config: &Value, state: &mut Value) -> Result<Option<St
         Path::new(transcript),
         state["scan_offset"].as_u64().unwrap_or(0),
     )?;
-    for current in tokens {
-        progress.observe(current, attention);
-    }
+    let context_reset = progress.advance(tokens, attention);
     let reminder = progress.reminder(attention, full, message);
     progress.store(state);
+    if context_reset {
+        forget_delivered(state);
+    }
     state["scan_offset"] = json!(offset);
     Ok(reminder)
+}
+fn forget_delivered(state: &mut Value) {
+    let Some(object) = state.as_object_mut() else {
+        return;
+    };
+    object.remove("delivered");
 }
 struct Progress {
     baseline: u64,
     next: u64,
     allow: bool,
     latest: Option<u64>,
-    context_reset: bool,
 }
 impl Progress {
     fn load(state: &Value, attention: u64, full: u64) -> Self {
@@ -133,16 +139,33 @@ impl Progress {
             next,
             allow: state["allow_next_edit"].as_bool().unwrap_or(false),
             latest: state["latest_tokens"].as_u64(),
-            context_reset: false,
         }
     }
-    fn observe(&mut self, current: u64, attention: u64) {
+    fn advance(&mut self, tokens: Vec<u64>, attention: u64) -> bool {
+        let mut context_reset = false;
+        for current in tokens {
+            context_reset |= self.observe(current, attention);
+        }
+        let repaired = self.repair_baseline(attention);
+        context_reset || repaired
+    }
+    fn observe(&mut self, current: u64, attention: u64) -> bool {
         let context_reset = self.latest.is_some_and(|prior| current < prior);
         if context_reset {
             self.reset(current, attention);
-            self.context_reset = true;
         }
         self.latest = Some(current);
+        context_reset
+    }
+    fn repair_baseline(&mut self, attention: u64) -> bool {
+        let Some(current) = self.latest else {
+            return false;
+        };
+        let invalid_baseline = self.baseline > current;
+        if invalid_baseline {
+            self.reset(current, attention);
+        }
+        invalid_baseline
     }
     fn reset(&mut self, current: u64, attention: u64) {
         self.baseline = current;
@@ -151,11 +174,6 @@ impl Progress {
     }
     fn reminder(&mut self, attention: u64, full: u64, message: &str) -> Option<String> {
         let current = self.latest?;
-        let invalid_baseline = self.baseline > current;
-        if invalid_baseline {
-            self.reset(current, attention);
-            self.context_reset = true;
-        }
         if self.allow {
             self.allow = false;
             return None;
@@ -187,8 +205,5 @@ impl Progress {
         object.insert("baseline_tokens".into(), json!(self.baseline));
         object.insert("next_attention_tokens".into(), json!(self.next));
         object.insert("allow_next_edit".into(), json!(self.allow));
-        if self.context_reset {
-            object.remove("delivered");
-        }
     }
 }

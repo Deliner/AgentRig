@@ -21,7 +21,8 @@ pub enum Reference {
     SuperSuperReach,
     UnwindJustification,
     BlockingInAsync,
-    CommentReference,
+    #[serde(rename = "comment-reference")]
+    Comment,
 }
 impl Reference {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -40,7 +41,7 @@ impl Reference {
             Self::SuperSuperReach => &SUPERSUPERREACH,
             Self::UnwindJustification => &UNWINDJUSTIFICATION,
             Self::BlockingInAsync => &BLOCKINGINASYNC,
-            Self::CommentReference => &COMMENTREFERENCE,
+            Self::Comment => &COMMENTREFERENCE,
         }
     }
 }

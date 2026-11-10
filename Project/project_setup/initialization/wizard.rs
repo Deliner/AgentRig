@@ -1,6 +1,6 @@
 use crate::project_config;
 use crate::project_setup::template::{self, Scaffold};
-use crate::project_setup::{self as package, Config};
+use crate::project_setup::{self as package, Config, Files};
 use crate::shared::console;
 use anyhow::{Result, ensure};
 use std::{
@@ -23,7 +23,7 @@ pub fn run(root: &Path) -> Result<i32> {
         "Configuration for {}:\n{}\nFiles:\n{}",
         root.display(),
         crate::shared::yaml::encode(config)?,
-        files.keys().cloned().collect::<Vec<_>>().join("\n")
+        listing(&root, &scaffold, &files)
     ));
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
         return cancelled();
@@ -32,13 +32,25 @@ pub fn run(root: &Path) -> Result<i32> {
     if confirmed {
         super::init::prepare(&root, config, &files)?;
         crate::shared::fs::create_dir_all(&root)?;
-        super::init::install(&root, config, &files)?;
+        super::init::install(&root, &scaffold, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
         super::init::offer_ratchet(&root, config)?;
         package::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()
     }
+}
+
+fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
+    let clippy = scaffold.clippy.iter().map(|settings| {
+        let path = settings.path();
+        path.strip_prefix(root)
+            .unwrap_or(path)
+            .display()
+            .to_string()
+    });
+    let listed: Vec<String> = files.keys().cloned().chain(clippy).collect();
+    listed.join("\n")
 }
 
 fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {

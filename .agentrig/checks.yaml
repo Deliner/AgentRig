@@ -142,6 +142,7 @@
     - Project/change_delivery/git/tests/test_git.py
     - Project/shared/testing/test_delivery.py
   - include:
+    - Project/clippy.toml
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
