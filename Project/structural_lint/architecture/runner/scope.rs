@@ -87,7 +87,9 @@ fn selected_inventory(
                 let path = directory.join(name);
                 let path = path.strip_prefix(".").unwrap_or(&path);
                 let child = inventory.directories.contains_key(path);
-                !excluded.is_match(path) && (!child || selected.contains(path))
+                let included = !excluded.is_match(path);
+                let reachable = !child || selected.contains(path);
+                included && reachable
             })
             .cloned()
             .collect();

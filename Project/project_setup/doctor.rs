@@ -18,9 +18,9 @@ fn available(program: &str, cwd: &Path) -> bool {
 }
 pub fn run(context: &Context) -> Result<i32> {
     console::stdout(format!(
-        "runtime {}: compatible; platform {}",
-        crate::project_config::VERSION,
-        env::consts::OS
+        "runtime {version}: compatible; platform {platform}",
+        version = crate::project_config::VERSION,
+        platform = env::consts::OS
     ));
     let mut failed = !installed_binary(context);
     failed |= !command_availability(context)?;

@@ -238,11 +238,11 @@ pub fn report(context: &Context) -> Result<()> {
         let repeated = result["consecutive_failures"].as_u64().unwrap_or_default() >= 2;
         if repeated {
             console::stdout(format!(
-                "Repeated check failure [{}]: {} attempts. Guidance presented: {}. RERUN: {}. Compare actual failures and revise guidance if applying it did not help; this does not prove the skill was read or the root cause repeated.",
-                result["id"].as_str().unwrap_or_default(),
-                result["consecutive_failures"],
-                result["skill"].as_str().unwrap_or_default(),
-                result["rerun"].as_str().unwrap_or_default()
+                "Repeated check failure [{id}]: {attempts} attempts. Guidance presented: {skill}. RERUN: {rerun}. Compare actual failures and revise guidance if applying it did not help; this does not prove the skill was read or the root cause repeated.",
+                id = result["id"].as_str().unwrap_or_default(),
+                attempts = result["consecutive_failures"],
+                skill = result["skill"].as_str().unwrap_or_default(),
+                rerun = result["rerun"].as_str().unwrap_or_default()
             ));
         }
     }

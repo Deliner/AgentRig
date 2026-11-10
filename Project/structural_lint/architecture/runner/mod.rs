@@ -169,9 +169,9 @@ fn unused_externals(
         .clone()
         .unwrap_or_else(|| PathBuf::from("."));
     let searched = format!(
-        "{} files this rule reads under {}",
-        scope.files.len(),
-        common_root(&scope.directories).display()
+        "{count} files this rule reads under {root}",
+        count = scope.files.len(),
+        root = common_root(&scope.directories).display()
     );
     let rust = settings
         .external

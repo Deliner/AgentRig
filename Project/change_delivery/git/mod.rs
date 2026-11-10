@@ -108,7 +108,9 @@ pub fn guard_commit(root: &Path, settings: &crate::shared::vcs::Settings) -> Res
     let (branch, merge) = repository.commit_context()?;
     let base = settings.base.as_str();
     let prefix = settings.prefix.as_str();
-    let permitted = branch.starts_with(prefix) || (branch == base && merge);
+    let feature = branch.starts_with(prefix);
+    let base_merge = branch == base && merge;
+    let permitted = feature || base_merge;
     if permitted {
         return Ok(0);
     }

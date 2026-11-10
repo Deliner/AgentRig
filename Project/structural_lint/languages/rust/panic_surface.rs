@@ -22,7 +22,8 @@ pub(super) fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurem
     let method = function.kind() == "field_expression";
     let path = matches!(function.kind(), "identifier" | "scoped_identifier");
     let unwrapping = method && UNWRAPPING.contains(&name);
-    let panic = unwrapping || path && name == "resume_unwind";
+    let resuming = path && name == "resume_unwind";
+    let panic = unwrapping || resuming;
     if panic {
         report_panic(node, source, name, output);
     }

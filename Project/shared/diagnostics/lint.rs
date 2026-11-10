@@ -78,7 +78,11 @@ fn render(group: &[&Diagnostic]) -> String {
     }
     .to_string();
     for item in group {
-        text.push_str(&format!("\n  {}: {}", format_location(item), item.message));
+        text.push_str(&format!(
+            "\n  {location}: {message}",
+            location = format_location(item),
+            message = item.message
+        ));
     }
     text
 }

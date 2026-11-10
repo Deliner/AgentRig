@@ -27,8 +27,9 @@ impl<'a> Policy<'a> {
             path: file.into(),
             line: Some(line),
             message: format!(
-                "`{path}` is disallowed here: {}; use {}",
-                entry.reason, entry.replacement
+                "`{path}` is disallowed here: {reason}; use {replacement}",
+                reason = entry.reason,
+                replacement = entry.replacement
             ),
         })
     }
@@ -49,8 +50,10 @@ impl<'a> Policy<'a> {
             path: file.into(),
             line: Some(call.line),
             message: format!(
-                "`.{}()` with its error propagated is disallowed here: {}; use {}",
-                call.method, entry.reason, entry.replacement
+                "`.{method}()` with its error propagated is disallowed here: {reason}; use {replacement}",
+                method = call.method,
+                reason = entry.reason,
+                replacement = entry.replacement
             ),
         })
     }

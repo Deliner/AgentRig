@@ -45,7 +45,7 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
         let detail = committed(
             repository,
             revision,
-            &format!("{}/{}", prior_memory, old.detail),
+            &format!("{prior_memory}/{detail}", detail = old.detail),
         )?;
         preserve(
             old,

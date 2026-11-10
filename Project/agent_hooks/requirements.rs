@@ -140,9 +140,9 @@ fn requirement(
     sources.dedup();
     let kind = enforcement.label();
     Ok(format!(
-        "- {kind}: read and apply {} for {}. Source: {}.",
-        skill.display(),
-        reasons.join("; "),
-        sources.join(", ")
+        "- {kind}: read and apply {skill} for {reasons}. Source: {sources}.",
+        skill = skill.display(),
+        reasons = reasons.join("; "),
+        sources = sources.join(", ")
     ))
 }

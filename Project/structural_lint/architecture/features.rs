@@ -173,10 +173,10 @@ impl Features<'_> {
             (Role::Part(from), Role::Part(to)) => to >= from,
         };
         let message = format!(
-            "{}: {} -> {} goes against the dependency direction",
-            kind.name(),
-            source.name(parts),
-            target.name(parts)
+            "{kind}: {source} -> {target} goes against the dependency direction",
+            kind = kind.name(),
+            source = source.name(parts),
+            target = target.name(parts)
         );
         (!allowed).then(|| Issue::dependency(edge, message))
     }

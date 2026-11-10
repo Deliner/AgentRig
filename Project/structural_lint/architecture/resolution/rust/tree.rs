@@ -210,9 +210,9 @@ impl Rust<'_> {
             true => parent.file.clone(),
             false => self.module_file(&directory).with_context(|| {
                 format!(
-                    "{}:{}: module {name}",
-                    parent.file.display(),
-                    reference.line
+                    "{file}:{line}: module {name}",
+                    file = parent.file.display(),
+                    line = reference.line
                 )
             })?,
         };

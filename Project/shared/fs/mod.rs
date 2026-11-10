@@ -30,7 +30,12 @@ impl Error {
 
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{} {}", self.action, self.path.display())
+        write!(
+            formatter,
+            "{action} {path}",
+            action = self.action,
+            path = self.path.display()
+        )
     }
 }
 

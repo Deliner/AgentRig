@@ -47,7 +47,8 @@ fn outer_control(command: &str) -> bool {
             Role::InQuote(q) => {
                 let substitution = ch == '$' && next == Some('(');
                 let quote_end = ch == q;
-                let quoted_substitution = q == '"' && (ch == '\u{60}' || substitution);
+                let opens_substitution = ch == '\u{60}' || substitution;
+                let quoted_substitution = q == '"' && opens_substitution;
                 if quote_end {
                     quote = None;
                 } else if quoted_substitution {

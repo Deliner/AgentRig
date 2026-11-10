@@ -18,9 +18,9 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     prepare(root, &scaffold.config, &files)?;
     install(root, &scaffold, &files)?;
     console::stdout(format!(
-        "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
-        options["language"],
-        project_config::VERSION
+        "Initialized {language} scaffold with runtime {version}. Run config-check and doctor; source files remain yours to create.",
+        language = options["language"],
+        version = project_config::VERSION
     ));
     offer_ratchet(root, &scaffold.config)?;
     Ok(0)

@@ -23,7 +23,11 @@ pub fn boot() -> Result<String> {
         "cannot read boot time: {}",
         std::io::Error::last_os_error()
     );
-    Ok(format!("{}.{:06}", value.tv_sec, value.tv_usec))
+    Ok(format!(
+        "{seconds}.{micros:06}",
+        seconds = value.tv_sec,
+        micros = value.tv_usec
+    ))
 }
 pub fn sample(pid: u32) -> Result<Sample> {
     let bsd: libc::proc_bsdinfo = info(pid, libc::PROC_PIDTBSDINFO)?;

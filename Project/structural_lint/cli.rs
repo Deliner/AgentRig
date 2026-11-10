@@ -121,11 +121,11 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
 fn print_rule(kind: super::rules::Kind) {
     let descriptor = kind.descriptor();
     console::stdout(format!(
-        "{kind}: {}\nTarget: {}\nRepair skill: {}\nParameters: {}",
-        descriptor.metric,
-        descriptor.target,
-        descriptor.skill,
-        descriptor.parameters.describe()
+        "{kind}: {metric}\nTarget: {target}\nRepair skill: {skill}\nParameters: {parameters}",
+        metric = descriptor.metric,
+        target = descriptor.target,
+        skill = descriptor.skill,
+        parameters = descriptor.parameters.describe()
     ));
     let syntax = super::catalog::syntax(kind);
     if syntax {

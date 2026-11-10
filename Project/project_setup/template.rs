@@ -446,9 +446,9 @@ pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
             .iter()
             .map(|&(name, command, args)| {
                 format!(
-                    "# What: invoke {command}; Why: use the installed native runtime.\n{name}{}:\n    @{binary} {command} --root .{}\n",
-                    if args { " *args" } else { "" },
-                    if args { " \"$@\"" } else { "" }
+                    "# What: invoke {command}; Why: use the installed native runtime.\n{name}{parameters}:\n    @{binary} {command} --root .{forwarded}\n",
+                    parameters = if args { " *args" } else { "" },
+                    forwarded = if args { " \"$@\"" } else { "" }
                 )
             })
             .collect();

@@ -224,10 +224,7 @@ fn self_path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
                 .unwrap_or(path);
         }
         let unrelated_item = matches!(owner.kind(), "mod_item" | "struct_item" | "enum_item")
-            || (owner.kind() == "function_item"
-                && owner
-                    .parent()
-                    .is_some_and(|parent| parent.kind() == "block"));
+            || local_function(owner);
         if unrelated_item {
             break;
         }
@@ -248,15 +245,17 @@ pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) ->
                 Binding::Opaque => path,
             };
         }
-        let separate_scope = owner.kind() == "mod_item"
-            || (owner.kind() == "function_item"
-                && owner.parent().is_some_and(|p| p.kind() == "block"));
+        let separate_scope = owner.kind() == "mod_item" || local_function(owner);
         if separate_scope {
             break;
         }
         parent = owner.parent();
     }
     path
+}
+
+fn local_function(node: Node<'_>) -> bool {
+    node.kind() == "function_item" && node.parent().is_some_and(|owner| owner.kind() == "block")
 }
 
 // DECISION: D136
@@ -351,11 +350,11 @@ fn module(source: &mut Source<'_>, node: Node<'_>) {
 
 fn module_item(node: Node<'_>) -> bool {
     node.parent().is_some_and(|parent| {
-        parent.kind() == "source_file"
-            || (parent.kind() == "declaration_list"
-                && parent
-                    .parent()
-                    .is_some_and(|owner| owner.kind() == "mod_item"))
+        let inline_module = parent.kind() == "declaration_list"
+            && parent
+                .parent()
+                .is_some_and(|owner| owner.kind() == "mod_item");
+        parent.kind() == "source_file" || inline_module
     })
 }
 

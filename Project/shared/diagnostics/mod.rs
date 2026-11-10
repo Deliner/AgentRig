@@ -17,13 +17,13 @@ impl fmt::Display for Guidance<'_> {
         let action = if advisory { "Consider" } else { "Apply" };
         write!(
             output,
-            "{} [{}] {}: {}. ACTION: {action} {}. RERUN: {}",
-            self.level.to_uppercase(),
-            self.id,
-            self.location,
-            self.message,
-            self.skill,
-            self.rerun
+            "{level} [{id}] {location}: {message}. ACTION: {action} {skill}. RERUN: {rerun}",
+            level = self.level.to_uppercase(),
+            id = self.id,
+            location = self.location,
+            message = self.message,
+            skill = self.skill,
+            rerun = self.rerun
         )
     }
 }

@@ -233,8 +233,8 @@ impl Rule {
         Ok(())
     }
     fn validate_override(&self, entry: &Override) -> Result<()> {
-        let incomplete =
-            entry.include.is_empty() || (entry.warning.is_none() && entry.error.is_none());
+        let thresholdless = entry.warning.is_none() && entry.error.is_none();
+        let incomplete = entry.include.is_empty() || thresholdless;
         if incomplete {
             bail!("{}: override needs selectors and a threshold", self.id);
         }

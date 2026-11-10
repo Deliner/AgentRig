@@ -20,10 +20,10 @@ pub fn run(root: &Path) -> Result<i32> {
     let files = package::bundle(&scaffold)?;
     super::init::prepare(&root, config, &files)?;
     console::stdout(format!(
-        "Configuration for {}:\n{}\nFiles:\n{}",
-        root.display(),
-        crate::shared::yaml::encode(config)?,
-        listing(&root, &scaffold, &files)
+        "Configuration for {root}:\n{config}\nFiles:\n{files}",
+        root = root.display(),
+        config = crate::shared::yaml::encode(config)?,
+        files = listing(&root, &scaffold, &files)
     ));
     let Some(answer) = ask("Install this environment? yes/no", "no")? else {
         return cancelled();

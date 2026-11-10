@@ -250,9 +250,9 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
                     path.display()
                 ),
                 None => console::stderr(format!(
-                    "WARNING [{}]: marker inspection unsupported for {}",
-                    row.id,
-                    path.display()
+                    "WARNING [{id}]: marker inspection unsupported for {path}",
+                    id = row.id,
+                    path = path.display()
                 )),
             }
         }

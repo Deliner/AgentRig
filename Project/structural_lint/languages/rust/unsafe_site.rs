@@ -34,7 +34,8 @@ fn attribute_opener(tree: Node<'_>, token: Node<'_>, source: &str) -> bool {
         .next_sibling()
         .and_then(|next| next.child(0))
         .is_some_and(|open| open.kind() == "(");
-    (direct || argument) && arguments
+    let positioned = direct || argument;
+    positioned && arguments
 }
 fn site(node: Node<'_>) -> Option<&'static str> {
     match node.kind() {

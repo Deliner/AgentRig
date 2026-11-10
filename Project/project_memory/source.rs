@@ -62,11 +62,15 @@ impl Source {
     }
 
     pub fn marked_function(&self, name: &str, id: &str) -> bool {
-        self.functions.get(name).is_some_and(|functions| {
-            functions.len() == 1
-                && (functions[0].contains(&format!("# INVARIANT: {id}"))
-                    || functions[0].contains(&format!("// INVARIANT: {id}")))
-        })
+        self.functions
+            .get(name)
+            .is_some_and(|functions| match functions.as_slice() {
+                [function] => {
+                    function.contains(&format!("# INVARIANT: {id}"))
+                        || function.contains(&format!("// INVARIANT: {id}"))
+                }
+                _ => false,
+            })
     }
     pub fn references(&self) -> impl Iterator<Item = &str> {
         self.comments

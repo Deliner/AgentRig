@@ -118,10 +118,10 @@ pub struct Neighbours {
 // DECISION: D142
 pub(super) fn evidence(edge: &Dependency) -> String {
     format!(
-        "{}:{} uses {}",
-        edge.source.display(),
-        edge.line,
-        edge.target.display()
+        "{source}:{line} uses {target}",
+        source = edge.source.display(),
+        line = edge.line,
+        target = edge.target.display()
     )
 }
 
@@ -154,9 +154,9 @@ pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<I
                 path: file.to_owned(),
                 line: None,
                 message: format!(
-                    "file uses {} other project directories (budget {budget}): {}; split it by responsibility or move the wiring into a program entry point",
-                    names.len(),
-                    names.join(", ")
+                    "file uses {count} other project directories (budget {budget}): {listed}; split it by responsibility or move the wiring into a program entry point",
+                    count = names.len(),
+                    listed = names.join(", ")
                 ),
             }
         })
@@ -218,9 +218,9 @@ impl<'a> Traversal<'a> {
         self.issues.push(Issue::dependency(
             edge,
             format!(
-                "directory dependency cycle: {}; {}",
-                paths.join(" -> "),
-                named.join("; ")
+                "directory dependency cycle: {cycle}; {evidence}",
+                cycle = paths.join(" -> "),
+                evidence = named.join("; ")
             ),
         ));
     }

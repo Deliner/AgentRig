@@ -115,8 +115,9 @@ fn lexical_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
 pub(super) fn names_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
     let mut pending = vec![node];
     while let Some(node) = pending.pop() {
-        let matches = node.kind() == "use_wildcard"
-            || (node.kind() == "identifier" && source.text(node) == name);
+        let wildcard = node.kind() == "use_wildcard";
+        let named = node.kind() == "identifier" && source.text(node) == name;
+        let matches = wildcard || named;
         if matches {
             return true;
         }
@@ -131,7 +132,8 @@ fn identifier(node: Node<'_>) -> bool {
 
 // DECISION: D136
 fn path_start(source: &Source<'_>, node: Node<'_>) -> bool {
-    identifier(node) || (node.kind() == "metavariable" && source.text(node) == "$crate")
+    let crate_variable = node.kind() == "metavariable" && source.text(node) == "$crate";
+    identifier(node) || crate_variable
 }
 
 fn inspect_tokens(source: &mut Source<'_>, tree: Node<'_>) {

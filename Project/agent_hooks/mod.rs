@@ -103,10 +103,9 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     let memory = &configured.config.paths.memory;
     let full = full_refresh(configured);
     let mut message = format!(
-        "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
-        root.join(memory).join("State.md").display(),
-        root.join(memory).join("Plan.md").display(),
-        full
+        "Resume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
+        state = root.join(memory).join("State.md").display(),
+        plan = root.join(memory).join("Plan.md").display(),
     );
     let hooks = &configured.config.hooks;
     let stateful = hooks.reminder.is_some() || !hooks.routes.is_empty();

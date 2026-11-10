@@ -9,8 +9,11 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let Some(name) = node.child_by_field_name("name") else {
         return;
     };
-    let file = node.child_by_field_name("body").is_none();
-    let gated = file && (attributed(node, source, test_marker) || in_test_context(node, source));
+    let inline = node.child_by_field_name("body").is_some();
+    if inline {
+        return;
+    }
+    let gated = attributed(node, source, test_marker) || in_test_context(node, source);
     let production = !gated;
     if production {
         return;

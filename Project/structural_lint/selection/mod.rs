@@ -62,9 +62,9 @@ pub fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Resu
     if numeric {
         config::thresholds(warning, error).with_context(|| {
             format!(
-                "{} at {}: invalid effective thresholds",
-                rule.id,
-                path.display()
+                "{id} at {path}: invalid effective thresholds",
+                id = rule.id,
+                path = path.display()
             )
         })?;
     }

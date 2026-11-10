@@ -185,16 +185,19 @@ fn print(path: &Path, rows: &[Value]) {
     console::stdout(format!("Lint selection for {}", path.display()));
     for row in rows {
         console::stdout(format!(
-            "{} ({}): {}",
-            row["id"].as_str().unwrap_or(""),
-            row["kind"].as_str().unwrap_or(""),
-            row["reason"].as_str().unwrap_or("")
+            "{id} ({kind}): {reason}",
+            id = row["id"].as_str().unwrap_or(""),
+            kind = row["kind"].as_str().unwrap_or(""),
+            reason = row["reason"].as_str().unwrap_or("")
         ));
         let selected = row["selected"] == true;
         if selected {
             console::stdout(format!(
-                "  warning={} error={} level={} matched_overrides={} (zero-based)",
-                row["warning"], row["error"], row["level"], row["matched_overrides"]
+                "  warning={warning} error={error} level={level} matched_overrides={overrides} (zero-based)",
+                warning = row["warning"],
+                error = row["error"],
+                level = row["level"],
+                overrides = row["matched_overrides"]
             ));
         }
     }

@@ -87,7 +87,8 @@ struct Body<'a> {
 impl Body<'_> {
     fn report(&self, item: Node<'_>, output: &mut Vec<Measurement>) {
         let first_row = item.start_position().row == 0;
-        let exempt = justified(item, self.source) || (first_row && self.above);
+        let referenced_before = first_row && self.above;
+        let exempt = justified(item, self.source) || referenced_before;
         if exempt {
             return;
         }

@@ -77,7 +77,13 @@ fn mismatch<'a>(ordering: &Implementation<'a>, owner: &Owner<'_, 'a>) -> Option<
             (!fields.is_empty()).then(|| format!("{label} {}", fields.join(", ")))
         })
         .collect();
-    (!parts.is_empty()).then(|| format!("{}: {}", owner.name, parts.join("; ")))
+    (!parts.is_empty()).then(|| {
+        format!(
+            "{name}: {parts}",
+            name = owner.name,
+            parts = parts.join("; ")
+        )
+    })
 }
 impl<'a> Owner<'_, 'a> {
     fn own(&self) -> impl Iterator<Item = &Implementation<'a>> {
@@ -148,7 +154,8 @@ fn method_body<'a>(implementation: Node<'a>, name: &str, source: &str) -> Option
     method.child_by_field_name("body")
 }
 fn receiver(node: Node<'_>, source: &str) -> bool {
-    node.kind() == "self" || (node.kind() == "identifier" && text(node, source) == "self")
+    let named_self = node.kind() == "identifier" && text(node, source) == "self";
+    node.kind() == "self" || named_self
 }
 fn field_access(receiver: Node<'_>) -> Option<Node<'_>> {
     receiver.parent().filter(|parent| {

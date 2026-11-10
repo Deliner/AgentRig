@@ -158,16 +158,20 @@ impl Contracts {
                     .iter()
                     .map(|(source, edge)| {
                         let source = super::graph::directory_key(source);
-                        format!("{} ({})", source.display(), super::graph::evidence(edge))
+                        format!(
+                            "{source} ({evidence})",
+                            source = source.display(),
+                            evidence = super::graph::evidence(edge)
+                        )
                     })
                     .collect();
                 issues.push(Issue {
                     path: directory.join(FILENAME),
                     line: None,
                     message: format!(
-                        "directory is depended on by {} other directories (budget {budget}): {}; reduce incoming coupling or raise the declared dependents budget",
-                        sources.len(),
-                        named.join(", ")
+                        "directory is depended on by {count} other directories (budget {budget}): {listed}; reduce incoming coupling or raise the declared dependents budget",
+                        count = sources.len(),
+                        listed = named.join(", ")
                     ),
                 });
             }
