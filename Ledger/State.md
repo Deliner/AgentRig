@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/edge-findings` (P102, B088)
-Revision: `71fdfba` (VAC1 P102; VAC2 в этом коммите)
+Branch: `feature/cargo-targets` (P103, B090)
+Revision: `0259204` (база master после слияния P102; VAC1 P103 в этом коммите)
 
-Установленный рантайм `6874047` (пин P101). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `3c99a34` (пин P102). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,21 +23,23 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094–P101 завершены и слиты в master, пин `6874047`.
-- P102 выполнен двумя VAC и ротирован в Archive: `71fdfba` — рёбра в находках бюджета и цикла и единый формат
-  печати (D142); второй — команда `lint-edges DIR [--json]` из того же измерения, что и lint (D143), README
-  архитектуры со всеми полями контракта. Осталось: пин D051 и `just feature-merge`.
+- P094–P102 завершены и слиты в master, пин `3c99a34`.
+- P103 выполнен одним VAC и ротирован в Archive: `config-check` берёт путь модуля тестового файла из дерева `mod`,
+  `#[path]` и `include!` от корней крейтов манифеста команды и принимает цель внутри пути или с его целых последних
+  сегментов (D144). Осталось: пин D051 и `just feature-merge`.
 - Для финального прохода voxel-rust: восемь `pub(crate)` в `src/native/host/game.rs` и `profiles.rs` вернуть к
   `pub(in crate::native)`; `#[allow(clippy::expect_used)]` можно заменить на `#[expect]`; ручные исключения
-  file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами.
+  file-size `src/Cargo.lock` и `src/package-lock.json` заменить поставляемыми шаблонами; в `.agentrig/checks.yaml`
+  снять префикс `host::` у целей `game`, `worker` и `hardware`.
 
 ## Verification
 
-- P102 VAC1: гейт коммита `71fdfba` — 420 passed. VAC2: `Project/structural_lint`, `test_hooks.py` и
-  `Project/project_setup` на кандидате — 319 passed; Rust-тесты — 167 passed; `just lint`, `memory-check` чистые.
-  Тест команды и проверка охраны падают на установленном `6874047`.
-- AC3 на клоне voxel-rust `71440d0` с `dependents: 0` у `src/core/world`: lint насчитал и назвал 13 зависимых,
-  `lint-edges` показал те же 13 каталогов (171 различное ребро); правка клона откачена.
+- P103: `test_coverage.py` на кандидате — 18 passed; на установленном `3c99a34` три новых случая падают, случай AC2
+  проходит на обоих. Rust-тесты — 167 passed; `just lint` и Clippy чистые. Настоящий cargo на фикстуре выбирает по
+  `game::tests::` и `widget::` те же тесты и ничего по `host::parts::thing::tests::`.
+- Клон voxel-rust `71440d0`: без правок оба рантайма чисты; без `host::` установленный отклоняет `game.rs`,
+  `hardware.rs`, `worker.rs`, кандидат принимает; цель `gamez::tests::` кандидат отклоняет. Правка откачена.
+- `config-check` на AgentRig: кандидат и установленный рантайм чисты.
 
 ## Blockers
 
@@ -45,5 +47,5 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Пин D051 на голову ветки, коммит пина, `just feature-merge`; дальше P103 (B090, цели тестов в `config-check`).
-Свободные ID: D144+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Коммит VAC P103, пин D051 на голову ветки, коммит пина, `just feature-merge`; дальше P104 (B091, размещение
+тестов). Свободные ID: D145+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

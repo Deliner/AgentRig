@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P103](Plan/103.md) | pending | - | [B090](Backlog/090.md): cargo-targets — `config-check` сверяет цели тестов так же, как cargo | `config-check` принимает те цели тестов, по которым cargo выполняет тесты файла, и не требует подбирать префикс под устройство крейта. |
 | [P104](Plan/104.md) | pending | - | [B091](Backlog/091.md): test-placement — тестовые файлы Rust по соглашению AgentRig | Неправильно размещённый тестовый файл сразу получает находку с причиной и способом исправления. |
 | [P105](Plan/105.md) | pending | P102 | [B089](Backlog/089.md): test-dependents — тестовые использования не тратят бюджет входящих зависимостей | Бюджет входящих зависимостей считает только рабочий код, и тесты другого каталога не вынуждают его поднимать. |
 | [P106](Plan/106.md) | pending | - | [B099](Backlog/099.md): single-marker — одна ссылка на решение для паники под Clippy | Одно решение отмечается в коде один раз. |
