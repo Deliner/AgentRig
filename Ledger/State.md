@@ -11,23 +11,27 @@
 
 ## Workspace
 
-Branch: `feature/cleanup-self` (P095, B098)
-Revision: `1898129` (master после слияния P094; VAC P095 ещё не закоммичен)
+Branch: `feature/baseline-head` (P096, B101)
+Revision: `2ef0722` (master после слияния P095; VAC P096 ещё не закоммичен)
 
-Установленный рантайм `6b3f98f` (пин P094). macOS: коммиты и `feature-merge` с cargo через
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`.
+Установленный рантайм `0f7d8bc` (пин P095). macOS: коммиты и `feature-merge` с cargo через
+`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
+тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, рабочее дерево чистое, в main не слита, push нет.
 В memory/State.md voxel-rust число тестовых модулей 21 неверно: живой счёт 13 файлов `*_tests.rs`.
 
 ## Progress
 
-- P094 (B093) завершена и слита в master `1898129`, архив и пин `6b3f98f`.
-- P095 в рабочем дереве: очистка пропускает запуск из `WORKER_PARENT_RUN`; тест, README, Delivery и ротация.
+- P094 (B093) и P095 (B098) завершены и слиты в master, пин `0f7d8bc`.
+- P096 в рабочем дереве: `lint-baseline` берёт предел как большее из рабочего и HEAD-значения (D139); тесты, README,
+  решение, Delivery и ротация.
 
 ## Verification
 
-- P095: test_git.py и test_jobs.py — 27 passed; новый тест без правки падал на лишнем запуске `scratch`.
+- P096: test_lint_baseline.py — 4 passed; новый тест восстановления падает на установленном `0f7d8bc`. Клон voxel-rust
+  на `1cc7a2c` с удалённой парой: старый рантайм не поднимает её, кандидат восстанавливает, `check --staged --only
+  lint` — PASS.
 
 ## Blockers
 
@@ -35,6 +39,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P095; пин D051, коммит пина, `just feature-merge` (вывод очистки должен быть без запуска `scratch`);
-затем P096 (B101).
-Свободные ID: D139+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
+Закоммитить VAC P096; пин D051, коммит пина, `just feature-merge`; затем P097 (B092, базовая линия следует за
+переименованием).
+Свободные ID: D140+, I022+, P110+, B102+ (B066 и D111 зарезервированы).

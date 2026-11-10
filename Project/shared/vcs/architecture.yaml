@@ -1,6 +1,6 @@
 purpose: Provide Git repository observation, queries, exports, hook registration and controlled commands shared by features
 type: flat
-dependents: 12
+dependents: 13
 files:
   mod.rs: Repository types, common Git operations and exports
   branches.rs: Validate base and feature prefix branch settings
