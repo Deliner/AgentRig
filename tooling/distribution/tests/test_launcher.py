@@ -87,7 +87,7 @@ def test_stable_runtime_survives_candidate_build_failure(tmp_path: Path) -> None
     installed = tmp_path / ".cache/development" / ("a" * 40)
     candidate_build = ROOT / "tooling/worker/build"
     subprocess.run([str(candidate_build), "init", "--root", str(installed)], check=True)
-    binary = installed / ".agentrig/bin/agentrig"
+    (binary,) = (installed / ".agentrig/bin").glob("*/agentrig")
     before = hashlib.sha256(binary.read_bytes()).hexdigest()
     candidate = subprocess.run(
         [str(source / "build"), "--version"], env=env, capture_output=True, text=True

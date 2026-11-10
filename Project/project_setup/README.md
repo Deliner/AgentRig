@@ -2,9 +2,8 @@
 
 `agentrig init` installs the runtime into a consumer project configured by the `.agentrig/` modules. Consumers need
 Git, Just, their own configured tools and a read-only sandbox (bubblewrap on Linux, sandbox-exec on macOS); they do not
-compile the worker or run its tests. A distributor builds both executables with
-`cargo +1.98.1 build --release --locked --manifest-path Project/Cargo.toml`; see the
-[independent examples](../shared/testing/examples/README.md).
+compile the worker or run its tests; see the [independent examples](../shared/testing/examples/README.md). A distributor
+builds both executables with `cargo +1.98.1 build --release --locked --manifest-path Project/Cargo.toml`.
 
 ## Installation
 
@@ -15,16 +14,17 @@ registers the Git hooks through `core.hooksPath`. Options: `--language python|ru
 is no update or rollback: a changed release is installed into a fresh project. Rust projects also receive a `clippy`
 command and check that runs the Clippy profile of the AgentRig development gate on the project's own toolchain.
 
-`paths.service` (default `.agentrig`) holds the binary, Git hooks, skills, lint settings, reminders and runtime data;
-the configuration modules always stay in `.agentrig`. Adapters quote the service path; newlines and Just interpolation
-(`{{`) are rejected. The root `justfile` only imports `just/commands.just`, `checks.just`, `delivery.just`,
-`lint.just` and `jobs.just`, whose recipes forward to the installed binary. `frontend: codex` registers
-`.codex/hooks.json` and `.codex/config.toml`; `claude-code` registers `.claude/settings.json` and a `CLAUDE.md` that
-imports `AGENTS.md`.
+`paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills, lint settings, reminders and runtime data;
+the configuration modules always stay in `.agentrig`. The root `justfile` imports the recipes under `just/`, which
+forward to the launcher. `frontend: codex` registers `.codex/hooks.json` and `.codex/config.toml`; `claude-code`
+registers `.claude/settings.json` and a `CLAUDE.md` that imports `AGENTS.md`.
 
-`init --interactive` asks for the directory, language, service, source, memory and skills paths, branch naming, client
-and checks; Enter accepts defaults, and `cancel`, EOF or declining the confirmation leaves the target untouched. It
-prints the configuration and file list, rechecks collisions, installs and runs doctor.
+`bin/agentrig` runs the committed runtime `bin/PLATFORM/agentrig` for `uname -sm`, such as `macos-arm64` or
+`linux-x86_64`. Without one, hooks and recipes name the platform and `agentrig runtime-add`, to run in the project root
+with an AgentRig built for it. The first merge that brings a platform to the base runs on a platform the base has.
+
+`init --interactive` asks for each option and the checks; Enter accepts defaults, and `cancel`, EOF or declining leaves
+the target untouched. It shows the configuration and files, rechecks collisions, installs and runs doctor.
 
 ## Commands
 
@@ -32,7 +32,8 @@ Every command accepts `--root PATH`, by default the current directory.
 
 | Command | Result |
 | --- | --- |
-| `init [--interactive]` | Create configuration, memory, skills, binary and adapters without overwriting files. |
+| `init [--interactive]` | Create configuration, memory, skills, runtime and adapters without overwriting files. |
+| `runtime-add` | Install the launcher and this executable as this platform's runtime; converts a single binary. |
 | `config-check` / `doctor` | Validate configuration and affected maps; diagnose runtime, executables, sandbox, hooks. |
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
 | `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |

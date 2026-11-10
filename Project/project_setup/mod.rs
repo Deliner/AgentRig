@@ -7,11 +7,12 @@ mod coverage;
 mod doctor;
 pub(super) mod initialization;
 mod lint;
+mod runtime;
 mod template;
 use crate::project_config::{self, Config};
-use crate::shared::fs;
 use anyhow::{Result, ensure};
 pub use doctor::{config_check, run as doctor};
+pub use runtime::add as runtime_add;
 use std::collections::BTreeMap;
 type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
@@ -68,10 +69,7 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
         config.paths.service_path(".gitignore"),
         b"runtime/\n".to_vec(),
     );
-    files.insert(
-        config.paths.service_path("bin/agentrig"),
-        fs::read(std::env::current_exe()?)?,
-    );
+    files.extend(runtime::files(config)?);
     for justfile in template::justfiles(config) {
         files.insert(justfile.path, justfile.source.into_bytes());
     }

@@ -87,7 +87,7 @@ def test_tools_check_reports_structure_before_merge(worker: Path, tmp_path: Path
     update_config(tmp_path, tools=settings)
     result = invoke(worker, tmp_path, "check", "--only", "tools")
     assert result.returncode == 1, result.stdout + result.stderr
-    locations = ".agentrig/bin/*, .agentrig/hooks/*, tools/*"
+    locations = ".agentrig/bin/**, .agentrig/hooks/*, tools/*"
     for path, message in [
         ("loose.sh", f"tool is outside tools.locations: {locations}"),
         ("tools/stray", "tool is not registered"),

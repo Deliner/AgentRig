@@ -107,8 +107,9 @@ fn config(options: &Options<'_>, rust: &Layout) -> Config {
         tools: tools(service),
     }
 }
+// DECISION: D150
 fn tools(service: &str) -> Tools {
-    let installed = vec![format!("{service}/bin/*"), format!("{service}/hooks/*")];
+    let installed = vec![format!("{service}/bin/**"), format!("{service}/hooks/*")];
     Tools {
         recognize: Vec::new(),
         locations: installed.clone(),

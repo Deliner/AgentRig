@@ -18,6 +18,7 @@ pub(super) fn configured_command(
     let git = &context.config.git;
     match command {
         Command::Doctor => project_setup::doctor(context),
+        Command::RuntimeAdd => project_setup::runtime_add(context),
         Command::ConfigCheck => project_setup::config_check(context),
         Command::GuardReference => {
             git::guard_reference_with(root, args.first().map(String::as_str).unwrap_or(""), git)

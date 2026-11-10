@@ -9,6 +9,7 @@ files:
   coverage.rs: Report source files and tests that a check's affected map leaves without selected tests
   doctor.rs: Check installed runtime, hooks, tools, client readiness and scaffold configuration validity
   lint.rs: Generate supported lint rule examples for the consumer
+  runtime.rs: Install the platform launcher and the runtime built for the current platform
   template.rs: Interpret scaffold options and generate project configuration and command adapters
   README.md: Consumer installation, commands, configuration and delivery guide
 directories:
