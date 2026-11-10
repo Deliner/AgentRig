@@ -1,5 +1,5 @@
 pub(super) mod async_code;
-use crate::structural_lint::languages::measure::text;
+use crate::structural_lint::languages::measure::{descendants, justified_line, text};
 use tree_sitter::Node;
 
 // DECISION: D148
@@ -73,6 +73,36 @@ pub(super) fn attributed(
         sibling = node.prev_named_sibling();
     }
     false
+}
+pub(super) fn justified_item(item: Node<'_>, source: &str) -> bool {
+    let mut anchor = item;
+    while let Some(previous) = anchor.prev_sibling() {
+        let other = previous.kind() != "attribute_item";
+        if other {
+            break;
+        }
+        anchor = previous;
+    }
+    justified_line(anchor.start_position().row, source)
+}
+pub(super) fn listed(attribute_item: Node<'_>, source: &str, head: &str, wanted: &[&str]) -> bool {
+    descendants(attribute_item).into_iter().any(|node| {
+        let named = node.kind() == "identifier" && text(node, source) == head;
+        named
+            && node
+                .next_named_sibling()
+                .filter(|list| list.kind() == "token_tree")
+                .is_some_and(|list| {
+                    descendants(list).into_iter().any(|token| {
+                        token.kind() == "identifier" && wanted.contains(&text(token, source))
+                    })
+                })
+    })
+}
+pub(super) fn derives(item: Node<'_>, source: &str, wanted: &[&str]) -> bool {
+    attributed(item, source, |attribute, source| {
+        listed(attribute, source, "derive", wanted)
+    })
 }
 pub(super) fn test_marker(node: Node<'_>, source: &str) -> bool {
     let named_test = attribute_path(node).is_some_and(|path| last_segment(path, source) == "test");

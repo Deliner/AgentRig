@@ -1,6 +1,6 @@
 purpose: Define rule identities, metrics, parameters and architecture settings independently of language handlers
 type: flat
-dependents: 11
+dependents: 12
 files:
   mod.rs: Declare the definition modules and export the rule identity and descriptor types
   kind.rs: Stable rule identity as a wrapper over the family enums, and its serialized names

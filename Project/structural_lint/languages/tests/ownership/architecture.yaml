@@ -3,4 +3,5 @@ files:
   mod.rs: Declare the ownership measurement test modules
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
+  unit_lock.rs: Rust Mutex<()> and RwLock<()> type and constructor measurements, typed, justified and test-only sites skipped, from native analysis
 directories: {}

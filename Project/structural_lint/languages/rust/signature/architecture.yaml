@@ -1,8 +1,9 @@
 purpose: Detect Rust function signatures and derived traits that misstate what a type or function promises
 type: flat
 files:
-  mod.rs: Dispatch source files, structs and function signatures to the signature detectors
+  mod.rs: Dispatch source files, structs, enums and function signatures to the signature detectors
   derived_trait.rs: Rust struct whose derived trait bypasses its own handling, a Debug printing a field with a secret name and a string or byte type, or a Deserialize skipping the check of a constructor in the same file
+  implicit_order.rs: Rust enum deriving PartialOrd or Ord whose variants order by declaration because one lacks an explicit discriminant
   ord_equality.rs: Rust manual Ord or PartialOrd whose compared self fields differ from the fields equality reads, a manual eq or a derived PartialEq, in the same file, lacking a reference on the line above the impl
   tuple_record.rs: Rust function signature using a tuple of three or more elements with a scalar as a record, top-level or nested in a generic or array type, outside test code and lacking a reference above it
 directories: {}

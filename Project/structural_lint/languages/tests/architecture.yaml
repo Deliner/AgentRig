@@ -2,6 +2,8 @@ purpose: Verify language-specific measurements from native analysis and, in cons
 files:
   mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
+  control_flow.rs: Rust unlabeled exits of nested loops and subtractions from a length or count call from native analysis
+  discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis

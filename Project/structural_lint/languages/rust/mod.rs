@@ -1,5 +1,6 @@
 mod blocking_async;
 mod context;
+mod control_flow;
 mod ownership;
 mod panic_surface;
 mod signature;
@@ -23,6 +24,7 @@ use tree_sitter::Node;
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     signature::inspect(node, source, output);
     ownership::inspect(node, source, output);
+    control_flow::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
@@ -39,7 +41,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
             macro_body(node, source, output);
         }
         "call_expression" => call(node, source, output),
-        "expression_statement" => discarded_result(node, source, output),
+        "expression_statement" | "let_declaration" => discarded_result(node, source, output),
         "scoped_identifier" => super_reach::inspect(node, source, output),
         "mod_item" => test_placement::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
@@ -206,14 +208,24 @@ fn propagates(node: Node<'_>) -> bool {
 // DECISION: D099
 // DECISION: D114
 fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let mut cursor = node.walk();
-    let Some(inner) = node
-        .named_children(&mut cursor)
-        .find(|child| !child.is_extra())
-    else {
-        return;
+    let binding = node.kind() == "let_declaration";
+    let symbol = if binding {
+        let wildcard = node
+            .child_by_field_name("pattern")
+            .is_some_and(|pattern| pattern.kind() == "_");
+        node.child_by_field_name("value")
+            .filter(|value| wildcard && spawned(*value, source))
+            .map(|_| "spawn")
+    } else {
+        let mut cursor = node.walk();
+        let inner = node
+            .named_children(&mut cursor)
+            .find(|child| !child.is_extra());
+        inner.and_then(|inner| {
+            discarded_method(inner, source).or_else(|| spawned(inner, source).then_some("spawn"))
+        })
     };
-    let Some(symbol) = discarded_method(inner, source) else {
+    let Some(symbol) = symbol else {
         return;
     };
     let allowed = justified(node, source) || in_test_context(node, source);
@@ -253,6 +265,40 @@ fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
         ["ok", "err", "map", "and_then", "map_or", "map_or_else"].contains(&name)
     };
     dropped.then_some(name)
+}
+// DECISION: D155
+fn spawned(value: Node<'_>, source: &str) -> bool {
+    let mut current = value;
+    loop {
+        let propagated = current.kind() == "try_expression";
+        if propagated {
+            let Some(inner) = current.named_child(0) else {
+                return false;
+            };
+            current = inner;
+            continue;
+        }
+        let Some(function) = current
+            .child_by_field_name("function")
+            .filter(|_| current.kind() == "call_expression")
+        else {
+            return false;
+        };
+        let name = match function.kind() {
+            "identifier" => text(function, source),
+            "scoped_identifier" | "field_expression" => function
+                .child_by_field_name("name")
+                .or_else(|| function.child_by_field_name("field"))
+                .map_or("", |name| text(name, source)),
+            _ => "",
+        };
+        let unwrapped =
+            matches!(name, "unwrap" | "expect") && function.kind() == "field_expression";
+        let Some(receiver) = function.child_by_field_name("value").filter(|_| unwrapped) else {
+            return name == "spawn";
+        };
+        current = receiver;
+    }
 }
 // DECISION: D094
 // DECISION: D147

@@ -13,6 +13,7 @@ pub enum Signature {
     OrdEqMismatch,
     SecretDebug,
     UncheckedDeserialize,
+    ImplicitOrder,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -23,6 +24,7 @@ impl Signature {
             Self::OrdEqMismatch => &ORDEQMISMATCH,
             Self::SecretDebug => &SECRETDEBUG,
             Self::UncheckedDeserialize => &UNCHECKEDDESERIALIZE,
+            Self::ImplicitOrder => &IMPLICITORDER,
         }
     }
 }
@@ -97,5 +99,17 @@ const UNCHECKEDDESERIALIZE: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "the derived Deserialize builds the value without the check its constructor enforces, so data from a file or the network bypasses the invariant; route deserialization through the same check, for example serde(try_from = ...) from a raw shape",
+    },
+};
+// DECISION: D155
+const IMPLICITORDER: Descriptor = Descriptor {
+    default_id: "implicit-order",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust enum of two or more variants deriving PartialOrd or Ord, directly or inside cfg_attr, with a variant lacking an explicit discriminant, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the enum or its attributes",
+    skill: "pin-the-order",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a derived order follows declaration order, so adding or sorting variants silently changes every comparison; give each variant an explicit discriminant, compare through a named rank method, or put a DECISION: or INVARIANT: reference on the line directly above the enum when any stable order serves",
     },
 };

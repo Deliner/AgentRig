@@ -1,6 +1,6 @@
 purpose: Measure Rust conditions, function lengths, parameters, comments and the Rust-only source rules
 files:
-  mod.rs: Rust syntax dispatch, conditions, function lengths, parameters, comments, string literal spans, assertions, discarded results and macro bodies
+  mod.rs: Rust syntax dispatch, conditions, function lengths, parameters, comments, string literal spans, assertions, discarded results and spawn handles, and macro bodies
   blocking_async.rs: Rust thread::sleep or block_on call inside an async fn or async block with no closure or plain fn in between, lacking a reference on the line above
   silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries or an Err arm answering a bool verdict
   super_reach.rs: Rust path reaching two module levels up through super::super in a use declaration, an expression or a type
@@ -10,5 +10,6 @@ files:
   panic_surface.rs: Rust panic surface lacking a reference on the line above or a referenced Clippy allow, an unwrap, expect, resume_unwind or panic macro in source, macro arguments or macro_rules! bodies, and a catch_unwind call or AssertUnwindSafe wrapper
 directories:
   context: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
+  control_flow: Detect Rust loop exits and length subtractions whose shape hides which loop they leave or whether the length suffices
   ownership: Detect Rust resources, locks and process-global state whose lifetime or access bypasses an owner
   signature: Detect Rust function signatures and derived traits that misstate what a type or function promises

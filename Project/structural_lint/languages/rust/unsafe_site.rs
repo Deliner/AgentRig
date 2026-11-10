@@ -1,4 +1,5 @@
-use crate::structural_lint::languages::measure::{Measurement, justified_line, text};
+use super::context::justified_item;
+use crate::structural_lint::languages::measure::{Measurement, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
@@ -56,15 +57,7 @@ fn keyword(node: Node<'_>, kind: &str) -> bool {
     node.children(&mut cursor).any(|child| child.kind() == kind)
 }
 fn report(node: Node<'_>, symbol: &str, source: &str, output: &mut Vec<Measurement>) {
-    let mut anchor = node;
-    while let Some(previous) = anchor.prev_sibling() {
-        let other = previous.kind() != "attribute_item";
-        if other {
-            break;
-        }
-        anchor = previous;
-    }
-    let allowed = justified_line(anchor.start_position().row, source);
+    let allowed = justified_item(node, source);
     if allowed {
         return;
     }

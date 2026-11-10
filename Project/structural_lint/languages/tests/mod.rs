@@ -8,6 +8,8 @@ use crate::structural_lint::rules::structure::Structure;
 use std::path::Path;
 
 mod async_code;
+mod control_flow;
+mod discarded_result;
 mod manifest;
 mod markers;
 mod ownership;

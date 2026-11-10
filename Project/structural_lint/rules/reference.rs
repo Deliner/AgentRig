@@ -177,15 +177,16 @@ const EAGERFALLBACK: Descriptor = Descriptor {
 // DECISION: D090
 // DECISION: D099
 // DECISION: D114
+// DECISION: D155
 const DISCARDEDRESULT: Descriptor = Descriptor {
     default_id: "discarded-result",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust bare .ok() or .err() statement that drops a Result, every bare statement whose last call is .map, .and_then, .map_or or .map_or_else and drops the combined value, and every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust bare .ok() or .err() statement that drops a Result, every bare statement whose last call is .map, .and_then, .map_or or .map_or_else and drops the combined value, every bare .status()? or .output()? statement that propagates only the launch error and drops the exit status or output of a command, and every bare statement or let _ = binding whose value, through ?, .unwrap() and .expect(..), is a call whose path or method ends in spawn, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "handle-discarded",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a bare .ok() or .err() statement converts a Result to Option and throws the outcome away, a bare .map, .and_then, .map_or or .map_or_else statement throws away the value the closure produced, and a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, so a failure passes silently; handle the error or the value, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it",
+        violation: "a bare .ok() or .err() statement converts a Result to Option and throws the outcome away, a bare .map, .and_then, .map_or or .map_or_else statement throws away the value the closure produced, a bare .status()? or .output()? statement keeps only the launch error and throws the exit status or output away, and a dropped spawn handle loses the thread's, task's or child's result and failure, so a failure passes silently; handle the error or the value, keep the handle and wait for it, propagate it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify discarding it, such as a deliberately detached background task",
     },
 };
 // DECISION: D100
