@@ -1,12 +1,12 @@
 use super::context::async_code::in_async_context;
 use super::context::{in_test_context, last_segment};
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D118
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -24,7 +24,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         });
     }
 }
-fn blocking<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn blocking<'a>(function: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match function.kind() {
         "field_expression" => {
             let name = text(function.child_by_field_name("field")?, source);
@@ -47,7 +47,7 @@ fn blocking<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
         _ => None,
     }
 }
-fn imports_thread_sleep(node: Node<'_>, source: &str) -> bool {
+fn imports_thread_sleep(node: Node<'_>, source: Code<'_>) -> bool {
     let mut root = node;
     while let Some(parent) = root.parent() {
         root = parent;
@@ -69,7 +69,7 @@ fn imports_thread_sleep(node: Node<'_>, source: &str) -> bool {
     }
     false
 }
-fn from_thread(name: Node<'_>, source: &str) -> bool {
+fn from_thread(name: Node<'_>, source: Code<'_>) -> bool {
     let parent = name.parent();
     let prefix = parent.and_then(|parent| match parent.kind() {
         "scoped_identifier" => parent.child_by_field_name("path"),

@@ -1,9 +1,9 @@
 pub(super) mod async_code;
-use crate::structural_lint::languages::measure::{descendants, justified_line, text};
+use crate::structural_lint::languages::measure::{Code, descendants, justified_line, text};
 use tree_sitter::Node;
 
 // DECISION: D148
-pub(crate) fn in_test_context(node: Node<'_>, source: &str) -> bool {
+pub(crate) fn in_test_context(node: Node<'_>, source: Code<'_>) -> bool {
     let mut current = node;
     while let Some(parent) = current.parent() {
         let item = matches!(
@@ -19,7 +19,7 @@ pub(crate) fn in_test_context(node: Node<'_>, source: &str) -> bool {
     false
 }
 // DECISION: D115
-pub(super) fn in_debug_only_context(node: Node<'_>, source: &str) -> bool {
+pub(super) fn in_debug_only_context(node: Node<'_>, source: Code<'_>) -> bool {
     let mut current = node;
     loop {
         let gated = attributed(current, source, debug_marker) || debug_branch(current, source);
@@ -32,7 +32,7 @@ pub(super) fn in_debug_only_context(node: Node<'_>, source: &str) -> bool {
         current = parent;
     }
 }
-fn debug_branch(block: Node<'_>, source: &str) -> bool {
+fn debug_branch(block: Node<'_>, source: Code<'_>) -> bool {
     let Some(branch) = block.parent() else {
         return false;
     };
@@ -53,8 +53,8 @@ fn debug_branch(block: Node<'_>, source: &str) -> bool {
 }
 pub(super) fn attributed(
     item: Node<'_>,
-    source: &str,
-    marked: impl Fn(Node<'_>, &str) -> bool,
+    source: Code<'_>,
+    marked: impl Fn(Node<'_>, Code<'_>) -> bool,
 ) -> bool {
     let mut sibling = item.prev_named_sibling();
     while let Some(node) = sibling {
@@ -74,7 +74,7 @@ pub(super) fn attributed(
     }
     false
 }
-pub(super) fn justified_item(item: Node<'_>, source: &str) -> bool {
+pub(super) fn justified_item(item: Node<'_>, source: Code<'_>) -> bool {
     let mut anchor = item;
     while let Some(previous) = anchor.prev_sibling() {
         let other = previous.kind() != "attribute_item";
@@ -83,9 +83,14 @@ pub(super) fn justified_item(item: Node<'_>, source: &str) -> bool {
         }
         anchor = previous;
     }
-    justified_line(anchor.start_position().row, source)
+    justified_line(anchor.start_position().row, source.as_str())
 }
-pub(super) fn listed(attribute_item: Node<'_>, source: &str, head: &str, wanted: &[&str]) -> bool {
+pub(super) fn listed(
+    attribute_item: Node<'_>,
+    source: Code<'_>,
+    head: &str,
+    wanted: &[&str],
+) -> bool {
     descendants(attribute_item).into_iter().any(|node| {
         let named = node.kind() == "identifier" && text(node, source) == head;
         named
@@ -99,16 +104,16 @@ pub(super) fn listed(attribute_item: Node<'_>, source: &str, head: &str, wanted:
                 })
     })
 }
-pub(super) fn derives(item: Node<'_>, source: &str, wanted: &[&str]) -> bool {
+pub(super) fn derives(item: Node<'_>, source: Code<'_>, wanted: &[&str]) -> bool {
     attributed(item, source, |attribute, source| {
         listed(attribute, source, "derive", wanted)
     })
 }
-pub(super) fn test_marker(node: Node<'_>, source: &str) -> bool {
+pub(super) fn test_marker(node: Node<'_>, source: Code<'_>) -> bool {
     let named_test = attribute_path(node).is_some_and(|path| last_segment(path, source) == "test");
     named_test || cfg_marker(node, source, "test")
 }
-fn debug_marker(node: Node<'_>, source: &str) -> bool {
+fn debug_marker(node: Node<'_>, source: Code<'_>) -> bool {
     cfg_marker(node, source, "debug_assertions")
 }
 fn attribute_path(node: Node<'_>) -> Option<Node<'_>> {
@@ -116,7 +121,7 @@ fn attribute_path(node: Node<'_>) -> Option<Node<'_>> {
         .find(|child| child.kind() == "attribute")?
         .named_child(0)
 }
-fn cfg_marker(node: Node<'_>, source: &str, flag: &str) -> bool {
+fn cfg_marker(node: Node<'_>, source: Code<'_>, flag: &str) -> bool {
     let Some(path) = attribute_path(node) else {
         return false;
     };
@@ -126,26 +131,26 @@ fn cfg_marker(node: Node<'_>, source: &str, flag: &str) -> bool {
         .and_then(|attribute| attribute.child_by_field_name("arguments"))
         .is_some_and(|arguments| cfg_requires(arguments, source, flag))
 }
-pub(super) fn last_segment<'a>(path: Node<'_>, source: &'a str) -> &'a str {
+pub(super) fn last_segment<'a>(path: Node<'_>, source: Code<'a>) -> &'a str {
     if let Some(name) = path.child_by_field_name("name") {
         return text(name, source);
     }
     text(path, source)
 }
-pub(super) fn type_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+pub(super) fn type_name<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match node.kind() {
         "generic_type" => type_name(node.child_by_field_name("type")?, source),
         _ => plain_name(node, source),
     }
 }
-pub(super) fn plain_name<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+pub(super) fn plain_name<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match node.kind() {
         "type_identifier" => Some(text(node, source)),
         "scoped_type_identifier" => Some(text(node.child_by_field_name("name")?, source)),
         _ => None,
     }
 }
-fn cfg_requires(arguments: Node<'_>, source: &str, flag: &str) -> bool {
+fn cfg_requires(arguments: Node<'_>, source: Code<'_>, flag: &str) -> bool {
     predicate_groups(arguments)
         .iter()
         .any(|group| group_requires(group, source, flag))
@@ -167,7 +172,7 @@ fn predicate_groups<'a>(tree: Node<'a>) -> Vec<Vec<Node<'a>>> {
     }
     groups
 }
-fn group_requires(group: &[Node<'_>], source: &str, flag: &str) -> bool {
+fn group_requires(group: &[Node<'_>], source: Code<'_>, flag: &str) -> bool {
     let assignment = group.iter().any(|node| node.kind() == "=");
     if assignment {
         return false;

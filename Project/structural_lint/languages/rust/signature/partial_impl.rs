@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, descendants, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::context::{
     in_test_context, justified_item, type_name,
 };
@@ -9,7 +9,7 @@ use tree_sitter::Node;
 const MIRRORS: &[&str] = &["PartialEq", "Hash", "PartialOrd", "Ord", "Clone"];
 
 // DECISION: D156
-pub(super) fn inspect(implementation: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(implementation: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let contract = implementation
         .child_by_field_name("trait")
         .and_then(|path| type_name(path, source))
@@ -45,7 +45,7 @@ fn self_field(node: Node<'_>) -> bool {
             .child_by_field_name("value")
             .is_some_and(|value| value.kind() == "self")
 }
-fn exhaustive(node: Node<'_>, owner: &str, source: &str) -> bool {
+fn exhaustive(node: Node<'_>, owner: &str, source: Code<'_>) -> bool {
     let (path, list) = match node.kind() {
         "struct_pattern" | "tuple_struct_pattern" => (node.child_by_field_name("type"), Some(node)),
         "struct_expression" => (

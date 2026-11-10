@@ -1,5 +1,5 @@
 use super::context::{in_test_context, last_segment};
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use std::collections::BTreeSet;
@@ -17,7 +17,7 @@ const FORMATTERS: &[&str] = &[
     "format_args",
 ];
 
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
         "macro_invocation" => positional_format(node, source, output),
         "struct_expression" => crossed_field(node, source, output),
@@ -25,7 +25,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     }
 }
 // DECISION: D156
-fn positional_format(invocation: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn positional_format(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(name) = invocation
         .child_by_field_name("macro")
         .map(|path| last_segment(path, source))
@@ -76,7 +76,7 @@ fn positional(template: &str) -> usize {
     count
 }
 // DECISION: D156
-fn crossed_field(literal: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn crossed_field(literal: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(body) = literal.child_by_field_name("body") else {
         return;
     };
@@ -108,7 +108,7 @@ fn crossed_field(literal: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         actual: 1,
     });
 }
-fn field<'a>(initializer: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn field<'a>(initializer: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let name = match initializer.kind() {
         "field_initializer" => initializer.child_by_field_name("field"),
         "shorthand_field_initializer" => {

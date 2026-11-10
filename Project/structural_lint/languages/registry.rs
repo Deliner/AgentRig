@@ -1,6 +1,6 @@
 // DECISION: D033
 // DECISION: D098
-use super::{Analysis, manifest, python, rust};
+use super::{Analysis, Code, manifest, python, rust};
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::{Ownership, Pair};
@@ -11,7 +11,7 @@ use std::path::Path;
 use tree_sitter::Node;
 
 pub enum Inspect {
-    Tree(fn(Node<'_>, &str, &[Pair], &mut Analysis)),
+    Tree(fn(Node<'_>, Code<'_>, &[Pair], &mut Analysis)),
     Document(fn(&str) -> Analysis),
 }
 pub struct Handler {

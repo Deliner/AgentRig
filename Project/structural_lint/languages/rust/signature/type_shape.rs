@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::{
     in_test_context, justified_item, type_name,
 };
@@ -12,7 +12,7 @@ const SCALARS: &[&str] = &[
 ];
 
 // DECISION: D156
-pub(super) fn alias(item: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let generic = item.child_by_field_name("type_parameters").is_some();
     let Some(aliased) = item.child_by_field_name("type").filter(|_| !generic) else {
         return;
@@ -29,7 +29,7 @@ pub(super) fn alias(item: Node<'_>, source: &str, output: &mut Vec<Measurement>)
     push(item, source, Signature::PrimitiveAlias, output);
 }
 // DECISION: D156
-pub(super) fn option(generic: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let optional = type_name(generic, source) == Some("Option");
     let Some(argument) = generic
         .child_by_field_name("type_arguments")
@@ -47,7 +47,7 @@ pub(super) fn option(generic: Node<'_>, source: &str, output: &mut Vec<Measureme
     }
     push(generic, source, Signature::AmbiguousOption, output);
 }
-fn push(node: Node<'_>, source: &str, kind: Signature, output: &mut Vec<Measurement>) {
+fn push(node: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
     output.push(Measurement {
         kind: Kind::Signature(kind),
         line: node.start_position().row + 1,

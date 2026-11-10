@@ -1,11 +1,11 @@
-use crate::structural_lint::languages::measure::{Measurement, descendants, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, justified_item};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
 use tree_sitter::Node;
 
 // DECISION: D156
-pub(super) fn inspect(definition: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(definition: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(list) = definition.child_by_field_name("body") else {
         return;
     };

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
@@ -7,7 +7,7 @@ use tree_sitter::Node;
 const LOCKS: &[&str] = &["Mutex", "RwLock"];
 
 // DECISION: D155
-pub(super) fn declared(generic: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn declared(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(lock) = generic
         .child_by_field_name("type")
         .map(|path| last_segment(path, source))
@@ -22,7 +22,7 @@ pub(super) fn declared(generic: Node<'_>, source: &str, output: &mut Vec<Measure
         report(generic, lock, source, output);
     }
 }
-pub(super) fn constructed(call: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn constructed(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = call
         .child_by_field_name("function")
         .filter(|function| function.kind() == "scoped_identifier")
@@ -71,7 +71,7 @@ fn inferred(call: Node<'_>) -> bool {
     }
     false
 }
-fn report(node: Node<'_>, lock: &str, source: &str, output: &mut Vec<Measurement>) {
+fn report(node: Node<'_>, lock: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
     let allowed = justified(node, source) || in_test_context(node, source);
     if allowed {
         return;

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::async_code::scope_boundary;
 use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
 use crate::structural_lint::rules::kind::Kind;
@@ -6,7 +6,7 @@ use crate::structural_lint::rules::ownership::Ownership;
 use tree_sitter::Node;
 
 // DECISION: D117
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(name) = guard(node, source) else {
         return;
     };
@@ -24,14 +24,14 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         });
     }
 }
-fn guard<'a>(binding: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn guard<'a>(binding: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let pattern = binding.child_by_field_name("pattern")?;
     let value = binding.child_by_field_name("value")?;
     let named = pattern.kind() == "identifier";
     let locked = named && locking(value, source) && !awaits(value);
     locked.then(|| text(pattern, source))
 }
-fn locking(value: Node<'_>, source: &str) -> bool {
+fn locking(value: Node<'_>, source: Code<'_>) -> bool {
     let mut current = Some(value);
     while let Some(node) = current {
         let (receiver, name) = match node.kind() {
@@ -50,14 +50,14 @@ fn locking(value: Node<'_>, source: &str) -> bool {
     }
     false
 }
-fn method<'a, 'b>(call: Node<'a>, source: &'b str) -> Option<(Node<'a>, &'b str)> {
+fn method<'a, 'b>(call: Node<'a>, source: Code<'b>) -> Option<(Node<'a>, &'b str)> {
     let function = call.child_by_field_name("function")?;
     let field = function.child_by_field_name("field")?;
     let receiver = function.child_by_field_name("value")?;
     let selected = call.kind() == "call_expression" && function.kind() == "field_expression";
     selected.then(|| (receiver, text(field, source)))
 }
-fn held_across_await(binding: Node<'_>, name: &str, source: &str) -> bool {
+fn held_across_await(binding: Node<'_>, name: &str, source: Code<'_>) -> bool {
     let scoped = binding
         .parent()
         .is_some_and(|block| block.kind() == "block");
@@ -75,7 +75,7 @@ fn held_across_await(binding: Node<'_>, name: &str, source: &str) -> bool {
     }
     false
 }
-fn dropped(statement: Node<'_>, name: &str, source: &str) -> bool {
+fn dropped(statement: Node<'_>, name: &str, source: Code<'_>) -> bool {
     let call = statement.named_child(0);
     let function = call.and_then(|call| call.child_by_field_name("function"));
     let arguments = call.and_then(|call| call.child_by_field_name("arguments"));

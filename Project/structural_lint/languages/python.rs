@@ -2,13 +2,14 @@ use super::measure::{
     Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, text,
 };
+use crate::structural_lint::languages::measure::Code;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Pair;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D017
-fn method_receiver(node: Node<'_>, source: &str) -> bool {
+fn method_receiver(node: Node<'_>, source: Code<'_>) -> bool {
     let parent = node.parent();
     let decorated = parent.filter(|parent| parent.kind() == "decorated_definition");
     if let Some(wrapper) = decorated {
@@ -42,7 +43,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
         });
     }
 }
-pub fn inspect(node: Node<'_>, source: &str, _pairs: &[Pair], analysis: &mut Analysis) {
+pub fn inspect(node: Node<'_>, source: Code<'_>, _pairs: &[Pair], analysis: &mut Analysis) {
     analysis.mixed_junctions.extend(mixed_junction(node));
     let output = &mut analysis.measurements;
     match node.kind() {
@@ -87,7 +88,7 @@ fn ternary(node: Node<'_>, output: &mut Vec<Measurement>) {
 }
 // DECISION: D069
 // DECISION: D074
-fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn disabled_test(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(expression) = node.named_child(0) else {
         return;
     };
@@ -111,7 +112,7 @@ fn disabled_test(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D085
-fn wildcard_import(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn wildcard_import(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let glob = node
         .named_children(&mut cursor)
@@ -126,7 +127,7 @@ fn wildcard_import(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) 
         });
     }
 }
-fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn silent_except(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(body) = node
         .named_children(&mut cursor)
@@ -152,7 +153,7 @@ fn silent_except(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
-fn measure(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn measure(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let count = parameter_count(node);
     let receiver = method_receiver(node, source) && count > 0;
     function(node, source, count - usize::from(receiver), output);
@@ -171,7 +172,7 @@ fn branch(node: Node<'_>) -> Branch {
     }
 }
 // DECISION: D062
-fn flag(parameter: Node<'_>, source: &str) -> bool {
+fn flag(parameter: Node<'_>, source: Code<'_>) -> bool {
     let annotated = parameter
         .child_by_field_name("type")
         .is_some_and(|annotation| text(annotation, source).trim() == "bool");

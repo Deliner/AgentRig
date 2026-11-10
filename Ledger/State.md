@@ -15,26 +15,30 @@
 ## Workspace
 
 Branch: `feature/structural-bans-2`, от master `ba71c19`.
-Revision: `ff47847cc3609d853361cfaa947e64ce71eb1cbb` (старт P114); этот снимок входит в VAC фазы 1 поверх неё.
+Revision: `dfeab30cf4f4821db0cea7044c0f27c1a516970c`; этот снимок входит в VAC типа `Code` поверх неё.
 
-Установленный рантайм `d97417e` (финальный пин P113). macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `cf4ba84` (пин фазы 1, `a981384`). Его гейт отвергает `lint.yaml` с новыми видами, поэтому
+включение идёт после ремонта. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с
 `WORKER_BINARY=.cache/worker/release/agentrig`. Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 
 ## Progress
 
 - P110–P113 слиты в master, последний merge `ba71c19`, пин P113 `f7bdadf`.
-- P114 фаза 1: замер по протоколу выполнен, решение D156 записано. Поставляются 14 видов и параметр `junctions` у
-  `boolean-expression` (II-7), параметр `pairs` у `paired-calls`; 7 форм отвергнуты. Виды есть в коде с описаниями и
-  тестами, но не включены: их нет в `lint.yaml`, `catalog::ALL` и реестре, пример `boolean-expression` ещё без
-  `junctions: single`. Тесты языков разложены по `control_flow/`, `reference/`, `signature/`, `ownership/`.
+- P114 фаза 1 закоммичена `cf4ba84` и закреплена пином `a981384`: 14 видов D156 в коде с тестами, не включены.
+- P114 фаза 2, ремонт рига перед включением: навыки `cc7340f`, смешанные связки и позиционные шаблоны `c150f31`,
+  полные match по вариантам `afba94d`, аргументы хуков `dfeab30`, затем тип `Code` для исходника в детекторах
+  языков с выносом `checked_constructor.rs` из `derived_trait.rs`. Находок `same-type-parameters` было 94, стало 63,
+  других ошибок нет.
+- Включение лежит в рабочем дереве незакоммиченным: `lint.yaml`, `catalog/mod.rs`, 14 видов в `registry.rs`,
+  `TEST_CODE_EXCLUDED`, правка `test_lint_defaults.py`.
 - Замер II-7 в поставляемом объёме, Rust и Python вместе с тестами, дал те же 16 мест рига и 5 мест voxel.
 - voxel-rust: P022 там paused, итоги ноутбука слиты в main `37de3ff`.
 
 ## Verification
 
-- Для содержимого этого VAC: Rust lib-тесты 201 из 201, Clippy чистый, `just candidate lint` без ошибок, Python-тесты
-  `Project/structural_lint` и `Project/project_setup/tests` 271 из 271, ruff, ruff-format и mypy чистые.
+- Для рабочего дерева этого VAC вместе с включением: Rust lib-тесты 201 из 201, Clippy чистый, `memory-check`
+  кандидата проходит, линт кандидата даёт только 63 находки `same-type-parameters`.
 
 ## Blockers
 
@@ -42,6 +46,7 @@ Revision: `ff47847cc3609d853361cfaa947e64ce71eb1cbb` (старт P114); этот
 
 ## Next action
 
-Закоммитить фазу 1, записать её голову в stable.txt с bootstrap и закоммитить пин. Затем фаза 2: включить виды и
-`junctions: single`, навыки, `TEST_CODE_EXCLUDED`, ремонт находок рига, проба init, повторный замер, ротация, пин и
-`feature-merge`. Свободные ID: D157+, I022+, P115+, B108+ (B066 и D111 зарезервированы).
+Убрать оставшиеся 63 находки `same-type-parameters`: 6 пар узлов в `languages`, записи для vcs и `&Path`,
+прочее; ссылка только у `same_cause` и сигнатур, заданных извне. Затем коммит включения, пин его головы с bootstrap,
+коммит `lint.yaml` с нулём ошибок, проба init, повторный замер, ротация, пин и `feature-merge`. Свободные ID: D157+,
+I022+, P115+, B108+ (B066 и D111 зарезервированы).

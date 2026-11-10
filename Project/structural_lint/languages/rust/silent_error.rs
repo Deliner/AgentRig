@@ -1,5 +1,5 @@
 use super::context::{in_test_context, last_segment};
-use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, descendants, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
@@ -8,7 +8,7 @@ use tree_sitter::Node;
 const COLLAPSES: &[&str] = &["flatten", "filter_map", "map_while"];
 const ERROR_ARMS: &[&str] = &["Err(_)", "Err(..)"];
 
-pub(super) fn collapsed_read_dir(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn collapsed_read_dir(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -42,7 +42,7 @@ pub(super) fn collapsed_read_dir(node: Node<'_>, source: &str, output: &mut Vec<
         actual: 1,
     });
 }
-fn swallows(method: &str, arguments: Node<'_>, source: &str) -> bool {
+fn swallows(method: &str, arguments: Node<'_>, source: Code<'_>) -> bool {
     let mut cursor = arguments.walk();
     let mut values = arguments
         .named_children(&mut cursor)
@@ -55,7 +55,7 @@ fn swallows(method: &str, arguments: Node<'_>, source: &str) -> bool {
     }
     lone && first.is_some_and(|argument| result_ok(argument, source))
 }
-fn result_ok(argument: Node<'_>, source: &str) -> bool {
+fn result_ok(argument: Node<'_>, source: Code<'_>) -> bool {
     let path = argument.kind() == "scoped_identifier" && text(argument, source) == "Result::ok";
     if path {
         return true;
@@ -79,7 +79,7 @@ fn result_ok(argument: Node<'_>, source: &str) -> bool {
     };
     single && ok_call(body, text(parameter, source), source)
 }
-fn ok_call(body: Node<'_>, parameter: &str, source: &str) -> bool {
+fn ok_call(body: Node<'_>, parameter: &str, source: Code<'_>) -> bool {
     let call = body.kind() == "call_expression";
     let other = !call;
     if other {
@@ -99,7 +99,7 @@ fn ok_call(body: Node<'_>, parameter: &str, source: &str) -> bool {
         .is_some_and(|arguments| arguments.named_child_count() == 0);
     receiver && method && empty
 }
-fn read_dir_rooted(receiver: Node<'_>, source: &str) -> bool {
+fn read_dir_rooted(receiver: Node<'_>, source: Code<'_>) -> bool {
     let mut current = receiver;
     while let Some(inner) = unwrapped(current, source) {
         current = inner;
@@ -109,7 +109,7 @@ fn read_dir_rooted(receiver: Node<'_>, source: &str) -> bool {
         .child_by_field_name("function")
         .is_some_and(|function| callee_name(function, source) == Some("read_dir"))
 }
-fn unwrapped<'a>(node: Node<'a>, source: &str) -> Option<Node<'a>> {
+fn unwrapped<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let propagated = node.kind() == "try_expression";
     if propagated {
         return node.named_child(0);
@@ -127,7 +127,7 @@ fn unwrapped<'a>(node: Node<'a>, source: &str) -> Option<Node<'a>> {
     }
     None
 }
-fn callee_name<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn callee_name<'a>(function: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match function.kind() {
         "identifier" => Some(text(function, source)),
         "scoped_identifier" => function
@@ -139,7 +139,7 @@ fn callee_name<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
         _ => None,
     }
 }
-pub(super) fn verdict_arm(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn verdict_arm(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let swallowed = node
         .child_by_field_name("pattern")
         .is_some_and(|pattern| error_pattern(pattern, source))
@@ -150,7 +150,7 @@ pub(super) fn verdict_arm(node: Node<'_>, source: &str, output: &mut Vec<Measure
         report_verdict(node, source, output);
     }
 }
-pub(super) fn verdict_if(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn verdict_if(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let swallowed = node
         .child_by_field_name("condition")
         .and_then(|condition| condition.child_by_field_name("pattern"))
@@ -162,7 +162,7 @@ pub(super) fn verdict_if(node: Node<'_>, source: &str, output: &mut Vec<Measurem
         report_verdict(node, source, output);
     }
 }
-fn report_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn report_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = verdict_function(node, source) else {
         return;
     };
@@ -177,11 +177,11 @@ fn report_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         actual: 1,
     });
 }
-fn error_pattern(pattern: Node<'_>, source: &str) -> bool {
+fn error_pattern(pattern: Node<'_>, source: Code<'_>) -> bool {
     let compact: String = text(pattern, source).split_whitespace().collect();
     ERROR_ARMS.contains(&compact.as_str())
 }
-fn answers(node: Node<'_>, source: &str) -> bool {
+fn answers(node: Node<'_>, source: Code<'_>) -> bool {
     match node.kind() {
         "block" | "expression_statement" | "return_expression" => {
             let mut cursor = node.walk();
@@ -196,7 +196,7 @@ fn answers(node: Node<'_>, source: &str) -> bool {
         _ => false,
     }
 }
-fn verdict_call(node: Node<'_>, source: &str) -> bool {
+fn verdict_call(node: Node<'_>, source: Code<'_>) -> bool {
     let constructor = node
         .child_by_field_name("function")
         .is_some_and(|function| function.kind() == "identifier" && text(function, source) == "Ok");
@@ -212,7 +212,7 @@ fn verdict_call(node: Node<'_>, source: &str) -> bool {
         });
     constructor && flag
 }
-fn verdict_function<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn verdict_function<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let mut current = node.parent()?;
     loop {
         let boundary = current.kind() == "closure_expression";
@@ -231,7 +231,7 @@ fn verdict_function<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
     let name = current.child_by_field_name("name")?;
     returns_verdict.then_some(text(name, source))
 }
-fn bool_result(annotation: Node<'_>, source: &str) -> bool {
+fn bool_result(annotation: Node<'_>, source: Code<'_>) -> bool {
     let generic = annotation.kind() == "generic_type";
     let other = !generic;
     if other {
@@ -247,7 +247,7 @@ fn bool_result(annotation: Node<'_>, source: &str) -> bool {
     result && flag
 }
 // DECISION: D126
-pub(super) fn exit_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn exit_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let verdict = node.kind() == "function_item"
         && node
             .child_by_field_name("return_type")
@@ -275,7 +275,7 @@ pub(super) fn exit_verdict(node: Node<'_>, source: &str, output: &mut Vec<Measur
         }
     }
 }
-fn code_read(node: Node<'_>, source: &str) -> bool {
+fn code_read(node: Node<'_>, source: Code<'_>) -> bool {
     let named =
         matches!(node.kind(), "field_identifier" | "identifier") && text(node, source) == "code";
     named
@@ -308,7 +308,7 @@ fn returned(body: Node<'_>) -> Vec<Node<'_>> {
     }
     found
 }
-fn success_answer<'a>(exit: Node<'a>, body: Node<'a>, source: &str) -> bool {
+fn success_answer<'a>(exit: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
     let value = match exit.kind() {
         "return_expression" => exit.named_child(0),
         _ => Some(exit),
@@ -318,7 +318,7 @@ fn success_answer<'a>(exit: Node<'a>, body: Node<'a>, source: &str) -> bool {
         .and_then(|argument| method_receiver(argument, "success", source))
         .is_some_and(|receiver| process_status(receiver, body, source))
 }
-fn ok_argument<'a>(call: Node<'a>, source: &str) -> Option<Node<'a>> {
+fn ok_argument<'a>(call: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let constructor = call
         .child_by_field_name("function")
         .is_some_and(|function| function.kind() == "identifier" && text(function, source) == "Ok");
@@ -335,7 +335,7 @@ fn ok_argument<'a>(call: Node<'a>, source: &str) -> Option<Node<'a>> {
         _ => None,
     }
 }
-fn method_receiver<'a>(call: Node<'a>, method: &str, source: &str) -> Option<Node<'a>> {
+fn method_receiver<'a>(call: Node<'a>, method: &str, source: Code<'_>) -> Option<Node<'a>> {
     let bare = call.kind() == "call_expression"
         && call
             .child_by_field_name("arguments")
@@ -346,7 +346,7 @@ fn method_receiver<'a>(call: Node<'a>, method: &str, source: &str) -> Option<Nod
         .is_some_and(|field| text(field, source) == method);
     function.child_by_field_name("value").filter(|_| named)
 }
-fn process_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool {
+fn process_status<'a>(receiver: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
     let receiver = binding(receiver, body, source).unwrap_or(receiver);
     match receiver.kind() {
         "try_expression" => launched(receiver, "status", source),
@@ -354,7 +354,7 @@ fn process_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool 
         _ => false,
     }
 }
-fn output_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool {
+fn output_status<'a>(receiver: Node<'a>, body: Node<'a>, source: Code<'_>) -> bool {
     let field = receiver
         .child_by_field_name("field")
         .is_some_and(|field| text(field, source) == "status");
@@ -364,7 +364,7 @@ fn output_status<'a>(receiver: Node<'a>, body: Node<'a>, source: &str) -> bool {
         .map(|value| binding(value, body, source).unwrap_or(value))
         .is_some_and(|value| launched(value, "output", source))
 }
-fn launched(node: Node<'_>, method: &str, source: &str) -> bool {
+fn launched(node: Node<'_>, method: &str, source: Code<'_>) -> bool {
     let propagated = node.kind() == "try_expression";
     propagated
         && node
@@ -372,7 +372,7 @@ fn launched(node: Node<'_>, method: &str, source: &str) -> bool {
             .and_then(|call| method_receiver(call, method, source))
             .is_some()
 }
-fn binding<'a>(node: Node<'a>, body: Node<'a>, source: &str) -> Option<Node<'a>> {
+fn binding<'a>(node: Node<'a>, body: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let identifier = node.kind() == "identifier";
     let name = identifier.then(|| text(node, source))?;
     descendants(body)

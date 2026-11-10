@@ -113,7 +113,7 @@ pub struct RustImport {
 
 pub(super) struct Source<'a> {
     pub(super) path: &'a Path,
-    pub(super) text: &'a str,
+    pub(super) text: languages::Code<'a>,
     pub(super) output: References,
 }
 

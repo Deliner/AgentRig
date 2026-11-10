@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
@@ -10,7 +10,7 @@ const LOCKS: &[&str] = &["Mutex", "RwLock", "DashMap", "DashSet"];
 const CELLS: &[&str] = &["RefCell", "Cell", "UnsafeCell"];
 const ALIAS_DEPTH: usize = 3;
 
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let exempt = justified(node, source) || in_test_context(node, source);
     if exempt {
         return;
@@ -20,7 +20,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     };
     output.push(measurement);
 }
-pub(super) fn macro_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn macro_items(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let exempt = !declares_items(node, source) || in_test_context(node, source);
     if exempt {
         return;
@@ -44,7 +44,7 @@ pub(super) fn macro_items(node: Node<'_>, source: &str, output: &mut Vec<Measure
         return;
     }
     let body = Body {
-        source: &fragment,
+        source: Code::new(&fragment),
         base: tree.start_position().row,
         above: justified(node, source),
     };
@@ -56,20 +56,21 @@ pub(super) fn macro_items(node: Node<'_>, source: &str, output: &mut Vec<Measure
         body.report(item, output);
     }
 }
-fn declares_items(node: Node<'_>, source: &str) -> bool {
+fn declares_items(node: Node<'_>, source: Code<'_>) -> bool {
     let Some(path) = node.child_by_field_name("macro") else {
         return false;
     };
     let name = text(path, source).rsplit("::").next().unwrap_or_default();
     matches!(name, "lazy_static" | "thread_local")
 }
-fn items_source(tree: Node<'_>, source: &str) -> Option<String> {
+fn items_source(tree: Node<'_>, source: Code<'_>) -> Option<String> {
     let span = tree.end_byte().saturating_sub(tree.start_byte());
     let empty = span < 2;
     if empty {
         return None;
     }
     let mut fragment = source
+        .as_str()
         .get(tree.start_byte() + 1..tree.end_byte() - 1)?
         .to_string();
     let terminated = fragment.trim_end().ends_with(';');
@@ -80,7 +81,7 @@ fn items_source(tree: Node<'_>, source: &str) -> Option<String> {
     Some(fragment)
 }
 struct Body<'a> {
-    source: &'a str,
+    source: Code<'a>,
     base: usize,
     above: bool,
 }
@@ -99,7 +100,7 @@ impl Body<'_> {
         output.push(measurement);
     }
 }
-fn measure(item: Node<'_>, source: &str) -> Option<Measurement> {
+fn measure(item: Node<'_>, source: Code<'_>) -> Option<Measurement> {
     let mutable = has_child(item, "mutable_specifier");
     if mutable {
         return None;
@@ -144,7 +145,7 @@ fn root(node: Node<'_>) -> Node<'_> {
 }
 struct Scope<'a> {
     root: Node<'a>,
-    source: &'a str,
+    source: Code<'a>,
 }
 impl<'a> Scope<'a> {
     fn names(&self, annotation: Node<'a>, depth: usize, found: &mut Vec<&'a str>) {

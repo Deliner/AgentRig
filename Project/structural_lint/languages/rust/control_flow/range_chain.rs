@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use tree_sitter::Node;
 
 // DECISION: D156
-pub(super) fn chain(branch: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn chain(branch: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let continuation = branch
         .parent()
         .is_some_and(|parent| parent.kind() == "else_clause");
@@ -33,7 +33,7 @@ pub(super) fn chain(branch: Node<'_>, source: &str, output: &mut Vec<Measurement
     }
 }
 // DECISION: D156
-pub(super) fn guards(expression: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn guards(expression: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(block) = expression.child_by_field_name("body") else {
         return;
     };
@@ -52,7 +52,7 @@ pub(super) fn guards(expression: Node<'_>, source: &str, output: &mut Vec<Measur
         report(expression, source, output);
     }
 }
-fn report(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn report(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let allowed = in_test_context(node, source) || justified(node, source);
     if allowed {
         return;
@@ -64,7 +64,7 @@ fn report(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         actual: 1,
     });
 }
-fn bounded(condition: Node<'_>, source: &str) -> Option<String> {
+fn bounded(condition: Node<'_>, source: Code<'_>) -> Option<String> {
     let ordering = condition.kind() == "binary_expression"
         && condition
             .child_by_field_name("operator")
@@ -78,7 +78,7 @@ fn bounded(condition: Node<'_>, source: &str) -> Option<String> {
     };
     Some(text(subject, source).split_whitespace().collect())
 }
-fn literal(node: Node<'_>, source: &str) -> bool {
+fn literal(node: Node<'_>, source: Code<'_>) -> bool {
     match node.kind() {
         "integer_literal" => true,
         "unary_expression" => {

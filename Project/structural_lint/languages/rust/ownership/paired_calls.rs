@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::{Ownership, Pair};
@@ -7,7 +7,7 @@ use tree_sitter::Node;
 // DECISION: D156
 pub(super) fn inspect(
     block: Node<'_>,
-    source: &str,
+    source: Code<'_>,
     pairs: &[Pair],
     output: &mut Vec<Measurement>,
 ) {
@@ -36,7 +36,7 @@ pub(super) fn inspect(
         }));
     }
 }
-fn escapes(statement: Node<'_>, rest: &[Node<'_>], pair: &Pair, source: &str) -> bool {
+fn escapes(statement: Node<'_>, rest: &[Node<'_>], pair: &Pair, source: Code<'_>) -> bool {
     let Some(receiver) = called(statement, &pair.open, source) else {
         return false;
     };
@@ -48,7 +48,7 @@ fn escapes(statement: Node<'_>, rest: &[Node<'_>], pair: &Pair, source: &str) ->
         .unwrap_or_default();
     between.iter().any(|node| exits(*node))
 }
-fn called<'a>(node: Node<'_>, method: &str, source: &'a str) -> Option<&'a str> {
+fn called<'a>(node: Node<'_>, method: &str, source: Code<'a>) -> Option<&'a str> {
     let closure = node.kind() == "closure_expression";
     if closure {
         return None;

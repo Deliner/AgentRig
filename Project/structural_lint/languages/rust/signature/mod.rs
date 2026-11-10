@@ -1,3 +1,4 @@
+mod checked_constructor;
 mod constant_default;
 mod derived_trait;
 mod implicit_order;
@@ -6,9 +7,9 @@ mod partial_impl;
 mod same_type;
 mod tuple_record;
 mod type_shape;
-use crate::structural_lint::languages::measure::Measurement;
+use crate::structural_lint::languages::measure::{Code, Measurement};
 use tree_sitter::Node;
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
         "source_file" => {
             ord_equality::inspect(node, source, output);

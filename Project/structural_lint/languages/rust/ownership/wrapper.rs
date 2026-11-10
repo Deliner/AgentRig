@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, descendants, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::context::{
     in_test_context, justified_item, type_name,
 };
@@ -19,11 +19,11 @@ struct Definition<'a> {
 struct File<'a> {
     definitions: BTreeMap<&'a str, Definition<'a>>,
     targets: BTreeMap<&'a str, &'a str>,
-    source: &'a str,
+    source: Code<'a>,
 }
 
 // DECISION: D156
-pub(super) fn inspect(root: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(root: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let nodes = descendants(root);
     let implementations: Vec<_> = nodes
         .iter()
@@ -78,7 +78,7 @@ impl File<'_> {
         }
     }
 }
-fn define<'a>(definition: Node<'_>, source: &'a str) -> Option<(&'a str, Definition<'a>)> {
+fn define<'a>(definition: Node<'_>, source: Code<'a>) -> Option<(&'a str, Definition<'a>)> {
     let name = text(definition.child_by_field_name("name")?, source);
     let parameters = definition
         .child_by_field_name("type_parameters")
@@ -102,13 +102,13 @@ fn define<'a>(definition: Node<'_>, source: &'a str) -> Option<(&'a str, Definit
     });
     Some((name, Definition { parameters, fields }))
 }
-fn contract<'a>(implementation: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn contract<'a>(implementation: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     type_name(implementation.child_by_field_name("trait")?, source)
 }
-fn owner<'a>(implementation: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn owner<'a>(implementation: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     type_name(implementation.child_by_field_name("type")?, source)
 }
-fn target<'a>(implementation: Node<'_>, source: &'a str) -> Option<(&'a str, &'a str)> {
+fn target<'a>(implementation: Node<'_>, source: Code<'a>) -> Option<(&'a str, &'a str)> {
     let body = implementation.child_by_field_name("body")?;
     let mut cursor = body.walk();
     let alias = body.named_children(&mut cursor).find(|item| {
@@ -120,7 +120,7 @@ fn target<'a>(implementation: Node<'_>, source: &'a str) -> Option<(&'a str, &'a
     let inner = text(alias.child_by_field_name("type")?, source);
     Some((owner(implementation, source)?, inner))
 }
-fn converts_raw(implementation: Node<'_>, source: &str) -> bool {
+fn converts_raw(implementation: Node<'_>, source: Code<'_>) -> bool {
     let Some(arguments) = implementation
         .child_by_field_name("trait")
         .and_then(|path| path.child_by_field_name("type_arguments"))

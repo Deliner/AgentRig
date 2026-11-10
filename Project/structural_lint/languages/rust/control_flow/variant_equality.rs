@@ -1,11 +1,11 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D156
-pub(super) fn comparison(binary: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn comparison(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let equality = binary
         .child_by_field_name("operator")
         .is_some_and(|operator| matches!(text(operator, source), "==" | "!="));
@@ -21,7 +21,7 @@ pub(super) fn comparison(binary: Node<'_>, source: &str, output: &mut Vec<Measur
     report(binary, text(variant, source), source, output);
 }
 // DECISION: D156
-pub(super) fn matched(invocation: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn matched(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let named = invocation
         .child_by_field_name("macro")
         .is_some_and(|path| last_segment(path, source) == "matches");
@@ -42,7 +42,7 @@ pub(super) fn matched(invocation: Node<'_>, source: &str, output: &mut Vec<Measu
         report(invocation, "matches", source, output);
     }
 }
-fn report(node: Node<'_>, symbol: &str, source: &str, output: &mut Vec<Measurement>) {
+fn report(node: Node<'_>, symbol: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
     let allowed = in_test_context(node, source) || justified(node, source);
     if allowed {
         return;
@@ -54,7 +54,7 @@ fn report(node: Node<'_>, symbol: &str, source: &str, output: &mut Vec<Measureme
         actual: 1,
     });
 }
-fn names_variant(token: Node<'_>, source: &str) -> bool {
+fn names_variant(token: Node<'_>, source: Code<'_>) -> bool {
     let segment = token.kind() == "identifier"
         && token
             .prev_sibling()

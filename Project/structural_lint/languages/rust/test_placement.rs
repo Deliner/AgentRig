@@ -1,11 +1,11 @@
 use super::context::{attributed, in_test_context, test_marker};
-use crate::structural_lint::languages::measure::{Measurement, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::structure::Structure;
 use tree_sitter::Node;
 
 // DECISION: D145
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(name) = node.child_by_field_name("name") else {
         return;
     };
@@ -34,13 +34,13 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         actual: 1,
     });
 }
-fn ancestors<'a>(node: Node<'a>, source: &'a str) -> impl Iterator<Item = &'a str> {
+fn ancestors<'a>(node: Node<'a>, source: Code<'a>) -> impl Iterator<Item = &'a str> {
     std::iter::successors(node.parent(), Node::parent)
         .filter(|parent| parent.kind() == "mod_item")
         .filter_map(|parent| parent.child_by_field_name("name"))
         .map(move |name| text(name, source))
 }
-fn declared_path<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn declared_path<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     std::iter::successors(node.prev_named_sibling(), Node::prev_named_sibling)
         .take_while(|item| item.is_extra() || item.kind() == "attribute_item")
         .filter_map(|item| item.named_child(0))

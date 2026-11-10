@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, justified_item};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use tree_sitter::Node;
 
 // DECISION: D156
-pub(super) fn parameters(function: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn parameters(function: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(parameters) = function.child_by_field_name("parameters") else {
         return;
     };
@@ -28,7 +28,7 @@ pub(super) fn parameters(function: Node<'_>, source: &str, output: &mut Vec<Meas
     report(function, source, Signature::SameTypeParameters, output);
 }
 // DECISION: D156
-pub(super) fn positions(item: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn positions(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(body) = item
         .child_by_field_name("body")
         .filter(|body| body.kind() == "ordered_field_declaration_list")
@@ -43,7 +43,7 @@ pub(super) fn positions(item: Node<'_>, source: &str, output: &mut Vec<Measureme
     }
     report(item, source, Signature::SameTypePositions, output);
 }
-fn report(item: Node<'_>, source: &str, kind: Signature, output: &mut Vec<Measurement>) {
+fn report(item: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
     let allowed = in_test_context(item, source) || justified_item(item, source);
     if allowed {
         return;
@@ -58,13 +58,13 @@ fn report(item: Node<'_>, source: &str, kind: Signature, output: &mut Vec<Measur
         actual: 1,
     });
 }
-fn repeated(types: &[Node<'_>], source: &str) -> bool {
+fn repeated(types: &[Node<'_>], source: Code<'_>) -> bool {
     let mut seen = BTreeSet::new();
     types
         .iter()
         .any(|annotation| !seen.insert(tokens(*annotation, source)))
 }
-fn tokens(node: Node<'_>, source: &str) -> String {
+fn tokens(node: Node<'_>, source: Code<'_>) -> String {
     text(node, source).split_whitespace().collect()
 }
 fn trait_method(function: Node<'_>) -> bool {

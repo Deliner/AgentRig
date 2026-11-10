@@ -2,10 +2,10 @@ mod length_subtraction;
 mod range_chain;
 mod unlabeled_exit;
 mod variant_equality;
-use crate::structural_lint::languages::measure::Measurement;
+use crate::structural_lint::languages::measure::{Code, Measurement};
 use tree_sitter::Node;
 
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
         "break_expression" | "continue_expression" => unlabeled_exit::inspect(node, source, output),
         "binary_expression" => {

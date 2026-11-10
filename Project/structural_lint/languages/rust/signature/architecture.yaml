@@ -2,6 +2,7 @@ purpose: Detect Rust signatures, type shapes and trait implementations that miss
 type: flat
 files:
   mod.rs: Dispatch source files, structs, enums, variants, functions, aliases, generic types, impls and traits to the signature detectors
+  checked_constructor.rs: Find the constructor in the same file that refuses on a tested parameter, directly or through a derived local, and stores it in a field of its own type
   constant_default.rs: Rust trait method without a self receiver whose default body supplies a value implementors may silently inherit
   derived_trait.rs: Rust struct whose derived trait or open field bypasses its own handling, a Debug printing a field with a secret name and a string or byte type, a Deserialize skipping the check of a constructor in the same file, or a public field of a type that a constructor checks
   implicit_order.rs: Rust enum deriving PartialOrd or Ord whose variants order by declaration because one lacks an explicit discriminant

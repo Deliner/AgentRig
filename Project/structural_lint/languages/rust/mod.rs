@@ -11,7 +11,7 @@ mod suppression;
 mod test_placement;
 mod unsafe_site;
 use crate::structural_lint::languages::measure::{
-    Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
+    Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, text,
 };
 use crate::structural_lint::rules::kind::Kind;
@@ -23,7 +23,7 @@ pub(crate) use context::in_test_context;
 use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037
-pub fn inspect(node: Node<'_>, source: &str, pairs: &[Pair], analysis: &mut Analysis) {
+pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut Analysis) {
     analysis.mixed_junctions.extend(mixed_junction(node));
     let output = &mut analysis.measurements;
     signature::inspect(node, source, output);
@@ -63,7 +63,7 @@ pub fn inspect(node: Node<'_>, source: &str, pairs: &[Pair], analysis: &mut Anal
     }
 }
 // DECISION: D122
-fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn literal(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     credential(node, source, output);
     let exempt = in_test_context(node, source);
     if exempt {
@@ -77,14 +77,14 @@ fn literal(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         actual: node.end_position().row - first + 1,
     });
 }
-fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn call(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     panic_surface::panic_call(node, source, output);
     eager_fallback(node, source, output);
     silent_error::collapsed_read_dir(node, source, output);
     panic_surface::catch(node, source, output);
     blocking_async::inspect(node, source, output);
 }
-fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn conditional(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {
         return;
     };
@@ -95,7 +95,7 @@ fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
     condition(node, test, output);
 }
-fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn declaration(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(parameters) = node.child_by_field_name("parameters") else {
         return;
     };
@@ -118,7 +118,7 @@ fn declaration(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     branching(node, source, branch, output);
 }
 // DECISION: D081
-fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn debug_macro(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(path) = node.child_by_field_name("macro") else {
         return;
     };
@@ -134,7 +134,7 @@ fn debug_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
 }
 // DECISION: D084
 // DECISION: D115
-fn assertion_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn assertion_macro(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(path) = node.child_by_field_name("macro") else {
         return;
     };
@@ -147,7 +147,7 @@ fn assertion_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) 
         report_assertion(node, source, name, output);
     }
 }
-fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
+fn report_assertion(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut Vec<Measurement>) {
     let allowed = justified(node, source) || in_test_context(node, source);
     if allowed {
         return;
@@ -160,7 +160,7 @@ fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec
     });
 }
 // DECISION: D089
-fn eager_fallback(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -212,7 +212,7 @@ fn propagates(node: Node<'_>) -> bool {
 // DECISION: D090
 // DECISION: D099
 // DECISION: D114
-fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn discarded_result(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let binding = node.kind() == "let_declaration";
     let symbol = if binding {
         let wildcard = node
@@ -244,7 +244,7 @@ fn discarded_result(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         actual: 1,
     });
 }
-fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn discarded_method<'a>(inner: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let propagated = inner.kind() == "try_expression";
     let call = if propagated {
         inner.named_child(0)?
@@ -272,7 +272,7 @@ fn discarded_method<'a>(inner: Node<'_>, source: &'a str) -> Option<&'a str> {
     dropped.then_some(name)
 }
 // DECISION: D155
-fn spawned(value: Node<'_>, source: &str) -> bool {
+fn spawned(value: Node<'_>, source: Code<'_>) -> bool {
     let mut current = value;
     loop {
         let propagated = current.kind() == "try_expression";
@@ -307,7 +307,7 @@ fn spawned(value: Node<'_>, source: &str) -> bool {
 }
 // DECISION: D094
 // DECISION: D147
-fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn macro_body(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let exempt = in_test_context(node, source);
     if exempt {
         return;
@@ -318,7 +318,7 @@ fn macro_body(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         !(panic && suppression::clippy_allowed(node, source, &measurement.symbol))
     }));
 }
-fn fragment_measurements(node: Node<'_>, source: &str) -> Vec<Measurement> {
+fn fragment_measurements(node: Node<'_>, source: Code<'_>) -> Vec<Measurement> {
     let mut cursor = node.walk();
     let Some(tree) = node
         .children(&mut cursor)
@@ -331,7 +331,10 @@ fn fragment_measurements(node: Node<'_>, source: &str) -> Vec<Measurement> {
     if empty {
         return Vec::new();
     }
-    let Some(inner) = source.get(tree.start_byte() + 1..tree.end_byte() - 1) else {
+    let Some(inner) = source
+        .as_str()
+        .get(tree.start_byte() + 1..tree.end_byte() - 1)
+    else {
         return Vec::new();
     };
     let fragment = ["fn probe(){call(", inner, ")}"].concat();
@@ -346,13 +349,13 @@ fn fragment_measurements(node: Node<'_>, source: &str) -> Vec<Measurement> {
         return Vec::new();
     }
     let mut scoped = Vec::new();
-    scan_fragment(root, &fragment, &mut scoped);
+    scan_fragment(root, Code::new(&fragment), &mut scoped);
     for measurement in &mut scoped {
         measurement.line += tree.start_position().row;
     }
     scoped
 }
-fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn scan_fragment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
         "call_expression" => {
             panic_surface::panic_call(node, source, output);
@@ -368,7 +371,7 @@ fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D085
-fn wildcard_use(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+fn wildcard_use(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let allowed = justified(node, source) || in_test_context(node, source);
     if allowed {
         return;
@@ -389,7 +392,7 @@ fn branch(node: Node<'_>) -> Branch {
     }
 }
 // DECISION: D062
-fn flag(parameter: Node<'_>, source: &str) -> bool {
+fn flag(parameter: Node<'_>, source: Code<'_>) -> bool {
     parameter
         .child_by_field_name("type")
         .is_some_and(|annotation| {

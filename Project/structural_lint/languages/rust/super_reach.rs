@@ -1,11 +1,11 @@
 use super::context::in_test_context;
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D100
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let pair = segment(node, "path") && segment(node, "name");
     let single = !pair;
     if single {
