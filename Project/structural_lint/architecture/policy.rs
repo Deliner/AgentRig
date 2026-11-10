@@ -120,14 +120,14 @@ impl Contracts {
             if foreign_zone {
                 continue;
             }
-            for (file, uses) in environment {
+            'files: for (file, uses) in environment {
                 let parent = file
                     .parent()
                     .filter(|parent| !parent.as_os_str().is_empty())
                     .unwrap_or_else(|| Path::new("."));
                 let other_directory = parent != directory.as_path();
                 if other_directory {
-                    continue;
+                    continue 'files;
                 }
                 issues.extend(uses.iter().filter_map(|use_site| {
                     let effect = super::effect(&use_site.path)?;

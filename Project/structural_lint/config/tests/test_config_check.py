@@ -12,6 +12,30 @@ from Project.structural_lint.testing.consumer import CONFIG, configure, lint, pr
 
 # DECISION: D018
 
+TEST_CODE_EXCLUDED = (
+    "panic-path",
+    "debug-assertion",
+    "wildcard-import",
+    "tuple-as-record",
+    "eager-fallback",
+    "discarded-result",
+    "disabled-raii",
+    "global-state",
+    "super-super-reach",
+    "unwind-justification",
+    "guard-across-await",
+    "blocking-in-async",
+    "ord-eq-mismatch",
+    "secret-debug",
+    "unchecked-deserialize",
+    "implicit-order",
+    "unit-lock",
+    "unlabeled-exit",
+    "length-subtraction",
+    "embedded-text",
+    "test-placement",
+)
+
 
 def check(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     result = subprocess.run(
@@ -157,27 +181,8 @@ def test_rule_examples_ship_excludes_only_where_decided(worker: Path) -> None:
         )
         rule = yaml.safe_load(example.stdout)["rules"][0]
         excludes[rule["id"]] = rule.get("exclude")
-    decided = [
-        "panic-path",
-        "debug-assertion",
-        "wildcard-import",
-        "tuple-as-record",
-        "eager-fallback",
-        "discarded-result",
-        "disabled-raii",
-        "global-state",
-        "super-super-reach",
-        "unwind-justification",
-        "guard-across-await",
-        "blocking-in-async",
-        "ord-eq-mismatch",
-        "secret-debug",
-        "unchecked-deserialize",
-        "embedded-text",
-        "test-placement",
-    ]
     shipped = {rule: exclude for rule, exclude in excludes.items() if exclude}
-    expected = dict.fromkeys(decided, ["**/tests/**", "**/tests.rs"])
+    expected = dict.fromkeys(TEST_CODE_EXCLUDED, ["**/tests/**", "**/tests.rs"])
     expected["file-size"] = ["**/Cargo.lock", "**/package-lock.json", "**/uv.lock"]
     assert shipped == expected
 

@@ -64,9 +64,9 @@ pub(super) fn report(context: &Context) -> Result<bool> {
         };
         let extension = Some(std::ffi::OsStr::new(mapped.runner.source()));
         let sources = included(check, &files)?.filter(|path| path.extension() == extension);
-        for path in sources {
+        'sources: for path in sources {
             let Some(message) = finding(&mapped, path)? else {
-                continue;
+                continue 'sources;
             };
             found = true;
             console::stderr(Guidance {

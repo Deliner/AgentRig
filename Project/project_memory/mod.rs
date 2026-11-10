@@ -232,7 +232,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
     for row in &rows {
         let links = format::links(&row.cells[2]);
         ensure!(!links.is_empty(), "{}: application link required", row.id);
-        for link in links {
+        'links: for link in links {
             let path = target(&context.root, memory, &link)?;
             let non_source = path.extension().is_some_and(|ext| {
                 ["md", "toml", "json", "yaml", "yml", "just"]
@@ -240,7 +240,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
                     .any(|kind| ext == *kind)
             }) || path.file_name().is_some_and(|name| name == "justfile");
             if non_source {
-                continue;
+                continue 'links;
             }
             match source::inspect(&path)? {
                 Some(source) => ensure!(

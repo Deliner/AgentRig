@@ -1,6 +1,8 @@
-purpose: "Repair function control-flow complexity: deep nesting, branch overload and long boolean expressions"
+purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long boolean expressions, unlabeled exits of nested loops and subtractions from a length"
 files: {}
 directories:
   flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
+  label-the-exit: "Label the loop an exit of a nested loop leaves, extract the inner loop, or justify the unlabeled exit with a reference"
   reduce-branching: "Reduce the decision points per function while preserving behavior"
   split-boolean-expression: "Split long boolean expressions into named parts while preserving behavior"
+  subtract-checked: "Make a subtraction from a length checked or saturating, rearrange it away, or justify the guaranteed length with a reference"

@@ -1,0 +1,5 @@
+purpose: "Label the loop an exit of a nested loop leaves, extract the inner loop, or justify the unlabeled exit with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make a break or continue inside a nested Rust loop name the loop it targets"
+directories: {}
