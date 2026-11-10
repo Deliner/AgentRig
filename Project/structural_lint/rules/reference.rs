@@ -137,11 +137,12 @@ const DEBUGASSERTION: Descriptor = Descriptor {
 // DECISION: D082
 // DECISION: D115
 // DECISION: D147
+// DECISION: D148
 const PANICPATH: Descriptor = Descriptor {
     default_id: "panic-path",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust .unwrap(), .expect(...), .unwrap_err() or .expect_err(...) call, resume_unwind call by path or bare name, and panic!, todo!, unimplemented! or unreachable! macro outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it or above an #[allow] or #[expect] of its Clippy lint on an enclosing item",
+    metric: "every Rust .unwrap(), .expect(...), .unwrap_err() or .expect_err(...) call, resume_unwind call by path or bare name, and panic!, todo!, unimplemented! or unreachable! macro, also inside a macro_rules! body or a macro invocation's arguments, outside test code without a DECISION: or INVARIANT: reference comment on the line directly above it or above an #[allow] or #[expect] of its Clippy lint on an enclosing item",
     skill: "handle-panic",
     parameters: Parameters::Level {
         default: Severity::Error,

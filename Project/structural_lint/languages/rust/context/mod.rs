@@ -2,12 +2,13 @@ pub(super) mod async_code;
 use crate::structural_lint::languages::measure::text;
 use tree_sitter::Node;
 
+// DECISION: D148
 pub(crate) fn in_test_context(node: Node<'_>, source: &str) -> bool {
     let mut current = node;
     while let Some(parent) = current.parent() {
         let item = matches!(
             parent.kind(),
-            "mod_item" | "function_item" | "function_signature_item"
+            "mod_item" | "function_item" | "function_signature_item" | "macro_definition"
         );
         let test = item && attributed(parent, source, test_marker);
         if test {

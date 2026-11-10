@@ -4,6 +4,7 @@ mod derived_trait;
 mod global_state;
 mod guard_await;
 mod ord_equality;
+mod panic_surface;
 mod recursive_deletion;
 mod silent_error;
 mod super_reach;
@@ -11,7 +12,6 @@ mod suppression;
 mod test_placement;
 mod tuple_record;
 mod unsafe_site;
-mod unwind_catch;
 use crate::structural_lint::languages::measure::{
     Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching, comment,
     condition, credential, function, justified, nesting, text,
@@ -20,10 +20,9 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::structure::Structure;
+use context::in_debug_only_context;
 pub(crate) use context::in_test_context;
-use context::{in_debug_only_context, last_segment};
 use tree_sitter::Node;
-
 // DECISION: D017
 // DECISION: D037
 pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
@@ -33,7 +32,8 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
-            unsafe_site::inspect(node, source, output)
+            unsafe_site::inspect(node, source, output);
+            panic_surface::definition_tokens(node, source, output);
         }
         "attribute_item" | "inner_attribute_item" => suppression::attribute(node, source, output),
         "static_item" => {
@@ -43,7 +43,7 @@ pub fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
-            panic_macro(node, source, output);
+            panic_surface::panic_macro(node, source, output);
             macro_body(node, source, output);
             global_state::macro_items(node, source, output);
         }
@@ -85,12 +85,12 @@ fn file_items(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     derived_trait::unchecked_deserialize(node, source, output);
 }
 fn call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    panic_call(node, source, output);
+    panic_surface::panic_call(node, source, output);
     eager_fallback(node, source, output);
     disabled_raii(node, source, output);
     silent_error::collapsed_read_dir(node, source, output);
     recursive_deletion::inspect(node, source, output);
-    unwind_catch::inspect(node, source, output);
+    panic_surface::catch(node, source, output);
     blocking_async::inspect(node, source, output);
 }
 fn conditional(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
@@ -164,49 +164,6 @@ fn report_assertion(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec
     }
     output.push(Measurement {
         kind: Kind::Reference(Reference::DebugAssertion),
-        line: node.start_position().row + 1,
-        symbol: symbol.into(),
-        actual: 1,
-    });
-}
-// DECISION: D082
-// DECISION: D115
-fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let Some(function) = node.child_by_field_name("function") else {
-        return;
-    };
-    let name = match function.child_by_field_name("field") {
-        Some(field) if field.kind() == "field_identifier" => text(field, source),
-        Some(_) => return,
-        None => last_segment(function, source),
-    };
-    let method = function.kind() == "field_expression";
-    let path = matches!(function.kind(), "identifier" | "scoped_identifier");
-    let unwrapping = method && matches!(name, "unwrap" | "expect" | "unwrap_err" | "expect_err");
-    let panic = unwrapping || path && name == "resume_unwind";
-    if panic {
-        report_panic(node, source, name, output);
-    }
-}
-fn panic_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
-    let Some(path) = node.child_by_field_name("macro") else {
-        return;
-    };
-    let name = text(path, source);
-    let panic = matches!(name, "panic" | "todo" | "unimplemented" | "unreachable");
-    if panic {
-        report_panic(node, source, name, output);
-    }
-}
-fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source)
-        || in_test_context(node, source)
-        || suppression::clippy_allowed(node, source, symbol);
-    if allowed {
-        return;
-    }
-    output.push(Measurement {
-        kind: Kind::Reference(Reference::PanicPath),
         line: node.start_position().row + 1,
         symbol: symbol.into(),
         actual: 1,
@@ -404,12 +361,12 @@ fn fragment_measurements(node: Node<'_>, source: &str) -> Vec<Measurement> {
 fn scan_fragment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     match node.kind() {
         "call_expression" => {
-            panic_call(node, source, output);
+            panic_surface::panic_call(node, source, output);
             eager_fallback(node, source, output);
             disabled_raii(node, source, output);
             recursive_deletion::inspect(node, source, output);
         }
-        "macro_invocation" => panic_macro(node, source, output),
+        "macro_invocation" => panic_surface::panic_macro(node, source, output),
         _ => {}
     }
     let mut cursor = node.walk();
