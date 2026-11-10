@@ -1,4 +1,7 @@
-use super::{Issue, policy::Declaration};
+use super::{
+    Issue,
+    policy::{Declaration, Rooted},
+};
 use crate::shared::fs;
 use crate::structural_lint::inventory::Inventory;
 use crate::structural_lint::rules::architecture::FILENAME;
@@ -20,17 +23,17 @@ impl Entries {
 }
 
 pub(super) fn check(
-    root: &Path,
-    directory: &Path,
+    rooted: Rooted<'_>,
     declaration: &Declaration,
     inventory: &Inventory,
 ) -> Vec<Issue> {
+    let directory = rooted.path;
     let mut messages = Vec::new();
     for (entries, kind) in [
         (declaration.files(), Entries::Files),
         (declaration.directories(), Entries::Directories),
     ] {
-        validate(&root.join(directory), entries, kind, &mut messages);
+        validate(&rooted.absolute(), entries, kind, &mut messages);
     }
     messages.extend(missing(directory, declaration, inventory));
     messages

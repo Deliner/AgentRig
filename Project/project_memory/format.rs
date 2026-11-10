@@ -1,3 +1,4 @@
+use crate::project_config::Context;
 use crate::shared::fs;
 use anyhow::{Result, ensure};
 use std::{
@@ -212,14 +213,14 @@ pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Resul
     );
     Ok(source)
 }
-pub fn target(root: &Path, base: &Path, value: &str) -> Result<PathBuf> {
+pub fn target(context: &Context, memory: &Path, value: &str) -> Result<PathBuf> {
     ensure!(
         !Path::new(value).is_absolute(),
         "memory link must be relative: {value}"
     );
-    let path = crate::shared::paths::resolve(&base.join(value))?;
+    let path = crate::shared::paths::resolve(&memory.join(value))?;
     ensure!(
-        path.starts_with(root) && path.is_file(),
+        path.starts_with(&context.root) && path.is_file(),
         "missing or escaping memory link: {value}"
     );
     Ok(path)

@@ -97,8 +97,7 @@ fn logged(
 ) -> Result<(Output, PathBuf)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
-    let runtime = context.runtime.clone();
-    let mut job = crate::command_runner::jobs::Job::create(&runtime, &context.root, name, &cwd)?;
+    let mut job = crate::command_runner::jobs::Job::create(context, name, &cwd)?;
     job.prepare(&argv, spec.access, spec.lifetime)?;
     let result = sandbox::tracked(
         &cwd,
@@ -126,13 +125,8 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let extra = extra.strip_prefix(&["--".into()]).unwrap_or(extra);
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
-    let runtime = context.runtime.clone();
-    let mut job = crate::command_runner::jobs::Job::create(
-        &runtime,
-        &context.root,
-        name,
-        &context.path(&spec.cwd)?,
-    )?;
+    let cwd = context.path(&spec.cwd)?;
+    let mut job = crate::command_runner::jobs::Job::create(context, name, &cwd)?;
     job.prepare(&argv, spec.access, spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     console::stdout(serde_json::json!({"run_id": id}));

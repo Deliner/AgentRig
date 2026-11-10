@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 pub use super::rules::architecture::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use graph::Neighbours;
-pub use policy::{Contracts, Loaded, describe};
+pub use policy::{Contracts, Loaded, Rooted};
 
 #[derive(Clone, Debug)]
 pub struct Dependency {

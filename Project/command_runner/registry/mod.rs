@@ -3,7 +3,7 @@ use crate::project_config::{Command, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use crate::shared::paths::patterns::globs;
-use crate::structural_lint::architecture::describe;
+use crate::structural_lint::architecture::Rooted;
 use anyhow::Result;
 use std::{io::Read, path::Path};
 
@@ -62,9 +62,11 @@ fn parameters(command: &Command) -> String {
     }
 }
 fn role(context: &Context, path: &str) -> String {
+    let root = &context.root;
     let file = Path::new(path);
     let owner = file.parent().map(Path::display);
-    match (describe(&context.root, file), owner) {
+    let rooted = Rooted { root, path: file };
+    match (rooted.describe(), owner) {
         (Some(description), Some(owner)) => format!(
             "{path}: {role}; owner {owner}: {purpose}",
             role = description.role,

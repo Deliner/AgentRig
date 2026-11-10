@@ -90,12 +90,14 @@ pub(super) fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
         crates: BTreeMap::new(),
         externals: BTreeSet::new(),
     };
-    add_package(root, directory, &parsed, &mut layout);
-    for member in members(root, directory, &parsed.workspace)? {
+    let workspace = PackageDirectory { root, directory };
+    workspace.add(&parsed, &mut layout);
+    for member in workspace.members(&parsed.workspace)? {
         let path = root.join(&member).join("Cargo.toml");
         let package = path.is_file();
         if package {
-            add_package(root, &member, &read(&path)?, &mut layout);
+            let directory = &member;
+            PackageDirectory { root, directory }.add(&read(&path)?, &mut layout);
         }
     }
     Ok(layout)
@@ -106,42 +108,90 @@ fn read(path: &Path) -> Result<Manifest> {
     toml::from_str(&text).with_context(|| format!("parse {}", path.display()))
 }
 
-fn add_package(root: &Path, directory: &Path, manifest: &Manifest, layout: &mut Layout) {
-    let Some(package) = &manifest.package else {
-        return;
-    };
-    let library = manifest.lib.path.as_deref().unwrap_or("src/lib.rs");
-    let library = existing(root, directory, library);
-    if let Some(path) = &library {
-        layout
-            .crates
-            .insert(package.name.replace('-', "_"), path.clone());
-    }
-    // DECISION: D136
-    let build = match &package.build {
-        None | Some(toml::Value::Boolean(true)) => Some("build.rs"),
-        Some(toml::Value::String(path)) => Some(path.as_str()),
-        Some(_) => None,
-    };
-    let binaries = [
-        &manifest.bin,
-        &manifest.example,
-        &manifest.test,
-        &manifest.bench,
-    ]
-    .into_iter()
-    .flatten()
-    .filter_map(|target| target.path.as_deref())
-    .chain(["src/main.rs"])
-    .chain(build)
-    .filter_map(|path| existing(root, directory, path));
-    for path in library.into_iter().chain(binaries) {
-        let fresh = !layout.roots.contains(&path);
-        if fresh {
-            layout.roots.push(path);
+#[derive(Clone, Copy)]
+struct PackageDirectory<'a> {
+    root: &'a Path,
+    directory: &'a Path,
+}
+
+impl PackageDirectory<'_> {
+    fn add(self, manifest: &Manifest, layout: &mut Layout) {
+        let Some(package) = &manifest.package else {
+            return;
+        };
+        let library = manifest.lib.path.as_deref().unwrap_or("src/lib.rs");
+        let library = self.existing(library);
+        if let Some(path) = &library {
+            layout
+                .crates
+                .insert(package.name.replace('-', "_"), path.clone());
         }
+        // DECISION: D136
+        let build = match &package.build {
+            None | Some(toml::Value::Boolean(true)) => Some("build.rs"),
+            Some(toml::Value::String(path)) => Some(path.as_str()),
+            Some(_) => None,
+        };
+        let binaries = [
+            &manifest.bin,
+            &manifest.example,
+            &manifest.test,
+            &manifest.bench,
+        ]
+        .into_iter()
+        .flatten()
+        .filter_map(|target| target.path.as_deref())
+        .chain(["src/main.rs"])
+        .chain(build)
+        .filter_map(|path| self.existing(path));
+        for path in library.into_iter().chain(binaries) {
+            let fresh = !layout.roots.contains(&path);
+            if fresh {
+                layout.roots.push(path);
+            }
+        }
+        layout.externals.extend(dependency_names(manifest));
     }
-    layout.externals.extend(dependency_names(manifest));
+
+    fn existing(self, path: &str) -> Option<String> {
+        let mut relative = PathBuf::new();
+        for component in self.directory.join(path).components() {
+            match component {
+                Component::Normal(part) => relative.push(part),
+                Component::CurDir => {}
+                Component::ParentDir => {
+                    let escaped = !relative.pop();
+                    if escaped {
+                        return None;
+                    }
+                }
+                Component::Prefix(_) | Component::RootDir => return None,
+            }
+        }
+        let file = self.root.join(&relative).is_file();
+        file.then(|| relative.to_string_lossy().into_owned())
+    }
+
+    fn members(self, workspace: &Workspace) -> Result<Vec<PathBuf>> {
+        let mut found = Vec::new();
+        for pattern in &workspace.members {
+            let mut paths = vec![self.directory.to_path_buf()];
+            for segment in pattern.split('/') {
+                paths = expand(self.root, &paths, segment)?;
+            }
+            found.extend(paths);
+        }
+        let base = self.root.join(self.directory);
+        found.retain(|member| {
+            let path = self.root.join(member);
+            let excluded = workspace
+                .exclude
+                .iter()
+                .any(|skip| path.starts_with(base.join(skip)));
+            !excluded
+        });
+        Ok(found)
+    }
 }
 
 // DECISION: D136
@@ -157,46 +207,6 @@ fn dependency_names(manifest: &Manifest) -> impl Iterator<Item = String> + '_ {
                 .chain(table.build.keys())
         })
         .map(|name| name.replace('-', "_"))
-}
-
-fn existing(root: &Path, directory: &Path, path: &str) -> Option<String> {
-    let mut relative = PathBuf::new();
-    for component in directory.join(path).components() {
-        match component {
-            Component::Normal(part) => relative.push(part),
-            Component::CurDir => {}
-            Component::ParentDir => {
-                let escaped = !relative.pop();
-                if escaped {
-                    return None;
-                }
-            }
-            Component::Prefix(_) | Component::RootDir => return None,
-        }
-    }
-    let file = root.join(&relative).is_file();
-    file.then(|| relative.to_string_lossy().into_owned())
-}
-
-fn members(root: &Path, directory: &Path, workspace: &Workspace) -> Result<Vec<PathBuf>> {
-    let mut found = Vec::new();
-    for pattern in &workspace.members {
-        let mut paths = vec![directory.to_path_buf()];
-        for segment in pattern.split('/') {
-            paths = expand(root, &paths, segment)?;
-        }
-        found.extend(paths);
-    }
-    let base = root.join(directory);
-    found.retain(|member| {
-        let path = root.join(member);
-        let excluded = workspace
-            .exclude
-            .iter()
-            .any(|skip| path.starts_with(base.join(skip)));
-        !excluded
-    });
-    Ok(found)
 }
 
 fn expand(root: &Path, paths: &[PathBuf], segment: &str) -> Result<Vec<PathBuf>> {

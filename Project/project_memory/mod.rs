@@ -76,7 +76,7 @@ fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> 
         );
         known.insert(row.detail.clone());
         sections(
-            &target(&context.root, memory, &row.detail)?,
+            &target(context, memory, &row.detail)?,
             layout.required,
             layout.optional,
         )?;
@@ -233,7 +233,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
         let links = format::links(&row.cells[2]);
         ensure!(!links.is_empty(), "{}: application link required", row.id);
         'links: for link in links {
-            let path = target(&context.root, memory, &link)?;
+            let path = target(context, memory, &link)?;
             let non_source = path.extension().is_some_and(|ext| {
                 ["md", "toml", "json", "yaml", "yml", "just"]
                     .iter()
@@ -264,7 +264,7 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
     details(context, memory, &rows, Catalog::Invariants)?;
     for row in &rows {
         let oracle = format::link(&row.cells[2])?;
-        let path = target(&context.root, memory, &oracle.path)?;
+        let path = target(context, memory, &oracle.path)?;
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         ensure!(

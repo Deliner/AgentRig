@@ -1,4 +1,4 @@
-use crate::project_config::{Access, Lifetime, access};
+use crate::project_config::{Access, Context, Lifetime, access};
 use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions};
 mod background;
@@ -113,8 +113,9 @@ pub struct Job {
     started: std::time::Instant,
 }
 impl Job {
-    pub fn create(runtime: &Path, project: &Path, command: &str, cwd: &Path) -> Result<Self> {
-        let directory = storage::create(runtime)?;
+    pub fn create(context: &Context, command: &str, cwd: &Path) -> Result<Self> {
+        let project = &context.root;
+        let directory = storage::create(&context.runtime)?;
         let run_id = directory
             .file_name()
             .ok_or_else(|| anyhow::anyhow!("job directory has no name"))?

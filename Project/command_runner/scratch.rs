@@ -13,7 +13,7 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
     let area = area(context, &runtime);
     fs::create_dir_all(area.join("results"))?;
     let argv = vec!["sh".to_owned(), "-c".to_owned(), text];
-    let mut job = Job::create(&runtime, &context.root, "scratch", &context.root)?;
+    let mut job = Job::create(context, "scratch", &context.root)?;
     job.prepare(&argv, Access::Writable, Lifetime::Task)?;
     let mut command = Command::new(&argv[0]);
     command

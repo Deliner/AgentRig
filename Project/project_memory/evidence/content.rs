@@ -90,22 +90,31 @@ fn paths(root: &Path, tree: Tree) -> Result<Vec<PathBuf>> {
         };
         return Ok(files.into_iter().map(PathBuf::from).collect());
     }
-    let mut paths = Vec::new();
-    walk(root, Path::new(""), &mut paths)?;
-    Ok(paths)
+    let mut walk = Walk {
+        root,
+        paths: Vec::new(),
+    };
+    walk.visit(Path::new(""))?;
+    Ok(walk.paths)
 }
-fn walk(root: &Path, parent: &Path, paths: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in fs::read_dir(root.join(parent))? {
-        let entry = entry?;
-        let path = parent.join(entry.file_name());
-        let directory = entry.file_type()?.is_dir();
-        if directory {
-            walk(root, &path, paths)?;
-        } else {
-            paths.push(path);
+struct Walk<'a> {
+    root: &'a Path,
+    paths: Vec<PathBuf>,
+}
+impl Walk<'_> {
+    fn visit(&mut self, parent: &Path) -> Result<()> {
+        for entry in fs::read_dir(self.root.join(parent))? {
+            let entry = entry?;
+            let path = parent.join(entry.file_name());
+            let directory = entry.file_type()?.is_dir();
+            if directory {
+                self.visit(&path)?;
+            } else {
+                self.paths.push(path);
+            }
         }
+        Ok(())
     }
-    Ok(())
 }
 
 pub fn native_index(root: &Path) -> Result<String> {

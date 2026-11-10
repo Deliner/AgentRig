@@ -21,7 +21,7 @@ pub fn tracked(
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
     let mut command = match access {
-        Access::ReadOnly => sandbox(root, argv, scratch.path())?,
+        Access::ReadOnly => sandbox(root, argv, &scratch)?,
         Access::Writable => {
             let mut command = Command::new(&argv[0]);
             command.args(&argv[1..]);
@@ -33,7 +33,7 @@ pub fn tracked(
 }
 pub fn available() -> bool {
     let probe = tempfile::tempdir().and_then(|scratch| {
-        sandbox(Path::new("/"), &["true".into()], scratch.path())
+        sandbox(Path::new("/"), &["true".into()], &scratch)
             .map_err(std::io::Error::other)?
             .output()
     });
@@ -41,7 +41,7 @@ pub fn available() -> bool {
 }
 
 #[cfg(target_os = "linux")]
-fn sandbox(root: &Path, argv: &[String], _scratch: &Path) -> Result<Command> {
+fn sandbox(root: &Path, argv: &[String], _scratch: &tempfile::TempDir) -> Result<Command> {
     let mut command = Command::new("bwrap");
     command.args([
         "--ro-bind",
@@ -63,8 +63,8 @@ fn sandbox(root: &Path, argv: &[String], _scratch: &Path) -> Result<Command> {
 }
 
 #[cfg(target_os = "macos")]
-fn sandbox(_root: &Path, argv: &[String], scratch: &Path) -> Result<Command> {
-    let scratch = crate::shared::fs::canonicalize(scratch)?;
+fn sandbox(_root: &Path, argv: &[String], scratch: &tempfile::TempDir) -> Result<Command> {
+    let scratch = crate::shared::fs::canonicalize(scratch.path())?;
     let profile = format!(
         "(version 1)(allow default)(deny network*)(deny file-write*)\
          (allow file-write* (literal \"/dev/null\") (literal \"/dev/zero\") \

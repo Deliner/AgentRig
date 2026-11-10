@@ -165,8 +165,8 @@ impl Features<'_> {
             .ancestors()
             .find_map(|path| self.typed.get_key_value(path))?;
         let parts = kind.parts().filter(|parts| !parts.is_empty())?;
-        let source = Role::of(feature, &edge.source, parts)?;
-        let target = Role::of(feature, &edge.target, parts)?;
+        let source = Role::of(edge.source.strip_prefix(feature).ok()?, parts)?;
+        let target = Role::of(edge.target.strip_prefix(feature).ok()?, parts)?;
         let allowed = match (source, target) {
             (Role::Tests, _) | (Role::Root, Role::Root | Role::Part(_)) => true,
             (_, Role::Tests) | (Role::Part(_), Role::Root) => false,
@@ -190,8 +190,8 @@ enum Role {
 }
 
 impl Role {
-    fn of(feature: &Path, path: &Path, parts: &[&'static str]) -> Option<Self> {
-        let mut components = path.strip_prefix(feature).ok()?.components();
+    fn of(relative: &Path, parts: &[&'static str]) -> Option<Self> {
+        let mut components = relative.components();
         let Some(Component::Normal(first)) = components.next() else {
             return None;
         };
