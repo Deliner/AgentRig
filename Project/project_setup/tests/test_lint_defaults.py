@@ -61,6 +61,19 @@ def test_shipped_rules_skip_test_files_only_where_decided(
     assert ("unsafe-justification", "Project/tests/x.rs") in flagged, flagged
 
 
+def test_shipped_file_size_skips_package_manager_lock_files(worker: Path, tmp_path: Path) -> None:
+    assert invoke(worker, tmp_path, "init", "--language", "rust").returncode == 0
+    directory = tmp_path / "Project/tool"
+    directory.mkdir(parents=True)
+    locks = ("Cargo.lock", "package-lock.json", "uv.lock")
+    for name in (*locks, "large.rs"):
+        (directory / name).write_text("fn f() {}\n" * 600)
+    result = invoke(worker, tmp_path, "lint", "--json")
+    flagged = {(item["rule"], item["path"]) for item in json.loads(result.stdout)}
+    assert ("file-size", "Project/tool/large.rs") in flagged, flagged
+    assert not {("file-size", f"Project/tool/{name}") for name in locks} & flagged, flagged
+
+
 def test_shipped_architecture_reports_contract_and_cycle(worker: Path, tmp_path: Path) -> None:
     assert invoke(worker, tmp_path, "init", "--language", "python").returncode == 0
     for name in ("alpha", "beta"):

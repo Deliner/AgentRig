@@ -11,10 +11,10 @@
 
 ## Workspace
 
-Branch: `feature/contract-slot` (P098, B094)
-Revision: `90da0bf` (master после слияния P097; VAC P098 ещё не закоммичен)
+Branch: `feature/lock-exclude` (P099, B095)
+Revision: `7eca1cc` (master после слияния P098; VAC P099 ещё не закоммичен)
 
-Установленный рантайм `72d0300` (пин P097). macOS: коммиты и `feature-merge` с cargo через
+Установленный рантайм `c21b07e` (пин P098). macOS: коммиты и `feature-merge` с cargo через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && cd /Users/admin/projects/AgentRig && …'`; фокусные
 тесты через `just run test` тоже требуют этого PATH для сборки кандидата.
 Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -23,13 +23,16 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Progress
 
-- P094 (B093), P095 (B098), P096 (B101, D139) и P097 (B092, D140) завершены и слиты в master, пин `72d0300`.
-- P098 в рабочем дереве: `directory-size` не считает `architecture.yaml`; тест, текст метрики, Delivery и ротация.
+- P094–P098 (B093, B098, B101 с D139, B092 с D140, B094) завершены и слиты в master, пин `c21b07e`.
+- P099 в рабочем дереве: file-size по умолчанию исключает `**/Cargo.lock`, `**/package-lock.json`, `**/uv.lock`;
+  тест, Delivery и ротация.
+- Для финального прохода voxel-rust: ручные исключения file-size `src/Cargo.lock` и `src/package-lock.json` можно
+  заменить поставляемыми шаблонами.
 
 ## Verification
 
-- P098: тесты каталога в test_lint.py — 4 passed; новый тест падает на установленном `72d0300`. voxel-rust
-  `71440d0` в клоне scratchpad `voxel-b101`: 13 предупреждений directory-size у старого рантайма, 8 у кандидата.
+- P099: новый тест test_lint_defaults.py проходит на кандидате и падает на установленном `c21b07e`. Клон voxel-rust
+  `71440d0` в scratchpad `voxel-b101`: без исключений оба lock-файла дают ошибку file-size, с шаблонами — нет.
   Рабочее дерево voxel-rust не тронуто.
 
 ## Blockers
@@ -38,6 +41,6 @@ voxel-rust: ветка `feature/agentrig-migration`, коммит `71440d0`, р�
 
 ## Next action
 
-Закоммитить VAC P098; пин D051, коммит пина, `just feature-merge`; затем P099 (B095, `init` исключает lock-файлы из
-file-size).
+Закоммитить VAC P099; пин D051, коммит пина, `just feature-merge`; затем P100 (B100, сообщение о неиспользуемой
+внешней зависимости).
 Свободные ID: D141+, I022+, P110+, B102+ (B066 и D111 зарезервированы).
