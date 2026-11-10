@@ -1,6 +1,7 @@
 use super::{Issue, policy::Declaration};
 use crate::shared::fs;
 use crate::structural_lint::inventory::Inventory;
+use crate::structural_lint::rules::architecture::FILENAME;
 use std::{collections::BTreeMap, path::Path};
 
 // DECISION: D062
@@ -32,7 +33,7 @@ pub(super) fn check(
     messages
         .into_iter()
         .map(|message| Issue {
-            path: directory.join(super::policy::FILENAME),
+            path: directory.join(FILENAME),
             line: None,
             message,
         })
@@ -42,7 +43,7 @@ pub(super) fn check(
 fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -> Vec<String> {
     let mut messages = Vec::new();
     let names = inventory.directories.get(directory).into_iter().flatten();
-    for name in names.filter(|name| name.as_str() != super::policy::FILENAME) {
+    for name in names.filter(|name| name.as_str() != FILENAME) {
         let path = directory.join(name);
         let path = path.strip_prefix(".").unwrap_or(&path);
         let child_directory = inventory.directories.contains_key(path);

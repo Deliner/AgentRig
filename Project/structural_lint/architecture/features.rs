@@ -1,9 +1,7 @@
 // DECISION: D044
-use super::{
-    Dependency, Issue,
-    policy::{Declaration, FILENAME},
-};
+use super::{Dependency, Issue, policy::Declaration};
 use crate::structural_lint::inventory::Inventory;
+use crate::structural_lint::rules::architecture::FILENAME;
 use serde::Deserialize;
 use std::{
     collections::BTreeMap,

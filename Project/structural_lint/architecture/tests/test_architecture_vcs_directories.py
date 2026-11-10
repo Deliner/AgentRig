@@ -55,8 +55,7 @@ def test_empty_directories_preserve_file_derived_size_measurement(
         "kind": "directory-entries",
         "target": "directory",
         "include": ["src/docs"],
-        "warning": 0,
-        "error": 1,
+        "error": 0,
         "warning_skill": ".agents/skills/repair/SKILL.md",
         "error_skill": ".agents/skills/repair/SKILL.md",
     }
@@ -70,4 +69,4 @@ def test_empty_directories_preserve_file_derived_size_measurement(
         check=False,
     )
     assert result.returncode == 1, result.stdout + result.stderr
-    assert [item["actual"] for item in json.loads(result.stdout)] == [2]
+    assert [item["actual"] for item in json.loads(result.stdout)] == [1]

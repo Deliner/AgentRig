@@ -3,6 +3,7 @@ use super::{catalog, config, inventory, languages, rules, selection};
 use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
+use crate::structural_lint::rules::architecture::FILENAME;
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::Result;
 use std::{collections::HashMap, path::Path};
@@ -88,7 +89,7 @@ fn structural_measurements(
             .unwrap_or_default(),
         rules::Kind::Structure(Structure::ForbiddenFile) => vec![(None, 1)],
         rules::Kind::Structure(Structure::DirectoryEntries) => {
-            vec![(None, inventory.file_entries(selected.path) as u64)]
+            vec![(None, inventory.file_entries(selected.path, FILENAME) as u64)]
         }
         rules::Kind::Structure(Structure::DumpName) => {
             let name = selected.path.file_name().and_then(|name| name.to_str());
