@@ -105,3 +105,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P107](Plan/107.md) | complete | - | [B097](Backlog/097.md): macro-panics — panic-path в телах `macro_rules!` ([D148](../Decisions/148.md)) | Паника в макросе требует того же обоснования, что и в обычном коде. |
 | [P108](Plan/108.md) | complete | P102 | [B096](Backlog/096.md): method-edges — рёбра зависимостей через вызовы методов ([D149](../Decisions/149.md)) | Бюджеты и циклы считаются по реальным зависимостям. |
 | [P109](Plan/109.md) | complete | - | [B086](Backlog/086.md): platform-runtime — рантайм проекта на нескольких платформах ([D150](../Decisions/150.md)) | Проект с AgentRig коммитит и сливает ветки на Linux и macOS с одной ревизии, без обхода хуков. |
+| [P110](Plan/110.md) | complete | - | [B102](Backlog/102.md): clippy-zero-hit — запреты Clippy, для которых в риге пока нет кода ([D152](../Decisions/152.md)) | Эти формы ошибок запрещены до того, как появятся в коде. |

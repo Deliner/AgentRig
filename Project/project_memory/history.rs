@@ -29,7 +29,7 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
 fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str) -> Result<()> {
     let tree = repository.tree(revision)?;
     let prior_memory = prior_memory(context, repository, revision, &tree)?;
-    let index = format!("{}/Decisions.md", prior_memory);
+    let index = format!("{prior_memory}/Decisions.md");
     let no_prior_memory = !tree.contains_key(&index);
     if no_prior_memory {
         return Ok(());
