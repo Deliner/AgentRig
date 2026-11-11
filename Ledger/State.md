@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `b67d901014af8d559c6199feb7f05ffc50af438c`, перенос `test_revision.py`; этот снимок входит в VAC переноса
-тестов привязок, макросов, атрибутов и неполного анализа архитектуры.
+Revision: `e5699fc8f0c45b578ffc020bbb5184e85ca502ac`, перенос тестов привязок, макросов и атрибутов архитектуры;
+этот снимок входит в VAC переноса тестов крейтов, ресурсов и описей архитектуры.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -42,20 +42,21 @@ Revision: `b67d901014af8d559c6199feb7f05ffc50af438c`, перенос `test_revis
 - `test_gate.py` перенесён в `e2c8780`: 9 тестов в `change_delivery/gate/tests/`, 2 в `project_config/tests/`, 2 в
   `command_line/tests/`. Минимальный проект и запуск RERUN есть в `shared::testing`. `test_revision.py` перенесён в
   `b67d901`, память проекта тоже в `shared::testing`.
-- Этот VAC переносит `test_architecture_bindings.py`, `_macros.py`, `_attributes.py` и `_incomplete.py` в
+- `test_architecture_bindings.py`, `_macros.py`, `_attributes.py` и `_incomplete.py` перенесены в `e5699fc` в
   `structural_lint/tests/architecture/`: заготовка `Consumer` линтует проект-потребитель в процессе через `analyze`.
   Из `architecture/tests/` такой вызов давал цикл каталогов, поэтому тесты лежат у входа `structural_lint`.
+- Этот VAC переносит туда же `_resources.py`, `_crates.py`, `_inventory.py` и `_vcs_directories.py` и удаляет
+  `_behavior.py`. Случаи с репозиторием Git идут процессом через `shared::testing`.
 - Остались Python-тесты архитектуры: `test_architecture.py` с общими заготовками и сверкой двух бинарников,
-  `_behavior.py`, `_crates.py`, `_coupling.py`, `_disallowed.py`, `_inventory.py`, `_module_wiring.py`,
-  `_resources.py`, `_vcs_directories.py`.
+  `_coupling.py`, `_disallowed.py`, `_module_wiring.py`.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
 ## Verification
 
-- Гейт коммита `b67d901`: 240 Rust-тестов, pytest 211, все проверки прошли.
-- В рабочем дереве этого VAC: `structural_lint::tests::architecture::` 14 прошли за 0,19 с, весь `structural_lint::`
-  169 за 0,9 с; lint кандидата чистый. Четыре удалённых файла на снимке HEAD: 49 случаев за 9,9 с.
+- Гейт коммита `e5699fc`: 204 Rust-теста, pytest 203, все проверки прошли.
+- В рабочем дереве этого VAC: 11 новых тестов прошли за 0,43 с, весь `structural_lint::` 190 за 0,7 с; lint кандидата
+  чистый. Четыре удалённых файла с тестами на снимке HEAD: 31 случай за 6,6 с.
 
 ## Blockers
 

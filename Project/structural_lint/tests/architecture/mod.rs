@@ -4,8 +4,12 @@ use tempfile::TempDir;
 
 mod attributes;
 mod bindings;
+mod crates;
 mod incomplete;
+mod inventory;
 mod macros;
+mod resources;
+mod versioned;
 
 const SKILL: &str = ".agents/skills/refactor-large-directory/SKILL.md";
 const REPAIR: &str = ".agents/skills/repair/SKILL.md";
@@ -171,13 +175,17 @@ impl Consumer {
         fs::write(path.join("architecture.yaml"), text).unwrap();
     }
 
-    pub fn lint(&self) -> Vec<Diagnostic> {
+    fn analysis(&self) -> anyhow::Result<Vec<Diagnostic>> {
         let config = self.root.join("lint.yaml");
         let location = Location {
             root: &self.root,
             config: &config,
         };
-        analyze(location, Mode::Lint).unwrap()
+        analyze(location, Mode::Lint)
+    }
+
+    pub fn lint(&self) -> Vec<Diagnostic> {
+        self.analysis().unwrap()
     }
 
     pub fn passes(&self) {
@@ -190,6 +198,30 @@ impl Consumer {
         let blocking = found.iter().any(|item| item.level.blocking());
         let named = found.iter().any(|item| item.message.contains(expected));
         assert!(blocking && named, "{expected}: {:?}", messages(&found));
+    }
+
+    pub fn rejects(&self, expected: &str) {
+        match self.analysis() {
+            Ok(_) => self.fails(expected),
+            Err(error) => assert!(format!("{error:#}").contains(expected), "{error:#}"),
+        }
+    }
+
+    pub fn snapshot(&self) -> BTreeMap<PathBuf, Vec<u8>> {
+        let mut files = BTreeMap::new();
+        let mut pending = vec![self.root.clone()];
+        while let Some(directory) = pending.pop() {
+            for entry in fs::read_dir(directory).unwrap() {
+                let path = entry.unwrap().path();
+                let nested = path.is_dir();
+                if nested {
+                    pending.push(path);
+                } else {
+                    files.insert(path.clone(), fs::read(path).unwrap());
+                }
+            }
+        }
+        files
     }
 
     pub fn back_edge(&self) {
@@ -207,6 +239,8 @@ impl Consumer {
         let output = Command::new("rustc")
             .args(["+1.98.1", "--edition=2021", "--crate-type=lib"])
             .args(["--emit=metadata", "--out-dir"])
+            .arg(self.temp.path())
+            .arg("-L")
             .arg(self.temp.path())
             .args(args)
             .arg(self.root.join(entry))

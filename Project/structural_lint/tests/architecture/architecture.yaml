@@ -3,6 +3,10 @@ files:
   mod.rs: Consumer projects with directory contracts, in-process lint and compiler checks of Rust samples
   attributes.rs: Attributes that name or guard dependencies, string labels and unanalyzed attributes
   bindings.rs: Rust Self, prelude and generic bound bindings against their lexical owners
+  crates.rs: Local Rust crate edges of compiled consumers and crate settings that cannot hide incomplete analysis
   incomplete.rs: Unanalyzed loaders and attributes, and incomplete analysis beside declared externals
+  inventory.rs: Exact file and directory inventories of source-free trees, empty directories and exclusions
   macros.rs: Macro arguments and definitions, external macro imports and unknown macro provenance
+  resources.rs: Embedded resource edges and resource targets that are missing, dynamic, escaping or ignored
+  versioned.rs: Git working-directory inventories of both lint binaries, ignored trees and empty directories
 directories: {}
