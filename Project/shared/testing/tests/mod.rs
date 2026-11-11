@@ -59,10 +59,14 @@ pub fn python_path() -> &'static OsStr {
         let stderr = String::from_utf8_lossy(&output.stderr);
         assert!(output.status.success(), "tooling Python: {stderr}");
         let bin = PathBuf::from(String::from_utf8(output.stdout).unwrap().trim());
-        let inherited = std::env::var_os("PATH").unwrap_or_default();
-        let paths = std::iter::once(bin).chain(std::env::split_paths(&inherited));
-        std::env::join_paths(paths).unwrap()
+        search_path(bin)
     })
+}
+
+pub fn search_path(first: PathBuf) -> OsString {
+    let inherited = std::env::var_os("PATH").unwrap_or_default();
+    let paths = std::iter::once(first).chain(std::env::split_paths(&inherited));
+    std::env::join_paths(paths).unwrap()
 }
 
 fn build() -> PathBuf {

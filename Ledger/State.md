@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `48c592ea8a0e3b4af5d52fca5a30011ec540a467`, перенос `test_git.py`; этот снимок входит в VAC переноса
-`test_delivery.py`.
+Revision: `395dd034630ee585ddf1de17d1a2bbffb5b66756`, перенос `test_delivery.py`; этот снимок входит в VAC переноса
+`test_runtime.py`.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -35,18 +35,20 @@ Revision: `48c592ea8a0e3b4af5d52fca5a30011ec540a467`, перенос `test_git.p
 - D157 в `cd46b81`, пин `05c2e39`, I021 на Rust в `23e4149`, весь `test_git.py` в `48c592e`: 12 Rust-тестов в
   `Project/change_delivery/git/tests/`, I006 и I010 на оракулах cargo. Ход переноса, соответствие тестов, проверки
   разрыва и замеры ведутся в Delivery карточки [P115](Plan/115.md).
-- Этот VAC переносит `shared/testing/test_delivery.py`: сценарий доставки в `project_setup/tests/delivery.rs`,
-  коллизия `init` и I020 в `project_setup/initialization/tests/`, проверки оракулов и I002 в
-  `project_memory/tests/oracles.rs`. Поддержка `shared/testing/tests` даёт тестам Python инструментов через uv.
+- `test_delivery.py` перенесён в `395dd03`: сценарий доставки в `project_setup/tests/delivery.rs`, коллизия `init` и
+  I020 в `project_setup/initialization/tests/`, проверки оракулов и I002 в `project_memory/tests/oracles.rs`.
+  Поддержка `shared/testing/tests` даёт тестам Python инструментов через uv.
+- Этот VAC переносит `project_setup/tests/test_runtime.py` в `project_setup/tests/runtime.rs`: 3 Rust-теста вместо 4
+  случаев, ссылка D150 указывает на них.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
 ## Verification
 
-- В рабочем дереве этого VAC: весь `--lib` 221 прошли за 23,2 с с готовым кандидатом и за 32,5 с со сборкой;
-  `project_setup` 4 прошли за 9,2 с, оракулы 3 за 2,9 с. Кандидат: `memory-check` проходит с прежним предупреждением
-  о `grammar.js`, D112; `config-check`, `lint-config-check`, lint, rustfmt и Clippy чистые. Проверка разрыва I002 и
-  I020 записана в P115; после отката поломок тесты проходят.
+- Гейт коммита `395dd03`: 221 Rust-тест за 21 с, pytest 258 за 39 с, все проверки прошли.
+- В рабочем дереве этого VAC: `project_setup::tests::` 5 прошли за 11,8 с, из них `runtime` 3 за 5,5 с. Кандидат:
+  `memory-check` проходит с прежним предупреждением о `grammar.js`, D112; `config-check`, lint, rustfmt и Clippy
+  чистые.
 
 ## Blockers
 
@@ -54,6 +56,5 @@ Revision: `48c592ea8a0e3b4af5d52fca5a30011ec540a467`, перенос `test_git.p
 
 ## Next action
 
-Перенести `project_setup/tests/test_runtime.py`, 9 с; дальше `change_delivery/gate/tests/test_gate.py` 7 с и
-остальные по выигранным секундам. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
+Перенести `change_delivery/gate/tests/test_gate.py`, 7 с, и остальные по выигранным секундам. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

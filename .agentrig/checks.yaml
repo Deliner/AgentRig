@@ -36,6 +36,8 @@
     targets: ['change_delivery::git::']
   - include: ['Project/**']
     targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
+  - include: ['Project/clippy.toml', 'Project/shared/skills/**']
+    targets: ['project_setup::tests::runtime::']
   - include: ['Project/agent_hooks/**']
     targets: ['agent_hooks::']
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']

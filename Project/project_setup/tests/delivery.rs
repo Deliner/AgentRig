@@ -1,3 +1,4 @@
+use super::installed_runtime;
 use crate::shared::testing::{
     Run, configure, git, git_run, hermetic, invoke, launch, python_path, repository, run, worker,
 };
@@ -87,16 +88,6 @@ fn copy(from: &Path, to: &Path) {
             fs::copy(entry.path(), to.join(&name)).unwrap();
         }
     }
-}
-
-fn installed_runtime(root: &Path) -> PathBuf {
-    let mut runtimes = fs::read_dir(root.join(".agentrig/bin"))
-        .unwrap()
-        .map(|entry| entry.unwrap().path().join("agentrig"))
-        .filter(|path| path.is_file());
-    let runtime = runtimes.next().unwrap();
-    assert_eq!(runtimes.next(), None);
-    runtime
 }
 
 fn bind(root: &Path, layout: &Layout) {
