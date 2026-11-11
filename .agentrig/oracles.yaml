@@ -19,9 +19,9 @@ I005:
   runner: pytest
   target: Project/agent_hooks/tests/test_hooks.py::test_shell_guard_rejects_bypass
 I006:
-  check: test
-  runner: pytest
-  target: Project/change_delivery/git/tests/test_git.py::test_staged_commit_preserves_unstaged_work
+  check: rust-test
+  runner: cargo
+  target: change_delivery::git::tests::guards::staged_commit_preserves_unstaged_work
 I007:
   check: test
   runner: pytest
@@ -35,9 +35,9 @@ I009:
   runner: pytest
   target: Project/project_memory/tests/test_plan.py::test_plan_delivery_contract
 I010:
-  check: test
-  runner: pytest
-  target: Project/change_delivery/git/tests/test_git.py::test_divergent_rebase_preserves_merge_history
+  check: rust-test
+  runner: cargo
+  target: change_delivery::git::tests::integration::divergent_rebase_preserves_merge_history
 I011:
   check: test
   runner: pytest
@@ -77,5 +77,5 @@ I020:
 I021:
   check: rust-test
   runner: cargo
-  target: change_delivery::git::tests::reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved
+  target: change_delivery::git::tests::guards::reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved
 

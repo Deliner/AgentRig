@@ -29,11 +29,13 @@
   - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
     targets: ['::']
   - include: ['Project/structural_lint/**']
-    targets: ['structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+    targets: ['structural_lint::', 'command_line::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/command_line/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']
-    targets: ['command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+    targets: ['command_line::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/evidence/**', 'Project/shared/testing/**', 'Project/agent_hooks/**']
+    targets: ['change_delivery::git::']
   - include: ['Project/agent_hooks/**']
-    targets: ['agent_hooks::', 'change_delivery::git::tests::']
+    targets: ['agent_hooks::']
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
     targets: ['shared::artifacts::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/paths/**']
@@ -98,7 +100,6 @@
     - Project/project_config/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests
-    - Project/change_delivery/git/tests
     - Project/change_delivery/gate/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests
@@ -120,13 +121,11 @@
     - Project/project_memory/tests/test_memory.py
     - Project/project_memory/tests/test_resume.py
     - Project/change_delivery/gate/tests/test_gate.py
-    - Project/change_delivery/git/tests/test_git.py
   - include:
     - Project/change_delivery/git/**
     - Project/change_delivery/gate/**
     - Project/project_memory/evidence/**
     targets:
-    - Project/change_delivery/git/tests
     - Project/change_delivery/gate/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests/test_resume.py
@@ -139,7 +138,6 @@
     - Project/agent_hooks/tests
     - Project/command_runner/tests
     - Project/project_config/tests
-    - Project/change_delivery/git/tests/test_git.py
     - Project/shared/testing/test_delivery.py
   - include:
     - Project/clippy.toml

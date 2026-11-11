@@ -58,8 +58,3 @@ def commit(root: Path) -> str:
 def evidence(root: Path) -> dict[str, Any]:
     value: dict[str, Any] = json.loads((root / ".runtime/checks.json").read_text())
     return value
-
-
-def feature_repository(root: Path) -> str:
-    repository(root)
-    return revision(root)

@@ -1,5 +1,10 @@
-use crate::shared::testing::{commit, configure, git, invoke, run, runtime};
-use std::path::PathBuf;
+mod cleanup;
+mod guards;
+mod integration;
+mod start;
+
+use crate::shared::testing::{configure, git, invoke};
+use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
 const PROBE_COMMAND: &str = r#"probe:
@@ -18,34 +23,30 @@ fn installed() -> (TempDir, PathBuf) {
     git(&root, &["init", "-q", "-b", "trunk"]);
     git(&root, &["config", "user.name", "Test"]);
     git(&root, &["config", "user.email", "test@example.invalid"]);
-    commit(&root, "shared.txt", "initial\n");
-    git(&root, &["switch", "-c", "task/bootstrap"]);
+    fs::write(root.join("shared.txt"), "initial\n").unwrap();
     let initialized = invoke(&root, &["init", "--base", "trunk", "--prefix", "task/"]);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
     configure(&root, "commands", PROBE_COMMAND);
     configure(&root, "checks", PROBE_CHECK);
-    commit(&root, "ready.txt", "ready");
-    let merged = invoke(&root, &["feature-merge"]);
-    assert_eq!(merged.code, Some(0), "{}", merged.output());
+    git(&root, &["add", "."]);
+    let unhooked = ["-c", "core.hooksPath=/dev/null"];
+    git(
+        &root,
+        &[&unhooked[..], &["commit", "-qm", "installed"]].concat(),
+    );
     (temp, root)
 }
 
-// INVARIANT: I021
-#[test]
-fn reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved() {
-    let (_temp, root) = installed();
-    let unknown = "0".repeat(40);
-    let delete = |branch: &str| {
-        let update = format!("{unknown} {unknown} refs/heads/task/{branch}\n");
-        run(
-            &mut runtime(&root, &["guard-reference", "prepared"]),
-            &update,
-        )
-    };
-    let merged = delete("bootstrap");
-    assert_eq!(merged.code, Some(1), "{}", merged.output());
-    assert!(merged.stderr.contains("retained"), "{}", merged.stderr);
-    let missing = delete("missing");
-    assert_eq!(missing.code, Some(2), "{}", missing.output());
-    assert!(!missing.stderr.contains("retained"), "{}", missing.stderr);
+fn start(root: &Path, name: &str) {
+    let started = invoke(root, &["feature-start", name]);
+    assert_eq!(started.code, Some(0), "{}", started.output());
+}
+
+fn merge(root: &Path) {
+    let merged = invoke(root, &["feature-merge"]);
+    assert_eq!(merged.code, Some(0), "{}", merged.output());
+}
+
+fn read(root: &Path, name: &str) -> String {
+    fs::read_to_string(root.join(name)).unwrap()
 }
