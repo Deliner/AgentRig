@@ -206,6 +206,8 @@ rules:
   - .py
   - .pyi
   error: 3
+  # DECISION: D156
+  junctions: single
   warning_skill: .agents/skills/split-boolean-expression/SKILL.md
   error_skill: .agents/skills/split-boolean-expression/SKILL.md
 # DECISION: D122
@@ -465,6 +467,215 @@ rules:
   level: error
   warning_skill: .agents/skills/subtract-checked/SKILL.md
   error_skill: .agents/skills/subtract-checked/SKILL.md
+# DECISION: D156
+- id: same-type-parameters
+  kind: same-type-parameters
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-arguments/SKILL.md
+  error_skill: .agents/skills/name-the-arguments/SKILL.md
+# DECISION: D156
+- id: same-type-positions
+  kind: same-type-positions
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-positions/SKILL.md
+  error_skill: .agents/skills/name-the-positions/SKILL.md
+# DECISION: D156
+- id: primitive-alias
+  kind: primitive-alias
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/wrap-the-primitive/SKILL.md
+  error_skill: .agents/skills/wrap-the-primitive/SKILL.md
+# DECISION: D156
+- id: ambiguous-option
+  kind: ambiguous-option
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-states/SKILL.md
+  error_skill: .agents/skills/name-the-states/SKILL.md
+# DECISION: D156
+- id: partial-impl
+  kind: partial-impl
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/destructure-the-fields/SKILL.md
+  error_skill: .agents/skills/destructure-the-fields/SKILL.md
+# DECISION: D156
+- id: constant-default
+  kind: constant-default
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/require-the-method/SKILL.md
+  error_skill: .agents/skills/require-the-method/SKILL.md
+# DECISION: D156
+- id: open-checked-field
+  kind: open-checked-field
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/hide-checked-field/SKILL.md
+  error_skill: .agents/skills/hide-checked-field/SKILL.md
+# DECISION: D156
+- id: wrapper-deref
+  kind: wrapper-deref
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/delegate-not-deref/SKILL.md
+  error_skill: .agents/skills/delegate-not-deref/SKILL.md
+# DECISION: D156
+- id: primitive-from
+  kind: primitive-from
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/construct-explicitly/SKILL.md
+  error_skill: .agents/skills/construct-explicitly/SKILL.md
+# DECISION: D156
+- id: paired-calls
+  kind: paired-calls
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/guard-the-pair/SKILL.md
+  error_skill: .agents/skills/guard-the-pair/SKILL.md
+  pairs:
+  - open: begin
+    close: commit
+  - open: lock
+    close: unlock
+  - open: open
+    close: close
+  - open: start
+    close: stop
+  - open: enter
+    close: leave
+  - open: acquire
+    close: release
+# DECISION: D156
+- id: variant-equality
+  kind: variant-equality
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/match-every-variant/SKILL.md
+  error_skill: .agents/skills/match-every-variant/SKILL.md
+# DECISION: D156
+- id: range-chain
+  kind: range-chain
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/match-the-ranges/SKILL.md
+  error_skill: .agents/skills/match-the-ranges/SKILL.md
+# DECISION: D156
+- id: positional-format
+  kind: positional-format
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-placeholders/SKILL.md
+  error_skill: .agents/skills/name-the-placeholders/SKILL.md
+# DECISION: D156
+- id: crossed-field
+  kind: crossed-field
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/align-field-names/SKILL.md
+  error_skill: .agents/skills/align-field-names/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

@@ -76,6 +76,20 @@ pub const ALL: &[Kind] = &[
     Kind::Ownership(Ownership::UnitLock),
     Kind::ControlFlow(ControlFlow::UnlabeledExit),
     Kind::ControlFlow(ControlFlow::LengthSubtraction),
+    Kind::Signature(Signature::SameTypeParameters),
+    Kind::Signature(Signature::SameTypePositions),
+    Kind::Signature(Signature::PrimitiveAlias),
+    Kind::Signature(Signature::AmbiguousOption),
+    Kind::Signature(Signature::PartialImpl),
+    Kind::Signature(Signature::ConstantDefault),
+    Kind::Ownership(Ownership::OpenCheckedField),
+    Kind::Ownership(Ownership::WrapperDeref),
+    Kind::Ownership(Ownership::PrimitiveFrom),
+    Kind::Ownership(Ownership::PairedCalls),
+    Kind::ControlFlow(ControlFlow::VariantEquality),
+    Kind::ControlFlow(ControlFlow::RangeChain),
+    Kind::Reference(Reference::PositionalFormat),
+    Kind::Reference(Reference::CrossedField),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),
@@ -102,7 +116,13 @@ pub fn support(kind: Kind) -> String {
     languages::HANDLERS
         .iter()
         .filter(|handler| handler.rules.contains(&kind))
-        .map(|handler| format!("{} ({})", handler.title, handler.extensions.join(", ")))
+        .map(|handler| {
+            format!(
+                "{title} ({extensions})",
+                title = handler.title,
+                extensions = handler.extensions.join(", ")
+            )
+        })
         .collect::<Vec<_>>()
         .join(" and ")
 }
@@ -205,6 +225,8 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         }
         // DECISION: D156
         Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
+        // DECISION: D156
+        Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

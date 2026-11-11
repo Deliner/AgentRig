@@ -34,6 +34,20 @@ TEST_CODE_EXCLUDED = (
     "length-subtraction",
     "embedded-text",
     "test-placement",
+    "same-type-parameters",
+    "same-type-positions",
+    "primitive-alias",
+    "ambiguous-option",
+    "partial-impl",
+    "constant-default",
+    "open-checked-field",
+    "wrapper-deref",
+    "primitive-from",
+    "paired-calls",
+    "variant-equality",
+    "range-chain",
+    "positional-format",
+    "crossed-field",
 )
 
 

@@ -15,10 +15,10 @@
 ## Workspace
 
 Branch: `feature/structural-bans-2`, от master `ba71c19`.
-Revision: `145e1e0432c72918e57cec9f52f56753ed329c5f`; этот снимок входит в VAC последних пар параметров поверх неё.
+Revision: `e76cd0f8a8ec8a805c4a58113ed615d92431ab66`; этот снимок входит в VAC включения поверх неё.
 
-Установленный рантайм `cf4ba84` (пин фазы 1, `a981384`). Его гейт отвергает `lint.yaml` с новыми видами, поэтому
-включение идёт после ремонта. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `cf4ba84` (пин фазы 1, `a981384`) сам отвергает `lint.yaml` с новыми видами, поэтому
+после включения сразу нужен пин. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с
 `WORKER_BINARY=.cache/worker/release/agentrig`. Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
 
@@ -29,20 +29,20 @@ Revision: `145e1e0432c72918e57cec9f52f56753ed329c5f`; этот снимок вх
 - P114 фаза 2, ремонт рига перед включением: навыки `cc7340f`, смешанные связки и позиционные шаблоны `c150f31`,
   полные match по вариантам `afba94d`, аргументы хуков `dfeab30`, тип `Code` для исходника в детекторах языков
   с выносом `checked_constructor.rs` `8bb13b8`, запись `Revisions` в vcs и пары узлов `2c28e0e`, запись
-  `Location` с корнем и конфигом линта `d0f0b77`, пары корня и пути `145e1e0`, затем последние пары: запись
-  `Invariant` для оракулов, `marker` через разбор ссылок, `Recorded` для State, `Key` базовой линии, `Thresholds`,
-  `Prefix` путей Rust, `concat()` вместо `joined`, `same_cause` как метод, `&OsStr` у `symlink`; ссылка D123
-  только у коммутативного `lowered`. Находок `same-type-parameters` было 94, линт кандидата теперь пуст.
+  `Location` с корнем и конфигом линта `d0f0b77`, пары корня и пути `145e1e0`, последние пары `e76cd0f`; ссылка
+  D123 только у коммутативного `lowered`. Находок `same-type-parameters` было 94, линт кандидата теперь пуст.
   Ветку песочницы для Linux не компилировали: правка `145e1e0` повторяет ветку macOS.
-- Включение лежит в рабочем дереве незакоммиченным: `lint.yaml`, `catalog/mod.rs`, 14 видов в `registry.rs`,
-  `TEST_CODE_EXCLUDED`, правка `test_lint_defaults.py`.
+- Этот VAC включает 14 видов одним коммитом, как в P113: `lint.yaml` с `junctions: single`, `catalog/mod.rs`,
+  `registry.rs`, `TEST_CODE_EXCLUDED`, `test_lint_defaults.py` и Rust-тест настраиваемых пар `paired-calls`
+  через `evaluate`. Тест I020 требует, чтобы init кандидата совпадал с `lint.yaml`, а линт гейта идёт кандидатом.
 - Замер II-7 в поставляемом объёме, Rust и Python вместе с тестами, дал те же 16 мест рига и 5 мест voxel.
 - voxel-rust: P022 там paused, итоги ноутбука слиты в main `37de3ff`.
 
 ## Verification
 
-- Для рабочего дерева этого VAC вместе с включением: Rust lib-тесты 201 из 201, Clippy чистый, `memory-check`
-  кандидата проходит, линт кандидата не даёт ни одной находки.
+- Гейт `e76cd0f` прошёл: Rust 198, Python 419. Для рабочего дерева этого VAC с `lint.yaml`: Rust-тесты
+  `paired_calls` 4 из 4, Python-тесты `test_config_check.py` и `test_lint_defaults.py` на кандидате 43 из 43;
+  до теста пар Rust lib 201 из 201, Clippy чистый, `memory-check` кандидата проходит, линт кандидата пуст.
 
 ## Blockers
 
@@ -50,6 +50,5 @@ Revision: `145e1e0432c72918e57cec9f52f56753ed329c5f`; этот снимок вх
 
 ## Next action
 
-Коммит включения вместе с Rust-тестом `pairs` у `paired-calls` через `evaluate`, затем пин его головы с bootstrap,
-коммит `lint.yaml` с нулём ошибок, проба init, повторный замер, ротация, пин и `feature-merge`. Свободные ID: D157+,
+Пин головы коммита включения с bootstrap, проба init, повторный замер, ротация, пин и `feature-merge`. Свободные ID: D157+,
 I022+, P115+, B108+ (B066 и D111 зарезервированы).

@@ -60,6 +60,24 @@ fn dump_name_reports_only_generic_dumping_ground_directories() {
 }
 
 #[test]
+fn paired_calls_checks_only_the_pairs_its_rule_configures() {
+    let source = "fn save(db: &mut Db, file: &mut File) -> Result<()> {
+    db.begin();
+    write()?;
+    db.commit();
+    file.open();
+    write()?;
+    file.close();
+    Ok(())
+}
+";
+    let rule = "id: pairs, kind: paired-calls, target: file, include: ['**'], extensions: [.rs], \
+        level: error, pairs: [{open: open, close: close}]";
+    let found = findings(&[("src/save.rs", source)], rule);
+    assert_eq!(found, [("src/save.rs".into(), Some(5), Some(1))]);
+}
+
+#[test]
 fn forbidden_file_reports_every_selected_file() {
     let files = [
         ("Project/README.md", ""),
