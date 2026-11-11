@@ -1,31 +1,9 @@
 // DECISION: D016
-use super::architecture::FRONTMATTER;
-use crate::shared::testing::{Run, git, invoke, launch, replay, run, worker};
+use super::consumer::{CONFIG, EXTENSIONS, SKILL, command, consumer, lint, parsed, prepare, write};
+use crate::shared::testing::{git, invoke, replay};
 use serde_json::Value;
-use std::{
-    collections::BTreeMap,
-    fs,
-    path::{Path, PathBuf},
-};
-use tempfile::TempDir;
+use std::{collections::BTreeMap, fs, path::Path};
 
-const SKILL: &str = ".agents/skills/refactor-large-file/SKILL.md";
-const REPAIR: &str = ".agents/skills/repair/SKILL.md";
-const EXTENSIONS: &str = r#"extensions: [".rs", ".py", ".ts"]"#;
-const CONFIG: &str = r#"version: 1
-config_skill: ".agents/skills/repair/SKILL.md"
-
-rules:
-  - id: "source"
-    kind: "nonblank-lines"
-    target: "file"
-    include: ["src/**"]
-    extensions: [".rs", ".py", ".ts"]
-    warning: 3
-    error: 5
-    warning_skill: ".agents/skills/refactor-large-file/SKILL.md"
-    error_skill: ".agents/skills/refactor-large-file/SKILL.md"
-"#;
 const OVERRIDES: &str = r#"
     overrides:
       - include: ["src/**"]
@@ -54,43 +32,6 @@ const INVALID: [(&str, &str); 10] = [
         "",
     ),
 ];
-
-fn prepare(root: &Path, config: &str) {
-    for skill in [SKILL, REPAIR] {
-        let path = root.join(skill);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, FRONTMATTER).unwrap();
-    }
-    fs::create_dir_all(root.join("src")).unwrap();
-    fs::write(root.join("lint.yaml"), config).unwrap();
-}
-
-fn consumer(config: &str) -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    prepare(&root, config);
-    (temp, root)
-}
-
-fn write(root: &Path, name: &str, text: &str) {
-    fs::write(root.join(name), text).unwrap();
-}
-
-fn command(root: &Path, flags: &[&str]) -> Run {
-    let mut args = vec!["lint", "--config", "lint.yaml"];
-    args.extend(flags);
-    run(&mut launch(worker(), root, &args), "")
-}
-
-fn parsed(result: &Run) -> Vec<Value> {
-    let findings = serde_json::from_str(&result.stdout);
-    findings.unwrap_or_else(|error| panic!("{error}: {}", result.output()))
-}
-
-fn lint(root: &Path) -> (Option<i32>, Vec<Value>) {
-    let result = command(root, &["--json", "--warnings"]);
-    (result.code, parsed(&result))
-}
 
 fn replayed(finding: &Value) -> (Option<i32>, Vec<Value>) {
     let result = replay(finding["rerun"].as_str().unwrap());
@@ -152,7 +93,7 @@ fn native_lint_thresholds_and_skills() {
 fn warnings_are_shown_only_on_request() {
     let (_temp, root) = consumer(CONFIG);
     levels(&root);
-    let default = command(&root, &[]);
+    let default = command(&root, "lint", &[]);
     assert_eq!(default.code, Some(1), "{}", default.output());
     let blocked = "ERROR [source] 1 location: one cause, listed below.";
     assert!(default.stdout.contains(blocked), "{}", default.stdout);
@@ -166,12 +107,12 @@ fn warnings_are_shown_only_on_request() {
         "{}",
         default.output()
     );
-    let warned = command(&root, &["--warnings"]).stdout;
+    let warned = command(&root, "lint", &["--warnings"]).stdout;
     let reported = "WARNING [source] 1 location: one cause, listed below.";
     assert!(warned.contains(reported), "{warned}");
     assert!(warned.contains("\n  src/warned.rs: "), "{warned}");
     fs::remove_file(root.join("src/failed.rs")).unwrap();
-    let quiet = command(&root, &["--json"]);
+    let quiet = command(&root, "lint", &["--json"]);
     assert_eq!((quiet.code, quiet.stdout.trim()), (Some(0), "[]"));
 }
 

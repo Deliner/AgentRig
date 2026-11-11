@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `20854d64d80d202ea7dfd7c5b54bb02b497b8109`, перенос тестов свидетельств проверок; этот снимок входит в
-VAC переноса тестов диагностики lint.
+Revision: `04c7afb4291fa78c168490b2ef71bd6d87d5eaa8`, перенос тестов диагностики lint; этот снимок входит в VAC
+переноса тестов проверки конфигурации lint.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -34,16 +34,18 @@ VAC переноса тестов диагностики lint.
   за 2 с; они уже вызывают публичные функции фич в процессе, например `evaluate`, `dispatch`, `init`.
 - D157 в `cd46b81` привязал оракулы cargo к тестам вложенных модулей, пин `05c2e39`. Ход переноса, соответствие
   тестов, проверки разрыва и замеры ведутся по разделу на VAC в Delivery карточки [P115](Plan/115.md).
-- Перенесены, последний в `20854d6`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
+- Перенесены, последний в `04c7afb`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
   тесты архитектуры lint, `test_jobs`, `test_commands`, `test_registry`, `test_layout`, `test_hooks`,
-  `test_lint_defaults`, `test_revision_history`, `test_wizard`, `test_evidence`. На оракулах cargo: I002, I005, I006,
-  I010, I012, I017, I018, I020, I021.
+  `test_lint_defaults`, `test_revision_history`, `test_wizard`, `test_evidence`, `test_lint`. На оракулах cargo: I002,
+  I004, I005, I006, I010, I012, I014, I017, I018, I020, I021.
 - Заготовки: в `shared::testing` проект, память, Git, проверяемый репозиторий, снимок файлов, запуск рантайма,
-  RERUN и `replay`; `Consumer` у входа `structural_lint` линтует потребителя в процессе через закрытый `analyze`. Из
-  других фич lint вызывают только процессом.
-- Этот VAC переносит `test_lint.py` в `structural_lint/tests/diagnostics.rs`: 12 тестов запускают lint процессом,
-  I004 и I014 переходят на оракулы cargo, ссылки D016 и D049 указывают на новый файл. Карта теперь выбирает
-  `structural_lint::` и по `Project/shared/testing/**`.
+  RERUN и `replay`; `Consumer` у входа `structural_lint` линтует потребителя в процессе через закрытый `analyze`;
+  `structural_lint/tests/consumer.rs` готовит потребителя с правилом размера. Из других фич lint вызывают только
+  процессом.
+- Этот VAC переносит `test_config_check.py` в `structural_lint/tests/configuration.rs` и `discovery.rs`: 12 тестов,
+  I016 переходит на оракул cargo, ссылки D018 и D156 указывают на `configuration.rs`, каталог `config/tests` удалён.
+  Дымовой группой для любого пути становятся эти Rust-тесты, группа pytest для любого пути пуста, `conftest.py`
+  выбирает весь pytest.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -53,10 +55,10 @@ VAC переноса тестов диагностики lint.
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `20854d6` прошёл: все 348 Rust-тестов за 22,7 с, их выбрал `.agentrig/**`; pytest 84 за 11,5 с.
-- В рабочем дереве этого VAC: 12 тестов `structural_lint::tests::diagnostics` прошли за 0,18 с, все 267 тестов
-  `structural_lint::`, `change_delivery::gate` и `project_setup` проходят; поломки I004 и I014 роняют оракулы; lint
-  кандидата, memory-check и config-check чистые. Удалённый файл на снимке `e5699fc`: 24 случая за 2,0 с.
+- Гейт коммита `04c7afb` прошёл: все 360 Rust-тестов за 33,7 с, их выбрал `.agentrig/**`; pytest 141 за 16,2 с.
+- В рабочем дереве этого VAC: 12 новых тестов прошли за 0,08 с, все 75 тестов `structural_lint::tests` проходят;
+  поломка отбора файлов роняет оракул I016; lint кандидата, memory-check и config-check чистые. Удалённый файл на
+  снимке `e5699fc`: 30 случаев за 2,0 с.
 
 ## Blockers
 
@@ -64,7 +66,7 @@ VAC переноса тестов диагностики lint.
 
 ## Next action
 
-Перенести остальные Python-тесты по выигранным секундам: `test_config_check`, `test_memory`, `test_lint_baseline`,
-`test_reminders`, `test_resume` и прочие. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
+Перенести остальные Python-тесты по выигранным секундам: `test_memory`, `test_lint_baseline`, `test_reminders`,
+`test_resume` и прочие. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
 дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

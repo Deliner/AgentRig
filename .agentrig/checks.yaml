@@ -25,7 +25,7 @@
   skill: .agents/skills/repair/SKILL.md
   command: rust-test
   affected:
-  - {include: ['**'], targets: []}
+  - {include: ['**'], targets: ['structural_lint::tests::configuration::', 'structural_lint::tests::discovery::']}
   - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
     targets: ['::']
   - include: ['Project/structural_lint/**', 'Project/shared/testing/**']
@@ -70,8 +70,8 @@
   command: test
   # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
   affected:
-  - include: ['**']
-    targets: [Project/structural_lint/config/tests/test_config_check.py]
+  - {include: ['**'], targets: []}
+  - {include: [Project/conftest.py], targets: ['.']}
   - include:
     - Project/structural_lint/**
     - Project/shared/arguments/**

@@ -2,5 +2,4 @@ purpose: Load strict lint configuration and validate rule selection, severity an
 type: flat
 files:
   mod.rs: YAML schema and validation of rule selection, severity and guidance
-directories:
-  tests: Verify lint configuration validation through both CLI entrypoints
+directories: {}
