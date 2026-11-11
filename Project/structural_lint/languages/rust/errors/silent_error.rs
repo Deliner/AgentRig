@@ -229,8 +229,8 @@ fn verdict_function<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let returns_verdict = current
         .child_by_field_name("return_type")
         .is_some_and(|annotation| bool_result(annotation, source));
-    let name = current.child_by_field_name("name")?;
-    returns_verdict.then_some(text(name, source))
+    let name = text(current.child_by_field_name("name")?, source);
+    returns_verdict.then_some(name)
 }
 fn bool_result(annotation: Node<'_>, source: Code<'_>) -> bool {
     let generic = annotation.kind() == "generic_type";

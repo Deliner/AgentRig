@@ -362,6 +362,28 @@ mod tests {
     assert_eq!(eager_findings("source.rs", source), [2]);
 }
 
+#[test]
+fn rust_flags_eager_divisions_calls_in_then_some_and_propagation_in_or() {
+    let source = "fn run(total: u32, count: u32, ready: bool) -> Option<u32> {
+    let a = maybe().unwrap_or(total / count);
+    let b = maybe().unwrap_or(total / 2);
+    let c = maybe().unwrap_or(pick(|| total / count));
+    let d = ready.then_some(compute());
+    let e = ready.then_some(format!(\"{total}\"));
+    let f = ready.then_some(Wrapper(total));
+    let g = ready.then_some(Kind::Ready(total));
+    let h = ready.then_some(Wrapper(total.to_string()));
+    let i = maybe().or(fallback()?);
+    let j = maybe().or(cached());
+    let k = maybe().unwrap_or(compute());
+    // DECISION: D001
+    let l = ready.then_some(compute());
+    a
+}
+";
+    assert_eq!(eager_findings("source.rs", source), [2, 5, 6, 9, 10]);
+}
+
 // DECISION: D094
 #[test]
 fn rust_flags_eager_fallback_inside_macro_bodies() {

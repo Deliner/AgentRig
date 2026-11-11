@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, reparse, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
@@ -35,14 +35,10 @@ pub(super) fn macro_items(node: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
     let Some(fragment) = items_source(tree, source) else {
         return;
     };
-    let Ok(Some(parsed)) = crate::shared::syntax::parse(Path::new("items.rs"), &fragment) else {
+    let Some(parsed) = reparse(Path::new("items.rs"), &fragment) else {
         return;
     };
     let root = parsed.root_node();
-    let broken = root.has_error();
-    if broken {
-        return;
-    }
     let body = Body {
         source: Code::new(&fragment),
         base: tree.start_position().row,

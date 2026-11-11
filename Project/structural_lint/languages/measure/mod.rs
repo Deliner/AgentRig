@@ -4,7 +4,8 @@ use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
 use std::collections::BTreeSet;
-use tree_sitter::Node;
+use std::path::Path;
+use tree_sitter::{Node, Tree};
 
 // DECISION: D017
 pub struct Measurement {
@@ -46,6 +47,13 @@ pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
         found.push(current);
     }
     found
+}
+pub fn reparse(path: &Path, fragment: &str) -> Option<Tree> {
+    let Ok(Some(parsed)) = crate::shared::syntax::parse(path, fragment) else {
+        return None;
+    };
+    let intact = !parsed.root_node().has_error();
+    intact.then_some(parsed)
 }
 pub fn justified(node: Node<'_>, source: Code<'_>) -> bool {
     justified_line(node.start_position().row, source.as_str())
@@ -110,7 +118,8 @@ pub fn mixed_junction(node: Node<'_>) -> Option<usize> {
     let mut found = BTreeSet::new();
     junctions(node, &mut found);
     let mixed = measured && found.len() > 1;
-    mixed.then_some(node.start_position().row + 1)
+    let line = node.start_position().row + 1;
+    mixed.then_some(line)
 }
 fn junctions<'a>(node: Node<'a>, found: &mut BTreeSet<&'static str>) {
     let inner = ungrouped(node);
