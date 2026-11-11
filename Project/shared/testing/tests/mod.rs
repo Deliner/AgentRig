@@ -68,7 +68,12 @@ pub fn worker() -> &'static Path {
 }
 
 pub fn repository() -> &'static Path {
-    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap()
+    static ROOT: OnceLock<PathBuf> = OnceLock::new();
+    ROOT.get_or_init(|| {
+        let manifest =
+            env::var_os("CARGO_MANIFEST_DIR").expect("cargo test sets CARGO_MANIFEST_DIR");
+        Path::new(&manifest).parent().unwrap().to_owned()
+    })
 }
 
 pub fn python_path() -> &'static OsStr {
