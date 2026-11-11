@@ -1,8 +1,6 @@
-purpose: Detect Rust code where an error disappears without a trace or is told apart by its message text instead of its type
+purpose: Detect Rust code where an error disappears without a trace instead of being handled or propagated
 type: flat
 files:
   mod.rs: Dispatch error-handling nodes to the error detectors
   silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries, a filter_map or flat_map keeping only the Ok values of any chain, an Err arm answering a bool verdict or a returned process success that never reads the code
-  unhandled_error.rs: Rust if let Ok without an else whose Err is a failure, and the let-condition and variant-pattern reading shared by the error detectors
-  error_text.rs: Rust contains, starts_with or ends_with on the rendered text of an error bound by an Err arm, an if let Err branch or a map_err closure
 directories: {}
