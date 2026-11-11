@@ -1,7 +1,0 @@
-purpose: Verify Rust measurements of data that crosses into a shell command, a JSON or SQL text or a filesystem action after a check, from native analysis
-files:
-  mod.rs: Declare the boundary measurement test modules and filter one reference kind from native analysis
-  interpolated_shell.rs: Rust shell launches whose command flag is followed by data in the argument chain, with literal and constant commands, other flags, programs, order, justified and test-only launches skipped, from native analysis
-  interpolated_syntax.rs: Rust format, write and writeln templates of JSON or SQL with a placeholder, raw and escaped, with fixed templates, other text, other macros, justified and test-only templates skipped, from native analysis
-  stale_check.rs: Rust exists, is_file and is_dir checks followed by a filesystem action on the same path, closures included, with earlier actions, other paths, nested functions, other checks, justified and test-only checks skipped, from native analysis
-directories: {}

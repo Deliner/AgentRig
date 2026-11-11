@@ -8,8 +8,8 @@ files:
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
   test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
+  shell_command.rs: Rust shell launches whose command flag is followed by data in the argument chain, with literal and constant commands, other flags, programs, order, justified and test-only launches skipped, from native analysis
 directories:
-  boundary: Verify Rust measurements of data that crosses into a shell command, a JSON or SQL text or a filesystem action after a check, from native analysis
   control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
   errors: Verify measurements of code where an error disappears without a trace, from native analysis
   false_pass: Verify Rust measurements of tests that pass on any panic and of items no test build compiles, from native analysis

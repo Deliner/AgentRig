@@ -1,5 +1,4 @@
 mod blocking_async;
-mod boundary;
 mod context;
 mod control_flow;
 mod errors;
@@ -7,6 +6,7 @@ mod false_pass;
 mod naming;
 mod ownership;
 mod panic_surface;
+mod shell_command;
 mod signature;
 mod super_reach;
 mod suppression;
@@ -34,7 +34,6 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
     false_pass::inspect(node, source, output);
-    boundary::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
@@ -84,6 +83,7 @@ fn call(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     eager_fallback(node, source, output);
     panic_surface::catch(node, source, output);
     blocking_async::inspect(node, source, output);
+    shell_command::inspect(node, source, output);
 }
 fn conditional(node: Node<'_>, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {

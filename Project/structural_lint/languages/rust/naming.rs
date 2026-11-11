@@ -33,7 +33,18 @@ fn positional_format(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<Me
     else {
         return;
     };
-    let positional = template(invocation).map_or(0, |template| positional(text(template, source)));
+    let mut cursor = invocation.walk();
+    let Some(tree) = invocation
+        .named_children(&mut cursor)
+        .find(|child| child.kind() == "token_tree")
+    else {
+        return;
+    };
+    let mut tokens = tree.walk();
+    let template = tree
+        .named_children(&mut tokens)
+        .find(|token| matches!(token.kind(), "string_literal" | "raw_string_literal"));
+    let positional = template.map_or(0, |template| positional(text(template, source)));
     let allowed =
         positional < 2 || in_test_context(invocation, source) || justified(invocation, source);
     if allowed {
@@ -45,15 +56,6 @@ fn positional_format(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<Me
         symbol: name.into(),
         actual: 1,
     });
-}
-pub(super) fn template(invocation: Node<'_>) -> Option<Node<'_>> {
-    let mut cursor = invocation.walk();
-    let tree = invocation
-        .named_children(&mut cursor)
-        .find(|child| child.kind() == "token_tree")?;
-    let mut tokens = tree.walk();
-    tree.named_children(&mut tokens)
-        .find(|token| matches!(token.kind(), "string_literal" | "raw_string_literal"))
 }
 fn positional(template: &str) -> usize {
     let mut count = 0;

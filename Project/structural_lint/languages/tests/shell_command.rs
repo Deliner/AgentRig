@@ -1,5 +1,20 @@
-use super::measured;
+use crate::structural_lint::languages::analyze;
+use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
+use std::path::Path;
+
+fn shell_findings(source: &str) -> Vec<(usize, String)> {
+    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
+    assert_eq!(analysis.parse_error, None);
+    let mut found: Vec<_> = analysis
+        .measurements
+        .into_iter()
+        .filter(|item| item.kind == Kind::Reference(Reference::InterpolatedShell))
+        .map(|item| (item.line, item.symbol))
+        .collect();
+    found.sort();
+    found
+}
 
 #[test]
 fn rust_flags_a_shell_command_flag_followed_by_data_anywhere_in_the_chain() {
@@ -13,7 +28,7 @@ fn rust_flags_a_shell_command_flag_followed_by_data_anywhere_in_the_chain() {
 }
 "#;
     assert_eq!(
-        measured(source, Reference::InterpolatedShell),
+        shell_findings(source),
         [
             (2, "sh".to_string()),
             (3, "bash".to_string()),
@@ -38,7 +53,7 @@ fn rust_skips_literal_and_constant_commands_other_flags_programs_and_order() {
     Command::new("sh").args(rest).arg("-c").arg(path).status();
 }
 "#;
-    assert!(measured(source, Reference::InterpolatedShell).is_empty());
+    assert!(shell_findings(source).is_empty());
 }
 
 #[test]
@@ -54,5 +69,5 @@ mod tests {
     }
 }
 "#;
-    assert!(measured(source, Reference::InterpolatedShell).is_empty());
+    assert!(shell_findings(source).is_empty());
 }
