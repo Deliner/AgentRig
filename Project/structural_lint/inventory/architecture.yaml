@@ -2,5 +2,4 @@ purpose: Collect maintained files and directories consistently from versioned an
 type: flat
 files:
   mod.rs: Source discovery, exclusions, directory inventory and structural entry counting
-directories:
-  tests: Verify native and private repository inventory through the CLI
+directories: {}

@@ -7,7 +7,6 @@ files:
   explain.rs: Explain why a configured rule selects or excludes a target and list measured directory edges
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
-  testing: Build isolated lint CLI consumers shared across rule behavior tests
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
   catalog: Describe implemented rule and language capabilities
   config: Load and validate strict lint policy and guidance paths

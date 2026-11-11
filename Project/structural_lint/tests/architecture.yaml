@@ -7,7 +7,7 @@ files:
   explain.rs: Effective selection explanations and diagnostic consistency
   languages.rs: Rust and Python branch conditions, comment references, syntax errors, language selection and defaults, condition policies and single junctions through lint
   baseline.rs: Recorded error baseline, ratchet failures on growth and lowering-only updates
-  portable.rs: Standalone and embedded linter portability scenarios
+  portable.rs: Standalone and embedded linter portability scenarios and their shared Git tracked and untracked inventory
   mod.rs: Line-width and forbidden-file findings from native evaluation
 directories:
   architecture: Directory architecture findings for Rust and Python consumer projects

@@ -1,7 +1,9 @@
 use super::architecture::binaries;
-use super::consumer::{CONFIG, REPAIR, SKILL, parsed, prepare};
+use super::consumer::{CONFIG, REPAIR, SKILL, parsed, prepare, write};
 use crate::shared::testing::{git, hermetic, run, snapshot, worker};
+use serde_json::Value;
 use std::{
+    collections::BTreeSet,
     fs,
     path::{Path, PathBuf},
 };
@@ -22,6 +24,30 @@ fn skill(policy: &Path, name: &str) -> String {
     policy.join(name).to_str().unwrap().to_owned()
 }
 
+fn blocked_by_both(base: &Path) -> [Vec<Value>; 2] {
+    let (policy, project) = (base.join("policy"), base.join("consumer"));
+    let results = binaries().map(|binary| {
+        let mut command = hermetic(&binary);
+        let integrated = binary == worker();
+        if integrated {
+            command.arg("lint");
+        }
+        command.arg("--root").arg(&project);
+        command.arg("--config").arg(policy.join("lint.yaml"));
+        let result = run(command.arg("--json").current_dir(base), "");
+        assert_eq!(result.code, Some(1), "{}", result.output());
+        let mut findings = parsed(&result);
+        for finding in &mut findings {
+            let rerun = finding.as_object_mut().unwrap().remove("rerun").unwrap();
+            let named = rerun.as_str().unwrap().contains(binary.to_str().unwrap());
+            assert!(named, "{rerun}");
+        }
+        findings
+    });
+    assert_eq!(results[0], results[1]);
+    results
+}
+
 #[test]
 fn standalone_matches_worker_without_installing_files() {
     for versioned in [false, true] {
@@ -33,28 +59,37 @@ fn standalone_matches_worker_without_installing_files() {
             git(&project, &["init", "-q"]);
         }
         let before = snapshot(&project);
-        let results = binaries().map(|binary| {
-            let mut command = hermetic(&binary);
-            let integrated = binary == worker();
-            if integrated {
-                command.arg("lint");
-            }
-            command.arg("--root").arg(&project);
-            command.arg("--config").arg(policy.join("lint.yaml"));
-            let result = run(command.arg("--json").current_dir(&base), "");
-            assert_eq!(result.code, Some(1), "{}", result.output());
-            let mut findings = parsed(&result);
-            assert_eq!(findings[0]["skill"], skill(&policy, SKILL));
-            for finding in &mut findings {
-                let rerun = finding.as_object_mut().unwrap().remove("rerun").unwrap();
-                let named = rerun.as_str().unwrap().contains(binary.to_str().unwrap());
-                assert!(named, "{rerun}");
-            }
-            findings
-        });
-        assert_eq!(results[0], results[1]);
+        let [findings, _] = blocked_by_both(&base);
+        assert_eq!(findings[0]["skill"], skill(&policy, SKILL));
         assert_eq!(snapshot(&project), before);
     }
+}
+
+#[test]
+fn both_linters_use_native_tracked_and_untracked_inventory() {
+    let (_temp, base) = portable(&CONFIG.replace(r#"include: ["src/**"]"#, r#"include: ["**"]"#));
+    let project = base.join("consumer");
+    let lines = "line\n".repeat(6);
+    for name in ["src/tracked.py", "src/deleted.py"] {
+        write(&project, name, &lines);
+    }
+    git(&project, &["init", "-q"]);
+    git(&project, &["add", "src"]);
+    git(&project, &["commit", "-qm", "base"]);
+    write(&project, ".gitignore", "ignored.py\ntracked.py\n");
+    for name in ["src/added.py", "src/unknown.py", "src/ignored.py"] {
+        write(&project, name, &lines);
+    }
+    git(&project, &["add", "src/added.py"]);
+    fs::remove_file(project.join("src/deleted.py")).unwrap();
+    std::os::unix::fs::symlink("tracked.py", project.join("src/link.py")).unwrap();
+    write(&project, ".git/control.py", &lines);
+    let before = snapshot(&project.join("src"));
+    let [findings, _] = blocked_by_both(&base);
+    let paths: BTreeSet<_> = findings.iter().map(|item| item["path"].as_str()).collect();
+    let expected = ["src/added.py", "src/tracked.py", "src/unknown.py"].map(Some);
+    assert_eq!(paths, BTreeSet::from(expected));
+    assert_eq!(snapshot(&project.join("src")), before);
 }
 
 #[test]
