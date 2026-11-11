@@ -1,0 +1,5 @@
+purpose: Verify measurements of code where an error disappears without a trace, from native analysis
+files:
+  mod.rs: Declare the error measurement test modules
+  silent_error.rs: Python except-pass, Rust collapsed read_dir chain, verdict-answering Err arm and unread process success measurements from native analysis
+directories: {}

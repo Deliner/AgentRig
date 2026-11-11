@@ -1,11 +1,11 @@
 mod blocking_async;
 mod context;
 mod control_flow;
+mod errors;
 mod naming;
 mod ownership;
 mod panic_surface;
 mod signature;
-mod silent_error;
 mod super_reach;
 mod suppression;
 mod test_placement;
@@ -29,6 +29,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     signature::inspect(node, source, output);
     ownership::inspect(node, source, pairs, output);
     control_flow::inspect(node, source, output);
+    errors::inspect(node, source, output);
     naming::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
@@ -50,14 +51,11 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
         "scoped_identifier" => super_reach::inspect(node, source, output),
         "mod_item" => test_placement::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
-        "if_expression" => conditional(node, source, output),
+        "if_expression" => conditional(node, output),
         "binary_expression" | "let_chain" => boolean_expression(node, output),
-        "match_arm" => silent_error::verdict_arm(node, source, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output);
             unsafe_site::inspect(node, source, output);
-            // DECISION: D126
-            silent_error::exit_verdict(node, source, output);
         }
         _ => {}
     }
@@ -80,17 +78,15 @@ fn literal(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
 fn call(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     panic_surface::panic_call(node, source, output);
     eager_fallback(node, source, output);
-    silent_error::collapsed_read_dir(node, source, output);
     panic_surface::catch(node, source, output);
     blocking_async::inspect(node, source, output);
 }
-fn conditional(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+fn conditional(node: Node<'_>, output: &mut Vec<Measurement>) {
     let Some(test) = node.child_by_field_name("condition") else {
         return;
     };
     let binding = test.kind() == "let_condition";
     if binding {
-        silent_error::verdict_if(node, source, output);
         return;
     }
     condition(test, output);

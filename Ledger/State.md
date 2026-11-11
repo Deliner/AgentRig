@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/error-loss`, от master `52aa173`.
-Revision: `f580a4b299ab8a7866b73fc1647dadd51a77582c`
+Revision: `044a36a78afc674f6f2e4464188f35ea88c89cb5`
 
 Установленный рантайм `1387d14`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -20,8 +20,11 @@ Revision: `f580a4b299ab8a7866b73fc1647dadd51a77582c`
 
 ## Progress
 
-- P120: VAC 1 `f580a4b` сохранил B115–B120 и выбрал P120–P125. VAC 2 записывает протокол замера шума в Delivery
-  P120 до первого прогона; копии деревьев заморожены в scratchpad `p120/base` и `p120/corpus`.
+- P120: VAC 1 `f580a4b` сохранил B115–B120 и выбрал P120–P125. VAC 2 `044a36a` записал протокол замера шума в
+  Delivery P120 до первого прогона; копии деревьев заморожены в scratchpad `p120/base` и `p120/corpus`. VAC 3
+  переносит `silent_error` и его тесты в `languages/rust/errors` и `languages/tests/errors`; ссылки D069, D097 и
+  D126 идут за файлами. Новое семейство детекторов поднимает бюджет зависимых `rules` с 12 до 13 и `measure` с 6
+  до 7, как D155 для `control_flow`; записать это в решение P120.
 - Clippy по умолчанию сам ловит `lines()` с `filter_map(Result::ok)`, `flat_map` или `flatten` и `map(..).flatten()`;
   расширение `silent-error` эти места пропускает, у формы один владелец.
 - Проба Clippy 2026-11-11: `or_fun_call` ловит вызов и макрос в `unwrap_or`, `ok_or`, `or`, `map_or`, но не
@@ -33,6 +36,8 @@ Revision: `f580a4b299ab8a7866b73fc1647dadd51a77582c`
 ## Verification
 
 - Гейт слияния P119 на master `8dff66d`: все проверки PASS, 399 тестов.
+- Перенос VAC 3: 7 тестов `languages::tests::errors` прошли; `silent-error` бинарника `044a36a` и кандидата дают
+  одни и те же 157 находок на риге, voxel, корпусе и фикстуре.
 
 ## Blockers
 

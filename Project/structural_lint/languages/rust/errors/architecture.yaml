@@ -1,0 +1,6 @@
+purpose: Detect Rust code where an error disappears without a trace instead of being handled or propagated
+type: flat
+files:
+  mod.rs: Dispatch error-handling nodes to the error detectors
+  silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries, an Err arm answering a bool verdict or a returned process success that never reads the code
+directories: {}
