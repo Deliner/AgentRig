@@ -1,6 +1,5 @@
 purpose: Verify invalid runtime and execution settings are rejected before project operations
 files:
   mod.rs: Invalid affected groups, checks naming unknown commands and malformed reminder settings fail configuration loading
-  settings.rs: Capability consistency with the gate, unknown capabilities and strict YAML of the project module
-  test_configuration.py: Runtime version, schema and process setting validation diagnostics
+  settings.rs: Actionable diagnostics for invalid runtime, schema, path, Git and capability settings and strict module YAML
 directories: {}

@@ -199,7 +199,7 @@ ruff:
   - tooling/pyproject.toml
 mypy:
   purpose: Type-check Python tests and fixtures
-  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/conftest.py", "tooling/distribution/tests", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
 typos:
   purpose: Check spelling across the repository
   argv:
@@ -214,4 +214,4 @@ typos:
   - .
 vulture:
   purpose: Report unused Python code
-  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/project_config", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/conftest.py", "tooling/distribution/tests", "Project/project_memory", "Project/project_setup", "Project/shared", "Project/structural_lint"]

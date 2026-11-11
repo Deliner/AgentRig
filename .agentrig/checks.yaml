@@ -96,7 +96,6 @@
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_config/tests
     - Project/project_memory/tests
     - Project/project_setup/tests
     - Project/shared/testing/examples/python/application/test_sample.py
@@ -106,20 +105,11 @@
     targets:
     - Project/project_memory/tests
   - include:
-    - Project/command_runner/**
-    targets:
-    - Project/project_config/tests
-  - include:
     - Project/change_delivery/git/**
     - Project/change_delivery/gate/**
     - Project/project_memory/evidence/**
     targets:
     - Project/project_memory/tests/test_state.py
-  - include:
-    - Project/agent_hooks/**
-    - .agentrig/**
-    targets:
-    - Project/project_config/tests
   - include:
     - Project/clippy.toml
     - Project/project_setup/**
