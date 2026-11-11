@@ -1,0 +1,5 @@
+purpose: "Repair tests that pass falsely: a should_panic test that passes on any panic and an item compiled out of every test build, or justify the exception with a reference"
+files: {}
+directories:
+  expect-the-panic: "Name the panic a should_panic test expects or test the returned error, or justify any panic with a reference"
+  inject-the-variant: "Inject what varies between product and test instead of compiling an item out of test builds, or justify the exclusion with a reference"

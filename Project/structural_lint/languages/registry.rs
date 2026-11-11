@@ -75,6 +75,8 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Reference(Reference::CrossedField),
             Kind::Signature(Signature::PositionalFlag),
             Kind::Ownership(Ownership::ExposedGuard),
+            Kind::Reference(Reference::UntargetedPanic),
+            Kind::Reference(Reference::TestSubstitution),
             Kind::ControlFlow(ControlFlow::BooleanExpression),
             Kind::Structure(Structure::EmbeddedText),
             Kind::Reference(Reference::Comment),

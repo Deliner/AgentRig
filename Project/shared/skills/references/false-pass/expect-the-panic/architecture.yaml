@@ -1,0 +1,5 @@
+purpose: "Name the panic a should_panic test expects, test the returned error instead, or record why any panic is intended with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to name the expected panic of a should_panic test"
+directories: {}
