@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `4c4c1fee6c5f4cd4b822a0059d2be66aca456e6e`, перенос тестов команд lint; этот снимок входит в VAC переноса
-тестов напоминаний.
+Revision: `052dc72f22d5551d9ea8531461061d4211ae8212`, перенос тестов напоминаний; этот снимок входит в VAC переноса
+тестов восстановления.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -34,19 +34,18 @@ Revision: `4c4c1fee6c5f4cd4b822a0059d2be66aca456e6e`, перенос тесто�
   за 2 с; они уже вызывают публичные функции фич в процессе, например `evaluate`, `dispatch`, `init`.
 - D157 в `cd46b81` привязал оракулы cargo к тестам вложенных модулей, пин `05c2e39`. Delivery карточки [P115](Plan/115.md)
   ведётся по критериям: соответствие AC3 со временем AC5 по файлам, поломки AC4, карта AC6; ход VAC — в коммитах.
-- Перенесены, последний в `4c4c1fe`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
+- Перенесены, последний в `052dc72`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
   тесты архитектуры lint, `test_jobs`, `test_commands`, `test_registry`, `test_layout`, `test_hooks`,
   `test_lint_defaults`, `test_revision_history`, `test_wizard`, `test_evidence`, `test_lint`, `test_config_check`,
-  `test_memory`, `test_lint_baseline`, `test_lint_explain`, `test_lint_portable`. На оракулах cargo: I001, I002, I003,
-  I004, I005, I006, I008, I010, I012, I014, I016, I017, I018, I020, I021.
+  `test_memory`, `test_lint_baseline`, `test_lint_explain`, `test_lint_portable`, `test_reminders`. На оракулах cargo:
+  I001–I008, I010, I012, I014, I016, I017, I018, I020, I021.
 - Заготовки: в `shared::testing` проект, память, Git, проверяемый репозиторий, снимок файлов, запуск рантайма,
   RERUN и `replay`; `Consumer` у входа `structural_lint` линтует потребителя в процессе через закрытый `analyze`;
   `structural_lint/tests/consumer.rs` готовит потребителя с правилом размера; `project_memory/tests/consumer.rs`
   готовит память с решением D001 и коммитом. Из других фич lint вызывают только процессом.
-- Этот VAC переносит `test_reminders.py` в `agent_hooks/tests/reminders.rs`, 4 теста через `dispatch` в процессе, и
-  проверку неверных настроек напоминаний в `project_config::tests`. I007 переходит на оракул cargo, ссылки D006 и D019
-  указывают на `reminders.rs`; в `agent_hooks/tests` Python-тестов не осталось, цель pytest убрана из карты, а группа
-  `rust-test` для `Project/agent_hooks/**` выбирает и `project_config::tests::`.
+- Этот VAC переносит `test_resume.py` в `project_memory/tests/resume.rs`: 5 тестов через процесс `resume`. I019
+  переходит на оракул cargo; файл удалён из карты pytest. Помощник `shared/testing/repository.py` больше никто не
+  импортировал, он удалён.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -56,9 +55,9 @@ Revision: `4c4c1fee6c5f4cd4b822a0059d2be66aca456e6e`, перенос тесто�
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `4c4c1fe` прошёл: 392 Rust-теста за 32,63 с, pytest 42 за 3,24 с.
-- В рабочем дереве этого VAC: 5 новых тестов прошли за 1,33 с; поломка интервала внимания роняет оракул I007 на
-  `reminders.rs:111`, после отката тесты проходят. Удалённый файл на снимке: 11 случаев за 1,74 с.
+- Гейт коммита `052dc72` прошёл: 397 Rust-тестов за 32,77 с, pytest 119 за 9,36 с.
+- В рабочем дереве этого VAC: 5 новых тестов прошли за 0,55 с; поломка распознавания слияния роняет оракул I019 на
+  `resume.rs:77`, после отката тесты проходят. Удалённый файл на снимке: 6 случаев за 1,37 с.
 
 ## Blockers
 
@@ -66,7 +65,7 @@ Revision: `4c4c1fee6c5f4cd4b822a0059d2be66aca456e6e`, перенос тесто�
 
 ## Next action
 
-Перенести остальные Python-тесты по выигранным секундам: `test_resume` с I019, `test_doctor`, `test_capabilities` и
-прочие. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
+Перенести остальные Python-тесты по выигранным секундам: `test_doctor`, `test_capabilities`, `test_language` и прочие;
+I009, I011 и I015 пока на pytest. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
 дописывает строки в таблицы Delivery P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

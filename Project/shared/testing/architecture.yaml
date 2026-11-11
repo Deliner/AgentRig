@@ -2,7 +2,6 @@ purpose: Construct configured consumer projects and invoke their workflow comman
 type: custom
 dependents: 10
 files:
-  repository.py: Construct checked Git repositories and observe revisions and workflow evidence
   consumer.py: Seed project policy and empty memory and invoke or observe commands
 directories:
   examples: Independent consumer projects and portable usage demonstrations

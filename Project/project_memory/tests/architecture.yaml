@@ -3,7 +3,7 @@ files:
   mod.rs: Declare the Rust memory scenarios
   oracles.rs: Bind cargo invariant oracles to the marked test of a nested module and reject other bindings
   consumer.rs: Construct memory consumers and committed decision baselines for memory scenarios
-  test_resume.py: Reconcile recorded State with Git repository observations
+  resume.rs: Reconcile recorded State with Git repository observations
   history.rs: Preserve committed decision history across revision and merge-parent checks
   validation.rs: Validate markers, references, plan cycles, layout, kept decision history and read-only resume
   test_plan.py: Validate current and archived outcomes, references and delivery transitions

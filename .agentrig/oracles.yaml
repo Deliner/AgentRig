@@ -67,9 +67,9 @@ I018:
   runner: cargo
   target: project_memory::evidence::tests::evidence_tracks_content_and_partial_checks
 I019:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_resume.py::test_resume_observes_real_conflict
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::resume::resume_observes_real_conflict
 I020:
   check: rust-test
   runner: cargo

@@ -111,13 +111,11 @@
     - Project/command_runner/**
     targets:
     - Project/project_config/tests
-    - Project/project_memory/tests/test_resume.py
   - include:
     - Project/change_delivery/git/**
     - Project/change_delivery/gate/**
     - Project/project_memory/evidence/**
     targets:
-    - Project/project_memory/tests/test_resume.py
     - Project/project_memory/tests/test_state.py
   - include:
     - Project/agent_hooks/**
