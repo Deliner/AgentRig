@@ -676,6 +676,7 @@ rules:
   level: error
   warning_skill: .agents/skills/align-field-names/SKILL.md
   error_skill: .agents/skills/align-field-names/SKILL.md
+# DECISION: D166
 - id: positional-flag
   kind: positional-flag
   target: file
@@ -689,6 +690,7 @@ rules:
   level: error
   warning_skill: .agents/skills/name-the-flag/SKILL.md
   error_skill: .agents/skills/name-the-flag/SKILL.md
+# DECISION: D166
 - id: exposed-guard
   kind: exposed-guard
   target: file

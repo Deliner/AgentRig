@@ -14,6 +14,7 @@ const GUARDS: &[&str] = &[
     "RefMut",
 ];
 
+// DECISION: D166
 pub(super) fn inspect(function: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = function.walk();
     let visible = function

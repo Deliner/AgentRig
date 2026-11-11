@@ -1,6 +1,7 @@
 use super::measured;
 use crate::structural_lint::rules::ownership::Ownership;
 
+// DECISION: D166
 #[test]
 fn rust_flags_visible_functions_that_return_a_lock_guard_or_cell_borrow_at_any_depth() {
     let source = "impl Store {

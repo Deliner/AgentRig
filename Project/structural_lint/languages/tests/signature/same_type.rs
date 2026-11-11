@@ -70,6 +70,7 @@ struct Pair(u8, u8);
     );
 }
 
+// DECISION: D166
 #[test]
 fn rust_flags_tuple_structs_and_variants_with_a_bool_among_two_or_more_positions() {
     let source = "pub struct Save(pub PathBuf, pub bool);

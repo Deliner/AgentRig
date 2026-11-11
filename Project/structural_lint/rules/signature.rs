@@ -202,6 +202,7 @@ const CONSTANTDEFAULT: Descriptor = Descriptor {
         violation: "a default body that ignores self hands every implementor a constant it never decided; drop the default so each implementor writes it, or put a DECISION: or INVARIANT: reference on the line directly above it for a compatibility promise",
     },
 };
+// DECISION: D166
 const POSITIONALFLAG: Descriptor = Descriptor {
     default_id: "positional-flag",
     exclude: TEST_CODE,

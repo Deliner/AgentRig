@@ -165,6 +165,7 @@ const UNITLOCK: Descriptor = Descriptor {
         violation: "a lock around () guards nothing the compiler can see, so which data it protects lives only in comments and any access without the lock compiles; move the protected data inside the lock, or put a DECISION: or INVARIANT: reference on the line directly above it when it serializes an external resource",
     },
 };
+// DECISION: D166
 const EXPOSEDGUARD: Descriptor = Descriptor {
     default_id: "exposed-guard",
     exclude: TEST_CODE,

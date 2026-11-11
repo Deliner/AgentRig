@@ -30,6 +30,7 @@ pub(super) fn parameters(function: Node<'_>, source: Code<'_>, output: &mut Vec<
     report(function, source, Signature::SameTypeParameters, output);
 }
 // DECISION: D156
+// DECISION: D166
 pub(super) fn positions(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(body) = item
         .child_by_field_name("body")
