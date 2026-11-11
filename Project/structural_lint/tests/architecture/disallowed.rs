@@ -70,7 +70,7 @@ fn disallowed_paths_flag_references_outside_allowed_files() {
         policed(POLICY).located(),
         [("src/a/mod.rs".to_owned(), Some(3), message)]
     );
-    assert!(described().get("disallowed").is_some());
+    assert!(described()["architecture"].get("disallowed").is_some());
 }
 
 // DECISION: D125
@@ -92,7 +92,7 @@ fn disallowed_methods_flag_bare_calls_whose_errors_propagate() {
         ("src/a/mod.rs".to_owned(), Some(line), message)
     });
     assert_eq!(consumer.located(), expected);
-    let fields = described()["disallowed"].to_string();
+    let fields = described()["architecture"]["disallowed"].to_string();
     assert!(fields.contains("methods"), "{fields}");
 }
 

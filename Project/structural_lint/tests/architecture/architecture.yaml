@@ -3,12 +3,16 @@ files:
   mod.rs: Consumer projects with directory contracts, in-process lint and compiler checks of Rust samples
   attributes.rs: Attributes that name or guard dependencies, string labels and unanalyzed attributes
   bindings.rs: Rust Self, prelude and generic bound bindings against their lexical owners
+  cli.rs: Findings of both lint binaries, warning level without mutation, rule discovery, explanation and escaping links
   coupling.rs: Dependents budgets with their edges, lint-edges, test-only uses and file fan-out budgets
   crates.rs: Local Rust crate edges of compiled consumers and crate settings that cannot hide incomplete analysis
   disallowed.rs: Disallowed paths and propagated method calls outside allowed files, and invalid policy entries
-  incomplete.rs: Unanalyzed loaders and attributes, and incomplete analysis beside declared externals
+  externals.rs: Declared external dependencies that the selected sources never name
+  incomplete.rs: Unresolved imports, unanalyzed loaders and attributes, and incomplete analysis beside declared externals
   inventory.rs: Exact file and directory inventories of source-free trees, empty directories and exclusions
   macros.rs: Macro arguments and definitions, external macro imports and unknown macro provenance
   resources.rs: Embedded resource edges and resource targets that are missing, dynamic, escaping or ignored
+  settings.rs: Invalid architecture settings and crate roots required by enabled Rust rules
   versioned.rs: Git working-directory inventories of both lint binaries, ignored trees and empty directories
+  wiring.rs: Rust module declarations, source includes, explicit module paths and visibility paths
 directories: {}

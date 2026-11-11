@@ -51,15 +51,6 @@ def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
     return value
 
 
-def edges(worker: Path, root: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [str(worker), "lint-edges", *args, "--root", str(root), "--config", "lint.yaml"],
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-
-
 def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
     config = (
         CONFIG.replace("nonblank-lines", kind)

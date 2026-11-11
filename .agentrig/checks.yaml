@@ -83,7 +83,6 @@
     targets:
     - Project/structural_lint/tests
     - Project/structural_lint/inventory/tests
-    - Project/structural_lint/architecture/tests
     - Project/structural_lint/languages/tests
     - Project/project_setup/tests/test_lint_defaults.py
     - Project/project_memory/tests/test_memory.py

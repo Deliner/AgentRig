@@ -1,18 +1,29 @@
+use crate::shared::testing::{launch, run, worker};
 use crate::structural_lint::rules::{Kind, structure::Structure};
 use crate::structural_lint::{Diagnostic, Location, Mode, analyze, catalog};
-use std::{collections::BTreeMap, fs, path::PathBuf, process::Command};
+use serde_json::Value;
+use std::{
+    collections::BTreeMap,
+    fs,
+    path::{Path, PathBuf},
+    process::Command,
+};
 use tempfile::TempDir;
 
 mod attributes;
 mod bindings;
+mod cli;
 mod coupling;
 mod crates;
 mod disallowed;
+mod externals;
 mod incomplete;
 mod inventory;
 mod macros;
 mod resources;
+mod settings;
 mod versioned;
+mod wiring;
 
 const SKILL: &str = ".agents/skills/refactor-large-directory/SKILL.md";
 const REPAIR: &str = ".agents/skills/repair/SKILL.md";
@@ -199,6 +210,20 @@ impl Consumer {
         found.into_iter().map(location).collect()
     }
 
+    pub fn process(&self, binary: &Path) -> (Option<i32>, Value) {
+        let args = ["lint", "--config", "lint.yaml", "--json", "--warnings"];
+        let result = run(&mut launch(binary, &self.root, &args), "");
+        let parsed = serde_json::from_str(&result.stdout);
+        let mut findings: Value =
+            parsed.unwrap_or_else(|error| panic!("{error}: {}", result.output()));
+        for item in findings.as_array_mut().unwrap() {
+            let rerun = item.as_object_mut().unwrap().remove("rerun").unwrap();
+            let named = rerun.as_str().unwrap().contains(binary.to_str().unwrap());
+            assert!(named, "{rerun}");
+        }
+        (result.code, findings)
+    }
+
     pub fn invalid(&self) {
         let checked = self.analysis(Mode::ConfigCheck);
         assert!(checked.is_err(), "the configuration check passed");
@@ -283,7 +308,13 @@ pub fn messages(found: &[Diagnostic]) -> Vec<&str> {
     found.iter().map(|item| item.message.as_str()).collect()
 }
 
-pub fn described() -> serde_json::Value {
-    let kind = Kind::Structure(Structure::DirectoryArchitecture);
-    catalog::describe(kind)["architecture"].clone()
+pub fn described() -> Value {
+    catalog::describe(Kind::Structure(Structure::DirectoryArchitecture))
+}
+
+pub fn binaries() -> [PathBuf; 2] {
+    [
+        worker().to_owned(),
+        worker().with_file_name("agentrig-lint"),
+    ]
 }

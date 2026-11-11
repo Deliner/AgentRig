@@ -192,5 +192,5 @@ fn fan_out_setting_flags_wide_files_but_not_crate_roots() {
             .collect();
         assert_eq!(located(&consumer, ";"), expected);
     }
-    assert!(described().get("fan_out").is_some());
+    assert!(described()["architecture"].get("fan_out").is_some());
 }

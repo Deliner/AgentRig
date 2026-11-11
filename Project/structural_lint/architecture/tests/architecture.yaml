@@ -1,5 +1,0 @@
-purpose: Verify architecture inventories and dependency cycles through real Rust and Python CLI consumers
-files:
-  test_architecture.py: Shared architecture consumer construction and baseline dependency scenarios
-  test_architecture_module_wiring.py: Rust module declaration and literal path boundary scenarios
-directories: {}

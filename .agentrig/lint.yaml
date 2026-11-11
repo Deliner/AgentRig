@@ -848,7 +848,6 @@ rules:
       - argparse
       - dataclasses
       - datetime
-      - itertools
       - json
       - os
       - pathlib

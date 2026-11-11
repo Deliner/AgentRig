@@ -44,6 +44,20 @@ fn unanalyzed_loaders_and_attributes_cannot_pass() {
 }
 
 #[test]
+fn unresolved_python_imports_are_incomplete_at_their_line() {
+    for source in ["from missing.api import value\n", "from b.api import\n"] {
+        let consumer = Consumer::new(Language::Python);
+        consumer.source(source);
+        let found = consumer.lint();
+        let located = found.iter().any(|item| {
+            let incomplete = item.message.contains(INCOMPLETE);
+            item.level.blocking() && incomplete && item.line == Some(1)
+        });
+        assert!(located, "{:?}", messages(&found));
+    }
+}
+
+#[test]
 fn nonexpanding_rust_metadata_remains_supported() {
     rust(
         "#![allow(dead_code)]\n#[inline]\n#[doc = \"API\"]\n\
