@@ -1,10 +1,13 @@
-use crate::structural_lint::{Diagnostic, Location, Mode, analyze};
+use crate::structural_lint::rules::{Kind, structure::Structure};
+use crate::structural_lint::{Diagnostic, Location, Mode, analyze, catalog};
 use std::{collections::BTreeMap, fs, path::PathBuf, process::Command};
 use tempfile::TempDir;
 
 mod attributes;
 mod bindings;
+mod coupling;
 mod crates;
+mod disallowed;
 mod incomplete;
 mod inventory;
 mod macros;
@@ -175,17 +178,30 @@ impl Consumer {
         fs::write(path.join("architecture.yaml"), text).unwrap();
     }
 
-    fn analysis(&self) -> anyhow::Result<Vec<Diagnostic>> {
+    fn analysis(&self, mode: Mode) -> anyhow::Result<Vec<Diagnostic>> {
         let config = self.root.join("lint.yaml");
         let location = Location {
             root: &self.root,
             config: &config,
         };
-        analyze(location, Mode::Lint)
+        analyze(location, mode)
     }
 
     pub fn lint(&self) -> Vec<Diagnostic> {
-        self.analysis().unwrap()
+        self.analysis(Mode::Lint).unwrap()
+    }
+
+    pub fn located(&self) -> Vec<(String, Option<usize>, String)> {
+        let found = self.lint();
+        let blocking = found.iter().all(|item| item.level.blocking());
+        assert!(blocking, "{:?}", messages(&found));
+        let location = |item: Diagnostic| (item.path, item.line, item.message);
+        found.into_iter().map(location).collect()
+    }
+
+    pub fn invalid(&self) {
+        let checked = self.analysis(Mode::ConfigCheck);
+        assert!(checked.is_err(), "the configuration check passed");
     }
 
     pub fn passes(&self) {
@@ -201,7 +217,7 @@ impl Consumer {
     }
 
     pub fn rejects(&self, expected: &str) {
-        match self.analysis() {
+        match self.analysis(Mode::Lint) {
             Ok(_) => self.fails(expected),
             Err(error) => assert!(format!("{error:#}").contains(expected), "{error:#}"),
         }
@@ -265,4 +281,9 @@ pub fn declared(external: &str, source: &str) -> Consumer {
 
 pub fn messages(found: &[Diagnostic]) -> Vec<&str> {
     found.iter().map(|item| item.message.as_str()).collect()
+}
+
+pub fn described() -> serde_json::Value {
+    let kind = Kind::Structure(Structure::DirectoryArchitecture);
+    catalog::describe(kind)["architecture"].clone()
 }
