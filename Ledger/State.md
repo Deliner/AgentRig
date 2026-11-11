@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `d4c17ee0296fc2c36f09c1afa3a391f598462239`, перенос `test_backlog`; этот снимок входит в VAC переноса
-`test_language`.
+Revision: `b626a0d749f7125fc947acbdd000abb9d332fec8`, перенос `test_language`; этот снимок входит в VAC переноса
+`test_language_delivery`.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -34,22 +34,20 @@ Revision: `d4c17ee0296fc2c36f09c1afa3a391f598462239`, перенос `test_backl
   за 2 с; они уже вызывают публичные функции фич в процессе, например `evaluate`, `dispatch`, `init`.
 - D157 в `cd46b81` привязал оракулы cargo к тестам вложенных модулей, пин `05c2e39`. Delivery карточки [P115](Plan/115.md)
   ведётся по критериям: соответствие AC3 со временем AC5 по файлам, поломки AC4, карта AC6; ход VAC — в коммитах.
-- Перенесены, последний в `d4c17ee`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
+- Перенесены, последний в `b626a0d`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
   тесты архитектуры lint, `test_jobs`, `test_commands`, `test_registry`, `test_layout`, `test_hooks`,
   `test_lint_defaults`, `test_revision_history`, `test_wizard`, `test_evidence`, `test_lint`, `test_config_check`,
   `test_memory`, `test_lint_baseline`, `test_lint_explain`, `test_lint_portable`, `test_reminders`, `test_resume`,
-  `test_doctor`, `test_capabilities`, `test_configuration`, `test_state`, `test_plan`, `test_backlog`. На оракулах
-  cargo: I001–I012, I014, I016–I021.
+  `test_doctor`, `test_capabilities`, `test_configuration`, `test_state`, `test_plan`, `test_backlog`, `test_language`.
+  Все инварианты на оракулах cargo: I001–I012, I014–I021.
 - Заготовки: в `shared::testing` проект, память, Git, проверяемый репозиторий, снимок файлов, запуск рантайма,
   RERUN и `replay`; `Consumer` у входа `structural_lint` линтует потребителя в процессе через закрытый `analyze`;
   `structural_lint/tests/consumer.rs` готовит потребителя с правилом размера; `project_memory/tests/consumer.rs`
   готовит память с решением D001 и коммитом. Из других фич lint вызывают только процессом.
-- Этот VAC переносит `test_language.py`: условия, ошибки разбора, выбор языков, политики условий и одиночные
-  связки идут процессами `lint` в `structural_lint/tests/languages.rs`, число параметров и строки функций читаются в
-  процессе в `structural_lint/languages/tests/declarations.rs`. Оракул I015 теперь cargo
-  `structural_lint::tests::languages::language_conditions`, так что все инварианты на cargo. Ссылки D017 и D156
-  указывают на новые файлы. Заготовка конфигурации правила `configured` перенесена в общий `consumer.rs`. Карта Rust
-  уже выбирает `structural_lint::` на тех же путях.
+- Этот VAC переносит `test_language_delivery.py` в `structural_lint/tests/languages.rs`: ссылки в комментариях через
+  CLI и общая ошибка разбора при расширениях по умолчанию; снимок индекса — повтор
+  `diagnostics::staged_files_and_config_are_isolated` и I015. Каталог `languages/tests/consumer` удалён вместе с его
+  целью pytest; из Python-заготовки lint убраны `configure` и `lint`, `prepare` нужен `test_inventory_vcs`.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -59,9 +57,9 @@ Revision: `d4c17ee0296fc2c36f09c1afa3a391f598462239`, перенос `test_backl
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `d4c17ee` прошёл: 425 Rust-тестов за 33,91 с, pytest 31 за 5,83 с.
-- В рабочем дереве этого VAC: 9 новых тестов за 0,02 с в 3 прогонах; удалённый файл на снимке: 13 случаев за 0,94 с.
-  Атрибут Python, всегда считавшийся именем, ронял оракул I015 на `languages.rs:79`, после отката 5 тестов прошли.
+- Гейт коммита `b626a0d` прошёл: 434 Rust-теста за 35,25 с, pytest 5 за 0,74 с. Поломка «атрибут Python всегда
+  имя» роняла оракул I015 на `languages.rs:79`, после отката тесты прошли.
+- В рабочем дереве этого VAC: 2 новых теста за 0,02 с в 3 прогонах; удалённый файл на снимке: 4 случая за 0,56 с.
 
 ## Blockers
 
@@ -69,8 +67,7 @@ Revision: `d4c17ee0296fc2c36f09c1afa3a391f598462239`, перенос `test_backl
 
 ## Next action
 
-Перенести остальные Python-тесты: `test_language_delivery`, `test_inventory_vcs`, `test_coverage`,
-`test_clippy_profile`; `test_launcher` проверяет tooling и остаётся с причиной. Потом замеры AC5 полного прогона и
+Перенести остальные Python-тесты: `test_inventory_vcs`, `test_coverage`, `test_clippy_profile`; `test_launcher` проверяет tooling и остаётся с причиной. Потом замеры AC5 полного прогона и
 гейта против master `41c227f`. Каждый VAC
 дописывает строки в таблицы Delivery P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

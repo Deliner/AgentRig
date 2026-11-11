@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import json
 import shutil
-import subprocess
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).parents[3]
 SKILL = ".agents/skills/refactor-large-file/SKILL.md"
@@ -28,22 +25,3 @@ def prepare(root: Path, config: str = CONFIG) -> None:
     shutil.copytree(ROOT / ".agents/skills", root / ".agents/skills")
     (root / "src").mkdir()
     (root / "lint.yaml").write_text(config, encoding="utf-8")
-
-
-def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
-    output = subprocess.run(
-        [str(worker), "lint", "--root", str(root), "--config", "lint.yaml", "--json", "--warnings"],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
-    return output.returncode, json.loads(output.stdout)
-
-
-def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
-    config = (
-        CONFIG.replace("nonblank-lines", kind)
-        .replace('extensions: [".rs", ".py", ".ts"]', 'extensions: [".rs", ".py", ".pyi"]')
-        .replace("warning: 3\n    error: 5", thresholds.replace("\n", "\n    "))
-    )
-    prepare(root, config)

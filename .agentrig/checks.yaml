@@ -82,7 +82,6 @@
     - Project/shared/yaml/**
     targets:
     - Project/structural_lint/inventory/tests
-    - Project/structural_lint/languages/tests
   - include:
     - Project/command_line/mod.rs
     - Project/project_config/**
