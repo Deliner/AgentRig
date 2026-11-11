@@ -90,6 +90,8 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::RangeChain),
     Kind::Reference(Reference::PositionalFormat),
     Kind::Reference(Reference::CrossedField),
+    Kind::Signature(Signature::PositionalFlag),
+    Kind::Ownership(Ownership::ExposedGuard),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),

@@ -676,6 +676,32 @@ rules:
   level: error
   warning_skill: .agents/skills/align-field-names/SKILL.md
   error_skill: .agents/skills/align-field-names/SKILL.md
+- id: positional-flag
+  kind: positional-flag
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-flag/SKILL.md
+  error_skill: .agents/skills/name-the-flag/SKILL.md
+- id: exposed-guard
+  kind: exposed-guard
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/scope-the-guard/SKILL.md
+  error_skill: .agents/skills/scope-the-guard/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import
