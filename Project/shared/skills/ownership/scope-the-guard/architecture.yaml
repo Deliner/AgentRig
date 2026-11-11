@@ -1,0 +1,5 @@
+purpose: "Replace a visible function returning a lock guard or a RefCell borrow with one that runs a closure over the guarded value, or justify handing out the guard with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a lock guard or a cell borrow inside the function that takes it"
+directories: {}

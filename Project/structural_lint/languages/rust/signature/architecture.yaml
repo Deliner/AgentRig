@@ -8,7 +8,7 @@ files:
   implicit_order.rs: Rust enum deriving PartialOrd or Ord whose variants order by declaration because one lacks an explicit discriminant
   ord_equality.rs: Rust manual Ord or PartialOrd whose compared self fields differ from the fields equality reads, a manual eq or a derived PartialEq, in the same file, lacking a reference on the line above the impl
   partial_impl.rs: Rust manual PartialEq, Hash, PartialOrd, Ord or Clone that reads its fields without a complete pattern or struct literal
-  same_type.rs: Rust function or tuple declaration with two or more parameters or positions of the same type
+  same_type.rs: Rust function or tuple declaration with two or more parameters or positions of the same type, and a tuple declaration with a bool among two or more positions
   tuple_record.rs: Rust function signature using a tuple of three or more elements with a scalar as a record, top-level or nested in a generic or array type, outside test code and lacking a reference above it
   type_shape.rs: Rust alias of a scalar or String, an Option over a bool, and an Option over another Option where Clippy does not check it and no implemented trait sets it
 directories: {}

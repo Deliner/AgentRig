@@ -1,7 +1,8 @@
 purpose: Detect Rust resources, locks, process-global state and wrapped values whose lifetime or access bypasses an owner
 type: flat
 files:
-  mod.rs: Dispatch files, statics, macro invocations, calls, generic types, blocks and let bindings to the ownership detectors, and calls re-parsed from macro bodies
+  mod.rs: Dispatch files, statics, macro invocations, calls, functions, generic types, blocks and let bindings to the ownership detectors, and calls re-parsed from macro bodies
+  exposed_guard.rs: Rust fn with a visibility modifier whose return type contains a lock guard or RefCell borrow, lacking a reference on the line above
   disabled_raii.rs: Rust call that defeats RAII, a keep or into_path method or a mem::forget, ManuallyDrop::new or Box::leak path, lacking a reference on the line above
   global_state.rs: Rust process-global state, a static lock or public cell, declared directly or inside lazy_static!/thread_local!
   guard_await.rs: Rust std lock guard bound by let and still alive at a later .await of the same block, lacking a reference on the line above

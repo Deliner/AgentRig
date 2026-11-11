@@ -20,6 +20,7 @@ pub enum Signature {
     PartialImpl,
     AmbiguousOption,
     ConstantDefault,
+    PositionalFlag,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -37,6 +38,7 @@ impl Signature {
             Self::PartialImpl => &PARTIALIMPL,
             Self::AmbiguousOption => &AMBIGUOUSOPTION,
             Self::ConstantDefault => &CONSTANTDEFAULT,
+            Self::PositionalFlag => &POSITIONALFLAG,
         }
     }
 }
@@ -198,5 +200,17 @@ const CONSTANTDEFAULT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a default body that ignores self hands every implementor a constant it never decided; drop the default so each implementor writes it, or put a DECISION: or INVARIANT: reference on the line directly above it for a compatibility promise",
+    },
+};
+// DECISION: D166
+const POSITIONALFLAG: Descriptor = Descriptor {
+    default_id: "positional-flag",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust tuple struct or tuple enum variant of two or more fields with a field of type bool, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-flag",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a bool among positions reads as a bare true or false where the value is built, so an inverted flag compiles unnoticed; name the field and give it an enum naming both states, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };

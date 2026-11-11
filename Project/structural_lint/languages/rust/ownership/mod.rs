@@ -1,4 +1,5 @@
 mod disabled_raii;
+mod exposed_guard;
 mod global_state;
 mod guard_await;
 mod paired_calls;
@@ -20,6 +21,7 @@ pub(super) fn inspect(
         "macro_invocation" => global_state::macro_items(node, source, output),
         "call_expression" => call(node, source, output),
         "let_declaration" => guard_await::inspect(node, source, output),
+        "function_item" => exposed_guard::inspect(node, source, output),
         "generic_type" => unit_lock::declared(node, source, output),
         "block" => paired_calls::inspect(node, source, pairs, output),
         _ => {}

@@ -17,6 +17,7 @@ pub enum Ownership {
     WrapperDeref,
     PrimitiveFrom,
     PairedCalls,
+    ExposedGuard,
 }
 impl Ownership {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -30,6 +31,7 @@ impl Ownership {
             Self::WrapperDeref => &WRAPPERDEREF,
             Self::PrimitiveFrom => &PRIMITIVEFROM,
             Self::PairedCalls => &PAIREDCALLS,
+            Self::ExposedGuard => &EXPOSEDGUARD,
         }
     }
 }
@@ -161,5 +163,17 @@ const UNITLOCK: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a lock around () guards nothing the compiler can see, so which data it protects lives only in comments and any access without the lock compiles; move the protected data inside the lock, or put a DECISION: or INVARIANT: reference on the line directly above it when it serializes an external resource",
+    },
+};
+// DECISION: D166
+const EXPOSEDGUARD: Descriptor = Descriptor {
+    default_id: "exposed-guard",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust fn with a visibility modifier whose return type contains, at any depth, a generic type named MutexGuard, RwLockReadGuard, RwLockWriteGuard, Ref or RefMut from any path, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the fn or its attributes",
+    skill: "scope-the-guard",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a returned guard lets the caller keep the lock or RefCell borrow as long as it wants, so two calls in one expression deadlock or panic on the second borrow while the build stays clean; take a closure that receives the guarded value and return its result, or put a DECISION: or INVARIANT: reference on the line directly above the fn when handing out the guard is the type's purpose",
     },
 };

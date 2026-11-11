@@ -3,6 +3,7 @@ files: {}
 directories:
   own-the-resource: "Let a Rust value drop or hold its guard instead of defeating RAII, or justify the intended leak with a reference"
   release-the-guard: "Release a std lock guard before the next .await, switch to an async-aware lock, or justify holding it across the suspension with a reference"
+  scope-the-guard: "Replace a visible function returning a lock guard or a RefCell borrow with one that runs a closure over the guarded value, or justify handing out the guard with a reference"
   lock-the-data: "Move the data a unit lock protects inside the lock, or justify the external resource it serializes with a reference"
   own-the-state: "Give process-global mutable state an owner instead of a static lock or a public static cell, or justify the intended global with a reference"
   contain-the-deletion: "Delete a directory tree through an owner that checks the path lies inside its own area, or justify the intended recursive deletion with a reference"

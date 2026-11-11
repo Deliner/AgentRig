@@ -175,6 +175,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/ownership/release-the-guard/SKILL.md"),
     ),
     (
+        "scope-the-guard",
+        include_str!("../shared/skills/ownership/scope-the-guard/SKILL.md"),
+    ),
+    (
         "lock-the-data",
         include_str!("../shared/skills/ownership/lock-the-data/SKILL.md"),
     ),
@@ -217,6 +221,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "name-the-states",
         include_str!("../shared/skills/naming/name-the-states/SKILL.md"),
+    ),
+    (
+        "name-the-flag",
+        include_str!("../shared/skills/naming/name-the-flag/SKILL.md"),
     ),
     (
         "name-the-placeholders",

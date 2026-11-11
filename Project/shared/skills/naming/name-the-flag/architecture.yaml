@@ -1,0 +1,5 @@
+purpose: "Give a bool among the positions of a tuple struct or tuple variant a named field of an enum type, or justify the position with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace a positional bool with a named field whose enum names both states"
+directories: {}
