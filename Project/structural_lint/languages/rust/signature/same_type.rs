@@ -1,5 +1,7 @@
 use crate::structural_lint::languages::measure::{Code, Measurement, text};
-use crate::structural_lint::languages::rust::context::{in_test_context, justified_item};
+use crate::structural_lint::languages::rust::context::{
+    in_test_context, justified_item, trait_impl_member,
+};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
 use std::collections::BTreeSet;
@@ -21,7 +23,7 @@ pub(super) fn parameters(function: Node<'_>, source: Code<'_>, output: &mut Vec<
         })
         .filter_map(|parameter| parameter.child_by_field_name("type"))
         .collect();
-    let exempt = trait_method(function) || !repeated(&types, source);
+    let exempt = trait_impl_member(function) || !repeated(&types, source);
     if exempt {
         return;
     }
@@ -66,12 +68,4 @@ fn repeated(types: &[Node<'_>], source: Code<'_>) -> bool {
 }
 fn tokens(node: Node<'_>, source: Code<'_>) -> String {
     text(node, source).split_whitespace().collect()
-}
-fn trait_method(function: Node<'_>) -> bool {
-    function
-        .parent()
-        .and_then(|list| list.parent())
-        .is_some_and(|owner| {
-            owner.kind() == "impl_item" && owner.child_by_field_name("trait").is_some()
-        })
 }

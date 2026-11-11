@@ -29,9 +29,12 @@ merges two of the states.
 The measurement reports every Rust `Option<bool>` type, and every outermost
 `Option<Option<..>>` type where the Clippy lint `option_option` does not check
 it: a type alias, a `let` annotation, a closure, a `fn` pointer, a `dyn` or
-`impl` trait, a bound or generic default, a turbofish, an impl header, and a
-member of a trait impl or an extern block. Clippy reports the nested form in
-other signatures, fields, `const` and `static`; the repair is the same. Test
+`impl` trait, a bound or generic default, a turbofish, an impl header, an
+associated type of a trait impl, and a member of an extern block. The
+parameters, return type and `const` type of a trait impl member are left to the
+trait declaration or the impl header, where that type is chosen. Clippy reports
+the nested form in other signatures, fields, `const` and `static`; the repair is
+the same. Test
 code and a type with a `DECISION:` or `INVARIANT:` reference on the line
 directly above it are out of scope. Do not weaken the rule or its selectors
 merely to pass. Apply complexity-discipline; stop when every state has a name
