@@ -4,34 +4,38 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
-// DECISION: D097
-const COLLAPSES: &[&str] = &["flatten", "filter_map", "map_while"];
 const ERROR_ARMS: &[&str] = &["Err(_)", "Err(..)"];
 
-pub(super) fn collapsed_read_dir(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+// DECISION: D097
+pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
-    let Some(field) = function.child_by_field_name("field") else {
+    let Some(field) = function
+        .child_by_field_name("field")
+        .filter(|field| field.kind() == "field_identifier")
+    else {
+        return;
+    };
+    let Some(receiver) = function.child_by_field_name("value") else {
+        return;
+    };
+    let Some(arguments) = node.child_by_field_name("arguments") else {
         return;
     };
     let name = text(field, source);
-    let collapse = field.kind() == "field_identifier" && COLLAPSES.contains(&name);
-    let other = !collapse;
-    if other {
-        return;
-    }
-    let swallowing = node
-        .child_by_field_name("arguments")
-        .is_some_and(|arguments| swallows(name, arguments, source));
-    let rooted = function
-        .child_by_field_name("value")
-        .is_some_and(|receiver| read_dir_rooted(receiver, source));
-    let safe = !(swallowing && rooted);
-    if safe {
-        return;
-    }
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let dropped = match (name, values(arguments).as_slice()) {
+        ("flatten", []) => read_dir_rooted(receiver, source),
+        ("map_while", [argument]) => {
+            result_ok(*argument, source) && read_dir_rooted(receiver, source)
+        }
+        ("filter_map" | "flat_map", [argument]) => {
+            let clippy = lines_call(receiver, source) && plain_ok(*argument, source);
+            result_ok(*argument, source) && !clippy
+        }
+        _ => false,
+    };
+    let allowed = !dropped || justified(node, source) || in_test_context(node, source);
     if allowed {
         return;
     }
@@ -42,62 +46,58 @@ pub(super) fn collapsed_read_dir(node: Node<'_>, source: Code<'_>, output: &mut 
         actual: 1,
     });
 }
-fn swallows(method: &str, arguments: Node<'_>, source: Code<'_>) -> bool {
-    let mut cursor = arguments.walk();
-    let mut values = arguments
-        .named_children(&mut cursor)
-        .filter(|child| !child.is_extra());
-    let first = values.next();
-    let lone = values.next().is_none();
-    let bare = method == "flatten";
-    if bare {
-        return first.is_none();
-    }
-    lone && first.is_some_and(|argument| result_ok(argument, source))
-}
 fn result_ok(argument: Node<'_>, source: Code<'_>) -> bool {
-    let path = argument.kind() == "scoped_identifier" && text(argument, source) == "Result::ok";
-    if path {
-        return true;
-    }
-    let closure = argument.kind() == "closure_expression";
-    let plain = !closure;
-    if plain {
-        return false;
-    }
-    let Some(parameters) = argument.child_by_field_name("parameters") else {
-        return false;
-    };
-    let mut cursor = parameters.walk();
-    let mut names = parameters.named_children(&mut cursor);
-    let Some(parameter) = names.next() else {
-        return false;
-    };
-    let single = names.next().is_none() && parameter.kind() == "identifier";
-    let Some(body) = argument.child_by_field_name("body") else {
-        return false;
-    };
-    single && ok_call(body, text(parameter, source), source)
+    ok_path(argument, source) || ok_receiver(argument, source).is_some()
 }
-fn ok_call(body: Node<'_>, parameter: &str, source: Code<'_>) -> bool {
-    let call = body.kind() == "call_expression";
-    let other = !call;
-    if other {
-        return false;
-    }
-    let Some(function) = body.child_by_field_name("function") else {
-        return false;
-    };
-    let receiver = function
-        .child_by_field_name("value")
-        .is_some_and(|value| value.kind() == "identifier" && text(value, source) == parameter);
-    let method = function
-        .child_by_field_name("field")
-        .is_some_and(|field| text(field, source) == "ok");
+fn ok_path(argument: Node<'_>, source: Code<'_>) -> bool {
+    argument.kind() == "scoped_identifier" && text(argument, source) == "Result::ok"
+}
+fn ok_receiver<'a>(argument: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
+    let closure = argument.kind() == "closure_expression";
+    let parameters = argument
+        .child_by_field_name("parameters")
+        .filter(|_| closure)?;
+    let body = argument
+        .child_by_field_name("body")
+        .filter(|_| parameters.named_child_count() == 1)?;
     let empty = body
         .child_by_field_name("arguments")
         .is_some_and(|arguments| arguments.named_child_count() == 0);
-    receiver && method && empty
+    let function = body
+        .child_by_field_name("function")
+        .filter(|_| body.kind() == "call_expression" && empty)?;
+    let ok = function
+        .child_by_field_name("field")
+        .is_some_and(|field| text(field, source) == "ok");
+    function.child_by_field_name("value").filter(|_| ok)
+}
+fn values(arguments: Node<'_>) -> Vec<Node<'_>> {
+    let mut cursor = arguments.walk();
+    arguments
+        .named_children(&mut cursor)
+        .filter(|child| !child.is_extra())
+        .collect()
+}
+fn lines_call(receiver: Node<'_>, source: Code<'_>) -> bool {
+    receiver.kind() == "call_expression"
+        && receiver
+            .child_by_field_name("function")
+            .is_some_and(|function| {
+                function.kind() == "field_expression"
+                    && callee_name(function, source) == Some("lines")
+            })
+}
+fn plain_ok(argument: Node<'_>, source: Code<'_>) -> bool {
+    let parameter = argument
+        .child_by_field_name("parameters")
+        .and_then(|parameters| parameters.named_child(0));
+    let itself =
+        ok_receiver(argument, source)
+            .zip(parameter)
+            .is_some_and(|(receiver, parameter)| {
+                receiver.kind() == "identifier" && text(receiver, source) == text(parameter, source)
+            });
+    ok_path(argument, source) || itself
 }
 fn read_dir_rooted(receiver: Node<'_>, source: Code<'_>) -> bool {
     let mut current = receiver;

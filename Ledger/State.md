@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/error-loss`, от master `52aa173`.
-Revision: `044a36a78afc674f6f2e4464188f35ea88c89cb5`
+Revision: `5e47c0c7b17204d9943293fe2e27367321586632`
 
 Установленный рантайм `1387d14`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -24,7 +24,8 @@ Revision: `044a36a78afc674f6f2e4464188f35ea88c89cb5`
   Delivery P120 до первого прогона; копии деревьев заморожены в scratchpad `p120/base` и `p120/corpus`. VAC 3
   переносит `silent_error` и его тесты в `languages/rust/errors` и `languages/tests/errors`; ссылки D069, D097 и
   D126 идут за файлами. Новое семейство детекторов поднимает бюджет зависимых `rules` с 12 до 13 и `measure` с 6
-  до 7, как D155 для `control_flow`; записать это в решение P120.
+  до 7, как D155 для `control_flow`; записать это в решение P120. VAC 4 расширяет `silent-error` формой IV-2
+  и замораживает её предикат до прогона на корпусе.
 - Clippy по умолчанию сам ловит `lines()` с `filter_map(Result::ok)`, `flat_map` или `flatten` и `map(..).flatten()`;
   расширение `silent-error` эти места пропускает, у формы один владелец.
 - Проба Clippy 2026-11-11: `or_fun_call` ловит вызов и макрос в `unwrap_or`, `ok_or`, `or`, `map_or`, но не
@@ -45,6 +46,5 @@ Revision: `044a36a78afc674f6f2e4464188f35ea88c89cb5`
 
 ## Next action
 
-P120: перенести `silent_error.rs` и его тесты в подкаталоги `errors/` без смены поведения, так как каталоги
-`languages/rust` и `languages/tests` у порога числа элементов; затем ввести правила IV-2, IV-3 и IV-4 и замерить
-их на копиях рига, voxel-rust и корпусе r8 по протоколу P120. Свободные ID: D165+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
+P120: прогнать замороженный IV-2 на корпусе r8 и проверить выборку по протоколу; затем ввести правила IV-3 и IV-4
+инертными видами и замерить их на копиях рига, voxel-rust и корпусе. Свободные ID: D165+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
