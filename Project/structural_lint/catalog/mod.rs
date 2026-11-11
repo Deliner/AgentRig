@@ -94,6 +94,7 @@ pub const ALL: &[Kind] = &[
     Kind::Ownership(Ownership::ExposedGuard),
     Kind::Reference(Reference::UntargetedPanic),
     Kind::Reference(Reference::TestSubstitution),
+    Kind::Reference(Reference::InterpolatedShell),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),

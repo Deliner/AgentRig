@@ -293,7 +293,7 @@ const INTERPOLATEDSHELL: Descriptor = Descriptor {
     skill: "pass-arguments-apart",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, pass values as positional parameters after the script, or put a DECISION: or INVARIANT: reference on the line directly above the call",
+        violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, keep the script literal and pass values apart from it, as positional parameters of a POSIX shell or fish or environment variables read by PowerShell, or put a DECISION: or INVARIANT: reference on the line directly above the call",
     },
 };
 // DECISION: D037

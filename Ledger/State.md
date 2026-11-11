@@ -13,7 +13,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/outer-boundary`, от master `0b43d59`.
-Revision: `0eafa598919abe21d6827ed390ec574d0fce61c8`
+Revision: `f6ab573da6d6c2c39679ba7ca22c3c7021c510b6`
 
 Установленный рантайм `0072d39`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -33,9 +33,12 @@ Revision: `0eafa598919abe21d6827ed390ec574d0fce61c8`
   трёх инертных видов. VAC 4 `0072d39` записал замер в Delivery: IV-27 верна на 2 из 2 и поставляется, IV-28 верна
   на 4 из 20, IV-30 на 26 из 41, обе не поставляются. Виды `interpolated-syntax` и `stale-check` убраны; оставшийся
   `interpolated-shell` всё ещё инертен, его детектор — `languages/rust/shell_command.rs` из обработчика вызова, тесты —
-  `languages/tests/shell_command.rs`. Пин `0eafa59` поставил рантайм `0072d39`. VAC 5 переносит навык `justify-skip`
-  в подгруппу `references/false-pass`: отключённый тест тоже оставляет набор зелёным без проверки поведения, а в
-  `references` освобождается место для навыка нового вида.
+  `languages/tests/shell_command.rs`. Пин `0eafa59` поставил рантайм `0072d39`. VAC 5 `f6ab573` перенёс навык
+  `justify-skip` в подгруппу `references/false-pass`: отключённый тест тоже оставляет набор зелёным без проверки
+  поведения. VAC 6 включает `interpolated-shell` уровнем error в `lint.yaml`, `catalog::ALL` и обработчике Rust;
+  `init` ставит его с навыком `pass-arguments-apart` в `references`. По документации PowerShell аргументы после
+  `-Command` входят в текст команды, у `cmd /c` параметров нет, поэтому навык даёт для них переменную окружения и
+  запуск программы напрямую.
 - Замер нового вида по протоколу P120: вид сначала инертный, бинарник собирается из коммита заморозки с видом в
   обработчике Rust скриптом scratchpad `p120/enabledbin.sh`; фикстура проверяет подключение. Формы P125 меряются вне
   тестового кода, то есть с охватом `tests` в `p120/measure.sh`.
@@ -50,6 +53,11 @@ Revision: `0eafa598919abe21d6827ed390ec574d0fce61c8`
   IV-27, IV-28 и IV-30; restriction `create_dir` отмечает сам вызов `fs::create_dir`.
 - VAC 4: хук коммита прошёл, 409 тестов; бинарник из `0072d39` с включённым `interpolated-shell` дал на фикстуре,
   риге, voxel и корпусе те же находки, что бинарник заморозки.
+- VAC 6 до коммита: все 463 теста прошли; `just candidate lint` рига с включённым видом завершился с кодом 0,
+  `config-check` и `lint-config-check` чисты. `init --language rust` кандидата во временном каталоге поставил правило
+  и навык; образец `Project/lib.rs` с `sh -c` и данными дал одну находку `interpolated-shell`, а формы из навыка,
+  позиционный параметр `sh` и переменная окружения `pwsh`, — ни одной. Оболочки sh, bash, zsh, dash и ksh на macOS
+  отдали первый хвостовой аргумент в `$0`, второй в `$1` без разбора.
 
 ## Blockers
 
@@ -57,8 +65,7 @@ Revision: `0eafa598919abe21d6827ed390ec574d0fce61c8`
 
 ## Next action
 
-Включить `interpolated-shell` в каталог и `lint.yaml` с навыком `pass-arguments-apart` в `references`; до
-текста навыка проверить, как `-Command` у PowerShell и `/c` у `cmd` передают хвостовые аргументы. Записать D170, перенести P125 и B120 в архив с приёмкой, финальный пин и `feature-merge`.
-Пределы у краёв: в `references` 15 каталогов из 15, в `languages/rust` и `languages/tests` по 15 записей из 15,
-зависимых у `measure` 7 из 7 и у `rules` 13 из 13.
+Записать D170 с метками `DECISION: D170`, перенести P125 и B120 в архив с приёмкой, финальный пин и
+`feature-merge`. Пределы у краёв: в `references` 15 каталогов из 15, в `languages/rust` и `languages/tests` по 15
+записей из 15, зависимых у `measure` 7 из 7 и у `rules` 13 из 13.
 Свободные ID: D170+, I022+, P126+, B121+ (B066 и D111 зарезервированы).

@@ -727,6 +727,19 @@ rules:
   level: error
   warning_skill: .agents/skills/inject-the-variant/SKILL.md
   error_skill: .agents/skills/inject-the-variant/SKILL.md
+- id: interpolated-shell
+  kind: interpolated-shell
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/pass-arguments-apart/SKILL.md
+  error_skill: .agents/skills/pass-arguments-apart/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

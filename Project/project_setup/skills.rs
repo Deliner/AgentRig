@@ -199,6 +199,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/false-pass/inject-the-variant/SKILL.md"),
     ),
     (
+        "pass-arguments-apart",
+        include_str!("../shared/skills/references/pass-arguments-apart/SKILL.md"),
+    ),
+    (
         "contain-the-deletion",
         include_str!("../shared/skills/ownership/contain-the-deletion/SKILL.md"),
     ),
