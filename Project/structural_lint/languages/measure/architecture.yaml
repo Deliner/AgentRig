@@ -2,5 +2,5 @@ purpose: Define the located measurement record and the language-neutral measurem
 type: flat
 dependents: 7
 files:
-  mod.rs: Located measurement record and per-file analysis, node text, line-above references, named conditions, boolean expression operands and mixed junctions, comments, credentials, function size, nesting, boolean parameters and branch budgets
+  mod.rs: Located measurement record and per-file analysis, node text, reparsing of an intact source fragment, line-above references, named conditions, boolean expression operands and mixed junctions, comments, credentials, function size, nesting, boolean parameters and branch budgets
 directories: {}

@@ -192,15 +192,16 @@ const WILDCARDIMPORT: Descriptor = Descriptor {
     },
 };
 // DECISION: D089
+// DECISION: D168
 const EAGERFALLBACK: Descriptor = Descriptor {
     default_id: "eager-fallback",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust .unwrap_or, .ok_or or .map_or call whose eager first argument propagates with ? outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust .unwrap_or, .ok_or, .map_or or .or call whose eager first argument, outside a closure in it, propagates with ? or divides by a divisor that is not a literal, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "eager-to-lazy",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "the fallback argument of unwrap_or, ok_or or map_or is evaluated unconditionally, so a ? inside it propagates even when the value is present; move the fallback into the lazy unwrap_or_else, ok_or_else or map_or_else closure, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the eager form",
+        violation: "the argument of unwrap_or, ok_or, map_or or or is evaluated unconditionally, so a ? inside it propagates and a division can panic even when the value is present; move it into the lazy unwrap_or_else, ok_or_else, map_or_else or or_else closure, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the eager form",
     },
 };
 // DECISION: D090

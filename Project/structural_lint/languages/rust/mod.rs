@@ -12,7 +12,7 @@ mod test_placement;
 mod unsafe_site;
 use crate::structural_lint::languages::measure::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
-    comment, condition, credential, function, justified, mixed_junction, nesting, text,
+    comment, condition, credential, function, justified, mixed_junction, nesting, reparse, text,
 };
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Pair;
@@ -156,29 +156,22 @@ fn report_assertion(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut
     });
 }
 // DECISION: D089
+// DECISION: D168
 fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let Some(function) = node.child_by_field_name("function") else {
-        return;
-    };
-    let Some(field) = function.child_by_field_name("field") else {
+    let Some(field) = node
+        .child_by_field_name("function")
+        .and_then(|function| function.child_by_field_name("field"))
+    else {
         return;
     };
     let method = field.kind() == "field_identifier";
     let name = text(field, source);
-    let eager = method && matches!(name, "unwrap_or" | "ok_or" | "map_or");
+    let eager = method && matches!(name, "unwrap_or" | "ok_or" | "map_or" | "or");
     let unrelated = !eager;
     if unrelated {
         return;
     }
-    let Some(arguments) = node.child_by_field_name("arguments") else {
-        return;
-    };
-    let mut cursor = arguments.walk();
-    let propagated = arguments
-        .named_children(&mut cursor)
-        .find(|argument| !argument.is_extra())
-        .is_some_and(propagates);
-    let safe = !propagated;
+    let safe = !evaluated(node);
     if safe {
         return;
     }
@@ -193,6 +186,19 @@ fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
         actual: 1,
     });
 }
+fn evaluated(call: Node<'_>) -> bool {
+    let Some(arguments) = call.child_by_field_name("arguments") else {
+        return false;
+    };
+    let mut cursor = arguments.walk();
+    let Some(first) = arguments
+        .named_children(&mut cursor)
+        .find(|argument| !argument.is_extra())
+    else {
+        return false;
+    };
+    propagates(first) || divides(first)
+}
 fn propagates(node: Node<'_>) -> bool {
     let shortcut = node.kind() == "try_expression";
     if shortcut {
@@ -204,6 +210,26 @@ fn propagates(node: Node<'_>) -> bool {
     }
     let mut cursor = node.walk();
     node.named_children(&mut cursor).any(propagates)
+}
+fn divides(node: Node<'_>) -> bool {
+    let binary = node.kind() == "binary_expression";
+    let operator = node
+        .child_by_field_name("operator")
+        .map(|operator| operator.kind());
+    let divisor = node
+        .child_by_field_name("right")
+        .map(|divisor| divisor.kind());
+    let literal = divisor.is_some_and(|kind| kind.ends_with("_literal"));
+    let unchecked = binary && operator == Some("/") && !literal;
+    if unchecked {
+        return true;
+    }
+    let deferred = node.kind() == "closure_expression";
+    if deferred {
+        return false;
+    }
+    let mut cursor = node.walk();
+    node.named_children(&mut cursor).any(divides)
 }
 // DECISION: D090
 // DECISION: D099
@@ -334,16 +360,10 @@ fn fragment_measurements(node: Node<'_>, source: Code<'_>) -> Vec<Measurement> {
         return Vec::new();
     };
     let fragment = ["fn probe(){call(", inner, ")}"].concat();
-    let Ok(Some(parsed)) =
-        crate::shared::syntax::parse(std::path::Path::new("macro.rs"), &fragment)
-    else {
+    let Some(parsed) = reparse(std::path::Path::new("macro.rs"), &fragment) else {
         return Vec::new();
     };
     let root = parsed.root_node();
-    let broken = root.has_error();
-    if broken {
-        return Vec::new();
-    }
     let mut scoped = Vec::new();
     scan_fragment(root, Code::new(&fragment), &mut scoped);
     for measurement in &mut scoped {
