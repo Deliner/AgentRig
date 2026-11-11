@@ -8,5 +8,5 @@ files:
   validation.rs: Validate markers, references, plan cycles, layout, kept decision history and read-only resume
   test_plan.py: Validate current and archived outcomes, references and delivery transitions
   test_backlog.py: Validate idea records and portable edit guidance
-  test_state.py: Validate required recovery sections and tolerate reconcilable recorded Git facts
+  state.rs: Validate required recovery sections and tolerate reconcilable recorded Git facts
 directories: {}

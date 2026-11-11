@@ -39,9 +39,9 @@ I010:
   runner: cargo
   target: change_delivery::git::tests::integration::divergent_rebase_preserves_merge_history
 I011:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_state.py::test_state_recovery_contract
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::state::state_recovery_contract
 I012:
   check: rust-test
   runner: cargo
