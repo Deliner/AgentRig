@@ -362,6 +362,7 @@ mod tests {
     assert_eq!(eager_findings("source.rs", source), [2]);
 }
 
+// DECISION: D168
 #[test]
 fn rust_flags_eager_divisions_and_propagation_in_or_but_not_then_some() {
     let source = "fn run(total: u32, count: u32, ready: bool) -> Option<u32> {

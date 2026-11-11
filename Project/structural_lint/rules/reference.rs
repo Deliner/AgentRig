@@ -192,6 +192,7 @@ const WILDCARDIMPORT: Descriptor = Descriptor {
     },
 };
 // DECISION: D089
+// DECISION: D168
 const EAGERFALLBACK: Descriptor = Descriptor {
     default_id: "eager-fallback",
     exclude: TEST_CODE,

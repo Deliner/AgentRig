@@ -156,6 +156,7 @@ fn report_assertion(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut
     });
 }
 // DECISION: D089
+// DECISION: D168
 fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(field) = node
         .child_by_field_name("function")
