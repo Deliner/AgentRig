@@ -1,5 +1,6 @@
 purpose: Verify measurements of code where an error disappears without a trace, from native analysis
 files:
   mod.rs: Declare the error measurement test modules
+  discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain, Ok-only filter_map or flat_map with lines spellings left to Clippy, verdict-answering Err arm and unread process success measurements from native analysis
 directories: {}

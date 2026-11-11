@@ -3,7 +3,6 @@ files:
   mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
   declarations.rs: Rust and Python parameter count and function line measurements of declarations from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
-  discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis

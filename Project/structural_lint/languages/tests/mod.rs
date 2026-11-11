@@ -10,7 +10,6 @@ use std::path::Path;
 mod async_code;
 mod control_flow;
 mod declarations;
-mod discarded_result;
 mod errors;
 mod false_pass;
 mod manifest;
