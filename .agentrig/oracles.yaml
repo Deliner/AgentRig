@@ -15,9 +15,9 @@ I004:
   runner: pytest
   target: Project/structural_lint/tests/test_lint.py::test_native_lint_thresholds_and_skills
 I005:
-  check: test
-  runner: pytest
-  target: Project/agent_hooks/tests/test_hooks.py::test_shell_guard_rejects_bypass
+  check: rust-test
+  runner: cargo
+  target: agent_hooks::tests::shell::shell_guard_rejects_bypass
 I006:
   check: rust-test
   runner: cargo
@@ -43,9 +43,9 @@ I011:
   runner: pytest
   target: Project/project_memory/tests/test_state.py::test_state_recovery_contract
 I012:
-  check: test
-  runner: pytest
-  target: Project/agent_hooks/tests/test_hooks.py::test_ledger_edit_guidance
+  check: rust-test
+  runner: cargo
+  target: agent_hooks::tests::memory::ledger_edit_guidance
 I014:
   check: test
   runner: pytest
