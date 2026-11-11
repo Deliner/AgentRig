@@ -2,6 +2,8 @@
 // DECISION: D019
 // DECISION: D035
 mod integration;
+#[cfg(test)]
+mod tests;
 use super::gate;
 use crate::project_config::Context;
 use crate::shared::console;

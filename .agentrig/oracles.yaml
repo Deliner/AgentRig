@@ -75,7 +75,7 @@ I020:
   runner: pytest
   target: Project/shared/testing/test_delivery.py::test_dogfooding_capabilities_stay_universal
 I021:
-  check: test
-  runner: pytest
-  target: Project/change_delivery/git/tests/test_git.py::test_reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved
+  check: rust-test
+  runner: cargo
+  target: change_delivery::git::tests::reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved
 

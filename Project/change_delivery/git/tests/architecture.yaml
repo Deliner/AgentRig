@@ -1,4 +1,5 @@
 purpose: Verify Git feature delivery and transaction guards
 files:
+  mod.rs: Reference transaction guard verdicts through the runtime process
   test_git.py: Native feature starts, rebase, commit guards and owned cleanup
 directories: {}

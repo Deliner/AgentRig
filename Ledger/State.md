@@ -14,10 +14,9 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `32747376b1ed4a4e50e3f40bbbb5e5c4f9084fe3`, первый VAC ветки с B108 и P115; этот снимок входит в VAC
-исправления оракулов cargo, D157.
+Revision: `05c2e395f1f754ca00b1803443de65fa4dfd9004`, пин рантайма `cd46b81` с D157; этот снимок входит в VAC переноса I021.
 
-Установленный рантайм `aabb525`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
 `WORKER_BINARY=/Users/admin/projects/AgentRig/.cache/worker/release/agentrig`: с относительным путём тесты, которые
 меняют каталог, падают. Ветки прежних поставок сохранены, `feature/init-probe` не трогать.
@@ -36,8 +35,10 @@ Revision: `32747376b1ed4a4e50e3f40bbbb5e5c4f9084fe3`, первый VAC ветк�
   путь с её именем. D157 исправляет это: цель совпадает с именем функции целиком или по границе `::`, ровно одна
   такая функция и она отмечена. Поддержка Rust-тестов в `Project/shared/testing/tests/` запускает кандидат и Git как
   процессы с чистым окружением; без `WORKER_BINARY` она собирает кандидат сама.
-- Перенос I021 в `Project/change_delivery/git/tests/mod.rs` готов, но не закоммичен: перепривязка оракула проходит
-  только с рантаймом, где есть D157. Проверка разрыва: замена ответа охранника на `.unwrap_or(false)` роняет тест,
+- D157 закоммичен в `cd46b81` и записан в `stable.txt` коммитом `05c2e39`. Этот VAC переносит I021 в
+  `Project/change_delivery/git/tests/mod.rs`, оракул cargo в группе `rust-test`, Python-тест удалён. Карта
+  `rust-test` повторяет прежнюю карту pytest: изменения `Project/agent_hooks/**` выбирают
+  `change_delivery::git::tests::`. Проверка разрыва: замена ответа охранника на `.unwrap_or(false)` роняет тест,
   ожидалось `Some(2)`, пришло `Some(0)`; после возврата тест проходит.
 
 ## Verification
@@ -53,7 +54,7 @@ Revision: `32747376b1ed4a4e50e3f40bbbb5e5c4f9084fe3`, первый VAC ветк�
 
 ## Next action
 
-Записать голову с D157 в `stable.txt` и `just bootstrap` одной командой, закоммитить пин. Затем VAC переноса I021:
-тесты Git, оракул, Invariants, `checks.yaml`, `architecture.yaml`, удаление Python-теста. Дальше остальной
-`test_git.py` и другие файлы по выигранным секундам. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
+Перенести остальной `test_git.py` в Rust вместе с метками D003, D010, D011, D012, D014 и ссылками Decisions.md,
+убрать цели pytest на удалённые файлы в том же VAC. Дальше другие файлы по выигранным секундам: `test_delivery.py`
+19 с, `test_runtime.py` 9 с, `test_gate.py` 7 с. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).
