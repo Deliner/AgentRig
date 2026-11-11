@@ -1,0 +1,8 @@
+purpose: Verify directory architecture findings by linting Rust and Python consumer projects in process
+files:
+  mod.rs: Consumer projects with directory contracts, in-process lint and compiler checks of Rust samples
+  attributes.rs: Attributes that name or guard dependencies, string labels and unanalyzed attributes
+  bindings.rs: Rust Self, prelude and generic bound bindings against their lexical owners
+  incomplete.rs: Unanalyzed loaders and attributes, and incomplete analysis beside declared externals
+  macros.rs: Macro arguments and definitions, external macro imports and unknown macro provenance
+directories: {}

@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `e2c87806c47a021d7074e3e3a2baa242bd9a42c6`, перенос `test_gate.py`; этот снимок входит в VAC переноса
-`test_revision.py`.
+Revision: `b67d901014af8d559c6199feb7f05ffc50af438c`, перенос `test_revision.py`; этот снимок входит в VAC переноса
+тестов привязок, макросов, атрибутов и неполного анализа архитектуры.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -40,17 +40,22 @@ Revision: `e2c87806c47a021d7074e3e3a2baa242bd9a42c6`, перенос `test_gate.
   Поддержка `shared/testing/tests` даёт тестам Python инструментов через uv.
 - `test_runtime.py` перенесён в `6015498`: 3 Rust-теста в `project_setup/tests/runtime.rs`, ссылка D150 на них.
 - `test_gate.py` перенесён в `e2c8780`: 9 тестов в `change_delivery/gate/tests/`, 2 в `project_config/tests/`, 2 в
-  `command_line/tests/`. Минимальный проект и запуск RERUN есть в `shared::testing`.
-- Этот VAC переносит `change_delivery/gate/tests/test_revision.py` в `revision.rs` того же каталога и добавляет в
-  `shared::testing` память проекта.
+  `command_line/tests/`. Минимальный проект и запуск RERUN есть в `shared::testing`. `test_revision.py` перенесён в
+  `b67d901`, память проекта тоже в `shared::testing`.
+- Этот VAC переносит `test_architecture_bindings.py`, `_macros.py`, `_attributes.py` и `_incomplete.py` в
+  `structural_lint/tests/architecture/`: заготовка `Consumer` линтует проект-потребитель в процессе через `analyze`.
+  Из `architecture/tests/` такой вызов давал цикл каталогов, поэтому тесты лежат у входа `structural_lint`.
+- Остались Python-тесты архитектуры: `test_architecture.py` с общими заготовками и сверкой двух бинарников,
+  `_behavior.py`, `_crates.py`, `_coupling.py`, `_disallowed.py`, `_inventory.py`, `_module_wiring.py`,
+  `_resources.py`, `_vcs_directories.py`.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
 ## Verification
 
-- Гейт коммита `e2c8780`: 237 Rust-тестов за 29 с, pytest 217 за 41 с, все проверки прошли.
-- В рабочем дереве этого VAC: `change_delivery::gate::tests::` 12 прошли за 2,4 с, `revision` 3 за 1,0 с. Кандидат: `memory-check` проходит с прежним
-  предупреждением о `grammar.js`, D112; `config-check`, `lint-config-check`, lint, rustfmt и Clippy чистые.
+- Гейт коммита `b67d901`: 240 Rust-тестов, pytest 211, все проверки прошли.
+- В рабочем дереве этого VAC: `structural_lint::tests::architecture::` 14 прошли за 0,19 с, весь `structural_lint::`
+  169 за 0,9 с; lint кандидата чистый. Четыре удалённых файла на снимке HEAD: 49 случаев за 9,9 с.
 
 ## Blockers
 
@@ -58,5 +63,6 @@ Revision: `e2c87806c47a021d7074e3e3a2baa242bd9a42c6`, перенос `test_gate.
 
 ## Next action
 
-Замерить оставшиеся Python-тесты по файлам и переносить их по выигранным секундам на заготовки `shared::testing`. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
-зарезервированы).
+Перенести остальные тесты архитектуры на заготовку `Consumer`, затем `test_architecture.py` с одним процессным тестом
+сверки `agentrig` и `agentrig-lint`; дальше остальные Python-тесты по выигранным секундам. Каждый VAC дописывает
+Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111 зарезервированы).

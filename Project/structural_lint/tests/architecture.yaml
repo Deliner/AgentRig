@@ -5,4 +5,5 @@ files:
   test_lint_baseline.py: Recorded error baseline, ratchet failures on growth and lowering-only updates
   test_lint_portable.py: Standalone and embedded linter portability scenarios
   mod.rs: Line-width and forbidden-file findings from native evaluation
-directories: {}
+directories:
+  architecture: Directory architecture findings for Rust and Python consumer projects
