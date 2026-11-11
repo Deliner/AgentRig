@@ -4,28 +4,16 @@
 // DECISION: D008
 // DECISION: D007
 // DECISION: D002
-use super::consumer::{accepts, append, committed, consumer, decision, record};
+use super::consumer::{accepts, committed, consumer, decision, edit, record, rejects};
 use crate::shared::testing::{git, invoke, repository, snapshot};
 use serde_json::Value;
-use std::{fs, path::Path};
+use std::fs;
 
 const EXAMPLES: [(&str, &str, &str); 3] = [
     ("rs", "fn example() {}", "//"),
     ("py", "value = 1", "#"),
     ("sh", "echo example", "#"),
 ];
-const PLAN_HEADINGS: [&str; 3] = ["Feature", "User capability", "Acceptance"];
-
-fn rejects(root: &Path, args: &[&str], diagnostic: &str) {
-    let result = invoke(root, args);
-    assert_eq!(result.code, Some(2), "{}", result.output());
-    assert!(result.stderr.contains(diagnostic), "{}", result.stderr);
-}
-
-fn edit(path: &Path, before: &str, after: &str) {
-    let text = fs::read_to_string(path).unwrap();
-    fs::write(path, text.replace(before, after)).unwrap();
-}
 
 #[test]
 fn resume_reports_a_stale_snapshot_without_writing() {
@@ -70,22 +58,6 @@ fn source_references_name_recorded_entries() {
     fs::write(&source, "value = 1\n").unwrap();
     fs::write(root.join("src/lib.cpython-313.pyc"), b"\xf3\r\r\n").unwrap();
     accepts(&root);
-}
-
-#[test]
-fn plan_dependency_cycle_is_rejected() {
-    let (_temp, root) = consumer();
-    let notes = root.join("notes");
-    for (identity, dependency) in [("001", "002"), ("002", "001")] {
-        let row = format!(
-            "| [P{identity}](Plan/{identity}.md) | pending | P{dependency} | Result | Capability |\n"
-        );
-        append(&notes.join("Plan.md"), &row);
-        let sections = PLAN_HEADINGS.map(|heading| format!("## {heading}\n\nText."));
-        let detail = format!("# Feature\n\n{}", sections.join("\n\n"));
-        fs::write(notes.join(format!("Plan/{identity}.md")), detail).unwrap();
-    }
-    rejects(&root, &["memory-check"], "dependency cycle");
 }
 
 // INVARIANT: I003

@@ -2,7 +2,7 @@
 // DECISION: D014
 // DECISION: D015
 use super::{initialized, pre_tool, project, respond};
-use crate::shared::testing::{run, runtime};
+use crate::shared::testing::{run, runtime, snapshot};
 use serde_json::{Value, json};
 use std::{fs, os::unix::fs::symlink, path::Path};
 
@@ -129,6 +129,24 @@ fn ledger_edit_guidance() {
         );
         guidance(&root, &output, expected);
     }
+}
+
+#[test]
+fn archived_plan_edits_are_guided_without_writing() {
+    let (_temp, root) = initialized(&["--memory", "Ledger", "--skills", "guides"]);
+    let archive = root.join("Ledger/Archive");
+    fs::create_dir_all(archive.join("Plan")).unwrap();
+    let paths = [archive.join("Plan.md"), archive.join("Plan/001.md")];
+    for path in &paths {
+        fs::write(path, "# Archived\n").unwrap();
+    }
+    let before = snapshot(&archive);
+    for (index, path) in paths.iter().enumerate() {
+        let event = pre_tool(&root, "Write", json!({"file_path": path}));
+        let output = in_session(&root, event, &format!("archive-{index}"));
+        guidance(&root, &output, &["edit-plan"]);
+    }
+    assert_eq!(snapshot(&archive), before);
 }
 
 #[test]

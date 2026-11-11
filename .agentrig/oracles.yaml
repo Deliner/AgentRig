@@ -31,9 +31,9 @@ I008:
   runner: cargo
   target: project_memory::tests::validation::repository_layout_and_detail_contract
 I009:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_plan.py::test_plan_delivery_contract
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::plan::plan_delivery_contract
 I010:
   check: rust-test
   runner: cargo

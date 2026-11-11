@@ -5,8 +5,8 @@ files:
   consumer.rs: Construct memory consumers and committed decision baselines for memory scenarios
   resume.rs: Reconcile recorded State with Git repository observations
   history.rs: Preserve committed decision history across revision and merge-parent checks
-  validation.rs: Validate markers, references, plan cycles, layout, kept decision history and read-only resume
-  test_plan.py: Validate current and archived outcomes, references and delivery transitions
+  validation.rs: Validate markers, references, layout, kept decision history and read-only resume
+  plan.rs: Validate current and archived outcomes, references and delivery transitions
   test_backlog.py: Validate idea records and portable edit guidance
   state.rs: Validate required recovery sections and tolerate reconcilable recorded Git facts
 directories: {}

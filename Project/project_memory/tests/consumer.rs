@@ -17,6 +17,12 @@ pub fn append(path: &Path, text: &str) {
     fs::write(path, format!("{current}{text}")).unwrap();
 }
 
+pub fn edit(path: &Path, before: &str, after: &str) {
+    let text = fs::read_to_string(path).unwrap();
+    assert!(text.contains(before), "{before}: {text}");
+    fs::write(path, text.replace(before, after)).unwrap();
+}
+
 pub fn consumer() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
@@ -36,6 +42,12 @@ pub fn record(root: &Path, source: &str) {
 pub fn accepts(root: &Path) {
     let checked = invoke(root, &["memory-check"]);
     assert_eq!(checked.code, Some(0), "{}", checked.output());
+}
+
+pub fn rejects(root: &Path, args: &[&str], diagnostic: &str) {
+    let result = invoke(root, args);
+    assert_eq!(result.code, Some(2), "{}", result.output());
+    assert!(result.stderr.contains(diagnostic), "{}", result.stderr);
 }
 
 pub fn committed() -> (TempDir, PathBuf) {

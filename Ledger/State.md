@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `0090a23226611d7870cc12998cb848960fb9f375`, перенос `test_configuration`; этот снимок входит в VAC
-переноса `test_state`.
+Revision: `a2742f1d921b10a9f20e86f695e47aa6d8cf52e3`, перенос `test_state`; этот снимок входит в VAC переноса
+`test_plan`.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -34,19 +34,21 @@ Revision: `0090a23226611d7870cc12998cb848960fb9f375`, перенос `test_confi
   за 2 с; они уже вызывают публичные функции фич в процессе, например `evaluate`, `dispatch`, `init`.
 - D157 в `cd46b81` привязал оракулы cargo к тестам вложенных модулей, пин `05c2e39`. Delivery карточки [P115](Plan/115.md)
   ведётся по критериям: соответствие AC3 со временем AC5 по файлам, поломки AC4, карта AC6; ход VAC — в коммитах.
-- Перенесены, последний в `0090a23`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
+- Перенесены, последний в `a2742f1`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
   тесты архитектуры lint, `test_jobs`, `test_commands`, `test_registry`, `test_layout`, `test_hooks`,
   `test_lint_defaults`, `test_revision_history`, `test_wizard`, `test_evidence`, `test_lint`, `test_config_check`,
   `test_memory`, `test_lint_baseline`, `test_lint_explain`, `test_lint_portable`, `test_reminders`, `test_resume`,
-  `test_doctor`, `test_capabilities`, `test_configuration`. На оракулах cargo: I001–I008, I010–I012, I014,
-  I016–I021.
+  `test_doctor`, `test_capabilities`, `test_configuration`, `test_state`. На оракулах cargo после этого VAC:
+  I001–I012, I014, I016–I021.
 - Заготовки: в `shared::testing` проект, память, Git, проверяемый репозиторий, снимок файлов, запуск рантайма,
   RERUN и `replay`; `Consumer` у входа `structural_lint` линтует потребителя в процессе через закрытый `analyze`;
   `structural_lint/tests/consumer.rs` готовит потребителя с правилом размера; `project_memory/tests/consumer.rs`
   готовит память с решением D001 и коммитом. Из других фич lint вызывают только процессом.
-- Этот VAC переносит `test_state.py` в `project_memory/tests/state.rs`: 1 тест, 7 случаев через процесс
-  `memory-check`. I011 переходит на оракул cargo, ссылка D013 указывает на `state.rs`; группа pytest, выбиравшая
-  только этот файл, убрана.
+- Этот VAC переносит `test_plan.py` в `project_memory/tests/plan.rs`: 10 тестов через процесс `memory-check`, и
+  подсказку по Archive в `agent_hooks/tests/memory.rs` через `dispatch` в процессе. I009 переходит на оракул cargo,
+  ссылки D012 и D031 указывают на `plan.rs`. Повтор цикла Plan из `validation.rs` убран, общий `edit` и `rejects`
+  перенесены в `consumer.rs`. Карта уже выбирает новые тесты на путях прежнего файла; pytest-цель каталога остаётся
+  ради `test_backlog.py`.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -56,9 +58,9 @@ Revision: `0090a23226611d7870cc12998cb848960fb9f375`, перенос `test_confi
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `0090a23` прошёл: 410 Rust-тестов за 33,73 с, pytest 89 за 6,98 с.
-- В рабочем дереве этого VAC: новый тест прошёл за 0,04 с; удалённый файл на снимке: 7 случаев за 0,07 с. Пропуск
-  ошибки разделов State роняет оракул I011 на `state.rs:58`, после отката тест проходит.
+- Гейт коммита `a2742f1` прошёл: 411 Rust-тестов за 34,22 с, pytest 51 за 1,22 с.
+- В рабочем дереве этого VAC: `plan::` 10 тестов за 0,16 с, новый тест хука за 0,25 с; удалённый файл на снимке: 40
+  случаев за 0,79 с. Допуск двух active роняет оракул I009 на `consumer.rs:49`, после отката тесты проходят.
 
 ## Blockers
 
@@ -66,7 +68,7 @@ Revision: `0090a23226611d7870cc12998cb848960fb9f375`, перенос `test_confi
 
 ## Next action
 
-Перенести остальные Python-тесты по выигранным секундам: `test_plan` с I009, `test_backlog`, `test_language` с I015 и
-прочие. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
+Перенести остальные Python-тесты: `test_backlog`, `test_language` с I015, `test_language_delivery`,
+`test_inventory_vcs`, `test_coverage`, `test_clippy_profile`; `test_launcher` проверяет tooling и остаётся с причиной. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
 дописывает строки в таблицы Delivery P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).
