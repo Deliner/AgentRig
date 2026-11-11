@@ -20,6 +20,7 @@ pub enum Signature {
     PartialImpl,
     AmbiguousOption,
     ConstantDefault,
+    PositionalFlag,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -37,6 +38,7 @@ impl Signature {
             Self::PartialImpl => &PARTIALIMPL,
             Self::AmbiguousOption => &AMBIGUOUSOPTION,
             Self::ConstantDefault => &CONSTANTDEFAULT,
+            Self::PositionalFlag => &POSITIONALFLAG,
         }
     }
 }
@@ -181,11 +183,11 @@ const AMBIGUOUSOPTION: Descriptor = Descriptor {
     default_id: "ambiguous-option",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust Option<bool> type, and every outermost Option<Option<..>> type written where the Clippy lint option_option does not check it: a type alias, let, closure, fn pointer, dyn or impl trait, bound, generic default, turbofish, impl header, associated type of a trait impl, or a member of an extern block, but not in the parameters, return type or const type of a trait impl member, which its trait sets; outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust Option<bool> type, every HashMap, BTreeMap, IndexMap or DashMap type from any path whose second type argument, the value, is bool or AtomicBool, and every outermost Option<Option<..>> type written where the Clippy lint option_option does not check it: a type alias, let, closure, fn pointer, dyn or impl trait, bound, generic default, turbofish, impl header, associated type of a trait impl, or a member of an extern block, but not in the parameters, return type or const type of a trait impl member, which its trait sets; outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "name-the-states",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "Option<bool> and Option<Option<T>> encode three states without names, and unwrap_or merges two of them silently; declare an enum naming each state, or put a DECISION: or INVARIANT: reference on the line directly above it for a DTO of an external format",
+        violation: "Option<bool>, a map to bool and Option<Option<T>> encode three states without names, and unwrap_or merges two of them silently; declare an enum naming each state, keep the keys that are on in a set, or put a DECISION: or INVARIANT: reference on the line directly above it for a DTO of an external format",
     },
 };
 // DECISION: D156
@@ -198,5 +200,16 @@ const CONSTANTDEFAULT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a default body that ignores self hands every implementor a constant it never decided; drop the default so each implementor writes it, or put a DECISION: or INVARIANT: reference on the line directly above it for a compatibility promise",
+    },
+};
+const POSITIONALFLAG: Descriptor = Descriptor {
+    default_id: "positional-flag",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust tuple struct or tuple enum variant of two or more fields with a field of type bool, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-flag",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a bool among positions reads as a bare true or false where the value is built, so an inverted flag compiles unnoticed; name the field and give it an enum naming both states, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };

@@ -39,11 +39,17 @@ pub(super) fn positions(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
     };
     let mut cursor = body.walk();
     let types: Vec<_> = body.children_by_field_name("type", &mut cursor).collect();
-    let unique = !repeated(&types, source);
-    if unique {
-        return;
+    let duplicated = repeated(&types, source);
+    if duplicated {
+        report(item, source, Signature::SameTypePositions, output);
     }
-    report(item, source, Signature::SameTypePositions, output);
+    let flagged = types.len() > 1
+        && types
+            .iter()
+            .any(|annotation| text(*annotation, source) == "bool");
+    if flagged {
+        report(item, source, Signature::PositionalFlag, output);
+    }
 }
 fn report(item: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
     let allowed = in_test_context(item, source) || justified_item(item, source);

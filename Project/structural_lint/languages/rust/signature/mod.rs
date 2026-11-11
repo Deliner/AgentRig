@@ -28,7 +28,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         }
         "closure_expression" => tuple_record::record_signature(node, source, output),
         "type_item" => type_shape::alias(node, source, output),
-        "generic_type" => type_shape::option(node, source, output),
+        "generic_type" => type_shape::three_states(node, source, output),
         "impl_item" => partial_impl::inspect(node, source, output),
         "trait_item" => constant_default::inspect(node, source, output),
         _ => {}

@@ -178,3 +178,42 @@ impl Pair {
         .into();
     assert_eq!(measured(source, OPTION), expected);
 }
+
+#[test]
+fn rust_flags_a_map_to_a_bool_or_atomic_bool_from_any_path() {
+    let source = "struct Features {
+    enabled: HashMap<String, bool>,
+    ordered: std::collections::BTreeMap<u32, bool>,
+    hashed: HashMap<String, bool, RandomState>,
+    indexed: IndexMap<String, bool>,
+    shared: DashMap<String, atomic::AtomicBool>,
+    nested: Vec<HashMap<String, bool>>,
+    counted: HashMap<String, u32>,
+    keyed: HashMap<bool, String>,
+    other: FxHashMap<String, bool>,
+}
+fn build() -> HashMap<String, bool> {
+    let made = HashMap::<String, bool>::new();
+    made
+}
+// DECISION: D001
+type Snapshot = HashMap<String, bool>;
+#[cfg(test)]
+mod tests {
+    fn probe(flags: HashMap<String, bool>) {}
+}
+";
+    assert_eq!(
+        measured(source, OPTION),
+        [
+            (2, "HashMap<String, bool>".to_string()),
+            (3, "std::collections::BTreeMap<u32, bool>".to_string()),
+            (4, "HashMap<String, bool, RandomState>".to_string()),
+            (5, "IndexMap<String, bool>".to_string()),
+            (6, "DashMap<String, atomic::AtomicBool>".to_string()),
+            (7, "HashMap<String, bool>".to_string()),
+            (12, "HashMap<String, bool>".to_string()),
+            (13, "HashMap::<String, bool>".to_string()),
+        ]
+    );
+}

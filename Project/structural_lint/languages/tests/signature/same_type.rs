@@ -4,6 +4,7 @@ use crate::structural_lint::rules::signature::Signature;
 
 const PARAMETERS: Kind = Kind::Signature(Signature::SameTypeParameters);
 const POSITIONS: Kind = Kind::Signature(Signature::SameTypePositions);
+const FLAG: Kind = Kind::Signature(Signature::PositionalFlag);
 
 #[test]
 fn rust_flags_each_function_with_two_parameters_of_one_type_once() {
@@ -66,5 +67,34 @@ struct Pair(u8, u8);
     assert_eq!(
         measured(source, POSITIONS),
         [(1, "Span".to_string()), (5, "Rectangle".to_string())]
+    );
+}
+
+#[test]
+fn rust_flags_tuple_structs_and_variants_with_a_bool_among_two_or_more_positions() {
+    let source = "pub struct Save(pub PathBuf, pub bool);
+struct Verbose(bool);
+struct Twin(bool, bool);
+enum Command {
+    Toggle(u32, bool),
+    Quiet(bool),
+    Named { path: PathBuf, force: bool },
+    Wrapped(Option<bool>, u32),
+}
+struct Plain(String, u32);
+// DECISION: D001
+struct Justified(u8, bool);
+#[cfg(test)]
+mod tests {
+    struct Probe(u8, bool);
+}
+";
+    assert_eq!(
+        measured(source, FLAG),
+        [
+            (1, "Save".to_string()),
+            (3, "Twin".to_string()),
+            (5, "Toggle".to_string()),
+        ]
     );
 }
