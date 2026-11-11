@@ -6,7 +6,6 @@ mod partial_impl;
 mod same_type;
 mod tuple_as_record;
 mod type_shape;
-mod untyped_conversion;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;
 use std::path::Path;

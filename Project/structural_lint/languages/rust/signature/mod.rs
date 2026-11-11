@@ -7,7 +7,6 @@ mod partial_impl;
 mod same_type;
 mod tuple_record;
 mod type_shape;
-mod untyped_conversion;
 use crate::structural_lint::languages::measure::{Code, Measurement};
 use tree_sitter::Node;
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
@@ -32,7 +31,6 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         "generic_type" => type_shape::option(node, source, output),
         "impl_item" => partial_impl::inspect(node, source, output),
         "trait_item" => constant_default::inspect(node, source, output),
-        "let_declaration" => untyped_conversion::inspect(node, source, output),
         _ => {}
     }
 }

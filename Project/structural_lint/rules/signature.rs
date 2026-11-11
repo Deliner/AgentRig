@@ -21,7 +21,6 @@ pub enum Signature {
     AmbiguousOption,
     ConstantDefault,
     PositionalFlag,
-    UntypedConversion,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -40,7 +39,6 @@ impl Signature {
             Self::AmbiguousOption => &AMBIGUOUSOPTION,
             Self::ConstantDefault => &CONSTANTDEFAULT,
             Self::PositionalFlag => &POSITIONALFLAG,
-            Self::UntypedConversion => &UNTYPEDCONVERSION,
         }
     }
 }
@@ -214,16 +212,5 @@ const POSITIONALFLAG: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a bool among positions reads as a bare true or false where the value is built, so an inverted flag compiles unnoticed; name the field and give it an enum naming both states, or put a DECISION: or INVARIANT: reference on the line directly above it",
-    },
-};
-const UNTYPEDCONVERSION: Descriptor = Descriptor {
-    default_id: "untyped-conversion",
-    exclude: TEST_CODE,
-    target: "file",
-    metric: "every Rust let of a plain name without a type annotation whose value, through ?, is a .parse(), .into(), .try_into(), .sum(), .product() or .collect() call without arguments or turbofish, a Default::default() call or a From::from(..) call, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "name-the-target",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "a conversion bound by let without a type takes its target type from a later use, so changing that use silently changes what the conversion accepts; write the type on the let or as a turbofish, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };

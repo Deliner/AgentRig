@@ -15,8 +15,6 @@ pub enum ControlFlow {
     LengthSubtraction,
     VariantEquality,
     RangeChain,
-    RepeatedFragment,
-    HiddenExit,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -29,8 +27,6 @@ impl ControlFlow {
             Self::LengthSubtraction => &LENGTHSUBTRACTION,
             Self::VariantEquality => &VARIANTEQUALITY,
             Self::RangeChain => &RANGECHAIN,
-            Self::RepeatedFragment => &REPEATEDFRAGMENT,
-            Self::HiddenExit => &HIDDENEXIT,
         }
     }
 }
@@ -144,27 +140,5 @@ const LENGTHSUBTRACTION: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "subtracting from a length underflows when the collection is shorter, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the length",
-    },
-};
-const REPEATEDFRAGMENT: Descriptor = Descriptor {
-    default_id: "repeated-fragment",
-    exclude: TEST_CODE,
-    target: "file",
-    metric: "every Rust macro_rules! arm whose transcriber names a $x bound as an expr or expr_2021 fragment by its matcher two or more times outside stringify!(..), reported at the second use, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "bind-the-fragment",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "an expression fragment named twice in a macro body is evaluated twice, so an argument with a side effect runs twice and the result silently differs; bind it once with let at the start of the body and use the binding, or put a DECISION: or INVARIANT: reference on the line directly above it",
-    },
-};
-const HIDDENEXIT: Descriptor = Descriptor {
-    default_id: "hidden-exit",
-    exclude: TEST_CODE,
-    target: "file",
-    metric: "every return, ? and break or continue outside a loop of the same body in a Rust macro_rules! transcriber that parses as a function body once each $ and the delimiters, separator and operator of each $(..) repetition become spaces, outside a closure, nested fn or async block of that body, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "expose-the-exit",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "a macro that returns, propagates with ? or breaks the caller's loop looks like an expression at the call site, so a reader or an agent does not see the exit; turn it into a function returning Result or Option and write the ? at the call site, or put a DECISION: or INVARIANT: reference on the line directly above the exit",
     },
 };

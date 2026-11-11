@@ -1,8 +1,6 @@
 purpose: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
 files:
   mod.rs: Rust unlabeled exits of nested loops and subtractions from a length or count call from native analysis
-  hidden_exit.rs: Rust macro_rules! transcribers that return, propagate with ? or leave the caller loop, with own loops, closures, async blocks, nested functions, unparsed, justified and test-only transcribers skipped, from native analysis
-  repeated_fragment.rs: Rust macro_rules! transcribers naming an expression fragment twice, with single, stringified, other-fragment, justified and test-only uses skipped, from native analysis
   mixed_junction.rs: Rust and Python outermost boolean expressions joining conjunctions with disjunctions directly or inside parentheses, and negated or separate expressions skipped, from native analysis
   range_chain.rs: Rust if-else chains and match guards splitting one value by literal bounds, with mixed subjects, named limits, justified and test-only chains skipped, from native analysis
   variant_equality.rs: Rust equality with an enum variant path and matches! naming a variant, with constants, calls, literal patterns, justified and test-only sites skipped, from native analysis
