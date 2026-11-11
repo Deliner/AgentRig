@@ -11,7 +11,7 @@ explicit shell entrypoint available before the worker exists. It registers the r
 a different existing hooksPath. Repeating it retains the same installation.
 
 `just candidate --version` builds the current product through tooling/worker/build. Its cache is `.cache/worker`; native
-tests always select the candidate. `just run test -- PATH` performs focused tests. Commits run the configured
+tests always select the candidate. `just run test -- FILTER` performs focused tests. Commits run the configured
 exported-index gate with [affected test groups](../../Project/change_delivery/gate/README.md) plus smoke tests. Paths
 outside feature groups select only the smoke tests, never an automatic full-suite fallback. `just feature-merge` runs
 the tests affected by the whole branch; `just check` runs the full suite. `tooling/worker/run` performs no compilation.

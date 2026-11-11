@@ -140,7 +140,7 @@ clippy:
   - clippy::as_conversions
   - -D
   - clippy::allow_attributes
-rust-test:
+test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
   - cargo
@@ -155,23 +155,6 @@ rust-test:
   output:
     success: {matching: ["test result:"]}
     failure: {matching: [FAILED, panicked, "error", "test result:"]}
-test:
-  purpose: Run Python behavior tests, optionally limited to paths
-  argv:
-  - uv
-  - run
-  - --locked
-  - --project
-  - tooling
-  - pytest
-  - -c
-  - tooling/pyproject.toml
-  - --rootdir
-  - .
-  accepts_args: true
-  output:
-    success: {tail: 1}
-    failure: {matching: [FAILED, ERROR], tail: 1}
 ruff-format:
   purpose: Check Python formatting
   argv:
@@ -199,7 +182,7 @@ ruff:
   - tooling/pyproject.toml
 mypy:
   purpose: Type-check Python tests and fixtures
-  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "tooling/distribution/tests", "Project/shared"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "mypy", "--config-file", "tooling/pyproject.toml", "Project/shared"]
 typos:
   purpose: Check spelling across the repository
   argv:
@@ -214,4 +197,4 @@ typos:
   - .
 vulture:
   purpose: Report unused Python code
-  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "tooling/distribution/tests", "Project/shared"]
+  argv: ["uv", "run", "--locked", "--project", "tooling", "vulture", "--min-confidence", "100", "Project/shared"]

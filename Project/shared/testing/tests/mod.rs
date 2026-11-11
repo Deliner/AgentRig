@@ -11,6 +11,8 @@ use std::{
 };
 use tempfile::TempDir;
 
+mod launchers;
+
 const FOREIGN: [&str; 6] = [
     "WORKER_OWNER",
     "WORKER_PARENT_RUN",

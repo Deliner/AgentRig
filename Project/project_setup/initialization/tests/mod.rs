@@ -12,11 +12,11 @@ use std::{
 };
 
 // DECISION: D053
-const WORKER_LOCAL_CHECKS: [&str; 9] = [
+// DECISION: D158
+const WORKER_LOCAL_CHECKS: [&str; 8] = [
     "build",
     "rustfmt",
     "clippy",
-    "rust-test",
     "ruff-format",
     "ruff",
     "mypy",

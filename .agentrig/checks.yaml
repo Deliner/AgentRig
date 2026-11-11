@@ -23,7 +23,7 @@
 - id: rust-test
   kind: command
   skill: .agents/skills/repair/SKILL.md
-  command: rust-test
+  command: test
   affected:
   - {include: ['**'], targets: ['structural_lint::tests::configuration::', 'structural_lint::tests::discovery::']}
   - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
@@ -52,6 +52,8 @@
     targets: ['shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/fs/**']
     targets: ['shared::fs::', 'shared::artifacts::', 'shared::paths::', 'shared::vcs::', 'shared::yaml::', 'shared::diagnostics::', 'structural_lint::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
+  - include: ['tooling/worker/**', 'Project/command_line/mod.rs', 'Project/project_config/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/command_runner/jobs/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**', 'Project/clippy.toml', 'Project/project_setup/**', 'Project/shared/skills/**']
+    targets: ['shared::testing::launchers::']
 - id: ruff-format
   kind: command
   skill: .agents/skills/repair/SKILL.md
@@ -64,39 +66,6 @@
   kind: command
   skill: .agents/skills/repair/SKILL.md
   command: mypy
-- id: test
-  kind: command
-  skill: .agents/skills/repair/SKILL.md
-  command: test
-  # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
-  affected:
-  - {include: ['**'], targets: []}
-  - include:
-    - Project/command_line/mod.rs
-    - Project/project_config/**
-    - Project/project_config/settings/**
-    - Project/shared/paths/**
-    - Project/shared/arguments/**
-    - Project/shared/diagnostics/**
-    - Project/command_runner/jobs/**
-    - Project/shared/artifacts/**
-    - Project/shared/vcs/**
-    - Project/shared/yaml/**
-    - Project/shared/testing/**
-    targets:
-    - Project/shared/testing/examples/python/application/test_sample.py
-    - tooling/distribution/tests/test_launcher.py
-  - include:
-    - Project/clippy.toml
-    - Project/project_setup/**
-    - Project/shared/skills/**
-    targets:
-    - tooling/distribution/tests/test_launcher.py
-  - include:
-    - tooling/worker/**
-    - tooling/distribution/tests/**
-    targets:
-    - tooling/distribution/tests/test_launcher.py
 - id: typos
   kind: command
   skill: .agents/skills/repair/SKILL.md
