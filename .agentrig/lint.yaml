@@ -845,16 +845,6 @@ rules:
       - yaml_rust2
       python:
       - __future__
-      - argparse
-      - datetime
-      - json
-      - pathlib
-      - platform
-      - shutil
-      - statistics
-      - subprocess
-      - tempfile
-      - time
     rust_crates:
       agentrig: Project/lib.rs
     rust_roots:
@@ -862,12 +852,13 @@ rules:
     - Project/lib.rs
     - Project/command_line/main.rs
     - Project/command_line/lint.rs
+    - Project/shared/testing/examples/measure.rs
     python_root: .
     feature_root: Project
     disallowed:
     - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs, allow: [Project/shared/fs/**, '**/tests/**', '**/tests.rs'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
     - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs, allow: [Project/shared/fs/**, '**/tests/**', '**/tests.rs']}
-    - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, '**/tests/**', '**/tests.rs']}
+    - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, Project/shared/testing/examples/measure.rs, '**/tests/**', '**/tests.rs']}
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
   extensions:
   - .rs

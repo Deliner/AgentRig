@@ -74,7 +74,7 @@ guide for schema details; do not duplicate those contracts here.
 Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. This
 build/install recipe is the explicit bootstrap exception to runtime dispatch. Use tooling/worker/run for the installed
 development runtime; it never builds candidate sources. All command, hook, memory, gate and Git logic belongs to the
-Rust runtime; adapters only forward calls. Python dependencies support tests and measurements.
+Rust runtime; adapters only forward calls. Python dependencies support repository checks and example consumer tests.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
 select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish

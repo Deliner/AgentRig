@@ -73,6 +73,9 @@ clippy:
   - --manifest-path
   - Project/Cargo.toml
   - --locked
+  - --lib
+  - --bins
+  - --examples
   - --
   - -D
   - warnings
