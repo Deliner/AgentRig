@@ -5,6 +5,7 @@ use std::{
 
 mod defaults;
 mod delivery;
+mod doctor;
 mod runtime;
 
 fn installed_runtime(root: &Path) -> PathBuf {

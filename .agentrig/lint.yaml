@@ -853,7 +853,6 @@ rules:
       - pathlib
       - platform
       - pytest
-      - shlex
       - shutil
       - statistics
       - subprocess
