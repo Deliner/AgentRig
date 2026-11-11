@@ -41,7 +41,7 @@
   - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**']
     targets: ['change_delivery::gate::']
   - include: ['Project/agent_hooks/**']
-    targets: ['agent_hooks::', 'command_runner::tests::']
+    targets: ['agent_hooks::', 'command_runner::tests::', 'project_config::tests::']
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
     targets: ['shared::artifacts::', 'command_line::', 'command_runner::', 'change_delivery::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/shared/paths/**']
@@ -100,7 +100,6 @@
     - Project/project_config/tests
     - Project/project_memory/tests
     - Project/project_setup/tests
-    - Project/agent_hooks/tests
     - Project/shared/testing/examples/python/application/test_sample.py
     - tooling/distribution/tests/test_launcher.py
   - include:
@@ -124,7 +123,6 @@
     - Project/agent_hooks/**
     - .agentrig/**
     targets:
-    - Project/agent_hooks/tests
     - Project/project_config/tests
   - include:
     - Project/clippy.toml

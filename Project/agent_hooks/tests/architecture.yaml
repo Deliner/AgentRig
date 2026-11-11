@@ -4,5 +4,5 @@ files:
   requirements.rs: Verify blocking delivery, merged ordering, order conflicts, shell classification and VAC check reminders
   memory.rs: Verify memory edit guidance and session recovery context
   shell.rs: Verify shell invocation guards
-  test_reminders.py: Verify Codex and Claude token accounting, reminder scheduling and storage recovery
+  reminders.rs: Verify Codex and Claude token accounting, reminder scheduling and storage recovery
 directories: {}

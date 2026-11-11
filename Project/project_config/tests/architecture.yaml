@@ -1,5 +1,5 @@
 purpose: Verify invalid runtime and execution settings are rejected before project operations
 files:
-  mod.rs: Invalid affected groups and checks naming unknown commands fail configuration loading
+  mod.rs: Invalid affected groups, checks naming unknown commands and malformed reminder settings fail configuration loading
   test_configuration.py: Runtime version, schema and process setting validation diagnostics
 directories: {}

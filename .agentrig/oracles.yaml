@@ -23,9 +23,9 @@ I006:
   runner: cargo
   target: change_delivery::git::tests::guards::staged_commit_preserves_unstaged_work
 I007:
-  check: test
-  runner: pytest
-  target: Project/agent_hooks/tests/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
+  check: rust-test
+  runner: cargo
+  target: agent_hooks::tests::reminders::portable_reminder_schedule_retry_and_compaction
 I008:
   check: rust-test
   runner: cargo

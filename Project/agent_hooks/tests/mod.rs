@@ -1,4 +1,5 @@
 mod memory;
+mod reminders;
 mod requirements;
 mod shell;
 
