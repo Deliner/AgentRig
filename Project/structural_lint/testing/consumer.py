@@ -40,17 +40,6 @@ def lint(worker: Path, root: Path) -> tuple[int, list[dict[str, Any]]]:
     return output.returncode, json.loads(output.stdout)
 
 
-def explain(worker: Path, root: Path, path: str) -> dict[str, Any]:
-    result = subprocess.run(
-        [str(worker), "lint-explain", path, "--root", str(root), "--config", "lint.yaml", "--json"],
-        capture_output=True,
-        text=True,
-        check=True,
-    )
-    value: dict[str, Any] = json.loads(result.stdout)
-    return value
-
-
 def configure(root: Path, kind: str, thresholds: str = 'level: "error"') -> None:
     config = (
         CONFIG.replace("nonblank-lines", kind)

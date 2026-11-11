@@ -81,7 +81,6 @@
     - Project/shared/vcs/**
     - Project/shared/yaml/**
     targets:
-    - Project/structural_lint/tests
     - Project/structural_lint/inventory/tests
     - Project/structural_lint/languages/tests
   - include:

@@ -7,7 +7,7 @@ use std::{
 };
 use tempfile::TempDir;
 
-const REPAIR: &str = ".agents/skills/repair/SKILL.md";
+pub const REPAIR: &str = ".agents/skills/repair/SKILL.md";
 pub const SKILL: &str = ".agents/skills/refactor-large-file/SKILL.md";
 pub const EXTENSIONS: &str = r#"extensions: [".rs", ".py", ".ts"]"#;
 pub const CONFIG: &str = r#"version: 1
@@ -47,9 +47,13 @@ pub fn write(root: &Path, name: &str, text: &str) {
 }
 
 pub fn command(root: &Path, name: &str, flags: &[&str]) -> Run {
+    command_with(worker(), root, name, flags)
+}
+
+pub fn command_with(binary: &Path, root: &Path, name: &str, flags: &[&str]) -> Run {
     let mut args = vec![name, "--config", "lint.yaml"];
     args.extend(flags);
-    run(&mut launch(worker(), root, &args), "")
+    run(&mut launch(binary, root, &args), "")
 }
 
 pub fn parsed(result: &Run) -> Vec<Value> {
@@ -58,7 +62,11 @@ pub fn parsed(result: &Run) -> Vec<Value> {
 }
 
 pub fn lint(root: &Path) -> (Option<i32>, Vec<Value>) {
-    let result = command(root, "lint", &["--json", "--warnings"]);
+    lint_with(worker(), root)
+}
+
+pub fn lint_with(binary: &Path, root: &Path) -> (Option<i32>, Vec<Value>) {
+    let result = command_with(binary, root, "lint", &["--json", "--warnings"]);
     (result.code, parsed(&result))
 }
 
