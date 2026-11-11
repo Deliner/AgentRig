@@ -259,6 +259,7 @@ const BLOCKINGINASYNC: Descriptor = Descriptor {
         violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
     },
 };
+// DECISION: D169
 const UNTARGETEDPANIC: Descriptor = Descriptor {
     default_id: "untargeted-panic",
     exclude: &[],
@@ -270,6 +271,7 @@ const UNTARGETEDPANIC: Descriptor = Descriptor {
         violation: "a should_panic test without expected passes on any panic, also one from an unrelated place, so a broken test stays green; name the expected message with #[should_panic(expected = \"...\")] or test the returned Err instead, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D169
 const TESTSUBSTITUTION: Descriptor = Descriptor {
     default_id: "test-substitution",
     exclude: TEST_CODE,

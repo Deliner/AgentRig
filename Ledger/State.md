@@ -7,13 +7,14 @@ B107 о сверке имён узлов с грамматикой сохран�
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине.
 
 2026-11-11 пользователь принял 20 форм списка IV и выбрал карточки B115–B120 как P120–P125. P120–P123 завершены
-решениями D165–D168 и влиты в master. Идёт P124 по B119 о тестах, которые проходят ложно; затем P125. Статусы всех
+решениями D165–D168 и влиты в master. P124 по B119 о тестах, которые проходят ложно, завершена решением D169 и
+перенесена в Archive; осталось влить её ветку. Затем P125. Статусы всех
 30 форм и итоги замеров проставлены в файле списка IV вне репозитория.
 
 ## Workspace
 
 Branch: `feature/false-pass`, от master `d4f38e2`.
-Revision: `57b0e3b6e8311be565cdd321a60b151ace342108`
+Revision: `80bafad8d5de44bd6af8c9e1ed5f20e132889a4e`
 
 Установленный рантайм `4ac9f6f`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -31,9 +32,10 @@ Revision: `57b0e3b6e8311be565cdd321a60b151ace342108`
 - P124: VAC 1 `2428ac1` записал вердикты, VAC 2 `6965b25` заморозил предикаты четырьмя инертными видами. VAC 3
   `4ac9f6f` записал замер в Delivery и убрал `untargeted-error` и `sleep-in-test`: IV-24 верна на 0 из 58 мест рига и
   voxel, IV-26 на 7 из 32 в корпусе. IV-23 верна на 22 из 24, IV-25 на 12 из 13, обе идут в поставку. Вердикты по
-  местам лежат в scratchpad `p124/verdicts.md`. Пин `57b0e3b` поставил рантайм `4ac9f6f` с обоими видами. Следующий
-  VAC включает `untargeted-panic` и `test-substitution` с навыками `expect-the-panic` и `inject-the-variant` в
-  подгруппе `references/false-pass`: в `references` иначе 16 каталогов при пределе 15.
+  местам лежат в scratchpad `p124/verdicts.md`. Пин `57b0e3b` поставил рантайм `4ac9f6f` с обоими видами. VAC
+  `80bafad` включил `untargeted-panic` и `test-substitution` с навыками `expect-the-panic` и `inject-the-variant` в
+  подгруппе `references/false-pass`: в `references` иначе 16 каталогов при пределе 15. Последний VAC записывает D169,
+  ссылки на него у владельцев, приёмку и архив P124 и B119.
 - Замер нового вида по протоколу P120: вид сначала инертный, бинарник собирается из коммита заморозки с видом в
   обработчике Rust скриптом scratchpad `p120/enabledbin.sh`; фикстура проверяет подключение. IV-23, IV-24 и IV-26
   меряются с тестовым кодом, то есть с охватом `none` в `p120/measure.sh`.
@@ -47,6 +49,8 @@ Revision: `57b0e3b6e8311be565cdd321a60b151ace342108`
   `assertions_on_result_states` и `cfg_not_test`; `thread::sleep` в тесте не ловит ни один уровень.
 - Коммит заморозки `6965b25` прошёл хук: build, lint, memory, rustfmt, clippy, rust-test 410, ruff, mypy, typos,
   vulture. Фикстура дала восемь ожидаемых находок.
+- Коммит включения `80bafad` прошёл хук: build, lint, memory, rustfmt, clippy, rust-test 460, ruff, mypy, typos,
+  vulture.
 - Включение до коммита: `cargo test structural_lint::` — 271 прошли; `just candidate lint` на риге — код 0 без
   находок, так что AC3 выполнен без правок; `config-check` и `lint-config-check` чисты. `init --language rust`
   кандидата во временном каталоге ставит оба правила и навыка, образец `Project/lib.rs` даёт по одной находке каждого.
@@ -57,6 +61,6 @@ Revision: `57b0e3b6e8311be565cdd321a60b151ace342108`
 
 ## Next action
 
-Закоммитить включение. Затем D169 с поставкой IV-23 и IV-25 и отказом от IV-24 и IV-26, ссылки `DECISION: D169` у
-владельцев, раздел «Приёмка» в P124, архив P124 и B119, финальный пин и `feature-merge`; потом P125.
+Закоммитить D169 и архив. Затем финальный пин принятой гейтом головы (D051), `feature-merge` с чужой строкой B116 в
+stash, статусы форм 23–26 в файле списка IV и P125 по B120 на новой ветке.
 Свободные ID: D169+, I022+, P126+, B121+ (B066 и D111 зарезервированы).

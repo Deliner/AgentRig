@@ -1,6 +1,7 @@
 use super::measured;
 use crate::structural_lint::rules::reference::Reference;
 
+// DECISION: D169
 #[test]
 fn rust_flags_items_that_every_test_build_excludes() {
     let source = "#[cfg(not(test))]

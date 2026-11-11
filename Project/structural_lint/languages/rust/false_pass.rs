@@ -4,6 +4,7 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
+// DECISION: D169
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
         "attribute_item" => {

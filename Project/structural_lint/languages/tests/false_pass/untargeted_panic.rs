@@ -1,6 +1,7 @@
 use super::measured;
 use crate::structural_lint::rules::reference::Reference;
 
+// DECISION: D169
 #[test]
 fn rust_flags_should_panic_without_an_expected_message() {
     let source = "#[test]
