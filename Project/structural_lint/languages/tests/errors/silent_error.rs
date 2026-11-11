@@ -89,6 +89,7 @@ fn probe() -> Result<()> {
     );
 }
 
+// DECISION: D165
 #[test]
 fn rust_flags_filter_map_and_flat_map_that_keep_only_the_ok_values_of_any_chain() {
     let source =
@@ -117,6 +118,7 @@ fn rust_flags_filter_map_and_flat_map_that_keep_only_the_ok_values_of_any_chain(
     );
 }
 
+// DECISION: D165
 #[test]
 fn rust_leaves_lines_spellings_to_clippy_and_keeps_options_errors_justified_and_test_chains() {
     let source = "fn read(reader: impl BufRead, items: &[&str]) -> Vec<String> {

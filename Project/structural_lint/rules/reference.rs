@@ -101,6 +101,7 @@ const HARDCODEDSECRET: Descriptor = Descriptor {
 // DECISION: D069
 // DECISION: D097
 // DECISION: D126
+// DECISION: D165
 const SILENTERROR: Descriptor = Descriptor {
     default_id: "silent-error",
     exclude: &[],

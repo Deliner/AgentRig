@@ -7,6 +7,7 @@ use tree_sitter::Node;
 const ERROR_ARMS: &[&str] = &["Err(_)", "Err(..)"];
 
 // DECISION: D097
+// DECISION: D165
 pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
