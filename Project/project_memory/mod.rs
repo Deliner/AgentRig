@@ -20,6 +20,7 @@ use crate::shared::paths::patterns::globs;
 use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
 use format::{Catalog, Row, sections, table, target};
+use source::Invariant;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     path::Path,
@@ -244,7 +245,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
             }
             match source::inspect(&path)? {
                 Some(source) => ensure!(
-                    source.marker("DECISION", &row.id),
+                    source.marker(&row.id),
                     "{}: decision marker absent in {}",
                     row.id,
                     path.display()
@@ -267,13 +268,16 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
         let path = target(context, memory, &oracle.path)?;
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
+        let id = &row.id;
+        let function = &oracles::function_target(context, id)?;
         ensure!(
-            source.marked_function(&oracles::function_target(context, &row.id)?, &row.id),
+            source.marked_function(Invariant { id, function }),
             "{}: marked oracle function {} missing or ambiguous",
             row.id,
             oracle.name
         );
-        oracles::validate(context, &row.id, &oracle.name, &path)?;
+        let function = &oracle.name;
+        oracles::validate(context, Invariant { id, function }, &path)?;
     }
     Ok(())
 }

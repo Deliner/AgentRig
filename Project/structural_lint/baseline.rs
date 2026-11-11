@@ -39,25 +39,31 @@ fn counts(diagnostics: &[Diagnostic]) -> Counts {
     counts
 }
 
-fn allowed(counts: &Counts, rule: &str, path: &str) -> u64 {
-    counts
-        .get(rule)
-        .and_then(|paths| paths.get(path))
-        .copied()
-        .unwrap_or_default()
+#[derive(Clone, Copy)]
+struct Key<'a> {
+    rule: &'a str,
+    path: &'a str,
+}
+
+impl Key<'_> {
+    fn allowed(self, counts: &Counts) -> u64 {
+        counts
+            .get(self.rule)
+            .and_then(|paths| paths.get(self.path))
+            .copied()
+            .unwrap_or_default()
+    }
 }
 
 struct Pair<'a> {
-    rule: &'a str,
-    path: &'a str,
+    key: Key<'a>,
     count: u64,
 }
 
 fn pairs(counts: &Counts) -> impl Iterator<Item = Pair<'_>> {
     counts.iter().flat_map(|(rule, paths)| {
         paths.iter().map(move |(path, count)| Pair {
-            rule,
-            path,
+            key: Key { rule, path },
             count: *count,
         })
     })
@@ -71,8 +77,11 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
     };
     let current = counts(diagnostics);
     for item in diagnostics.iter_mut().filter(|item| item.level.blocking()) {
-        let limit = allowed(&baseline, &item.rule, &item.path);
-        let count = allowed(&current, &item.rule, &item.path);
+        let rule = &item.rule;
+        let path = &item.path;
+        let key = Key { rule, path };
+        let limit = key.allowed(&baseline);
+        let count = key.allowed(&current);
         let accepted = count <= limit;
         if accepted {
             item.level = Level::Warning;
@@ -84,7 +93,7 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
         }
     }
     let lowered = pairs(&baseline)
-        .filter(|pair| allowed(&current, pair.rule, pair.path) < pair.count)
+        .filter(|pair| pair.key.allowed(&current) < pair.count)
         .count();
     let lowerable = lowered > 0;
     if lowerable {
@@ -115,7 +124,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
         None => current.clone(),
     };
     let exceeding = pairs(&current)
-        .filter(|pair| allowed(&findings, pair.rule, pair.path) < pair.count)
+        .filter(|pair| pair.key.allowed(&findings) < pair.count)
         .count();
     let total: u64 = pairs(&findings).map(|pair| pair.count).sum();
     fs::write(&path, crate::shared::yaml::encode(&findings)?)?;
@@ -167,9 +176,11 @@ fn ceiling(
 ) -> Counts {
     let mut ceiling = Counts::new();
     for pair in pairs(working).chain(committed.into_iter().flat_map(pairs)) {
-        let path = renames.get(pair.path).map_or(pair.path, String::as_str);
+        let path = renames
+            .get(pair.key.path)
+            .map_or(pair.key.path, String::as_str);
         let count = ceiling
-            .entry(pair.rule.to_owned())
+            .entry(pair.key.rule.to_owned())
             .or_default()
             .entry(path.to_owned())
             .or_default();
@@ -178,16 +189,17 @@ fn ceiling(
     ceiling
 }
 
+// DECISION: D123
 fn lowered(baseline: &Counts, current: &Counts) -> Counts {
     let mut findings = Counts::new();
     for pair in pairs(baseline) {
-        let count = allowed(current, pair.rule, pair.path).min(pair.count);
+        let count = pair.key.allowed(current).min(pair.count);
         let kept = count > 0;
         if kept {
             findings
-                .entry(pair.rule.to_owned())
+                .entry(pair.key.rule.to_owned())
                 .or_default()
-                .insert(pair.path.to_owned(), count);
+                .insert(pair.key.path.to_owned(), count);
         }
     }
     findings

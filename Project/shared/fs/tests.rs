@@ -1,6 +1,6 @@
 // DECISION: D106
 use super::{Error, OpenOptions, Permissions, PermissionsExt};
-use std::{io::ErrorKind, path::Path};
+use std::{ffi::OsStr, io::ErrorKind, path::Path};
 
 #[test]
 fn errors_name_the_action_and_path_and_keep_the_kind() {
@@ -28,7 +28,7 @@ fn errors_name_the_action_and_path_and_keep_the_kind() {
         assert!(std::error::Error::source(&error).is_some(), "{action}");
     }
     let link = missing.join("link");
-    let error = super::symlink("target", &link).unwrap_err();
+    let error = super::symlink(OsStr::new("target"), &link).unwrap_err();
     assert_eq!(error.to_string(), format!("link {}", link.display()));
     let error = super::write(&link, "text").unwrap_err();
     assert_eq!(error.to_string(), format!("write {}", link.display()));
@@ -62,7 +62,7 @@ fn wrappers_perform_the_operations_they_name() {
     let mode = super::metadata(&file).unwrap().permissions().mode() & 0o777;
     assert_eq!(mode, 0o755);
     let link = root.join("link");
-    super::symlink("file", &link).unwrap();
+    super::symlink(OsStr::new("file"), &link).unwrap();
     assert!(
         super::symlink_metadata(&link)
             .unwrap()

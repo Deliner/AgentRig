@@ -103,7 +103,7 @@ fn config(options: &Options<'_>, rust: &Layout) -> Config {
         commands: commands(options, rust),
         checks: checks(options, skill_root),
         hooks: Hooks {
-            routes: routes(&options["memory"], &options["source"], skill_root),
+            routes: routes(options),
             reminder: Some(format!("{service}/reminder.json")),
             discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
         },
@@ -303,14 +303,17 @@ fn test_command(options: &Options<'_>, rust: &Layout) -> Vec<String> {
     }
 }
 // DECISION: D110
-fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
+fn routes(options: &Options<'_>) -> Vec<Route> {
+    let memory = &options["memory"];
+    let source = &options["source"];
+    let skill_root = &options["skills"];
     let mut routes = vec![Route {
         include: vec![format!("{source}/**")],
         skill: format!("{skill_root}/refactor-large-directory/SKILL.md"),
         events: vec![RouteEvent::Edit],
         block: true,
     }];
-    routes.extend(memory_routes(memory, skill_root));
+    routes.extend(memory_routes(options));
     routes.push(Route {
         include: vec![
             format!("{memory}/State.md"),
@@ -328,7 +331,9 @@ fn routes(memory: &str, source: &str, skill_root: &str) -> Vec<Route> {
     });
     routes
 }
-fn memory_routes(memory: &str, skill_root: &str) -> Vec<Route> {
+fn memory_routes(options: &Options<'_>) -> Vec<Route> {
+    let memory = &options["memory"];
+    let skill_root = &options["skills"];
     [
         ("Plan", "edit-plan"),
         ("Archive/Plan", "edit-plan"),

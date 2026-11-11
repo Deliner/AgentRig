@@ -204,7 +204,7 @@ fn finding(
     let (level, limit) = if let Some(level) = rule.level {
         (level, None)
     } else {
-        config::thresholds(warning, error)?;
+        config::Thresholds { warning, error }.validate()?;
         match (warning, error) {
             (_, Some(limit)) if actual > limit => (Level::Error, Some(limit)),
             (Some(limit), _) if actual > limit => (Level::Warning, Some(limit)),

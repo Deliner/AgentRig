@@ -60,7 +60,8 @@ pub fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Resu
     }
     let numeric = rule.level.is_none();
     if numeric {
-        config::thresholds(warning, error).with_context(|| {
+        let thresholds = config::Thresholds { warning, error };
+        thresholds.validate().with_context(|| {
             format!(
                 "{id} at {path}: invalid effective thresholds",
                 id = rule.id,

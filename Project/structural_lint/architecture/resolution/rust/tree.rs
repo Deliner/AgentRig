@@ -1,4 +1,4 @@
-use super::{Module, Pending, Rust, joined};
+use super::{Module, Pending, Rust};
 use crate::structural_lint::architecture::resolution::{Resolved, normalize};
 use crate::structural_lint::architecture::source::{Reference, References, Target};
 use anyhow::{Context, Result, bail, ensure};
@@ -89,13 +89,13 @@ impl Rust<'_> {
             pending.extend(self.include(file, base, reference)?);
         }
         for item in &source.rust_items {
-            let mut key = joined(base, &item.scope);
+            let mut key = [base, &item.scope].concat();
             key.push(item.name.clone());
             self.items.insert(key);
         }
         self.expansions(file, base);
         for import in &source.rust_imports {
-            let mut key = joined(base, &import.scope);
+            let mut key = [base, &import.scope].concat();
             key.push(import.name.clone());
             let ordinary = !matches!(import.name.as_str(), "_" | "*");
             if ordinary {
@@ -114,19 +114,22 @@ impl Rust<'_> {
     fn expansions(&mut self, file: &Path, base: &[String]) {
         let source = &self.sources[file];
         for item in &source.rust_macros {
-            let mut key = joined(base, &item.scope);
+            let mut key = [base, &item.scope].concat();
             key.push(item.name.clone());
             self.macros.insert(key, file.into());
         }
         for scope in &source.rust_generated {
-            self.generated.insert(joined(base, scope));
+            self.generated.insert([base, scope].concat());
         }
         for import in source
             .rust_imports
             .iter()
             .filter(|import| import.name == "*")
         {
-            let globs = self.globs.entry(joined(base, &import.scope)).or_default();
+            let globs = self
+                .globs
+                .entry([base, &import.scope].concat())
+                .or_default();
             globs.push(import.path.clone());
         }
     }
@@ -146,7 +149,7 @@ impl Rust<'_> {
             return Ok(None);
         };
         let target = included_file(file, included)?;
-        let base = joined(base, scope);
+        let base = [base, scope].concat();
         let fresh = self.sources.contains_key(&target)
             && self
                 .included
@@ -174,10 +177,10 @@ impl Rust<'_> {
             return Ok(None);
         };
         let (_, parent) = path.split_last().context("empty Rust module declaration")?;
-        let key = joined(base, path);
+        let key = [base, path].concat();
         let parent = self
             .modules
-            .get(&joined(base, parent))
+            .get(&[base, parent].concat())
             .context("parent module is unresolved")?;
         let module = self.module_location(parent, reference)?;
         let pending = (!inline).then(|| Pending {

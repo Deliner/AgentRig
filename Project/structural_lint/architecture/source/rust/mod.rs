@@ -118,7 +118,7 @@ fn use_leaves<'t>(source: &Source<'_>, node: Node<'t>, prefix: &str) -> Vec<UseL
                 .child_by_field_name("path")
                 .and_then(|n| path_text(source, n))
                 .unwrap_or_default();
-            let prefix = joined(prefix, &path);
+            let prefix = Prefix(prefix).join(&path);
             node.child_by_field_name("list")
                 .map(|list| use_leaves(source, list, &prefix))
                 .unwrap_or_default()
@@ -186,7 +186,7 @@ fn leaf_path(source: &Source<'_>, node: Node<'_>, prefix: &str) -> Option<String
     let path = if grouped_self {
         prefix.into()
     } else {
-        joined(prefix, &value)
+        Prefix(prefix).join(&value)
     };
     Some(self_path(source, node, path))
 }
@@ -220,7 +220,7 @@ fn self_path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
         };
         if let Some(binding) = binding {
             return path_text(source, binding)
-                .map(|name| joined(&name, suffix))
+                .map(|name| Prefix(&name).join(suffix))
                 .unwrap_or(path);
         }
         let unrelated_item = matches!(owner.kind(), "mod_item" | "struct_item" | "enum_item")
@@ -241,7 +241,7 @@ pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) ->
     while let Some(owner) = parent {
         if let Some(binding) = lexical_binding(source, owner, name) {
             return match binding {
-                Binding::Path(bound) => joined(&bound, suffix),
+                Binding::Path(bound) => Prefix(&bound).join(suffix),
                 Binding::Opaque => path,
             };
         }
@@ -304,7 +304,7 @@ fn path_text(source: &Source<'_>, node: Node<'_>) -> Option<String> {
         "scoped_identifier" | "scoped_type_identifier" => {
             let name = path_text(source, node.child_by_field_name("name")?)?;
             match node.child_by_field_name("path") {
-                Some(path) => Some(joined(&path_text(source, path)?, &name)),
+                Some(path) => Some(Prefix(&path_text(source, path)?).join(&name)),
                 None => Some(format!("::{name}")),
             }
         }
@@ -317,12 +317,18 @@ fn path_text(source: &Source<'_>, node: Node<'_>) -> Option<String> {
     }
 }
 
-fn joined(prefix: &str, path: &str) -> String {
-    let empty = prefix.is_empty();
-    if empty {
-        path.into()
-    } else {
-        format!("{prefix}::{path}")
+#[derive(Clone, Copy)]
+struct Prefix<'a>(&'a str);
+
+impl Prefix<'_> {
+    fn join(self, path: &str) -> String {
+        let Self(prefix) = self;
+        let empty = prefix.is_empty();
+        if empty {
+            path.into()
+        } else {
+            format!("{prefix}::{path}")
+        }
     }
 }
 

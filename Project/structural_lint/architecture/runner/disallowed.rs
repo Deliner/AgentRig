@@ -21,7 +21,7 @@ impl<'a> Policy<'a> {
     pub fn check(&self, file: &Path, line: usize, external: &str) -> Option<Issue> {
         let path = external.trim_start_matches("::");
         let (entry, _) = self.entries.iter().find(|(entry, allowed)| {
-            architecture::bounded(path, &entry.path) && !allowed.is_match(file)
+            architecture::bounded(path, &[entry.path.as_str()]) && !allowed.is_match(file)
         })?;
         Some(Issue {
             path: file.into(),

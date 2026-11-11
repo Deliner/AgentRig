@@ -1,6 +1,7 @@
 // DECISION: D021
 // DECISION: D036
 use super::cargo::Layout;
+use crate::project_config::Paths;
 use crate::structural_lint::rules::{architecture::RUST_SEED, structure::Structure};
 use crate::structural_lint::{catalog, rules};
 use anyhow::Result;
@@ -16,7 +17,7 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         .map(|kind| catalog::example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources, rust));
-    rules.extend(markdown(skills, &settings.paths.memory, sources));
+    rules.extend(markdown(&settings.paths));
     let config = json!({
         "version": 1,
         "config_skill": format!("{skills}/repair/SKILL.md"),
@@ -46,9 +47,10 @@ fn cataloged(kind: rules::Kind) -> bool {
     }
 }
 
-fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {
-    let condense = format!("{skills}/condense-markdown/SKILL.md");
-    let memory_exclude = format!("{memory}/**");
+fn markdown(paths: &Paths) -> Vec<Value> {
+    let condense = format!("{skills}/condense-markdown/SKILL.md", skills = paths.skills);
+    let memory_exclude = format!("{memory}/**", memory = paths.memory);
+    let sources = &paths.sources;
     vec![
         json!({"id": "markdown-size", "kind": "nonblank-lines", "target": "file",
             "include": ["**/README.md", "**/AGENTS.md"], "exclude": [memory_exclude],

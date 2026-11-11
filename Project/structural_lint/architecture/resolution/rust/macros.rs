@@ -42,7 +42,7 @@ impl Rust<'_> {
         base: &[String],
         call: &RustMacro,
     ) -> Result<Resolved> {
-        let scope = super::joined(base, &call.scope);
+        let scope = [base, &call.scope].concat();
         if let Some(file) = self.local_macro(&scope, &call.path) {
             return Ok(Resolved {
                 files: BTreeSet::from([file.to_path_buf()]),

@@ -178,25 +178,27 @@ fn unused_externals(
         .rust
         .iter()
         .filter(|name| !RUST_SEED.contains(&name.as_str()) && !used.rust.contains(*name))
-        .map(|name| unused(&owner, "Rust", name, &searched));
+        .map(|name| format!("Rust dependency {name}"));
     let python = settings
         .external
         .python
         .iter()
         .filter(|name| !PYTHON_SEED.contains(&name.as_str()) && !used.python.contains(*name))
-        .map(|name| unused(&owner, "Python", name, &searched));
-    rust.chain(python).collect()
+        .map(|name| format!("Python dependency {name}"));
+    unused(&owner, &searched, rust.chain(python))
 }
 
-fn unused(owner: &Path, language: &str, name: &str, searched: &str) -> Issue {
-    Issue {
-        path: owner.into(),
-        line: None,
-        message: format!(
-            "declared external {language} dependency {name} is not named in the {searched}; \
-             add the file that uses it to this rule's selection, or remove the declaration"
-        ),
-    }
+fn unused(owner: &Path, searched: &str, dependencies: impl Iterator<Item = String>) -> Vec<Issue> {
+    dependencies
+        .map(|dependency| Issue {
+            path: owner.into(),
+            line: None,
+            message: format!(
+                "declared external {dependency} is not named in the {searched}; \
+                 add the file that uses it to this rule's selection, or remove the declaration"
+            ),
+        })
+        .collect()
 }
 
 fn common_root(directories: &BTreeSet<PathBuf>) -> PathBuf {

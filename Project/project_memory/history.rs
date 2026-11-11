@@ -47,12 +47,7 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
             revision,
             Path::new(&format!("{prior_memory}/{detail}", detail = old.detail)),
         )?;
-        preserve(
-            old,
-            row,
-            &detail,
-            &fs::read_to_string(memory.join(&row.detail))?,
-        )?;
+        preserve(old, row, &detail, &memory)?;
     }
     Ok(())
 }
@@ -88,17 +83,13 @@ fn prior_memory(
     Ok(context.config.paths.memory.clone())
 }
 
-fn preserve(
-    old: format::Row,
-    row: &format::Row,
-    prior_detail: &str,
-    current_detail: &str,
-) -> Result<()> {
+fn preserve(old: format::Row, row: &format::Row, prior_detail: &str, memory: &Path) -> Result<()> {
     ensure!(
         row.detail == old.detail && row.cells[1] == old.cells[1],
         "{}: committed decision identity cannot change",
         old.id
     );
+    let current_detail = fs::read_to_string(memory.join(&row.detail))?;
     ensure!(
         current_detail == prior_detail,
         "{}: committed decision detail cannot change; supersede with a new decision",

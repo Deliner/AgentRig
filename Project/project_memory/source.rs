@@ -61,7 +61,8 @@ impl Source {
         }
     }
 
-    pub fn marked_function(&self, name: &str, id: &str) -> bool {
+    pub fn marked_function(&self, invariant: Invariant<'_>) -> bool {
+        let Invariant { id, function: name } = invariant;
         self.functions
             .get(name)
             .is_some_and(|functions| match functions.as_slice() {
@@ -77,10 +78,15 @@ impl Source {
             .iter()
             .filter_map(|comment| crate::shared::syntax::reference(comment))
     }
-    pub fn marker(&self, kind: &str, id: &str) -> bool {
-        self.comments.contains(&format!("# {kind}: {id}"))
-            || self.comments.contains(&format!("// {kind}: {id}"))
+    pub fn marker(&self, id: &str) -> bool {
+        self.references().any(|reference| reference == id)
     }
+}
+
+#[derive(Clone, Copy)]
+pub struct Invariant<'a> {
+    pub id: &'a str,
+    pub function: &'a str,
 }
 
 fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {

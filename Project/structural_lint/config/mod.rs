@@ -64,11 +64,20 @@ pub struct Override {
 fn enabled_by_default() -> bool {
     true
 }
-pub fn thresholds(warning: Option<usize>, error: Option<usize>) -> Result<()> {
-    match (warning, error) {
-        (None, None) => bail!("at least one warning/error threshold is required"),
-        (Some(warning), Some(error)) if warning >= error => bail!("warning must be below error"),
-        _ => Ok(()),
+#[derive(Clone, Copy)]
+pub struct Thresholds {
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
+}
+impl Thresholds {
+    pub fn validate(self) -> Result<()> {
+        match (self.warning, self.error) {
+            (None, None) => bail!("at least one warning/error threshold is required"),
+            (Some(warning), Some(error)) if warning >= error => {
+                bail!("warning must be below error")
+            }
+            _ => Ok(()),
+        }
     }
 }
 impl Config {
@@ -171,7 +180,9 @@ impl Rule {
                 if has_level {
                     bail!("{}: numeric rules use thresholds, not level", self.id);
                 }
-                thresholds(self.warning, self.error)?;
+                let warning = self.warning;
+                let error = self.error;
+                Thresholds { warning, error }.validate()?;
             }
         }
         Ok(())

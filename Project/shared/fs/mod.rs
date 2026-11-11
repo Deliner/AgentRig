@@ -3,6 +3,7 @@
 mod tests;
 
 use std::{
+    ffi::OsStr,
     fmt,
     fs::{DirEntry, Metadata},
     io,
@@ -124,11 +125,11 @@ pub fn set_permissions(path: impl AsRef<Path>, permissions: Permissions) -> Resu
     )
 }
 
-pub fn symlink(target: impl AsRef<Path>, link: impl AsRef<Path>) -> Result<()> {
+pub fn symlink(target: &OsStr, link: impl AsRef<Path>) -> Result<()> {
     at(
         "link",
         link.as_ref(),
-        std::os::unix::fs::symlink(&target, &link),
+        std::os::unix::fs::symlink(target, &link),
     )
 }
 
