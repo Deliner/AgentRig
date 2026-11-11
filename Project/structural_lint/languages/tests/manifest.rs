@@ -5,7 +5,7 @@ use std::path::Path;
 
 // DECISION: D098
 fn allow_findings(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements
@@ -55,6 +55,6 @@ allow = \"1\"
 #[test]
 fn toml_reports_the_line_of_a_syntax_error() {
     let source = "[package]\nname = \"probe\"\nname = \"twice\"\n";
-    let analysis = analyze(Path::new("Cargo.toml"), source).unwrap();
+    let analysis = analyze(Path::new("Cargo.toml"), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, Some(3));
 }

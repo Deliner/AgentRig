@@ -222,3 +222,21 @@ def test_language_selection_and_overrides(worker: Path, tmp_path: Path) -> None:
 def test_condition_configuration_is_not_numeric(worker: Path, tmp_path: Path, policy: str) -> None:
     configure(tmp_path, "named-if-condition", policy)
     assert lint(worker, tmp_path)[0] == 2
+
+
+# DECISION: D156
+def test_single_junctions_report_each_mixed_expression_at_error_level(
+    worker: Path, tmp_path: Path
+) -> None:
+    configure(tmp_path, "boolean-expression", 'error: 3\njunctions: "single"')
+    (tmp_path / "src/ready.rs").write_text("fn ready() -> bool {\n    a && (b || c)\n}\n")
+    (tmp_path / "src/ready.py").write_text("def ready():\n    return a or b\n")
+    code, items = lint(worker, tmp_path)
+    assert code == 1
+    assert [(item["path"], item["line"], item["level"]) for item in items] == [
+        ("src/ready.rs", 2, "error")
+    ]
+    assert "parentheses do not end it" in items[0]["message"]
+    config = tmp_path / "lint.yaml"
+    config.write_text(config.read_text().replace('junctions: "single"', ""))
+    assert lint(worker, tmp_path) == (0, [])

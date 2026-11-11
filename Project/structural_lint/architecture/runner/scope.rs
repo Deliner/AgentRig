@@ -35,42 +35,40 @@ impl Scope {
             })
             .cloned()
             .collect();
-        validate_roots(rule, &files, &directories)?;
-        Ok(Self {
+        let scope = Self {
             directories,
             files,
             inventory,
-        })
+        };
+        scope.validate_roots(rule)?;
+        Ok(scope)
     }
-}
 
-fn validate_roots(
-    rule: &Rule,
-    files: &BTreeSet<PathBuf>,
-    directories: &BTreeSet<PathBuf>,
-) -> Result<()> {
-    let needs_rust_root = files
-        .iter()
-        .any(|path| path.extension().is_some_and(|ext| ext == "rs"));
-    let settings = rule
-        .architecture
-        .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
-    ensure!(
-        !needs_rust_root || !settings.rust_roots.is_empty(),
-        "{}: selected Rust sources need architecture.rust_roots",
-        rule.id
-    );
-    let unselected_root = settings
-        .feature_root
-        .as_ref()
-        .is_some_and(|root| !directories.contains(root));
-    ensure!(
-        !unselected_root,
-        "{}: architecture.feature_root must be a selected directory",
-        rule.id
-    );
-    Ok(())
+    fn validate_roots(&self, rule: &Rule) -> Result<()> {
+        let needs_rust_root = self
+            .files
+            .iter()
+            .any(|path| path.extension().is_some_and(|ext| ext == "rs"));
+        let settings = rule
+            .architecture
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
+        ensure!(
+            !needs_rust_root || !settings.rust_roots.is_empty(),
+            "{}: selected Rust sources need architecture.rust_roots",
+            rule.id
+        );
+        let unselected_root = settings
+            .feature_root
+            .as_ref()
+            .is_some_and(|root| !self.directories.contains(root));
+        ensure!(
+            !unselected_root,
+            "{}: architecture.feature_root must be a selected directory",
+            rule.id
+        );
+        Ok(())
+    }
 }
 
 fn selected_inventory(
@@ -87,7 +85,9 @@ fn selected_inventory(
                 let path = directory.join(name);
                 let path = path.strip_prefix(".").unwrap_or(&path);
                 let child = inventory.directories.contains_key(path);
-                !excluded.is_match(path) && (!child || selected.contains(path))
+                let included = !excluded.is_match(path);
+                let reachable = !child || selected.contains(path);
+                included && reachable
             })
             .cloned()
             .collect();

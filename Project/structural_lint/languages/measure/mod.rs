@@ -3,6 +3,7 @@ use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
+use std::collections::BTreeSet;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -12,10 +13,29 @@ pub struct Measurement {
     pub symbol: String,
     pub actual: usize,
 }
+#[derive(Default)]
+pub struct Analysis {
+    pub measurements: Vec<Measurement>,
+    // DECISION: D156
+    pub mixed_junctions: Vec<usize>,
+    pub parse_error: Option<usize>,
+}
+#[derive(Clone, Copy)]
+pub struct Code<'a> {
+    text: &'a str,
+}
+impl<'a> Code<'a> {
+    pub fn new(text: &'a str) -> Self {
+        Self { text }
+    }
+    pub fn as_str(self) -> &'a str {
+        self.text
+    }
+}
 // DECISION: D127
 #[expect(clippy::string_slice)]
-pub fn text<'a>(node: Node<'_>, source: &'a str) -> &'a str {
-    &source[node.byte_range()]
+pub fn text<'a>(node: Node<'_>, source: Code<'a>) -> &'a str {
+    &source.text[node.byte_range()]
 }
 pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
     let mut found = Vec::new();
@@ -27,8 +47,8 @@ pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
     }
     found
 }
-pub fn justified(node: Node<'_>, source: &str) -> bool {
-    justified_line(node.start_position().row, source)
+pub fn justified(node: Node<'_>, source: Code<'_>) -> bool {
+    justified_line(node.start_position().row, source.as_str())
 }
 pub fn justified_line(row: usize, source: &str) -> bool {
     row > 0
@@ -58,12 +78,13 @@ pub fn named_value(node: Node<'_>) -> bool {
         _ => false,
     }
 }
-pub fn condition(node: Node<'_>, condition: Node<'_>, output: &mut Vec<Measurement>) {
-    let invalid = !named_value(condition);
+pub fn condition(test: Node<'_>, output: &mut Vec<Measurement>) {
+    let invalid = !named_value(test);
     if invalid {
+        let conditional = test.parent().unwrap_or(test);
         output.push(Measurement {
             kind: Kind::ControlFlow(ControlFlow::NamedIfCondition),
-            line: node.start_position().row + 1,
+            line: conditional.start_position().row + 1,
             symbol: "if".into(),
             actual: 1,
         });
@@ -80,6 +101,34 @@ pub fn boolean_expression(node: Node<'_>, output: &mut Vec<Measurement>) {
             symbol: "expression".into(),
             actual: operands(node),
         });
+    }
+}
+// DECISION: D156
+pub fn mixed_junction(node: Node<'_>) -> Option<usize> {
+    let nested = enclosing(node).is_some_and(connective);
+    let measured = connective(node) && !nested;
+    let mut found = BTreeSet::new();
+    junctions(node, &mut found);
+    let mixed = measured && found.len() > 1;
+    mixed.then_some(node.start_position().row + 1)
+}
+fn junctions<'a>(node: Node<'a>, found: &mut BTreeSet<&'static str>) {
+    let inner = ungrouped(node);
+    let operator = match inner.kind() {
+        "let_chain" => Some("&&"),
+        _ => inner
+            .child_by_field_name("operator")
+            .map(|operator| operator.kind())
+            .filter(|_| connective(inner)),
+    };
+    let Some(operator) = operator else {
+        return;
+    };
+    found.insert(operator);
+    let mut cursor = inner.walk();
+    let children: Vec<_> = inner.named_children(&mut cursor).collect();
+    for child in children {
+        junctions(child, found);
     }
 }
 fn connective(node: Node<'_>) -> bool {
@@ -125,7 +174,7 @@ fn ungrouped(node: Node<'_>) -> Node<'_> {
     }
 }
 // DECISION: D037
-pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub fn comment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();
     if forbidden {
         output.push(Measurement {
@@ -137,7 +186,7 @@ pub fn comment(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
     }
 }
 // DECISION: D067
-pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub fn credential(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let found = crate::shared::syntax::secret(text(node, source));
     if let Some(name) = found {
         output.push(Measurement {
@@ -148,7 +197,7 @@ pub fn credential(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
         });
     }
 }
-pub fn function(node: Node<'_>, source: &str, count: usize, output: &mut Vec<Measurement>) {
+pub fn function(node: Node<'_>, source: Code<'_>, count: usize, output: &mut Vec<Measurement>) {
     let symbol = node
         .child_by_field_name("name")
         .map(|name| text(name, source))
@@ -180,7 +229,7 @@ pub enum Nest {
 }
 pub fn nesting(
     node: Node<'_>,
-    source: &str,
+    source: Code<'_>,
     classify: fn(Node<'_>) -> Nest,
     output: &mut Vec<Measurement>,
 ) {
@@ -217,8 +266,8 @@ fn descend(node: Node<'_>, classify: fn(Node<'_>) -> Nest, depth: usize, max: &m
 // DECISION: D062
 pub fn boolean_parameters(
     node: Node<'_>,
-    source: &str,
-    flag: fn(Node<'_>, &str) -> bool,
+    source: Code<'_>,
+    flag: fn(Node<'_>, Code<'_>) -> bool,
     output: &mut Vec<Measurement>,
 ) {
     let Some(parameters) = node.child_by_field_name("parameters") else {
@@ -245,7 +294,7 @@ pub enum Branch {
 }
 pub fn branching(
     node: Node<'_>,
-    source: &str,
+    source: Code<'_>,
     classify: fn(Node<'_>) -> Branch,
     output: &mut Vec<Measurement>,
 ) {

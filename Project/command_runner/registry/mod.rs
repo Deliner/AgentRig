@@ -3,7 +3,7 @@ use crate::project_config::{Command, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
 use crate::shared::paths::patterns::globs;
-use crate::structural_lint::architecture::describe;
+use crate::structural_lint::architecture::Rooted;
 use anyhow::Result;
 use std::{io::Read, path::Path};
 
@@ -21,7 +21,8 @@ fn executable(path: &Path) -> bool {
     let shebang =
         fs::open(path).is_ok_and(|mut file| file.read_exact(&mut start).is_ok() && &start == b"#!");
     let mode = fs::metadata(path).is_ok_and(|metadata| metadata.permissions().mode() & 0o111 != 0);
-    regular && (shebang || mode)
+    let runnable = shebang || mode;
+    regular && runnable
 }
 pub fn location<'a>(command: &'a Command, tools: &[String]) -> Option<&'a String> {
     command
@@ -61,12 +62,15 @@ fn parameters(command: &Command) -> String {
     }
 }
 fn role(context: &Context, path: &str) -> String {
+    let root = &context.root;
     let file = Path::new(path);
     let owner = file.parent().map(Path::display);
-    match (describe(&context.root, file), owner) {
+    let rooted = Rooted { root, path: file };
+    match (rooted.describe(), owner) {
         (Some(description), Some(owner)) => format!(
-            "{path}: {}; owner {owner}: {}",
-            description.role, description.purpose
+            "{path}: {role}; owner {owner}: {purpose}",
+            role = description.role,
+            purpose = description.purpose
         ),
         _ => format!("{path}: not described by its architecture.yaml"),
     }
@@ -83,6 +87,10 @@ fn removed(context: &Context) {
             |revision| format!("restore: git show {revision}:{}", item.path),
         );
         console::stdout(format!("{name}: {}", item.purpose));
-        console::stdout(format!("  {}: {}; {restore}", item.path, item.reason));
+        console::stdout(format!(
+            "  {path}: {reason}; {restore}",
+            path = item.path,
+            reason = item.reason
+        ));
     }
 }

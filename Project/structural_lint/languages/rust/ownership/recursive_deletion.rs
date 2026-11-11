@@ -1,11 +1,11 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::ownership::Ownership;
 use tree_sitter::Node;
 
 // DECISION: D102
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -24,7 +24,7 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
         actual: 1,
     });
 }
-fn callee<'a>(function: Node<'_>, source: &'a str) -> &'a str {
+fn callee<'a>(function: Node<'_>, source: Code<'a>) -> &'a str {
     let named = function
         .child_by_field_name("field")
         .or_else(|| function.child_by_field_name("name"))

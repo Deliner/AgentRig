@@ -1,11 +1,11 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D155
-pub(super) fn inspect(binary: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let subtraction = binary
         .child_by_field_name("operator")
         .is_some_and(|operator| text(operator, source) == "-");
@@ -27,7 +27,7 @@ pub(super) fn inspect(binary: Node<'_>, source: &str, output: &mut Vec<Measureme
         actual: 1,
     });
 }
-fn length<'a>(call: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn length<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let nullary = call.kind() == "call_expression"
         && call
             .child_by_field_name("arguments")

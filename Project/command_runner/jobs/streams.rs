@@ -141,6 +141,7 @@ fn wait_readable(fd: RawFd, exited: &AtomicBool) -> Result<bool> {
         let failed = count < 0;
         if failed {
             let error = std::io::Error::last_os_error();
+            // DECISION: D156
             let interrupted = error.kind() == std::io::ErrorKind::Interrupted;
             if interrupted {
                 continue;

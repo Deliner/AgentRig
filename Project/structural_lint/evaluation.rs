@@ -4,18 +4,30 @@ use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::rules::architecture::FILENAME;
+use crate::structural_lint::rules::control_flow::MIXED_JUNCTIONS;
+use crate::structural_lint::rules::ownership::Pair;
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::Result;
 use std::{collections::HashMap, path::Path};
 
 #[derive(Default)]
-struct Evaluation {
+struct Evaluation<'a> {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
     output: Vec<Diagnostic>,
+    // DECISION: D156
+    pairs: &'a [Pair],
 }
 pub(super) fn evaluate(root: &Path, config: &config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
-    let mut evaluation = Evaluation::default();
+    let pairs = config
+        .rules
+        .iter()
+        .find_map(|rule| rule.pairs.as_deref())
+        .unwrap_or_default();
+    let mut evaluation = Evaluation {
+        pairs,
+        ..Evaluation::default()
+    };
     for rule in &config.rules {
         let architecture = rule.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
         if architecture {
@@ -32,9 +44,13 @@ fn scalar_findings(
     root: &Path,
     rule: &config::Rule,
     inventory: &inventory::Inventory,
-    evaluation: &mut Evaluation,
+    evaluation: &mut Evaluation<'_>,
 ) -> Result<()> {
-    let Evaluation { analyses, output } = evaluation;
+    let Evaluation {
+        analyses,
+        output,
+        pairs,
+    } = evaluation;
     for selected in selection::select(rule, inventory)? {
         let syntax_rule = catalog::syntax(rule.kind);
         if syntax_rule {
@@ -42,7 +58,7 @@ fn scalar_findings(
             let uncached = !analyses.contains_key(path);
             if uncached {
                 let source = fs::read_to_string(root.join(path))?;
-                analyses.insert(path.to_owned(), languages::analyze(path, &source)?);
+                analyses.insert(path.to_owned(), languages::analyze(path, &source, pairs)?);
             }
             syntax_findings(rule, &selected, &analyses[path], output)?;
         } else {
@@ -139,7 +155,31 @@ fn syntax_findings(
             output.push(diagnostic);
         }
     }
+    let single = !rule.junctions.mixed();
+    if single {
+        output.extend(
+            analysis
+                .mixed_junctions
+                .iter()
+                .map(|line| mixed_junction(rule, selected.path, *line)),
+        );
+    }
     Ok(())
+}
+// DECISION: D156
+fn mixed_junction(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
+    Diagnostic {
+        rule: rule.id.clone(),
+        path: path.to_string_lossy().into_owned(),
+        level: Level::Error,
+        actual: None,
+        limit: None,
+        skill: rule.error_skill.clone(),
+        message: MIXED_JUNCTIONS.into(),
+        line: Some(line),
+        symbol: Some("expression".into()),
+        rerun: String::new(),
+    }
 }
 fn syntax_error(rule: &config::Rule, path: &Path, line: usize) -> Diagnostic {
     Diagnostic {
@@ -164,7 +204,7 @@ fn finding(
     let (level, limit) = if let Some(level) = rule.level {
         (level, None)
     } else {
-        config::thresholds(warning, error)?;
+        config::Thresholds { warning, error }.validate()?;
         match (warning, error) {
             (_, Some(limit)) if actual > limit => (Level::Error, Some(limit)),
             (Some(limit), _) if actual > limit => (Level::Warning, Some(limit)),
@@ -172,18 +212,13 @@ fn finding(
         }
     };
     let message = rule_message(rule, limit, actual)?;
-    let blocking = level == Level::Error;
     Ok(Some(Diagnostic {
         rule: rule.id.clone(),
         path: selected.path.to_string_lossy().into_owned(),
         level,
         actual: Some(actual),
         limit,
-        skill: if blocking {
-            rule.error_skill.clone()
-        } else {
-            rule.warning_skill.clone()
-        },
+        skill: rule.skill(level),
         message,
         line: None,
         symbol: None,

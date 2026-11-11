@@ -21,14 +21,15 @@ impl<'a> Policy<'a> {
     pub fn check(&self, file: &Path, line: usize, external: &str) -> Option<Issue> {
         let path = external.trim_start_matches("::");
         let (entry, _) = self.entries.iter().find(|(entry, allowed)| {
-            architecture::bounded(path, &entry.path) && !allowed.is_match(file)
+            architecture::bounded(path, &[entry.path.as_str()]) && !allowed.is_match(file)
         })?;
         Some(Issue {
             path: file.into(),
             line: Some(line),
             message: format!(
-                "`{path}` is disallowed here: {}; use {}",
-                entry.reason, entry.replacement
+                "`{path}` is disallowed here: {reason}; use {replacement}",
+                reason = entry.reason,
+                replacement = entry.replacement
             ),
         })
     }
@@ -49,8 +50,10 @@ impl<'a> Policy<'a> {
             path: file.into(),
             line: Some(call.line),
             message: format!(
-                "`.{}()` with its error propagated is disallowed here: {}; use {}",
-                call.method, entry.reason, entry.replacement
+                "`.{method}()` with its error propagated is disallowed here: {reason}; use {replacement}",
+                method = call.method,
+                reason = entry.reason,
+                replacement = entry.replacement
             ),
         })
     }

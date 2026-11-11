@@ -20,6 +20,7 @@ use crate::shared::paths::patterns::globs;
 use crate::structural_lint::inventory;
 use anyhow::{Result, ensure};
 use format::{Catalog, Row, sections, table, target};
+use source::Invariant;
 use std::{
     collections::{BTreeMap, HashMap, HashSet},
     path::Path,
@@ -76,7 +77,7 @@ fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> 
         );
         known.insert(row.detail.clone());
         sections(
-            &target(&context.root, memory, &row.detail)?,
+            &target(context, memory, &row.detail)?,
             layout.required,
             layout.optional,
         )?;
@@ -233,7 +234,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
         let links = format::links(&row.cells[2]);
         ensure!(!links.is_empty(), "{}: application link required", row.id);
         'links: for link in links {
-            let path = target(&context.root, memory, &link)?;
+            let path = target(context, memory, &link)?;
             let non_source = path.extension().is_some_and(|ext| {
                 ["md", "toml", "json", "yaml", "yml", "just"]
                     .iter()
@@ -244,15 +245,15 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
             }
             match source::inspect(&path)? {
                 Some(source) => ensure!(
-                    source.marker("DECISION", &row.id),
+                    source.marker(&row.id),
                     "{}: decision marker absent in {}",
                     row.id,
                     path.display()
                 ),
                 None => console::stderr(format!(
-                    "WARNING [{}]: marker inspection unsupported for {}",
-                    row.id,
-                    path.display()
+                    "WARNING [{id}]: marker inspection unsupported for {path}",
+                    id = row.id,
+                    path = path.display()
                 )),
             }
         }
@@ -264,16 +265,19 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
     details(context, memory, &rows, Catalog::Invariants)?;
     for row in &rows {
         let oracle = format::link(&row.cells[2])?;
-        let path = target(&context.root, memory, &oracle.path)?;
+        let path = target(context, memory, &oracle.path)?;
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
+        let id = &row.id;
+        let function = &oracles::function_target(context, id)?;
         ensure!(
-            source.marked_function(&oracles::function_target(context, &row.id)?, &row.id),
+            source.marked_function(Invariant { id, function }),
             "{}: marked oracle function {} missing or ambiguous",
             row.id,
             oracle.name
         );
-        oracles::validate(context, &row.id, &oracle.name, &path)?;
+        let function = &oracle.name;
+        oracles::validate(context, Invariant { id, function }, &path)?;
     }
     Ok(())
 }

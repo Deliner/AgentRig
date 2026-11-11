@@ -3,6 +3,7 @@
 use agentrig::shared::arguments::take_option;
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
+use agentrig::structural_lint::Location;
 use agentrig::{agent_hooks, command_line, project_config, structural_lint};
 use anyhow::{Result, bail};
 use serde_json::Value;
@@ -96,34 +97,41 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         None => Ok(root.join("lint.yaml")),
     };
     // DECISION: D143
-    if let Some(inspect) = structural_lint::explain::inspection(command) {
-        return inspect(root, &resolved?, args);
-    }
+    let inspection = structural_lint::explain::inspection(command);
     // DECISION: D123
     let baseline = command == "lint-baseline";
-    if baseline {
-        anyhow::ensure!(
-            args.is_empty(),
-            "lint-baseline takes only --root and --config"
-        );
-        return structural_lint::baseline::record(root, &resolved?);
-    }
-    let config_check = command == "lint-config-check";
-    let mode = if config_check {
-        structural_lint::Mode::ConfigCheck
-    } else {
-        structural_lint::Mode::Lint
+    anyhow::ensure!(
+        !baseline || args.is_empty(),
+        "lint-baseline takes only --root and --config"
+    );
+    let reported = inspection.is_none() && !baseline;
+    let config = match resolved {
+        Ok(config) => config,
+        Err(error) if reported => return unresolved(root, command, args, error),
+        Err(error) => return Err(error),
     };
-    match resolved {
-        Ok(config) => structural_lint::cli::execute(root, &config, args, mode),
-        Err(error) => {
-            let invocation: Vec<String> = std::iter::once(command.to_owned())
-                .chain(args.iter().cloned())
-                .collect();
-            let path = root.join(project_config::FILE);
-            structural_lint::cli::failure(root, &path, error, &invocation)
-        }
+    let location = Location {
+        root,
+        config: &config,
+    };
+    if let Some(inspect) = inspection {
+        return inspect(location, args);
     }
+    if baseline {
+        return structural_lint::baseline::record(location);
+    }
+    structural_lint::cli::execute(location, args, structural_lint::Mode::of(command))
+}
+fn unresolved(root: &Path, command: &str, args: &[String], error: anyhow::Error) -> Result<i32> {
+    let invocation: Vec<String> = std::iter::once(command.to_owned())
+        .chain(args.iter().cloned())
+        .collect();
+    let path = root.join(project_config::FILE);
+    let location = Location {
+        root,
+        config: &path,
+    };
+    structural_lint::cli::failure(location, error, &invocation)
 }
 fn project_lint(root: &Path) -> Result<PathBuf> {
     let context = project_config::Context::load(root)?;

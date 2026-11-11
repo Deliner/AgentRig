@@ -42,15 +42,8 @@ pub fn encode<T: Serialize>(value: &T) -> Result<String> {
 fn syntax(source: &str) -> Result<()> {
     let mut scanner = Scanner::new(source.chars());
     for Token(location, token) in scanner.by_ref() {
-        let unsupported = matches!(
-            token,
-            TokenType::Alias(_)
-                | TokenType::Anchor(_)
-                | TokenType::Tag(_, _)
-                | TokenType::TagDirective(_, _)
-        );
         ensure!(
-            !unsupported,
+            !unsupported(&token),
             "YAML anchors, aliases and tags are unsupported at line {}, column {}; use explicit configuration packages",
             location.line(),
             location.col() + 1
@@ -60,6 +53,32 @@ fn syntax(source: &str) -> Result<()> {
         return Err(error.into());
     }
     Ok(())
+}
+
+fn unsupported(token: &TokenType) -> bool {
+    match token {
+        TokenType::Alias(_)
+        | TokenType::Anchor(_)
+        | TokenType::Tag(_, _)
+        | TokenType::TagDirective(_, _) => true,
+        TokenType::StreamStart(_)
+        | TokenType::StreamEnd
+        | TokenType::VersionDirective(_, _)
+        | TokenType::DocumentStart
+        | TokenType::DocumentEnd
+        | TokenType::BlockSequenceStart
+        | TokenType::BlockMappingStart
+        | TokenType::BlockEnd
+        | TokenType::FlowSequenceStart
+        | TokenType::FlowSequenceEnd
+        | TokenType::FlowMappingStart
+        | TokenType::FlowMappingEnd
+        | TokenType::BlockEntry
+        | TokenType::FlowEntry
+        | TokenType::Key
+        | TokenType::Value
+        | TokenType::Scalar(_, _) => false,
+    }
 }
 
 fn values(root: &Value) -> Result<()> {

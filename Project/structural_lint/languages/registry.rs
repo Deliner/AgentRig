@@ -1,9 +1,9 @@
 // DECISION: D033
 // DECISION: D098
-use super::{Analysis, Measurement, manifest, python, rust};
+use super::{Analysis, Code, manifest, python, rust};
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::ownership::{Ownership, Pair};
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
@@ -11,7 +11,7 @@ use std::path::Path;
 use tree_sitter::Node;
 
 pub enum Inspect {
-    Tree(fn(Node<'_>, &str, &mut Vec<Measurement>)),
+    Tree(fn(Node<'_>, Code<'_>, &[Pair], &mut Analysis)),
     Document(fn(&str) -> Analysis),
 }
 pub struct Handler {
@@ -59,6 +59,20 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Ownership(Ownership::UnitLock),
             Kind::ControlFlow(ControlFlow::UnlabeledExit),
             Kind::ControlFlow(ControlFlow::LengthSubtraction),
+            Kind::Signature(Signature::SameTypeParameters),
+            Kind::Signature(Signature::SameTypePositions),
+            Kind::Signature(Signature::PrimitiveAlias),
+            Kind::Signature(Signature::AmbiguousOption),
+            Kind::Signature(Signature::PartialImpl),
+            Kind::Signature(Signature::ConstantDefault),
+            Kind::Ownership(Ownership::OpenCheckedField),
+            Kind::Ownership(Ownership::WrapperDeref),
+            Kind::Ownership(Ownership::PrimitiveFrom),
+            Kind::Ownership(Ownership::PairedCalls),
+            Kind::ControlFlow(ControlFlow::VariantEquality),
+            Kind::ControlFlow(ControlFlow::RangeChain),
+            Kind::Reference(Reference::PositionalFormat),
+            Kind::Reference(Reference::CrossedField),
             Kind::ControlFlow(ControlFlow::BooleanExpression),
             Kind::Structure(Structure::EmbeddedText),
             Kind::Reference(Reference::Comment),

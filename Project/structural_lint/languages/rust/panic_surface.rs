@@ -1,6 +1,6 @@
 use super::context::{in_test_context, last_segment};
 use super::suppression;
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
@@ -10,7 +10,7 @@ const PANIC_MACROS: [&str; 4] = ["panic", "todo", "unimplemented", "unreachable"
 
 // DECISION: D082
 // DECISION: D115
-pub(super) fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn panic_call(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -22,12 +22,13 @@ pub(super) fn panic_call(node: Node<'_>, source: &str, output: &mut Vec<Measurem
     let method = function.kind() == "field_expression";
     let path = matches!(function.kind(), "identifier" | "scoped_identifier");
     let unwrapping = method && UNWRAPPING.contains(&name);
-    let panic = unwrapping || path && name == "resume_unwind";
+    let resuming = path && name == "resume_unwind";
+    let panic = unwrapping || resuming;
     if panic {
         report_panic(node, source, name, output);
     }
 }
-pub(super) fn panic_macro(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn panic_macro(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(path) = node.child_by_field_name("macro") else {
         return;
     };
@@ -38,7 +39,7 @@ pub(super) fn panic_macro(node: Node<'_>, source: &str, output: &mut Vec<Measure
     }
 }
 // DECISION: D148
-pub(super) fn definition_tokens(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn definition_tokens(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let defined = std::iter::successors(node.parent(), Node::parent)
         .any(|ancestor| ancestor.kind() == "macro_definition");
     let outside = !defined;
@@ -54,7 +55,7 @@ pub(super) fn definition_tokens(node: Node<'_>, source: &str, output: &mut Vec<M
         report_panic(token, source, symbol, output);
     }
 }
-fn panic_token<'a>(window: &[Node<'a>], source: &'a str) -> Option<(Node<'a>, &'a str)> {
+fn panic_token<'a>(window: &[Node<'a>], source: Code<'a>) -> Option<(Node<'a>, &'a str)> {
     let [first, second, third] = *window else {
         return None;
     };
@@ -70,7 +71,7 @@ fn panic_token<'a>(window: &[Node<'a>], source: &'a str) -> Option<(Node<'a>, &'
     }
     (unwrapping || unwinding).then_some((second, name))
 }
-fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Measurement>) {
+fn report_panic(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut Vec<Measurement>) {
     let allowed = justified(node, source)
         || in_test_context(node, source)
         || suppression::clippy_allowed(node, source, symbol);
@@ -85,7 +86,7 @@ fn report_panic(node: Node<'_>, source: &str, symbol: &str, output: &mut Vec<Mea
     });
 }
 // DECISION: D115
-pub(super) fn catch(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn catch(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
@@ -103,7 +104,7 @@ pub(super) fn catch(node: Node<'_>, source: &str, output: &mut Vec<Measurement>)
         actual: 1,
     });
 }
-fn catch_site<'a>(function: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn catch_site<'a>(function: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match function.kind() {
         "field_expression" => {
             let name = text(function.child_by_field_name("field")?, source);

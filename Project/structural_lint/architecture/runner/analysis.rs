@@ -1,7 +1,7 @@
 use crate::shared::fs;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::architecture::{
-    self as architecture, Dependency, EnvironmentUse, Issue, Relation, Settings,
+    self as architecture, Dependency, EnvironmentUse, Issue, Rooted, Settings,
     resolution::{Resolved, python::Python, rust::Rust},
     source::{self, Reference, References, Target},
 };
@@ -17,7 +17,7 @@ pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, Refe
     files
         .iter()
         .map(|path| {
-            let parsed = read(root, path).unwrap_or_else(|error| References {
+            let parsed = read(Rooted { root, path }).unwrap_or_else(|error| References {
                 issues: vec![incomplete(path, None, error)],
                 ..References::default()
             });
@@ -35,10 +35,13 @@ pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf,
     extract(root, &rust_files)
 }
 
-fn read(root: &Path, path: &Path) -> Result<References> {
-    let file = fs::canonicalize(root.join(path))?;
-    ensure!(file.starts_with(root), "source escapes project root");
-    source::extract(path, &fs::read_to_string(file)?)
+fn read(located: Rooted<'_>) -> Result<References> {
+    let file = fs::canonicalize(located.absolute())?;
+    ensure!(
+        file.starts_with(located.root),
+        "source escapes project root"
+    );
+    source::extract(located.path, &fs::read_to_string(file)?)
 }
 
 pub fn incomplete(path: &Path, line: Option<usize>, error: anyhow::Error) -> Issue {
@@ -250,15 +253,7 @@ impl<'a> Resolvers<'a> {
         reference: &Reference,
         files: BTreeSet<PathBuf>,
     ) -> impl Iterator<Item = Dependency> {
-        let declaration = matches!(
-            reference.target,
-            Target::RustModule { .. } | Target::RustInclude { .. }
-        );
-        let relation = if declaration {
-            Relation::Declaration
-        } else {
-            Relation::Use
-        };
+        let relation = reference.target.relation();
         let test = reference.test || self.test_code.is_match(path);
         let (source, line) = (path.to_path_buf(), reference.line);
         files.into_iter().map(move |target| Dependency {

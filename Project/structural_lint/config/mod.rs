@@ -1,6 +1,8 @@
 use super::catalog as rules;
 pub use crate::shared::diagnostics::lint::Level;
 use crate::shared::{diagnostics::skills, paths::patterns::globs};
+use crate::structural_lint::rules::control_flow::{ControlFlow, Junctions};
+use crate::structural_lint::rules::ownership::{Ownership, Pair};
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
@@ -44,6 +46,11 @@ pub struct Rule {
     pub overrides: Vec<Override>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub architecture: Option<super::rules::architecture::Settings>,
+    // DECISION: D156
+    #[serde(default, skip_serializing_if = "Junctions::mixed")]
+    pub junctions: Junctions,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pairs: Option<Vec<Pair>>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -57,61 +64,76 @@ pub struct Override {
 fn enabled_by_default() -> bool {
     true
 }
-pub fn thresholds(warning: Option<usize>, error: Option<usize>) -> Result<()> {
-    match (warning, error) {
-        (None, None) => bail!("at least one warning/error threshold is required"),
-        (Some(warning), Some(error)) if warning >= error => bail!("warning must be below error"),
-        _ => Ok(()),
-    }
+#[derive(Clone, Copy)]
+pub struct Thresholds {
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
 }
-pub fn load(root: &Path, path: &Path) -> Result<Config> {
-    let mut config: Config = crate::shared::yaml::read(path)?;
-    let external = config
-        .skill_root
-        .as_ref()
-        .map(|directory| path.parent().unwrap_or(root).join(directory).canonicalize())
-        .transpose()?;
-    let resources = external.as_deref().unwrap_or(root);
-    let unsupported_version = config.version != 1;
-    if unsupported_version {
-        bail!("unsupported config version {}", config.version);
-    }
-    skills::reference(resources, &config.config_skill)?;
-    globs(&config.exclude)?;
-    let missing_rules = config.rules.is_empty();
-    if missing_rules {
-        bail!("at least one rule is required");
-    }
-    let mut ids = HashSet::new();
-    for rule in &config.rules {
-        let invalid_id = rule.id.trim().is_empty() || !ids.insert(&rule.id);
-        if invalid_id {
-            bail!("empty or duplicate rule ID");
+impl Thresholds {
+    pub fn validate(self) -> Result<()> {
+        match (self.warning, self.error) {
+            (None, None) => bail!("at least one warning/error threshold is required"),
+            (Some(warning), Some(error)) if warning >= error => {
+                bail!("warning must be below error")
+            }
+            _ => Ok(()),
         }
-        rule.validate(resources)?;
     }
-    if let Some(resources) = external {
-        resolve_guidance(&mut config, &resources);
-    }
-    Ok(config)
 }
-fn resolve_guidance(config: &mut Config, resources: &Path) {
-    config.config_skill = resources
-        .join(&config.config_skill)
-        .to_string_lossy()
-        .into_owned();
-    for rule in &mut config.rules {
-        rule.warning_skill = resources
-            .join(&rule.warning_skill)
-            .to_string_lossy()
-            .into_owned();
-        rule.error_skill = resources
-            .join(&rule.error_skill)
-            .to_string_lossy()
-            .into_owned();
+impl Config {
+    pub fn validate(&self, resources: &Path) -> Result<()> {
+        let unsupported_version = self.version != 1;
+        if unsupported_version {
+            bail!("unsupported config version {}", self.version);
+        }
+        skills::reference(resources, &self.config_skill)?;
+        globs(&self.exclude)?;
+        let missing_rules = self.rules.is_empty();
+        if missing_rules {
+            bail!("at least one rule is required");
+        }
+        let mut ids = HashSet::new();
+        for rule in &self.rules {
+            let invalid_id = rule.id.trim().is_empty() || !ids.insert(&rule.id);
+            if invalid_id {
+                bail!("empty or duplicate rule ID");
+            }
+            rule.validate(resources)?;
+        }
+        single_pairs(&self.rules)
     }
+    pub fn resolve_guidance(&mut self, resources: &Path) {
+        self.config_skill = resources
+            .join(&self.config_skill)
+            .to_string_lossy()
+            .into_owned();
+        for rule in &mut self.rules {
+            rule.warning_skill = resources
+                .join(&rule.warning_skill)
+                .to_string_lossy()
+                .into_owned();
+            rule.error_skill = resources
+                .join(&rule.error_skill)
+                .to_string_lossy()
+                .into_owned();
+        }
+    }
+}
+// DECISION: D156
+fn single_pairs(rules: &[Rule]) -> Result<()> {
+    let repeated = rules.iter().filter(|rule| rule.pairs.is_some()).count() > 1;
+    if repeated {
+        bail!("at most one rule lists pairs");
+    }
+    Ok(())
 }
 impl Rule {
+    pub fn skill(&self, level: Level) -> String {
+        match level {
+            Level::Warning => self.warning_skill.clone(),
+            Level::Error => self.error_skill.clone(),
+        }
+    }
     fn validate(&self, root: &Path) -> Result<()> {
         let incompatible_target = self.kind.descriptor().target != self.target;
         if incompatible_target {
@@ -127,6 +149,8 @@ impl Rule {
         let extension_target = if architecture { "file" } else { &self.target };
         validate_extensions(&self.extensions, extension_target)?;
         self.validate_architecture()?;
+        self.validate_junctions()?;
+        self.validate_pairs()?;
         rules::validate_extensions(self.kind, &self.extensions)?;
         rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
@@ -138,27 +162,28 @@ impl Rule {
         Ok(())
     }
     fn validate_severity(&self) -> Result<()> {
-        let policy = matches!(
-            self.kind.descriptor().parameters,
-            rules::Parameters::Level { .. }
-        );
-        if policy {
-            let thresholds =
-                self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
-            let invalid_level = self.level.is_none() || thresholds;
-            if invalid_level {
-                bail!(
-                    "{}: {} needs level, no thresholds or overrides",
-                    self.id,
-                    self.kind
-                );
+        match self.kind.descriptor().parameters {
+            rules::Parameters::Level { .. } => {
+                let thresholds =
+                    self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
+                let invalid_level = self.level.is_none() || thresholds;
+                if invalid_level {
+                    bail!(
+                        "{}: {} needs level, no thresholds or overrides",
+                        self.id,
+                        self.kind
+                    );
+                }
             }
-        } else {
-            let has_level = self.level.is_some();
-            if has_level {
-                bail!("{}: numeric rules use thresholds, not level", self.id);
+            rules::Parameters::Thresholds { .. } => {
+                let has_level = self.level.is_some();
+                if has_level {
+                    bail!("{}: numeric rules use thresholds, not level", self.id);
+                }
+                let warning = self.warning;
+                let error = self.error;
+                Thresholds { warning, error }.validate()?;
             }
-            thresholds(self.warning, self.error)?;
         }
         Ok(())
     }
@@ -186,9 +211,37 @@ impl Rule {
         }
         Ok(())
     }
+    // DECISION: D156
+    fn validate_junctions(&self) -> Result<()> {
+        let boolean = self.kind == rules::Kind::ControlFlow(ControlFlow::BooleanExpression);
+        let single = !self.junctions.mixed();
+        let misplaced = single && !boolean;
+        if misplaced {
+            bail!("{}: junctions apply only to boolean-expression", self.id);
+        }
+        Ok(())
+    }
+    // DECISION: D156
+    fn validate_pairs(&self) -> Result<()> {
+        let paired = self.kind == rules::Kind::Ownership(Ownership::PairedCalls);
+        match (&self.pairs, paired) {
+            (Some(pairs), true) => {
+                let valid = !pairs.is_empty() && pairs.iter().all(Pair::valid);
+                anyhow::ensure!(
+                    valid,
+                    "{}: pairs need distinct nonempty open and close names",
+                    self.id
+                );
+            }
+            (None, true) => bail!("{}: paired-calls needs pairs", self.id),
+            (Some(_), false) => bail!("{}: pairs require paired-calls", self.id),
+            (None, false) => {}
+        }
+        Ok(())
+    }
     fn validate_override(&self, entry: &Override) -> Result<()> {
-        let incomplete =
-            entry.include.is_empty() || (entry.warning.is_none() && entry.error.is_none());
+        let thresholdless = entry.warning.is_none() && entry.error.is_none();
+        let incomplete = entry.include.is_empty() || thresholdless;
         if incomplete {
             bail!("{}: override needs selectors and a threshold", self.id);
         }

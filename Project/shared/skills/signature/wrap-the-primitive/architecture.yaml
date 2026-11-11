@@ -1,0 +1,5 @@
+purpose: "Replace a type alias of a primitive or String with a newtype, or justify the alias with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to give a primitive alias a type of its own"
+directories: {}

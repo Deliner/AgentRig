@@ -1,12 +1,12 @@
 use super::context::justified_item;
-use crate::structural_lint::languages::measure::{Measurement, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D065
 // DECISION: D103
-pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     if let Some(symbol) = site(node) {
         report(node, symbol, source, output);
     }
@@ -18,14 +18,14 @@ pub(super) fn inspect(node: Node<'_>, source: &str, output: &mut Vec<Measurement
     let mut cursor = node.walk();
     for token in node
         .children(&mut cursor)
-        .filter(|child| child.kind() == "unsafe" && !attribute_opener(node, *child, source))
+        .filter(|child| child.kind() == "unsafe" && !attribute_opener(*child, source))
     {
         report(token, "unsafe", source, output);
     }
 }
-fn attribute_opener(tree: Node<'_>, token: Node<'_>, source: &str) -> bool {
+fn attribute_opener(token: Node<'_>, source: Code<'_>) -> bool {
     let previous = token.prev_sibling().map(|node| node.kind());
-    let head = tree.prev_sibling();
+    let head = token.parent().and_then(|tree| tree.prev_sibling());
     let hashed = head.is_some_and(|hash| hash.kind() == "#");
     let direct = hashed && previous == Some("[");
     let conditional = head.is_some_and(|name| text(name, source) == "cfg_attr");
@@ -34,7 +34,8 @@ fn attribute_opener(tree: Node<'_>, token: Node<'_>, source: &str) -> bool {
         .next_sibling()
         .and_then(|next| next.child(0))
         .is_some_and(|open| open.kind() == "(");
-    (direct || argument) && arguments
+    let positioned = direct || argument;
+    positioned && arguments
 }
 fn site(node: Node<'_>) -> Option<&'static str> {
     match node.kind() {
@@ -56,7 +57,7 @@ fn keyword(node: Node<'_>, kind: &str) -> bool {
     let mut cursor = node.walk();
     node.children(&mut cursor).any(|child| child.kind() == kind)
 }
-fn report(node: Node<'_>, symbol: &str, source: &str, output: &mut Vec<Measurement>) {
+fn report(node: Node<'_>, symbol: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
     let allowed = justified_item(node, source);
     if allowed {
         return;

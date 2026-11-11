@@ -1,6 +1,7 @@
 // DECISION: D021
 // DECISION: D036
 use super::cargo::Layout;
+use crate::project_config::Paths;
 use crate::structural_lint::rules::{architecture::RUST_SEED, structure::Structure};
 use crate::structural_lint::{catalog, rules};
 use anyhow::Result;
@@ -12,18 +13,11 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let sources = &settings.paths.sources;
     let mut rules: Vec<Value> = catalog::ALL
         .iter()
-        .filter(|kind| {
-            !matches!(
-                kind,
-                rules::Kind::Structure(Structure::DirectoryArchitecture)
-                    | rules::Kind::Structure(Structure::LineWidth)
-                    | rules::Kind::Structure(Structure::ForbiddenFile)
-            )
-        })
+        .filter(|kind| cataloged(**kind))
         .map(|kind| catalog::example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources, rust));
-    rules.extend(markdown(skills, &settings.paths.memory, sources));
+    rules.extend(markdown(&settings.paths));
     let config = json!({
         "version": 1,
         "config_skill": format!("{skills}/repair/SKILL.md"),
@@ -33,9 +27,30 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     crate::shared::yaml::encode(&config)
 }
 
-fn markdown(skills: &str, memory: &str, sources: &[String]) -> Vec<Value> {
-    let condense = format!("{skills}/condense-markdown/SKILL.md");
-    let memory_exclude = format!("{memory}/**");
+fn cataloged(kind: rules::Kind) -> bool {
+    match kind {
+        rules::Kind::Structure(
+            Structure::DirectoryArchitecture | Structure::LineWidth | Structure::ForbiddenFile,
+        ) => false,
+        rules::Kind::Structure(
+            Structure::NonblankLines
+            | Structure::DirectoryEntries
+            | Structure::DumpName
+            | Structure::FunctionLines
+            | Structure::EmbeddedText
+            | Structure::TestPlacement,
+        )
+        | rules::Kind::ControlFlow(_)
+        | rules::Kind::Signature(_)
+        | rules::Kind::Ownership(_)
+        | rules::Kind::Reference(_) => true,
+    }
+}
+
+fn markdown(paths: &Paths) -> Vec<Value> {
+    let condense = format!("{skills}/condense-markdown/SKILL.md", skills = paths.skills);
+    let memory_exclude = format!("{memory}/**", memory = paths.memory);
+    let sources = &paths.sources;
     vec![
         json!({"id": "markdown-size", "kind": "nonblank-lines", "target": "file",
             "include": ["**/README.md", "**/AGENTS.md"], "exclude": [memory_exclude],

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, descendants, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, descendants, justified, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, plain_name, type_name};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
@@ -16,11 +16,11 @@ struct Owner<'s, 'a> {
     name: &'a str,
     root: Node<'a>,
     implementations: &'s [Implementation<'a>],
-    source: &'a str,
+    source: Code<'a>,
 }
 
 // DECISION: D119
-pub(super) fn inspect<'a>(root: Node<'a>, source: &'a str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect<'a>(root: Node<'a>, source: Code<'a>, output: &mut Vec<Measurement>) {
     let implementations: Vec<_> = descendants(root)
         .into_iter()
         .filter_map(|node| implementation(node, source))
@@ -48,7 +48,7 @@ pub(super) fn inspect<'a>(root: Node<'a>, source: &'a str, output: &mut Vec<Meas
         }
     }
 }
-fn implementation<'a>(node: Node<'a>, source: &'a str) -> Option<Implementation<'a>> {
+fn implementation<'a>(node: Node<'a>, source: Code<'a>) -> Option<Implementation<'a>> {
     (node.kind() == "impl_item").then_some(())?;
     Some(Implementation {
         node,
@@ -77,7 +77,13 @@ fn mismatch<'a>(ordering: &Implementation<'a>, owner: &Owner<'_, 'a>) -> Option<
             (!fields.is_empty()).then(|| format!("{label} {}", fields.join(", ")))
         })
         .collect();
-    (!parts.is_empty()).then(|| format!("{}: {}", owner.name, parts.join("; ")))
+    (!parts.is_empty()).then(|| {
+        format!(
+            "{name}: {parts}",
+            name = owner.name,
+            parts = parts.join("; ")
+        )
+    })
 }
 impl<'a> Owner<'_, 'a> {
     fn own(&self) -> impl Iterator<Item = &Implementation<'a>> {
@@ -136,7 +142,7 @@ impl<'a> Owner<'_, 'a> {
         Some(fields)
     }
 }
-fn method_body<'a>(implementation: Node<'a>, name: &str, source: &str) -> Option<Node<'a>> {
+fn method_body<'a>(implementation: Node<'a>, name: &str, source: Code<'_>) -> Option<Node<'a>> {
     let body = implementation.child_by_field_name("body")?;
     let mut cursor = body.walk();
     let method = body.named_children(&mut cursor).find(|item| {
@@ -147,8 +153,9 @@ fn method_body<'a>(implementation: Node<'a>, name: &str, source: &str) -> Option
     })?;
     method.child_by_field_name("body")
 }
-fn receiver(node: Node<'_>, source: &str) -> bool {
-    node.kind() == "self" || (node.kind() == "identifier" && text(node, source) == "self")
+fn receiver(node: Node<'_>, source: Code<'_>) -> bool {
+    let named_self = node.kind() == "identifier" && text(node, source) == "self";
+    node.kind() == "self" || named_self
 }
 fn field_access(receiver: Node<'_>) -> Option<Node<'_>> {
     receiver.parent().filter(|parent| {
@@ -160,7 +167,7 @@ fn called(access: Node<'_>) -> bool {
         parent.kind() == "call_expression" && parent.child_by_field_name("function") == Some(access)
     })
 }
-fn derived_fields(root: Node<'_>, name: &str, source: &str) -> Option<Fields> {
+fn derived_fields(root: Node<'_>, name: &str, source: Code<'_>) -> Option<Fields> {
     let definition = descendants(root).into_iter().find(|node| {
         let named = node
             .child_by_field_name("name")
@@ -179,7 +186,7 @@ fn derived_fields(root: Node<'_>, name: &str, source: &str) -> Option<Fields> {
         .collect();
     Some(fields)
 }
-fn derives_equality(definition: Node<'_>, source: &str) -> bool {
+fn derives_equality(definition: Node<'_>, source: Code<'_>) -> bool {
     let mut sibling = definition.prev_named_sibling();
     while let Some(previous) = sibling.filter(|node| {
         matches!(
@@ -197,7 +204,7 @@ fn derives_equality(definition: Node<'_>, source: &str) -> bool {
     }
     false
 }
-fn derives_partial_eq(attribute: Node<'_>, source: &str) -> bool {
+fn derives_partial_eq(attribute: Node<'_>, source: Code<'_>) -> bool {
     let derive = attribute.kind() == "attribute"
         && attribute
             .named_child(0)

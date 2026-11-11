@@ -5,7 +5,7 @@ mod scope;
 use super::{
     Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, source::References,
 };
-use crate::shared::diagnostics::lint::{Diagnostic, Level};
+use crate::shared::diagnostics::lint::Diagnostic;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::{
     config::Rule,
@@ -28,17 +28,16 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
 
 // DECISION: D143
 pub fn edges(
-    root: &Path,
+    directory: super::Rooted<'_>,
     rule: &Rule,
     inventory: &Inventory,
-    directory: &Path,
 ) -> Result<Option<Neighbours>> {
-    let unselected = !contains_directory(rule, directory, inventory)?;
+    let unselected = !contains_directory(rule, directory.path, inventory)?;
     if unselected {
         return Ok(None);
     }
-    let measured = measure(root, rule, inventory)?;
-    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory)))
+    let measured = measure(directory.root, rule, inventory)?;
+    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory.path)))
 }
 
 struct Measured<'r> {
@@ -169,34 +168,36 @@ fn unused_externals(
         .clone()
         .unwrap_or_else(|| PathBuf::from("."));
     let searched = format!(
-        "{} files this rule reads under {}",
-        scope.files.len(),
-        common_root(&scope.directories).display()
+        "{count} files this rule reads under {root}",
+        count = scope.files.len(),
+        root = common_root(&scope.directories).display()
     );
     let rust = settings
         .external
         .rust
         .iter()
         .filter(|name| !RUST_SEED.contains(&name.as_str()) && !used.rust.contains(*name))
-        .map(|name| unused(&owner, "Rust", name, &searched));
+        .map(|name| format!("Rust dependency {name}"));
     let python = settings
         .external
         .python
         .iter()
         .filter(|name| !PYTHON_SEED.contains(&name.as_str()) && !used.python.contains(*name))
-        .map(|name| unused(&owner, "Python", name, &searched));
-    rust.chain(python).collect()
+        .map(|name| format!("Python dependency {name}"));
+    unused(&owner, &searched, rust.chain(python))
 }
 
-fn unused(owner: &Path, language: &str, name: &str, searched: &str) -> Issue {
-    Issue {
-        path: owner.into(),
-        line: None,
-        message: format!(
-            "declared external {language} dependency {name} is not named in the {searched}; \
-             add the file that uses it to this rule's selection, or remove the declaration"
-        ),
-    }
+fn unused(owner: &Path, searched: &str, dependencies: impl Iterator<Item = String>) -> Vec<Issue> {
+    dependencies
+        .map(|dependency| Issue {
+            path: owner.into(),
+            line: None,
+            message: format!(
+                "declared external {dependency} is not named in the {searched}; \
+                 add the file that uses it to this rule's selection, or remove the declaration"
+            ),
+        })
+        .collect()
 }
 
 fn common_root(directories: &BTreeSet<PathBuf>) -> PathBuf {
@@ -216,18 +217,13 @@ fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
     let level = rule
         .level
         .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?;
-    let blocking = level == Level::Error;
     Ok(Diagnostic {
         rule: rule.id.clone(),
         path: issue.path.to_string_lossy().into_owned(),
         level,
         actual: None,
         limit: None,
-        skill: if blocking {
-            rule.error_skill.clone()
-        } else {
-            rule.warning_skill.clone()
-        },
+        skill: rule.skill(level),
         message: issue.message,
         line: issue.line,
         symbol: None,

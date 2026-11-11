@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 use crate::structural_lint::rules::kind::Kind;
@@ -8,7 +8,7 @@ const LOOPS: &[&str] = &["loop_expression", "while_expression", "for_expression"
 const BOUNDARIES: &[&str] = &["closure_expression", "function_item", "async_block"];
 
 // DECISION: D155
-pub(super) fn inspect(exit: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(exit: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = exit.walk();
     let labeled = exit
         .named_children(&mut cursor)

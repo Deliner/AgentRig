@@ -1,0 +1,5 @@
+purpose: "Replace From of a raw value for a newtype with a named constructor or a checking TryFrom, or justify the conversion with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make construction of a newtype from a raw value explicit"
+directories: {}

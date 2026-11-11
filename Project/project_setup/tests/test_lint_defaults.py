@@ -170,8 +170,8 @@ def examples(language: str) -> dict[str, tuple[str, str]]:
             "fn example() {\n" + "    let value = 0;\n" * 38 + "}\n",
         ),
         "parameters": (
-            "fn example(a:i32,b:i32,c:i32,d:i32,e:i32) {}\n",
-            "fn example(a:i32,b:i32,c:i32,d:i32) {}\n",
+            "fn example(a:i8,b:i16,c:i32,d:i64,e:u8) {}\n",
+            "fn example(a:i8,b:i16,c:i32,d:i64) {}\n",
         ),
         "comments": ("/// note\nfn example() {}\n", "// INVARIANT: I001\nfn example() {}\n"),
     }

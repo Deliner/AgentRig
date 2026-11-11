@@ -14,6 +14,12 @@ pub enum Signature {
     SecretDebug,
     UncheckedDeserialize,
     ImplicitOrder,
+    SameTypeParameters,
+    SameTypePositions,
+    PrimitiveAlias,
+    PartialImpl,
+    AmbiguousOption,
+    ConstantDefault,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -25,6 +31,12 @@ impl Signature {
             Self::SecretDebug => &SECRETDEBUG,
             Self::UncheckedDeserialize => &UNCHECKEDDESERIALIZE,
             Self::ImplicitOrder => &IMPLICITORDER,
+            Self::SameTypeParameters => &SAMETYPEPARAMETERS,
+            Self::SameTypePositions => &SAMETYPEPOSITIONS,
+            Self::PrimitiveAlias => &PRIMITIVEALIAS,
+            Self::PartialImpl => &PARTIALIMPL,
+            Self::AmbiguousOption => &AMBIGUOUSOPTION,
+            Self::ConstantDefault => &CONSTANTDEFAULT,
         }
     }
 }
@@ -111,5 +123,77 @@ const IMPLICITORDER: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a derived order follows declaration order, so adding or sorting variants silently changes every comparison; give each variant an explicit discriminant, compare through a named rank method, or put a DECISION: or INVARIANT: reference on the line directly above the enum when any stable order serves",
+    },
+};
+// DECISION: D156
+const SAMETYPEPARAMETERS: Descriptor = Descriptor {
+    default_id: "same-type-parameters",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust fn item or fn signature with two non-receiver parameters of token-equal type, skipping fns inside impl Trait for a type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-arguments",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "two parameters of one type can be swapped at a call and still compile; give each a type of its own, pass a named record, or put a DECISION: or INVARIANT: reference on the line directly above the fn when the operation is commutative",
+    },
+};
+// DECISION: D156
+const SAMETYPEPOSITIONS: Descriptor = Descriptor {
+    default_id: "same-type-positions",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust tuple struct or tuple enum variant with two fields of token-equal type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-positions",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "two positions of one type are told apart only by .0 and .1, so a swap compiles; name the fields, or put a DECISION: or INVARIANT: reference on the line directly above it when the order is the meaning itself",
+    },
+};
+// DECISION: D156
+const PRIMITIVEALIAS: Descriptor = Descriptor {
+    default_id: "primitive-alias",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust type alias without generics whose type is a numeric primitive, char or String, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "wrap-the-primitive",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an alias of a primitive is the primitive, so any other value of that type passes where the alias is expected; declare a newtype, or put a DECISION: or INVARIANT: reference on the line directly above it for an FFI alias",
+    },
+};
+// DECISION: D156
+const PARTIALIMPL: Descriptor = Descriptor {
+    default_id: "partial-impl",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every manual Rust impl of PartialEq, Hash, PartialOrd, Ord or Clone whose method reads a self field by access, without a struct or tuple-struct pattern of the type lacking .. and without a struct literal of the type lacking a base, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the impl",
+    skill: "destructure-the-fields",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a field added to the type is silently left out of this comparison, hash or copy; destructure Self without .. so the compiler names every field, or put a DECISION: or INVARIANT: reference on the line directly above the impl",
+    },
+};
+// DECISION: D156
+const AMBIGUOUSOPTION: Descriptor = Descriptor {
+    default_id: "ambiguous-option",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust Option<bool> or Option<Option<..>> type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-states",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "Option<bool> and Option<Option<T>> encode three states without names, and unwrap_or merges two of them silently; declare an enum naming each state, or put a DECISION: or INVARIANT: reference on the line directly above it for a DTO of an external format",
+    },
+};
+// DECISION: D156
+const CONSTANTDEFAULT: Descriptor = Descriptor {
+    default_id: "constant-default",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust trait fn with a nonempty default body that does not mention self, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "require-the-method",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a default body that ignores self hands every implementor a constant it never decided; drop the default so each implementor writes it, or put a DECISION: or INVARIANT: reference on the line directly above it for a compatibility promise",
     },
 };

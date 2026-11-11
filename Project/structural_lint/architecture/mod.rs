@@ -12,7 +12,7 @@ use std::path::PathBuf;
 
 pub use super::rules::architecture::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use graph::Neighbours;
-pub use policy::{Contracts, Loaded, describe};
+pub use policy::{Contracts, Loaded, Rooted};
 
 #[derive(Clone, Debug)]
 pub struct Dependency {
@@ -27,6 +27,14 @@ pub struct Dependency {
 pub enum Relation {
     Declaration,
     Use,
+}
+impl Relation {
+    pub fn declares(self) -> bool {
+        match self {
+            Self::Declaration => true,
+            Self::Use => false,
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -59,14 +67,16 @@ pub struct EnvironmentUse {
 // DECISION: D078
 pub fn environment(external: &str) -> bool {
     let path = external.trim_start_matches("::");
-    ENVIRONMENT.iter().any(|namespace| bounded(path, namespace))
+    bounded(path, &ENVIRONMENT)
 }
 
-pub fn bounded(path: &str, namespace: &str) -> bool {
-    path == namespace
-        || path
-            .strip_prefix(namespace)
-            .is_some_and(|rest| rest.starts_with("::"))
+pub fn bounded(path: &str, namespaces: &[&str]) -> bool {
+    namespaces.iter().any(|namespace| {
+        path == *namespace
+            || path
+                .strip_prefix(namespace)
+                .is_some_and(|rest| rest.starts_with("::"))
+    })
 }
 
 // DECISION: D083
@@ -120,6 +130,6 @@ pub fn effect(external: &str) -> Option<&'static str> {
     }
     EFFECTS
         .iter()
-        .find(|(_, namespaces)| namespaces.iter().any(|namespace| bounded(path, namespace)))
+        .find(|(_, namespaces)| bounded(path, namespaces))
         .map(|(effect, _)| *effect)
 }

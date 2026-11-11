@@ -21,6 +21,8 @@ pub enum Reference {
     SuperSuperReach,
     UnwindJustification,
     BlockingInAsync,
+    PositionalFormat,
+    CrossedField,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -41,10 +43,36 @@ impl Reference {
             Self::SuperSuperReach => &SUPERSUPERREACH,
             Self::UnwindJustification => &UNWINDJUSTIFICATION,
             Self::BlockingInAsync => &BLOCKINGINASYNC,
+            Self::PositionalFormat => &POSITIONALFORMAT,
+            Self::CrossedField => &CROSSEDFIELD,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
 }
+// DECISION: D156
+const POSITIONALFORMAT: Descriptor = Descriptor {
+    default_id: "positional-format",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust format, print, println, eprint, eprintln, write, writeln, panic or format_args macro whose first string literal has two or more placeholders without a name, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-placeholders",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "two positional placeholders pair with their arguments only by count, so a swap prints the wrong value; name each placeholder and bind expressions to names first, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D156
+const CROSSEDFIELD: Descriptor = Descriptor {
+    default_id: "crossed-field",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust struct literal field initialized by a plain identifier that is not its own name but names another field of the same literal, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "align-field-names",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a field set from a variable named after a sibling field is a swap in shorthand clothing; rename the variables so each field takes its own name, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
 // DECISION: D065
 // DECISION: D103
 const UNSAFEJUSTIFICATION: Descriptor = Descriptor {

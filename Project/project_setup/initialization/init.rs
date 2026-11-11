@@ -4,6 +4,7 @@ use crate::project_setup::template::{self, Scaffold};
 use crate::project_setup::{Config, Files, bundle};
 use crate::shared::console;
 use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
+use crate::structural_lint::Location;
 use anyhow::{Result, ensure};
 use std::{io::Write, path::Path};
 
@@ -18,9 +19,9 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     prepare(root, &scaffold.config, &files)?;
     install(root, &scaffold, &files)?;
     console::stdout(format!(
-        "Initialized {} scaffold with runtime {}. Run config-check and doctor; source files remain yours to create.",
-        options["language"],
-        project_config::VERSION
+        "Initialized {language} scaffold with runtime {version}. Run config-check and doctor; source files remain yours to create.",
+        language = options["language"],
+        version = project_config::VERSION
     ));
     offer_ratchet(root, &scaffold.config)?;
     Ok(0)
@@ -32,7 +33,10 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
         return Ok(());
     }
     let lint = project_config::relative(root, &config.paths.lint)?;
-    let errors = crate::structural_lint::baseline::errors(root, &lint)?;
+    let errors = crate::structural_lint::baseline::errors(Location {
+        root,
+        config: &lint,
+    })?;
     let existing = errors > 0;
     if existing {
         console::stdout(format!(

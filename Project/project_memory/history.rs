@@ -6,10 +6,10 @@ use crate::shared::vcs::{Entry, Repository};
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 
-fn committed(repository: &Repository<'_>, revision: &str, path: &str) -> Result<String> {
+fn committed(repository: &Repository<'_>, revision: &str, path: &Path) -> Result<String> {
     let bytes = repository
         .read(revision, path)
-        .with_context(|| format!("cannot read committed memory {path}"))?;
+        .with_context(|| format!("cannot read committed memory {}", path.display()))?;
     Ok(String::from_utf8(bytes)?)
 }
 pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<()> {
@@ -34,7 +34,7 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
     if no_prior_memory {
         return Ok(());
     }
-    let rows = committed_table(repository, revision, &index)?;
+    let rows = committed_table(repository, revision, Path::new(&index))?;
     let memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&memory.join("Decisions.md"), format::Catalog::Decisions)?;
     for old in rows {
@@ -45,14 +45,9 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
         let detail = committed(
             repository,
             revision,
-            &format!("{}/{}", prior_memory, old.detail),
+            Path::new(&format!("{prior_memory}/{detail}", detail = old.detail)),
         )?;
-        preserve(
-            old,
-            row,
-            &detail,
-            &fs::read_to_string(memory.join(&row.detail))?,
-        )?;
+        preserve(old, row, &detail, &memory)?;
     }
     Ok(())
 }
@@ -60,11 +55,11 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
 fn committed_table(
     repository: &Repository<'_>,
     revision: &str,
-    path: &str,
+    path: &Path,
 ) -> Result<Vec<format::Row>> {
     format::parse_table(
         &committed(repository, revision, path)?,
-        Path::new(path),
+        path,
         format::Catalog::Decisions,
     )
 }
@@ -78,7 +73,7 @@ fn prior_memory(
     let configured = tree.contains_key(FILE);
     if configured {
         let prior: serde_json::Value =
-            crate::shared::yaml::decode(&committed(repository, revision, FILE)?)
+            crate::shared::yaml::decode(&committed(repository, revision, Path::new(FILE))?)
                 .with_context(|| format!("committed {FILE}"))?;
         return Ok(prior["paths"]["memory"]
             .as_str()
@@ -88,17 +83,13 @@ fn prior_memory(
     Ok(context.config.paths.memory.clone())
 }
 
-fn preserve(
-    old: format::Row,
-    row: &format::Row,
-    prior_detail: &str,
-    current_detail: &str,
-) -> Result<()> {
+fn preserve(old: format::Row, row: &format::Row, prior_detail: &str, memory: &Path) -> Result<()> {
     ensure!(
         row.detail == old.detail && row.cells[1] == old.cells[1],
         "{}: committed decision identity cannot change",
         old.id
     );
+    let current_detail = fs::read_to_string(memory.join(&row.detail))?;
     ensure!(
         current_detail == prior_detail,
         "{}: committed decision detail cannot change; supersede with a new decision",

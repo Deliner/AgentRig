@@ -81,8 +81,11 @@ pub struct Contracts {
 
 // DECISION: D083
 // DECISION: D104
-fn zone_message(effect: &str, path: &str) -> String {
-    format!("zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}")
+fn zone_message(path: &str) -> Option<String> {
+    let effect = super::effect(path)?;
+    Some(format!(
+        "zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}"
+    ))
 }
 
 impl Contracts {
@@ -92,13 +95,9 @@ impl Contracts {
         inventory: &crate::structural_lint::inventory::Inventory,
     ) -> Vec<Issue> {
         let mut issues = Vec::new();
-        for (directory, declaration) in &self.declarations {
-            issues.extend(super::inventory::check(
-                root,
-                directory,
-                declaration,
-                inventory,
-            ));
+        for (path, declaration) in &self.declarations {
+            let rooted = Rooted { root, path };
+            issues.extend(super::inventory::check(rooted, declaration, inventory));
         }
         issues
     }
@@ -130,11 +129,11 @@ impl Contracts {
                     continue 'files;
                 }
                 issues.extend(uses.iter().filter_map(|use_site| {
-                    let effect = super::effect(&use_site.path)?;
+                    let message = zone_message(&use_site.path)?;
                     Some(Issue {
                         path: file.clone(),
                         line: Some(use_site.line),
-                        message: zone_message(effect, &use_site.path),
+                        message,
                     })
                 }));
             }
@@ -158,16 +157,20 @@ impl Contracts {
                     .iter()
                     .map(|(source, edge)| {
                         let source = super::graph::directory_key(source);
-                        format!("{} ({})", source.display(), super::graph::evidence(edge))
+                        format!(
+                            "{source} ({evidence})",
+                            source = source.display(),
+                            evidence = super::graph::evidence(edge)
+                        )
                     })
                     .collect();
                 issues.push(Issue {
                     path: directory.join(FILENAME),
                     line: None,
                     message: format!(
-                        "directory is depended on by {} other directories (budget {budget}): {}; reduce incoming coupling or raise the declared dependents budget",
-                        sources.len(),
-                        named.join(", ")
+                        "directory is depended on by {count} other directories (budget {budget}): {listed}; reduce incoming coupling or raise the declared dependents budget",
+                        count = sources.len(),
+                        listed = named.join(", ")
                     ),
                 });
             }
@@ -180,8 +183,9 @@ impl Contracts {
             declarations: BTreeMap::new(),
         };
         let mut issues = Vec::new();
-        for directory in directories {
-            match load(root, directory) {
+        for path in directories {
+            let directory = path;
+            match (Rooted { root, path }).declaration() {
                 Ok(declaration) => {
                     contracts
                         .declarations
@@ -207,51 +211,75 @@ pub struct Description {
     pub purpose: String,
     pub role: String,
 }
-pub fn describe(root: &Path, file: &Path) -> Option<Description> {
-    let directory = file
-        .parent()
-        .filter(|parent| !parent.as_os_str().is_empty());
-    let declaration = load(root, directory.unwrap_or(Path::new("."))).ok()?;
-    let role = declaration.files.get(file.file_name()?.to_str()?)?.clone();
-    Some(Description {
-        purpose: declaration.purpose,
-        role,
-    })
+
+#[derive(Clone, Copy)]
+pub struct Rooted<'a> {
+    pub root: &'a Path,
+    pub path: &'a Path,
+}
+
+impl Rooted<'_> {
+    pub(super) fn absolute(self) -> PathBuf {
+        self.root.join(self.path)
+    }
+
+    pub fn describe(self) -> Option<Description> {
+        let root = self.root;
+        let path = self
+            .path
+            .parent()
+            .filter(|parent| !parent.as_os_str().is_empty())
+            .unwrap_or(Path::new("."));
+        let declaration = Rooted { root, path }.declaration().ok()?;
+        let role = declaration
+            .files
+            .get(self.path.file_name()?.to_str()?)?
+            .clone();
+        Some(Description {
+            purpose: declaration.purpose,
+            role,
+        })
+    }
+
+    fn declaration(self) -> Result<Declaration> {
+        let Self {
+            root,
+            path: directory,
+        } = self;
+        ensure!(
+            directory == Path::new(".") || relative(directory),
+            "invalid directory path"
+        );
+        let path = self.absolute().join(FILENAME);
+        ensure!(
+            fs::symlink_metadata(&path)?.is_file(),
+            "contract must be a regular file"
+        );
+        ensure!(
+            fs::canonicalize(&path)?.starts_with(fs::canonicalize(root)?),
+            "contract escapes project root"
+        );
+        let declaration: Declaration = crate::shared::yaml::read(&path)?;
+        let purpose = declaration.purpose.trim();
+        ensure!(
+            !purpose.is_empty() && !declaration.purpose.contains(['\n', '\r']),
+            "purpose must describe the directory responsibility on one nonempty line"
+        );
+        let gist = purpose
+            .trim_matches(|character: char| !character.is_alphanumeric())
+            .to_ascii_lowercase();
+        ensure!(
+            !gist.is_empty() && !PLACEHOLDER_PURPOSES.contains(&gist.as_str()),
+            "purpose must state the real directory responsibility, not a placeholder"
+        );
+        Ok(declaration)
+    }
 }
 
 fn relative(path: &Path) -> bool {
     !path.as_os_str().is_empty()
         && path
             .components()
+            // DECISION: D156
             .all(|part| matches!(part, Component::Normal(_)))
-}
-
-fn load(root: &Path, directory: &Path) -> Result<Declaration> {
-    ensure!(
-        directory == Path::new(".") || relative(directory),
-        "invalid directory path"
-    );
-    let path = root.join(directory).join(FILENAME);
-    ensure!(
-        fs::symlink_metadata(&path)?.is_file(),
-        "contract must be a regular file"
-    );
-    ensure!(
-        fs::canonicalize(&path)?.starts_with(fs::canonicalize(root)?),
-        "contract escapes project root"
-    );
-    let declaration: Declaration = crate::shared::yaml::read(&path)?;
-    let purpose = declaration.purpose.trim();
-    ensure!(
-        !purpose.is_empty() && !declaration.purpose.contains(['\n', '\r']),
-        "purpose must describe the directory responsibility on one nonempty line"
-    );
-    let gist = purpose
-        .trim_matches(|character: char| !character.is_alphanumeric())
-        .to_ascii_lowercase();
-    ensure!(
-        !gist.is_empty() && !PLACEHOLDER_PURPOSES.contains(&gist.as_str()),
-        "purpose must state the real directory responsibility, not a placeholder"
-    );
-    Ok(declaration)
 }

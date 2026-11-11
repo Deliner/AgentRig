@@ -8,6 +8,7 @@ mod doctor;
 pub(super) mod initialization;
 mod lint;
 mod runtime;
+mod skills;
 mod template;
 use crate::project_config::{self, Config};
 use anyhow::{Result, ensure};
@@ -33,7 +34,7 @@ fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
 }
 
 pub(super) fn guidance(config: &Config) -> Files {
-    let mut files: Files = assets::skills()
+    let mut files: Files = skills::bodies()
         .into_iter()
         .map(|(name, source)| {
             (

@@ -78,40 +78,52 @@ pub fn open(event: &Value, directory: &Path) -> Result<Session> {
         state,
     })
 }
-pub fn due(event: &Value, config: &Value, state: &mut Value) -> Result<Option<String>> {
-    let transcript = text(event, "transcript_path");
-    let missing_transcript = transcript.is_empty();
-    if missing_transcript {
-        return Ok(None);
+pub struct Schedule {
+    attention: u64,
+    full: u64,
+    message: String,
+}
+impl Schedule {
+    pub fn read(config: &Value) -> Result<Self> {
+        Ok(Self {
+            attention: config["attention_interval_tokens"]
+                .as_u64()
+                .context("attention interval missing")?,
+            full: config["full_refresh_interval_tokens"]
+                .as_u64()
+                .context("full refresh interval missing")?,
+            message: config["attention_message"]
+                .as_str()
+                .filter(|s| !s.trim().is_empty())
+                .unwrap_or(ATTENTION)
+                .to_owned(),
+        })
     }
-    let attention = config["attention_interval_tokens"]
-        .as_u64()
-        .context("attention interval missing")?;
-    let full = config["full_refresh_interval_tokens"]
-        .as_u64()
-        .context("full refresh interval missing")?;
-    let message = config["attention_message"]
-        .as_str()
-        .filter(|s| !s.trim().is_empty())
-        .unwrap_or(ATTENTION);
-    let changed_transcript = text(state, "transcript_path") != transcript;
-    if changed_transcript {
-        *state = json!({"transcript_path": transcript, "scan_offset": 0,
-            "baseline_tokens": 0, "allow_next_edit": false, "next_attention_tokens": attention});
+    pub fn due(&self, event: &Value, state: &mut Value) -> Result<Option<String>> {
+        let transcript = text(event, "transcript_path");
+        let missing_transcript = transcript.is_empty();
+        if missing_transcript {
+            return Ok(None);
+        }
+        let changed_transcript = text(state, "transcript_path") != transcript;
+        if changed_transcript {
+            *state = json!({"transcript_path": transcript, "scan_offset": 0,
+                "baseline_tokens": 0, "allow_next_edit": false, "next_attention_tokens": self.attention});
+        }
+        let mut progress = Progress::load(state, self);
+        let (tokens, offset) = transcript::tokens(
+            Path::new(transcript),
+            state["scan_offset"].as_u64().unwrap_or(0),
+        )?;
+        let context_reset = progress.advance(tokens, self);
+        let reminder = progress.reminder(self);
+        progress.store(state);
+        if context_reset {
+            forget_delivered(state);
+        }
+        state["scan_offset"] = json!(offset);
+        Ok(reminder)
     }
-    let mut progress = Progress::load(state, attention, full);
-    let (tokens, offset) = transcript::tokens(
-        Path::new(transcript),
-        state["scan_offset"].as_u64().unwrap_or(0),
-    )?;
-    let context_reset = progress.advance(tokens, attention);
-    let reminder = progress.reminder(attention, full, message);
-    progress.store(state);
-    if context_reset {
-        forget_delivered(state);
-    }
-    state["scan_offset"] = json!(offset);
-    Ok(reminder)
 }
 fn forget_delivered(state: &mut Value) {
     let Some(object) = state.as_object_mut() else {
@@ -126,11 +138,12 @@ struct Progress {
     latest: Option<u64>,
 }
 impl Progress {
-    fn load(state: &Value, attention: u64, full: u64) -> Self {
+    fn load(state: &Value, schedule: &Schedule) -> Self {
+        let attention = schedule.attention;
         let mut next = state["next_attention_tokens"].as_u64().unwrap_or(attention);
         let invalid_schedule = next == 0
             || !next.is_multiple_of(attention)
-            || next > full.div_ceil(attention).saturating_mul(attention);
+            || next > schedule.full.div_ceil(attention).saturating_mul(attention);
         if invalid_schedule {
             next = attention;
         }
@@ -141,55 +154,55 @@ impl Progress {
             latest: state["latest_tokens"].as_u64(),
         }
     }
-    fn advance(&mut self, tokens: Vec<u64>, attention: u64) -> bool {
+    fn advance(&mut self, tokens: Vec<u64>, schedule: &Schedule) -> bool {
         let mut context_reset = false;
         for current in tokens {
-            context_reset |= self.observe(current, attention);
+            context_reset |= self.observe(current, schedule);
         }
-        let repaired = self.repair_baseline(attention);
+        let repaired = self.repair_baseline(schedule);
         context_reset || repaired
     }
-    fn observe(&mut self, current: u64, attention: u64) -> bool {
+    fn observe(&mut self, current: u64, schedule: &Schedule) -> bool {
         let context_reset = self.latest.is_some_and(|prior| current < prior);
         if context_reset {
-            self.reset(current, attention);
+            self.reset(current, schedule);
         }
         self.latest = Some(current);
         context_reset
     }
-    fn repair_baseline(&mut self, attention: u64) -> bool {
+    fn repair_baseline(&mut self, schedule: &Schedule) -> bool {
         let Some(current) = self.latest else {
             return false;
         };
         let invalid_baseline = self.baseline > current;
         if invalid_baseline {
-            self.reset(current, attention);
+            self.reset(current, schedule);
         }
         invalid_baseline
     }
-    fn reset(&mut self, current: u64, attention: u64) {
+    fn reset(&mut self, current: u64, schedule: &Schedule) {
         self.baseline = current;
-        self.next = attention;
+        self.next = schedule.attention;
         self.allow = false;
     }
-    fn reminder(&mut self, attention: u64, full: u64, message: &str) -> Option<String> {
+    fn reminder(&mut self, schedule: &Schedule) -> Option<String> {
         let current = self.latest?;
         if self.allow {
             self.allow = false;
             return None;
         }
         let delta = current - self.baseline;
-        let refresh_due = delta >= full;
+        let refresh_due = delta >= schedule.full;
         if refresh_due {
-            self.reset(current, attention);
+            self.reset(current, schedule);
             self.allow = true;
             return Some(FULL.to_owned());
         }
         let attention_due = delta >= self.next;
         if attention_due {
-            self.next = (delta / attention + 1).saturating_mul(attention);
+            self.next = (delta / schedule.attention + 1).saturating_mul(schedule.attention);
             self.allow = true;
-            return Some(message.into());
+            return Some(schedule.message.clone());
         }
         None
     }

@@ -1,23 +1,9 @@
-use crate::structural_lint::languages::analyze;
+use super::measured;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
-use std::path::Path;
 
 const SECRET_DEBUG: Kind = Kind::Signature(Signature::SecretDebug);
 const UNCHECKED: Kind = Kind::Signature(Signature::UncheckedDeserialize);
-
-fn measured(source: &str, kind: Kind) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut found: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| item.kind == kind)
-        .map(|item| (item.line, item.symbol))
-        .collect();
-    found.sort();
-    found
-}
 
 // DECISION: D130
 #[test]

@@ -29,9 +29,8 @@ pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
 
 pub fn registration(config: &Config, root_command: &str) -> Result<Vec<u8>> {
     let command = format!(
-        "root=$({}) && exec {} hook --root \"$root\"",
-        root_command,
-        binary(&config.paths.service)
+        "root=$({root_command}) && exec {binary} hook --root \"$root\"",
+        binary = binary(&config.paths.service)
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
     let value = serde_json::json!({"hooks": {

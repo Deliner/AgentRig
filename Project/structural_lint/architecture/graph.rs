@@ -1,4 +1,4 @@
-use super::{Dependency, Issue, Relation, Settings};
+use super::{Dependency, Issue, Settings};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -9,7 +9,7 @@ type Adjacency<'a> = BTreeMap<PathBuf, BTreeMap<PathBuf, &'a Dependency>>;
 pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
     let mut graph: Adjacency<'_> = BTreeMap::new();
     for edge in dependencies {
-        let declaration = edge.relation == Relation::Declaration;
+        let declaration = edge.relation.declares();
         if declaration {
             continue;
         }
@@ -64,7 +64,7 @@ pub(super) fn directory_edges(
         let (Some(source), Some(target)) = (edge.source.parent(), edge.target.parent()) else {
             return None;
         };
-        let counted = edge.relation == Relation::Use && !edge.test && source != target;
+        let counted = !edge.relation.declares() && !edge.test && source != target;
         counted.then_some((source, target, edge))
     })
 }
@@ -118,10 +118,10 @@ pub struct Neighbours {
 // DECISION: D142
 pub(super) fn evidence(edge: &Dependency) -> String {
     format!(
-        "{}:{} uses {}",
-        edge.source.display(),
-        edge.line,
-        edge.target.display()
+        "{source}:{line} uses {target}",
+        source = edge.source.display(),
+        line = edge.line,
+        target = edge.target.display()
     )
 }
 
@@ -141,7 +141,7 @@ pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<I
             .extension()
             .and_then(|extension| extension.to_str());
         let module = matches!(extension, Some("rs" | "py" | "pyi"));
-        let foreign = module && edge.relation == Relation::Use && own != target;
+        let foreign = module && !edge.relation.declares() && own != target;
         if foreign {
             used.entry(&edge.source).or_default().insert(target);
         }
@@ -154,9 +154,9 @@ pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<I
                 path: file.to_owned(),
                 line: None,
                 message: format!(
-                    "file uses {} other project directories (budget {budget}): {}; split it by responsibility or move the wiring into a program entry point",
-                    names.len(),
-                    names.join(", ")
+                    "file uses {count} other project directories (budget {budget}): {listed}; split it by responsibility or move the wiring into a program entry point",
+                    count = names.len(),
+                    listed = names.join(", ")
                 ),
             }
         })
@@ -218,9 +218,9 @@ impl<'a> Traversal<'a> {
         self.issues.push(Issue::dependency(
             edge,
             format!(
-                "directory dependency cycle: {}; {}",
-                paths.join(" -> "),
-                named.join("; ")
+                "directory dependency cycle: {cycle}; {evidence}",
+                cycle = paths.join(" -> "),
+                evidence = named.join("; ")
             ),
         ));
     }

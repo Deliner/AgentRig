@@ -3,6 +3,7 @@
 mod tests;
 
 use std::{
+    ffi::OsStr,
     fmt,
     fs::{DirEntry, Metadata},
     io,
@@ -26,11 +27,20 @@ impl Error {
     pub fn kind(&self) -> io::ErrorKind {
         self.source.kind()
     }
+    pub fn missing(&self) -> bool {
+        // DECISION: D156
+        self.source.kind() == io::ErrorKind::NotFound
+    }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(formatter, "{} {}", self.action, self.path.display())
+        write!(
+            formatter,
+            "{action} {path}",
+            action = self.action,
+            path = self.path.display()
+        )
     }
 }
 
@@ -115,11 +125,11 @@ pub fn set_permissions(path: impl AsRef<Path>, permissions: Permissions) -> Resu
     )
 }
 
-pub fn symlink(target: impl AsRef<Path>, link: impl AsRef<Path>) -> Result<()> {
+pub fn symlink(target: &OsStr, link: impl AsRef<Path>) -> Result<()> {
     at(
         "link",
         link.as_ref(),
-        std::os::unix::fs::symlink(&target, &link),
+        std::os::unix::fs::symlink(target, &link),
     )
 }
 

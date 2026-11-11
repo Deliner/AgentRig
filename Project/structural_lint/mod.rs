@@ -35,8 +35,17 @@ pub enum Mode {
     Lint,
 }
 impl Mode {
+    pub fn of(command: &str) -> Self {
+        match command {
+            "lint-config-check" => Self::ConfigCheck,
+            _ => Self::Lint,
+        }
+    }
     fn config_check(self) -> bool {
-        matches!(self, Self::ConfigCheck)
+        match self {
+            Self::ConfigCheck => true,
+            Self::Lint => false,
+        }
     }
 }
 
@@ -44,16 +53,36 @@ impl Mode {
 // DECISION: D017
 // DECISION: D018
 const CONFIG_SKILL: &str = "repair (set config_skill in the lint configuration)";
+#[derive(Clone, Copy)]
+pub struct Location<'a> {
+    pub root: &'a Path,
+    pub config: &'a Path,
+}
+impl Location<'_> {
+    pub fn load(self) -> Result<config::Config> {
+        let mut config: config::Config = crate::shared::yaml::read(self.config)?;
+        let directory = self.config.parent().unwrap_or(self.root);
+        let external = config
+            .skill_root
+            .as_ref()
+            .map(|skills| directory.join(skills).canonicalize())
+            .transpose()?;
+        config.validate(external.as_deref().unwrap_or(self.root))?;
+        if let Some(resources) = external {
+            config.resolve_guidance(&resources);
+        }
+        Ok(config)
+    }
+}
 struct Output<'a> {
     format: Format,
     warnings: bool,
     mode: Mode,
     rerun: Option<&'a str>,
 }
-pub fn run(root: &Path, path: &Path, format: Format, mode: Mode) -> Result<i32> {
+pub fn run(location: Location<'_>, format: Format, mode: Mode) -> Result<i32> {
     run_output(
-        root,
-        path,
+        location,
         Output {
             format,
             warnings: false,
@@ -62,10 +91,9 @@ pub fn run(root: &Path, path: &Path, format: Format, mode: Mode) -> Result<i32> 
         },
     )
 }
-pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
+pub fn check(location: Location<'_>, rerun: &str) -> Result<i32> {
     run_output(
-        root,
-        path,
+        location,
         Output {
             format: Format::Text,
             warnings: false,
@@ -75,17 +103,18 @@ pub fn check(root: &Path, path: &Path, rerun: &str) -> Result<i32> {
     )
 }
 // DECISION: D049
-fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
+fn run_output(location: Location<'_>, output: Output<'_>) -> Result<i32> {
+    let Location { root, config: path } = location;
     let command = match output.mode {
         Mode::ConfigCheck => "lint-config-check",
         Mode::Lint => "lint",
     };
-    let result = analyze(root, path, output.mode);
+    let result = analyze(location, output.mode);
     let (mut diagnostics, config_error) = match result {
         Ok(items) => (items, false),
         Err(error) => (vec![configuration_error(path, error)], true),
     };
-    diagnostics.retain(|item| output.warnings || item.level != Level::Warning);
+    diagnostics.retain(|item| output.warnings || item.level.blocking());
     let args = rerun_args(command, path, &output);
     for item in &mut diagnostics {
         item.rerun = output
@@ -93,7 +122,7 @@ fn run_output(root: &Path, path: &Path, output: Output<'_>) -> Result<i32> {
             .map(str::to_owned)
             .unwrap_or_else(|| crate::shared::diagnostics::rerun(root, &args));
     }
-    let failed = diagnostics.iter().any(|item| item.level == Level::Error);
+    let failed = diagnostics.iter().any(|item| item.level.blocking());
     match output.format {
         Format::Json => console::stdout(serde_json::to_string(&diagnostics)?),
         Format::Text => {
@@ -112,13 +141,17 @@ fn rerun_args(command: &str, path: &Path, output: &Output<'_>) -> Vec<String> {
         "--config".into(),
         path.to_string_lossy().into_owned(),
     ];
-    let json = matches!(output.format, Format::Json).then_some("--json");
+    let json = match output.format {
+        Format::Json => Some("--json"),
+        Format::Text => None,
+    };
     let warnings = output.warnings.then_some("--warnings");
     args.extend([json, warnings].into_iter().flatten().map(String::from));
     args
 }
-fn analyze(root: &Path, path: &Path, mode: Mode) -> Result<Vec<Diagnostic>> {
-    config::load(root, path).and_then(|config| {
+fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
+    let Location { root, config: path } = location;
+    location.load().and_then(|config| {
         let config_check = mode.config_check();
         if config_check {
             let inventory = inventory::collect(root, &globs(&config.exclude)?)?;

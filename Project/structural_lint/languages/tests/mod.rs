@@ -14,14 +14,14 @@ mod manifest;
 mod markers;
 mod ownership;
 mod panic_surface;
+mod reference;
 mod signature;
 mod silent_error;
-mod super_reach;
 mod test_placement;
 mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -83,7 +83,7 @@ def run():
 
 // DECISION: D061
 fn nesting_depths(path: &str, source: &str) -> Vec<(String, usize)> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut depths: Vec<_> = analysis
         .measurements
@@ -171,7 +171,7 @@ def outer():
 // DECISION: D120
 // DECISION: D122
 fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, usize)> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut counts: Vec<_> = analysis
         .measurements
@@ -251,7 +251,7 @@ fn python_counts_and_or_operands_with_parentheses_and_not_as_one() {
 
 // DECISION: D062
 fn boolean_params(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut names: Vec<_> = analysis
         .measurements
@@ -320,7 +320,7 @@ class Config:
 
 // DECISION: D063
 fn branch_budgets(path: &str, source: &str) -> Vec<(String, usize)> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut budgets: Vec<_> = analysis
         .measurements
@@ -414,7 +414,7 @@ def outer(choice):
 
 // DECISION: D067
 fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new(path), source).unwrap();
+    let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

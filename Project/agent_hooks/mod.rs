@@ -18,7 +18,7 @@ mod transcript;
 
 use self::input::text;
 use self::requirements::Answer;
-use crate::project_config::{Access, Context, RouteEvent};
+use crate::project_config::{Context, RouteEvent};
 use crate::shared::console;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
@@ -33,12 +33,28 @@ enum Reminding {
 }
 impl Reminding {
     fn active(self) -> bool {
-        matches!(self, Self::Active)
+        match self {
+            Self::Active => true,
+            Self::Suppressed => false,
+        }
     }
 }
 
-pub fn context(event: &str, message: &str) -> Value {
-    json!({"hookSpecificOutput": {"hookEventName": event, "additionalContext": message}})
+#[derive(Clone, Copy)]
+pub enum Event {
+    SessionStart,
+    PreToolUse,
+}
+impl Event {
+    fn name(self) -> &'static str {
+        match self {
+            Self::SessionStart => "SessionStart",
+            Self::PreToolUse => "PreToolUse",
+        }
+    }
+}
+pub fn context(event: Event, message: &str) -> Value {
+    json!({"hookSpecificOutput": {"hookEventName": event.name(), "additionalContext": message}})
 }
 pub fn deny(reason: &str) -> Value {
     json!({"hookSpecificOutput": {"hookEventName": "PreToolUse",
@@ -103,10 +119,9 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     let memory = &configured.config.paths.memory;
     let full = full_refresh(configured);
     let mut message = format!(
-        "Resume from {} and {}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{}",
-        root.join(memory).join("State.md").display(),
-        root.join(memory).join("Plan.md").display(),
-        full
+        "Resume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
+        state = root.join(memory).join("State.md").display(),
+        plan = root.join(memory).join("Plan.md").display(),
     );
     let hooks = &configured.config.hooks;
     let stateful = hooks.reminder.is_some() || !hooks.routes.is_empty();
@@ -117,7 +132,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         console::stderr(format!("session reminder state: {error}"));
         message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
-    Ok(Some(context("SessionStart", &message)))
+    Ok(Some(context(Event::SessionStart, &message)))
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     let validated = guard::arguments(guard::command(event))
@@ -137,7 +152,7 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
                 .config
                 .commands
                 .get(name)
-                .is_some_and(|command| command.access == Access::Writable)
+                .is_some_and(|command| !command.access.read_only())
     });
     let mut found = Vec::new();
     if opaque {
@@ -204,7 +219,7 @@ fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Rem
         .filter(|_| reminding.active());
     let due = schedule.map_or(Ok(None), |path| {
         let config = input::object(&configured.path(path)?);
-        reminder::due(event, &config, state)
+        reminder::Schedule::read(&config)?.due(event, state)
     });
     let mut answer = Answer {
         discipline: None,

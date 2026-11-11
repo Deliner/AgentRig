@@ -18,39 +18,44 @@ pub fn run(context: &Context) -> Result<()> {
     let revision = observed
         .as_ref()
         .map_or("", |value| value.revision.as_str());
-    let recorded = recorded_revision(repository.as_ref(), &state, revision);
-    let snapshot = snapshot(&state, branch, &recorded);
+    let claims = Recorded(&state);
+    let recorded = claims.revision(repository.as_ref(), revision);
+    let snapshot = claims.snapshot(branch, &recorded);
     let report = json!({"state": state, "plan": plan, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "checks": evidence::resume(context),
         "jobs": crate::command_runner::jobs::list(&context.path(&context.config.paths.runtime)?)?});
     console::stdout(report);
     Ok(())
 }
-fn claim<'a>(state: &'a str, prefix: &str) -> Option<&'a str> {
-    state
-        .lines()
-        .find_map(|line| line.strip_prefix(prefix))
-        .map(|value| value.trim().trim_matches('`'))
-}
-fn recorded_revision(repository: Option<&Repository<'_>>, state: &str, current: &str) -> Value {
-    let saved = claim(state, "Revision: ");
-    let resolved = saved.and_then(|saved| repository?.resolve(saved).ok());
-    let changed = resolved
-        .as_deref()
-        .filter(|_| !current.is_empty())
-        .map(|revision| revision != current);
-    json!({"recorded": saved, "resolved": resolved, "head_changed": changed})
-}
-fn snapshot(state: &str, branch: &str, revision: &Value) -> &'static str {
-    let saved_branch = claim(state, "Branch: ");
-    let changed =
-        saved_branch.is_some_and(|saved| saved != branch) || revision["head_changed"] == true;
-    let unresolved = revision["head_changed"].is_null();
-    if changed {
-        "stale"
-    } else if unresolved {
-        "unverified"
-    } else {
-        "current"
+#[derive(Clone, Copy)]
+struct Recorded<'a>(&'a str);
+impl<'a> Recorded<'a> {
+    fn claim(self, prefix: &str) -> Option<&'a str> {
+        self.0
+            .lines()
+            .find_map(|line| line.strip_prefix(prefix))
+            .map(|value| value.trim().trim_matches('`'))
+    }
+    fn revision(self, repository: Option<&Repository<'_>>, current: &str) -> Value {
+        let saved = self.claim("Revision: ");
+        let resolved = saved.and_then(|saved| repository?.resolve(saved).ok());
+        let changed = resolved
+            .as_deref()
+            .filter(|_| !current.is_empty())
+            .map(|revision| revision != current);
+        json!({"recorded": saved, "resolved": resolved, "head_changed": changed})
+    }
+    fn snapshot(self, branch: &str, revision: &Value) -> &'static str {
+        let saved_branch = self.claim("Branch: ");
+        let changed =
+            saved_branch.is_some_and(|saved| saved != branch) || revision["head_changed"] == true;
+        let unresolved = revision["head_changed"].is_null();
+        if changed {
+            "stale"
+        } else if unresolved {
+            "unverified"
+        } else {
+            "current"
+        }
     }
 }

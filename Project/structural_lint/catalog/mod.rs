@@ -2,7 +2,7 @@ use super::languages;
 pub use super::rules::kind::Kind;
 pub use super::rules::{Descriptor, Parameters};
 use crate::structural_lint::rules::control_flow::ControlFlow;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rules::ownership::{self, Ownership};
 use crate::structural_lint::rules::reference::Reference;
 use crate::structural_lint::rules::signature::Signature;
 use crate::structural_lint::rules::structure::Structure;
@@ -76,6 +76,20 @@ pub const ALL: &[Kind] = &[
     Kind::Ownership(Ownership::UnitLock),
     Kind::ControlFlow(ControlFlow::UnlabeledExit),
     Kind::ControlFlow(ControlFlow::LengthSubtraction),
+    Kind::Signature(Signature::SameTypeParameters),
+    Kind::Signature(Signature::SameTypePositions),
+    Kind::Signature(Signature::PrimitiveAlias),
+    Kind::Signature(Signature::AmbiguousOption),
+    Kind::Signature(Signature::PartialImpl),
+    Kind::Signature(Signature::ConstantDefault),
+    Kind::Ownership(Ownership::OpenCheckedField),
+    Kind::Ownership(Ownership::WrapperDeref),
+    Kind::Ownership(Ownership::PrimitiveFrom),
+    Kind::Ownership(Ownership::PairedCalls),
+    Kind::ControlFlow(ControlFlow::VariantEquality),
+    Kind::ControlFlow(ControlFlow::RangeChain),
+    Kind::Reference(Reference::PositionalFormat),
+    Kind::Reference(Reference::CrossedField),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),
@@ -102,7 +116,13 @@ pub fn support(kind: Kind) -> String {
     languages::HANDLERS
         .iter()
         .filter(|handler| handler.rules.contains(&kind))
-        .map(|handler| format!("{} ({})", handler.title, handler.extensions.join(", ")))
+        .map(|handler| {
+            format!(
+                "{title} ({extensions})",
+                title = handler.title,
+                extensions = handler.extensions.join(", ")
+            )
+        })
         .collect::<Vec<_>>()
         .join(" and ")
 }
@@ -160,11 +180,29 @@ pub fn describe(kind: Kind) -> Value {
         value["handlers"] = json!(handlers);
         value["extensions"] = json!(extensions(kind));
     }
-    let architecture = kind == Kind::Structure(Structure::DirectoryArchitecture);
-    if architecture {
-        value["architecture"] = super::rules::architecture::Settings::describe();
-    }
+    describe_settings(kind, &mut value);
     value
+}
+// DECISION: D156
+fn describe_settings(kind: Kind, value: &mut Value) {
+    match kind {
+        Kind::Structure(Structure::DirectoryArchitecture) => {
+            value["architecture"] = super::rules::architecture::Settings::describe();
+        }
+        Kind::Ownership(Ownership::PairedCalls) => {
+            value["pairs"] = json!(
+                "required nonempty list of open and close method names; a call of open, then an early exit, then a call of close on the token-equal receiver in one block is a finding"
+            );
+        }
+        Kind::ControlFlow(ControlFlow::BooleanExpression) => {
+            value["junctions"] = json!({"values": ["mixed", "single"], "default": "mixed", "single": "every expression joining && with || or and with or, directly or inside parentheses, is also an error finding"});
+        }
+        Kind::Structure(_)
+        | Kind::ControlFlow(_)
+        | Kind::Signature(_)
+        | Kind::Ownership(_)
+        | Kind::Reference(_) => {}
+    }
 }
 pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     let descriptor = kind.descriptor();
@@ -181,9 +219,19 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     if language_rule {
         value["extensions"] = json!(extensions(kind));
     }
-    let architecture = kind == Kind::Structure(Structure::DirectoryArchitecture);
-    if architecture {
-        value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
+    match kind {
+        Kind::Structure(Structure::DirectoryArchitecture) => {
+            value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
+        }
+        // DECISION: D156
+        Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
+        // DECISION: D156
+        Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
+        Kind::Structure(_)
+        | Kind::ControlFlow(_)
+        | Kind::Signature(_)
+        | Kind::Ownership(_)
+        | Kind::Reference(_) => {}
     }
     value
 }

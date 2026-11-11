@@ -1,4 +1,4 @@
-purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret and a derived Deserialize that skips a constructor's check"
+purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields and a trait default that ignores self"
 files: {}
 directories:
   align-order-with-equality: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with a reference"
@@ -8,3 +8,6 @@ directories:
   redact-secret: "Keep a secret field out of a derived Debug through a redacting type or a hand-written Debug"
   reduce-parameters: "Reduce excessive function inputs without hiding dependencies"
   split-boolean-parameter: "Replace a boolean parameter with named modes while preserving behavior"
+  wrap-the-primitive: "Replace a type alias of a primitive or String with a newtype, or justify the alias with a reference"
+  destructure-the-fields: "Make a manual comparison, hash or copy name every field of its type, or justify the partial reading with a reference"
+  require-the-method: "Drop a trait method's default body that ignores self so each implementor decides, or justify the default with a reference"

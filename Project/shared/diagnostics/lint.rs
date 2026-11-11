@@ -14,6 +14,12 @@ impl Level {
             Self::Error => "error",
         }
     }
+    pub fn blocking(self) -> bool {
+        match self {
+            Self::Warning => false,
+            Self::Error => true,
+        }
+    }
 }
 #[derive(Serialize)]
 pub struct Diagnostic {
@@ -40,7 +46,7 @@ pub(crate) fn print_diagnostics(items: &[Diagnostic]) {
 fn grouped(items: &[Diagnostic]) -> Vec<String> {
     let mut groups: Vec<Vec<&Diagnostic>> = Vec::new();
     for item in items {
-        let shared = groups.iter_mut().find(|group| same_cause(group[0], item));
+        let shared = groups.iter_mut().find(|group| group[0].same_cause(item));
         match shared {
             Some(group) => group.push(item),
             None => groups.push(vec![item]),
@@ -49,17 +55,19 @@ fn grouped(items: &[Diagnostic]) -> Vec<String> {
     groups.iter().map(|group| render(group)).collect()
 }
 
-fn same_cause(left: &Diagnostic, right: &Diagnostic) -> bool {
-    let cause = |item: &Diagnostic| {
-        (
-            item.level,
-            item.rule.clone(),
-            item.limit,
-            item.skill.clone(),
-            item.rerun.clone(),
-        )
-    };
-    cause(left) == cause(right)
+impl Diagnostic {
+    fn same_cause(&self, other: &Self) -> bool {
+        let cause = |item: &Self| {
+            (
+                item.level,
+                item.rule.clone(),
+                item.limit,
+                item.skill.clone(),
+                item.rerun.clone(),
+            )
+        };
+        cause(self) == cause(other)
+    }
 }
 
 // DECISION: D142
@@ -78,7 +86,11 @@ fn render(group: &[&Diagnostic]) -> String {
     }
     .to_string();
     for item in group {
-        text.push_str(&format!("\n  {}: {}", format_location(item), item.message));
+        text.push_str(&format!(
+            "\n  {location}: {message}",
+            location = format_location(item),
+            message = item.message
+        ));
     }
     text
 }

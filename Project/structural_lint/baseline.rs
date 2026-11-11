@@ -1,10 +1,10 @@
+use super::Location;
 use crate::shared::console;
 use crate::shared::diagnostics::lint::{Diagnostic, Level};
 use crate::shared::fs;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use std::collections::BTreeMap;
-use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 // DECISION: D123
@@ -19,7 +19,7 @@ pub fn location(config: &Path) -> PathBuf {
 fn load(path: &Path) -> Result<Option<Counts>> {
     let source = match fs::read_to_string(path) {
         Ok(source) => source,
-        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(None),
+        Err(error) if error.missing() => return Ok(None),
         Err(error) => return Err(error.into()),
     };
     let counts = crate::shared::yaml::decode(&source)
@@ -29,7 +29,7 @@ fn load(path: &Path) -> Result<Option<Counts>> {
 
 fn counts(diagnostics: &[Diagnostic]) -> Counts {
     let mut counts = Counts::new();
-    for item in diagnostics.iter().filter(|item| item.level == Level::Error) {
+    for item in diagnostics.iter().filter(|item| item.level.blocking()) {
         *counts
             .entry(item.rule.clone())
             .or_default()
@@ -39,25 +39,31 @@ fn counts(diagnostics: &[Diagnostic]) -> Counts {
     counts
 }
 
-fn allowed(counts: &Counts, rule: &str, path: &str) -> u64 {
-    counts
-        .get(rule)
-        .and_then(|paths| paths.get(path))
-        .copied()
-        .unwrap_or_default()
+#[derive(Clone, Copy)]
+struct Key<'a> {
+    rule: &'a str,
+    path: &'a str,
+}
+
+impl Key<'_> {
+    fn allowed(self, counts: &Counts) -> u64 {
+        counts
+            .get(self.rule)
+            .and_then(|paths| paths.get(self.path))
+            .copied()
+            .unwrap_or_default()
+    }
 }
 
 struct Pair<'a> {
-    rule: &'a str,
-    path: &'a str,
+    key: Key<'a>,
     count: u64,
 }
 
 fn pairs(counts: &Counts) -> impl Iterator<Item = Pair<'_>> {
     counts.iter().flat_map(|(rule, paths)| {
         paths.iter().map(move |(path, count)| Pair {
-            rule,
-            path,
+            key: Key { rule, path },
             count: *count,
         })
     })
@@ -70,12 +76,12 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
         return Ok(());
     };
     let current = counts(diagnostics);
-    for item in diagnostics
-        .iter_mut()
-        .filter(|item| item.level == Level::Error)
-    {
-        let limit = allowed(&baseline, &item.rule, &item.path);
-        let count = allowed(&current, &item.rule, &item.path);
+    for item in diagnostics.iter_mut().filter(|item| item.level.blocking()) {
+        let rule = &item.rule;
+        let path = &item.path;
+        let key = Key { rule, path };
+        let limit = key.allowed(&baseline);
+        let count = key.allowed(&current);
         let accepted = count <= limit;
         if accepted {
             item.level = Level::Warning;
@@ -87,7 +93,7 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
         }
     }
     let lowered = pairs(&baseline)
-        .filter(|pair| allowed(&current, pair.rule, pair.path) < pair.count)
+        .filter(|pair| pair.key.allowed(&current) < pair.count)
         .count();
     let lowerable = lowered > 0;
     if lowerable {
@@ -99,26 +105,26 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
     Ok(())
 }
 
-fn current(root: &Path, config: &Path) -> Result<Counts> {
-    let config = super::config::load(root, config)?;
-    Ok(counts(&super::evaluation::evaluate(root, &config)?))
+fn current(lint: Location<'_>) -> Result<Counts> {
+    let config = lint.load()?;
+    Ok(counts(&super::evaluation::evaluate(lint.root, &config)?))
 }
 
-pub fn errors(root: &Path, config: &Path) -> Result<u64> {
-    Ok(pairs(&current(root, config)?).map(|pair| pair.count).sum())
+pub fn errors(lint: Location<'_>) -> Result<u64> {
+    Ok(pairs(&current(lint)?).map(|pair| pair.count).sum())
 }
 
 // DECISION: D123
 // DECISION: D139
-pub fn record(root: &Path, config: &Path) -> Result<i32> {
-    let current = current(root, config)?;
-    let path = location(config);
+pub fn record(lint: Location<'_>) -> Result<i32> {
+    let current = current(lint)?;
+    let path = location(lint.config);
     let findings = match load(&path)? {
-        Some(baseline) => lowered(&limit(root, &path, baseline)?, &current),
+        Some(baseline) => lowered(&limit(lint, baseline)?, &current),
         None => current.clone(),
     };
     let exceeding = pairs(&current)
-        .filter(|pair| allowed(&findings, pair.rule, pair.path) < pair.count)
+        .filter(|pair| pair.key.allowed(&findings) < pair.count)
         .count();
     let total: u64 = pairs(&findings).map(|pair| pair.count).sum();
     fs::write(&path, crate::shared::yaml::encode(&findings)?)?;
@@ -138,27 +144,30 @@ pub fn record(root: &Path, config: &Path) -> Result<i32> {
 
 // DECISION: D139
 // DECISION: D140
-fn limit(root: &Path, path: &Path, working: Counts) -> Result<Counts> {
+fn limit(lint: Location<'_>, working: Counts) -> Result<Counts> {
+    let root = lint.root;
+    let path = location(lint.config);
     let Some(repository) = Repository::discover(root)? else {
         return Ok(working);
     };
     let (Some(head), Ok(relative)) = (repository.head()?, path.strip_prefix(root)) else {
         return Ok(working);
     };
-    let committed = committed(&repository, &head, &relative.to_string_lossy())?;
+    let committed = committed(&repository, &head, relative)?;
     let renames = repository.renames(&head)?;
     Ok(ceiling(&working, committed.as_ref(), &renames))
 }
 
-fn committed(repository: &Repository<'_>, head: &str, relative: &str) -> Result<Option<Counts>> {
-    let listed = repository.run(&["ls-tree", "--name-only", head, "--", relative])?;
+fn committed(repository: &Repository<'_>, head: &str, relative: &Path) -> Result<Option<Counts>> {
+    let name = relative.to_string_lossy();
+    let listed = repository.run(&["ls-tree", "--name-only", head, "--", &name])?;
     let uncommitted = listed.is_empty();
     if uncommitted {
         return Ok(None);
     }
     let source = String::from_utf8(repository.read(head, relative)?)?;
     let counts = crate::shared::yaml::decode(&source)
-        .with_context(|| format!("committed lint baseline {relative}"))?;
+        .with_context(|| format!("committed lint baseline {name}"))?;
     Ok(Some(counts))
 }
 
@@ -169,9 +178,11 @@ fn ceiling(
 ) -> Counts {
     let mut ceiling = Counts::new();
     for pair in pairs(working).chain(committed.into_iter().flat_map(pairs)) {
-        let path = renames.get(pair.path).map_or(pair.path, String::as_str);
+        let path = renames
+            .get(pair.key.path)
+            .map_or(pair.key.path, String::as_str);
         let count = ceiling
-            .entry(pair.rule.to_owned())
+            .entry(pair.key.rule.to_owned())
             .or_default()
             .entry(path.to_owned())
             .or_default();
@@ -180,16 +191,17 @@ fn ceiling(
     ceiling
 }
 
+// DECISION: D123
 fn lowered(baseline: &Counts, current: &Counts) -> Counts {
     let mut findings = Counts::new();
     for pair in pairs(baseline) {
-        let count = allowed(current, pair.rule, pair.path).min(pair.count);
+        let count = pair.key.allowed(current).min(pair.count);
         let kept = count > 0;
         if kept {
             findings
-                .entry(pair.rule.to_owned())
+                .entry(pair.key.rule.to_owned())
                 .or_default()
-                .insert(pair.path.to_owned(), count);
+                .insert(pair.key.path.to_owned(), count);
         }
     }
     findings

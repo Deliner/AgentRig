@@ -168,7 +168,11 @@ fn skip_reason(
     options: &Options<'_>,
 ) -> Result<Option<&'static str>> {
     let applies = included(check, files)?.next().is_some();
-    let commit_of_merge_check = options.staged && check.kind == CheckKind::Tools;
+    let merge_check = match check.kind {
+        CheckKind::Tools => true,
+        CheckKind::Command | CheckKind::Lint | CheckKind::Memory => false,
+    };
+    let commit_of_merge_check = options.staged && merge_check;
     Ok(match (applies, commit_of_merge_check) {
         (false, _) => Some("no selected files"),
         (true, true) => Some("checked before merge"),

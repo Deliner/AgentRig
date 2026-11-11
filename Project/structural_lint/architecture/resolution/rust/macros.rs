@@ -11,10 +11,7 @@ impl Rust<'_> {
     pub(super) fn validate_expansions(&self) -> Result<()> {
         for file in self.files.keys().chain(self.included.keys()) {
             for reference in &self.sources[file].items {
-                let expansion = matches!(
-                    reference.target,
-                    super::Target::RustMacro(_) | super::Target::RustDerive { .. }
-                );
+                let expansion = reference.target.expansion();
                 if expansion {
                     self.resolve(file, &reference.target)?;
                 }
@@ -45,7 +42,7 @@ impl Rust<'_> {
         base: &[String],
         call: &RustMacro,
     ) -> Result<Resolved> {
-        let scope = super::joined(base, &call.scope);
+        let scope = [base, &call.scope].concat();
         if let Some(file) = self.local_macro(&scope, &call.path) {
             return Ok(Resolved {
                 files: BTreeSet::from([file.to_path_buf()]),
@@ -115,7 +112,10 @@ impl Rust<'_> {
             && !self
                 .glob_sources(scope, &mut query)?
                 .iter()
-                .any(|glob| matches!(glob, Located::Module(target) if self.binds(target, path)));
+                .any(|glob| match glob {
+                    Located::Module(target) => self.binds(target, path),
+                    Located::Item(_) | Located::External(_) => false,
+                });
         if prelude {
             return Ok(format!("std::{path}"));
         }

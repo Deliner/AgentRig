@@ -1,5 +1,5 @@
 // DECISION: D047
-use super::{context, deny};
+use super::{Event, context, deny};
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::paths::patterns::globs;
 use anyhow::Result;
@@ -106,7 +106,7 @@ impl Answer {
         Ok(Some(if blocking {
             deny(&message)
         } else {
-            context("PreToolUse", &message)
+            context(Event::PreToolUse, &message)
         }))
     }
 }
@@ -140,9 +140,9 @@ fn requirement(
     sources.dedup();
     let kind = enforcement.label();
     Ok(format!(
-        "- {kind}: read and apply {} for {}. Source: {}.",
-        skill.display(),
-        reasons.join("; "),
-        sources.join(", ")
+        "- {kind}: read and apply {skill} for {reasons}. Source: {sources}.",
+        skill = skill.display(),
+        reasons = reasons.join("; "),
+        sources = sources.join(", ")
     ))
 }

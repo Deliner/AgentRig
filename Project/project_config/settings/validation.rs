@@ -9,8 +9,12 @@ impl Config {
         self.validate_structure(root)?;
         self.capabilities.validate(&self.checks).context(FILE)?;
         if self.capabilities.lint {
-            crate::structural_lint::config::load(root, &relative(root, &self.paths.lint)?)
-                .context("paths.lint")?;
+            let config = relative(root, &self.paths.lint)?;
+            let location = crate::structural_lint::Location {
+                root,
+                config: &config,
+            };
+            location.load().context("paths.lint")?;
         }
         Ok(())
     }

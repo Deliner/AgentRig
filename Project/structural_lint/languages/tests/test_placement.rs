@@ -4,7 +4,7 @@ use crate::structural_lint::rules::structure::Structure;
 use std::path::Path;
 
 fn placements(source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new("parent.rs"), source).unwrap();
+    let analysis = analyze(Path::new("parent.rs"), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     analysis
         .measurements

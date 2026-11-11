@@ -89,7 +89,7 @@ fn unversioned(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
         files: Vec::new(),
         directories: BTreeMap::new(),
     };
-    walk(root, Path::new(""), exclude, &mut inventory)?;
+    Walk { root, exclude }.visit(Path::new(""), &mut inventory)?;
     inventory.files.sort();
     for (directory, entries) in directories(&inventory.files) {
         inventory
@@ -101,30 +101,37 @@ fn unversioned(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
     Ok(inventory)
 }
 
-fn walk(root: &Path, relative: &Path, exclude: &GlobSet, inventory: &mut Inventory) -> Result<()> {
-    let at_root = relative.as_os_str().is_empty();
-    let parent = if at_root { Path::new(".") } else { relative };
-    inventory.directories.entry(parent.into()).or_default();
-    for entry in fs::read_dir(root.join(relative))? {
-        let entry = entry?;
-        let path = relative.join(entry.file_name());
-        let ignored = exclude.is_match(&path) || entry.file_type()?.is_symlink();
-        if ignored {
-            continue;
+struct Walk<'a> {
+    root: &'a Path,
+    exclude: &'a GlobSet,
+}
+
+impl Walk<'_> {
+    fn visit(&self, relative: &Path, inventory: &mut Inventory) -> Result<()> {
+        let at_root = relative.as_os_str().is_empty();
+        let parent = if at_root { Path::new(".") } else { relative };
+        inventory.directories.entry(parent.into()).or_default();
+        for entry in fs::read_dir(self.root.join(relative))? {
+            let entry = entry?;
+            let path = relative.join(entry.file_name());
+            let ignored = self.exclude.is_match(&path) || entry.file_type()?.is_symlink();
+            if ignored {
+                continue;
+            }
+            let kind = entry.file_type()?;
+            let directory = kind.is_dir();
+            let file = kind.is_file();
+            if directory {
+                inventory
+                    .directories
+                    .entry(parent.into())
+                    .or_default()
+                    .insert(entry.file_name().to_string_lossy().into_owned());
+                self.visit(&path, inventory)?;
+            } else if file {
+                inventory.files.push(path);
+            }
         }
-        let kind = entry.file_type()?;
-        let directory = kind.is_dir();
-        let file = kind.is_file();
-        if directory {
-            inventory
-                .directories
-                .entry(parent.into())
-                .or_default()
-                .insert(entry.file_name().to_string_lossy().into_owned());
-            walk(root, &path, exclude, inventory)?;
-        } else if file {
-            inventory.files.push(path);
-        }
+        Ok(())
     }
-    Ok(())
 }

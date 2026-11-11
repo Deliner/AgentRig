@@ -119,9 +119,9 @@ impl<'a> Rust<'a> {
     fn resolve_in(&self, source: &Path, base: &[String], target: &Target) -> Result<Resolved> {
         match target {
             Target::RustMacro(call) => self.macro_result(source, base, call),
-            Target::RustDerive { path, scope } => self.derive_result(path, &joined(base, scope)),
+            Target::RustDerive { path, scope } => self.derive_result(path, &[base, scope].concat()),
             Target::RustModule { path, .. } => {
-                let key = joined(base, path);
+                let key = [base, path].concat();
                 let module = self
                     .modules
                     .get(&key)
@@ -131,15 +131,11 @@ impl<'a> Rust<'a> {
                     external: None,
                 })
             }
-            Target::RustPath { path, scope } => self.path_result(path, &joined(base, scope)),
+            Target::RustPath { path, scope } => self.path_result(path, &[base, scope].concat()),
             Target::RustInclude { file, .. } => self.include_result(source, file),
             Target::PythonModule(_) | Target::PythonFrom { .. } => {
                 bail!("not a Rust module reference")
             }
         }
     }
-}
-
-fn joined(base: &[String], suffix: &[String]) -> Vec<String> {
-    base.iter().chain(suffix).cloned().collect()
 }

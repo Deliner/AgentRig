@@ -1,0 +1,6 @@
+purpose: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis
+files:
+  mod.rs: Declare the reference measurement test modules
+  naming.rs: Rust format strings with two or more unnamed placeholders and struct literal fields set from another field's name, with named, single, escaped, justified and test-only sites skipped, from native analysis
+  super_reach.rs: Rust super::super path measurements in use declarations, expressions and types from native analysis
+directories: {}

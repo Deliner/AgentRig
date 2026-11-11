@@ -106,7 +106,7 @@ impl Job {
 pub(super) fn launcher_live(directory: &Path) -> Result<bool> {
     let bytes = match fs::read(directory.join("launcher.json")) {
         Ok(bytes) => bytes,
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+        Err(error) if error.missing() => return Ok(false),
         Err(error) => return Err(error.into()),
     };
     let identity: Option<Identity> = serde_json::from_slice(&bytes)?;

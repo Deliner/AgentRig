@@ -1,3 +1,4 @@
+use super::source::Invariant;
 use crate::{
     command_runner,
     project_config::{Context, Oracle, Runner},
@@ -5,7 +6,8 @@ use crate::{
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
 
-pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> Result<()> {
+pub fn validate(context: &Context, invariant: Invariant<'_>, source: &Path) -> Result<()> {
+    let Invariant { id, function } = invariant;
     let oracle = context
         .config
         .oracles
@@ -27,16 +29,18 @@ pub fn validate(context: &Context, id: &str, function: &str, source: &Path) -> R
         target_function == function,
         "{id}: oracle target does not match linked function {function}"
     );
-    let python = matches!(oracle.runner, Runner::Pytest);
-    if python {
-        let file = oracle.target.split("::").next().unwrap_or("");
-        let cwd = context.path(&context.config.commands[name].cwd)?;
-        ensure!(
-            crate::shared::paths::resolve(&cwd.join(file))? == source,
-            "{id}: oracle target does not match linked source"
-        );
+    match oracle.runner {
+        Runner::Pytest => {
+            let file = oracle.target.split("::").next().unwrap_or("");
+            let cwd = context.path(&context.config.commands[name].cwd)?;
+            ensure!(
+                crate::shared::paths::resolve(&cwd.join(file))? == source,
+                "{id}: oracle target does not match linked source"
+            );
+        }
+        Runner::Cargo => {}
     }
-    discover(context, id, name, oracle)
+    discover(context, invariant, name, oracle)
 }
 fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
     match oracle.runner {
@@ -58,7 +62,13 @@ fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
     }
     argv
 }
-fn discover(context: &Context, id: &str, name: &str, oracle: &Oracle) -> Result<()> {
+fn discover(
+    context: &Context,
+    invariant: Invariant<'_>,
+    name: &str,
+    oracle: &Oracle,
+) -> Result<()> {
+    let id = invariant.id;
     let argv = discovery_arguments(command_runner::argv(context, name, &[])?, oracle);
     let result =
         command_runner::execute(context, name, argv, command_runner::jobs::Capture::Collect)?;

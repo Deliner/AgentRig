@@ -1,5 +1,6 @@
-use super::architecture::runner;
-use super::{config, inventory, selection};
+use super::architecture::{Rooted, runner};
+use super::{Location, config};
+use super::{inventory, selection};
 use crate::shared::console;
 use crate::shared::paths::patterns::globs;
 use crate::structural_lint::rules::{Kind, structure::Structure};
@@ -14,7 +15,7 @@ enum Exclusion {
     Scoped,
 }
 
-pub type Inspection = fn(&Path, &Path, &[String]) -> Result<i32>;
+pub type Inspection = fn(Location<'_>, &[String]) -> Result<i32>;
 
 // DECISION: D143
 pub fn inspection(command: &str) -> Option<Inspection> {
@@ -25,10 +26,11 @@ pub fn inspection(command: &str) -> Option<Inspection> {
     }
 }
 
-fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-explain", args)?;
     let path = path.as_path();
-    let config = config::load(root, config_path)?;
+    let root = location.root;
+    let config = location.load()?;
     let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
     let inventory = inventory::collect(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
@@ -50,15 +52,16 @@ fn run(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
 }
 
 // DECISION: D143
-fn edges(root: &Path, config_path: &Path, args: &[String]) -> Result<i32> {
+fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
-    let config = config::load(root, config_path)?;
+    let root = location.root;
+    let config = location.load()?;
     let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
     let mut rows = Vec::new();
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
         let measured = match architecture {
-            true => runner::edges(root, rule, &inventory, &path)?,
+            true => runner::edges(Rooted { root, path: &path }, rule, &inventory)?,
             false => None,
         };
         if let Some(neighbours) = measured {
@@ -118,6 +121,7 @@ fn selected_path(value: &str) -> Result<PathBuf> {
     );
     let path = path
         .components()
+        // DECISION: D156
         .filter(|part| !matches!(part, Component::CurDir))
         .collect::<std::path::PathBuf>();
     Ok(match path.as_os_str().is_empty() {
@@ -185,16 +189,19 @@ fn print(path: &Path, rows: &[Value]) {
     console::stdout(format!("Lint selection for {}", path.display()));
     for row in rows {
         console::stdout(format!(
-            "{} ({}): {}",
-            row["id"].as_str().unwrap_or(""),
-            row["kind"].as_str().unwrap_or(""),
-            row["reason"].as_str().unwrap_or("")
+            "{id} ({kind}): {reason}",
+            id = row["id"].as_str().unwrap_or(""),
+            kind = row["kind"].as_str().unwrap_or(""),
+            reason = row["reason"].as_str().unwrap_or("")
         ));
         let selected = row["selected"] == true;
         if selected {
             console::stdout(format!(
-                "  warning={} error={} level={} matched_overrides={} (zero-based)",
-                row["warning"], row["error"], row["level"], row["matched_overrides"]
+                "  warning={warning} error={error} level={level} matched_overrides={overrides} (zero-based)",
+                warning = row["warning"],
+                error = row["error"],
+                level = row["level"],
+                overrides = row["matched_overrides"]
             ));
         }
     }

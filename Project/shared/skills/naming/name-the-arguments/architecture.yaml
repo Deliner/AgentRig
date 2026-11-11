@@ -1,0 +1,5 @@
+purpose: "Give two parameters of one type distinct types or a named record, or justify the signature with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to make a call that swaps two same-type parameters fail to compile"
+directories: {}

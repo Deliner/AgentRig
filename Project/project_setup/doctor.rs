@@ -1,6 +1,7 @@
 use crate::project_config::{Access, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
+use crate::structural_lint::Location;
 use anyhow::Result;
 use std::{env, path::Path};
 
@@ -18,9 +19,9 @@ fn available(program: &str, cwd: &Path) -> bool {
 }
 pub fn run(context: &Context) -> Result<i32> {
     console::stdout(format!(
-        "runtime {}: compatible; platform {}",
-        crate::project_config::VERSION,
-        env::consts::OS
+        "runtime {version}: compatible; platform {platform}",
+        version = crate::project_config::VERSION,
+        platform = env::consts::OS
     ));
     let mut failed = !installed_binary(context);
     failed |= !command_availability(context)?;
@@ -91,7 +92,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .config
         .commands
         .values()
-        .any(|command| command.access == Access::ReadOnly);
+        .any(|command| command.access.read_only());
     if read_only {
         let works = crate::command_runner::sandbox::available();
         console::stdout(format!(
@@ -169,9 +170,12 @@ pub(super) fn hooks_registered(
 }
 pub fn config_check(context: &Context) -> Result<i32> {
     let lint = if context.config.capabilities.lint {
+        let config = context.path(&context.config.paths.lint)?;
         crate::structural_lint::run(
-            &context.root,
-            &context.path(&context.config.paths.lint)?,
+            Location {
+                root: &context.root,
+                config: &config,
+            },
             crate::structural_lint::Format::Json,
             crate::structural_lint::Mode::ConfigCheck,
         )?

@@ -20,12 +20,12 @@ pub fn run(root: &Path) -> Result<i32> {
     let files = package::bundle(&scaffold)?;
     super::init::prepare(&root, config, &files)?;
     console::stdout(format!(
-        "Configuration for {}:\n{}\nFiles:\n{}",
-        root.display(),
-        crate::shared::yaml::encode(config)?,
-        listing(&root, &scaffold, &files)
+        "Configuration for {root}:\n{config}\nFiles:\n{files}",
+        root = root.display(),
+        config = crate::shared::yaml::encode(config)?,
+        files = listing(&root, &scaffold, &files)
     ));
-    let Some(answer) = ask("Install this environment? yes/no", "no")? else {
+    let Some(answer) = ask("Install this environment? yes/no", "no".into())? else {
         return cancelled();
     };
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
@@ -54,7 +54,7 @@ fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
 }
 
 fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {
-    let Some(target) = ask("Project directory", &root.to_string_lossy())? else {
+    let Some(target) = ask("Project directory", root.to_string_lossy().into_owned())? else {
         return Ok(None);
     };
     let root = crate::shared::paths::resolve(&std::env::current_dir()?.join(target))?;
@@ -67,7 +67,8 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {
         return Ok(None);
     };
     let available = check_names(&scaffold.config);
-    let Some(checks) = ask(&format!("Checks, comma-separated: {available}"), &available)? else {
+    let label = format!("Checks, comma-separated: {available}");
+    let Some(checks) = ask(&label, available)? else {
         return Ok(None);
     };
     select_checks(&mut scaffold.config, &checks)?;
@@ -90,7 +91,7 @@ fn project_config(root: &Path) -> Result<Option<Scaffold>> {
             "skills" => format!("{}/skills", options["service"]),
             _ => options[key].clone(),
         };
-        let Some(value) = ask(label, &default)? else {
+        let Some(value) = ask(label, default)? else {
             return Ok(None);
         };
         options.insert(key, value);
@@ -129,7 +130,7 @@ fn check_names(config: &Config) -> String {
     names.join(",")
 }
 
-fn ask(label: &str, default: &str) -> Result<Option<String>> {
+fn ask(label: &str, default: String) -> Result<Option<String>> {
     console::prompt(format!("{label} [{default}]: "))?;
     let mut line = String::new();
     let read = io::stdin().read_line(&mut line)?;
@@ -139,11 +140,7 @@ fn ask(label: &str, default: &str) -> Result<Option<String>> {
     }
     let answer = line.trim();
     let empty = answer.is_empty();
-    Ok(Some(if empty {
-        default.to_owned()
-    } else {
-        answer.to_owned()
-    }))
+    Ok(Some(if empty { default } else { answer.to_owned() }))
 }
 
 fn cancelled() -> Result<i32> {

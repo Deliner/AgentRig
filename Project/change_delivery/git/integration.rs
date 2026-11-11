@@ -1,5 +1,5 @@
 // DECISION: D010
-use crate::shared::vcs::{Repository, Settings};
+use crate::shared::vcs::{Repository, Revisions, Settings};
 use anyhow::{Context, Result, ensure};
 
 pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) -> Result<String> {
@@ -40,7 +40,10 @@ pub(super) fn integrate(
         settings.prefix
     );
     clean(repository)?;
-    let divergent = !repository.ancestor(&settings.base, &feature)?;
+    let divergent = !repository.ancestor(Revisions {
+        from: &settings.base,
+        to: &feature,
+    })?;
     if divergent {
         let code = run(&["rebase", "--rebase-merges", &settings.base])?;
         let failed = code != 0;
@@ -63,7 +66,10 @@ fn select_base(repository: &Repository, settings: &Settings, feature: &str) -> R
     let base = repository.resolve(&settings.base)?;
     switch_or_restore_head(repository, &settings.base)?;
     let unchanged = repository.resolve(&settings.base)? == base
-        && repository.ancestor(&settings.base, feature)?;
+        && repository.ancestor(Revisions {
+            from: &settings.base,
+            to: feature,
+        })?;
     let base_advanced = !unchanged;
     if base_advanced {
         switch_or_restore_head(repository, feature)?;

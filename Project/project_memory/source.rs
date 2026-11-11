@@ -52,7 +52,7 @@ impl Source {
             "function_definition" | "function_item" | "function_signature_item" => {
                 if let Some(name) = node.child_by_field_name("name") {
                     self.functions
-                        .entry(qualified_name(node, source, name))
+                        .entry(qualified_name(name, source))
                         .or_default()
                         .push(preceding_markers(node, source));
                 }
@@ -61,22 +61,32 @@ impl Source {
         }
     }
 
-    pub fn marked_function(&self, name: &str, id: &str) -> bool {
-        self.functions.get(name).is_some_and(|functions| {
-            functions.len() == 1
-                && (functions[0].contains(&format!("# INVARIANT: {id}"))
-                    || functions[0].contains(&format!("// INVARIANT: {id}")))
-        })
+    pub fn marked_function(&self, invariant: Invariant<'_>) -> bool {
+        let Invariant { id, function: name } = invariant;
+        self.functions
+            .get(name)
+            .is_some_and(|functions| match functions.as_slice() {
+                [function] => {
+                    function.contains(&format!("# INVARIANT: {id}"))
+                        || function.contains(&format!("// INVARIANT: {id}"))
+                }
+                _ => false,
+            })
     }
     pub fn references(&self) -> impl Iterator<Item = &str> {
         self.comments
             .iter()
             .filter_map(|comment| crate::shared::syntax::reference(comment))
     }
-    pub fn marker(&self, kind: &str, id: &str) -> bool {
-        self.comments.contains(&format!("# {kind}: {id}"))
-            || self.comments.contains(&format!("// {kind}: {id}"))
+    pub fn marker(&self, id: &str) -> bool {
+        self.references().any(|reference| reference == id)
     }
+}
+
+#[derive(Clone, Copy)]
+pub struct Invariant<'a> {
+    pub id: &'a str,
+    pub function: &'a str,
 }
 
 fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
@@ -115,9 +125,9 @@ fn preceding_markers(mut node: Node<'_>, source: &str) -> HashSet<String> {
     markers
 }
 
-fn qualified_name(node: Node<'_>, source: &str, name: Node<'_>) -> String {
+fn qualified_name(name: Node<'_>, source: &str) -> String {
     let mut parts: Vec<&str> = source.get(name.byte_range()).into_iter().collect();
-    let mut parent = node.parent();
+    let mut parent = name.parent().and_then(|item| item.parent());
     while let Some(node) = parent {
         let scope = matches!(
             node.kind(),

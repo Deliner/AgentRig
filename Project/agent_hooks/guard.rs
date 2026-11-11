@@ -14,11 +14,21 @@ enum Role {
     Control,
     Plain,
 }
-fn role(quote: Option<char>, ch: char, next: Option<char>) -> Role {
-    let substitution = ch == '$' && next == Some('(');
+#[derive(Clone, Copy)]
+struct Lookahead {
+    current: char,
+    next: Option<char>,
+}
+impl Lookahead {
+    fn substitution(self) -> bool {
+        self.current == '$' && self.next == Some('(')
+    }
+}
+fn role(quote: Option<char>, lookahead: Lookahead) -> Role {
+    let ch = lookahead.current;
     let escape_start = ch == '\\' && quote != Some('\'');
     let quote_start = ch == '\'' || ch == '"';
-    let shell_control = ";|&<>\n\u{60}".contains(ch) || substitution;
+    let shell_control = ";|&<>\n\u{60}".contains(ch) || lookahead.substitution();
     if escape_start {
         Role::StartEscape
     } else if let Some(q) = quote {
@@ -41,13 +51,16 @@ fn outer_control(command: &str) -> bool {
             escaped = false;
             continue;
         }
-        let next = chars.get(index + 1).copied();
-        match role(quote, ch, next) {
+        let lookahead = Lookahead {
+            current: ch,
+            next: chars.get(index + 1).copied(),
+        };
+        match role(quote, lookahead) {
             Role::StartEscape => escaped = true,
             Role::InQuote(q) => {
-                let substitution = ch == '$' && next == Some('(');
                 let quote_end = ch == q;
-                let quoted_substitution = q == '"' && (ch == '\u{60}' || substitution);
+                let opens_substitution = ch == '\u{60}' || lookahead.substitution();
+                let quoted_substitution = q == '"' && opens_substitution;
                 if quote_end {
                     quote = None;
                 } else if quoted_substitution {

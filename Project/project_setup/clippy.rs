@@ -27,7 +27,10 @@ pub(super) fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
     let directory = manifest
         .parent()
         .context("Cargo manifest has no directory")?;
-    let (path, existing) = match effective(root, directory) {
+    let ancestors = directory
+        .ancestors()
+        .take_while(|ancestor| ancestor.starts_with(root));
+    let (path, existing) = match effective(ancestors) {
         Some(path) => {
             let existing = fs::read_to_string(&path)?;
             (path, existing)
@@ -54,10 +57,8 @@ pub(super) fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
     })
 }
 
-fn effective(root: &Path, directory: &Path) -> Option<PathBuf> {
-    directory
-        .ancestors()
-        .take_while(|ancestor| ancestor.starts_with(root))
+fn effective<'a>(directories: impl Iterator<Item = &'a Path>) -> Option<PathBuf> {
+    directories
         .flat_map(|ancestor| FILES.map(|name| ancestor.join(name)))
         .find(|path| path.is_file())
 }

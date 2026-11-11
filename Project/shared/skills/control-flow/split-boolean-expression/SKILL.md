@@ -1,6 +1,6 @@
 ---
 name: split-boolean-expression
-description: Split a long boolean expression counted by boolean-expression into named parts while preserving its truth table.
+description: Split a long boolean expression, or one that joins conjunctions with disjunctions, counted by boolean-expression into named parts while preserving its truth table.
 ---
 
 # Give each group of conditions a name
@@ -35,6 +35,10 @@ The measurement counts the operands of one maximal Rust `&&` and `||` or Python
 `and` and `or` expression anywhere in code. Parentheses group operands without
 ending the expression; a negation, comparison, call, closure or macro is one
 operand whose inner expressions are measured on their own, and a `let` binding of
-a Rust let chain is not an operand. Rerun the reported lint check and relevant
-behavior checks. Do not raise the threshold merely to pass. Apply
+a Rust let chain is not an operand. With the rule's `junctions: single` setting,
+every such expression that joins `&&` with `||` or `and` with `or`, directly or
+inside parentheses, is also an error finding whatever its operand count: bind
+each conjunction or disjunction to a named value and combine the names with one
+junction. Rerun the reported lint check and relevant behavior checks. Do not
+raise the threshold or relax the setting merely to pass. Apply
 complexity-discipline; stop when the finding is resolved and behavior is preserved.

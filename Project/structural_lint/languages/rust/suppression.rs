@@ -1,5 +1,5 @@
 use super::context::attributed;
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::reference::Reference;
 use tree_sitter::Node;
@@ -9,7 +9,7 @@ use tree_sitter::Node;
 // DECISION: D098
 const SUPPRESSIONS: &[&str] = &["allow", "expect", "ignore"];
 
-pub(super) fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn attribute(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(name) = suppression(node, source) else {
         return;
     };
@@ -28,7 +28,7 @@ pub(super) fn attribute(node: Node<'_>, source: &str, output: &mut Vec<Measureme
     }
 }
 // DECISION: D147
-pub(super) fn clippy_allowed(node: Node<'_>, source: &str, symbol: &str) -> bool {
+pub(super) fn clippy_allowed(node: Node<'_>, source: Code<'_>, symbol: &str) -> bool {
     let Some(lint) = clippy_lint(symbol) else {
         return false;
     };
@@ -49,7 +49,7 @@ fn clippy_lint(symbol: &str) -> Option<&'static str> {
         _ => None,
     }
 }
-fn allows(item: Node<'_>, source: &str, lint: &str) -> bool {
+fn allows(item: Node<'_>, source: Code<'_>, lint: &str) -> bool {
     let Some(attribute) = item
         .named_children(&mut item.walk())
         .find(|child| child.kind() == "attribute")
@@ -69,7 +69,7 @@ fn allows(item: Node<'_>, source: &str, lint: &str) -> bool {
         .any(|name| name.trim() == lint);
     suppressing && listed && justified(item, source)
 }
-fn suppression<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn suppression<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let attribute = node
         .named_children(&mut node.walk())
         .find(|child| child.kind() == "attribute")?;
@@ -80,7 +80,7 @@ fn suppression<'a>(node: Node<'_>, source: &'a str) -> Option<&'a str> {
     }
     SUPPRESSIONS.contains(&name).then_some(name)
 }
-fn conditional_head<'a>(arguments: Node<'_>, source: &'a str) -> Option<&'a str> {
+fn conditional_head<'a>(arguments: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let mut cursor = arguments.walk();
     let mut argument = false;
     for token in arguments.children(&mut cursor) {

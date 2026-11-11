@@ -1,6 +1,6 @@
 // DECISION: D045
 // DECISION: D046
-use super::{context, deny, guard, input::text, paths, target};
+use super::{Event, context, deny, guard, input::text, paths, target};
 use crate::{project_config, shared::diagnostics};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -10,7 +10,7 @@ pub(super) fn respond(root: &Path, event: &Value, error: &anyhow::Error) -> Opti
     let skill = diagnostics::config_skill(root);
     let message = message(error, &sources, &skill);
     match (text(event, "hook_event_name"), text(event, "tool_name")) {
-        ("SessionStart", _) => Some(context("SessionStart", &message)),
+        ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
         ("PreToolUse", "Bash" | "Shell" | "exec_command") => {
             let command = guard::command(event);
             let argv = guard::arguments(command).unwrap_or_default();

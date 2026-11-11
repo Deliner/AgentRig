@@ -6,7 +6,14 @@ pub(super) fn supported(arguments: &str) -> bool {
 }
 fn predicate(text: &str) -> bool {
     if let Some((operator, rest)) = text.split_once('(') {
-        return combination(operator, rest);
+        let arguments = rest.strip_suffix(')').and_then(split);
+        return match (operator, arguments) {
+            ("not", Some(arguments)) => {
+                arguments.len() == 1 && arguments.iter().all(|a| predicate(a))
+            }
+            ("any" | "all", Some(arguments)) => arguments.iter().all(|a| predicate(a)),
+            _ => false,
+        };
     }
     if let Some((key, value)) = text.split_once('=') {
         return match key {
@@ -22,14 +29,6 @@ fn platform_character(c: char) -> bool {
 }
 fn feature_character(c: char) -> bool {
     c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '+' | '.')
-}
-fn combination(operator: &str, rest: &str) -> bool {
-    let arguments = rest.strip_suffix(')').and_then(split);
-    match (operator, arguments) {
-        ("not", Some(arguments)) => arguments.len() == 1 && arguments.iter().all(|a| predicate(a)),
-        ("any" | "all", Some(arguments)) => arguments.iter().all(|a| predicate(a)),
-        _ => false,
-    }
 }
 fn literal(value: &str, allowed: fn(char) -> bool) -> bool {
     value

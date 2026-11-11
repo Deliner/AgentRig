@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::measure::{Measurement, justified, text};
+use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
@@ -6,7 +6,7 @@ use tree_sitter::Node;
 
 // DECISION: D088
 // DECISION: D101
-pub(super) fn record_signature(node: Node<'_>, source: &str, output: &mut Vec<Measurement>) {
+pub(super) fn record_signature(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let named = matches!(node.kind(), "function_item" | "function_signature_item");
     let tuple = annotations(node).any(|annotation| {
         let top = named && annotation.kind() == "tuple_type";
@@ -40,7 +40,7 @@ fn annotations<'a>(node: Node<'a>) -> impl Iterator<Item = Node<'a>> {
         });
     parameters.chain(node.child_by_field_name("return_type"))
 }
-fn nested_record(node: Node<'_>, source: &str) -> bool {
+fn nested_record(node: Node<'_>, source: Code<'_>) -> bool {
     let container = matches!(node.kind(), "generic_type" | "array_type");
     if container {
         return contained_record(node, source);
@@ -49,7 +49,7 @@ fn nested_record(node: Node<'_>, source: &str) -> bool {
     node.named_children(&mut cursor)
         .any(|child| nested_record(child, source))
 }
-fn contained_record(node: Node<'_>, source: &str) -> bool {
+fn contained_record(node: Node<'_>, source: Code<'_>) -> bool {
     let record = node.kind() == "tuple_type" && unnamed_record(node, source);
     if record {
         return true;
@@ -58,14 +58,14 @@ fn contained_record(node: Node<'_>, source: &str) -> bool {
     node.named_children(&mut cursor)
         .any(|child| contained_record(child, source))
 }
-fn unnamed_record(tuple: Node<'_>, source: &str) -> bool {
+fn unnamed_record(tuple: Node<'_>, source: Code<'_>) -> bool {
     let mut cursor = tuple.walk();
     tuple.named_child_count() >= 3
         && tuple
             .named_children(&mut cursor)
             .any(|element| scalar(element, source))
 }
-fn scalar(node: Node<'_>, source: &str) -> bool {
+fn scalar(node: Node<'_>, source: Code<'_>) -> bool {
     match node.kind() {
         "primitive_type" => true,
         "type_identifier" => text(node, source) == "String",

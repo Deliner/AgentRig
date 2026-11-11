@@ -1,5 +1,5 @@
 // DECISION: D044
-use super::{Dependency, Issue, Relation, policy::Declaration};
+use super::{Dependency, Issue, policy::Declaration};
 use crate::structural_lint::inventory::Inventory;
 use crate::structural_lint::rules::architecture::FILENAME;
 use serde::Deserialize;
@@ -156,7 +156,7 @@ impl Features<'_> {
     }
 
     fn direction(&self, edge: &Dependency) -> Option<Issue> {
-        let declared = edge.relation == Relation::Declaration;
+        let declared = edge.relation.declares();
         if declared {
             return None;
         }
@@ -165,18 +165,18 @@ impl Features<'_> {
             .ancestors()
             .find_map(|path| self.typed.get_key_value(path))?;
         let parts = kind.parts().filter(|parts| !parts.is_empty())?;
-        let source = Role::of(feature, &edge.source, parts)?;
-        let target = Role::of(feature, &edge.target, parts)?;
+        let source = Role::of(edge.source.strip_prefix(feature).ok()?, parts)?;
+        let target = Role::of(edge.target.strip_prefix(feature).ok()?, parts)?;
         let allowed = match (source, target) {
             (Role::Tests, _) | (Role::Root, Role::Root | Role::Part(_)) => true,
             (_, Role::Tests) | (Role::Part(_), Role::Root) => false,
             (Role::Part(from), Role::Part(to)) => to >= from,
         };
         let message = format!(
-            "{}: {} -> {} goes against the dependency direction",
-            kind.name(),
-            source.name(parts),
-            target.name(parts)
+            "{kind}: {source} -> {target} goes against the dependency direction",
+            kind = kind.name(),
+            source = source.name(parts),
+            target = target.name(parts)
         );
         (!allowed).then(|| Issue::dependency(edge, message))
     }
@@ -190,8 +190,8 @@ enum Role {
 }
 
 impl Role {
-    fn of(feature: &Path, path: &Path, parts: &[&'static str]) -> Option<Self> {
-        let mut components = path.strip_prefix(feature).ok()?.components();
+    fn of(relative: &Path, parts: &[&'static str]) -> Option<Self> {
+        let mut components = relative.components();
         let Some(Component::Normal(first)) = components.next() else {
             return None;
         };

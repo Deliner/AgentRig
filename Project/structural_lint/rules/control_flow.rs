@@ -13,6 +13,8 @@ pub enum ControlFlow {
     BooleanExpression,
     UnlabeledExit,
     LengthSubtraction,
+    VariantEquality,
+    RangeChain,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -23,9 +25,52 @@ impl ControlFlow {
             Self::BooleanExpression => &BOOLEANEXPRESSION,
             Self::UnlabeledExit => &UNLABELEDEXIT,
             Self::LengthSubtraction => &LENGTHSUBTRACTION,
+            Self::VariantEquality => &VARIANTEQUALITY,
+            Self::RangeChain => &RANGECHAIN,
         }
     }
 }
+// DECISION: D156
+#[derive(Default, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
+pub enum Junctions {
+    #[default]
+    Mixed,
+    Single,
+}
+impl Junctions {
+    pub fn mixed(&self) -> bool {
+        match self {
+            Self::Mixed => true,
+            Self::Single => false,
+        }
+    }
+}
+pub const MIXED_JUNCTIONS: &str = "one boolean expression joins conjunctions with disjunctions, and parentheses do not end it, so a reader must work out how its junctions nest; bind each conjunction or disjunction to a named value and combine the names with one junction";
+// DECISION: D156
+const VARIANTEQUALITY: Descriptor = Descriptor {
+    default_id: "variant-equality",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust == or != with an operand that is a path of two or more segments ending in an UpperCamelCase name, and every matches! whose pattern names such a path, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "match-every-variant",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "comparing with one variant sends every variant added later to the other branch silently; match the enum exhaustively so the compiler names each new variant, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D156
+const RANGECHAIN: Descriptor = Descriptor {
+    default_id: "range-chain",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust if and else-if chain of two or more conditions, and every match with two or more guards, comparing one token-equal expression with an integer literal by <, <=, > or >=, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "match-the-ranges",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a chain of comparisons hides a gap between bounds and a branch made unreachable by order; match on range patterns so the compiler checks coverage, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
 const NAMEDIFCONDITION: Descriptor = Descriptor {
     default_id: "named-if",
     exclude: &[],
@@ -66,7 +111,7 @@ const BOOLEANEXPRESSION: Descriptor = Descriptor {
     default_id: "boolean-expression",
     exclude: &[],
     target: "file",
-    metric: "operands of one Rust && and || or Python and and or expression anywhere in code: parentheses group operands without ending the expression, a let binding of a Rust let chain is not an operand, and a negation, comparison, call, closure or macro is one operand whose inner expressions are measured on their own",
+    metric: "operands of one Rust && and || or Python and and or expression anywhere in code: parentheses group operands without ending the expression, a let binding of a Rust let chain is not an operand, and a negation, comparison, call, closure or macro is one operand whose inner expressions are measured on their own; with junctions single, also every such expression that joins && with || or and with or, directly or inside parentheses, at error level",
     skill: "split-boolean-expression",
     parameters: Parameters::Thresholds {
         warning: None,

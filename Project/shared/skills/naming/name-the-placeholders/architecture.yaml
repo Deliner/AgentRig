@@ -1,0 +1,5 @@
+purpose: "Name the placeholders of a format string with two or more positional ones, or justify the positions with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to bind each format placeholder to its value by name"
+directories: {}

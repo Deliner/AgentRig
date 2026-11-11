@@ -1,5 +1,6 @@
 use crate::project_config::{Check, CheckKind, Context};
 use crate::shared::console;
+use crate::structural_lint::Location;
 use crate::{command_runner, structural_lint};
 use anyhow::Result;
 use std::path::Path;
@@ -23,11 +24,14 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
                 .ok_or_else(|| anyhow::anyhow!("command check without a command"))?;
             command_runner::run(context, command, source.targets)
         }
-        CheckKind::Lint => structural_lint::check(
-            &context.root,
-            &context.path(&context.config.paths.lint)?,
-            rerun,
-        ),
+        CheckKind::Lint => {
+            let config = context.path(&context.config.paths.lint)?;
+            let location = Location {
+                root: &context.root,
+                config: &config,
+            };
+            structural_lint::check(location, rerun)
+        }
         CheckKind::Memory => {
             crate::project_memory::check_with_history(context, source.root, source.revision)
         }

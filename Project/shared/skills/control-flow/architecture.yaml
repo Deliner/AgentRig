@@ -1,8 +1,10 @@
-purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long boolean expressions, unlabeled exits of nested loops and subtractions from a length"
+purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, subtractions from a length, comparisons with one enum variant and chains of integer bounds"
 files: {}
 directories:
   flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
   label-the-exit: "Label the loop an exit of a nested loop leaves, extract the inner loop, or justify the unlabeled exit with a reference"
+  match-every-variant: "Replace a comparison with one enum variant with an exhaustive match, or justify the comparison with a reference"
+  match-the-ranges: "Replace a chain of comparisons of one value with integer bounds by a match on range patterns, or justify the chain with a reference"
   reduce-branching: "Reduce the decision points per function while preserving behavior"
-  split-boolean-expression: "Split long boolean expressions into named parts while preserving behavior"
+  split-boolean-expression: "Split long boolean expressions, and those joining conjunctions with disjunctions, into named parts while preserving behavior"
   subtract-checked: "Make a subtraction from a length checked or saturating, rearrange it away, or justify the guaranteed length with a reference"

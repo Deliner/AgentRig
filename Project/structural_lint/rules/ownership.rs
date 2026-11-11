@@ -2,6 +2,7 @@ use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
 use crate::shared::diagnostics::lint::Level as Severity;
 use serde::{Deserialize, Serialize};
+use serde_json::{Value, json};
 
 // DECISION: D133
 #[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
@@ -12,6 +13,10 @@ pub enum Ownership {
     RecursiveDeletion,
     GuardAcrossAwait,
     UnitLock,
+    OpenCheckedField,
+    WrapperDeref,
+    PrimitiveFrom,
+    PairedCalls,
 }
 impl Ownership {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -21,9 +26,83 @@ impl Ownership {
             Self::RecursiveDeletion => &RECURSIVEDELETION,
             Self::GuardAcrossAwait => &GUARDACROSSAWAIT,
             Self::UnitLock => &UNITLOCK,
+            Self::OpenCheckedField => &OPENCHECKEDFIELD,
+            Self::WrapperDeref => &WRAPPERDEREF,
+            Self::PrimitiveFrom => &PRIMITIVEFROM,
+            Self::PairedCalls => &PAIREDCALLS,
         }
     }
 }
+// DECISION: D156
+#[derive(Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Pair {
+    pub open: String,
+    pub close: String,
+}
+impl Pair {
+    pub fn valid(&self) -> bool {
+        !self.open.is_empty() && !self.close.is_empty() && self.open != self.close
+    }
+}
+pub fn default_pairs() -> Value {
+    json!([
+        {"open": "begin", "close": "commit"},
+        {"open": "lock", "close": "unlock"},
+        {"open": "open", "close": "close"},
+        {"open": "start", "close": "stop"},
+        {"open": "enter", "close": "leave"},
+        {"open": "acquire", "close": "release"},
+    ])
+}
+// DECISION: D156
+const OPENCHECKEDFIELD: Descriptor = Descriptor {
+    default_id: "open-checked-field",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust struct whose checking constructor, a function without self in its inherent impl, impl TryFrom or impl FromStr returning a Result or Option of Self that refuses on a parameter, stores that parameter in a field with a visibility modifier, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "hide-checked-field",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a visible field lets code outside the module build or change the value without the constructor's check; make the field private and read it through a method, or put a DECISION: or INVARIANT: reference on the line directly above the struct for an FFI layout",
+    },
+};
+// DECISION: D156
+const WRAPPERDEREF: Descriptor = Descriptor {
+    default_id: "wrapper-deref",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust impl of Deref or DerefMut for a struct of the same file whose Target is not a type parameter of that struct, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the impl",
+    skill: "delegate-not-deref",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "Deref hands out every method of the inner type, including those that break the wrapper's invariant or identity; delegate the needed methods by hand, or put a DECISION: or INVARIANT: reference on the line directly above the impl for a smart pointer or guard",
+    },
+};
+// DECISION: D156
+const PRIMITIVEFROM: Descriptor = Descriptor {
+    default_id: "primitive-from",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust impl of From with a numeric primitive, bool, char, String or &str argument for a one-field struct of the same file, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the impl",
+    skill: "construct-explicitly",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "From of a raw value lets .into() build the newtype wherever the raw value stands, so the type stops telling values apart; construct it through a named function or TryFrom with a check, or put a DECISION: or INVARIANT: reference on the line directly above the impl",
+    },
+};
+// DECISION: D156
+const PAIREDCALLS: Descriptor = Descriptor {
+    default_id: "paired-calls",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust block statement calling the open method of a configured pair on a receiver, followed in the same block by the pair's close method on the token-equal receiver with a ?, return, break or continue between them outside closures, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "guard-the-pair",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an early exit between the opening and the closing call skips the closing one; return a guard whose Drop closes on every path, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
 // DECISION: D092
 const DISABLEDRAII: Descriptor = Descriptor {
     default_id: "disabled-raii",

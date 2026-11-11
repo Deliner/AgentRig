@@ -1,0 +1,5 @@
+purpose: "Replace a chain of comparisons of one value with integer bounds by a match on range patterns, or justify the chain with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to let the compiler check the coverage of integer ranges"
+directories: {}

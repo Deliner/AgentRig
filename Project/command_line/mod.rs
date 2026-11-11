@@ -127,23 +127,25 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
 }
 
 fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
-    let unexpected = matches!(
-        command,
+    let usage = match command {
         Configured::Doctor
-            | Configured::RuntimeAdd
-            | Configured::MemoryCheck
-            | Configured::Resume
-            | Configured::Report
-            | Configured::ConfigCheck
-            | Configured::Commands
-            | Configured::FeatureMerge
-    ) && !args.is_empty();
-    if unexpected {
-        bail!("{} takes no arguments", Command::Configured(command).name());
-    }
-    let invalid_start = command == Configured::FeatureStart && args.len() != 1;
-    if invalid_start {
-        bail!("feature-start NAME");
+        | Configured::RuntimeAdd
+        | Configured::MemoryCheck
+        | Configured::Resume
+        | Configured::Report
+        | Configured::ConfigCheck
+        | Configured::Commands
+        | Configured::FeatureMerge => (!args.is_empty()).then(|| {
+            format!(
+                "{name} takes no arguments",
+                name = Command::Configured(command).name()
+            )
+        }),
+        Configured::FeatureStart => (args.len() != 1).then(|| "feature-start NAME".to_owned()),
+        Configured::GuardReference | Configured::Run => None,
+    };
+    if let Some(usage) = usage {
+        bail!(usage);
     }
     Ok(())
 }

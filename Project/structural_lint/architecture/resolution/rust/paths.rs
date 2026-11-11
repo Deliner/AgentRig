@@ -36,12 +36,12 @@ impl Rust<'_> {
         );
         let absolute_external = path.starts_with("::");
         if absolute_external {
-            return self.external_path(path, parts[0]);
+            return self.external_path(path);
         }
         let external =
             !matches!(parts[0], "crate" | "self" | "super") && self.external_name(scope, parts[0]);
         if external {
-            return self.external_path(path, parts[0]);
+            return self.external_path(path);
         }
         let (mut module, start) = match parts[0] {
             "crate" => (Vec::new(), 1),
@@ -213,7 +213,12 @@ impl Rust<'_> {
         self.external.contains(name) && !self.binds(scope, name)
     }
 
-    fn external_path(&self, path: &str, first: &str) -> Result<Located> {
+    fn external_path(&self, path: &str) -> Result<Located> {
+        let first = path
+            .trim_start_matches("::")
+            .split("::")
+            .next()
+            .unwrap_or("");
         ensure!(
             self.external.contains(first),
             "undeclared external Rust crate {first}"
