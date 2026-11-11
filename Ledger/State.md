@@ -13,10 +13,10 @@ B110 слиты в master и перенесены в Archive. B107 о сверк
 ## Workspace
 
 Branch: `feature/option-option-owner`, от master `44c9004`.
-Revision: `8cd02d3923c2fa1200c4c22d248bcff53d36c556`
-Завершение P117 поверх этой ревизии; этот снимок входит в коммит завершения.
+Revision: `ebbabe2eb5aede1eb32fbc7990d62bd3c7276498`
+Завершение P117; этот снимок входит в коммит пина поверх неё.
 
-Установленный рантайм `81bbd8d`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `ebbabe2`, его пин — коммит этого снимка. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -35,7 +35,8 @@ Revision: `8cd02d3923c2fa1200c4c22d248bcff53d36c556`
 - AC1: коммит фрагмента с `Option<Option<u32>>` в копии рига на `8cd02d3` прошёл `lint` и остановлен одной ошибкой
   `clippy`; на master `44c9004` тот же коммит останавливал `lint` с `ambiguous-option`.
 - AC2: тест `rust_flags_an_option_over_a_bool_wherever_it_stands_and_leaves_a_nested_option_to_clippy` прошёл.
-- VAC 1 прошёл гейт коммита: все проверки PASS, 397 тестов.
+- VAC 1 прошёл гейт коммита: все проверки PASS, 397 тестов. Завершение `ebbabe2` прошло гейт коммита: все проверки
+  PASS. `just bootstrap` установил `ebbabe2`.
 
 ## Blockers
 
@@ -43,6 +44,5 @@ Revision: `8cd02d3923c2fa1200c4c22d248bcff53d36c556`
 
 ## Next action
 
-Закоммитить завершение, записать его ревизию в `tooling/distribution/stable.txt` с `just bootstrap` по D051, закоммитить
-пин и выполнить `just feature-merge` с сохранением ветки. Затем отчёт пользователю. Свободные ID: D163+, I022+, P118+,
+`just feature-merge` ветки `feature/option-option-owner` с сохранением ветки. Затем отчёт пользователю. Свободные ID: D163+, I022+, P118+,
 B113+ (B066 и D111 зарезервированы).
