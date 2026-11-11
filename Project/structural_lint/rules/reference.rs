@@ -10,6 +10,8 @@ pub enum Reference {
     UnsafeJustification,
     HardcodedSecret,
     SilentError,
+    UnhandledError,
+    ErrorTextBranch,
     DisabledTest,
     AllowJustification,
     DebugArtifact,
@@ -32,6 +34,8 @@ impl Reference {
             Self::UnsafeJustification => &UNSAFEJUSTIFICATION,
             Self::HardcodedSecret => &HARDCODEDSECRET,
             Self::SilentError => &SILENTERROR,
+            Self::UnhandledError => &UNHANDLEDERROR,
+            Self::ErrorTextBranch => &ERRORTEXTBRANCH,
             Self::DisabledTest => &DISABLEDTEST,
             Self::AllowJustification => &ALLOWJUSTIFICATION,
             Self::DebugArtifact => &DEBUGARTIFACT,
@@ -110,6 +114,28 @@ const SILENTERROR: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "an except that only passes, a read_dir chain that drops its failed entries, a filter_map or flat_map that keeps only the Ok values, an Err arm that answers a verdict or a returned .success() of a process status that never reads .code() swallows the error; handle it, propagate or re-raise it, collect into a Result or match each Err with the reason for skipping it, compare code() with the codes the command documents as answers and refuse the others or call an owner that does, or put a DECISION: or INVARIANT: reference on the line directly above to justify ignoring it",
+    },
+};
+const UNHANDLEDERROR: Descriptor = Descriptor {
+    default_id: "unhandled-error",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust if let without an else branch whose condition, alone or in a let chain, matches an Ok(..) pattern, except on a value that is, through .await and ?, a call of try_lock, try_read, try_write, try_recv, try_send, try_borrow, try_borrow_mut, recv or recv_timeout, whose Err means busy or empty, or of binary_search, binary_search_by, binary_search_by_key, compare_exchange, compare_exchange_weak, fetch_update, try_unwrap or downcast, whose Err is an answer, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "match-the-error",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an if let Ok without an else reads a failure as if nothing happened, so the error is neither handled nor seen; match the value with an Err arm that handles or propagates the error or states the reason for skipping it, or put a DECISION: or INVARIANT: reference on the line directly above it to justify ignoring it",
+    },
+};
+const ERRORTEXTBRANCH: Descriptor = Descriptor {
+    default_id: "error-text-branch",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust .contains, .starts_with or .ends_with call directly on b.to_string(), format!(\"{b}\") or format!(\"{}\", b), where b is bound by an Err(b) match arm including its guard, an if let Err(b) branch or the only parameter of a closure passed to map_err, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "branch-on-variant",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a branch on the text of an error breaks silently when the message changes with a dependency update or a translation; match the error's variant or kind instead and add the variant to the source's error type when it is missing, keep parsing the text of another process or protocol in one boundary function that returns an enum, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the text match",
     },
 };
 // DECISION: D074

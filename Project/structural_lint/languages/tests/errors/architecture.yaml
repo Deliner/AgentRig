@@ -1,5 +1,7 @@
-purpose: Verify measurements of code where an error disappears without a trace, from native analysis
+purpose: Verify measurements of code where an error disappears without a trace or is told apart by its message text, from native analysis
 files:
-  mod.rs: Declare the error measurement test modules
+  mod.rs: Declare the error measurement test modules and read the findings of one error kind
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain, Ok-only filter_map or flat_map with lines spellings left to Clippy, verdict-answering Err arm and unread process success measurements from native analysis
+  unhandled_error.rs: Rust if let Ok without an else, with busy or answering errors, else branches and other forms kept, from native analysis
+  error_text.rs: Rust search in the rendered text of an error bound by an Err arm, an if let Err branch or a map_err closure, from native analysis
 directories: {}
