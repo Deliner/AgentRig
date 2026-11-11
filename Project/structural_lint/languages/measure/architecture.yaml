@@ -1,5 +1,6 @@
 purpose: Define the located measurement record and the language-neutral measurements shared by syntax handlers and their detectors
 type: flat
+dependents: 7
 files:
   mod.rs: Located measurement record and per-file analysis, node text, line-above references, named conditions, boolean expression operands and mixed junctions, comments, credentials, function size, nesting, boolean parameters and branch budgets
 directories: {}

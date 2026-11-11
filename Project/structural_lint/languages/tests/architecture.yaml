@@ -4,7 +4,6 @@ files:
   declarations.rs: Rust and Python parameter count and function line measurements of declarations from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
-  silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
@@ -12,6 +11,7 @@ files:
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
 directories:
   control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
+  errors: Verify measurements of code where an error disappears without a trace, from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis
   signature: Verify Rust function signature, type shape and trait implementation measurements from native analysis

@@ -11,13 +11,13 @@ mod async_code;
 mod control_flow;
 mod declarations;
 mod discarded_result;
+mod errors;
 mod manifest;
 mod markers;
 mod ownership;
 mod panic_surface;
 mod reference;
 mod signature;
-mod silent_error;
 mod test_placement;
 mod unsafe_site;
 

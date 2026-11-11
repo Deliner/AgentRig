@@ -10,7 +10,9 @@ the failure it catches leaves no trace and the program continues as if nothing
 went wrong. A Rust `read_dir` chain collapsed by `.flatten()`,
 `.filter_map(Result::ok)`, `.filter_map(|e| e.ok())` or `.map_while(Result::ok)`
 drops every entry that failed to read, so an unreadable directory silently
-reads as empty. A Rust `Err(_)` arm that answers `Ok(false)` or `Ok(true)` in a
+reads as empty. Any `.filter_map` or `.flat_map` that keeps only the `Ok`
+values, such as `.filter_map(|text| text.parse().ok())`, drops every failed
+item the same way: the result is just shorter. A Rust `Err(_)` arm that answers `Ok(false)` or `Ok(true)` in a
 function returning `Result<bool, …>` turns a failed check into a verdict. A
 returned `Ok(status.success())` in such a function, with the status from
 `.status()?` or `.output()?.status` and no `.code()` read, turns a failed
@@ -26,7 +28,9 @@ Decide what the handler owes its caller instead of discarding the error.
    clearer error so the failure stays visible. Narrow a broad `except` to the
    one exception that is genuinely expected. In Rust, iterate with
    `for entry in read_dir(..)? { let entry = entry?; … }` or collect the
-   entries into `Result<Vec<_>, _>`, and propagate the error from a check with
+   entries into `Result<Vec<_>, _>`. When a failed item is a normal event of
+   the traversal, write it as a `for` loop with a `match` whose `Err(error)`
+   arm states why skipping is safe, and propagate the error from a check with
    `?` or `Err(error) => Err(error.into())` instead of answering a verdict.
    For a command whose exit code is the answer, compare `status.code()` with
    the codes the command documents as answers, such as `Some(0 | 1)`, refuse
@@ -47,8 +51,11 @@ broadened `except`, or by widening the rule.
 ## Rule binding
 
 The measurement flags every Python except clause whose body is only `pass`,
-every Rust `read_dir` call chain collapsed by one of the listed operations,
-every Rust `match`/`if let` arm `Err(_)`/`Err(..)` whose body is `Ok(true)`,
+every Rust `read_dir` call chain collapsed by `.flatten()` or
+`.map_while(ok)`, every Rust `.filter_map(ok)` or `.flat_map(ok)` on any chain,
+where `ok` is `Result::ok` or a one-parameter closure whose body is only a
+`.ok()` call, except `Result::ok` and `|x| x.ok()` on a `.lines()` call, which
+Clippy's default `lines_filter_map_ok` reports, every Rust `match`/`if let` arm `Err(_)`/`Err(..)` whose body is `Ok(true)`,
 `Ok(false)` or a `return` of one inside a function declared to return
 `Result<bool, …>`, and every `Ok(<status>.success())` such a function returns
 as its tail or with `return` when the status comes from `.status()?`,
