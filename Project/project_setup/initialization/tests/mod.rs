@@ -1,3 +1,5 @@
+mod layout;
+
 use super::init;
 use crate::shared::testing::repository;
 use serde_yaml_ng::Value;

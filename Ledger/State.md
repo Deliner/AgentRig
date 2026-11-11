@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `8cfdde37cba50000e9079a42bc4e9a48e525b046`, перенос тестов команд и задач; этот снимок входит в VAC
-переноса тестов реестра инструментов.
+Revision: `95e67909ba5478436abd21aa7c0e7095aa25f0b0`, перенос тестов реестра инструментов; этот снимок входит в
+VAC переноса тестов раскладки `init`.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -55,8 +55,10 @@ Revision: `8cfdde37cba50000e9079a42bc4e9a48e525b046`, перенос тесто�
   Прямой `cargo test` после гейта больше не падает на бинарнике, собранном из удалённого экспорта индекса.
 - `test_jobs.py` и `test_commands.py` перенесены в `8cfdde3` в `command_runner/tests/`: 18 процессных тестов,
   команды фикстуры на `sh`.
-- Этот VAC переносит `test_registry.py` в `command_runner/registry/tests/mod.rs`: 3 процессных теста. Python в
-  `command_runner/` больше нет.
+- `test_registry.py` перенесён в `95e6790` в `command_runner/registry/tests/mod.rs`. Python в `command_runner/`
+  больше нет, каталог убран из аргументов mypy и vulture.
+- Этот VAC переносит `test_layout.py` в `project_setup/initialization/tests/layout.rs`: 13 тестов, раскладка и отказ
+  `init` вызовом в процессе, вывод, хуки и установленный рантайм процессом.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -67,9 +69,10 @@ Revision: `8cfdde37cba50000e9079a42bc4e9a48e525b046`, перенос тесто�
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `8cfdde3` прошёл: 305 Rust-тестов за 18,35 с, pytest 106 за 12,0 с.
-- В рабочем дереве этого VAC: 3 теста `command_runner::registry::` дважды прошли за 2,9 с; lint кандидата,
-  memory-check и config-check чистые. Удалённый файл на снимке `e5699fc`: 3 случая за 4,2 с.
+- Гейт коммита `95e6790` прошёл: 308 Rust-тестов за 27,7 с, pytest 103 за 8,9 с.
+- В рабочем дереве этого VAC: 13 тестов `project_setup::initialization::tests::layout` трижды прошли за 1,8–2,0 с;
+  lint кандидата, memory-check и config-check чистые. Удалённый файл на снимке `e5699fc` с cargo в `PATH`: 18
+  случаев за 4,0–4,4 с.
 
 ## Blockers
 
@@ -77,7 +80,7 @@ Revision: `8cfdde37cba50000e9079a42bc4e9a48e525b046`, перенос тесто�
 
 ## Next action
 
-Перенести остальные Python-тесты по выигранным секундам: `test_layout`, `test_hooks`, `test_lint_defaults`,
-`test_revision_history`, `test_wizard`, `test_evidence`, затем `structural_lint/tests` и прочие. Потом замеры AC5
-полного прогона и гейта против master `41c227f`. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+,
-P116+, B109+ (B066 и D111 зарезервированы).
+Перенести остальные Python-тесты по выигранным секундам: `test_hooks`, `test_lint_defaults`, `test_revision_history`,
+`test_wizard`, `test_evidence`, затем `structural_lint/tests` и прочие. Потом замеры AC5 полного прогона и гейта против
+master `41c227f`. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
+зарезервированы).
