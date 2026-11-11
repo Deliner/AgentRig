@@ -1,4 +1,4 @@
-purpose: Run the candidate runtime and Git as processes with a hermetic environment for Rust behavior tests
+purpose: Run the candidate runtime, installed launchers and Git as processes with a hermetic environment for Rust behavior tests
 files:
-  mod.rs: Locate or build the candidate, invoke it and Git, commit files and extend project configuration
+  mod.rs: Locate or build the candidate and the tooling Python, invoke programs and Git, commit files and extend project configuration
 directories: {}

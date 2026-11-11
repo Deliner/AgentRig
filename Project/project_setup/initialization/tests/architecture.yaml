@@ -1,5 +1,6 @@
 purpose: Verify environment initialization while preserving existing consumer files and client preferences
 files:
+  mod.rs: Refuse colliding files and deliver the universal capabilities of this repository
   test_wizard.py: Interactive initialization choices, collision recheck and parity with declarative init
   test_layout.py: Installation locations, generated adapters and rejected layout changes
   test_capabilities.py: Capability validation, strict root YAML and Claude Code hook registration

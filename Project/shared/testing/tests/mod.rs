@@ -1,6 +1,6 @@
 use serde_yaml_ng::Value;
 use std::{
-    ffi::OsStr,
+    ffi::{OsStr, OsString},
     fs,
     io::Write,
     path::{Path, PathBuf},
@@ -8,13 +8,15 @@ use std::{
     sync::OnceLock,
 };
 
-const IDENTITY: [&str; 5] = [
+const FOREIGN: [&str; 6] = [
     "WORKER_OWNER",
     "WORKER_PARENT_RUN",
     "AGENTRIG_SCRATCH",
     "CODEX_THREAD_ID",
     "CODEX_SESSION_ID",
+    "CARGO_TARGET_DIR",
 ];
+const INTERPRETER: &str = "import os, sys; print(os.path.dirname(sys.executable))";
 
 pub struct Run {
     pub code: Option<i32>,
@@ -39,8 +41,32 @@ pub fn worker() -> &'static Path {
     })
 }
 
+pub fn repository() -> &'static Path {
+    Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap()
+}
+
+pub fn python_path() -> &'static OsStr {
+    static PATH: OnceLock<OsString> = OnceLock::new();
+    PATH.get_or_init(|| {
+        let tooling = repository().join("tooling");
+        let output = Command::new("uv")
+            .args(["run", "--locked", "--project"])
+            .arg(tooling)
+            .args(["python", "-I", "-c", INTERPRETER])
+            .current_dir(repository())
+            .output()
+            .unwrap();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(output.status.success(), "tooling Python: {stderr}");
+        let bin = PathBuf::from(String::from_utf8(output.stdout).unwrap().trim());
+        let inherited = std::env::var_os("PATH").unwrap_or_default();
+        let paths = std::iter::once(bin).chain(std::env::split_paths(&inherited));
+        std::env::join_paths(paths).unwrap()
+    })
+}
+
 fn build() -> PathBuf {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap();
+    let root = repository();
     let status = Command::new(root.join("tooling/worker/build"))
         .arg("--version")
         .current_dir(root)
@@ -57,7 +83,7 @@ pub fn hermetic(program: impl AsRef<OsStr>) -> Command {
     let mut command = Command::new(program);
     for (key, _) in std::env::vars_os() {
         let name = key.to_string_lossy();
-        let foreign = name.starts_with("GIT_") || IDENTITY.contains(&name.as_ref());
+        let foreign = name.starts_with("GIT_") || FOREIGN.contains(&name.as_ref());
         if foreign {
             command.env_remove(&key);
         }
@@ -66,8 +92,12 @@ pub fn hermetic(program: impl AsRef<OsStr>) -> Command {
 }
 
 pub fn runtime(root: &Path, args: &[&str]) -> Command {
+    launch(worker(), root, args)
+}
+
+pub fn launch(program: &Path, root: &Path, args: &[&str]) -> Command {
     let (name, rest) = args.split_first().unwrap();
-    let mut command = hermetic(worker());
+    let mut command = hermetic(program);
     command
         .arg(name)
         .arg("--root")

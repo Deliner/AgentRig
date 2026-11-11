@@ -10,6 +10,8 @@ mod lint;
 mod runtime;
 mod skills;
 mod template;
+#[cfg(test)]
+mod tests;
 use crate::project_config::{self, Config};
 use anyhow::{Result, ensure};
 pub use doctor::{config_check, run as doctor};

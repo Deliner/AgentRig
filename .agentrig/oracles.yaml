@@ -3,9 +3,9 @@ I001:
   runner: pytest
   target: Project/project_memory/tests/test_memory.py::test_decision_source_markers
 I002:
-  check: test
-  runner: pytest
-  target: Project/shared/testing/test_delivery.py::test_independent_project_delivery
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::oracles::invariant_oracle_must_name_a_discovered_test_carrying_its_marker
 I003:
   check: test
   runner: pytest
@@ -71,9 +71,9 @@ I019:
   runner: pytest
   target: Project/project_memory/tests/test_resume.py::test_resume_observes_real_conflict
 I020:
-  check: test
-  runner: pytest
-  target: Project/shared/testing/test_delivery.py::test_dogfooding_capabilities_stay_universal
+  check: rust-test
+  runner: cargo
+  target: project_setup::initialization::tests::init_delivers_the_universal_capabilities_of_this_repository
 I021:
   check: rust-test
   runner: cargo

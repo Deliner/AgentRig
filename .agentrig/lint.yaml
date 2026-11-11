@@ -861,7 +861,6 @@ rules:
       - signal
       - statistics
       - subprocess
-      - sys
       - tempfile
       - time
       - typing

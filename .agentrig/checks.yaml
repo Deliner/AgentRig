@@ -34,6 +34,8 @@
     targets: ['command_line::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/evidence/**', 'Project/shared/testing/**', 'Project/agent_hooks/**']
     targets: ['change_delivery::git::']
+  - include: ['Project/**']
+    targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
   - include: ['Project/agent_hooks/**']
     targets: ['agent_hooks::']
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
@@ -138,7 +140,6 @@
     - Project/agent_hooks/tests
     - Project/command_runner/tests
     - Project/project_config/tests
-    - Project/shared/testing/test_delivery.py
   - include:
     - Project/clippy.toml
     - Project/project_setup/**
@@ -149,10 +150,6 @@
     - Project/agent_hooks/tests/test_hooks.py
     - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
-  - include:
-    - Project/**
-    targets:
-    - Project/shared/testing/test_delivery.py
   - include:
     - tooling/worker/**
     - tooling/distribution/tests/**
