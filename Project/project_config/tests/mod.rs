@@ -1,3 +1,5 @@
+mod settings;
+
 use super::Context;
 use crate::shared::testing::{FAIL, GATE, REPAIR, project};
 use serde_json::{Value, json};

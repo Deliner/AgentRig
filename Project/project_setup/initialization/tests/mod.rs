@@ -1,3 +1,4 @@
+mod claude;
 mod layout;
 mod wizard;
 

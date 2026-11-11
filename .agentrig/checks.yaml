@@ -37,7 +37,7 @@
   - include: ['Project/**']
     targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
   - include: ['Project/clippy.toml', 'Project/shared/skills/**']
-    targets: ['project_setup::tests::runtime::', 'project_setup::tests::defaults::', 'project_setup::tests::doctor::', 'project_memory::tests::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
+    targets: ['project_setup::tests::runtime::', 'project_setup::tests::defaults::', 'project_setup::tests::doctor::', 'project_config::tests::settings::', 'project_memory::tests::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
   - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**']
     targets: ['change_delivery::gate::']
   - include: ['Project/agent_hooks/**']
@@ -96,7 +96,6 @@
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_setup/initialization/tests
     - Project/project_config/tests
     - Project/project_memory/tests
     - Project/project_setup/tests
@@ -126,7 +125,6 @@
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
-    - Project/project_setup/initialization/tests
     - Project/project_setup/tests
     - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
