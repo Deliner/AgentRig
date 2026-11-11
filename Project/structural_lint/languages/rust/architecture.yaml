@@ -7,7 +7,8 @@ files:
   test_placement.rs: Rust file module declared under cfg(test) or inside a test-only module whose file is neither tests.rs nor under a tests directory
   unsafe_site.rs: Rust unsafe surface, a block, function, impl, trait, static mut or unsafe token in a macro token tree, lacking a reference above its attributes
   panic_surface.rs: Rust panic surface lacking a reference on the line above or a referenced Clippy allow, an unwrap, expect, resume_unwind or panic macro in source, macro arguments or macro_rules! bodies, and a catch_unwind call or AssertUnwindSafe wrapper
-  naming.rs: Rust values tied to their slot by position instead of a name, a format string with two or more unnamed placeholders and a struct literal field set from another field's name
+  naming.rs: Rust values tied to their slot by position instead of a name, a format string with two or more unnamed placeholders and a struct literal field set from another field's name, and the template literal of a format macro
+  boundary.rs: Rust data substituted into a shell command string or a JSON or SQL format template, and an exists, is_file or is_dir check followed by a filesystem action on the same path
   false_pass.rs: Rust should_panic attributes that let a test pass on any panic, and cfg attributes that exclude an item from every test build
 directories:
   context: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector

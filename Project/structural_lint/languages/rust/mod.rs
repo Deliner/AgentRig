@@ -1,4 +1,5 @@
 mod blocking_async;
+mod boundary;
 mod context;
 mod control_flow;
 mod errors;
@@ -33,6 +34,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
     false_pass::inspect(node, source, output);
+    boundary::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),

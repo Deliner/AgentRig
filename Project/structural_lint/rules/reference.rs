@@ -25,6 +25,9 @@ pub enum Reference {
     CrossedField,
     UntargetedPanic,
     TestSubstitution,
+    InterpolatedShell,
+    InterpolatedSyntax,
+    StaleCheck,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -49,6 +52,9 @@ impl Reference {
             Self::CrossedField => &CROSSEDFIELD,
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
+            Self::InterpolatedShell => &INTERPOLATEDSHELL,
+            Self::InterpolatedSyntax => &INTERPOLATEDSYNTAX,
+            Self::StaleCheck => &STALECHECK,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -281,6 +287,39 @@ const TESTSUBSTITUTION: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "an item compiled only outside tests never runs under test, and a cfg(test) twin makes the tests check other code than the product runs; pass what varies as a parameter or trait value that the caller and the test both supply, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const INTERPOLATEDSHELL: Descriptor = Descriptor {
+    default_id: "interpolated-shell",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust Command::new call whose first argument is a string literal naming sh, bash, zsh, dash, ksh, fish, cmd, powershell or pwsh by its last path component, with or without .exe, whose chained .arg and .args([..]) arguments put a -c, /c, /C, -Command or lowercase short-flag cluster ending in c directly before an argument that is neither a string literal nor an uppercase constant name, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    skill: "pass-arguments-apart",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, pass values as positional parameters after the script, or put a DECISION: or INVARIANT: reference on the line directly above the call",
+    },
+};
+const INTERPOLATEDSYNTAX: Descriptor = Descriptor {
+    default_id: "interpolated-syntax",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust format, write or writeln macro whose first string literal has a placeholder and either contains {{ followed by optional whitespace and a double quote or starts after leading whitespace with SELECT, INSERT, UPDATE or DELETE and whitespace, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "bind-the-value",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a value formatted into JSON or SQL text can carry a quote or another control character that breaks the document or rewrites the query; build JSON with a serializer and pass SQL values as bound parameters, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const STALECHECK: Descriptor = Descriptor {
+    default_id: "stale-check",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust exists, is_file or is_dir method call without arguments followed later in the same fn, closures included, by a call whose path has an fs segment before its name or ends in File::open or File::create, with an argument whose text equals the checked receiver once & and .as_path() are removed from both, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the check",
+    skill: "act-and-match-the-error",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the path can appear, vanish or change its kind between the check and the action, so the action fails or is skipped where its own error would tell what happened; perform the action and match its error kind such as NotFound or AlreadyExists, or put a DECISION: or INVARIANT: reference on the line directly above the check",
     },
 };
 // DECISION: D037
