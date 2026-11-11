@@ -29,6 +29,7 @@ pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
     push(item, source, Signature::PrimitiveAlias, output);
 }
 // DECISION: D156
+// DECISION: D162
 pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let optional = type_name(generic, source) == Some("Option");
     let Some(argument) = generic
@@ -39,9 +40,7 @@ pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
         return;
     };
     let flag = argument.kind() == "primitive_type" && text(argument, source) == "bool";
-    let nested = type_name(argument, source) == Some("Option");
-    let ambiguous = flag || nested;
-    let allowed = !ambiguous || in_test_context(generic, source) || justified(generic, source);
+    let allowed = !flag || in_test_context(generic, source) || justified(generic, source);
     if allowed {
         return;
     }

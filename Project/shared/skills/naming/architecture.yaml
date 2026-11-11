@@ -1,8 +1,8 @@
-purpose: "Bind a value to its place by a name instead of its position: same-type parameters and tuple fields, the states of a nested option, positional format placeholders and struct literal fields set from another field's name"
+purpose: "Bind a value to its place by a name instead of its position: same-type parameters and tuple fields, the states of an optional flag, positional format placeholders and struct literal fields set from another field's name"
 files: {}
 directories:
   name-the-arguments: "Give two parameters of one type distinct types or a named record, or justify the signature with a reference"
   name-the-positions: "Name the fields of a tuple struct or tuple variant holding two values of one type, or justify the order with a reference"
-  name-the-states: "Replace an Option of bool or of Option with an enum naming each state, or justify the nesting with a reference"
+  name-the-states: "Replace an Option of bool with an enum naming each state, or justify the type with a reference"
   name-the-placeholders: "Name the placeholders of a format string with two or more positional ones, or justify the positions with a reference"
   align-field-names: "Repair a struct literal field set from a variable named after another of its fields, or justify the exchange with a reference"
