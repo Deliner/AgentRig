@@ -51,9 +51,9 @@ I014:
   runner: cargo
   target: structural_lint::tests::diagnostics::invalid_config_is_actionable
 I015:
-  check: test
-  runner: pytest
-  target: Project/structural_lint/languages/tests/consumer/test_language.py::test_language_conditions
+  check: rust-test
+  runner: cargo
+  target: structural_lint::tests::languages::language_conditions
 I016:
   check: rust-test
   runner: cargo

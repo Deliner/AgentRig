@@ -25,6 +25,19 @@ rules:
     error_skill: ".agents/skills/refactor-large-file/SKILL.md"
 "#;
 
+pub const LANGUAGES: &str = r#"extensions: [".rs", ".py", ".pyi"]"#;
+pub const LEVEL: &str = r#"level: "error""#;
+
+pub fn configured(kind: &str, thresholds: &str) -> String {
+    CONFIG
+        .replace("nonblank-lines", kind)
+        .replace(EXTENSIONS, LANGUAGES)
+        .replace(
+            "warning: 3\n    error: 5",
+            &thresholds.replace('\n', "\n    "),
+        )
+}
+
 pub fn prepare(root: &Path, config: &str) {
     for skill in [SKILL, REPAIR] {
         write(root, skill, FRONTMATTER);

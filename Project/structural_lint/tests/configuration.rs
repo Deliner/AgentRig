@@ -1,8 +1,6 @@
 // DECISION: D018
-use super::consumer::{CONFIG, EXTENSIONS, check, consumer, lint, write};
+use super::consumer::{CONFIG, LANGUAGES, LEVEL, check, configured, consumer, lint, write};
 
-const LANGUAGES: &str = r#"extensions: [".rs", ".py", ".pyi"]"#;
-const LEVEL: &str = r#"level: "error""#;
 const SOURCES: &str = r#"include: ["src/**"]"#;
 const PAIR: &str = r#"pairs: [{open: "begin", close: "commit"}]"#;
 const SCHEMA: [(&str, &str); 6] = [
@@ -31,16 +29,6 @@ const MISPLACED: [(&str, &str, &str); 5] = [
         "pairs need distinct nonempty",
     ),
 ];
-
-fn configured(kind: &str, thresholds: &str) -> String {
-    CONFIG
-        .replace("nonblank-lines", kind)
-        .replace(EXTENSIONS, LANGUAGES)
-        .replace(
-            "warning: 3\n    error: 5",
-            &thresholds.replace('\n', "\n    "),
-        )
-}
 
 fn rust(kind: &str, settings: &str) -> String {
     configured(kind, settings).replace(LANGUAGES, r#"extensions: [".rs"]"#)

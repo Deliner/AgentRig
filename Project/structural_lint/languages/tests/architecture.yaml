@@ -1,6 +1,7 @@
 purpose: Verify language-specific measurements from native analysis and, in consumer, their enforcement through real lint consumers
 files:
   mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
+  declarations.rs: Rust and Python parameter count and function line measurements of declarations from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis

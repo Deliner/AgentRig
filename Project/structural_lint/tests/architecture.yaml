@@ -5,6 +5,7 @@ files:
   discovery.rs: Rule catalog, examples that pass configuration check and invalid discovery arguments
   diagnostics.rs: Threshold, override, invalid configuration and staged snapshot diagnostics
   explain.rs: Effective selection explanations and diagnostic consistency
+  languages.rs: Rust and Python branch conditions, syntax errors, language selection, condition policies and single junctions through lint
   baseline.rs: Recorded error baseline, ratchet failures on growth and lowering-only updates
   portable.rs: Standalone and embedded linter portability scenarios
   mod.rs: Line-width and forbidden-file findings from native evaluation

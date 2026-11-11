@@ -9,6 +9,7 @@ mod consumer;
 mod diagnostics;
 mod discovery;
 mod explain;
+mod languages;
 mod portable;
 
 fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, Option<usize>)> {

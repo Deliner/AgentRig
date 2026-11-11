@@ -1,5 +1,4 @@
 purpose: Verify language measurements and their configured enforcement through a real lint consumer and its CLI
 files:
-  test_language.py: Rust and Python condition, function and parameter measurement scenarios
   test_language_delivery.py: Configured enforcement and repair guidance for language measurements
 directories: {}
