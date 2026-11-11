@@ -12,6 +12,7 @@ files:
 directories:
   control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
   errors: Verify measurements of code where an error disappears without a trace, from native analysis
+  false_pass: Verify Rust measurements of tests that pass on any panic or any error or by a guessed pause, and of items no test build compiles, from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis
   signature: Verify Rust function signature, type shape and trait implementation measurements from native analysis

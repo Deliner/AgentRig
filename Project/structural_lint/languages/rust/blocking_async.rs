@@ -24,6 +24,9 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         });
     }
 }
+pub(super) fn sleeping(function: Node<'_>, source: Code<'_>) -> bool {
+    blocking(function, source) == Some("sleep")
+}
 fn blocking<'a>(function: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match function.kind() {
         "field_expression" => {

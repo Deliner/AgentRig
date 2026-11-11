@@ -23,6 +23,10 @@ pub enum Reference {
     BlockingInAsync,
     PositionalFormat,
     CrossedField,
+    UntargetedPanic,
+    UntargetedError,
+    TestSubstitution,
+    SleepInTest,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -45,6 +49,10 @@ impl Reference {
             Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::PositionalFormat => &POSITIONALFORMAT,
             Self::CrossedField => &CROSSEDFIELD,
+            Self::UntargetedPanic => &UNTARGETEDPANIC,
+            Self::UntargetedError => &UNTARGETEDERROR,
+            Self::TestSubstitution => &TESTSUBSTITUTION,
+            Self::SleepInTest => &SLEEPINTEST,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -253,6 +261,50 @@ const BLOCKINGINASYNC: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Warning,
         violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
+    },
+};
+const UNTARGETEDPANIC: Descriptor = Descriptor {
+    default_id: "untargeted-panic",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust #[should_panic] attribute with neither a = value nor an expected argument, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "expect-the-panic",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a should_panic test without expected passes on any panic, also one from an unrelated place, so a broken test stays green; name the expected message with #[should_panic(expected = \"...\")] or test the returned Err instead, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const UNTARGETEDERROR: Descriptor = Descriptor {
+    default_id: "untargeted-error",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust assert! macro whose first argument is a .is_err() call without arguments, inside an item under cfg(test) or under an attribute whose path ends in test, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-error",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "assert!(value.is_err()) passes on any error, also an unrelated one, so the test stays green when the code fails for another reason; compare the expected error with assert_eq! or bind it with let Err(Error::Case) = value else { panic!(..) }, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const TESTSUBSTITUTION: Descriptor = Descriptor {
+    default_id: "test-substitution",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust #[cfg(..)] or #![cfg(..)] attribute of an item in a file, module, impl or trait body whose predicate is false in every build with test set, such as not(test), all(not(test), ..) or not(any(test, ..)), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "inject-the-variant",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an item compiled only outside tests never runs under test, and a cfg(test) twin makes the tests check other code than the product runs; pass what varies as a parameter or trait value that the caller and the test both supply, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const SLEEPINTEST: Descriptor = Descriptor {
+    default_id: "sleep-in-test",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust call whose path ends in thread::sleep or a bare sleep imported from a thread module in the same file, whose nearest enclosing fn carries an attribute whose path ends in test, closures and async blocks between them included, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    skill: "await-the-event",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a test that sleeps guesses how long other work takes, so it fails on a slow machine and passes falsely on a fast one; wait for the event itself with join, recv or a condition variable, or put a DECISION: or INVARIANT: reference on the line directly above the call when the test measures real time",
     },
 };
 // DECISION: D037
