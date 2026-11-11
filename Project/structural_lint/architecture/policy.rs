@@ -81,8 +81,11 @@ pub struct Contracts {
 
 // DECISION: D083
 // DECISION: D104
-fn zone_message(effect: &str, path: &str) -> String {
-    format!("zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}")
+fn zone_message(path: &str) -> Option<String> {
+    let effect = super::effect(path)?;
+    Some(format!(
+        "zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}"
+    ))
 }
 
 impl Contracts {
@@ -126,11 +129,11 @@ impl Contracts {
                     continue 'files;
                 }
                 issues.extend(uses.iter().filter_map(|use_site| {
-                    let effect = super::effect(&use_site.path)?;
+                    let message = zone_message(&use_site.path)?;
                     Some(Issue {
                         path: file.clone(),
                         line: Some(use_site.line),
-                        message: zone_message(effect, &use_site.path),
+                        message,
                     })
                 }));
             }

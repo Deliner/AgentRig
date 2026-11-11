@@ -1,4 +1,4 @@
-use super::architecture::runner;
+use super::architecture::{Rooted, runner};
 use super::{Location, config};
 use super::{inventory, selection};
 use crate::shared::console;
@@ -61,7 +61,7 @@ fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
         let measured = match architecture {
-            true => runner::edges(root, rule, &inventory, &path)?,
+            true => runner::edges(Rooted { root, path: &path }, rule, &inventory)?,
             false => None,
         };
         if let Some(neighbours) = measured {

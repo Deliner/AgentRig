@@ -28,17 +28,16 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
 
 // DECISION: D143
 pub fn edges(
-    root: &Path,
+    directory: super::Rooted<'_>,
     rule: &Rule,
     inventory: &Inventory,
-    directory: &Path,
 ) -> Result<Option<Neighbours>> {
-    let unselected = !contains_directory(rule, directory, inventory)?;
+    let unselected = !contains_directory(rule, directory.path, inventory)?;
     if unselected {
         return Ok(None);
     }
-    let measured = measure(root, rule, inventory)?;
-    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory)))
+    let measured = measure(directory.root, rule, inventory)?;
+    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory.path)))
 }
 
 struct Measured<'r> {

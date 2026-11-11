@@ -120,7 +120,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
     let current = current(lint)?;
     let path = location(lint.config);
     let findings = match load(&path)? {
-        Some(baseline) => lowered(&limit(lint.root, &path, baseline)?, &current),
+        Some(baseline) => lowered(&limit(lint, baseline)?, &current),
         None => current.clone(),
     };
     let exceeding = pairs(&current)
@@ -144,7 +144,9 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
 
 // DECISION: D139
 // DECISION: D140
-fn limit(root: &Path, path: &Path, working: Counts) -> Result<Counts> {
+fn limit(lint: Location<'_>, working: Counts) -> Result<Counts> {
+    let root = lint.root;
+    let path = location(lint.config);
     let Some(repository) = Repository::discover(root)? else {
         return Ok(working);
     };
