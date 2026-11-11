@@ -18,7 +18,7 @@ trap 'rm -rf -- "$staging"' EXIT
 name="agentrig-$version-$platform"
 package="$staging/$name"
 mkdir "$package"
-target="${WORKER_TARGET_DIR:-$root/.cache/worker}"
+target="${CARGO_TARGET_DIR:-$root/.cache/worker}"
 cp "$target/release/agentrig" "$target/release/agentrig-lint" "$package/"
 cp LICENSE README.md tooling/distribution/RELEASE.md "$package/"
 cargo about generate --locked --fail --workspace --target "$triple" \

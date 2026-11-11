@@ -54,6 +54,7 @@ fn installed_binary(context: &Context) -> bool {
         crate::command_runner::sandbox::Sandboxing {
             access: Access::Writable,
             capture: crate::command_runner::jobs::Capture::Collect,
+            cargo_target: None,
         },
         None,
     );

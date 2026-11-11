@@ -104,6 +104,7 @@ pub fn search_path(first: PathBuf) -> OsString {
     std::env::join_paths(paths).unwrap()
 }
 
+// DECISION: D160
 fn build() -> PathBuf {
     let root = repository();
     let status = Command::new(root.join("tooling/worker/build"))
@@ -113,7 +114,7 @@ fn build() -> PathBuf {
         .status()
         .unwrap();
     assert!(status.success(), "the candidate runtime build failed");
-    let target = std::env::var_os("WORKER_TARGET_DIR")
+    let target = std::env::var_os("CARGO_TARGET_DIR")
         .map_or_else(|| root.join(".cache/worker"), PathBuf::from);
     target.join("release/agentrig")
 }

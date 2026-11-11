@@ -2,6 +2,7 @@ use crate::project_memory::evidence::{Input, native_index};
 use crate::shared::console;
 mod check;
 mod selection;
+mod staged;
 #[cfg(test)]
 mod tests;
 pub use selection::AffectedMap;
@@ -71,9 +72,10 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let mut context = Context::load(tree)?;
     context.runtime = project_config::relative(root, &context.config.paths.runtime)?;
-    if options.staged {
-        crate::shared::vcs::Repository::new(root).index_entries()?;
-    }
+    let reuse = options.staged;
+    let _lock = reuse
+        .then(|| staged::reuse(root, &mut context))
+        .transpose()?;
     ensure!(
         only.is_none_or(|id| context.config.checks.iter().any(|check| check.id == id)),
         "unknown check {}",

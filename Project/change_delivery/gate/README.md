@@ -4,6 +4,11 @@
 commit; `--only ID` selects one check. The pre-commit hook runs `check --staged`, and `feature-merge` runs the gate on
 the integration candidate. Lint, memory and other non-command checks always run in full.
 
+A staged run keeps cargo builds between commits. Each exported file whose staged content is unchanged since the previous
+staged run gets that run's modification time, any other file the current time, and the commands build into
+`<runtime>/staged/target` through `CARGO_TARGET_DIR`; worktree builds never write there, so an old time always means the
+content that target was built from. Staged runs of one project wait for each other.
+
 A command check runs its whole command unless it declares `affected` groups:
 
 ```yaml

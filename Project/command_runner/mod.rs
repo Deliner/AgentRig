@@ -107,6 +107,7 @@ fn logged(
         sandbox::Sandboxing {
             access: spec.access,
             capture,
+            cargo_target: context.cargo_target.as_deref(),
         },
         Some(&mut job),
     );
@@ -146,6 +147,7 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
         sandbox::Sandboxing {
             access,
             capture: jobs::Capture::Stream,
+            cargo_target: None,
         },
         Some(&mut job),
     );

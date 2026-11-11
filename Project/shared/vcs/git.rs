@@ -146,31 +146,50 @@ pub(super) fn changes(root: &Path, revisions: Revisions<'_>) -> Result<Vec<u8>> 
 pub(super) fn tree(root: &Path, revision: &str) -> Result<BTreeMap<String, Entry>> {
     let bytes = run(root, &["ls-tree", "-rz", "--full-tree", revision])?;
     let mut entries = BTreeMap::new();
-    for entry in bytes
-        .split(|byte| *byte == 0)
-        .filter(|entry| !entry.is_empty())
-    {
-        let (header, path) = std::str::from_utf8(entry)?
-            .split_once('\t')
-            .context("invalid Git tree entry")?;
-        let fields: Vec<_> = header.split_whitespace().collect();
-        ensure!(fields.len() == 3, "invalid Git tree entry");
-        let kind = match fields[0] {
-            "100644" => FileKind::File,
-            "100755" => FileKind::Executable,
-            "120000" => FileKind::Symlink,
-            "160000" => FileKind::Submodule,
-            _ => bail!("unsupported Git entry mode: {}", fields[0]),
-        };
-        entries.insert(
-            path.into(),
-            Entry {
-                kind,
-                object: fields[2].into(),
-            },
-        );
+    for record in records(&bytes) {
+        let ([mode, _, object], path) = record?;
+        let kind = kind(mode)?;
+        let object = object.into();
+        entries.insert(path.into(), Entry { kind, object });
     }
     Ok(entries)
+}
+
+pub(super) fn index(root: &Path) -> Result<BTreeMap<String, Entry>> {
+    let bytes = index_entries(root)?;
+    let mut entries = BTreeMap::new();
+    for record in records(&bytes) {
+        let ([mode, object, stage], path) = record?;
+        let merged = stage == "0";
+        if merged {
+            let kind = kind(mode)?;
+            let object = object.into();
+            entries.insert(path.into(), Entry { kind, object });
+        }
+    }
+    Ok(entries)
+}
+
+fn records(bytes: &[u8]) -> impl Iterator<Item = Result<([&str; 3], &str)>> {
+    let records = bytes.split(|byte| *byte == 0).filter(|r| !r.is_empty());
+    records.map(|record| {
+        let (header, path) = std::str::from_utf8(record)?
+            .split_once('\t')
+            .context("invalid Git entry")?;
+        let fields: Vec<_> = header.split_whitespace().collect();
+        let fields: [&str; 3] = fields.try_into().ok().context("invalid Git entry")?;
+        Ok((fields, path))
+    })
+}
+
+fn kind(mode: &str) -> Result<FileKind> {
+    Ok(match mode {
+        "100644" => FileKind::File,
+        "100755" => FileKind::Executable,
+        "120000" => FileKind::Symlink,
+        "160000" => FileKind::Submodule,
+        _ => bail!("unsupported Git entry mode: {mode}"),
+    })
 }
 
 #[cfg(test)]

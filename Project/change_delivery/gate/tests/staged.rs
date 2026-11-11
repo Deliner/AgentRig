@@ -1,11 +1,61 @@
 use super::{gated, stage_an_oversized_source};
 use crate::shared::testing::{FAIL, GATE, REPAIR, git, invoke, project, rerun};
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::Path,
+    time::{Duration, SystemTime},
+};
 
 const NOISY: &str = "noisy:
   argv: [sh, -c, 'echo hidden; echo shown; exit 3']
   output: {failure: {tail: 1}}
 ";
+const VALUE: &str = "value:
+  argv: [cargo, run, --offline, --manifest-path, crate/Cargo.toml]
+";
+const MANIFEST: &str = "[package]\nname = \"value\"\nversion = \"0.1.0\"\nedition = \"2024\"\n";
+
+fn program(value: i32) -> String {
+    format!("fn main() {{\n    std::process::exit({value});\n}}\n")
+}
+
+// DECISION: D160
+#[test]
+fn staged_cargo_check_reuses_unchanged_builds_and_checks_only_staged_code() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let check = format!("- id: value\n  kind: command\n  command: value\n  skill: {REPAIR}\n");
+    project(&root, VALUE, &check);
+    let main = root.join("crate/src/main.rs");
+    fs::create_dir_all(main.parent().unwrap()).unwrap();
+    fs::write(root.join("crate/Cargo.toml"), MANIFEST).unwrap();
+    fs::write(&main, program(0)).unwrap();
+    git(&root, &["init", "-q"]);
+    git(&root, &["add", "."]);
+    let built = invoke(&root, &["check", "--staged"]);
+    assert_eq!(built.code, Some(0), "{}", built.output());
+    assert!(
+        built.output().contains("Compiling value"),
+        "{}",
+        built.output()
+    );
+    fs::write(root.join("notes.md"), "note\n").unwrap();
+    git(&root, &["add", "notes.md"]);
+    fs::write(&main, program(3)).unwrap();
+    let reused = invoke(&root, &["check", "--staged"]);
+    assert_eq!(reused.code, Some(0), "{}", reused.output());
+    assert!(
+        !reused.output().contains("Compiling"),
+        "{}",
+        reused.output()
+    );
+    let old = SystemTime::UNIX_EPOCH + Duration::from_secs(1_000_000_000);
+    let file = fs::File::options().write(true).open(&main).unwrap();
+    file.set_modified(old).unwrap();
+    git(&root, &["add", "crate/src/main.rs"]);
+    let changed = invoke(&root, &["check", "--staged"]);
+    assert_eq!(changed.code, Some(3), "{}", changed.output());
+}
 
 #[test]
 fn staged_gate_uses_staged_configuration() {
