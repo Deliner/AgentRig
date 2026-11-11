@@ -100,7 +100,6 @@
     - Project/shared/testing/**
     targets:
     - Project/project_setup/initialization/tests
-    - Project/command_runner/registry/tests
     - Project/project_config/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests
@@ -117,7 +116,6 @@
   - include:
     - Project/command_runner/**
     targets:
-    - Project/command_runner/registry/tests
     - Project/project_config/tests
     - Project/project_memory/tests/test_memory.py
     - Project/project_memory/tests/test_resume.py

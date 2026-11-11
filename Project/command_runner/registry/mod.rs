@@ -1,4 +1,6 @@
 pub mod check;
+#[cfg(test)]
+mod tests;
 use crate::project_config::{Command, Context};
 use crate::shared::console;
 use crate::shared::fs::{self, PermissionsExt};
