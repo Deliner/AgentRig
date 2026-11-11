@@ -1,13 +1,20 @@
 mod outcomes;
+mod revision;
 mod selection;
 mod staged;
 
 use crate::shared::testing::{FAIL, GATE, git, project};
+use serde_json::Value;
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 use tempfile::TempDir;
+
+fn evidence(root: &Path) -> Value {
+    let record = fs::read_to_string(root.join(".runtime/checks.json")).unwrap();
+    serde_json::from_str(&record).unwrap()
+}
 
 fn gated() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();

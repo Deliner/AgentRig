@@ -1,3 +1,4 @@
+use super::evidence;
 use crate::shared::testing::{REPAIR, Run, git, invoke, project};
 use serde_json::Value;
 use std::{fs, path::Path, path::PathBuf};
@@ -103,7 +104,7 @@ fn merge(root: &Path) -> Run {
     invoke(root, &["feature-merge"])
 }
 
-fn evidence(root: &Path) -> Value {
+fn reported(root: &Path) -> Value {
     let report = invoke(root, &["report"]);
     assert_eq!(report.code, Some(0), "{}", report.output());
     let (_, evidence) = report.stdout.split_once("Check evidence: ").unwrap();
@@ -121,9 +122,8 @@ fn affected_groups_select_commit_and_merge_targets() {
         let ran = result.stdout.lines().find(|line| line.contains("TARGETS="));
         assert_eq!(ran, expected.as_deref(), "{name}: {}", result.stdout);
         let full = targets == Some(EVERY_TEST);
-        let record = fs::read_to_string(root.join(".runtime/checks.json")).unwrap();
-        let record: Value = serde_json::from_str(&record).unwrap();
+        let record = evidence(&root);
         assert_eq!(record["selective"], !full, "{name}: {record}");
-        assert_eq!(evidence(&root)["full_gate_passed"], full, "{name}");
+        assert_eq!(reported(&root)["full_gate_passed"], full, "{name}");
     }
 }

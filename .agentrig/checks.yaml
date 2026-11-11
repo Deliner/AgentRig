@@ -106,7 +106,6 @@
     - Project/project_config/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests
-    - Project/change_delivery/gate/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests
     - Project/shared/testing/examples/python/application/test_sample.py
@@ -116,7 +115,6 @@
     targets:
     - Project/project_memory/tests
     - Project/project_memory/evidence/tests
-    - Project/change_delivery/gate/tests
     - Project/project_setup/tests/test_doctor.py
   - include:
     - Project/command_runner/**
@@ -131,7 +129,6 @@
     - Project/change_delivery/gate/**
     - Project/project_memory/evidence/**
     targets:
-    - Project/change_delivery/gate/tests
     - Project/project_memory/evidence/tests
     - Project/project_memory/tests/test_resume.py
     - Project/project_memory/tests/test_revision_history.py

@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `6015498ef6301f1e84d3795a50e3f79350633fe5`, перенос `test_runtime.py`; этот снимок входит в VAC переноса
-`test_gate.py`.
+Revision: `e2c87806c47a021d7074e3e3a2baa242bd9a42c6`, перенос `test_gate.py`; этот снимок входит в VAC переноса
+`test_revision.py`.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -39,15 +39,17 @@ Revision: `6015498ef6301f1e84d3795a50e3f79350633fe5`, перенос `test_runti
   I020 в `project_setup/initialization/tests/`, проверки оракулов и I002 в `project_memory/tests/oracles.rs`.
   Поддержка `shared/testing/tests` даёт тестам Python инструментов через uv.
 - `test_runtime.py` перенесён в `6015498`: 3 Rust-теста в `project_setup/tests/runtime.rs`, ссылка D150 на них.
-- Этот VAC переносит `change_delivery/gate/tests/test_gate.py`: 9 тестов в `change_delivery/gate/tests/`, 2 в
-  `project_config/tests/`, 2 в `command_line/tests/`. Минимальный проект и запуск RERUN добавлены в `shared::testing`.
+- `test_gate.py` перенесён в `e2c8780`: 9 тестов в `change_delivery/gate/tests/`, 2 в `project_config/tests/`, 2 в
+  `command_line/tests/`. Минимальный проект и запуск RERUN есть в `shared::testing`.
+- Этот VAC переносит `change_delivery/gate/tests/test_revision.py` в `revision.rs` того же каталога и добавляет в
+  `shared::testing` память проекта.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
 ## Verification
 
-- Гейт коммита `6015498`: 224 Rust-теста за 16 с, pytest 296 за 42 с, все проверки прошли.
-- В рабочем дереве этого VAC: 13 новых тестов прошли за 2,3 с. Кандидат: `memory-check` проходит с прежним
+- Гейт коммита `e2c8780`: 237 Rust-тестов за 29 с, pytest 217 за 41 с, все проверки прошли.
+- В рабочем дереве этого VAC: `change_delivery::gate::tests::` 12 прошли за 2,4 с, `revision` 3 за 1,0 с. Кандидат: `memory-check` проходит с прежним
   предупреждением о `grammar.js`, D112; `config-check`, `lint-config-check`, lint, rustfmt и Clippy чистые.
 
 ## Blockers
@@ -56,6 +58,5 @@ Revision: `6015498ef6301f1e84d3795a50e3f79350633fe5`, перенос `test_runti
 
 ## Next action
 
-Перенести `change_delivery/gate/tests/test_revision.py` на заготовку `shared::testing::project`, затем остальные
-файлы по выигранным секундам. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
+Замерить оставшиеся Python-тесты по файлам и переносить их по выигранным секундам на заготовки `shared::testing`. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

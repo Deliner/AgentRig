@@ -211,6 +211,34 @@ pub fn project(root: &Path, commands: &str, checks: &str) {
     fs::create_dir_all(root.join("src")).unwrap();
 }
 
+pub fn memory(root: &Path) {
+    let notes = root.join("notes");
+    let indexes = [
+        (
+            "Plan",
+            "ID | Status | Depends on | Feature | User capability",
+        ),
+        ("Decisions", "ID | Decision | Applies in"),
+        ("Invariants", "ID | Invariant | Enforced by"),
+    ];
+    for (name, headers) in indexes {
+        fs::create_dir_all(notes.join(name)).unwrap();
+        let index = format!("# {name}\n\n| {headers} |\n");
+        fs::write(notes.join(format!("{name}.md")), index).unwrap();
+    }
+    let sections = [
+        "Focus",
+        "Workspace",
+        "Progress",
+        "Verification",
+        "Blockers",
+        "Next action",
+    ];
+    let sections = sections.map(|section| format!("## {section}\n\nNone."));
+    let state = format!("# State\n\n{}", sections.join("\n\n"));
+    fs::write(notes.join("State.md"), state).unwrap();
+}
+
 pub fn rerun(output: &str) -> Run {
     let (_, guidance) = output.split_once("RERUN: ").unwrap();
     let command = guidance.lines().next().unwrap();
