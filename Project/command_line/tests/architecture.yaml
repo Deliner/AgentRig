@@ -1,0 +1,4 @@
+purpose: Verify that failing commands print guidance with a rerun command that reproduces the failure
+files:
+  mod.rs: Standalone command failures name the repair skill and rerun, also after the running binary was replaced
+directories: {}

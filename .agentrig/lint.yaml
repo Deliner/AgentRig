@@ -846,7 +846,6 @@ rules:
       python:
       - __future__
       - argparse
-      - collections
       - dataclasses
       - datetime
       - itertools

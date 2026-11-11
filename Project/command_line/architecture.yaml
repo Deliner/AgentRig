@@ -5,4 +5,5 @@ files:
   lint.rs: Standalone agentrig-lint process entry and exit reporting
   mod.rs: Parse command names, validate arguments and dispatch context-free commands
   project.rs: Run commands that need the loaded project configuration through their owning features
-directories: {}
+directories:
+  tests: Verify failure guidance and reruns of commands

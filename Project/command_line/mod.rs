@@ -1,4 +1,6 @@
 mod project;
+#[cfg(test)]
+mod tests;
 use crate::{
     change_delivery::{gate, git},
     command_runner::{self, jobs},

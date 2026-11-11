@@ -38,6 +38,8 @@
     targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
   - include: ['Project/clippy.toml', 'Project/shared/skills/**']
     targets: ['project_setup::tests::runtime::']
+  - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**']
+    targets: ['change_delivery::gate::']
   - include: ['Project/agent_hooks/**']
     targets: ['agent_hooks::']
   - include: ['Project/command_runner/jobs/**', 'Project/shared/artifacts/**']
@@ -124,7 +126,6 @@
     - Project/project_config/tests
     - Project/project_memory/tests/test_memory.py
     - Project/project_memory/tests/test_resume.py
-    - Project/change_delivery/gate/tests/test_gate.py
   - include:
     - Project/change_delivery/git/**
     - Project/change_delivery/gate/**

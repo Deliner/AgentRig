@@ -1,5 +1,6 @@
 use serde_yaml_ng::Value;
 use std::{
+    env,
     ffi::{OsStr, OsString},
     fs,
     io::Write,
@@ -17,6 +18,31 @@ const FOREIGN: [&str; 6] = [
     "CARGO_TARGET_DIR",
 ];
 const INTERPRETER: &str = "import os, sys; print(os.path.dirname(sys.executable))";
+pub const REPAIR: &str = "guides/repair/SKILL.md";
+pub const FAIL: &str = "fail:\n  argv: [sh, -c, exit 23]\n";
+pub const GATE: &str = "- id: lint
+  kind: lint
+  skill: guides/repair/SKILL.md
+- id: tests
+  kind: command
+  command: fail
+  skill: guides/repair/SKILL.md
+  warning: true
+";
+const SKILL: &str = "---\nname: repair\ndescription: Fix the reported failing check.\n---\n";
+const LINT: &str = "version: 1
+config_skill: guides/repair/SKILL.md
+exclude: [.git/**, .runtime/**]
+rules:
+- id: lines
+  kind: nonblank-lines
+  target: file
+  include: [src/**]
+  warning: 30
+  error: 60
+  warning_skill: guides/repair/SKILL.md
+  error_skill: guides/repair/SKILL.md
+";
 
 pub struct Run {
     pub code: Option<i32>,
@@ -162,4 +188,36 @@ pub fn configure(root: &Path, module: &str, addition: &str) {
         panic!("{module}: the addition must have the configured shape");
     }
     fs::write(path, serde_yaml_ng::to_string(&current).unwrap()).unwrap();
+}
+
+pub fn project(root: &Path, commands: &str, checks: &str) {
+    let version = env!("CARGO_PKG_VERSION");
+    let identity = format!(
+        "version: 1\nruntime: \"{version}\"\nconfig_skill: {REPAIR}\npaths:\n  sources: [src/**]\n  memory: notes\n  skills: guides\n  lint: lint.yaml\n  runtime: .runtime\n"
+    );
+    let files = [
+        (REPAIR, SKILL),
+        (".agentrig/project.yaml", &identity),
+        (".agentrig/git.yaml", "base: trunk\nprefix: task/\n"),
+        (".agentrig/commands.yaml", commands),
+        (".agentrig/checks.yaml", checks),
+        ("lint.yaml", LINT),
+    ];
+    for (name, text) in files {
+        let path = root.join(name);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, text).unwrap();
+    }
+    fs::create_dir_all(root.join("src")).unwrap();
+}
+
+pub fn rerun(output: &str) -> Run {
+    let (_, guidance) = output.split_once("RERUN: ").unwrap();
+    let command = guidance.lines().next().unwrap();
+    let argv = shell_words::split(command).unwrap();
+    let (program, args) = argv.split_first().unwrap();
+    run(
+        hermetic(program).args(args).current_dir(env::temp_dir()),
+        "",
+    )
 }
