@@ -25,6 +25,7 @@ pub enum Reference {
     CrossedField,
     UntargetedPanic,
     TestSubstitution,
+    InterpolatedShell,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -49,6 +50,7 @@ impl Reference {
             Self::CrossedField => &CROSSEDFIELD,
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
+            Self::InterpolatedShell => &INTERPOLATEDSHELL,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -281,6 +283,18 @@ const TESTSUBSTITUTION: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "an item compiled only outside tests never runs under test, and a cfg(test) twin makes the tests check other code than the product runs; pass what varies as a parameter or trait value that the caller and the test both supply, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D170
+const INTERPOLATEDSHELL: Descriptor = Descriptor {
+    default_id: "interpolated-shell",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust Command::new call whose first argument is a string literal naming sh, bash, zsh, dash, ksh, fish, cmd, powershell or pwsh by its last path component, with or without .exe, whose chained .arg and .args([..]) arguments put a -c, /c, /C, -Command or lowercase short-flag cluster ending in c directly before an argument that is neither a string literal nor an uppercase constant name, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    skill: "pass-arguments-apart",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, keep the script literal and pass values apart from it, as positional parameters of a POSIX shell or fish or environment variables read by PowerShell, or put a DECISION: or INVARIANT: reference on the line directly above the call",
     },
 };
 // DECISION: D037

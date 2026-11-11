@@ -1,5 +1,6 @@
-purpose: "Repair tests that pass falsely: a should_panic test that passes on any panic and an item compiled out of every test build, or justify the exception with a reference"
+purpose: "Repair tests that keep the suite green while the behavior they claim goes unchecked: a disabled test, a should_panic test that passes on any panic and an item compiled out of every test build, or justify the exception with a reference"
 files: {}
 directories:
+  justify-skip: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
   expect-the-panic: "Name the panic a should_panic test expects or test the returned error, or justify any panic with a reference"
   inject-the-variant: "Inject what varies between product and test instead of compiling an item out of test builds, or justify the exclusion with a reference"

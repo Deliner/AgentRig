@@ -1,0 +1,5 @@
+purpose: "Pass each value to a launched program apart from the shell command string instead of substituting it into that string, or justify the shell code with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep data out of a shell command string or justify the substitution"
+directories: {}

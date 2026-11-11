@@ -108,7 +108,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "justify-skip",
-        include_str!("../shared/skills/references/justify-skip/SKILL.md"),
+        include_str!("../shared/skills/references/false-pass/justify-skip/SKILL.md"),
     ),
     (
         "justify-allow",
@@ -197,6 +197,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "inject-the-variant",
         include_str!("../shared/skills/references/false-pass/inject-the-variant/SKILL.md"),
+    ),
+    (
+        "pass-arguments-apart",
+        include_str!("../shared/skills/references/pass-arguments-apart/SKILL.md"),
     ),
     (
         "contain-the-deletion",
