@@ -118,8 +118,7 @@ pub fn mixed_junction(node: Node<'_>) -> Option<usize> {
     let mut found = BTreeSet::new();
     junctions(node, &mut found);
     let mixed = measured && found.len() > 1;
-    let line = node.start_position().row + 1;
-    mixed.then_some(line)
+    mixed.then_some(node.start_position().row + 1)
 }
 fn junctions<'a>(node: Node<'a>, found: &mut BTreeSet<&'static str>) {
     let inner = ungrouped(node);

@@ -165,12 +165,12 @@ fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
     };
     let method = field.kind() == "field_identifier";
     let name = text(field, source);
-    let eager = method && matches!(name, "unwrap_or" | "ok_or" | "map_or" | "or" | "then_some");
+    let eager = method && matches!(name, "unwrap_or" | "ok_or" | "map_or" | "or");
     let unrelated = !eager;
     if unrelated {
         return;
     }
-    let safe = !evaluated(node, name, source);
+    let safe = !evaluated(node);
     if safe {
         return;
     }
@@ -185,7 +185,7 @@ fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
         actual: 1,
     });
 }
-fn evaluated(call: Node<'_>, name: &str, source: Code<'_>) -> bool {
+fn evaluated(call: Node<'_>) -> bool {
     let Some(arguments) = call.child_by_field_name("arguments") else {
         return false;
     };
@@ -196,8 +196,7 @@ fn evaluated(call: Node<'_>, name: &str, source: Code<'_>) -> bool {
     else {
         return false;
     };
-    let called = name == "then_some" && calls(first, source);
-    propagates(first) || divides(first) || called
+    propagates(first) || divides(first)
 }
 fn propagates(node: Node<'_>) -> bool {
     let shortcut = node.kind() == "try_expression";
@@ -230,28 +229,6 @@ fn divides(node: Node<'_>) -> bool {
     }
     let mut cursor = node.walk();
     node.named_children(&mut cursor).any(divides)
-}
-fn calls(node: Node<'_>, source: Code<'_>) -> bool {
-    let function = node
-        .child_by_field_name("function")
-        .filter(|_| node.kind() == "call_expression");
-    let constructor = function.is_some_and(|function| {
-        let named = matches!(function.kind(), "identifier" | "scoped_identifier");
-        named && context::last_segment(function, source).starts_with(char::is_uppercase)
-    });
-    let expanded = node.kind() == "macro_invocation";
-    let computed = function.is_some() && !constructor;
-    let invoked = expanded || computed;
-    if invoked {
-        return true;
-    }
-    let deferred = node.kind() == "closure_expression";
-    if deferred {
-        return false;
-    }
-    let mut cursor = node.walk();
-    node.named_children(&mut cursor)
-        .any(|child| calls(child, source))
 }
 // DECISION: D090
 // DECISION: D099

@@ -155,9 +155,8 @@ impl<'a> Python<'a> {
             });
         }
         let namespace = self.files.iter().any(|file| file.starts_with(&path));
-        let files = BTreeSet::new();
         namespace.then_some(Module {
-            files,
+            files: BTreeSet::new(),
             package: Some(path),
         })
     }

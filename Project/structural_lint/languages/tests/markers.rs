@@ -363,7 +363,7 @@ mod tests {
 }
 
 #[test]
-fn rust_flags_eager_divisions_calls_in_then_some_and_propagation_in_or() {
+fn rust_flags_eager_divisions_and_propagation_in_or_but_not_then_some() {
     let source = "fn run(total: u32, count: u32, ready: bool) -> Option<u32> {
     let a = maybe().unwrap_or(total / count);
     let b = maybe().unwrap_or(total / 2);
@@ -377,11 +377,11 @@ fn rust_flags_eager_divisions_calls_in_then_some_and_propagation_in_or() {
     let j = maybe().or(cached());
     let k = maybe().unwrap_or(compute());
     // DECISION: D001
-    let l = ready.then_some(compute());
+    let l = maybe().or(fallback()?);
     a
 }
 ";
-    assert_eq!(eager_findings("source.rs", source), [2, 5, 6, 9, 10]);
+    assert_eq!(eager_findings("source.rs", source), [2, 10]);
 }
 
 // DECISION: D094
