@@ -1,6 +1,6 @@
 purpose: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
 type: flat
 files:
-  mod.rs: Decide whether a Rust node sits inside test-only code for rule exemptions or debug-only code for debug assertions, walking the attributes above an item, read derive and serde attribute lists, decide whether an item with attributes carries a reference above them, and name the last segment of a path or the base name of a type
+  mod.rs: Decide whether a Rust node sits inside test-only code for rule exemptions or debug-only code for debug assertions, walking the attributes above an item, read derive and serde attribute lists, decide whether an item with attributes carries a reference above them, decide whether an item is a member of a trait impl, and name the last segment of a path or the base name of a type
   async_code.rs: Decide whether a Rust node is a scope boundary for async code and whether its nearest boundary is an async fn or async block
 directories: {}

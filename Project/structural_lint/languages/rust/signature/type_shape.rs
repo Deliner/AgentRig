@@ -1,6 +1,6 @@
 use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::{
-    in_test_context, justified_item, type_name,
+    in_test_context, justified_item, trait_impl_member, type_name,
 };
 use crate::structural_lint::rules::kind::Kind;
 use crate::structural_lint::rules::signature::Signature;
@@ -44,13 +44,15 @@ pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
 // DECISION: D156
 // DECISION: D162
 // DECISION: D163
+// DECISION: D164
 pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(argument) = option_argument(generic, source) else {
         return;
     };
     let flag = argument.kind() == "primitive_type" && text(argument, source) == "bool";
+    let reported_elsewhere = clippy_checks(generic) || trait_sets_signature(generic);
     let nested = option_argument(argument, source).is_some()
-        && !clippy_checks(generic)
+        && !reported_elsewhere
         && option_argument_of_parent(generic, source).is_none();
     let reported = flag || nested;
     let allowed = !reported || in_test_context(generic, source) || justified(generic, source);
@@ -85,15 +87,33 @@ fn clippy_checks(generic: Node<'_>) -> bool {
     false
 }
 fn checked_member(item: Node<'_>) -> bool {
-    let container = item
+    let extern_member = item
         .parent()
-        .filter(|list| list.kind() == "declaration_list")
-        .and_then(|list| list.parent());
-    !container.is_some_and(|owner| {
-        let trait_impl =
-            owner.kind() == "impl_item" && owner.child_by_field_name("trait").is_some();
-        trait_impl || owner.kind() == "foreign_mod_item"
-    })
+        .and_then(|list| list.parent())
+        .is_some_and(|owner| owner.kind() == "foreign_mod_item");
+    !(trait_impl_member(item) || extern_member)
+}
+// DECISION: D164
+fn trait_sets_signature(generic: Node<'_>) -> bool {
+    let mut node = generic;
+    while let Some(parent) = node.parent() {
+        let Some(fields) = signature_fields(parent.kind()) else {
+            node = parent;
+            continue;
+        };
+        let declared = fields
+            .iter()
+            .any(|field| parent.child_by_field_name(field) == Some(node));
+        return declared && trait_impl_member(parent);
+    }
+    false
+}
+fn signature_fields(kind: &str) -> Option<&'static [&'static str]> {
+    match kind {
+        "function_item" => Some(&["parameters", "return_type"]),
+        "const_item" => Some(&["type"]),
+        _ => None,
+    }
 }
 fn push(node: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
     output.push(Measurement {

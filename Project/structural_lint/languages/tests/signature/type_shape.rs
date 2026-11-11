@@ -130,13 +130,51 @@ pub type Justified = Option<Option<u32>>;
 "#;
 
 // DECISION: D163
+// DECISION: D164
 #[test]
-fn rust_flags_a_nested_option_once_only_where_clippy_does_not_check_it() {
+fn rust_flags_a_nested_option_once_where_neither_clippy_nor_the_trait_reports_it() {
     let nested = "Option<Option<u32>>".to_string();
     let unchecked = [
-        9, 10, 11, 12, 26, 27, 28, 29, 34, 35, 42, 43, 44, 45, 49, 54, 58, 59, 62, 66, 67,
+        9, 10, 11, 12, 26, 27, 34, 42, 43, 44, 45, 49, 54, 58, 59, 62, 66, 67,
     ];
     let mut expected: Vec<_> = unchecked.map(|line| (line, nested.clone())).into();
     expected.push((74, "Option<Option<Option<u32>>>".to_string()));
     assert_eq!(measured(NESTED_OPTION_PLACES, OPTION), expected);
+}
+
+// DECISION: D164
+#[test]
+fn rust_leaves_a_nested_option_in_a_trait_impl_member_signature_to_the_trait() {
+    let source = "pub trait Visit {
+    const PICK: fn(Option<Option<u32>>);
+    fn visit(&self, each: fn(Option<Option<u32>>));
+    fn items(&self) -> Box<dyn Iterator<Item = Option<Option<u32>>>>;
+    fn bounded<T: From<Option<Option<u32>>>>(value: T) -> T;
+}
+impl Visit for Pair {
+    const PICK: fn(Option<Option<u32>>) = drop;
+    fn visit(&self, each: fn(Option<Option<u32>>)) {
+        let seen: Option<Option<u32>> = None;
+        let pick = |item: Option<Option<u32>>| item;
+        let _size = std::mem::size_of::<Option<Option<u32>>>();
+        each(pick(seen))
+    }
+    fn items(&self) -> Box<dyn Iterator<Item = Option<Option<u32>>>> {
+        Box::new(std::iter::empty())
+    }
+    fn bounded<T: From<Option<Option<u32>>>>(value: T) -> T {
+        value
+    }
+}
+impl Pair {
+    pub fn visit(&self, each: fn(Option<Option<u32>>)) {
+        each(None)
+    }
+}
+";
+    let flagged = [2, 3, 4, 5, 10, 11, 12, 18, 23];
+    let expected: Vec<_> = flagged
+        .map(|line| (line, "Option<Option<u32>>".to_string()))
+        .into();
+    assert_eq!(measured(source, OPTION), expected);
 }

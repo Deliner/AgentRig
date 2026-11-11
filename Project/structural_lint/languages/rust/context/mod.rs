@@ -85,6 +85,13 @@ pub(super) fn justified_item(item: Node<'_>, source: Code<'_>) -> bool {
     }
     justified_line(anchor.start_position().row, source.as_str())
 }
+pub(super) fn trait_impl_member(item: Node<'_>) -> bool {
+    item.parent()
+        .and_then(|list| list.parent())
+        .is_some_and(|owner| {
+            owner.kind() == "impl_item" && owner.child_by_field_name("trait").is_some()
+        })
+}
 pub(super) fn listed(
     attribute_item: Node<'_>,
     source: Code<'_>,
