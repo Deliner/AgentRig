@@ -28,7 +28,7 @@
   - {include: ['**'], targets: []}
   - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/command_line/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
     targets: ['::']
-  - include: ['Project/structural_lint/**']
+  - include: ['Project/structural_lint/**', 'Project/shared/testing/**']
     targets: ['structural_lint::', 'command_line::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/command_line/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']
     targets: ['command_line::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']

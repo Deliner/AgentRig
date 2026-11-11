@@ -285,7 +285,10 @@ pub fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
 
 pub fn rerun(output: &str) -> Run {
     let (_, guidance) = output.split_once("RERUN: ").unwrap();
-    let command = guidance.lines().next().unwrap();
+    replay(guidance.lines().next().unwrap())
+}
+
+pub fn replay(command: &str) -> Run {
     let argv = shell_words::split(command).unwrap();
     let (program, args) = argv.split_first().unwrap();
     run(

@@ -1,4 +1,4 @@
-use crate::shared::testing::{launch, run, worker};
+use crate::shared::testing::{launch, run, snapshot, worker};
 use crate::structural_lint::rules::{Kind, structure::Structure};
 use crate::structural_lint::{Diagnostic, Location, Mode, analyze, catalog};
 use serde_json::Value;
@@ -27,7 +27,8 @@ mod wiring;
 
 const SKILL: &str = ".agents/skills/refactor-large-directory/SKILL.md";
 const REPAIR: &str = ".agents/skills/repair/SKILL.md";
-const FRONTMATTER: &str = "---\nname: fixture\ndescription: Repair the reported finding.\n---\n";
+pub const FRONTMATTER: &str =
+    "---\nname: fixture\ndescription: Repair the reported finding.\n---\n";
 pub const INCOMPLETE: &str = "incomplete";
 
 #[derive(Clone, Copy)]
@@ -249,20 +250,7 @@ impl Consumer {
     }
 
     pub fn snapshot(&self) -> BTreeMap<PathBuf, Vec<u8>> {
-        let mut files = BTreeMap::new();
-        let mut pending = vec![self.root.clone()];
-        while let Some(directory) = pending.pop() {
-            for entry in fs::read_dir(directory).unwrap() {
-                let path = entry.unwrap().path();
-                let nested = path.is_dir();
-                if nested {
-                    pending.push(path);
-                } else {
-                    files.insert(path.clone(), fs::read(path).unwrap());
-                }
-            }
-        }
-        files
+        snapshot(&self.root)
     }
 
     pub fn back_edge(&self) {

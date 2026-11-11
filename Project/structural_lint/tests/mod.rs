@@ -3,6 +3,7 @@ use super::{config::Config, evaluation::evaluate};
 use std::fs;
 
 mod architecture;
+mod diagnostics;
 
 fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, Option<usize>)> {
     let root = tempfile::tempdir().unwrap();
