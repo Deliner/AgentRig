@@ -1,4 +1,4 @@
-use crate::shared::testing::{launch, run, snapshot, worker};
+use crate::shared::testing::{Snapshot, launch, run, snapshot, worker};
 use crate::structural_lint::rules::{Kind, structure::Structure};
 use crate::structural_lint::{Diagnostic, Location, Mode, analyze, catalog};
 use serde_json::Value;
@@ -249,7 +249,7 @@ impl Consumer {
         }
     }
 
-    pub fn snapshot(&self) -> BTreeMap<PathBuf, Vec<u8>> {
+    pub fn snapshot(&self) -> Snapshot {
         snapshot(&self.root)
     }
 
