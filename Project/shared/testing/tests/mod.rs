@@ -1,5 +1,6 @@
 use serde_yaml_ng::Value;
 use std::{
+    collections::BTreeMap,
     env,
     ffi::{OsStr, OsString},
     fs,
@@ -8,6 +9,7 @@ use std::{
     process::{Command, Stdio},
     sync::OnceLock,
 };
+use tempfile::TempDir;
 
 const FOREIGN: [&str; 6] = [
     "WORKER_OWNER",
@@ -242,6 +244,43 @@ pub fn memory(root: &Path) {
     let sections = sections.map(|section| format!("## {section}\n\nNone."));
     let state = format!("# State\n\n{}", sections.join("\n\n"));
     fs::write(notes.join("State.md"), state).unwrap();
+}
+
+pub fn checked_repository() -> (TempDir, PathBuf) {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    project(
+        &root,
+        FAIL,
+        &GATE.replace("warning: true", "warning: false"),
+    );
+    memory(&root);
+    fs::write(root.join(".gitignore"), ".runtime/\n").unwrap();
+    fs::write(root.join("src/value.py"), "value = 1\n").unwrap();
+    git(&root, &["init", "-q", "-b", "trunk"]);
+    git(&root, &["config", "user.name", "Test"]);
+    git(&root, &["config", "user.email", "test@example.invalid"]);
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-qm", "baseline"]);
+    (temp, root)
+}
+
+fn files(directory: &Path, found: &mut BTreeMap<PathBuf, Vec<u8>>) {
+    for entry in fs::read_dir(directory).unwrap() {
+        let path = entry.unwrap().path();
+        let nested = path.is_dir();
+        if nested {
+            files(&path, found);
+        } else {
+            found.insert(path.clone(), fs::read(&path).unwrap());
+        }
+    }
+}
+
+pub fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
+    let mut found = BTreeMap::new();
+    files(root, &mut found);
+    found
 }
 
 pub fn rerun(output: &str) -> Run {

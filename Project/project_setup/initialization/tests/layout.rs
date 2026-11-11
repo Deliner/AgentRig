@@ -1,6 +1,5 @@
-use super::snapshot;
 use crate::project_setup::initialization::init;
-use crate::shared::testing::{git, hermetic, invoke, launch, run};
+use crate::shared::testing::{git, hermetic, invoke, launch, run, snapshot};
 use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{

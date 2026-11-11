@@ -1,6 +1,6 @@
-use super::{names, snapshot, text, yaml};
+use super::{names, text, yaml};
 use crate::project_setup::initialization::init;
-use crate::shared::testing::{Run, hermetic, launch, run, worker};
+use crate::shared::testing::{Run, hermetic, launch, run, snapshot, worker};
 use std::{
     collections::BTreeSet,
     fs,

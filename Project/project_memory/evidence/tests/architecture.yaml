@@ -1,4 +1,4 @@
 purpose: Verify that check evidence describes the actual observed project inputs
 files:
-  test_evidence.py: Content freshness, partial checks, repeated reports and interrupted attempts
+  mod.rs: Content freshness, partial checks, repeated reports and interrupted attempts
 directories: {}

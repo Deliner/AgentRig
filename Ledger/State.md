@@ -14,8 +14,8 @@ master и перенесены в Archive. B107 о сверке имён узл�
 ## Workspace
 
 Branch: `feature/rust-tests`, от master `41c227f`.
-Revision: `58f6e69abe286e7da6e988a89904a7cfde143dab`, перенос тестов истории решений по ревизии; этот снимок входит в
-VAC переноса тестов мастера init.
+Revision: `7c4b0f2195af962aa93c6c259aa7fbd1f2a3d275`, перенос тестов мастера init; этот снимок входит в VAC
+переноса тестов свидетельств проверок.
 
 Установленный рантайм `cd46b81`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`; Python-тесты кандидата с абсолютным
@@ -34,13 +34,15 @@ VAC переноса тестов мастера init.
   за 2 с; они уже вызывают публичные функции фич в процессе, например `evaluate`, `dispatch`, `init`.
 - D157 в `cd46b81` привязал оракулы cargo к тестам вложенных модулей, пин `05c2e39`. Ход переноса, соответствие
   тестов, проверки разрыва и замеры ведутся по разделу на VAC в Delivery карточки [P115](Plan/115.md).
-- Перенесены, последний в `58f6e69`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
+- Перенесены, последний в `7c4b0f2`: `test_git`, `test_delivery`, `test_runtime`, `test_gate`, `test_revision`, все
   тесты архитектуры lint, `test_jobs`, `test_commands`, `test_registry`, `test_layout`, `test_hooks`,
-  `test_lint_defaults`, `test_revision_history`. На оракулах cargo: I002, I005, I006, I010, I012, I017, I020, I021.
+  `test_lint_defaults`, `test_revision_history`, `test_wizard`. На оракулах cargo: I002, I005, I006, I010, I012, I017,
+  I020, I021.
 - Заготовки: в `shared::testing` проект, память, Git, запуск рантайма и RERUN; `Consumer` у входа `structural_lint`
   линтует потребителя в процессе через закрытый `analyze`. Из других фич lint вызывают только процессом.
-- Этот VAC переносит `test_wizard.py` в `project_setup/initialization/tests/wizard.rs`: 6 тестов, мастер идёт
-  процессом, потому что читает ответы со стандартного ввода.
+- Этот VAC переносит `test_evidence.py` в `project_memory/evidence/tests/mod.rs`: 5 тестов, свидетельства читаются
+  через `evidence::resume` в процессе, I018 переходит на оракул cargo. Проверяемый репозиторий и снимок файлов
+  переходят в `shared::testing`.
 - Главная цена процессных тестов на macOS: первый запуск каждого нового исполняемого файла, около 0,37 с, по одному
   на всю систему. Её снимает только настройка машины, Developer Tools для терминала; это решение пользователя.
 
@@ -50,9 +52,10 @@ VAC переноса тестов мастера init.
   Python, а параллельно самый долгий растягивается с 10 до 25 с. Реальное время там в 5–10 раз больше процессорного:
   macOS проверяет первый запуск каждого нового хука и лаунчера, которые создаёт `init`, и параллельные тесты ждут одну
   системную службу. Это та же причина, что снимается только настройкой Developer Tools.
-- Гейт коммита `58f6e69` прошёл: все 337 Rust-тестов за 31,6 с, их выбрал `.agentrig/**`; pytest 135 за 9,4 с.
-- В рабочем дереве этого VAC: 6 тестов `project_setup::initialization::tests::wizard` трижды прошли за 2,0–2,4 с;
-  lint кандидата, memory-check и config-check чистые. Удалённый файл на снимке `e5699fc`: 9 случаев за 2,7–3,3 с.
+- Гейт коммита `7c4b0f2` прошёл: все 343 Rust-теста за 36,1 с, их выбрал `.agentrig/**`; pytest 170 за 14,8 с.
+- В рабочем дереве этого VAC: 5 тестов `project_memory::evidence::tests` трижды прошли за 0,85 с, тесты
+  `change_delivery::gate` и `project_setup::initialization::tests` проходят; поломка I018 роняет оракул; lint
+  кандидата, memory-check и config-check чистые. Удалённый файл на снимке `e5699fc`: 5 случаев за 2,6 с.
 
 ## Blockers
 
@@ -60,7 +63,7 @@ VAC переноса тестов мастера init.
 
 ## Next action
 
-Перенести остальные Python-тесты по выигранным секундам: `test_evidence`, `test_lint`, `test_config_check`,
-`test_memory`, затем `structural_lint/tests` и прочие. Потом замеры AC5 полного прогона и гейта против master
-`41c227f`. Каждый VAC дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
+Перенести остальные Python-тесты по выигранным секундам: `test_lint`, `test_config_check`, `test_memory`, затем
+`structural_lint/tests` и прочие. Потом замеры AC5 полного прогона и гейта против master `41c227f`. Каждый VAC
+дописывает Delivery в P115. Свободные ID: D158+, I022+, P116+, B109+ (B066 и D111
 зарезервированы).

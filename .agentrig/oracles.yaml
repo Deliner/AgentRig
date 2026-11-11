@@ -63,9 +63,9 @@ I017:
   runner: cargo
   target: project_setup::tests::defaults::strict_defaults_block_delivery
 I018:
-  check: test
-  runner: pytest
-  target: Project/project_memory/evidence/tests/test_evidence.py::test_evidence_tracks_content_and_partial_checks
+  check: rust-test
+  runner: cargo
+  target: project_memory::evidence::tests::evidence_tracks_content_and_partial_checks
 I019:
   check: test
   runner: pytest

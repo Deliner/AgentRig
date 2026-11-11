@@ -855,7 +855,6 @@ rules:
       - pytest
       - shlex
       - shutil
-      - signal
       - statistics
       - subprocess
       - tempfile

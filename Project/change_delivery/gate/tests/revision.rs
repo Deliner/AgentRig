@@ -1,30 +1,7 @@
 use super::evidence;
-use crate::shared::testing::{FAIL, GATE, git, invoke, memory, project, rerun};
+use crate::shared::testing::{checked_repository, git, invoke, rerun};
 use serde_json::Value;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-use tempfile::TempDir;
-
-fn repository() -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    project(
-        &root,
-        FAIL,
-        &GATE.replace("warning: true", "warning: false"),
-    );
-    memory(&root);
-    fs::write(root.join(".gitignore"), ".runtime/\n").unwrap();
-    fs::write(root.join("src/value.py"), "value = 1\n").unwrap();
-    git(&root, &["init", "-q", "-b", "trunk"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
-    git(&root, &["add", "."]);
-    git(&root, &["commit", "-qm", "baseline"]);
-    (temp, root)
-}
+use std::{fs, path::Path};
 
 fn candidate(root: &Path) -> String {
     git(root, &["add", "-u"]);
@@ -46,7 +23,7 @@ fn checks(root: &Path) -> Value {
 
 #[test]
 fn revision_gate_uses_exact_files_config_and_repeatable_diagnostics() {
-    let (_temp, root) = repository();
+    let (_temp, root) = checked_repository();
     let base = git(&root, &["rev-parse", "HEAD"]);
     let source = root.join("src/value.py");
     fs::write(&source, "line\n".repeat(61)).unwrap();
@@ -85,7 +62,7 @@ fn revision_gate_uses_exact_files_config_and_repeatable_diagnostics() {
 
 #[test]
 fn revision_gate_evidence_distinguishes_failures_success_and_mutated_exports() {
-    let (_temp, root) = repository();
+    let (_temp, root) = checked_repository();
     let base = git(&root, &["rev-parse", "HEAD"]);
     let failed = invoke(&root, &["check", "--revision", &base]);
     assert_eq!(failed.code, Some(23), "{}", failed.output());
@@ -110,7 +87,7 @@ fn revision_gate_evidence_distinguishes_failures_success_and_mutated_exports() {
 
 #[test]
 fn revision_selection_rejects_invalid_or_conflicting_inputs() {
-    let (_temp, root) = repository();
+    let (_temp, root) = checked_repository();
     let selections: [&[&str]; 4] = [
         &["check", "--revision"],
         &["check", "--revision", "missing"],

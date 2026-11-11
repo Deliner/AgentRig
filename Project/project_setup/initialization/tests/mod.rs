@@ -7,7 +7,7 @@ use serde_yaml_ng::Value;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
-    path::{Path, PathBuf},
+    path::Path,
 };
 
 // DECISION: D053
@@ -27,24 +27,6 @@ type Capabilities = BTreeMap<&'static str, BTreeSet<String>>;
 
 fn yaml(path: &Path) -> Value {
     serde_yaml_ng::from_str(&fs::read_to_string(path).unwrap()).unwrap()
-}
-
-fn files(directory: &Path, found: &mut BTreeMap<PathBuf, Vec<u8>>) {
-    for entry in fs::read_dir(directory).unwrap() {
-        let path = entry.unwrap().path();
-        let nested = path.is_dir();
-        if nested {
-            files(&path, found);
-        } else {
-            found.insert(path.clone(), fs::read(&path).unwrap());
-        }
-    }
-}
-
-fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
-    let mut found = BTreeMap::new();
-    files(root, &mut found);
-    found
 }
 
 fn text(value: &Value) -> String {

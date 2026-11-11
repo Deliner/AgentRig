@@ -100,7 +100,6 @@
     targets:
     - Project/project_setup/initialization/tests
     - Project/project_config/tests
-    - Project/project_memory/evidence/tests
     - Project/project_memory/tests
     - Project/project_setup/tests
     - Project/agent_hooks/tests
@@ -110,7 +109,6 @@
     - Project/project_memory/**
     targets:
     - Project/project_memory/tests
-    - Project/project_memory/evidence/tests
     - Project/project_setup/tests/test_doctor.py
   - include:
     - Project/command_runner/**
@@ -123,7 +121,6 @@
     - Project/change_delivery/gate/**
     - Project/project_memory/evidence/**
     targets:
-    - Project/project_memory/evidence/tests
     - Project/project_memory/tests/test_resume.py
     - Project/project_memory/tests/test_state.py
   - include:
