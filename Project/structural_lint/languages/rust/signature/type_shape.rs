@@ -10,6 +10,19 @@ const SCALARS: &[&str] = &[
     "i8", "i16", "i32", "i64", "i128", "isize", "u8", "u16", "u32", "u64", "u128", "usize", "f32",
     "f64", "char",
 ];
+const CLIPPY_LOOKS_THROUGH: &[&str] = &[
+    "generic_type",
+    "type_arguments",
+    "reference_type",
+    "pointer_type",
+    "array_type",
+    "tuple_type",
+    "scoped_type_identifier",
+    "bracketed_type",
+    "qualified_type",
+    "parameter",
+    "parameters",
+];
 
 // DECISION: D156
 pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
@@ -30,21 +43,57 @@ pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
 }
 // DECISION: D156
 // DECISION: D162
+// DECISION: D163
 pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let optional = type_name(generic, source) == Some("Option");
-    let Some(argument) = generic
-        .child_by_field_name("type_arguments")
-        .filter(|_| optional)
-        .and_then(single_argument)
-    else {
+    let Some(argument) = option_argument(generic, source) else {
         return;
     };
     let flag = argument.kind() == "primitive_type" && text(argument, source) == "bool";
-    let allowed = !flag || in_test_context(generic, source) || justified(generic, source);
+    let nested = option_argument(argument, source).is_some()
+        && !clippy_checks(generic)
+        && option_argument_of_parent(generic, source).is_none();
+    let reported = flag || nested;
+    let allowed = !reported || in_test_context(generic, source) || justified(generic, source);
     if allowed {
         return;
     }
     push(generic, source, Signature::AmbiguousOption, output);
+}
+fn option_argument<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
+    let optional = type_name(node, source) == Some("Option");
+    node.child_by_field_name("type_arguments")
+        .filter(|_| optional)
+        .and_then(single_argument)
+}
+fn option_argument_of_parent<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
+    let outer = node.parent()?.parent()?;
+    option_argument(outer, source).filter(|argument| *argument == node)
+}
+// DECISION: D163
+fn clippy_checks(generic: Node<'_>) -> bool {
+    let mut node = generic;
+    while let Some(parent) = node.parent() {
+        match parent.kind() {
+            kind if CLIPPY_LOOKS_THROUGH.contains(&kind) => node = parent,
+            "field_declaration" | "ordered_field_declaration_list" => return true,
+            "function_item" | "function_signature_item" | "const_item" | "static_item" => {
+                return checked_member(parent);
+            }
+            _ => return false,
+        }
+    }
+    false
+}
+fn checked_member(item: Node<'_>) -> bool {
+    let container = item
+        .parent()
+        .filter(|list| list.kind() == "declaration_list")
+        .and_then(|list| list.parent());
+    !container.is_some_and(|owner| {
+        let trait_impl =
+            owner.kind() == "impl_item" && owner.child_by_field_name("trait").is_some();
+        trait_impl || owner.kind() == "foreign_mod_item"
+    })
 }
 fn push(node: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
     output.push(Measurement {
