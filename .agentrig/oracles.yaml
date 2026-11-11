@@ -1,15 +1,15 @@
 I001:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_memory.py::test_decision_source_markers
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::validation::decision_source_markers
 I002:
   check: rust-test
   runner: cargo
   target: project_memory::tests::oracles::invariant_oracle_must_name_a_discovered_test_carrying_its_marker
 I003:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_memory.py::test_committed_decisions_checked_against_staged_memory
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::validation::committed_decisions_checked_against_staged_memory
 I004:
   check: rust-test
   runner: cargo
@@ -27,9 +27,9 @@ I007:
   runner: pytest
   target: Project/agent_hooks/tests/test_reminders.py::test_portable_reminder_schedule_retry_and_compaction
 I008:
-  check: test
-  runner: pytest
-  target: Project/project_memory/tests/test_memory.py::test_repository_layout_and_detail_contract
+  check: rust-test
+  runner: cargo
+  target: project_memory::tests::validation::repository_layout_and_detail_contract
 I009:
   check: test
   runner: pytest

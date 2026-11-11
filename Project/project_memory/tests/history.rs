@@ -1,44 +1,8 @@
-use crate::shared::testing::{FAIL, git, invoke, memory, project};
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
-use tempfile::TempDir;
+use super::consumer::{append, committed};
+use crate::shared::testing::{git, invoke};
+use std::{fs, path::Path};
 
-const MEMORY_CHECK: &str = "- id: memory\n  kind: memory\n  skill: guides/repair/SKILL.md\n";
-const DECISION: &str = "| [D001](Decisions/001.md) | Choice | [code](../src/lib.rs) |\n";
 const EMPTY_INDEX: &str = "# Decisions\n\n| ID | Decision | Applies in |\n";
-const HEADINGS: [&str; 5] = ["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
-
-fn append(path: &Path, text: &str) {
-    let current = fs::read_to_string(path).unwrap();
-    fs::write(path, format!("{current}{text}")).unwrap();
-}
-
-fn committed() -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    project(&root, FAIL, MEMORY_CHECK);
-    memory(&root);
-    let notes = root.join("notes");
-    append(&notes.join("Decisions.md"), DECISION);
-    let sections = HEADINGS.map(|heading| format!("## {heading}\n\nText."));
-    let detail = format!("# D001\n\n{}", sections.join("\n\n"));
-    fs::write(notes.join("Decisions/001.md"), detail).unwrap();
-    fs::write(
-        root.join("src/lib.rs"),
-        "// DECISION: D001\nfn example() {}",
-    )
-    .unwrap();
-    git(&root, &["init", "-q"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
-    git(&root, &["add", "."]);
-    git(&root, &["commit", "-qm", "baseline"]);
-    let checked = invoke(&root, &["memory-check"]);
-    assert_eq!(checked.code, Some(0), "{}", checked.output());
-    (temp, root)
-}
 
 fn candidate(root: &Path) -> String {
     git(root, &["add", "-u"]);

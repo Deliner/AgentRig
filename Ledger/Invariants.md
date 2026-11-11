@@ -4,14 +4,14 @@ Every row links observable behavior to its exact pytest or cargo oracle.
 
 | ID | Invariant | Enforced by |
 | --- | --- | --- |
-| [I001](Invariants/001.md) | Every linked Rust, Python or shell decision application exists and carries its decision marker. | [test_decision_source_markers](../Project/project_memory/tests/test_memory.py) |
+| [I001](Invariants/001.md) | Every linked Rust, Python or shell decision application exists and carries its decision marker. | [decision_source_markers](../Project/project_memory/tests/validation.rs) |
 | [I002](Invariants/002.md) | Every invariant links an existing test carrying its invariant marker. | [invariant_oracle_must_name_a_discovered_test_carrying_its_marker](../Project/project_memory/tests/oracles.rs) |
-| [I003](Invariants/003.md) | Committed decision identities, statements and details are immutable; current application links point to existing marked owners. | [test_committed_decisions_checked_against_staged_memory](../Project/project_memory/tests/test_memory.py) |
+| [I003](Invariants/003.md) | Committed decision identities, statements and details are immutable; current application links point to existing marked owners. | [committed_decisions_checked_against_staged_memory](../Project/project_memory/tests/validation.rs) |
 | [I004](Invariants/004.md) | File and directory soft limits warn while hard limits fail. | [native_lint_thresholds_and_skills](../Project/structural_lint/tests/diagnostics.rs) |
 | [I005](Invariants/005.md) | Agent shell tools accept only one top-level invocation of a catalogued Just recipe. | [shell_guard_rejects_bypass](../Project/agent_hooks/tests/shell.rs) |
 | [I006](Invariants/006.md) | Failed staged checks reject commits; repeated edits and corrections remain available, and unrelated unstaged work is excluded. | [staged_commit_preserves_unstaged_work](../Project/change_delivery/git/tests/guards.rs) |
 | [I007](Invariants/007.md) | Complexity reminders use the configured attention and full-refresh intervals. | [test_portable_reminder_schedule_retry_and_compaction](../Project/agent_hooks/tests/test_reminders.py) |
-| [I008](Invariants/008.md) | Project and Ledger are sibling roots, and every indexed Plan, Decision, and Invariant entry has its matching detail file. | [test_repository_layout_and_detail_contract](../Project/project_memory/tests/test_memory.py) |
+| [I008](Invariants/008.md) | Project and Ledger are sibling roots, and every indexed Plan, Decision, and Invariant entry has its matching detail file. | [repository_layout_and_detail_contract](../Project/project_memory/tests/validation.rs) |
 | [I009](Invariants/009.md) | The Plan accepts idle and paused delivery, allows at most one active feature, and rejects malformed contracts or invalid prerequisites. | [test_plan_delivery_contract](../Project/project_memory/tests/test_plan.py) |
 | [I010](Invariants/010.md) | Direct master commits fail; integration uses current master, preserves feature commits, and retains the merged feature reference. | [divergent_rebase_preserves_merge_history](../Project/change_delivery/git/tests/integration.rs) |
 | [I011](Invariants/011.md) | State requires complete recovery sections while allowing stale recorded Git facts to be reconciled on resume. | [test_state_recovery_contract](../Project/project_memory/tests/test_state.py) |
