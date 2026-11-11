@@ -37,7 +37,7 @@
   - include: ['Project/**']
     targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
   - include: ['Project/clippy.toml', 'Project/shared/skills/**']
-    targets: ['project_setup::tests::runtime::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
+    targets: ['project_setup::tests::runtime::', 'project_setup::tests::defaults::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
   - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**']
     targets: ['change_delivery::gate::']
   - include: ['Project/agent_hooks/**']
@@ -84,7 +84,6 @@
     - Project/structural_lint/tests
     - Project/structural_lint/inventory/tests
     - Project/structural_lint/languages/tests
-    - Project/project_setup/tests/test_lint_defaults.py
     - Project/project_memory/tests/test_memory.py
   - include:
     - Project/command_line/mod.rs
