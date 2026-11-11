@@ -13,7 +13,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/false-pass`, от master `d4f38e2`.
-Revision: `2428ac12cad0889e9e2c0f8c080527fa0c21367e`
+Revision: `6965b25da60f7a5d0e2b70c98dd7c3cf45b5d185`
 
 Установленный рантайм `ce211df`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -28,9 +28,10 @@ Revision: `2428ac12cad0889e9e2c0f8c080527fa0c21367e`
 - P123 влита в master слиянием `d4f38e2`, ветка `feature/visible-evaluation` сохранена; пин `ca9e079` записал
   `ce211df`. Формы 18–20 и 22 отмечены в файле списка IV: поставлено только расширение `eager-fallback` с `.or` и
   делением.
-- P124: VAC 1 `2428ac1` записал вердикты IV-23–IV-26, пробу Clippy и пределы охвата в Delivery и поставил P124 в
-  active. VAC 2 замораживает предикаты: четыре инертных вида в `rust/false_pass.rs`, тесты поведения в
-  `languages/tests/false_pass/`, предикаты в Delivery P124.
+- P124: VAC 1 `2428ac1` записал вердикты, VAC 2 `6965b25` заморозил предикаты четырьмя инертными видами. VAC 3
+  записывает замер в Delivery и убирает `untargeted-error` и `sleep-in-test`: IV-24 верна на 0 из 58 мест рига и
+  voxel, IV-26 на 7 из 32 в корпусе. IV-23 верна на 22 из 24, IV-25 на 12 из 13, обе идут в поставку. Вердикты по
+  местам лежат в scratchpad `p124/verdicts.md`.
 - Замер нового вида по протоколу P120: вид сначала инертный, бинарник собирается из коммита заморозки с видом в
   обработчике Rust скриптом scratchpad `p120/enabledbin.sh`; фикстура проверяет подключение. IV-23, IV-24 и IV-26
   меряются с тестовым кодом, то есть с охватом `none` в `p120/measure.sh`.
@@ -42,8 +43,10 @@ Revision: `2428ac12cad0889e9e2c0f8c080527fa0c21367e`
 - P123: `feature-merge` завершился с кодом 0, чужая строка в B116 возвращена из stash без изменений.
 - Проба Clippy 1.98.1 для P124 с `--tests`: профиль ловит `should_panic_without_expect`, restriction ловит
   `assertions_on_result_states` и `cfg_not_test`; `thread::sleep` в тесте не ловит ни один уровень.
-- Содержимое VAC 2 P124 до коммита: `cargo test structural_lint::` — 275 прошли, из них 8 новых; `just candidate
-  lint` — код 0 без находок.
+- Коммит заморозки `6965b25` прошёл хук: build, lint, memory, rustfmt, clippy, rust-test 410, ruff, mypy, typos,
+  vulture. Фикстура дала восемь ожидаемых находок.
+- Содержимое VAC 3 до коммита: `cargo test structural_lint::` — 271 прошли; `just candidate lint` — код 0 без
+  находок.
 
 ## Blockers
 
@@ -51,7 +54,7 @@ Revision: `2428ac12cad0889e9e2c0f8c080527fa0c21367e`
 
 ## Next action
 
-Закоммитить VAC 2 P124 и записать его хеш как коммит заморозки. Затем замер по протоколу P120: бинарник из коммита
-заморозки с четырьмя видами, фикстура с находками в тестовом модуле, в функции теста и в `tests/` и отказом в коде
-продукта; охват `none` для IV-23, IV-24 и IV-26, `tests` для IV-25.
+Закоммитить VAC 3. Затем по образцу P121: пин рантайма с двумя видами до их включения (D051), включение
+`untargeted-panic` и `test-substitution` с навыками `expect-the-panic` и `inject-the-variant`, установка через `init`
+(AC4), правка находок рига (AC3), D169, архив P124 и B119, финальный пин и `feature-merge`.
 Свободные ID: D169+, I022+, P126+, B121+ (B066 и D111 зарезервированы).

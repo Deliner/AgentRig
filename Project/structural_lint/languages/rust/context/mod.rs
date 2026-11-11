@@ -117,10 +117,8 @@ pub(super) fn derives(item: Node<'_>, source: Code<'_>, wanted: &[&str]) -> bool
     })
 }
 pub(super) fn test_marker(node: Node<'_>, source: Code<'_>) -> bool {
-    test_attribute(node, source) || cfg_marker(node, source, "test")
-}
-pub(super) fn test_attribute(node: Node<'_>, source: Code<'_>) -> bool {
-    attribute_path(node).is_some_and(|path| last_segment(path, source) == "test")
+    let named_test = attribute_path(node).is_some_and(|path| last_segment(path, source) == "test");
+    named_test || cfg_marker(node, source, "test")
 }
 fn debug_marker(node: Node<'_>, source: Code<'_>) -> bool {
     cfg_marker(node, source, "debug_assertions")

@@ -1,8 +1,6 @@
-purpose: Verify Rust measurements of tests that pass on any panic or any error or by a guessed pause, and of items no test build compiles, from native analysis
+purpose: Verify Rust measurements of tests that pass on any panic and of items no test build compiles, from native analysis
 files:
-  mod.rs: Declare the test-code measurement test modules and filter one reference kind from native analysis
-  sleep_in_test.rs: Rust thread::sleep calls in a test function and its closures, with production code, helpers, nested functions, other sleeps and justified calls skipped, from native analysis
+  mod.rs: Declare the false-pass measurement test modules and filter one reference kind from native analysis
   test_substitution.rs: Rust items whose cfg excludes every test build, with cfg_attr, partial, other-flag, statement, field, justified and test-only attributes skipped, from native analysis
-  untargeted_error.rs: Rust assert! of a bare is_err in test functions, test modules and their helpers, with production, negated, combined, other and justified assertions skipped, from native analysis
   untargeted_panic.rs: Rust should_panic attributes without expected, with an expected argument, a = value or a reference skipped, from native analysis
 directories: {}

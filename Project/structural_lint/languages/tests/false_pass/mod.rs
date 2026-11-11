@@ -1,6 +1,4 @@
-mod sleep_in_test;
 mod test_substitution;
-mod untargeted_error;
 mod untargeted_panic;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::kind::Kind;

@@ -350,9 +350,18 @@ fn fragment_measurements(node: Node<'_>, source: Code<'_>) -> Vec<Measurement> {
     else {
         return Vec::new();
     };
-    let Some(fragment) = call_fragment(tree, source) else {
+    let span = tree.end_byte().saturating_sub(tree.start_byte());
+    let empty = span < 2;
+    if empty {
+        return Vec::new();
+    }
+    let Some(inner) = source
+        .as_str()
+        .get(tree.start_byte() + 1..tree.end_byte() - 1)
+    else {
         return Vec::new();
     };
+    let fragment = ["fn probe(){call(", inner, ")}"].concat();
     let Some(parsed) = reparse(std::path::Path::new("macro.rs"), &fragment) else {
         return Vec::new();
     };
@@ -363,17 +372,6 @@ fn fragment_measurements(node: Node<'_>, source: Code<'_>) -> Vec<Measurement> {
         measurement.line += tree.start_position().row;
     }
     scoped
-}
-fn call_fragment(tree: Node<'_>, source: Code<'_>) -> Option<String> {
-    let span = tree.end_byte().saturating_sub(tree.start_byte());
-    let empty = span < 2;
-    if empty {
-        return None;
-    }
-    let inner = source
-        .as_str()
-        .get(tree.start_byte() + 1..tree.end_byte() - 1)?;
-    Some(["fn probe(){call(", inner, ")}"].concat())
 }
 fn scan_fragment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {
