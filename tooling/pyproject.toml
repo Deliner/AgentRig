@@ -8,9 +8,7 @@ dependencies = []
 dev = [
   "mypy>=1.17,<2",
   "pytest>=8.4,<9",
-  "pyyaml>=6.0.3",
   "ruff>=0.12,<1",
-  "types-pyyaml>=6.0.12.20260906",
   "typos>=1.35,<2",
   "vulture>=2.14,<3",
 ]
@@ -28,7 +26,6 @@ known-first-party = ["Project"]
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**/*.py" = ["S101", "S603", "S607"]
 "**/testing/**/*.py" = ["S101", "S603", "S607"]
-"**/conftest.py" = ["S101", "S603", "S607"]
 
 # DECISION: D112
 [tool.typos.files]

@@ -1,4 +1,5 @@
 // DECISION: D021
+use super::write;
 use crate::project_setup::initialization::init;
 use crate::shared::testing::invoke;
 use serde_json::Value;
@@ -74,12 +75,6 @@ fn initialized(language: &str) -> (TempDir, PathBuf) {
     let args = ["--language", language].map(str::to_owned);
     assert_eq!(init(&root, &args).unwrap(), 0);
     (temp, root)
-}
-
-fn write(root: &Path, path: &str, text: &str) {
-    let path = root.join(path);
-    fs::create_dir_all(path.parent().unwrap()).unwrap();
-    fs::write(path, text).unwrap();
 }
 
 fn function(language: &Language, lines: usize) -> String {

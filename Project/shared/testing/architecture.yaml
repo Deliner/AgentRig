@@ -1,8 +1,7 @@
 purpose: Construct configured consumer projects and invoke their workflow commands for behavior tests
 type: custom
 dependents: 10
-files:
-  consumer.py: Seed project policy and invoke or observe commands
+files: {}
 directories:
   examples: Independent consumer projects and portable usage demonstrations
   tests: Rust support that runs the candidate runtime and Git as processes in temporary projects

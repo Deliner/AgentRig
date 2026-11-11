@@ -4,7 +4,6 @@ files:
   Cargo.lock: Locked Rust dependency versions
   clippy.toml: Clippy thresholds that init ships to Rust projects
   README.md: Runtime commands, build and lint rule user guide
-  conftest.py: Shared pytest candidate binary construction and test environment fixtures
   lib.rs: Library declarations of the first-level features and shared support
 directories:
   agent_hooks: Interpret agent hook events and deliver command guards, edit guidance and context reminders

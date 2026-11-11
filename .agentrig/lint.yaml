@@ -846,20 +846,15 @@ rules:
       python:
       - __future__
       - argparse
-      - dataclasses
       - datetime
       - json
-      - os
       - pathlib
       - platform
-      - pytest
       - shutil
       - statistics
       - subprocess
       - tempfile
       - time
-      - typing
-      - yaml
     rust_crates:
       agentrig: Project/lib.rs
     rust_roots:

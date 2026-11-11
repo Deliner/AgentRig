@@ -37,7 +37,7 @@
   - include: ['Project/**']
     targets: ['project_setup::tests::delivery::', 'project_setup::initialization::tests::', 'project_memory::tests::oracles::']
   - include: ['Project/clippy.toml', 'Project/shared/skills/**']
-    targets: ['project_setup::tests::runtime::', 'project_setup::tests::defaults::', 'project_setup::tests::doctor::', 'project_config::tests::settings::', 'project_memory::tests::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
+    targets: ['project_setup::tests::', 'project_config::tests::settings::', 'project_memory::tests::', 'agent_hooks::tests::shell::', 'agent_hooks::tests::memory::']
   - include: ['Project/command_line/mod.rs', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/shared/paths/**', 'Project/shared/arguments/**', 'Project/shared/diagnostics/**', 'Project/shared/artifacts/**', 'Project/shared/vcs/**', 'Project/shared/yaml/**', 'Project/shared/testing/**']
     targets: ['change_delivery::gate::']
   - include: ['Project/agent_hooks/**']
@@ -71,7 +71,6 @@
   # Commit and merge checks use affected groups plus smoke tests; `just check` runs everything.
   affected:
   - {include: ['**'], targets: []}
-  - {include: [Project/conftest.py], targets: ['.']}
   - include:
     - Project/command_line/mod.rs
     - Project/project_config/**
@@ -85,7 +84,6 @@
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_setup/tests
     - Project/shared/testing/examples/python/application/test_sample.py
     - tooling/distribution/tests/test_launcher.py
   - include:
@@ -93,7 +91,6 @@
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
-    - Project/project_setup/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/**
