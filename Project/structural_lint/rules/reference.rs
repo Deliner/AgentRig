@@ -285,6 +285,7 @@ const TESTSUBSTITUTION: Descriptor = Descriptor {
         violation: "an item compiled only outside tests never runs under test, and a cfg(test) twin makes the tests check other code than the product runs; pass what varies as a parameter or trait value that the caller and the test both supply, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D170
 const INTERPOLATEDSHELL: Descriptor = Descriptor {
     default_id: "interpolated-shell",
     exclude: TEST_CODE,

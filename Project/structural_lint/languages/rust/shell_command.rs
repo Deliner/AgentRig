@@ -17,6 +17,7 @@ const SHELLS: &[&str] = &[
 ];
 const ESCAPES: &[(&str, &str)] = &[("n", "\n"), ("t", "\t"), ("r", "\r"), ("0", "\0")];
 
+// DECISION: D170
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(shell) = shell_name(call, source) else {
         return;

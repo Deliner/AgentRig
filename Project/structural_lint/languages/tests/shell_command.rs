@@ -16,6 +16,7 @@ fn shell_findings(source: &str) -> Vec<(usize, String)> {
     found
 }
 
+// DECISION: D170
 #[test]
 fn rust_flags_a_shell_command_flag_followed_by_data_anywhere_in_the_chain() {
     let source = r#"fn run(script: &str, path: &str) {
