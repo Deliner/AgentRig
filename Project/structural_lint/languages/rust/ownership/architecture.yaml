@@ -8,6 +8,7 @@ files:
   guard_await.rs: Rust std lock guard bound by let and still alive at a later .await of the same block, lacking a reference on the line above
   paired_calls.rs: Rust opening call followed in the same block by its closing call on the same receiver with an early exit between them
   recursive_deletion.rs: Rust remove_dir_all call reached through a path, a bare name or a method, in source and in macro bodies
+  shared_state.rs: Rust state shared between threads without a guard, an atomic store of its own load, a condition-variable wait outside a loop and a process-global setting changed outside main
   unit_lock.rs: Rust Mutex or RwLock around the unit type, as a type or as a constructor call binding an unannotated let
   wrapper.rs: Rust wrapper struct that derefs to a concrete inner type or converts from a raw primitive
 directories: {}

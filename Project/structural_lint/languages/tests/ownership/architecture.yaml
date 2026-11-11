@@ -5,6 +5,7 @@ files:
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   paired_calls.rs: Rust configured opening calls whose closing call on the same receiver follows an early exit, with closure exits, other receivers, unconfigured pairs and justified calls skipped, from native analysis
   recursive_deletion.rs: Rust remove_dir_all call measurements by path, bare name, method and macro body from native analysis
+  shared_state.rs: Rust atomic stores of their own load, condition-variable waits outside a loop and process settings changed outside main, test code included, with other receivers, looped waits, other paths and justified sites skipped, from native analysis
   unit_lock.rs: Rust Mutex<()> and RwLock<()> type and constructor measurements, typed, justified and test-only sites skipped, from native analysis
   wrapper.rs: Rust visible fields of a struct whose constructor checks them, Deref to a concrete inner type and From of a raw value into a one-field struct, from native analysis
 directories: {}
