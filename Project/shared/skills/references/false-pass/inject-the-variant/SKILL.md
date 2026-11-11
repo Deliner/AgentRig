@@ -20,9 +20,11 @@ stays invisible to every test.
    build.
 3. Delete the `cfg(test)` twin once the test supplies its own value, and make
    the test exercise the same item the product calls.
-4. When the item genuinely cannot exist in a test build, such as code the test
-   harness provides itself, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the attribute.
+4. A `use`, `extern crate` or `type` without a `cfg(test)` twin runs no code
+   of its own: remove the `cfg` when the name is used in every build. When the
+   item genuinely cannot exist in a test build, such as code the test harness
+   provides itself, record the reasoning as an owned `DECISION:`/`INVARIANT:`
+   reference on the line directly above the attribute.
 5. Rerun the reported lint check and the affected behavior checks.
 
 A `DECISION:` or `INVARIANT:` reference on the line directly above the

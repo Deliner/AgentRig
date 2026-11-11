@@ -14,9 +14,9 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/false-pass`, от master `d4f38e2`.
-Revision: `80bafad8d5de44bd6af8c9e1ed5f20e132889a4e`
+Revision: `56efcd938a17e3db497f52aecf5fea612cbc956b`
 
-Установленный рантайм `4ac9f6f`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `52180ef`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -34,8 +34,9 @@ Revision: `80bafad8d5de44bd6af8c9e1ed5f20e132889a4e`
   voxel, IV-26 на 7 из 32 в корпусе. IV-23 верна на 22 из 24, IV-25 на 12 из 13, обе идут в поставку. Вердикты по
   местам лежат в scratchpad `p124/verdicts.md`. Пин `57b0e3b` поставил рантайм `4ac9f6f` с обоими видами. VAC
   `80bafad` включил `untargeted-panic` и `test-substitution` с навыками `expect-the-panic` и `inject-the-variant` в
-  подгруппе `references/false-pass`: в `references` иначе 16 каталогов при пределе 15. Последний VAC записывает D169,
-  ссылки на него у владельцев, приёмку и архив P124 и B119.
+  подгруппе `references/false-pass`: в `references` иначе 16 каталогов при пределе 15. VAC `52180ef` записал D169,
+  ссылки на него у владельцев, приёмку и архив P124 и B119; пин `56efcd9` поставил `52180ef`. Последний VAC дописывает
+  в `inject-the-variant` ремонт `use`, `extern crate` и `type` без двойника под `cfg(test)`.
 - Замер нового вида по протоколу P120: вид сначала инертный, бинарник собирается из коммита заморозки с видом в
   обработчике Rust скриптом scratchpad `p120/enabledbin.sh`; фикстура проверяет подключение. IV-23, IV-24 и IV-26
   меряются с тестовым кодом, то есть с охватом `none` в `p120/measure.sh`.
@@ -61,6 +62,7 @@ Revision: `80bafad8d5de44bd6af8c9e1ed5f20e132889a4e`
 
 ## Next action
 
-Закоммитить D169 и архив. Затем финальный пин принятой гейтом головы (D051), `feature-merge` с чужой строкой B116 в
-stash, статусы форм 23–26 в файле списка IV и P125 по B120 на новой ветке.
+Закоммитить правку навыка, снова запинить принятую гейтом голову (D051), затем `feature-merge` с чужой строкой B116 в
+stash, статусы форм 23–26 в файле списка IV и P125 по B120 на новой ветке. Пределы у краёв: в `references` 15
+каталогов из 15, зависимых у `measure` 7 из 7 и у `rules` 13 из 13.
 Свободные ID: D169+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
