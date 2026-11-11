@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/error-loss`, от master `52aa173`.
-Revision: `52aa173653c656cee4e2e8adf8d94ce28043f8a1`
+Revision: `f580a4b299ab8a7866b73fc1647dadd51a77582c`
 
 Установленный рантайм `1387d14`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -20,7 +20,10 @@ Revision: `52aa173653c656cee4e2e8adf8d94ce28043f8a1`
 
 ## Progress
 
-- P120: VAC 1 сохраняет B115–B120 и выбирает P120–P125.
+- P120: VAC 1 `f580a4b` сохранил B115–B120 и выбрал P120–P125. VAC 2 записывает протокол замера шума в Delivery
+  P120 до первого прогона; копии деревьев заморожены в scratchpad `p120/base` и `p120/corpus`.
+- Clippy по умолчанию сам ловит `lines()` с `filter_map(Result::ok)`, `flat_map` или `flatten` и `map(..).flatten()`;
+  расширение `silent-error` эти места пропускает, у формы один владелец.
 - Проба Clippy 2026-11-11: `or_fun_call` ловит вызов и макрос в `unwrap_or`, `ok_or`, `or`, `map_or`, но не
   `then_some(f())` и не деление; `should_panic_without_expect` срабатывает только с `--tests`, а Clippy рига тесты не
   проверяет.
@@ -37,5 +40,6 @@ Revision: `52aa173653c656cee4e2e8adf8d94ce28043f8a1`
 
 ## Next action
 
-P120: записать протокол замера, затем ввести правила IV-2, IV-3 и IV-4 и замерить их на копиях рига, voxel-rust и
-корпусе r8. Свободные ID: D165+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
+P120: перенести `silent_error.rs` и его тесты в подкаталоги `errors/` без смены поведения, так как каталоги
+`languages/rust` и `languages/tests` у порога числа элементов; затем ввести правила IV-2, IV-3 и IV-4 и замерить
+их на копиях рига, voxel-rust и корпусе r8 по протоколу P120. Свободные ID: D165+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
