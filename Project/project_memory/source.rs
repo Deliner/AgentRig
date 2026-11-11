@@ -61,17 +61,18 @@ impl Source {
         }
     }
 
-    pub fn marked_function(&self, invariant: Invariant<'_>) -> bool {
-        let Invariant { id, function: name } = invariant;
-        self.functions
-            .get(name)
-            .is_some_and(|functions| match functions.as_slice() {
-                [function] => {
-                    function.contains(&format!("# INVARIANT: {id}"))
-                        || function.contains(&format!("// INVARIANT: {id}"))
-                }
-                _ => false,
-            })
+    pub fn marked_function(&self, id: &str, named: impl Fn(&str) -> bool) -> bool {
+        let mut matching = self
+            .functions
+            .iter()
+            .filter(|(name, _)| named(name))
+            .flat_map(|(_, functions)| functions);
+        let marked = matching.next().is_some_and(|function| {
+            function.contains(&format!("# INVARIANT: {id}"))
+                || function.contains(&format!("// INVARIANT: {id}"))
+        });
+        let unique = matching.next().is_none();
+        marked && unique
     }
     pub fn references(&self) -> impl Iterator<Item = &str> {
         self.comments

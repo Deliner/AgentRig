@@ -1,0 +1,5 @@
+purpose: Run the candidate runtime, installed launchers and Git as processes with a hermetic environment for Rust behavior tests
+files:
+  mod.rs: Locate or build the candidate and the tooling Python, build a minimal configured project and its memory, invoke programs, Git and printed reruns, commit files, extend project configuration, build a committed project with a blocking gate and snapshot files
+  launchers.rs: Behavior tests of the development launchers tooling/worker/build and run, which this support uses to build the candidate
+directories: {}

@@ -70,7 +70,7 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
   `tools` check reports misplaced, unregistered or undescribed tools and stale references before merge, not on commits.
 - `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
   reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
-- `oracles.yaml`: per invariant, command check, runner (`pytest` or `cargo`) and exact test target.
+- `oracles.yaml`: per invariant, check, runner (`pytest` or `cargo`) and target, for cargo the test's module path.
 
 Unknown fields are errors naming their module; project-relative paths cannot escape the root. Lint settings follow the
 [worker guide](../README.md#lint).

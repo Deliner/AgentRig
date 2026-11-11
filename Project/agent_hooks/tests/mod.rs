@@ -1,20 +1,35 @@
+mod memory;
+mod reminders;
 mod requirements;
+mod shell;
 
 use super::dispatch;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
-fn project() -> (tempfile::TempDir, std::path::PathBuf) {
+fn initialized(args: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
-    crate::project_setup::initialization::init(&root, &[]).unwrap();
+    let args: Vec<String> = args.iter().copied().map(str::to_owned).collect();
+    crate::project_setup::initialization::init(&root, &args).unwrap();
     (temp, root)
 }
 
+fn project() -> (tempfile::TempDir, std::path::PathBuf) {
+    initialized(&[])
+}
+
+fn pre_tool(cwd: &Path, tool: &str, input: Value) -> Value {
+    json!({"hook_event_name": "PreToolUse", "tool_name": tool,
+        "tool_input": input, "cwd": cwd.to_str()})
+}
+
+fn respond(root: &Path, event: &Value) -> Value {
+    dispatch(root, event).unwrap().unwrap_or(Value::Null)
+}
+
 fn hook(root: &Path, tool: &str, input: Value) -> Value {
-    let event = json!({"hook_event_name": "PreToolUse", "tool_name": tool,
-        "tool_input": input, "cwd": root.to_str()});
-    dispatch(root, &event).unwrap().unwrap_or(Value::Null)
+    respond(root, &pre_tool(root, tool, input))
 }
 
 fn reason(output: &Value) -> &str {

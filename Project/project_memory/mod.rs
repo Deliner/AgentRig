@@ -11,6 +11,8 @@ mod history;
 mod oracles;
 mod resume;
 mod source;
+#[cfg(test)]
+mod tests;
 pub use resume::run as resume;
 
 use crate::project_config::Context;
@@ -269,9 +271,8 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
         let source = source::inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         let id = &row.id;
-        let function = &oracles::function_target(context, id)?;
         ensure!(
-            source.marked_function(Invariant { id, function }),
+            oracles::marked(context, id, &source)?,
             "{}: marked oracle function {} missing or ambiguous",
             row.id,
             oracle.name

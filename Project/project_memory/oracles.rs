@@ -1,4 +1,4 @@
-use super::source::Invariant;
+use super::source::{Invariant, Source};
 use crate::{
     command_runner,
     project_config::{Context, Oracle, Runner},
@@ -94,7 +94,7 @@ fn discover(
     Ok(())
 }
 
-pub fn function_target(context: &Context, id: &str) -> Result<String> {
+pub fn marked(context: &Context, id: &str, source: &Source) -> Result<bool> {
     let oracle = context
         .config
         .oracles
@@ -102,11 +102,15 @@ pub fn function_target(context: &Context, id: &str) -> Result<String> {
         .with_context(|| format!("{id}: configure a test oracle"))?;
     let target = oracle.target.split('[').next().unwrap_or("");
     Ok(match oracle.runner {
-        Runner::Cargo => target.to_owned(),
-        Runner::Pytest => target
-            .split_once("::")
-            .map(|(_, function)| function)
-            .unwrap_or("")
-            .to_owned(),
+        // DECISION: D157
+        Runner::Cargo => source.marked_function(id, |name| {
+            target
+                .strip_suffix(name)
+                .is_some_and(|module| module.is_empty() || module.ends_with("::"))
+        }),
+        Runner::Pytest => {
+            let function = target.split_once("::").map_or("", |(_, function)| function);
+            source.marked_function(id, |name| name == function)
+        }
     })
 }

@@ -9,6 +9,7 @@ use std::path::Path;
 
 mod async_code;
 mod control_flow;
+mod declarations;
 mod discarded_result;
 mod manifest;
 mod markers;
@@ -81,18 +82,22 @@ def run():
     );
 }
 
-// DECISION: D061
-fn nesting_depths(path: &str, source: &str) -> Vec<(String, usize)> {
+fn symbol_actuals(kind: Kind, path: &str, source: &str) -> Vec<(String, usize)> {
     let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
-    let mut depths: Vec<_> = analysis
+    let mut actuals: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::ControlFlow(ControlFlow::NestingDepth))
+        .filter(|item| item.kind == kind)
         .map(|item| (item.symbol, item.actual))
         .collect();
-    depths.sort();
-    depths
+    actuals.sort();
+    actuals
+}
+
+// DECISION: D061
+fn nesting_depths(path: &str, source: &str) -> Vec<(String, usize)> {
+    symbol_actuals(Kind::ControlFlow(ControlFlow::NestingDepth), path, source)
 }
 
 #[test]
@@ -320,16 +325,7 @@ class Config:
 
 // DECISION: D063
 fn branch_budgets(path: &str, source: &str) -> Vec<(String, usize)> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut budgets: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| item.kind == Kind::ControlFlow(ControlFlow::BranchBudget))
-        .map(|item| (item.symbol, item.actual))
-        .collect();
-    budgets.sort();
-    budgets
+    symbol_actuals(Kind::ControlFlow(ControlFlow::BranchBudget), path, source)
 }
 
 #[test]

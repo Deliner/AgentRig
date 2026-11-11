@@ -18,6 +18,10 @@ path = "command_line/main.rs"
 name = "agentrig-lint"
 path = "command_line/lint.rs"
 
+[[example]]
+name = "measure"
+path = "shared/testing/examples/measure.rs"
+
 [dependencies]
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }

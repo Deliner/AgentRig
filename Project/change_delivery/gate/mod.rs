@@ -2,6 +2,8 @@ use crate::project_memory::evidence::{Input, native_index};
 use crate::shared::console;
 mod check;
 mod selection;
+#[cfg(test)]
+mod tests;
 pub use selection::AffectedMap;
 use selection::Scope;
 // DECISION: D016

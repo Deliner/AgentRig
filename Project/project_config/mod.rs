@@ -1,4 +1,6 @@
 pub(crate) mod settings;
+#[cfg(test)]
+mod tests;
 use anyhow::Result;
 pub use settings::{
     Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git,

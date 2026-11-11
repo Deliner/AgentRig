@@ -1,4 +1,8 @@
-purpose: Verify Git feature delivery and transaction guards
+purpose: Verify Git feature delivery and transaction guards through the runtime process in installed projects
 files:
-  test_git.py: Native feature starts, rebase, commit guards and owned cleanup
+  mod.rs: Install a project on its base branch and start, merge and read its features
+  guards.rs: Commit and reference transaction guard verdicts
+  integration.rs: Feature integration, rebase, conflicts and refusals that preserve branches
+  cleanup.rs: Post-merge cleanup of owned runs and the scratch area
+  start.rs: Feature start from a clean base and its refusals
 directories: {}

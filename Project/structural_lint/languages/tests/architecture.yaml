@@ -1,6 +1,7 @@
-purpose: Verify language-specific measurements from native analysis and, in consumer, their enforcement through real lint consumers
+purpose: Verify language-specific measurements from native analysis
 files:
   mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
+  declarations.rs: Rust and Python parameter count and function line measurements of declarations from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   discarded_result.rs: Rust discarded Result, Option combinator, process status and spawn handle statement measurements from native analysis
   silent_error.rs: Python except-pass, Rust collapsed read_dir chain and verdict-answering Err arm measurements from native analysis
@@ -10,7 +11,6 @@ files:
   test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
 directories:
-  consumer: Language measurements and their configured enforcement and repair guidance through a real lint consumer and its CLI
   control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis

@@ -82,5 +82,5 @@ successful feature-merge stop the owner's task runs, skip the run they execute i
 services. Read-only commands run under bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary
 directory and no network.
 
-[measure.py](shared/testing/examples/measure.py) measures first and repeated standalone process latency of a
+[measure.rs](shared/testing/examples/measure.rs) measures first and repeated standalone process latency of a
 built binary.

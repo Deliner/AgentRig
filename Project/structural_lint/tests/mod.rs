@@ -2,6 +2,16 @@
 use super::{config::Config, evaluation::evaluate};
 use std::fs;
 
+mod architecture;
+mod baseline;
+mod configuration;
+mod consumer;
+mod diagnostics;
+mod discovery;
+mod explain;
+mod languages;
+mod portable;
+
 fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, Option<usize>)> {
     let root = tempfile::tempdir().unwrap();
     for (path, content) in files {

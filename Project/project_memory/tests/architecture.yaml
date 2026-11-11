@@ -1,10 +1,12 @@
 purpose: Verify project memory contracts, committed decision history and plan and recovery records
 files:
-  consumer.py: Construct committed decision baselines for memory history scenarios
-  test_resume.py: Reconcile recorded State with Git repository observations
-  test_revision_history.py: Preserve committed decision history across revision and merge-parent checks
-  test_memory.py: Validate markers, document layout and preserved committed decision history
-  test_plan.py: Validate current and archived outcomes, references and delivery transitions
-  test_backlog.py: Validate idea records and portable edit guidance
-  test_state.py: Validate required recovery sections and tolerate reconcilable recorded Git facts
+  mod.rs: Declare the Rust memory scenarios
+  oracles.rs: Bind cargo invariant oracles to the marked test of a nested module and reject other bindings
+  consumer.rs: Construct memory consumers and committed decision baselines for memory scenarios
+  resume.rs: Reconcile recorded State with Git repository observations
+  history.rs: Preserve committed decision history across revision and merge-parent checks
+  validation.rs: Validate markers, references, layout, kept decision history and read-only resume
+  plan.rs: Validate current and archived outcomes, references and delivery transitions
+  backlog.rs: Validate initialized, current and archived idea records
+  state.rs: Validate required recovery sections and tolerate reconcilable recorded Git facts
 directories: {}

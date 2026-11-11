@@ -1,5 +1,7 @@
 // DECISION: D022
 mod content;
+#[cfg(test)]
+mod tests;
 pub use content::native_index;
 
 use crate::project_config::{self, Check, Context};
