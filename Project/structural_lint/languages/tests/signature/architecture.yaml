@@ -8,5 +8,5 @@ files:
   partial_impl.rs: Rust PartialEq, Hash, PartialOrd, Ord and Clone impls reading self fields without naming every field, and exhaustive, other-trait, justified or test-only impls, from native analysis
   same_type.rs: Rust functions with two parameters of one type and tuple structs or variants with two positions of one type or a bool among two or more positions, with receivers, trait impls, justified and test-only items skipped, from native analysis
   tuple_as_record.rs: Rust signature tuple measurements, top-level and nested in generic or slice types, from native analysis
-  type_shape.rs: Rust aliases of a scalar or String, an Option over a bool, a map to a bool, and an Option over another Option only where Clippy does not check it and no implemented trait sets it, with generic, other and justified types skipped, from native analysis
+  type_shape.rs: Rust aliases of a scalar or String, an Option over a bool, and an Option over another Option only where Clippy does not check it and no implemented trait sets it, with generic, other and justified types skipped, from native analysis
 directories: {}
