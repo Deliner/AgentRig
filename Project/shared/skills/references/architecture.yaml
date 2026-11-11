@@ -4,7 +4,6 @@ directories:
   replace-comment: "Replace non-reference source comments with owned knowledge or clearer code"
   justify-unsafe: "Justify an unsafe block or function with a recorded reference, or remove the unsafe"
   handle-error: "Handle a swallowed error, or record why it is safe to ignore with a reference"
-  justify-skip: "Re-enable or delete a disabled test, or record why it is skipped with a reference"
   justify-allow: "Remove a Rust allow, expect, cfg_attr or TOML allow-level suppression and fix the finding, or record why it is suppressed with a reference"
   remove-debug: "Remove a leftover Rust dbg! macro and keep any value it wrapped"
   handle-panic: "Return or handle a Rust error instead of unwrap, expect, their _err forms, resume_unwind or a panic macro, or justify the panic with a reference"
@@ -15,4 +14,4 @@ directories:
   justify-unwind: "Let a Rust panic propagate instead of catching it with catch_unwind or AssertUnwindSafe, or justify the catch at a boundary with a reference"
   await-not-block: "Await a sleep or future instead of blocking an executor thread with thread::sleep or a nested block_on, or justify the intended block with a reference"
   anchor-at-crate: "Replace a super::super path with a crate:: path or a re-export at the parent module, or justify the intended reach with a reference"
-  false-pass: "Repair tests that pass falsely: a should_panic test that passes on any panic and an item compiled out of every test build"
+  false-pass: "Repair tests that keep the suite green while the behavior they claim goes unchecked: a disabled test, a should_panic test that passes on any panic and an item compiled out of every test build"

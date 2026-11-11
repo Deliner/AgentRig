@@ -13,9 +13,9 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/outer-boundary`, от master `0b43d59`.
-Revision: `e4b8d2c9d6732f40087a58353c5eff4bec0c36ee`
+Revision: `0eafa598919abe21d6827ed390ec574d0fce61c8`
 
-Установленный рантайм `cb1ea79`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `0072d39`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -30,10 +30,12 @@ Revision: `e4b8d2c9d6732f40087a58353c5eff4bec0c36ee`
   отмечены в файле списка IV.
 - P125: VAC 1 `db4407e` записал пробу Clippy и вердикты IV-27, IV-28 и IV-30 в Delivery до заморозки предикатов.
   VAC 2 `2f8ec84` перенёс тесты `discarded-result` в `languages/tests/errors`. VAC 3 `e4b8d2c` заморозил предикаты
-  трёх инертных видов. VAC 4 записывает замер в Delivery: IV-27 верна на 2 из 2 и поставляется, IV-28 верна на 4 из
-  20, IV-30 на 26 из 41, обе не поставляются. Виды `interpolated-syntax` и `stale-check` убраны; оставшийся
+  трёх инертных видов. VAC 4 `0072d39` записал замер в Delivery: IV-27 верна на 2 из 2 и поставляется, IV-28 верна
+  на 4 из 20, IV-30 на 26 из 41, обе не поставляются. Виды `interpolated-syntax` и `stale-check` убраны; оставшийся
   `interpolated-shell` всё ещё инертен, его детектор — `languages/rust/shell_command.rs` из обработчика вызова, тесты —
-  `languages/tests/shell_command.rs`.
+  `languages/tests/shell_command.rs`. Пин `0eafa59` поставил рантайм `0072d39`. VAC 5 переносит навык `justify-skip`
+  в подгруппу `references/false-pass`: отключённый тест тоже оставляет набор зелёным без проверки поведения, а в
+  `references` освобождается место для навыка нового вида.
 - Замер нового вида по протоколу P120: вид сначала инертный, бинарник собирается из коммита заморозки с видом в
   обработчике Rust скриптом scratchpad `p120/enabledbin.sh`; фикстура проверяет подключение. Формы P125 меряются вне
   тестового кода, то есть с охватом `tests` в `p120/measure.sh`.
@@ -46,8 +48,8 @@ Revision: `e4b8d2c9d6732f40087a58353c5eff4bec0c36ee`
   `87f4587` прошёл хук.
 - Проба Clippy 1.98.1 для P125 без `--tests`: ни умолчания, ни профиль, ни pedantic, nursery и restriction не ловят
   IV-27, IV-28 и IV-30; restriction `create_dir` отмечает сам вызов `fs::create_dir`.
-- VAC 4 до коммита: `cargo test structural_lint` — 274 теста прошли, включая три теста `shell_command`;
-  `just candidate lint` завершился с кодом 0.
+- VAC 4: хук коммита прошёл, 409 тестов; бинарник из `0072d39` с включённым `interpolated-shell` дал на фикстуре,
+  риге, voxel и корпусе те же находки, что бинарник заморозки.
 
 ## Blockers
 
@@ -55,8 +57,8 @@ Revision: `e4b8d2c9d6732f40087a58353c5eff4bec0c36ee`
 
 ## Next action
 
-Пин рантайма с инертным `interpolated-shell`, затем включить вид в каталог и `lint.yaml` с навыком
-`pass-arguments-apart`, записать D170, перенести P125 и B120 в архив с приёмкой, финальный пин и `feature-merge`.
+Включить `interpolated-shell` в каталог и `lint.yaml` с навыком `pass-arguments-apart` в `references`; до
+текста навыка проверить, как `-Command` у PowerShell и `/c` у `cmd` передают хвостовые аргументы. Записать D170, перенести P125 и B120 в архив с приёмкой, финальный пин и `feature-merge`.
 Пределы у краёв: в `references` 15 каталогов из 15, в `languages/rust` и `languages/tests` по 15 записей из 15,
 зависимых у `measure` 7 из 7 и у `rules` 13 из 13.
 Свободные ID: D170+, I022+, P126+, B121+ (B066 и D111 зарезервированы).
