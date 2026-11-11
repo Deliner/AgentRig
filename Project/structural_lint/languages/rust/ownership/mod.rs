@@ -4,7 +4,6 @@ mod global_state;
 mod guard_await;
 mod paired_calls;
 mod recursive_deletion;
-mod shared_state;
 mod unit_lock;
 mod wrapper;
 use crate::structural_lint::languages::measure::{Code, Measurement};
@@ -20,10 +19,7 @@ pub(super) fn inspect(
         "source_file" => wrapper::inspect(node, source, output),
         "static_item" => global_state::inspect(node, source, output),
         "macro_invocation" => global_state::macro_items(node, source, output),
-        "call_expression" => {
-            call(node, source, output);
-            shared_state::inspect(node, source, output);
-        }
+        "call_expression" => call(node, source, output),
         "let_declaration" => guard_await::inspect(node, source, output),
         "function_item" => exposed_guard::inspect(node, source, output),
         "generic_type" => unit_lock::declared(node, source, output),

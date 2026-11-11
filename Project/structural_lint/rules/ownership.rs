@@ -18,9 +18,6 @@ pub enum Ownership {
     PrimitiveFrom,
     PairedCalls,
     ExposedGuard,
-    LoadThenStore,
-    UnloopedWait,
-    ProcessSetting,
 }
 impl Ownership {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -35,9 +32,6 @@ impl Ownership {
             Self::PrimitiveFrom => &PRIMITIVEFROM,
             Self::PairedCalls => &PAIREDCALLS,
             Self::ExposedGuard => &EXPOSEDGUARD,
-            Self::LoadThenStore => &LOADTHENSTORE,
-            Self::UnloopedWait => &UNLOOPEDWAIT,
-            Self::ProcessSetting => &PROCESSSETTING,
         }
     }
 }
@@ -181,38 +175,5 @@ const EXPOSEDGUARD: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a returned guard lets the caller keep the lock or RefCell borrow as long as it wants, so two calls in one expression deadlock or panic on the second borrow while the build stays clean; take a closure that receives the guarded value and return its result, or put a DECISION: or INVARIANT: reference on the line directly above the fn when handing out the guard is the type's purpose",
-    },
-};
-const LOADTHENSTORE: Descriptor = Descriptor {
-    default_id: "load-then-store",
-    exclude: TEST_CODE,
-    target: "file",
-    metric: "every Rust .store(...) method call whose first argument contains, at any depth, a .load(...) method call on the token-equal receiver, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "update-atomically",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "another thread can write the value between the load and the store, and that write is lost while the build stays clean; make it one atomic operation such as fetch_add, or fetch_update for any other function, make the field plain when it has a single writer, or put a DECISION: or INVARIANT: reference on the line directly above the call",
-    },
-};
-const UNLOOPEDWAIT: Descriptor = Descriptor {
-    default_id: "unlooped-wait",
-    exclude: TEST_CODE,
-    target: "file",
-    metric: "every Rust .wait(...) or .wait_timeout(...) method call with at least one argument and no while or loop expression around it inside the same fn or closure, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "recheck-the-condition",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "a condition variable may wake without a notification, so the code after the wait runs while its condition is still false; wait with wait_while or wait_timeout_while and the condition as a closure, loop over the condition around the wait, or put a DECISION: or INVARIANT: reference on the line directly above the call for a wait that is not on a condition variable",
-    },
-};
-const PROCESSSETTING: Descriptor = Descriptor {
-    default_id: "process-setting",
-    exclude: &[],
-    target: "file",
-    metric: "every Rust call whose path ends in env::set_var, env::remove_var, env::set_current_dir, panic::set_hook, log::set_logger or subscriber::set_global_default and whose nearest enclosing fn is not named main, test code included, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "scope-the-setting",
-    parameters: Parameters::Level {
-        default: Severity::Error,
-        violation: "every thread of the process shares this setting, so parallel tests and background tasks read a value they did not set while the build stays clean; hand it to the child with Command::env or Command::current_dir, pass it as a parameter to the code that reads it, set it in main before any thread starts, or put a DECISION: or INVARIANT: reference on the line directly above the call",
     },
 };

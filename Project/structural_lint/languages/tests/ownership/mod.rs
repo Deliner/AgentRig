@@ -2,7 +2,6 @@ mod exposed_guard;
 mod global_state;
 mod paired_calls;
 mod recursive_deletion;
-mod shared_state;
 mod unit_lock;
 mod wrapper;
 use crate::structural_lint::languages::analyze;
