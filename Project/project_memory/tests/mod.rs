@@ -1,3 +1,4 @@
+mod backlog;
 mod consumer;
 mod history;
 mod oracles;

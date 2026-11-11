@@ -96,21 +96,15 @@
     - Project/shared/yaml/**
     - Project/shared/testing/**
     targets:
-    - Project/project_memory/tests
     - Project/project_setup/tests
     - Project/shared/testing/examples/python/application/test_sample.py
     - tooling/distribution/tests/test_launcher.py
-  - include:
-    - Project/project_memory/**
-    targets:
-    - Project/project_memory/tests
   - include:
     - Project/clippy.toml
     - Project/project_setup/**
     - Project/shared/skills/**
     targets:
     - Project/project_setup/tests
-    - Project/project_memory/tests
     - tooling/distribution/tests/test_launcher.py
   - include:
     - tooling/worker/**
