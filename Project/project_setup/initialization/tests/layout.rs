@@ -1,9 +1,10 @@
+use super::snapshot;
 use crate::project_setup::initialization::init;
 use crate::shared::testing::{git, hermetic, invoke, launch, run};
 use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeSet,
     fs,
     path::{Path, PathBuf},
 };
@@ -118,24 +119,6 @@ fn assert_layout(root: &Path, roots: &str, crates: &str, tests: &str) {
     let commands = yaml(&root.join(".agentrig/commands.yaml"));
     let found = (&settings["rust_roots"], &derived, &commands["test"]["argv"]);
     assert_eq!(found, (&flow(roots), &flow(crates), &flow(tests)));
-}
-
-fn files(directory: &Path, found: &mut BTreeMap<PathBuf, Vec<u8>>) {
-    for entry in fs::read_dir(directory).unwrap() {
-        let path = entry.unwrap().path();
-        let nested = path.is_dir();
-        if nested {
-            files(&path, found);
-        } else {
-            found.insert(path.clone(), fs::read(&path).unwrap());
-        }
-    }
-}
-
-fn snapshot(root: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
-    let mut found = BTreeMap::new();
-    files(root, &mut found);
-    found
 }
 
 fn refused(root: &Path, args: &[&str]) {
