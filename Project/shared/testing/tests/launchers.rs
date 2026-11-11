@@ -6,8 +6,7 @@ use std::{
 };
 
 const REVISION: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-const LAUNCHER_ENVIRONMENT: [&str; 3] =
-    ["WORKER_BINARY", "WORKER_SOURCE_ROOT", "WORKER_TARGET_DIR"];
+const LAUNCHER_ENVIRONMENT: [&str; 2] = ["WORKER_BINARY", "WORKER_SOURCE_ROOT"];
 const RESOURCES: [&str; 3] = [
     "command_line/main.rs",
     "shared/architecture.yaml",
@@ -97,7 +96,7 @@ fn candidate_build_rebuilds_changed_content_even_with_an_old_mtime() {
                 file.set_modified(written).unwrap();
             }
             let mut command = development(&build);
-            command.env("PATH", &path).env("WORKER_TARGET_DIR", &target);
+            command.env("PATH", &path).env("CARGO_TARGET_DIR", &target);
             let result = run(&mut command, "");
             assert_eq!(result.code, Some(0), "{resource}: {}", result.output());
             outputs.push(result.stdout.trim().to_owned());

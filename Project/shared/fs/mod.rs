@@ -8,6 +8,7 @@ use std::{
     fs::{DirEntry, Metadata},
     io,
     path::{Path, PathBuf},
+    time::SystemTime,
 };
 
 pub use std::fs::{File, OpenOptions, Permissions};
@@ -76,6 +77,34 @@ pub fn open(path: impl AsRef<Path>) -> Result<File> {
 
 pub fn open_with(options: &OpenOptions, path: impl AsRef<Path>) -> Result<File> {
     at("open", path.as_ref(), options.open(&path))
+}
+
+pub fn lock(path: impl AsRef<Path>) -> Result<File> {
+    let mut options = OpenOptions::new();
+    options.create(true).truncate(false).write(true);
+    let file = open_with(&options, &path)?;
+    at("lock", path.as_ref(), file.lock())?;
+    Ok(file)
+}
+
+pub fn set_modified(path: impl AsRef<Path>, time: SystemTime) -> Result<()> {
+    let mut options = OpenOptions::new();
+    options.write(true);
+    let file = open_with(&options, &path)?;
+    at(
+        "set the modification time of",
+        path.as_ref(),
+        file.set_modified(time),
+    )
+}
+
+pub struct Move<'a> {
+    pub from: &'a Path,
+    pub to: &'a Path,
+}
+
+pub fn rename(paths: Move<'_>) -> Result<()> {
+    at("move", paths.from, std::fs::rename(paths.from, paths.to))
 }
 
 pub fn create_dir_all(path: impl AsRef<Path>) -> Result<()> {

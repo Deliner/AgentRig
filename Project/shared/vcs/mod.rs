@@ -189,6 +189,10 @@ impl<'a> Repository<'a> {
         git::index_entries(self.root)
     }
 
+    pub fn index(&self) -> Result<BTreeMap<String, Entry>> {
+        git::index(self.root)
+    }
+
     pub fn export_index(&self) -> Result<tempfile::TempDir> {
         git::export_index(self.root)
     }

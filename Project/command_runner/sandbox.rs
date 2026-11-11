@@ -7,17 +7,22 @@ use std::{
     process::{Command, Output},
 };
 
-pub struct Sandboxing {
+pub struct Sandboxing<'a> {
     pub access: Access,
     pub capture: Capture,
+    pub cargo_target: Option<&'a Path>,
 }
 pub fn tracked(
     root: &Path,
     argv: &[String],
-    options: Sandboxing,
+    options: Sandboxing<'_>,
     job: Option<&mut crate::command_runner::jobs::Job>,
 ) -> Result<Output> {
-    let Sandboxing { access, capture } = options;
+    let Sandboxing {
+        access,
+        capture,
+        cargo_target,
+    } = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
     let mut command = match access {
@@ -29,6 +34,10 @@ pub fn tracked(
         }
     };
     command.current_dir(root);
+    // DECISION: D160
+    if let Some(target) = cargo_target {
+        command.env("CARGO_TARGET_DIR", target);
+    }
     crate::command_runner::jobs::process::execute(&mut command, capture, job)
 }
 pub fn available() -> bool {

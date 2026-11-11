@@ -13,6 +13,7 @@ pub struct Context {
     pub root: PathBuf,
     pub config: Config,
     pub runtime: PathBuf,
+    pub cargo_target: Option<PathBuf>,
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
@@ -24,6 +25,7 @@ impl Context {
             root,
             config,
             runtime,
+            cargo_target: None,
         })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {

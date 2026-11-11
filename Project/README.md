@@ -10,7 +10,7 @@ analysis limits.
 ## Build
 
 `tooling/worker/build` compiles a locked release binary with Rust 1.98.1 into `.cache/worker`, or into
-`WORKER_TARGET_DIR`. It rebuilds when sources, assets, toolchain or dependency files change, serializes builds with
+`CARGO_TARGET_DIR`. It rebuilds when sources, assets, toolchain or dependency files change, serializes builds with
 flock and writes build output to stderr so hook stdout stays JSON. `just candidate ...` runs it;
 `tooling/worker/run` runs the pinned installation and never compiles. Rustfmt, Clippy, a native linker, Bash, Git and
 flock must be available.
