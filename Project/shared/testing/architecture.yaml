@@ -7,3 +7,4 @@ files:
   consumer.py: Seed project policy and empty memory and invoke or observe commands
 directories:
   examples: Independent consumer projects and portable usage demonstrations
+  tests: Rust support that runs the candidate runtime and Git as processes in temporary projects

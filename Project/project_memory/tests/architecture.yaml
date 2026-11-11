@@ -1,5 +1,7 @@
 purpose: Verify project memory contracts, committed decision history and plan and recovery records
 files:
+  mod.rs: Declare the Rust memory scenarios
+  oracles.rs: Bind cargo invariant oracles to the marked test of a nested module and reject other bindings
   consumer.py: Construct committed decision baselines for memory history scenarios
   test_resume.py: Reconcile recorded State with Git repository observations
   test_revision_history.py: Preserve committed decision history across revision and merge-parent checks
