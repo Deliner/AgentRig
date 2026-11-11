@@ -123,20 +123,29 @@ pub(super) fn test_marker(node: Node<'_>, source: Code<'_>) -> bool {
 fn debug_marker(node: Node<'_>, source: Code<'_>) -> bool {
     cfg_marker(node, source, "debug_assertions")
 }
-fn attribute_path(node: Node<'_>) -> Option<Node<'_>> {
+pub(super) fn attribute_path(node: Node<'_>) -> Option<Node<'_>> {
     node.named_children(&mut node.walk())
         .find(|child| child.kind() == "attribute")?
         .named_child(0)
 }
 fn cfg_marker(node: Node<'_>, source: Code<'_>, flag: &str) -> bool {
-    let Some(path) = attribute_path(node) else {
-        return false;
-    };
+    cfg_arguments(node, source).is_some_and(|arguments| cfg_requires(arguments, source, flag))
+}
+pub(super) fn cfg_excludes(node: Node<'_>, source: Code<'_>, flag: &str) -> bool {
+    cfg_arguments(node, source).is_some_and(|arguments| {
+        predicate_groups(arguments)
+            .iter()
+            .any(|group| forbids(group, source, flag))
+    })
+}
+fn cfg_arguments<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
+    let path = attribute_path(node)?;
     let cfg = path.kind() == "identifier" && text(path, source) == "cfg";
-    cfg && path
-        .parent()
-        .and_then(|attribute| attribute.child_by_field_name("arguments"))
-        .is_some_and(|arguments| cfg_requires(arguments, source, flag))
+    let other = !cfg;
+    if other {
+        return None;
+    }
+    path.parent()?.child_by_field_name("arguments")
 }
 pub(super) fn last_segment<'a>(path: Node<'_>, source: Code<'a>) -> &'a str {
     if let Some(name) = path.child_by_field_name("name") {
@@ -205,4 +214,37 @@ fn group_requires(group: &[Node<'_>], source: Code<'_>, flag: &str) -> bool {
         }
         _ => false,
     }
+}
+fn forbids(group: &[Node<'_>], source: Code<'_>, flag: &str) -> bool {
+    let Some((name, groups)) = combinator(group, source) else {
+        return false;
+    };
+    let populated = !groups.is_empty();
+    match name {
+        "not" => groups.iter().any(|inner| implied(inner, source, flag)),
+        "all" => groups.iter().any(|inner| forbids(inner, source, flag)),
+        "any" => populated && groups.iter().all(|inner| forbids(inner, source, flag)),
+        _ => false,
+    }
+}
+fn implied(group: &[Node<'_>], source: Code<'_>, flag: &str) -> bool {
+    let Some((name, groups)) = combinator(group, source) else {
+        let bare = group.len() == 1;
+        return bare && group.iter().all(|head| text(*head, source) == flag);
+    };
+    let populated = !groups.is_empty();
+    match name {
+        "not" => groups.iter().any(|inner| forbids(inner, source, flag)),
+        "all" => populated && groups.iter().all(|inner| implied(inner, source, flag)),
+        "any" => groups.iter().any(|inner| implied(inner, source, flag)),
+        _ => false,
+    }
+}
+fn combinator<'a, 's>(
+    group: &[Node<'a>],
+    source: Code<'s>,
+) -> Option<(&'s str, Vec<Vec<Node<'a>>>)> {
+    let (head, rest) = group.split_first()?;
+    let inner = rest.iter().find(|node| node.kind() == "token_tree")?;
+    Some((text(*head, source), predicate_groups(*inner)))
 }

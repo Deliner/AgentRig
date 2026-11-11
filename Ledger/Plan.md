@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P124](Plan/124.md) | pending | - | [B119](Backlog/119.md): false-pass — тесты не проходят ложно | Тест не проходит от посторонней ошибки или паники и не зависит от скорости машины, а проверяется тот же код, что работает в продукте. |
 | [P125](Plan/125.md) | pending | - | [B120](Backlog/120.md): outer-boundary — граница с внешним миром | Данные не меняют команду, запрос или формат, а между проверкой и действием нет гонки. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.

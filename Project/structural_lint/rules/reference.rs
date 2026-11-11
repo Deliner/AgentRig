@@ -23,6 +23,8 @@ pub enum Reference {
     BlockingInAsync,
     PositionalFormat,
     CrossedField,
+    UntargetedPanic,
+    TestSubstitution,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -45,6 +47,8 @@ impl Reference {
             Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::PositionalFormat => &POSITIONALFORMAT,
             Self::CrossedField => &CROSSEDFIELD,
+            Self::UntargetedPanic => &UNTARGETEDPANIC,
+            Self::TestSubstitution => &TESTSUBSTITUTION,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -253,6 +257,30 @@ const BLOCKINGINASYNC: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Warning,
         violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
+    },
+};
+// DECISION: D169
+const UNTARGETEDPANIC: Descriptor = Descriptor {
+    default_id: "untargeted-panic",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust #[should_panic] attribute with neither a = value nor an expected argument, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "expect-the-panic",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a should_panic test without expected passes on any panic, also one from an unrelated place, so a broken test stays green; name the expected message with #[should_panic(expected = \"...\")] or test the returned Err instead, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D169
+const TESTSUBSTITUTION: Descriptor = Descriptor {
+    default_id: "test-substitution",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust #[cfg(..)] or #![cfg(..)] attribute of an item in a file, module, impl or trait body whose predicate is false in every build with test set, such as not(test), all(not(test), ..) or not(any(test, ..)), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "inject-the-variant",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an item compiled only outside tests never runs under test, and a cfg(test) twin makes the tests check other code than the product runs; pass what varies as a parameter or trait value that the caller and the test both supply, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
 // DECISION: D037

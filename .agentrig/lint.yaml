@@ -704,6 +704,29 @@ rules:
   level: error
   warning_skill: .agents/skills/scope-the-guard/SKILL.md
   error_skill: .agents/skills/scope-the-guard/SKILL.md
+- id: untargeted-panic
+  kind: untargeted-panic
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/expect-the-panic/SKILL.md
+  error_skill: .agents/skills/expect-the-panic/SKILL.md
+- id: test-substitution
+  kind: test-substitution
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/inject-the-variant/SKILL.md
+  error_skill: .agents/skills/inject-the-variant/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

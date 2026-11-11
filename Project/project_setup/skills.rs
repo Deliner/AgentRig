@@ -191,6 +191,14 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/references/anchor-at-crate/SKILL.md"),
     ),
     (
+        "expect-the-panic",
+        include_str!("../shared/skills/references/false-pass/expect-the-panic/SKILL.md"),
+    ),
+    (
+        "inject-the-variant",
+        include_str!("../shared/skills/references/false-pass/inject-the-variant/SKILL.md"),
+    ),
+    (
         "contain-the-deletion",
         include_str!("../shared/skills/ownership/contain-the-deletion/SKILL.md"),
     ),

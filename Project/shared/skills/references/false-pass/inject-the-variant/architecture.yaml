@@ -1,0 +1,5 @@
+purpose: "Inject what varies between product and test instead of compiling an item out of test builds, or record why tests must not compile it with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace a not(test) item or its cfg(test) twin with an injected value"
+directories: {}
