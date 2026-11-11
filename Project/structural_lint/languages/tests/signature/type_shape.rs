@@ -28,8 +28,9 @@ type Seconds = u32;
     );
 }
 
+// DECISION: D162
 #[test]
-fn rust_flags_an_option_over_a_bool_or_another_option_wherever_it_stands() {
+fn rust_flags_an_option_over_a_bool_wherever_it_stands_and_leaves_a_nested_option_to_clippy() {
     let source = "struct Settings {
     verbose: Option<bool>,
     timeout: Option<Option<u32>>,
@@ -45,7 +46,6 @@ type Tristate = Option<bool>;
         measured(source, OPTION),
         [
             (2, "Option<bool>".to_string()),
-            (3, "Option<Option<u32>>".to_string()),
             (6, "std::option::Option<bool>".to_string()),
         ]
     );

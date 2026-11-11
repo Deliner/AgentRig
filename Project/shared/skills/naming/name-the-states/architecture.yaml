@@ -1,5 +1,5 @@
-purpose: "Replace an Option of bool or of Option with an enum naming each state, or justify the nesting with a reference"
+purpose: "Replace an Option of bool with an enum naming each state, or justify the type with a reference"
 type: flat
 files:
-  SKILL.md: "Canonical agent instructions to give each state of a nested option a name"
+  SKILL.md: "Canonical agent instructions to give each state of an optional flag a name"
 directories: {}

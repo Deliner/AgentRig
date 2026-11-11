@@ -174,15 +174,16 @@ const PARTIALIMPL: Descriptor = Descriptor {
     },
 };
 // DECISION: D156
+// DECISION: D162
 const AMBIGUOUSOPTION: Descriptor = Descriptor {
     default_id: "ambiguous-option",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust Option<bool> or Option<Option<..>> type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust Option<bool> type, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "name-the-states",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "Option<bool> and Option<Option<T>> encode three states without names, and unwrap_or merges two of them silently; declare an enum naming each state, or put a DECISION: or INVARIANT: reference on the line directly above it for a DTO of an external format",
+        violation: "Option<bool> encodes three states without names, and unwrap_or merges two of them silently; declare an enum naming each state, or put a DECISION: or INVARIANT: reference on the line directly above it for a DTO of an external format",
     },
 };
 // DECISION: D156

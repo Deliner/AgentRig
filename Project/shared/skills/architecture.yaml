@@ -16,6 +16,6 @@ directories:
   references: "Repair source that must carry an owned DECISION: or INVARIANT: reference: comments and unsafe"
   ownership: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction or a call pair an owner with a bounded responsibility, or justify the intended exception with a reference"
   signature: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields and a trait default that ignores self"
-  naming: "Bind a value to its place by a name instead of its position: same-type parameters and tuple fields, the states of a nested option, positional format placeholders and struct literal fields set from another field's name"
+  naming: "Bind a value to its place by a name instead of its position: same-type parameters and tuple fields, the states of an optional flag, positional format placeholders and struct literal fields set from another field's name"
   discipline: "Review disciplines without an executable oracle: test placement, type-driven modelling and fail-closed verdicts"
   memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"
