@@ -98,6 +98,15 @@ pub fn set_modified(path: impl AsRef<Path>, time: SystemTime) -> Result<()> {
     )
 }
 
+pub struct Move<'a> {
+    pub from: &'a Path,
+    pub to: &'a Path,
+}
+
+pub fn rename(paths: Move<'_>) -> Result<()> {
+    at("move", paths.from, std::fs::rename(paths.from, paths.to))
+}
+
 pub fn create_dir_all(path: impl AsRef<Path>) -> Result<()> {
     at(
         "create directory",

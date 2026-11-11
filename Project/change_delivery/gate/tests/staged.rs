@@ -1,5 +1,5 @@
 use super::{gated, stage_an_oversized_source};
-use crate::shared::testing::{FAIL, GATE, REPAIR, git, invoke, project, rerun};
+use crate::shared::testing::{FAIL, GATE, REPAIR, Run, git, invoke, project, rerun, run, runtime};
 use std::{
     fs,
     path::Path,
@@ -16,14 +16,38 @@ const VALUE: &str = "value:
 const MANIFEST: &str = "[package]\nname = \"value\"\nversion = \"0.1.0\"\nedition = \"2024\"\n";
 
 fn program(value: i32) -> String {
-    format!("fn main() {{\n    std::process::exit({value});\n}}\n")
+    format!(
+        "fn main() {{
+    let manifest = env!(\"CARGO_MANIFEST_DIR\");
+    println!(\"manifest {{manifest}}\");
+    let present = std::path::Path::new(manifest).join(\"Cargo.toml\").exists();
+    std::process::exit(if present {{ {value} }} else {{ 7 }});
+}}
+"
+    )
+}
+
+fn staged_check(root: &Path, temporary: &Path) -> Run {
+    let mut command = runtime(root, &["check", "--staged"]);
+    run(command.env("TMPDIR", temporary), "")
+}
+
+fn rebuilt(result: &Run, code: i32) {
+    assert_eq!(result.code, Some(code), "{}", result.output());
+    assert!(
+        result.output().contains("Compiling value"),
+        "{}",
+        result.output()
+    );
 }
 
 // DECISION: D160
+// DECISION: D161
 #[test]
 fn staged_cargo_check_reuses_unchanged_builds_and_checks_only_staged_code() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
+    let first = tempfile::tempdir().unwrap();
     let check = format!("- id: value\n  kind: command\n  command: value\n  skill: {REPAIR}\n");
     project(&root, VALUE, &check);
     let main = root.join("crate/src/main.rs");
@@ -32,17 +56,11 @@ fn staged_cargo_check_reuses_unchanged_builds_and_checks_only_staged_code() {
     fs::write(&main, program(0)).unwrap();
     git(&root, &["init", "-q"]);
     git(&root, &["add", "."]);
-    let built = invoke(&root, &["check", "--staged"]);
-    assert_eq!(built.code, Some(0), "{}", built.output());
-    assert!(
-        built.output().contains("Compiling value"),
-        "{}",
-        built.output()
-    );
+    rebuilt(&staged_check(&root, first.path()), 0);
     fs::write(root.join("notes.md"), "note\n").unwrap();
     git(&root, &["add", "notes.md"]);
     fs::write(&main, program(3)).unwrap();
-    let reused = invoke(&root, &["check", "--staged"]);
+    let reused = staged_check(&root, first.path());
     assert_eq!(reused.code, Some(0), "{}", reused.output());
     assert!(
         !reused.output().contains("Compiling"),
@@ -53,8 +71,17 @@ fn staged_cargo_check_reuses_unchanged_builds_and_checks_only_staged_code() {
     let file = fs::File::options().write(true).open(&main).unwrap();
     file.set_modified(old).unwrap();
     git(&root, &["add", "crate/src/main.rs"]);
-    let changed = invoke(&root, &["check", "--staged"]);
+    let changed = staged_check(&root, first.path());
     assert_eq!(changed.code, Some(3), "{}", changed.output());
+    first.close().unwrap();
+    let second = tempfile::tempdir().unwrap();
+    let moved = staged_check(&root, second.path());
+    rebuilt(&moved, 3);
+    let output = moved.output();
+    let (_, printed) = output.split_once("manifest ").unwrap();
+    let manifest = Path::new(printed.lines().next().unwrap());
+    fs::create_dir(manifest.parent().unwrap()).unwrap();
+    rebuilt(&staged_check(&root, second.path()), 3);
 }
 
 #[test]

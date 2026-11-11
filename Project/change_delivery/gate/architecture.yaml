@@ -4,7 +4,7 @@ files:
   mod.rs: Prepare checked snapshots, select checks and record their outcomes
   check.rs: Run one configured check by its kind and produce actionable failures
   selection.rs: Map changed paths to configured affected check targets
-  staged.rs: Give exported staged files reusable modification times and a dedicated cargo target
+  staged.rs: Move the staged export to a reused temporary path with reusable modification times and a cargo target
   README.md: Gate inputs and affected-test selection guide
 directories:
   tests: Verify check execution and source selection

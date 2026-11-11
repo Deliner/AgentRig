@@ -67,14 +67,14 @@ pub fn branch(root: &Path, base: &str) -> Result<i32> {
     )
 }
 pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
-    let (snapshot, input) = prepare(root, &options)?;
+    let (mut snapshot, input) = prepare(root, &options)?;
     let only = options.only;
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let mut context = Context::load(tree)?;
     context.runtime = project_config::relative(root, &context.config.paths.runtime)?;
-    let reuse = options.staged;
-    let _lock = reuse
-        .then(|| staged::reuse(root, &mut context))
+    let export = snapshot.take_if(|_| options.staged);
+    let _staged = export
+        .map(|export| staged::reuse(root, export, &mut context))
         .transpose()?;
     ensure!(
         only.is_none_or(|id| context.config.checks.iter().any(|check| check.id == id)),
