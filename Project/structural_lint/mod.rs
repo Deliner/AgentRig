@@ -12,6 +12,7 @@ pub mod rules;
 mod selection;
 #[cfg(test)]
 mod tests;
+mod tree;
 
 use crate::shared::console;
 pub use crate::shared::diagnostics::lint::Diagnostic;

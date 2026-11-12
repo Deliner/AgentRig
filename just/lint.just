@@ -25,3 +25,7 @@ lint-explain *args:
 # What: show measured edges of a directory; Why: trace the dependents and cycles architecture findings count.
 lint-edges *args:
     @tooling/worker/run lint-edges "$@"
+
+# What: print a directory as a tree of names; Why: see the structure of the lint inventory without file contents.
+lint-tree *args:
+    @tooling/worker/run lint-tree "$@"

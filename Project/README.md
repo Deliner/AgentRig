@@ -23,10 +23,10 @@ repair skill; an error finding exits 1; warnings exit 0 and are printed only wit
 
 - `just lint-rules` lists each rule kind with its target, languages, measurement and parameters;
   `just lint-rule KIND --example` prints a complete rule entry.
-- `just lint-config-check` validates configuration, skills and selectors against the current inventory without
-  reading sources.
+- `just lint-config-check` validates configuration, skills and selectors against the inventory without reading sources.
 - `just lint-explain PATH` shows why each rule selects or skips a path, with effective thresholds and overrides.
 - `just lint-edges DIR` lists the measured incoming and outgoing edges of a directory that architecture findings count.
+- `just lint-tree DIR` prints the directory as a box-drawing tree of file and directory names after global excludes.
 - `just lint --json` prints each finding's rule, path, line, symbol, actual, limit, level, message, skill and rerun
   command.
 

@@ -56,9 +56,9 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     ensure!(
         matches!(
             command.as_str(),
-            "lint" | "lint-config-check" | "lint-explain" | "lint-edges"
+            "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree"
         ),
-        "expected lint, lint-config-check, lint-explain, lint-edges, lint-rule or lint-rules"
+        "expected lint, lint-config-check, lint-explain, lint-edges, lint-tree, lint-rule or lint-rules"
     );
     let root = match take_option(&mut args, "--root")? {
         Some(value) => PathBuf::from(value),
