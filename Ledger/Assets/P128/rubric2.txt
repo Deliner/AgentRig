@@ -1,0 +1,8 @@
+You grade a description of a software project that was written by someone who saw only the project's file and directory names. The directory list below gives, for every directory that holds production source code, its path as the writer saw it and its reference purpose. For each directory, find what the description says about the role of that directory, whether it names the directory itself or describes it as part of a named group. Grade only what the description actually states; do not reward the writer for facts you know from the reference.
+
+Score each directory:
+0 = not mentioned, only listed or restated by its name without a role, given only a generic role that would fit any project, or given a wrong role;
+1 = a role that is partly right: the gist with a major gap or vague wording, or one of several offered alternatives;
+2 = a role that clearly matches the main point of the reference purpose.
+
+wrong: true when the description confidently states a role for this directory that contradicts its reference purpose; false otherwise. Hedged guesses, statements marked as uncertain, and omissions are not wrong.

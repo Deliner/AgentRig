@@ -1,0 +1,56 @@
+# parent: v35-exactnames2
+# hypothesis: plain names instead of metaphors for the console and forwarded arguments, and main-point names for rule identities, rule capabilities, language-neutral metrics and registry removal records
+move agent_hooks/guard.rs -> agent_hooks/shell_guard.rs
+move agent_hooks/requirements.rs -> agent_hooks/skill_requirements.rs
+move agent_hooks/tests/requirements.rs -> agent_hooks/tests/skill_requirements.rs
+move change_delivery/gate/selection.rs -> change_delivery/gate/affected_checks.rs
+move change_delivery/gate/tests/selection.rs -> change_delivery/gate/tests/affected_checks.rs
+move command_line/lint.rs -> cli_dispatch/standalone_lint.rs
+move structural_lint/inventory/ -> structural_lint/targeting/file_discovery/
+move structural_lint/selection/ -> structural_lint/targeting/lint_targets/
+move structural_lint/rules/ -> structural_lint/rule_set/rule_identities/
+move structural_lint/catalog/ -> structural_lint/rule_set/capabilities/
+move structural_lint/config/ -> structural_lint/rule_set/lint_config/
+move structural_lint/cli.rs -> structural_lint/reporting/cli.rs
+move structural_lint/explain.rs -> structural_lint/reporting/explain.rs
+move structural_lint/tree.rs -> structural_lint/reporting/tree.rs
+move structural_lint/architecture/runner/ -> structural_lint/architecture/contract_check/
+move structural_lint/architecture/source/ -> structural_lint/architecture/extraction/
+move structural_lint/architecture/source/model/ -> structural_lint/architecture/extraction/references/
+move structural_lint/languages/rust/context/ -> structural_lint/languages/rust/exemptions/
+move shared/arguments/ -> shared/shared_options/
+move shared/artifacts/ -> shared/atomic_files/
+move shared/fs/ -> shared/fs_with_context/
+move shared/syntax/ -> shared/source_parsers/
+move shared/yaml/ -> shared/strict_yaml/
+move project_memory/evidence/ -> project_memory/check_evidence/
+move command_runner/registry/ -> command_runner/tool_registry/
+split structural_lint/languages/rust/context/mod.rs -> structural_lint/languages/rust/exemptions/mod.rs structural_lint/languages/rust/exemptions/test_code.rs structural_lint/languages/rust/exemptions/debug_code.rs structural_lint/languages/rust/exemptions/cfg_flags.rs
+split structural_lint/inventory/mod.rs -> structural_lint/targeting/file_discovery/mod.rs structural_lint/targeting/file_discovery/versioned.rs structural_lint/targeting/file_discovery/unversioned.rs
+split shared/syntax/mod.rs -> shared/source_parsers/mod.rs shared/source_parsers/decision_markers.rs shared/source_parsers/secrets.rs
+split structural_lint/catalog/mod.rs -> structural_lint/rule_set/capabilities/mod.rs structural_lint/rule_set/capabilities/language_support.rs structural_lint/rule_set/capabilities/describe.rs
+split structural_lint/languages/measure/mod.rs -> structural_lint/languages/neutral_metrics/mod.rs structural_lint/languages/neutral_metrics/record.rs structural_lint/languages/neutral_metrics/conditions.rs structural_lint/languages/neutral_metrics/nesting.rs
+split structural_lint/architecture/source/model/mod.rs -> structural_lint/architecture/extraction/references/mod.rs structural_lint/architecture/extraction/references/reference.rs structural_lint/architecture/extraction/references/recorder.rs
+split structural_lint/selection/mod.rs -> structural_lint/targeting/lint_targets/mod.rs structural_lint/targeting/lint_targets/threshold_overrides.rs
+split structural_lint/config/mod.rs -> structural_lint/rule_set/lint_config/mod.rs structural_lint/rule_set/lint_config/repair_guidance.rs
+split shared/fs/mod.rs -> shared/fs_with_context/mod.rs shared/fs_with_context/path_errors.rs
+split shared/arguments/mod.rs -> shared/shared_options/mod.rs shared/shared_options/take_option.rs shared/shared_options/forwarded_args.rs
+split shared/artifacts/mod.rs -> shared/atomic_files/mod.rs shared/atomic_files/fingerprint.rs shared/atomic_files/bounded_read.rs
+move shared/artifacts/json.rs -> shared/atomic_files/atomic_json.rs
+split shared/diagnostics/mod.rs -> shared/diagnostics/mod.rs shared/diagnostics/guidance.rs shared/diagnostics/rerun_command.rs
+move shared/diagnostics/lint.rs -> shared/diagnostics/actionable_findings.rs
+move shared/diagnostics/skills.rs -> shared/diagnostics/skill_refs.rs
+split shared/paths/mod.rs -> shared/paths/mod.rs shared/paths/symlinks.rs
+move shared/paths/patterns.rs -> shared/paths/glob_patterns.rs
+split structural_lint/architecture/resolution/python/mod.rs -> structural_lint/architecture/resolution/python/mod.rs structural_lint/architecture/resolution/python/relative_imports.rs structural_lint/architecture/resolution/python/namespace_packages.rs
+move structural_lint/architecture/resolution/rust/tree.rs -> structural_lint/architecture/resolution/rust/module_tree.rs
+move structural_lint/architecture/resolution/rust/paths.rs -> structural_lint/architecture/resolution/rust/use_aliases.rs
+move structural_lint/architecture/resolution/rust/macros.rs -> structural_lint/architecture/resolution/rust/macro_origins.rs
+move structural_lint/rules/architecture.rs -> structural_lint/rule_set/rule_identities/contract_settings.rs
+move structural_lint/languages/measure/ -> structural_lint/languages/neutral_metrics/
+move command_runner/jobs/identity/ -> command_runner/jobs/pid_reuse_guard/
+move project_config/settings/ -> project_config/settings_schema/
+move project_memory/evidence/content.rs -> project_memory/check_evidence/input_fingerprint.rs
+move project_setup/initialization/init.rs -> project_setup/initialization/no_overwrite_init.rs
+move command_line/ -> cli_dispatch/
+split command_runner/registry/check.rs -> command_runner/tool_registry/placement_check.rs command_runner/tool_registry/removal_records.rs
