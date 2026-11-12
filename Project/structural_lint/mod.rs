@@ -10,9 +10,9 @@ pub mod inventory;
 pub mod languages;
 pub mod rules;
 mod selection;
+mod structure;
 #[cfg(test)]
 mod tests;
-mod tree;
 
 use crate::shared::console;
 pub use crate::shared::diagnostics::lint::Diagnostic;

@@ -84,7 +84,7 @@ fn directories(files: &[PathBuf]) -> BTreeMap<PathBuf, BTreeSet<String>> {
     }
     directories
 }
-fn unversioned(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
+pub fn unversioned(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
     let mut inventory = Inventory {
         files: Vec::new(),
         directories: BTreeMap::new(),
