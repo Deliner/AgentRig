@@ -1,12 +1,15 @@
 use super::architecture::{Rooted, runner};
+use super::structure::{self, Texts};
 use super::{Location, config};
 use super::{inventory, selection};
-use crate::shared::console;
 use crate::shared::paths::patterns::globs;
-use crate::structural_lint::rules::{Kind, structure::Structure};
-use anyhow::{Result, ensure};
+use crate::shared::{console, fs};
+use crate::structural_lint::rules::{Kind, descriptor::TEST_CODE, structure::Structure};
+use anyhow::{Result, bail, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
+
+const UNMEASURED: [&str; 2] = ["**/.*", "**/target"];
 
 // DECISION: D062
 #[derive(Clone, Copy)]
@@ -22,9 +25,58 @@ pub fn inspection(command: &str) -> Option<Inspection> {
     match command {
         "lint-explain" => Some(run),
         "lint-edges" => Some(edges),
-        "lint-tree" => Some(super::tree::run),
+        "lint-tree" => Some(tree),
         _ => None,
     }
+}
+
+fn tree(location: Location<'_>, args: &[String]) -> Result<i32> {
+    let [path] = args else {
+        bail!("lint-tree PATH");
+    };
+    let path = selected_path(path)?;
+    let config = location.load()?;
+    let inventory = inventory::collect(location.root, &globs(&config.exclude)?)?;
+    ensure!(
+        inventory.directories.contains_key(&path),
+        "lint-tree PATH must name a directory of the lint inventory: {}",
+        path.display()
+    );
+    console::stdout(structure::tree::render(&inventory.directories, &path));
+    Ok(0)
+}
+
+pub fn lint_structure(args: &[String]) -> Result<i32> {
+    let [path] = args else {
+        bail!("lint-structure PATH");
+    };
+    let root = fs::canonicalize(path)?;
+    ensure!(
+        fs::metadata(&root)?.is_dir(),
+        "lint-structure PATH must name a directory: {path}"
+    );
+    let inventory = inventory::unversioned(&root, &globs(&UNMEASURED.map(String::from))?)?;
+    let tests = globs(&TEST_CODE.iter().map(|&p| p.into()).collect::<Vec<_>>())?;
+    let mut texts = Texts::default();
+    for file in &inventory.files {
+        let contract = file
+            .file_name()
+            .is_some_and(|name| name == "architecture.yaml");
+        let rust = file.extension().is_some_and(|extension| extension == "rs");
+        let production = rust && !tests.is_match(file);
+        if contract {
+            let directory = file.parent().unwrap_or(Path::new("")).to_path_buf();
+            texts
+                .contracts
+                .insert(directory, fs::read_to_string(root.join(file))?);
+        } else if production {
+            texts
+                .code
+                .insert(file.clone(), fs::read_to_string(root.join(file))?);
+        }
+    }
+    console::stdout(structure::report(&texts)?);
+    Ok(0)
 }
 
 fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
@@ -111,7 +163,7 @@ fn arguments(command: &str, args: &[String]) -> Result<(PathBuf, bool)> {
     Ok((selected_path(path)?, !flags.is_empty()))
 }
 
-pub(super) fn selected_path(value: &str) -> Result<PathBuf> {
+fn selected_path(value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
     ensure!(
         !path.is_absolute()

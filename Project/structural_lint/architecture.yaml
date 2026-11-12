@@ -4,9 +4,9 @@ files:
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
   cli.rs: Embedded and standalone command arguments and rule discovery output
-  explain.rs: Explain why a configured rule selects or excludes a target and list measured directory edges
-  tree.rs: Print the lint inventory under a directory as a box-drawing tree of names
+  explain.rs: Explain why a configured rule selects or excludes a target, list measured directory edges and read the files behind the tree and structure reports
 directories:
+  structure: Show directory structure as a tree of names and score how clearly names show the code beneath them
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
   catalog: Describe implemented rule and language capabilities
