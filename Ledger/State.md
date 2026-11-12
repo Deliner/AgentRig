@@ -12,7 +12,7 @@ Sonnet 5.5 уровня high, около 12 часов или до его ост
 ## Workspace
 
 Branch: `feature/structure-blind-test`, от master `7d8c312`.
-Revision: `5a705fd3377cbcdb2419cb3a167fd194b83af745`
+Revision: `f5b8502da064c91911eee341bcb02571a191f32e`
 
 Установленный рантайм `6f2c4f3`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -25,8 +25,11 @@ Revision: `5a705fd3377cbcdb2419cb3a167fd194b83af745`
 - VAC 2 `5a705fd` добавила `lint-tree PATH`: дерево имён инвентаря lint псевдографикой после глобальных
   исключений, в `structural_lint/tree.rs`, с рецептом `just lint-tree`, шаблоном `init`, разрешением в guard и
   тестами.
-- VAC 3 замораживает протокол теста в Delivery P128. Стенд в scratchpad `p128/`: `harness.py`, `question.txt`,
-  `rubric.txt`, `baseline.txt`, `variants/*.map`, журнал `results.jsonl`, ответы в `runs/`.
+- VAC 3 `f5b8502` заморозила протокол теста в Delivery P128. Стенд в scratchpad `p128/`: `harness.py`,
+  `batch.sh`, `question.txt`, `rubric.txt`, `baseline.txt`, `variants/*.map`, журнал `results.jsonl`, ответы в
+  `runs/`.
+- VAC 4 переносит в Журнал Delivery 12 вариантов. Базовое дерево 23,50 из 28 на 12 прогонах; лучший подтверждённый
+  родитель v04-roles 25,50 на 8; поверх него ни один вариант не прошёл порог 1,13, лучший v11-mixed 26,00.
 
 ## Verification
 
@@ -43,5 +46,6 @@ Revision: `5a705fd3377cbcdb2419cb3a167fd194b83af745`
 
 ## Next action
 
-Закоммитить VAC 3, затем 8 прогонов базового дерева для шума и варианты по протоколу Delivery P128. Свободные ID: D172+, I022+, P129+, B124+ (B066 и D111
+Закоммитить VAC 4, затем следующий класс вариантов поверх v04-roles по протоколу Delivery P128. Коммиты — только
+когда не идёт партия прогонов. Свободные ID: D172+, I022+, P129+, B124+ (B066 и D111
 зарезервированы).
