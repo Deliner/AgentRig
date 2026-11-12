@@ -4,6 +4,7 @@ use crate::structural_lint::rules::signature::Signature;
 
 const UNTYPED: Kind = Kind::Signature(Signature::UntypedConversion);
 
+// DECISION: D171
 #[test]
 fn rust_flags_untyped_lets_over_a_generic_conversion() {
     let source = "fn run(text: &str, items: &[u32]) -> Result<(), Error> {

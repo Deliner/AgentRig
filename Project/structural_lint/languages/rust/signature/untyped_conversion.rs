@@ -6,6 +6,7 @@ use tree_sitter::Node;
 
 const CONVERSIONS: [&str; 6] = ["parse", "into", "try_into", "sum", "product", "collect"];
 
+// DECISION: D171
 pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let typed = binding.child_by_field_name("type").is_some();
     let plain = binding

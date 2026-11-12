@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P127](Plan/127.md) | active | - | [B122](Backlog/122.md): rule-variants — варианты правил IV-20, IV-22 и IV-30 | Выход из функции и тип значения видны на месте вызова, без шума от макросов-выходов и от `.into()`, тип которого уже задаёт сигнатура, а гонка «проверить, потом действовать» ловится в момент написания кода. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 

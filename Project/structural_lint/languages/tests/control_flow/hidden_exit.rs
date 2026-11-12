@@ -1,6 +1,7 @@
 use super::measured;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 
+// DECISION: D171
 #[test]
 fn rust_flags_returns_propagation_and_exits_of_the_caller_loop_in_a_transcriber() {
     let source = "macro_rules! need {

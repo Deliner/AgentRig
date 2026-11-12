@@ -146,6 +146,7 @@ const LENGTHSUBTRACTION: Descriptor = Descriptor {
         violation: "subtracting from a length underflows when the collection is shorter, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the length",
     },
 };
+// DECISION: D171
 const HIDDENEXIT: Descriptor = Descriptor {
     default_id: "hidden-exit",
     exclude: TEST_CODE,
@@ -157,6 +158,7 @@ const HIDDENEXIT: Descriptor = Descriptor {
         violation: "a macro that returns, propagates with ? or breaks the caller's loop looks like an expression at the call site, so a reader or an agent does not see the exit; turn it into a function returning Result or Option and write the ? at the call site, or put a DECISION: or INVARIANT: reference on the line directly above the exit",
     },
 };
+// DECISION: D171
 const STALECHECK: Descriptor = Descriptor {
     default_id: "stale-check",
     exclude: TEST_CODE,

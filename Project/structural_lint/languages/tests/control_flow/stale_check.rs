@@ -1,6 +1,7 @@
 use super::measured;
 use crate::structural_lint::rules::control_flow::ControlFlow;
 
+// DECISION: D171
 #[test]
 fn rust_flags_a_check_whose_propagated_action_depends_on_a_normal_absence() {
     let source = "fn load(path: &Path, root: PathBuf, lock: PathBuf) -> Result<Option<String>> {

@@ -33,6 +33,7 @@ struct Guard<'tree> {
     present: Option<Node<'tree>>,
 }
 
+// DECISION: D171
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(check) = checked(call, source) else {
         return;

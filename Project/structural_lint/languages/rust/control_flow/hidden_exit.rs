@@ -28,6 +28,7 @@ const LOOP_EXITS: [Exit; 2] = [
     ("continue_expression", "continue"),
 ];
 
+// DECISION: D171
 pub(super) fn inspect(rule: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(transcriber) = rule.child_by_field_name("right") else {
         return;

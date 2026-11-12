@@ -216,6 +216,7 @@ const POSITIONALFLAG: Descriptor = Descriptor {
         violation: "a bool among positions reads as a bare true or false where the value is built, so an inverted flag compiles unnoticed; name the field and give it an enum naming both states, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D171
 const UNTYPEDCONVERSION: Descriptor = Descriptor {
     default_id: "untyped-conversion",
     exclude: TEST_CODE,
