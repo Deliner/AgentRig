@@ -12,7 +12,7 @@
 ## Workspace
 
 Branch: `feature/rule-variants`, от master `e006e9b`.
-Revision: `e006e9b052c22d1a4c087e54bd95d3bf93136aed`
+Revision: `4179ce36dab117d3b950dbf381408b1db8a11ed6`
 
 Установленный рантайм `1254ce0`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -21,13 +21,17 @@ Revision: `e006e9b052c22d1a4c087e54bd95d3bf93136aed`
 ## Progress
 
 - P126 влита слиянием `e006e9b`: `fs::present` и пять мест B121, перенос в Archive `1254ce0`, пин `8861397`.
-- VAC 1 `431b9f7` сделал P127 активной. VAC 2 записывает в Delivery P127 протокол новой выборки и предикаты трёх
-  вариантов до заморозки.
+- VAC 1 `431b9f7` сделал P127 активной. VAC 2 `4179ce3` записал в Delivery P127 протокол новой выборки и предикаты
+  трёх вариантов до заморозки.
+- VAC 3 замораживает предикаты инертными видами: `hidden-exit` и `stale-check` в `languages/rust/control_flow`,
+  `untyped-conversion` в `languages/rust/signature`, без записи в реестр.
 
 ## Verification
 
 - `feature-merge` P126 прошёл с кодом 0: 464 теста, все проверки PASS, очистка после слияния без ошибок.
-- VAC 1 `431b9f7`: хук коммита прошёл.
+- VAC 1 `431b9f7` и VAC 2 `4179ce3`: хук коммита прошёл.
+- VAC 3: десять тестов `hidden_exit`, `stale_check` и `untyped_conversion` проходят. Тест пропуска IV-22 падал на
+  `impl Into<String> + Send`, пока разбор не учитывал `bounded_type` вокруг `impl`.
 
 ## Blockers
 
@@ -35,7 +39,6 @@ Revision: `e006e9b052c22d1a4c087e54bd95d3bf93136aed`
 
 ## Next action
 
-Заморозить по записанным предикатам инертные виды: `hidden-exit` и `stale-check` в
-`languages/rust/control_flow`, `untyped-conversion` в `languages/rust/signature`; тесты там же в `languages/tests`.
-Пределы у краёв: в `languages/rust` и `languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у
+Собрать бинарь замера из коммита заморозки с тремя видами, сверить его на `base/rig` и на прежних находках, затем
+один прогон всех деревьев и новая выборка корпуса по списку исключений. Пределы у краёв: в `languages/rust` и `languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у
 `measure` 7 из 7 и у `rules` 13 из 13. Свободные ID: D171+, I022+, P128+, B123+ (B066 и D111 зарезервированы).
