@@ -88,26 +88,25 @@ fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> 
 }
 fn reject_unindexed(memory: &Path, catalog: Catalog, known: &HashSet<String>) -> Result<()> {
     let directory = catalog.directory();
-    let path = memory.join(directory);
-    let directory_exists = path.is_dir();
-    if directory_exists {
-        for entry in fs::read_dir(path)? {
-            let path = entry?.path();
-            let numeric = path
-                .file_stem()
-                .and_then(|s| s.to_str())
-                .is_some_and(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()));
-            if numeric {
-                let name = path
-                    .file_name()
-                    .ok_or_else(|| anyhow::anyhow!("detail path has no file name"))?
-                    .to_string_lossy();
-                ensure!(
-                    known.contains(&format!("{directory}/{name}")),
-                    "unindexed detail {}",
-                    path.display()
-                );
-            }
+    let Some(entries) = fs::present(fs::read_dir(memory.join(directory)))? else {
+        return Ok(());
+    };
+    for entry in entries {
+        let path = entry?.path();
+        let numeric = path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .is_some_and(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()));
+        if numeric {
+            let name = path
+                .file_name()
+                .ok_or_else(|| anyhow::anyhow!("detail path has no file name"))?
+                .to_string_lossy();
+            ensure!(
+                known.contains(&format!("{directory}/{name}")),
+                "unindexed detail {}",
+                path.display()
+            );
         }
     }
     Ok(())

@@ -27,20 +27,16 @@ pub fn load(runtime: &Path, id: &str) -> Result<Record> {
     Ok(serde_json::from_slice(&fs::read(path)?)?)
 }
 pub fn list(runtime: &Path) -> Result<Vec<Record>> {
-    let directory = runtime.join("jobs");
-    let missing = !directory.exists();
-    if missing {
+    let Some(entries) = fs::present(fs::read_dir(runtime.join("jobs")))? else {
         return Ok(Vec::new());
-    }
+    };
     let mut records = Vec::new();
-    for entry in fs::read_dir(directory)? {
-        let entry = entry?;
-        let path = entry.path().join("record.json");
-        let pending_creation = !path.exists();
-        if pending_creation {
+    for entry in entries {
+        let path = entry?.path().join("record.json");
+        let Some(saved) = fs::present(fs::read(path))? else {
             continue;
-        }
-        records.push(serde_json::from_slice::<Record>(&fs::read(path)?)?);
+        };
+        records.push(serde_json::from_slice::<Record>(&saved)?);
     }
     records.sort_by(|a, b| (a.started, &a.run_id).cmp(&(b.started, &b.run_id)));
     Ok(records)

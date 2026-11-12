@@ -34,9 +34,8 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
 pub fn cleanup(context: &Context, branch: &str) -> Result<()> {
     let runtime = context.runtime.clone();
     let area = runtime.join("scratch").join(branch);
-    let present = area.is_dir();
-    if present {
-        for entry in fs::read_dir(&area)? {
+    if let Some(entries) = fs::present(fs::read_dir(&area))? {
+        for entry in entries {
             let entry = entry?;
             let disposable = entry.file_name() != "results";
             match (disposable, entry.file_type()?.is_dir()) {

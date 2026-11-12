@@ -278,6 +278,17 @@ fn rust_init_accepts_parent_paths_inside_the_root() {
 }
 
 #[test]
+fn rust_init_skips_member_globs_over_missing_directories() {
+    let (_temp, root) = consumer();
+    let workspace = "[workspace]\nmembers = [\"crates/*\", \"missing/*\"]\n";
+    fs::write(root.join("Cargo.toml"), workspace).unwrap();
+    package(&root.join("crates/a"), "a", "lib.rs");
+    rust(&root, &["--source", "crates"]);
+    let crates = "{a: crates/a/src/lib.rs}";
+    assert_layout(&root, "[crates/a/src/lib.rs]", crates, ROOT_TESTS);
+}
+
+#[test]
 fn rust_init_skips_excluded_workspace_members() {
     let (_temp, root) = consumer();
     let workspace = "[workspace]\nmembers = [\"crates/*\"]\nexclude = [\"crates/skip\"]\n";
