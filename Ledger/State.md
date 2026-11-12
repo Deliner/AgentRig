@@ -14,7 +14,7 @@ P129 (B124) снова активна: 2026-11-12 пользователь не 
 ## Workspace
 
 Branch: `feature/structure-signal`, от master `3071695`.
-Revision: `2e53c390b7f536e7597463495588d82d3ccb725d`
+Revision: `53c50e8254327a0bc00891eaba13cf1733d1cd38`
 
 Установленный рантайм `7d93827`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -34,7 +34,7 @@ Revision: `2e53c390b7f536e7597463495588d82d3ccb725d`
   показывают меньше 40 % слов его описания; собственное имя не учитывается. `hidden` проверяет только файлы.
   `treescore.py` на 58 деревьях: ρ среднего по 48 каталогам со Sonnet 0,925, у v1 0,646. Исходное дерево 74,8,
   деревья агентов P129 68,9–77,7, v20 68,1, v36 57,2, v42 52,5.
-- VAC 7: навык `Ledger/Assets/P129/skill-v3.md`, разбор v36, вариант v3 и критерий успеха записаны в Delivery P129 до
+- VAC 7 `53c50e8`: навык `Ledger/Assets/P129/skill-v3.md`, разбор v36, вариант v3 и критерий успеха записаны в Delivery P129 до
   прогонов. Критерий: среднее Sonnet трёх прогонов не ниже 64,25 % и итог выше 0,213. Релизный бинарь `2e53c39` лежит
   в `/private/tmp/claude-501/p129/bin/v3/agentrig`; `drive.sh` берёт путь бинаря шестым аргументом.
 
@@ -52,6 +52,7 @@ Revision: `2e53c390b7f536e7597463495588d82d3ccb725d`
 
 ## Next action
 
-Пилот `v3p1`: `drive.sh v3p1 evidence Ledger/Assets/P129/skill-v3.md 10800 60
-/private/tmp/claude-501/p129/bin/v3/agentrig`, проверить сборку, `check ok`, деления и пустые новые файлы. Затем три
-прогона `v3e1`–`v3e3`, `stage2.py run NAME 4`, `overlap.py`, `table.py`. Свободные ID: D173+, I022+, P130+, B125+ (B066 и D111 зарезервированы).
+Пилот `v3p1` прошёл механику, VAC 8 записывает его в Delivery. Три прогона `v3e1`–`v3e3`: `drive.sh NAME evidence
+/Users/admin/projects/AgentRig/Ledger/Assets/P129/skill-v3.md 10800 60 /private/tmp/claude-501/p129/bin/v3/agentrig`,
+затем `runcheck.py NAME BIN`, `stage2.py run NAME 4`, `overlap.py` и `table.py v3=v3e1,v3e2,v3e3`; итог против
+критерия в Delivery. Свободные ID: D173+, I022+, P130+, B125+ (B066 и D111 зарезервированы).
