@@ -51,6 +51,18 @@ impl std::error::Error for Error {
     }
 }
 
+pub fn present<T>(result: Result<T>) -> Result<Option<T>> {
+    match result {
+        Ok(value) => Ok(Some(value)),
+        Err(error) => {
+            let kind = error.kind();
+            // DECISION: D156
+            let absent = matches!(kind, io::ErrorKind::NotFound | io::ErrorKind::NotADirectory);
+            if absent { Ok(None) } else { Err(error) }
+        }
+    }
+}
+
 fn at<T>(action: &'static str, path: &Path, result: io::Result<T>) -> Result<T> {
     result.map_err(|source| Error {
         action,

@@ -1,7 +1,7 @@
 purpose: Verify configured command execution and the lifecycle of its owned jobs
 files:
   mod.rs: Configured consumer project, worker processes, job records and readiness polling
-  foreground.rs: Foreground job identity, signals, bounded drain, recovery, nesting and captured logs
+  foreground.rs: Foreground job identity, signals, bounded drain, recovery, nesting, captured logs and listing
   background.rs: Background job ownership, forced stop, nested cleanup and per-branch cleanup
   commands.rs: Command catalog streams, read isolation, program refusals, output views and scratch areas
 directories: {}

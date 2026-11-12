@@ -127,6 +127,33 @@ fn spawn_failure_is_recorded() {
 }
 
 #[test]
+fn job_list_skips_entries_without_a_record() {
+    let (_temp, root) = configured("");
+    assert_eq!(jobs(&root), Vec::<Value>::new());
+    let directory = root.join(".runtime/jobs");
+    fs::create_dir_all(directory.join("run-pending")).unwrap();
+    fs::write(directory.join("stray"), "").unwrap();
+    assert_eq!(invoke(&root, &["run", "fail"]).code, Some(23));
+    let codes: Vec<_> = jobs(&root)
+        .iter()
+        .map(|row| row["exit_code"].clone())
+        .collect();
+    assert_eq!(codes, [json!(23)]);
+}
+
+#[test]
+fn job_list_stops_on_an_unreadable_directory() {
+    let (_temp, root) = configured("");
+    let directory = root.join(".runtime/jobs");
+    fs::create_dir_all(root.join(".runtime")).unwrap();
+    std::os::unix::fs::symlink("jobs", &directory).unwrap();
+    let listed = invoke(&root, &["jobs"]);
+    assert_eq!(listed.code, Some(2), "{}", listed.output());
+    let named = format!("read directory {}", directory.display());
+    assert!(listed.stderr.contains(&named), "{}", listed.stderr);
+}
+
+#[test]
 fn nested_command_inherits_owner_and_parent() {
     let (_temp, root) = configured("");
     let worker = worker().to_str().unwrap();

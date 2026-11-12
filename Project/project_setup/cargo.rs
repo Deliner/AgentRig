@@ -222,11 +222,10 @@ fn expand(root: &Path, paths: &[PathBuf], segment: &str) -> Result<Vec<PathBuf>>
     let mut expanded = Vec::new();
     for path in paths {
         let directory = root.join(path);
-        let missing = !directory.is_dir();
-        if missing {
+        let Some(entries) = fs::present(fs::read_dir(&directory))? else {
             continue;
-        }
-        for entry in fs::read_dir(&directory)? {
+        };
+        for entry in entries {
             let name = entry?.file_name();
             let selected = matcher.is_match(&name) && directory.join(&name).is_dir();
             if selected {

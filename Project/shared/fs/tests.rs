@@ -50,6 +50,25 @@ fn existence_and_handle_metadata_name_the_path() {
 }
 
 #[test]
+fn only_a_missing_path_or_a_non_directory_is_absent() {
+    let directory = tempfile::tempdir().unwrap();
+    let file = directory.path().join("file");
+    super::write(&file, "text").unwrap();
+    let read = super::present(super::read(&file)).unwrap();
+    assert_eq!(read.as_deref(), Some(&b"text"[..]));
+    let missing = directory.path().join("missing");
+    assert!(super::present(super::read(&missing)).unwrap().is_none());
+    assert!(super::present(super::read_dir(&file)).unwrap().is_none());
+    let looped = directory.path().join("loop");
+    super::symlink(OsStr::new("loop"), &looped).unwrap();
+    let error = super::present(super::read_dir(&looped)).err().unwrap();
+    assert_eq!(
+        error.to_string(),
+        format!("read directory {}", looped.display())
+    );
+}
+
+#[test]
 fn wrappers_perform_the_operations_they_name() {
     let directory = tempfile::tempdir().unwrap();
     let root = directory.path().join("a/b");
