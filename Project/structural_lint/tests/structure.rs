@@ -8,19 +8,12 @@ const CROWD: [&str; 12] = [
 ];
 
 fn repository(root: &Path) {
-    write(root, "lib.rs", "pub mod gadget;\npub mod reader;\n");
     write(
         root,
-        "reader/architecture.yaml",
-        "purpose: Reader of bytes\n",
+        "lib.rs",
+        "pub mod engine;\npub mod gadget;\npub mod reader;\npub mod spooler;\n",
     );
-    write(root, "reader/mod.rs", "pub fn spool() {}\n");
-    write(
-        root,
-        "gadget/architecture.yaml",
-        "purpose: Parse settings tokens\n",
-    );
-    write(root, "gadget/mod.rs", "pub fn widget() {}\n");
+    described_directories(root);
     for word in CROWD {
         write(
             root,
@@ -39,6 +32,42 @@ fn repository(root: &Path) {
         pub struct Berry;\nimpl Berry { pub fn ripen() -> Berry { Berry } }\n";
     write(root, "mixed.rs", mixed);
     write(root, "plain.rs", "pub fn quiet_kettle() {}\n");
+}
+
+fn described_directories(root: &Path) {
+    write(
+        root,
+        "reader/architecture.yaml",
+        "purpose: Reader of bytes\n",
+    );
+    write(root, "reader/mod.rs", "pub fn fetch() {}\n");
+    write(
+        root,
+        "gadget/architecture.yaml",
+        "purpose: Parse settings tokens\n",
+    );
+    write(root, "gadget/mod.rs", "pub fn widget() {}\n");
+    write(root, "spooler/architecture.yaml", "purpose: Spool bytes\n");
+    write(root, "spooler/mod.rs", "pub mod bytes;\npub mod spool;\n");
+    write(root, "spooler/spool.rs", "pub fn wind_reel() {}\n");
+    write(root, "spooler/bytes.rs", "pub fn count_octets() {}\n");
+    write(
+        root,
+        "engine/architecture.yaml",
+        "purpose: Schedule ticks and render frames\n",
+    );
+    write(
+        root,
+        "engine/mod.rs",
+        "pub mod one;\npub mod three;\npub mod two;\n",
+    );
+    for (part, word) in [("one", "north"), ("two", "south"), ("three", "east")] {
+        write(
+            root,
+            &format!("engine/{part}.rs"),
+            &format!("pub fn {word}() {{}}\n"),
+        );
+    }
 }
 
 fn structure(root: &Path, path: &str) -> Run {
@@ -68,12 +97,14 @@ fn structure_reports_the_edit_kind_of_each_problem() {
     repository(temp.path());
     let found = rows(temp.path());
     for expected in [
-        row("100", "rename", "gadget/"),
+        row("100", "split", "gadget/"),
+        row("100", "split", "reader/"),
+        row("100", "rename", "engine/"),
         row("100", "merge", "twin_one.rs"),
         row("100", "merge", "twin_two.rs"),
         row("33", "split", "mixed.rs"),
         row("20", "split", "crowd/"),
-        row("0", "ok", "reader/"),
+        row("0", "ok", "spooler/"),
         row("0", "undescribed", "plain.rs"),
         row("0", "undescribed", "."),
     ] {
@@ -100,7 +131,7 @@ fn structure_reads_rust_documentation_when_no_contract_describes_a_unit() {
     write(temp.path(), "lib.rs", "pub mod ast;\n");
     let documented = "//! Abstract syntax trees.\n//!\n//! Later paragraph.\npub fn node() {}\n";
     write(temp.path(), "ast/mod.rs", documented);
-    assert!(rows(temp.path()).contains(&row("100", "rename", "ast/")));
+    assert!(rows(temp.path()).contains(&row("100", "split", "ast/")));
 }
 
 #[test]
