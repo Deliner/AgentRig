@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P129](Plan/129.md) | active | - | [B124](Backlog/124.md): structure-metrics — детерминированный замер понятности структуры и навык её правки | Понятность структуры любого Rust-репозитория меряется детерминированно и дёшево, без слепого теста. Агент по числам и навыку приводит структуру к понятной. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
