@@ -31,7 +31,7 @@ pub fn fingerprint(context: &Project, origin: &Path, tree: Tree) -> Result<Strin
 pub fn revision_fingerprint(context: &Project, origin: &Path, revision: &str) -> Result<String> {
     let repository = crate::shared::vcs::Repository::discover(origin)?
         .context("revision checking requires a VCS repository")?;
-    let paths = repository
+    let paths: Vec<PathBuf> = repository
         .tree(revision)?
         .into_keys()
         .map(PathBuf::from)

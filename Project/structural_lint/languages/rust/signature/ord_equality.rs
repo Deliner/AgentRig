@@ -179,7 +179,7 @@ fn derived_fields(root: Node<'_>, name: &str, source: Code<'_>) -> Option<Fields
         .child_by_field_name("body")
         .filter(|body| body.kind() == "field_declaration_list")?;
     let mut cursor = body.walk();
-    let fields = body
+    let fields: Fields = body
         .named_children(&mut cursor)
         .filter_map(|field| field.child_by_field_name("name"))
         .map(|field| text(field, source).to_owned())

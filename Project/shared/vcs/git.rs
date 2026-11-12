@@ -149,7 +149,7 @@ pub(super) fn tree(root: &Path, revision: &str) -> Result<BTreeMap<String, Entry
     for record in records(&bytes) {
         let ([mode, _, object], path) = record?;
         let kind = kind(mode)?;
-        let object = object.into();
+        let object: String = object.into();
         entries.insert(path.into(), Entry { kind, object });
     }
     Ok(entries)
@@ -163,7 +163,7 @@ pub(super) fn index(root: &Path) -> Result<BTreeMap<String, Entry>> {
         let merged = stage == "0";
         if merged {
             let kind = kind(mode)?;
-            let object = object.into();
+            let object: String = object.into();
             entries.insert(path.into(), Entry { kind, object });
         }
     }

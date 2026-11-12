@@ -235,7 +235,7 @@ impl Rust<'_> {
             "explicit Rust module source is missing: {}",
             file.display()
         );
-        let directory = file
+        let directory: PathBuf = file
             .parent()
             .context("module source parent required")?
             .into();

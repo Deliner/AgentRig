@@ -1,0 +1,5 @@
+purpose: "Perform a file action and match its error kind instead of checking the path first, or justify the stable path with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace an exists, is_file or is_dir check before a Rust file action with the action's error"
+directories: {}

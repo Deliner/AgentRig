@@ -12,9 +12,9 @@
 ## Workspace
 
 Branch: `feature/rule-variants`, от master `e006e9b`.
-Revision: `9e9af8bf67f5730b37fd80a23a6b82019888e00f`
+Revision: `28f494b9e65bfb7f29187ff3d70b755db43fb74e`
 
-Установленный рантайм `1254ce0`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `28f494b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -25,16 +25,21 @@ Revision: `9e9af8bf67f5730b37fd80a23a6b82019888e00f`
   трёх вариантов до заморозки.
 - VAC 3 `9e9af8b` заморозил предикаты инертными видами: `hidden-exit` и `stale-check` в
   `languages/rust/control_flow`, `untyped-conversion` в `languages/rust/signature`, без записи в реестр.
-- VAC 4 записывает в Delivery P127 замер: все три варианта прошли порог AC3. Новая выборка корпуса: IV-20 верна на
-  23 из 23, IV-22 на 47 из 48, IV-30 на 15 из 16.
+- VAC 4 `28f494b` записал в Delivery P127 замер: все три варианта прошли порог AC3. Новая выборка корпуса: IV-20
+  верна на 23 из 23, IV-22 на 47 из 48, IV-30 на 15 из 16.
+- VAC 5 закрепляет рантайм на `28f494b` и включает три вида уровнем error: реестры, `.agentrig/lint.yaml`, навыки
+  `expose-the-exit`, `act-and-match-the-error` и `name-the-target`, исправления 10 находок `untyped-conversion` в
+  Project аннотацией типа.
 
 ## Verification
 
 - `feature-merge` P126 прошёл с кодом 0: 464 теста, все проверки PASS, очистка после слияния без ошибок.
 - VAC 1 `431b9f7` и VAC 2 `4179ce3`: хук коммита прошёл.
-- VAC 3 `9e9af8b`: хук коммита прошёл, 422 теста.
-- Замер бинарём из `9e9af8b`: у каждого вида ноль находок сверх прежних во всех деревьях; в Project на `9e9af8b`
-  10 находок `untyped-conversion`, ноль `hidden-exit` и `stale-check`.
+- VAC 3 `9e9af8b`: хук коммита прошёл, 422 теста. VAC 4 `28f494b`: хук прошёл.
+- Пин `28f494b`: bootstrap завершился с кодом 0.
+- Рабочее дерево VAC 5: `just lint` кандидата без находок, `lint-config-check` валиден, 56 тестов discovery,
+  project_setup и трёх видов прошли. `init --language rust` кандидата во временный корень записал три правила уровнем
+  error и три навыка.
 
 ## Blockers
 
@@ -42,6 +47,7 @@ Revision: `9e9af8bf67f5730b37fd80a23a6b82019888e00f`
 
 ## Next action
 
-Закоммитить VAC 4, затем пин рантайма на чистом дереве и включение трёх видов уровнем error с навыками
-`expose-the-exit`, `act-and-match-the-error` и `name-the-target` по образцу `e42a6f2`. Пределы у краёв: в `languages/rust` и `languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у
-`measure` 7 из 7 и у `rules` 13 из 13. Свободные ID: D171+, I022+, P128+, B123+ (B066 и D111 зарезервированы).
+Закоммитить VAC 5, затем D171 о поставке трёх видов с метками `DECISION: D171`, приёмка AC1–AC6 в Delivery P127,
+перенос P127 и B122 в Archive, финальный пин и `just feature-merge`. Пределы у краёв: в `languages/rust` и
+`languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у `measure` 7 из 7 и у `rules` 13 из 13.
+Свободные ID: D171+, I022+, P128+, B123+ (B066 и D111 зарезервированы).

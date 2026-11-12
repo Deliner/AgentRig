@@ -108,7 +108,7 @@ fn groups(attribute: Node<'_>) -> Vec<Vec<Node<'_>>> {
 
 fn derives(source: &mut Source<'_>, attribute: Node<'_>) {
     for group in groups(attribute) {
-        let path = group
+        let path: String = group
             .iter()
             .map(|node| compact(source.text(*node)))
             .collect();

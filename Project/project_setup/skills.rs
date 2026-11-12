@@ -66,6 +66,14 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/subtract-checked/SKILL.md"),
     ),
     (
+        "expose-the-exit",
+        include_str!("../shared/skills/control-flow/expose-the-exit/SKILL.md"),
+    ),
+    (
+        "act-and-match-the-error",
+        include_str!("../shared/skills/control-flow/act-and-match-the-error/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
@@ -257,6 +265,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "require-the-method",
         include_str!("../shared/skills/signature/require-the-method/SKILL.md"),
+    ),
+    (
+        "name-the-target",
+        include_str!("../shared/skills/signature/name-the-target/SKILL.md"),
     ),
     (
         "hide-checked-field",
