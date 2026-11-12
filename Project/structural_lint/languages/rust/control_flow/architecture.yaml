@@ -1,8 +1,10 @@
-purpose: Detect Rust control flow whose shape hides which loop it leaves, which case it handles or whether the length suffices
+purpose: Detect Rust control flow whose shape hides which loop it leaves, which case it handles, whether the length suffices, that a macro exits its caller or that a checked path can change before the action
 type: flat
 files:
-  mod.rs: Dispatch control-flow nodes to the control-flow detectors
+  mod.rs: Dispatch control-flow nodes, calls and macro_rules! arms to the control-flow detectors
+  hidden_exit.rs: Rust macro_rules! transcriber that returns, propagates with ? or leaves the caller's loop, re-parsed as a function body, unless the macro name says it exits
   length_subtraction.rs: Rust subtraction from a .len() or .count() call that underflows on a shorter collection
+  stale_check.rs: Rust exists, is_file or is_dir check governing an if whose absence branch is normal, followed in its presence branch or after a skipping absence branch by a filesystem action on the same path whose error propagates with ?
   range_chain.rs: Rust if-else chain or match guards that split one value into ranges by comparisons with literals
   unlabeled_exit.rs: Rust break or continue without a label inside a loop nested in another loop of the same function
   variant_equality.rs: Rust equality test or matches! pattern that names an enum variant instead of matching all variants

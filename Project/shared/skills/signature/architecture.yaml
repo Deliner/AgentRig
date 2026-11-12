@@ -1,8 +1,9 @@
-purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields and a trait default that ignores self"
+purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields, a trait default that ignores self and a conversion whose target type comes from a later use"
 files: {}
 directories:
   align-order-with-equality: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with a reference"
   check-deserialize: "Route a derived Deserialize through the check its constructor enforces"
+  name-the-target: "Write the target type of a conversion bound by a let without a type, or justify the inferred type with a reference"
   name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
   pin-the-order: "Give a derived enum order explicit discriminants or a named rank, or justify the declaration order with a reference"
   redact-secret: "Keep a secret field out of a derived Debug through a redacting type or a hand-written Debug"

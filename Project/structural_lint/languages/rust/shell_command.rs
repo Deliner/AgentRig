@@ -144,7 +144,7 @@ fn literal_value(node: Node<'_>, source: Code<'_>) -> Option<String> {
         return None;
     }
     let mut cursor = node.walk();
-    let value = node
+    let value: String = node
         .named_children(&mut cursor)
         .map(|part| match part.kind() {
             "escape_sequence" => escaped(text(part, source)),

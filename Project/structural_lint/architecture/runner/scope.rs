@@ -79,7 +79,7 @@ fn selected_inventory(
     let excluded = globs(&rule.exclude)?;
     let mut directories = BTreeMap::new();
     for directory in selected {
-        let entries = inventory.directories[directory]
+        let entries: BTreeSet<String> = inventory.directories[directory]
             .iter()
             .filter(|name| {
                 let path = directory.join(name);
@@ -93,7 +93,7 @@ fn selected_inventory(
             .collect();
         directories.insert(directory.clone(), entries);
     }
-    let files = inventory
+    let files: Vec<PathBuf> = inventory
         .files
         .iter()
         .filter(|path| !excluded.is_match(path))

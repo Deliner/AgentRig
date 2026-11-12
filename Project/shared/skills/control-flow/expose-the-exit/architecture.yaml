@@ -1,0 +1,5 @@
+purpose: "Write the exit of a macro at its call site, name the macro after its exit, or justify the hidden exit with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move a return, ? or loop exit out of a Rust macro_rules! body or justify it"
+directories: {}

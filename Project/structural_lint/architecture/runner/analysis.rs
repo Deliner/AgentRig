@@ -27,7 +27,7 @@ pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, Refe
 }
 
 pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, References> {
-    let rust_files = files
+    let rust_files: BTreeSet<PathBuf> = files
         .iter()
         .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
         .cloned()

@@ -1,0 +1,5 @@
+purpose: "Write the target type of a conversion bound by a let without a type, or justify the inferred type with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to name the type a Rust parse, into, collect or similar conversion produces"
+directories: {}

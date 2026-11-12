@@ -1,5 +1,7 @@
+mod hidden_exit;
 mod mixed_junction;
 mod range_chain;
+mod stale_check;
 mod variant_equality;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rules::control_flow::ControlFlow;

@@ -740,6 +740,45 @@ rules:
   level: error
   warning_skill: .agents/skills/pass-arguments-apart/SKILL.md
   error_skill: .agents/skills/pass-arguments-apart/SKILL.md
+- id: hidden-exit
+  kind: hidden-exit
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/expose-the-exit/SKILL.md
+  error_skill: .agents/skills/expose-the-exit/SKILL.md
+- id: stale-check
+  kind: stale-check
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/act-and-match-the-error/SKILL.md
+  error_skill: .agents/skills/act-and-match-the-error/SKILL.md
+- id: untyped-conversion
+  kind: untyped-conversion
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-target/SKILL.md
+  error_skill: .agents/skills/name-the-target/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

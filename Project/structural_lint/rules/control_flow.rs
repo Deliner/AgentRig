@@ -15,6 +15,8 @@ pub enum ControlFlow {
     LengthSubtraction,
     VariantEquality,
     RangeChain,
+    HiddenExit,
+    StaleCheck,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -27,6 +29,8 @@ impl ControlFlow {
             Self::LengthSubtraction => &LENGTHSUBTRACTION,
             Self::VariantEquality => &VARIANTEQUALITY,
             Self::RangeChain => &RANGECHAIN,
+            Self::HiddenExit => &HIDDENEXIT,
+            Self::StaleCheck => &STALECHECK,
         }
     }
 }
@@ -140,5 +144,29 @@ const LENGTHSUBTRACTION: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "subtracting from a length underflows when the collection is shorter, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the length",
+    },
+};
+// DECISION: D171
+const HIDDENEXIT: Descriptor = Descriptor {
+    default_id: "hidden-exit",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every return, ? and break or continue outside a loop of the same body in a Rust macro_rules! transcriber that parses as a function body once each $ and the delimiters, separator and operator of each $(..) repetition become spaces, outside a closure, nested fn or async block of that body, unless the macro name split at underscores has a part bail, ensure, require, return, try, break, continue, exit, throw, fail or propagate, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "expose-the-exit",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a macro that returns, propagates with ? or breaks the caller's loop looks like an expression at the call site, so a reader or an agent does not see the exit; turn it into a function returning Result or Option and write the ? at the call site, or put a DECISION: or INVARIANT: reference on the line directly above the exit",
+    },
+};
+// DECISION: D171
+const STALECHECK: Descriptor = Descriptor {
+    default_id: "stale-check",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust exists, is_file or is_dir method call without arguments in an if condition, or in the value of a let of a plain name that the first later if of the same fn tests, whose absence branch, chosen by the negations of the check and the name, is missing or holds outside closures and nested fns no ?, Err(..) call, bail, ensure, panic, unreachable, todo or unimplemented macro and no file action, followed later in the same fn, closures included, in the presence branch or after the if when the absence branch holds a return, continue or break, by a call whose path has an fs segment before its name or ends in File::open or File::create, with an argument whose text equals the checked receiver once & and .as_path() are removed from both, whose error leaves through ?, directly or after .await, .context(..), .with_context(..) or .map_err(..), outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the check",
+    skill: "act-and-match-the-error",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the path can appear, vanish or change its kind between the check and the action, so the action fails or is skipped where its own error would tell what happened; perform the action and match its error kind such as NotFound or AlreadyExists, or put a DECISION: or INVARIANT: reference on the line directly above the check",
     },
 };
