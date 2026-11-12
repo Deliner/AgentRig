@@ -12,7 +12,7 @@ Sonnet 5.5 уровня high, около 12 часов или до его ост
 ## Workspace
 
 Branch: `feature/structure-blind-test`, от master `7d8c312`.
-Revision: `346258793a2d6b660507dbc6a9aa6edec08d880b`
+Revision: `5a705fd3377cbcdb2419cb3a167fd194b83af745`
 
 Установленный рантайм `6f2c4f3`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -22,14 +22,18 @@ Revision: `346258793a2d6b660507dbc6a9aa6edec08d880b`
 
 - P127 влита слиянием `7d8c312`: D171, три вида уровнем error, перенос в Archive `6f2c4f3`, пин `9b1a533`.
 - VAC 1 `3462587` сохранила B123 и сделала P128 активной.
-- VAC 2 добавляет `lint-tree PATH`: дерево имён инвентаря lint псевдографикой после глобальных исключений, в
-  `structural_lint/tree.rs`, с рецептом `just lint-tree`, шаблоном `init`, разрешением в guard и тестами.
+- VAC 2 `5a705fd` добавила `lint-tree PATH`: дерево имён инвентаря lint псевдографикой после глобальных
+  исключений, в `structural_lint/tree.rs`, с рецептом `just lint-tree`, шаблоном `init`, разрешением в guard и
+  тестами.
+- VAC 3 замораживает протокол теста в Delivery P128. Стенд в scratchpad `p128/`: `harness.py`, `question.txt`,
+  `rubric.txt`, `baseline.txt`, `variants/*.map`, журнал `results.jsonl`, ответы в `runs/`.
 
 ## Verification
 
 - `feature-merge` P127 прошёл с кодом 0: 477 тестов, все проверки PASS.
-- VAC 2: фокусные тесты tree, explain, shell и project_setup, 52 из 52; `just lint` чист; `just candidate
-  lint-tree Project` печатает 714 строк.
+- VAC 2: шлюз коммита прошёл, 479 тестов; `just candidate lint-tree Project` печатает 714 строк.
+- Стенд: рендер равен `lint-tree` на базовом дереве; пробная карта ловит длинное имя и пустую папку; калибровка
+  судьи по 3 раза: по README 28, эхо имён 9, наполовину верное 6.
 - Слепой запуск `claude -p` из пустой папки `/private/tmp/claude-501/blind-test` без инструментов, настроек и
   серверов MCP: модель видит только папку, ОС, дату и почту аккаунта, проекта и его названия не видит.
 
@@ -39,6 +43,5 @@ Revision: `346258793a2d6b660507dbc6a9aa6edec08d880b`
 
 ## Next action
 
-Закоммитить VAC 2, затем собрать стенд в scratchpad: рендер дерева из карты путей, слепой запуск, судью и журнал.
-Протокол теста заморозить в Delivery P128 до первого прогона. Свободные ID: D172+, I022+, P129+, B124+ (B066 и D111
+Закоммитить VAC 3, затем 8 прогонов базового дерева для шума и варианты по протоколу Delivery P128. Свободные ID: D172+, I022+, P129+, B124+ (B066 и D111
 зарезервированы).
