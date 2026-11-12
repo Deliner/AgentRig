@@ -16,12 +16,13 @@ const WRAPPERS: [&str; 2] = [
     "just run write -- sh -c 'git commit -m x'",
     "just read -- python3 tool.py",
 ];
-const LISTINGS: [&str; 7] = [
+const LISTINGS: [&str; 8] = [
     "just --list",
     "just list",
     "just lint-rule function-lines --example",
     "just lint-explain src/example.py --json",
     "just lint-edges src --json",
+    "just lint-tree src",
     "just run read -- git status",
     "just run write -- touch ok",
 ];

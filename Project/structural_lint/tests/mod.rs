@@ -11,6 +11,7 @@ mod discovery;
 mod explain;
 mod languages;
 mod portable;
+mod tree;
 
 fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, Option<usize>)> {
     let root = tempfile::tempdir().unwrap();

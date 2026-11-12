@@ -22,6 +22,7 @@ pub fn inspection(command: &str) -> Option<Inspection> {
     match command {
         "lint-explain" => Some(run),
         "lint-edges" => Some(edges),
+        "lint-tree" => Some(super::tree::run),
         _ => None,
     }
 }
@@ -110,7 +111,7 @@ fn arguments(command: &str, args: &[String]) -> Result<(PathBuf, bool)> {
     Ok((selected_path(path)?, !flags.is_empty()))
 }
 
-fn selected_path(value: &str) -> Result<PathBuf> {
+pub(super) fn selected_path(value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
     ensure!(
         !path.is_absolute()
