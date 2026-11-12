@@ -131,14 +131,15 @@ impl<'a> Units<'a> {
 
     pub fn shown(&self, unit: &Unit<'_>) -> BTreeSet<String> {
         let parts = self.children.get(unit.path).into_iter().flatten();
-        parts
-            .filter(|_| unit.directory)
-            .filter_map(|(path, directory)| {
-                name(&Unit {
-                    path,
-                    directory: *directory,
-                })
+        let part_names = parts.filter_map(|(path, directory)| {
+            name(&Unit {
+                path,
+                directory: *directory,
             })
+        });
+        let names = part_names.chain(name(unit));
+        names
+            .filter(|_| unit.directory)
             .flat_map(|name| stems(&name))
             .collect()
     }

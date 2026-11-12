@@ -3,8 +3,8 @@ use super::units::{Unit, Units, Vector, name, real};
 use super::words::split;
 use std::path::{Path, PathBuf};
 
-const COVERED: f64 = 0.4;
-const PARTS: usize = 3;
+const COVERED: f64 = 0.25;
+const PARTS: usize = 2;
 const CLUSTERS: usize = 3;
 const NAME_WORDS: usize = 3;
 const ENTRIES: usize = 10;
