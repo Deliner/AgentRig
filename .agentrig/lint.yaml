@@ -49,6 +49,8 @@ rules:
   exclude:
   # DECISION: D116 -- the lint configuration is a flat rule registry read as one file.
   - .agentrig/lint.yaml
+  # DECISION: D172 -- a Plan card asset is a stored artifact read as one file.
+  - Ledger/Assets/**
   warning: 300
   error: 500
   warning_skill: .agents/skills/refactor-large-file/SKILL.md

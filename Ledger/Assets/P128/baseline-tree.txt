@@ -1,0 +1,714 @@
+Project
+├── Cargo.lock
+├── Cargo.toml
+├── README.md
+├── agent_hooks
+│   ├── architecture.yaml
+│   ├── attention.txt
+│   ├── full-refresh.txt
+│   ├── guard.rs
+│   ├── input.rs
+│   ├── mod.rs
+│   ├── recovery.rs
+│   ├── reminder.rs
+│   ├── requirements.rs
+│   ├── tests
+│   │   ├── architecture.yaml
+│   │   ├── memory.rs
+│   │   ├── mod.rs
+│   │   ├── reminders.rs
+│   │   ├── requirements.rs
+│   │   └── shell.rs
+│   └── transcript.rs
+├── architecture.yaml
+├── change_delivery
+│   ├── architecture.yaml
+│   ├── gate
+│   │   ├── README.md
+│   │   ├── architecture.yaml
+│   │   ├── check.rs
+│   │   ├── mod.rs
+│   │   ├── selection.rs
+│   │   ├── staged.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       ├── mod.rs
+│   │       ├── outcomes.rs
+│   │       ├── revision.rs
+│   │       ├── selection.rs
+│   │       └── staged.rs
+│   ├── git
+│   │   ├── architecture.yaml
+│   │   ├── integration.rs
+│   │   ├── mod.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       ├── cleanup.rs
+│   │       ├── guards.rs
+│   │       ├── integration.rs
+│   │       ├── mod.rs
+│   │       └── start.rs
+│   └── mod.rs
+├── clippy.toml
+├── command_line
+│   ├── architecture.yaml
+│   ├── lint.rs
+│   ├── main.rs
+│   ├── mod.rs
+│   ├── project.rs
+│   └── tests
+│       ├── architecture.yaml
+│       └── mod.rs
+├── command_runner
+│   ├── architecture.yaml
+│   ├── jobs
+│   │   ├── architecture.yaml
+│   │   ├── background.rs
+│   │   ├── cleanup.rs
+│   │   ├── group.rs
+│   │   ├── identity
+│   │   │   ├── architecture.yaml
+│   │   │   ├── linux.rs
+│   │   │   ├── macos.rs
+│   │   │   └── mod.rs
+│   │   ├── logs.rs
+│   │   ├── mod.rs
+│   │   ├── process.rs
+│   │   ├── report.rs
+│   │   ├── stop.rs
+│   │   ├── storage.rs
+│   │   └── streams.rs
+│   ├── mod.rs
+│   ├── registry
+│   │   ├── architecture.yaml
+│   │   ├── check.rs
+│   │   ├── mod.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       └── mod.rs
+│   ├── sandbox.rs
+│   ├── scratch.rs
+│   ├── summary.rs
+│   └── tests
+│       ├── architecture.yaml
+│       ├── background.rs
+│       ├── commands.rs
+│       ├── foreground.rs
+│       └── mod.rs
+├── lib.rs
+├── project_config
+│   ├── architecture.yaml
+│   ├── mod.rs
+│   ├── settings
+│   │   ├── access.rs
+│   │   ├── architecture.yaml
+│   │   ├── capabilities.rs
+│   │   ├── mod.rs
+│   │   └── validation.rs
+│   └── tests
+│       ├── architecture.yaml
+│       ├── mod.rs
+│       └── settings.rs
+├── project_memory
+│   ├── architecture.yaml
+│   ├── evidence
+│   │   ├── architecture.yaml
+│   │   ├── content.rs
+│   │   ├── mod.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       └── mod.rs
+│   ├── format.rs
+│   ├── history.rs
+│   ├── mod.rs
+│   ├── oracles.rs
+│   ├── resume.rs
+│   ├── source.rs
+│   └── tests
+│       ├── architecture.yaml
+│       ├── backlog.rs
+│       ├── consumer.rs
+│       ├── history.rs
+│       ├── mod.rs
+│       ├── oracles.rs
+│       ├── plan.rs
+│       ├── resume.rs
+│       ├── state.rs
+│       └── validation.rs
+├── project_setup
+│   ├── README.md
+│   ├── adapters.rs
+│   ├── architecture.yaml
+│   ├── assets.rs
+│   ├── cargo.rs
+│   ├── claude.rs
+│   ├── clippy.rs
+│   ├── coverage.rs
+│   ├── doctor.rs
+│   ├── initialization
+│   │   ├── architecture.yaml
+│   │   ├── init.rs
+│   │   ├── mod.rs
+│   │   ├── tests
+│   │   │   ├── architecture.yaml
+│   │   │   ├── claude.rs
+│   │   │   ├── layout.rs
+│   │   │   ├── mod.rs
+│   │   │   └── wizard.rs
+│   │   └── wizard.rs
+│   ├── lint.rs
+│   ├── mod.rs
+│   ├── runtime.rs
+│   ├── skills.rs
+│   ├── template.rs
+│   └── tests
+│       ├── architecture.yaml
+│       ├── clippy.rs
+│       ├── coverage.rs
+│       ├── defaults.rs
+│       ├── delivery.rs
+│       ├── doctor.rs
+│       ├── mod.rs
+│       └── runtime.rs
+├── shared
+│   ├── architecture.yaml
+│   ├── arguments
+│   │   ├── architecture.yaml
+│   │   ├── mod.rs
+│   │   └── tests.rs
+│   ├── artifacts
+│   │   ├── architecture.yaml
+│   │   ├── json.rs
+│   │   ├── mod.rs
+│   │   └── tests.rs
+│   ├── console
+│   │   ├── architecture.yaml
+│   │   └── mod.rs
+│   ├── diagnostics
+│   │   ├── architecture.yaml
+│   │   ├── lint.rs
+│   │   ├── mod.rs
+│   │   └── skills.rs
+│   ├── fs
+│   │   ├── architecture.yaml
+│   │   ├── mod.rs
+│   │   └── tests.rs
+│   ├── mod.rs
+│   ├── paths
+│   │   ├── architecture.yaml
+│   │   ├── mod.rs
+│   │   ├── patterns.rs
+│   │   └── tests.rs
+│   ├── skills
+│   │   ├── architecture.yaml
+│   │   ├── complexity-discipline
+│   │   │   ├── SKILL.md
+│   │   │   ├── architecture.yaml
+│   │   │   └── context-reminder.json
+│   │   ├── condense-markdown
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   ├── control-flow
+│   │   │   ├── act-and-match-the-error
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── architecture.yaml
+│   │   │   ├── expose-the-exit
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── flatten-nesting
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── label-the-exit
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── match-every-variant
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── match-the-ranges
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── reduce-branching
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── split-boolean-expression
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── subtract-checked
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── develop-tools
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   ├── discipline
+│   │   │   ├── architecture.yaml
+│   │   │   ├── fail-closed-enforcement
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── testing-discipline
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── type-driven-discipline
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── execute-plan-feature
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   ├── memory
+│   │   │   ├── architecture.yaml
+│   │   │   ├── edit-backlog
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── edit-decisions
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── edit-invariants
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── edit-plan
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── edit-state
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── norm-or-choice
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── name-if-condition
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   ├── naming
+│   │   │   ├── align-field-names
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── architecture.yaml
+│   │   │   ├── name-the-arguments
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── name-the-flag
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── name-the-placeholders
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── name-the-positions
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── name-the-states
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── ownership
+│   │   │   ├── architecture.yaml
+│   │   │   ├── construct-explicitly
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── contain-the-deletion
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── delegate-not-deref
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── guard-the-pair
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── hide-checked-field
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── lock-the-data
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── own-the-resource
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── own-the-state
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── release-the-guard
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── scope-the-guard
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── refactor
+│   │   │   ├── architecture.yaml
+│   │   │   ├── extract-embedded-text
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── refactor-large-directory
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── refactor-large-file
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── refactor-long-function
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── relocate-tests
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── references
+│   │   │   ├── anchor-at-crate
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── architecture.yaml
+│   │   │   ├── await-not-block
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── eager-to-lazy
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── false-pass
+│   │   │   │   ├── architecture.yaml
+│   │   │   │   ├── expect-the-panic
+│   │   │   │   │   ├── SKILL.md
+│   │   │   │   │   └── architecture.yaml
+│   │   │   │   ├── inject-the-variant
+│   │   │   │   │   ├── SKILL.md
+│   │   │   │   │   └── architecture.yaml
+│   │   │   │   └── justify-skip
+│   │   │   │       ├── SKILL.md
+│   │   │   │       └── architecture.yaml
+│   │   │   ├── firm-up-assertion
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── handle-discarded
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── handle-error
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── handle-panic
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── justify-allow
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── justify-unsafe
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── justify-unwind
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── narrow-import
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── pass-arguments-apart
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   ├── remove-debug
+│   │   │   │   ├── SKILL.md
+│   │   │   │   └── architecture.yaml
+│   │   │   └── replace-comment
+│   │   │       ├── SKILL.md
+│   │   │       └── architecture.yaml
+│   │   ├── remove-secret
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   ├── repair
+│   │   │   ├── SKILL.md
+│   │   │   └── architecture.yaml
+│   │   └── signature
+│   │       ├── align-order-with-equality
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── architecture.yaml
+│   │       ├── check-deserialize
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── destructure-the-fields
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── name-the-record
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── name-the-target
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── pin-the-order
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── redact-secret
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── reduce-parameters
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── require-the-method
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       ├── split-boolean-parameter
+│   │       │   ├── SKILL.md
+│   │       │   └── architecture.yaml
+│   │       └── wrap-the-primitive
+│   │           ├── SKILL.md
+│   │           └── architecture.yaml
+│   ├── syntax
+│   │   ├── architecture.yaml
+│   │   └── mod.rs
+│   ├── testing
+│   │   ├── architecture.yaml
+│   │   ├── examples
+│   │   │   ├── README.md
+│   │   │   ├── architecture.yaml
+│   │   │   ├── measure.rs
+│   │   │   ├── python
+│   │   │   │   ├── .gitignore
+│   │   │   │   ├── application
+│   │   │   │   │   ├── architecture.yaml
+│   │   │   │   │   └── test_sample.py
+│   │   │   │   └── architecture.yaml
+│   │   │   └── rust
+│   │   │       ├── .gitignore
+│   │   │       ├── architecture.yaml
+│   │   │       └── crates
+│   │   │           ├── architecture.yaml
+│   │   │           └── engine
+│   │   │               ├── Cargo.toml
+│   │   │               ├── architecture.yaml
+│   │   │               └── src
+│   │   │                   ├── architecture.yaml
+│   │   │                   └── lib.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       ├── launchers.rs
+│   │       └── mod.rs
+│   ├── vcs
+│   │   ├── architecture.yaml
+│   │   ├── branches.rs
+│   │   ├── directories.rs
+│   │   ├── export.rs
+│   │   ├── git.rs
+│   │   ├── hooks.rs
+│   │   ├── mod.rs
+│   │   ├── observation.rs
+│   │   └── tests
+│   │       ├── architecture.yaml
+│   │       ├── fixture.rs
+│   │       └── mod.rs
+│   └── yaml
+│       ├── architecture.yaml
+│       ├── mod.rs
+│       └── tests.rs
+└── structural_lint
+    ├── architecture
+    │   ├── README.md
+    │   ├── architecture.yaml
+    │   ├── features.rs
+    │   ├── graph.rs
+    │   ├── inventory.rs
+    │   ├── mod.rs
+    │   ├── policy.rs
+    │   ├── resolution
+    │   │   ├── architecture.yaml
+    │   │   ├── mod.rs
+    │   │   ├── python
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── mod.rs
+    │   │   │   └── tests.rs
+    │   │   └── rust
+    │   │       ├── architecture.yaml
+    │   │       ├── macros.rs
+    │   │       ├── mod.rs
+    │   │       ├── paths.rs
+    │   │       ├── tests.rs
+    │   │       └── tree.rs
+    │   ├── runner
+    │   │   ├── analysis.rs
+    │   │   ├── architecture.yaml
+    │   │   ├── disallowed.rs
+    │   │   ├── mod.rs
+    │   │   └── scope.rs
+    │   ├── source
+    │   │   ├── architecture.yaml
+    │   │   ├── mod.rs
+    │   │   ├── model
+    │   │   │   ├── architecture.yaml
+    │   │   │   └── mod.rs
+    │   │   ├── python.rs
+    │   │   ├── rust
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── attributes.rs
+    │   │   │   ├── calls.rs
+    │   │   │   ├── conditions.rs
+    │   │   │   ├── macros.rs
+    │   │   │   ├── mod.rs
+    │   │   │   └── prelude.rs
+    │   │   └── tests.rs
+    │   └── tests.rs
+    ├── architecture.yaml
+    ├── baseline.rs
+    ├── catalog
+    │   ├── architecture.yaml
+    │   └── mod.rs
+    ├── cli.rs
+    ├── config
+    │   ├── architecture.yaml
+    │   └── mod.rs
+    ├── evaluation.rs
+    ├── explain.rs
+    ├── inventory
+    │   ├── architecture.yaml
+    │   └── mod.rs
+    ├── languages
+    │   ├── architecture.yaml
+    │   ├── manifest.rs
+    │   ├── measure
+    │   │   ├── architecture.yaml
+    │   │   └── mod.rs
+    │   ├── mod.rs
+    │   ├── python.rs
+    │   ├── registry.rs
+    │   ├── rust
+    │   │   ├── architecture.yaml
+    │   │   ├── blocking_async.rs
+    │   │   ├── context
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── async_code.rs
+    │   │   │   └── mod.rs
+    │   │   ├── control_flow
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── hidden_exit.rs
+    │   │   │   ├── length_subtraction.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── range_chain.rs
+    │   │   │   ├── stale_check.rs
+    │   │   │   ├── unlabeled_exit.rs
+    │   │   │   └── variant_equality.rs
+    │   │   ├── errors
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── mod.rs
+    │   │   │   └── silent_error.rs
+    │   │   ├── false_pass.rs
+    │   │   ├── mod.rs
+    │   │   ├── naming.rs
+    │   │   ├── ownership
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── disabled_raii.rs
+    │   │   │   ├── exposed_guard.rs
+    │   │   │   ├── global_state.rs
+    │   │   │   ├── guard_await.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── paired_calls.rs
+    │   │   │   ├── recursive_deletion.rs
+    │   │   │   ├── unit_lock.rs
+    │   │   │   └── wrapper.rs
+    │   │   ├── panic_surface.rs
+    │   │   ├── shell_command.rs
+    │   │   ├── signature
+    │   │   │   ├── architecture.yaml
+    │   │   │   ├── checked_constructor.rs
+    │   │   │   ├── constant_default.rs
+    │   │   │   ├── derived_trait.rs
+    │   │   │   ├── implicit_order.rs
+    │   │   │   ├── mod.rs
+    │   │   │   ├── ord_equality.rs
+    │   │   │   ├── partial_impl.rs
+    │   │   │   ├── same_type.rs
+    │   │   │   ├── tuple_record.rs
+    │   │   │   ├── type_shape.rs
+    │   │   │   └── untyped_conversion.rs
+    │   │   ├── super_reach.rs
+    │   │   ├── suppression.rs
+    │   │   ├── test_placement.rs
+    │   │   └── unsafe_site.rs
+    │   └── tests
+    │       ├── architecture.yaml
+    │       ├── async_code.rs
+    │       ├── control_flow
+    │       │   ├── architecture.yaml
+    │       │   ├── hidden_exit.rs
+    │       │   ├── mixed_junction.rs
+    │       │   ├── mod.rs
+    │       │   ├── range_chain.rs
+    │       │   ├── stale_check.rs
+    │       │   └── variant_equality.rs
+    │       ├── declarations.rs
+    │       ├── errors
+    │       │   ├── architecture.yaml
+    │       │   ├── discarded_result.rs
+    │       │   ├── mod.rs
+    │       │   └── silent_error.rs
+    │       ├── false_pass
+    │       │   ├── architecture.yaml
+    │       │   ├── mod.rs
+    │       │   ├── test_substitution.rs
+    │       │   └── untargeted_panic.rs
+    │       ├── manifest.rs
+    │       ├── markers.rs
+    │       ├── mod.rs
+    │       ├── ownership
+    │       │   ├── architecture.yaml
+    │       │   ├── exposed_guard.rs
+    │       │   ├── global_state.rs
+    │       │   ├── mod.rs
+    │       │   ├── paired_calls.rs
+    │       │   ├── recursive_deletion.rs
+    │       │   ├── unit_lock.rs
+    │       │   └── wrapper.rs
+    │       ├── panic_surface.rs
+    │       ├── reference
+    │       │   ├── architecture.yaml
+    │       │   ├── mod.rs
+    │       │   ├── naming.rs
+    │       │   └── super_reach.rs
+    │       ├── shell_command.rs
+    │       ├── signature
+    │       │   ├── architecture.yaml
+    │       │   ├── constant_default.rs
+    │       │   ├── derived_trait.rs
+    │       │   ├── implicit_order.rs
+    │       │   ├── mod.rs
+    │       │   ├── ord_equality.rs
+    │       │   ├── partial_impl.rs
+    │       │   ├── same_type.rs
+    │       │   ├── tuple_as_record.rs
+    │       │   ├── type_shape.rs
+    │       │   └── untyped_conversion.rs
+    │       ├── test_placement.rs
+    │       └── unsafe_site.rs
+    ├── mod.rs
+    ├── rules
+    │   ├── architecture.rs
+    │   ├── architecture.yaml
+    │   ├── control_flow.rs
+    │   ├── descriptor.rs
+    │   ├── kind.rs
+    │   ├── mod.rs
+    │   ├── ownership.rs
+    │   ├── parameters.rs
+    │   ├── reference.rs
+    │   ├── signature.rs
+    │   └── structure.rs
+    ├── selection
+    │   ├── architecture.yaml
+    │   └── mod.rs
+    ├── tests
+    │   ├── architecture
+    │   │   ├── architecture.yaml
+    │   │   ├── attributes.rs
+    │   │   ├── bindings.rs
+    │   │   ├── cli.rs
+    │   │   ├── coupling.rs
+    │   │   ├── crates.rs
+    │   │   ├── disallowed.rs
+    │   │   ├── externals.rs
+    │   │   ├── incomplete.rs
+    │   │   ├── inventory.rs
+    │   │   ├── macros.rs
+    │   │   ├── mod.rs
+    │   │   ├── resources.rs
+    │   │   ├── settings.rs
+    │   │   ├── versioned.rs
+    │   │   └── wiring.rs
+    │   ├── architecture.yaml
+    │   ├── baseline.rs
+    │   ├── configuration.rs
+    │   ├── consumer.rs
+    │   ├── diagnostics.rs
+    │   ├── discovery.rs
+    │   ├── explain.rs
+    │   ├── languages.rs
+    │   ├── mod.rs
+    │   ├── portable.rs
+    │   └── tree.rs
+    └── tree.rs
