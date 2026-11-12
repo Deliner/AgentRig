@@ -12,7 +12,7 @@
 ## Workspace
 
 Branch: `feature/rule-variants`, от master `e006e9b`.
-Revision: `4179ce36dab117d3b950dbf381408b1db8a11ed6`
+Revision: `9e9af8bf67f5730b37fd80a23a6b82019888e00f`
 
 Установленный рантайм `1254ce0`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -23,15 +23,18 @@ Revision: `4179ce36dab117d3b950dbf381408b1db8a11ed6`
 - P126 влита слиянием `e006e9b`: `fs::present` и пять мест B121, перенос в Archive `1254ce0`, пин `8861397`.
 - VAC 1 `431b9f7` сделал P127 активной. VAC 2 `4179ce3` записал в Delivery P127 протокол новой выборки и предикаты
   трёх вариантов до заморозки.
-- VAC 3 замораживает предикаты инертными видами: `hidden-exit` и `stale-check` в `languages/rust/control_flow`,
-  `untyped-conversion` в `languages/rust/signature`, без записи в реестр.
+- VAC 3 `9e9af8b` заморозил предикаты инертными видами: `hidden-exit` и `stale-check` в
+  `languages/rust/control_flow`, `untyped-conversion` в `languages/rust/signature`, без записи в реестр.
+- VAC 4 записывает в Delivery P127 замер: все три варианта прошли порог AC3. Новая выборка корпуса: IV-20 верна на
+  23 из 23, IV-22 на 47 из 48, IV-30 на 15 из 16.
 
 ## Verification
 
 - `feature-merge` P126 прошёл с кодом 0: 464 теста, все проверки PASS, очистка после слияния без ошибок.
 - VAC 1 `431b9f7` и VAC 2 `4179ce3`: хук коммита прошёл.
-- VAC 3: десять тестов `hidden_exit`, `stale_check` и `untyped_conversion` проходят. Тест пропуска IV-22 падал на
-  `impl Into<String> + Send`, пока разбор не учитывал `bounded_type` вокруг `impl`.
+- VAC 3 `9e9af8b`: хук коммита прошёл, 422 теста.
+- Замер бинарём из `9e9af8b`: у каждого вида ноль находок сверх прежних во всех деревьях; в Project на `9e9af8b`
+  10 находок `untyped-conversion`, ноль `hidden-exit` и `stale-check`.
 
 ## Blockers
 
@@ -39,6 +42,6 @@ Revision: `4179ce36dab117d3b950dbf381408b1db8a11ed6`
 
 ## Next action
 
-Собрать бинарь замера из коммита заморозки с тремя видами, сверить его на `base/rig` и на прежних находках, затем
-один прогон всех деревьев и новая выборка корпуса по списку исключений. Пределы у краёв: в `languages/rust` и `languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у
+Закоммитить VAC 4, затем пин рантайма на чистом дереве и включение трёх видов уровнем error с навыками
+`expose-the-exit`, `act-and-match-the-error` и `name-the-target` по образцу `e42a6f2`. Пределы у краёв: в `languages/rust` и `languages/tests` по 15 записей из 15, в `references` 15 из 15, зависимых у
 `measure` 7 из 7 и у `rules` 13 из 13. Свободные ID: D171+, I022+, P128+, B123+ (B066 и D111 зарезервированы).
