@@ -13,9 +13,9 @@ v36 из P128 и слепой оценки Sonnet; файлы кода Project �
 ## Workspace
 
 Branch: `feature/structure-metrics`, от master `a979e14`.
-Revision: `acb0e2dc77abec004f9b8582121fa5eb4bf0c52d`
+Revision: `7d93827049a689cd26fa6b1e07b6afaecbf5471c`
 
-Установленный рантайм `81f4803`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `7d93827`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -25,7 +25,8 @@ Revision: `acb0e2dc77abec004f9b8582121fa5eb4bf0c52d`
   `a979e14`.
 - VAC 1 `ef5713b` сохранил B124, VAC 2 `f6cb854` добавил `agentrig lint-structure PATH`, VAC 3 `acb0e2d` заморозил
   протокол слепой проверки и навык v2.
-- VAC 4 записывает итог в Delivery, карты прогонов в `Ledger/Assets/P129/runs/` и переносит P129 и B124 в Archive.
+- VAC 4 `7d93827` записал итог в Delivery, карты прогонов в `Ledger/Assets/P129/runs/` и перенёс P129 и B124 в
+  Archive; пин D051 ставит `7d93827` в `stable.txt`.
   Итог: шесть прогонов собираются и проходят проверку; выбран режим `evidence` с навыком v2 по правилу разброса
   (итог 0,213 и разброс 0,072 против 0,164 и 0,118). Цель не достигнута: Sonnet 52,86 и 54,26 % при 51,6 % у
   исходного дерева и 76,9 % у v36, перекрытие с v36 на уровне случая. Стенд вне Git:
@@ -37,6 +38,7 @@ Revision: `acb0e2dc77abec004f9b8582121fa5eb4bf0c52d`
 - 2026-11-12 бинарь `f6cb854`: вывод на экспорте Project и на `regex-syntax` 0.8.9 совпал байт в байт между
   запусками.
 - Шесть прогонов: сборка 0, `check ok`, закрытых путей нет; контроль v36 на копии стенда 72,92 %.
+- Шлюз коммита `7d93827` прошёл; bootstrap установил `7d93827`, `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -44,6 +46,5 @@ Revision: `acb0e2dc77abec004f9b8582121fa5eb4bf0c52d`
 
 ## Next action
 
-После коммита VAC 4 записать его хэш в `tooling/distribution/stable.txt`, выполнить bootstrap, закоммитить пин (D051)
-и выполнить `just feature-merge`, ветку сохранить. Свободные ID: D173+, I022+, P130+, B125+ (B066 и D111
+Выполнить `just feature-merge` после коммита пина, ветку сохранить. Свободные ID: D173+, I022+, P130+, B125+ (B066 и D111
 зарезервированы).
