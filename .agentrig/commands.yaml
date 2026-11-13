@@ -141,6 +141,16 @@ clippy:
   - clippy::as_conversions
   - -D
   - clippy::allow_attributes
+  - -D
+  - clippy::default_trait_access
+  - -D
+  - clippy::suspicious_xor_used_as_pow
+  - -D
+  - clippy::host_endian_bytes
+  - -D
+  - clippy::large_stack_arrays
+  - -D
+  - clippy::maybe_infinite_iter
 test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:

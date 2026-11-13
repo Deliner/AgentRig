@@ -94,7 +94,7 @@ fn config(options: &Options<'_>, rust: &Layout) -> Config {
             _ => project_config::Frontend::Codex,
         },
         version: 1,
-        capabilities: Default::default(),
+        capabilities: project_config::Capabilities::default(),
         runtime: project_config::VERSION.into(),
         config_skill: repair.clone(),
         paths: Paths {
@@ -264,7 +264,7 @@ fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
     Command {
         purpose: purpose.into(),
         doc: None,
-        lifetime: Default::default(),
+        lifetime: project_config::Lifetime::Task,
         argv,
         cwd: ".".into(),
         accepts_args: true,

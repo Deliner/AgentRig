@@ -67,6 +67,7 @@ fn effective<'a>(directories: impl Iterator<Item = &'a Path>) -> Option<PathBuf>
 // DECISION: D137
 // DECISION: D152
 // DECISION: D153
+// DECISION: D180
 const PROFILE: &[&str] = &[
     "panic",
     "todo",
@@ -100,6 +101,11 @@ const PROFILE: &[&str] = &[
     "wildcard_enum_match_arm",
     "as_conversions",
     "allow_attributes",
+    "default_trait_access",
+    "suspicious_xor_used_as_pow",
+    "host_endian_bytes",
+    "large_stack_arrays",
+    "maybe_infinite_iter",
 ];
 
 pub fn argv(rust: &Layout) -> Vec<String> {
