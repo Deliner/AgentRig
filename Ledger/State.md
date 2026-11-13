@@ -6,13 +6,13 @@
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B109 и B126 сохранены, в работу не выбраны.
 
-P132 по B128 перевела риг и Rust-проекты на версию Rust из корневого `rust-toolchain.toml` и выполнена. Новая работа
-не выбрана, Plan пуст.
+2026-11-13 пользователь одобрил карточку B129 о том, чтобы правило `superseded-form` видело `Vec` в возвращаемом
+типе: «Сохрани и сразу сделай». Выбрана P133, она активна.
 
 ## Workspace
 
-Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `f57a156990f59049bd4bfd14354f8293b5ee835e`
+Branch: `feature/superseded-return`, от master `560c308`, где влита P132.
+Revision: `560c3089b223f3037e2f2263fc285e2dbdc025a4`
 
 Установленный рантайм `f57a156`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -20,14 +20,11 @@ Revision: `f57a156990f59049bd4bfd14354f8293b5ee835e`
 
 ## Progress
 
-- P132 выполнена в VAC 1–10 на ветке `feature/rust-1100`, итоги и приёмка в
-  [Archive/Plan/132.md](Archive/Plan/132.md). Решения D173–D177.
-- Закрывающий VAC ставит пин D051 на `f57a156` и переносит P132 и B128 в Archive.
+- VAC 1 P133 сохранил B129 и выбрал P133.
 
 ## Verification
 
-- VAC 10 `f57a156` прошёл гейт со всеми 490 тестами.
-- После bootstrap `f57a156` lint рига чист, `lint-rules` описывает `superseded-form`.
+- master `560c308`: `feature-merge` P132 прошёл со всеми 490 тестами.
 
 ## Blockers
 
@@ -35,5 +32,8 @@ Revision: `f57a156990f59049bd4bfd14354f8293b5ee835e`
 
 ## Next action
 
-`just feature-merge` ветки `feature/rust-1100` с сохранением ветки, затем отчёт пользователю.
-Свободные ID: D178+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
+VAC 2 P133: в детекторе `languages/rust/superseded_form.rs` тип `Vec` из возвращаемого типа функции или замыкания
+для последнего выражения тела и для `return`, тесты, описание правила и навык `use-the-current-form`, решение D178
+преемником предиката D177, место `structural_lint/architecture/tests.rs:504` на `Vec::from_fn`. Затем пин D051 и
+`just feature-merge`.
+Свободные ID: D178+, I022+, P134+, B130+ (B066 и D111 зарезервированы).
