@@ -1,5 +1,5 @@
 // DECISION: D034
-use super::identity::Identity;
+use super::pid_reuse_guard::Identity;
 use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 

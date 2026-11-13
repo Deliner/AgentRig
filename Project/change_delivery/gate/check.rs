@@ -36,11 +36,11 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
             crate::project_memory::check_with_history(context, source.root, source.revision)
         }
         CheckKind::Tools => {
-            let tree = command_runner::registry::check::Source {
+            let tree = command_runner::tool_registry::placement_check::Source {
                 repository: source.root,
                 exported_revision: source.revision,
             };
-            command_runner::registry::check::run(context, tree, check, rerun)
+            command_runner::tool_registry::placement_check::run(context, tree, check, rerun)
         }
     }
 }

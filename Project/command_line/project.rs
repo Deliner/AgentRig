@@ -3,7 +3,7 @@ use crate::{
     change_delivery::git,
     command_runner,
     project_config::Context,
-    project_memory::{self, evidence},
+    project_memory::{self, check_evidence},
     project_setup,
     shared::{console, diagnostics, shared_options::forwarded},
 };
@@ -31,7 +31,7 @@ pub(super) fn configured_command(
             Ok(0)
         }
         Configured::Commands => {
-            command_runner::registry::list(context)?;
+            command_runner::tool_registry::list(context)?;
             Ok(0)
         }
         Configured::Run => {
@@ -42,7 +42,7 @@ pub(super) fn configured_command(
         }
         Configured::Report => {
             command_runner::report(context)?;
-            evidence::report(context)?;
+            check_evidence::report(context)?;
             Ok(0)
         }
     }

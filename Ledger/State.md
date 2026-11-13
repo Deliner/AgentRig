@@ -14,7 +14,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/structure-v36`, от master `fb5090e`.
-Revision: `21243fd67535e19475c9b1a8f7b50949cc5402d7`
+Revision: `5f5f3d9e40c438ca9bc72e5e398a38c1eae6bef4`
 
 Установленный рантайм `d8e186b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -30,18 +30,20 @@ Revision: `21243fd67535e19475c9b1a8f7b50949cc5402d7`
 - VAC 4 P131 `d7b21fd` перенёс `structural_lint/architecture`: `contract_check`, `extraction/references`,
   переименования rust-резолвера и деление python-резолвера.
 - VAC 5 P131 `21243fd` перенёс `languages/rust/context` в `exemptions` и `languages/measure` в `neutral_metrics`.
-- VAC 6 P131 переименовывает файлы `agent_hooks`, `change_delivery/gate`, `initialization` и
+- VAC 6 P131 `5f5f3d9` переименовал файлы `agent_hooks`, `change_delivery/gate`, `initialization` и
   `project_config/settings` по карте.
-- Порядок дальше: `command_runner`, `project_memory/evidence`, `command_line` → `cli_dispatch`. Ссылки:
+- VAC 7 P131 перенёс `command_runner/registry` в `tool_registry` с делением `check.rs`, `jobs/identity` в
+  `pid_reuse_guard` и `project_memory/evidence` в `check_evidence`.
+- Порядок дальше: `command_line` → `cli_dispatch`, затем снимки «после» и архив. Ссылки:
   `.agentrig/checks.yaml`, `.agentrig/lint.yaml`, `Project/Cargo.toml`, `tooling/pyproject.toml`, ссылки применения
   в `Ledger/Decisions.md` и `Ledger/Invariants.md`, README. Детали решений неизменны (D020).
 
 ## Verification
 
 - Снимки сняты установленным рантаймом `d8e186b` на `fb5090e`: `total 24.0 units 192`.
-- Гейт коммита VAC 5 прошёл: lint, rustfmt, clippy, 429 тестов и проверки Python.
-- На изменениях VAC 6 прошли сборка всех целей, `just lint`, `memory-check`, `config-check` и 98 тестов
-  `agent_hooks::`, `change_delivery::`, `project_setup::` и `project_config::`.
+- Гейт коммита VAC 6 прошёл: lint, rustfmt, clippy, 178 тестов и проверки Python.
+- На изменениях VAC 7 прошли сборка всех целей, `just lint`, `memory-check`, `config-check` и 90 тестов
+  `command_runner::`, `project_memory::`, `change_delivery::` и `command_line::`.
 
 ## Blockers
 
@@ -49,7 +51,6 @@ Revision: `21243fd67535e19475c9b1a8f7b50949cc5402d7`
 
 ## Next action
 
-VAC 7: по карте `command_runner/registry` → `tool_registry` с делением `check.rs` на `placement_check.rs` и
-`removal_records.rs`, `jobs/identity` → `jobs/pid_reuse_guard`, `project_memory/evidence` → `check_evidence` с
-`content.rs` → `input_fingerprint.rs`; затем `command_line` → `cli_dispatch`. Свободные ID: D173+, I022+, P132+,
+VAC 8: по карте `command_line` → `cli_dispatch` с `lint.rs` → `standalone_lint.rs`, ссылки в `lib.rs`,
+`Project/Cargo.toml`, `.agentrig/checks.yaml`, `.agentrig/lint.yaml` и Decisions. Свободные ID: D173+, I022+, P132+,
 B128+ (B066 и D111 зарезервированы).

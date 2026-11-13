@@ -2,12 +2,12 @@
 // DECISION: D107
 #[expect(unsafe_code)]
 pub mod jobs;
-pub mod registry;
 pub(crate) mod sandbox;
 pub mod scratch;
 mod summary;
 #[cfg(test)]
 mod tests;
+pub mod tool_registry;
 use crate::project_config::{Context, Program};
 use crate::shared::console;
 use anyhow::{Context as _, Result, bail, ensure};

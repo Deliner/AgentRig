@@ -8,4 +8,4 @@ files:
   source.rs: Inspect supported source syntax for decision and invariant markers
 directories:
   tests: Memory, plan and State behavior scenarios and shared memory fixtures
-  evidence: Persist check results and determine whether checked inputs remain current
+  check_evidence: Persist check results and determine whether checked inputs remain current

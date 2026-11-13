@@ -65,7 +65,7 @@ I017:
 I018:
   check: rust-test
   runner: cargo
-  target: project_memory::evidence::tests::evidence_tracks_content_and_partial_checks
+  target: project_memory::check_evidence::tests::evidence_tracks_content_and_partial_checks
 I019:
   check: rust-test
   runner: cargo

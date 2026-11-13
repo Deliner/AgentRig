@@ -4,8 +4,8 @@ use crate::shared::fs_with_context::{self as fs, OpenOptions};
 mod background;
 pub mod cleanup;
 mod group;
-mod identity;
 mod logs;
+mod pid_reuse_guard;
 pub mod process;
 pub mod report;
 mod stop;
@@ -14,7 +14,7 @@ mod storage;
 mod streams;
 
 use anyhow::Result;
-use identity::Identity;
+use pid_reuse_guard::Identity;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::{Value, json};
 use std::{

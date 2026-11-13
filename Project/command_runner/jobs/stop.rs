@@ -1,4 +1,4 @@
-use super::{group, identity::Identity, owner, storage};
+use super::{group, owner, pid_reuse_guard::Identity, storage};
 use crate::shared::fs_with_context::{self as fs, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{

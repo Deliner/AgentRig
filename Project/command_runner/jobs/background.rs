@@ -1,4 +1,4 @@
-use super::{Job, Record, identity::Identity, storage};
+use super::{Job, Record, pid_reuse_guard::Identity, storage};
 use crate::shared::fs_with_context::{self as fs, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{

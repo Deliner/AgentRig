@@ -1,4 +1,5 @@
-pub mod check;
+pub mod placement_check;
+mod removal_records;
 #[cfg(test)]
 mod tests;
 use crate::project_config::{Command, Context};
@@ -8,6 +9,12 @@ use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::architecture::Rooted;
 use anyhow::Result;
 use std::{io::Read, path::Path};
+
+struct Finding {
+    path: String,
+    message: String,
+}
+type Findings = Vec<Finding>;
 
 pub fn tools(context: &Context, files: &[String]) -> Result<Vec<String>> {
     let recognized = globs(&context.config.tools.recognize)?;

@@ -12,4 +12,4 @@ files:
   storage.rs: Create job directories and persist and retrieve records
   streams.rs: Drain child streams and retain captured output
 directories:
-  identity: Observe process identity and resource usage on Linux and macOS without confusing reused process IDs
+  pid_reuse_guard: Observe process identity and resource usage on Linux and macOS without confusing reused process IDs

@@ -5,7 +5,7 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
-pub(crate) mod evidence;
+pub(crate) mod check_evidence;
 pub(super) mod format;
 mod history;
 mod oracles;
