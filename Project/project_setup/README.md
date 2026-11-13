@@ -58,7 +58,7 @@ version, `config_skill`, `paths` (sources and the locations of service files, me
 data) and `capabilities.lint` (disabling lint requires removing lint checks). Each optional module holds one section as
 its whole content; an absent module is an empty section, and `project.yaml` cannot hold one.
 
-- `git.yaml`: base branch and feature-branch prefix.
+- `git.yaml`: base branch, feature-branch prefix and optional `remote`, the Git remote that receives branches.
 - `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args`, `read_only`, `lifetime`, `programs` and
   `output`. An empty `argv` (`read`, `write`) runs only listed programs, each limited to its `subcommands` and refusing
   `deny` argument prefixes. `output` holds `success` and `failure` views of lines containing a `matching` part plus the
@@ -72,15 +72,15 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
   reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, check, runner (`pytest` or `cargo`) and target, for cargo the test's module path.
 
-Unknown fields are errors naming their module; project-relative paths cannot escape the root. Lint settings follow the
-[worker guide](../README.md#lint).
+Unknown fields are errors naming their module; paths cannot escape the root; see [lint settings](../README.md#lint).
 
 ## Delivery and memory
 
 `feature-start` requires the base branch, a clean tree and no pending merge or rebase. `feature-merge` rebases a
 divergent feature, requires a passing gate on unchanged inputs and merges into the base with an explicit merge commit,
 then empties the branch scratch area except `results/` and deletes its scratch run logs. The pre-commit hook runs
-`guard-commit` and `check --staged`; the latest gate attempt is stored in `paths.runtime/checks.json`.
+`guard-commit` and `check --staged`; the latest gate attempt is stored in `paths.runtime/checks.json`. With `remote`,
+merge pushes the base and, with `--force-with-lease`, the feature; the post-commit hook pushes each feature commit.
 
 Memory holds Plan, Backlog, Decisions, Invariants and State. Decision links to Rust, Python or shell owners need a
 `DECISION: DNNN` comment; committed decisions are immutable and superseded by new ones. Invariants link a test with

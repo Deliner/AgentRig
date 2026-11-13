@@ -39,6 +39,7 @@ pub enum Configured {
     Resume,
     FeatureStart,
     FeatureMerge,
+    FeaturePush,
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
@@ -64,6 +65,7 @@ const NAMES: &[(&str, Command)] = &[
         "feature-merge",
         Command::Configured(Configured::FeatureMerge),
     ),
+    ("feature-push", Command::Configured(Configured::FeaturePush)),
     ("scratch", Command::Runner(Runner::Scratch)),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
@@ -137,7 +139,8 @@ fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
         | Configured::Report
         | Configured::ConfigCheck
         | Configured::Commands
-        | Configured::FeatureMerge => (!args.is_empty()).then(|| {
+        | Configured::FeatureMerge
+        | Configured::FeaturePush => (!args.is_empty()).then(|| {
             format!(
                 "{name} takes no arguments",
                 name = Command::Configured(command).name()

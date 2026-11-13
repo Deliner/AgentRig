@@ -13,6 +13,10 @@ impl Settings {
                 && !self.base.starts_with(&self.prefix),
             "vcs.prefix must form valid git branches distinct from vcs.base"
         );
+        ensure!(
+            self.remote.as_deref().is_none_or(git::branch_name),
+            "vcs.remote must name a git remote"
+        );
         Ok(())
     }
 }

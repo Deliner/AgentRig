@@ -1,0 +1,5 @@
+#!/bin/sh
+# DECISION: D179
+set -eu
+root=$(git rev-parse --show-toplevel)
+exec "$root/tooling/worker/run" feature-push --root "$root"

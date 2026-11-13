@@ -4,5 +4,6 @@ files:
   guards.rs: Commit and reference transaction guard verdicts
   integration.rs: Feature integration, rebase, conflicts and refusals that preserve branches
   cleanup.rs: Post-merge cleanup of owned runs and the scratch area
+  push.rs: Pushes to a configured remote after commits and merges, and their failures
   start.rs: Feature start from a clean base and its refusals
 directories: {}

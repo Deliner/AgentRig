@@ -14,6 +14,7 @@ pub struct Generated {
     pub files: BTreeMap<String, String>,
 }
 
+// DECISION: D179
 pub fn generate(request: &Generation<'_>) -> Result<Generated> {
     let prefix = format!("#!/bin/sh\nset -eu\nroot=$({ROOT_COMMAND})\n");
     let binary = request.binary;
@@ -27,6 +28,10 @@ pub fn generate(request: &Generation<'_>) -> Result<Generated> {
         (
             "reference-transaction",
             format!("{prefix}exec {binary} guard-reference --root \"$root\" \"$1\"\n"),
+        ),
+        (
+            "post-commit",
+            format!("{prefix}exec {binary} feature-push --root \"$root\"\n"),
         ),
     ]
     .into_iter()

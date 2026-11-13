@@ -69,7 +69,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     console::stdout(
-        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix.",
+        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge | feature-push\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --source, --memory, --skills, --service, --base and --prefix.",
     );
 }
 fn hook(root: &Path) -> Result<i32> {

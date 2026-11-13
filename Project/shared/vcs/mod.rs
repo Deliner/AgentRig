@@ -26,6 +26,9 @@ pub struct Revisions<'a> {
 pub struct Settings {
     pub base: String,
     pub prefix: String,
+    // DECISION: D179
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub remote: Option<String>,
 }
 
 impl Default for Settings {
@@ -33,6 +36,7 @@ impl Default for Settings {
         Self {
             base: "main".into(),
             prefix: "feature/".into(),
+            remote: None,
         }
     }
 }
