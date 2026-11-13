@@ -129,21 +129,16 @@ impl<'a> Units<'a> {
         words
     }
 
-    pub fn visible(&self, unit: &Unit<'_>) -> BTreeSet<String> {
-        let entries = self.children.get(unit.path).into_iter().flatten();
-        let names = entries
+    pub fn shown(&self, unit: &Unit<'_>) -> BTreeSet<String> {
+        let parts = self.children.get(unit.path).into_iter().flatten();
+        parts
             .filter(|_| unit.directory)
-            .map(|(path, directory)| Unit {
-                path,
-                directory: *directory,
-            });
-        let own = Unit {
-            path: unit.path,
-            directory: unit.directory,
-        };
-        std::iter::once(own)
-            .chain(names)
-            .filter_map(|unit| name(&unit))
+            .filter_map(|(path, directory)| {
+                name(&Unit {
+                    path,
+                    directory: *directory,
+                })
+            })
             .flat_map(|name| stems(&name))
             .collect()
     }

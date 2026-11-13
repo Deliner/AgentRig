@@ -1,0 +1,69 @@
+move project_memory/evidence/ -> project_memory/record_results/
+move project_memory/evidence/content.rs -> project_memory/record_results/input_fingerprint.rs
+move shared/fs/ -> shared/file_access/
+split shared/fs/mod.rs -> shared/file_access/mod.rs shared/file_access/path_error.rs shared/file_access/path_inspection.rs
+move structural_lint/architecture/resolution/ -> structural_lint/architecture/resolve_modules/
+move structural_lint/architecture/source/model/ -> structural_lint/architecture/source/reference_list/
+split structural_lint/architecture/source/model/mod.rs -> structural_lint/architecture/source/reference_list/mod.rs structural_lint/architecture/source/reference_list/extraction_context.rs structural_lint/architecture/source/reference_list/reference_target.rs
+move structural_lint/catalog/ -> structural_lint/describe_rules/
+split structural_lint/catalog/mod.rs -> structural_lint/describe_rules/mod.rs structural_lint/describe_rules/language_support.rs structural_lint/describe_rules/rule_kinds.rs
+move structural_lint/config/ -> structural_lint/lint_settings/
+split structural_lint/config/mod.rs -> structural_lint/lint_settings/mod.rs structural_lint/lint_settings/rule_validation.rs structural_lint/lint_settings/severity_limits.rs
+move structural_lint/inventory/ -> structural_lint/lint_targets/collect_files/
+move shared/arguments/ -> shared/command_options/
+move structural_lint/languages/measure/ -> structural_lint/languages/syntax_measures/
+move structural_lint/languages/rust/errors/ -> structural_lint/languages/measure_rust/detect_errors/
+split structural_lint/languages/rust/errors/silent_error.rs -> structural_lint/languages/measure_rust/detect_errors/silent_error.rs structural_lint/languages/measure_rust/detect_errors/collapsed_chain.rs structural_lint/languages/measure_rust/detect_errors/process_success.rs
+move command_runner/jobs/identity/ -> command_runner/jobs/pid_identity/
+move command_runner/jobs/identity/linux.rs -> command_runner/jobs/pid_identity/linux_start_time.rs
+move command_runner/jobs/identity/macos.rs -> command_runner/jobs/pid_identity/macos_start_time.rs
+move command_runner/registry/ -> command_runner/list_tools/
+move command_runner/registry/check.rs -> command_runner/list_tools/tool_check.rs
+move project_setup/initialization/ -> project_setup/init_agents/
+move project_setup/initialization/init.rs -> project_setup/init_agents/new_environment.rs
+move project_setup/initialization/wizard.rs -> project_setup/init_agents/interactive_init.rs
+move shared/artifacts/ -> shared/read_files/
+move shared/artifacts/json.rs -> shared/read_files/atomic_json.rs
+move shared/console/ -> shared/print_lines/
+move structural_lint/architecture/resolution/python/ -> structural_lint/architecture/resolve_modules/python_imports/
+move structural_lint/architecture/source/rust/ -> structural_lint/architecture/source/extract_rust/
+move structural_lint/languages/rust/ -> structural_lint/languages/measure_rust/
+move structural_lint/languages/rust/blocking_async.rs -> structural_lint/languages/measure_rust/source_rules/blocking_async.rs
+move structural_lint/languages/rust/false_pass.rs -> structural_lint/languages/measure_rust/source_rules/false_pass.rs
+move structural_lint/languages/rust/naming.rs -> structural_lint/languages/measure_rust/source_rules/naming.rs
+move structural_lint/languages/rust/panic_surface.rs -> structural_lint/languages/measure_rust/source_rules/panic_surface.rs
+move structural_lint/languages/rust/shell_command.rs -> structural_lint/languages/measure_rust/source_rules/shell_command.rs
+move structural_lint/languages/rust/super_reach.rs -> structural_lint/languages/measure_rust/source_rules/super_reach.rs
+move structural_lint/languages/rust/suppression.rs -> structural_lint/languages/measure_rust/source_rules/suppression.rs
+move structural_lint/languages/rust/test_placement.rs -> structural_lint/languages/measure_rust/source_rules/test_placement.rs
+move structural_lint/languages/rust/unsafe_site.rs -> structural_lint/languages/measure_rust/source_rules/unsafe_site.rs
+move change_delivery/git/ -> change_delivery/feature_branch/
+split change_delivery/git/mod.rs -> change_delivery/feature_branch/mod.rs change_delivery/feature_branch/commit_guards.rs
+split project_config/mod.rs -> project_config/mod.rs project_config/load_context.rs
+move structural_lint/selection/ -> structural_lint/lint_targets/select_targets/
+split structural_lint/selection/mod.rs -> structural_lint/lint_targets/select_targets/mod.rs structural_lint/lint_targets/select_targets/threshold_overrides.rs structural_lint/lint_targets/select_targets/inclusion_reasons.rs
+move shared/yaml/ -> shared/strict_yaml/
+move shared/syntax/ -> shared/parse_sources/
+split shared/syntax/mod.rs -> shared/parse_sources/mod.rs shared/parse_sources/reference_comment.rs shared/parse_sources/secret_tokens.rs
+move change_delivery/gate/ -> change_delivery/execute_checks/
+move shared/paths/ -> shared/resolve_paths/
+move shared/paths/patterns.rs -> shared/resolve_paths/repository_globs.rs
+move shared/diagnostics/ -> shared/render_guidance/
+move shared/diagnostics/lint.rs -> shared/render_guidance/lint_findings.rs
+move shared/diagnostics/skills.rs -> shared/render_guidance/skill_references.rs
+move structural_lint/architecture/runner/ -> structural_lint/architecture/lint_contracts/
+move structural_lint/architecture/runner/scope.rs -> structural_lint/architecture/lint_contracts/configured_scope.rs
+move structural_lint/languages/rust/context/ -> structural_lint/languages/measure_rust/classify_nodes/
+move project_config/settings/ -> project_config/define_settings/
+move project_setup/cargo.rs -> project_setup/rust_policy/cargo.rs
+move project_setup/clippy.rs -> project_setup/rust_policy/clippy.rs
+move project_setup/lint.rs -> project_setup/rust_policy/lint.rs
+move project_setup/adapters.rs -> project_setup/agent_adapters/adapters.rs
+move project_setup/claude.rs -> project_setup/agent_adapters/claude.rs
+move project_setup/doctor.rs -> project_setup/readiness_check.rs
+move structural_lint/explain.rs -> structural_lint/lint_targets/explain.rs
+move structural_lint/tree.rs -> structural_lint/lint_targets/tree.rs
+move structural_lint/architecture/resolution/rust/ -> structural_lint/architecture/resolve_modules/resolve_rust/
+move structural_lint/architecture/resolution/rust/tree.rs -> structural_lint/architecture/resolve_modules/resolve_rust/module_tree.rs
+move structural_lint/architecture/resolution/rust/paths.rs -> structural_lint/architecture/resolve_modules/resolve_rust/path_aliases.rs
+move structural_lint/architecture/resolution/rust/macros.rs -> structural_lint/architecture/resolve_modules/resolve_rust/macro_origins.rs

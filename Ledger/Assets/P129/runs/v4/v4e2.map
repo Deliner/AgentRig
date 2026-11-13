@@ -1,0 +1,47 @@
+move project_memory/evidence/ -> project_memory/record_results/
+move project_memory/evidence/content.rs -> project_memory/record_results/input_fingerprint.rs
+move shared/fs/ -> shared/file_access/
+split shared/fs/mod.rs -> shared/file_access/mod.rs shared/file_access/path_errors.rs
+move structural_lint/architecture/resolution/ -> structural_lint/architecture/file_references/
+move structural_lint/architecture/resolution/python/ -> structural_lint/architecture/file_references/python_modules/
+move structural_lint/architecture/resolution/rust/ -> structural_lint/architecture/file_references/rust_modules/
+move structural_lint/architecture/source/model/ -> structural_lint/architecture/source/references/
+split structural_lint/architecture/source/model/mod.rs -> structural_lint/architecture/source/references/mod.rs structural_lint/architecture/source/references/located_findings.rs
+move structural_lint/catalog/ -> structural_lint/capabilities/
+split structural_lint/catalog/mod.rs -> structural_lint/capabilities/mod.rs structural_lint/capabilities/validate_support.rs structural_lint/capabilities/describe_rules.rs
+move structural_lint/config/ -> structural_lint/configuration/
+split structural_lint/config/mod.rs -> structural_lint/configuration/mod.rs structural_lint/configuration/rule_validation.rs
+move structural_lint/inventory/ -> structural_lint/project_files/
+split structural_lint/inventory/mod.rs -> structural_lint/project_files/mod.rs structural_lint/project_files/unversioned_walk.rs structural_lint/project_files/directory_entries.rs
+move shared/arguments/ -> shared/command_options/
+move structural_lint/languages/measure/ -> structural_lint/languages/shared_measures/
+split structural_lint/languages/measure/mod.rs -> structural_lint/languages/shared_measures/mod.rs structural_lint/languages/shared_measures/boolean_conditions.rs structural_lint/languages/shared_measures/function_shape.rs
+move structural_lint/languages/rust/errors/ -> structural_lint/languages/rust/error_detection/
+move command_runner/jobs/identity/ -> command_runner/jobs/process_start/
+move command_runner/registry/ -> command_runner/tool_listing/
+move command_runner/registry/check.rs -> command_runner/tool_listing/placement_check.rs
+move project_setup/initialization/init.rs -> project_setup/initialization/create_environment.rs
+move project_setup/initialization/wizard.rs -> project_setup/initialization/ask_configuration.rs
+move shared/artifacts/ -> shared/persisted_files/
+move shared/artifacts/json.rs -> shared/persisted_files/atomic_json.rs
+move shared/console/ -> shared/line_output/
+move structural_lint/architecture/source/rust/ -> structural_lint/architecture/source/module_paths/
+move change_delivery/git/ -> change_delivery/branch_guards/
+move project_config/settings/ -> project_config/configuration/
+split project_config/settings/mod.rs -> project_config/configuration/mod.rs project_config/configuration/project_loading.rs
+move shared/testing/examples/measure.rs -> shared/testing/examples/measure_installed.rs
+move structural_lint/selection/ -> structural_lint/lint_targets/
+move shared/syntax/ -> shared/parse_sources/
+split shared/syntax/mod.rs -> shared/parse_sources/mod.rs shared/parse_sources/reference_comments.rs shared/parse_sources/secret_tokens.rs
+move shared/yaml/ -> shared/yaml_decoding/
+split shared/yaml/mod.rs -> shared/yaml_decoding/mod.rs shared/yaml_decoding/strict_checks.rs
+move change_delivery/gate/ -> change_delivery/check_results/
+move shared/paths/ -> shared/resolve_paths/
+move shared/paths/patterns.rs -> shared/resolve_paths/glob_patterns.rs
+move shared/diagnostics/lint.rs -> shared/diagnostics/lint_findings.rs
+move shared/diagnostics/skills.rs -> shared/diagnostics/skill_references.rs
+move structural_lint/architecture/runner/ -> structural_lint/architecture/contract_lint/
+move structural_lint/languages/rust/context/ -> structural_lint/languages/rust/node_scope/
+move structural_lint/explain.rs -> structural_lint/lint_commands/explain.rs
+move structural_lint/tree.rs -> structural_lint/lint_commands/tree.rs
+move structural_lint/cli.rs -> structural_lint/lint_commands/mod.rs
