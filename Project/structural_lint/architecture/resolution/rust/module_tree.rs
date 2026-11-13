@@ -1,6 +1,6 @@
 use super::{Module, Pending, Rust};
+use crate::structural_lint::architecture::extraction::{Reference, References, Target};
 use crate::structural_lint::architecture::resolution::{Resolved, normalize};
-use crate::structural_lint::architecture::source::{Reference, References, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},

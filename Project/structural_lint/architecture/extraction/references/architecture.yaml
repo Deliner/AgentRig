@@ -1,0 +1,6 @@
+purpose: Represent extracted dependency references and collect located findings without invoking language handlers
+files:
+  mod.rs: Collected extraction output with item, import and propagated call records
+  reference.rs: Located reference records and their targets with relation and expansion kinds
+  recorder.rs: Extraction context that records deduplicated references, incomplete analysis and static literals
+directories: {}

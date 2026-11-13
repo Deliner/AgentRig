@@ -1,6 +1,6 @@
 use super::{Located, Query, Rust};
+use crate::structural_lint::architecture::extraction::prelude_origin;
 use crate::structural_lint::architecture::resolution::Resolved;
-use crate::structural_lint::architecture::source::prelude_origin;
 use anyhow::{Context, Result, bail, ensure};
 use std::collections::BTreeSet;
 

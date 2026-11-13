@@ -3,7 +3,7 @@ mod disallowed;
 mod scope;
 
 use super::{
-    Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, source::References,
+    Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, extraction::References,
 };
 use crate::shared::diagnostics::actionable_findings::Diagnostic;
 use crate::shared::paths::glob_patterns::globs;

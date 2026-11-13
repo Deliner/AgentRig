@@ -1,6 +1,6 @@
 use super::{Located, Query, Resolved, Rust};
+use crate::structural_lint::architecture::extraction::RustMacro;
 use crate::structural_lint::architecture::resolution::normalize;
-use crate::structural_lint::architecture::source::RustMacro;
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::BTreeSet,

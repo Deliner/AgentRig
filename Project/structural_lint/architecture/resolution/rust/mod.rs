@@ -1,11 +1,11 @@
-mod macros;
-mod paths;
+mod macro_origins;
+mod module_tree;
 #[cfg(test)]
 mod tests;
-mod tree;
+mod use_aliases;
 
 use super::Resolved;
-use crate::structural_lint::architecture::source::{References, Target};
+use crate::structural_lint::architecture::extraction::{References, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},

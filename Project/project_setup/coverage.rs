@@ -4,7 +4,7 @@ use crate::change_delivery::gate::{AffectedMap, files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs_with_context as fs};
-use crate::structural_lint::architecture::{resolution::rust::Rust, source};
+use crate::structural_lint::architecture::{extraction, resolution::rust::Rust};
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
@@ -130,7 +130,7 @@ fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result
     };
     for path in files.iter().filter(rust) {
         let text = fs::read_to_string(root.join(path))?;
-        sources.insert(path.clone(), source::extract(path, &text)?);
+        sources.insert(path.clone(), extraction::extract(path, &text)?);
     }
     let layout = super::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
     for crate_root in layout.roots {

@@ -2,8 +2,8 @@ use crate::shared::fs_with_context as fs;
 use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::architecture::{
     self as architecture, Dependency, EnvironmentUse, Issue, Rooted, Settings,
+    extraction::{self, Reference, References, Target},
     resolution::{Resolved, python::Python, rust::Rust},
-    source::{self, Reference, References, Target},
 };
 use crate::structural_lint::rule_identities::descriptor::TEST_CODE;
 use anyhow::{Result, ensure};
@@ -41,7 +41,7 @@ fn read(located: Rooted<'_>) -> Result<References> {
         file.starts_with(located.root),
         "source escapes project root"
     );
-    source::extract(located.path, &fs::read_to_string(file)?)
+    extraction::extract(located.path, &fs::read_to_string(file)?)
 }
 
 pub fn incomplete(path: &Path, line: Option<usize>, error: anyhow::Error) -> Issue {

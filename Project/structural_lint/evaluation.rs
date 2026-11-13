@@ -1,4 +1,4 @@
-use super::architecture::runner;
+use super::architecture::contract_check;
 use super::languages;
 use super::rule_identities;
 use super::rule_set::{capabilities, lint_config};
@@ -37,7 +37,7 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         if architecture {
             evaluation
                 .output
-                .extend(runner::run(root, rule, &inventory)?);
+                .extend(contract_check::run(root, rule, &inventory)?);
         } else {
             scalar_findings(root, rule, &inventory, &mut evaluation)?;
         }

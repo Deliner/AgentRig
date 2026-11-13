@@ -4,7 +4,7 @@ mod conditions;
 mod macros;
 pub(super) mod prelude;
 
-use super::model::{Reference, RustImport, RustItem, RustMacro, Source, Target};
+use super::references::{Reference, RustImport, RustItem, RustMacro, Source, Target};
 use crate::structural_lint::languages;
 use tree_sitter::Node;
 

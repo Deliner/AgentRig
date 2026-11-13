@@ -3,11 +3,11 @@ mod rust;
 #[cfg(test)]
 mod tests;
 
-pub(crate) mod model;
+pub(crate) mod references;
 use crate::structural_lint::languages;
 use anyhow::{Context, Result};
-use model::Source;
-pub use model::{Reference, References, RustImport, RustItem, RustMacro, Target};
+use references::Source;
+pub use references::{Reference, References, RustImport, RustItem, RustMacro, Target};
 pub(crate) use rust::prelude::origin as prelude_origin;
 use std::path::Path;
 use tree_sitter::Node;

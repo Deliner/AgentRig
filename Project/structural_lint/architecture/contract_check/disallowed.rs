@@ -1,4 +1,4 @@
-use crate::structural_lint::architecture::source::model::PropagatedCall;
+use crate::structural_lint::architecture::extraction::references::PropagatedCall;
 use crate::structural_lint::architecture::{self as architecture, Disallowed, Issue};
 use anyhow::Result;
 use globset::GlobSet;

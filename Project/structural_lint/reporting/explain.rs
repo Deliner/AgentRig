@@ -1,7 +1,7 @@
 use crate::shared::console;
 use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::Location;
-use crate::structural_lint::architecture::{Rooted, runner};
+use crate::structural_lint::architecture::{Rooted, contract_check};
 use crate::structural_lint::rule_identities::{Kind, structure::Structure};
 use crate::structural_lint::rule_set::lint_config;
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
@@ -63,7 +63,7 @@ fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
         let measured = match architecture {
-            true => runner::edges(Rooted { root, path: &path }, rule, &inventory)?,
+            true => contract_check::edges(Rooted { root, path: &path }, rule, &inventory)?,
             false => None,
         };
         if let Some(neighbours) = measured {
@@ -146,7 +146,7 @@ fn explain(
     let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
     let selected_architecture = architecture && reason.is_none();
     if selected_architecture {
-        let lacks_sources = !runner::contains_directory(rule, path, inventory)?;
+        let lacks_sources = !contract_check::contains_directory(rule, path, inventory)?;
         if lacks_sources {
             reason = Some("directory has no selected source files");
         }

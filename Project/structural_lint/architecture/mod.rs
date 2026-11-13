@@ -1,10 +1,10 @@
+pub mod contract_check;
+pub mod extraction;
 mod features;
 mod graph;
 mod inventory;
 mod policy;
 pub mod resolution;
-pub mod runner;
-pub mod source;
 #[cfg(test)]
 mod tests;
 

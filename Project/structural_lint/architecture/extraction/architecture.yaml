@@ -4,5 +4,5 @@ files:
   python.rs: Python import and static loader extraction
   tests.rs: Cross-language extraction behavior and source location tests
 directories:
-  model: Shared reference records and source context used by language handlers
+  references: Shared reference records and source context used by language handlers
   rust: Rust syntax extraction and path normalization
