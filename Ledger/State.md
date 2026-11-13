@@ -6,28 +6,28 @@
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B109 и B126 сохранены, в работу не выбраны.
 
-P133 по B129 научила правило `superseded-form` брать `Vec` из возвращаемого типа и выполнена. Новая работа не
-выбрана, Plan пуст.
+Активна P134 по B130: ветки уходят в `remote` из `git.yaml` после коммита в feature-ветке и после feature-merge.
+Пользователь поручил отправлять master и feature-ветки после каждого слияния.
 
 ## Workspace
 
-Branch: `feature/superseded-return`, от master `560c308`, где влита P132.
-Revision: `582fd9586fc7d2308036afb73ef00f9104b4ac70`
+Branch: `feature/branch-push`, от master `0dd124a`, где влита P133; `origin/master` на том же коммите.
+Revision: `0dd124aa1b57af5c34943a7e0dc33d83d0a11624`
 
-Установленный рантайм `582fd95`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
-`just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
-`feature/init-probe` не трогать.
+Установленный рантайм `582fd95`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты, `feature-merge` и
+`git push` через `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок
+сохранены и отправлены в `origin`, `feature/init-probe` не трогать.
 
 ## Progress
 
-- P133 выполнена в VAC 1–2 на ветке `feature/superseded-return`, итоги и приёмка в
-  [Archive/Plan/133.md](Archive/Plan/133.md). Решение D178.
-- Закрывающий VAC ставит пин D051 на `582fd95` и переносит P133 и B129 в Archive.
+- VAC 1 сохраняет B130 и выбирает P134.
+- Дальше рантайм: ключ `remote`, отправка в feature-merge, команда для хука post-commit и его генерация в init,
+  тесты с временным голым репозиторием, решение D179. Потом мид-бранч пин D051, затем в риге `remote: origin` и
+  `.agentrig/hooks/post-commit`.
 
 ## Verification
 
-- VAC 2 `582fd95` прошёл гейт с 440 тестами.
-- После bootstrap `582fd95` lint рига чист, `lint-rules` называет оба новых случая.
+- На master `0dd124a` гейт P133 прошёл с 440 тестами, lint рига чист.
 
 ## Blockers
 
@@ -35,5 +35,5 @@ Revision: `582fd9586fc7d2308036afb73ef00f9104b4ac70`
 
 ## Next action
 
-`just feature-merge` ветки `feature/superseded-return` с сохранением ветки, затем отчёт пользователю.
-Свободные ID: D179+, I022+, P134+, B130+ (B066 и D111 зарезервированы).
+Реализовать в рантайме ключ `remote` и отправку при feature-merge и после коммита, с тестами AC2–AC4.
+Свободные ID: D179+, I022+, P135+, B131+ (B066 и D111 зарезервированы).
