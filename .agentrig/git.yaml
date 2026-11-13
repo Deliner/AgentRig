@@ -1,2 +1,4 @@
 base: master
 prefix: feature/
+# DECISION: D179
+remote: origin
