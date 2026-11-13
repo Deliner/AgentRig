@@ -1,7 +1,7 @@
 // DECISION: D026
 #[cfg(test)]
 mod tests;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result, ensure};
 use serde::{Serialize, de::DeserializeOwned};
 use serde_yaml_ng::Value;

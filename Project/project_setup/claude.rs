@@ -1,7 +1,7 @@
 use super::{Config, Files, adapters};
 use crate::project_config::Context;
 use crate::shared::console;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use serde_json::Value;
 

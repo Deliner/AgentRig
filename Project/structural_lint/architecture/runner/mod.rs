@@ -5,8 +5,8 @@ mod scope;
 use super::{
     Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, source::References,
 };
-use crate::shared::diagnostics::lint::Diagnostic;
-use crate::shared::paths::patterns::globs;
+use crate::shared::diagnostics::actionable_findings::Diagnostic;
+use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::{
     config::Rule,
     inventory::{self, Inventory},
@@ -55,7 +55,7 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
     if empty {
         return Ok(None);
     }
-    let root = crate::shared::fs::canonicalize(root)?;
+    let root = crate::shared::fs_with_context::canonicalize(root)?;
     let no_exclusions = globs(&[])?;
     let files: BTreeSet<_> = inventory::collect(&root, &no_exclusions)?
         .files

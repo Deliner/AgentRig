@@ -2,7 +2,7 @@
 // DECISION: D043
 // DECISION: D044
 use super::{Dependency, EnvironmentUse, Issue};
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use crate::structural_lint::rules::architecture::FILENAME;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
@@ -259,7 +259,7 @@ impl Rooted<'_> {
             fs::canonicalize(&path)?.starts_with(fs::canonicalize(root)?),
             "contract escapes project root"
         );
-        let declaration: Declaration = crate::shared::yaml::read(&path)?;
+        let declaration: Declaration = crate::shared::strict_yaml::read(&path)?;
         let purpose = declaration.purpose.trim();
         ensure!(
             !purpose.is_empty() && !declaration.purpose.contains(['\n', '\r']),

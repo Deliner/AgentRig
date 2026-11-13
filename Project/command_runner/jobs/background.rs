@@ -1,5 +1,5 @@
 use super::{Job, Record, identity::Identity, storage};
-use crate::shared::fs::{self, OpenOptions};
+use crate::shared::fs_with_context::{self as fs, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{
     os::unix::process::CommandExt,
@@ -46,7 +46,7 @@ impl Job {
                 return Err(error.into());
             }
         };
-        crate::shared::artifacts::json::save(
+        crate::shared::atomic_files::atomic_json::save(
             &self.directory.join("launcher.json"),
             &Identity::read(child.id()).ok(),
         )?;

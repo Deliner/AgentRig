@@ -1,5 +1,5 @@
 use super::{group, identity::Identity, owner, storage};
-use crate::shared::fs::{self, OpenOptions};
+use crate::shared::fs_with_context::{self as fs, OpenOptions};
 use anyhow::{Result, ensure};
 use std::{
     path::Path,

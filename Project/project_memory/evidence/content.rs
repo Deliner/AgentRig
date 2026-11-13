@@ -1,5 +1,5 @@
 use crate::project_config::Context as Project;
-use crate::shared::fs::{self, PermissionsExt};
+use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use sha2::{Digest, Sha256};

@@ -1,7 +1,7 @@
 // DECISION: D047
 use super::{Event, context, deny};
 use crate::project_config::{Context, RouteEvent};
-use crate::shared::paths::patterns::globs;
+use crate::shared::paths::glob_patterns::globs;
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};

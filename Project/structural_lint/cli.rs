@@ -1,6 +1,6 @@
 use super::Location;
-use crate::shared::arguments::take_option;
 use crate::shared::console;
+use crate::shared::shared_options::take_option;
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
@@ -64,7 +64,7 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         Some(value) => PathBuf::from(value),
         None => env::current_dir()?,
     };
-    let root = crate::shared::fs::canonicalize(root)?;
+    let root = crate::shared::fs_with_context::canonicalize(root)?;
     let config = take_option(&mut args, "--config")?.unwrap_or_else(|| "lint.yaml".into());
     let config = root.join(config);
     let location = Location {
@@ -100,7 +100,7 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
             "rules": [super::catalog::example(kind, ".agents/skills", &["src/**".into()])]});
-        console::stdout(crate::shared::yaml::encode(&value)?);
+        console::stdout(crate::shared::strict_yaml::encode(&value)?);
     } else if json {
         console::stdout(super::catalog::describe(kind));
     } else {

@@ -1,4 +1,4 @@
-use crate::shared::diagnostics::lint::Level as Severity;
+use crate::shared::diagnostics::actionable_findings::Level as Severity;
 use serde_json::{Value, json};
 
 pub enum Parameters {

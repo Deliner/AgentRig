@@ -1,6 +1,4 @@
 use anyhow::{Result, bail};
-#[cfg(test)]
-mod tests;
 
 pub fn take_option(args: &mut Vec<String>, name: &str) -> Result<Option<String>> {
     let Some(index) = args
@@ -17,7 +15,4 @@ pub fn take_option(args: &mut Vec<String>, name: &str) -> Result<Option<String>>
     } else {
         bail!("{name} requires a value")
     }
-}
-pub fn forwarded(args: &[String]) -> &[String] {
-    args.strip_prefix(&["--".to_owned()]).unwrap_or(args)
 }

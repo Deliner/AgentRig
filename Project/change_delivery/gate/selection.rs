@@ -1,6 +1,6 @@
 // DECISION: D035
 use crate::project_config::Check;
-use crate::shared::paths::patterns::globs;
+use crate::shared::paths::glob_patterns::globs;
 use crate::shared::vcs::Revisions;
 use anyhow::{Context, Result};
 use globset::GlobSet;

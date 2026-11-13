@@ -1,6 +1,6 @@
 use crate::project_config::VERSION;
 use crate::shared::{
-    fs::{Permissions, PermissionsExt},
+    fs_with_context::{Permissions, PermissionsExt},
     testing::{git, invoke, rerun},
 };
 use std::{fs, path::Path};

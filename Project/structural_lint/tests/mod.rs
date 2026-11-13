@@ -24,7 +24,7 @@ fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, O
     let source = format!(
         "version: 1\nconfig_skill: s\nrules:\n- {{{rule}, warning_skill: s, error_skill: s}}\n"
     );
-    let config: Config = crate::shared::yaml::decode(&source).unwrap();
+    let config: Config = crate::shared::strict_yaml::decode(&source).unwrap();
     evaluate(root.path(), &config)
         .unwrap()
         .into_iter()

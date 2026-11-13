@@ -1,7 +1,7 @@
 use super::Texts;
 use super::clusters;
 use super::words::{split, stem};
-use crate::shared::syntax;
+use crate::shared::source_parsers;
 use crate::structural_lint::languages::{Code, in_test_context, text};
 use anyhow::Result;
 use std::collections::BTreeMap;
@@ -57,7 +57,7 @@ impl Corpus {
             about: Counts::new(),
             clusters: 0,
         };
-        let Some(tree) = syntax::parse(path, text)? else {
+        let Some(tree) = source_parsers::parse(path, text)? else {
             return Ok(source);
         };
         self.record(&summary(text), &mut source.about);

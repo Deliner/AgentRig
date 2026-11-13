@@ -15,10 +15,10 @@ mod structure;
 mod tests;
 
 use crate::shared::console;
-pub use crate::shared::diagnostics::lint::Diagnostic;
-use crate::shared::diagnostics::lint::{Level, print_diagnostics};
-use crate::shared::fs;
-use crate::shared::paths::patterns::globs;
+pub use crate::shared::diagnostics::actionable_findings::Diagnostic;
+use crate::shared::diagnostics::actionable_findings::{Level, print_diagnostics};
+use crate::shared::fs_with_context as fs;
+use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::rules::structure::Structure;
 use anyhow::Result;
 use std::path::Path;
@@ -61,7 +61,7 @@ pub struct Location<'a> {
 }
 impl Location<'_> {
     pub fn load(self) -> Result<config::Config> {
-        let mut config: config::Config = crate::shared::yaml::read(self.config)?;
+        let mut config: config::Config = crate::shared::strict_yaml::read(self.config)?;
         let directory = self.config.parent().unwrap_or(self.root);
         let external = config
             .skill_root
@@ -189,7 +189,7 @@ fn configuration_error(path: &Path, error: anyhow::Error) -> Diagnostic {
 }
 fn configuration_skill(path: &Path) -> Option<String> {
     let source = fs::read_to_string(path).ok()?;
-    let value: serde_json::Value = crate::shared::yaml::decode(&source).ok()?;
+    let value: serde_json::Value = crate::shared::strict_yaml::decode(&source).ok()?;
     let skill = value.get("config_skill")?.as_str()?;
     match value.get("skill_root").and_then(serde_json::Value::as_str) {
         Some(root) => {

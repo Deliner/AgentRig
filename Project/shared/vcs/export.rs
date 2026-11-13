@@ -1,5 +1,5 @@
 use super::{FileKind, Repository};
-use crate::shared::fs::{self, Permissions, PermissionsExt};
+use crate::shared::fs_with_context::{self as fs, Permissions, PermissionsExt};
 use anyhow::{Result, bail, ensure};
 use std::{
     ffi::OsStr,

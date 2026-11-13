@@ -1,4 +1,4 @@
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result};
 use globset::Glob;
 use serde::{Deserialize, de::IgnoredAny};

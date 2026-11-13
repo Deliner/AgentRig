@@ -6,7 +6,7 @@ pub use content::native_index;
 
 use crate::project_config::{self, Check, Context};
 use crate::shared::console;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -189,7 +189,7 @@ impl Attempt {
             .parent()
             .ok_or_else(|| anyhow::anyhow!("runtime file has no parent"))?;
         fs::create_dir_all(directory)?;
-        crate::shared::artifacts::json::save(&self.path, &self.record)
+        crate::shared::atomic_files::atomic_json::save(&self.path, &self.record)
     }
 }
 fn read(path: &Path) -> Result<Option<Record>> {

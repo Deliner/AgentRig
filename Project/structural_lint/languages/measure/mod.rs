@@ -49,7 +49,7 @@ pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
     found
 }
 pub fn reparse(path: &Path, fragment: &str) -> Option<Tree> {
-    let Ok(Some(parsed)) = crate::shared::syntax::parse(path, fragment) else {
+    let Ok(Some(parsed)) = crate::shared::source_parsers::parse(path, fragment) else {
         return None;
     };
     let intact = !parsed.root_node().has_error();
@@ -63,7 +63,7 @@ pub fn justified_line(row: usize, source: &str) -> bool {
         && source
             .lines()
             .nth(row - 1)
-            .is_some_and(|line| crate::shared::syntax::reference(line.trim()).is_some())
+            .is_some_and(|line| crate::shared::source_parsers::reference(line.trim()).is_some())
 }
 pub fn named_value(node: Node<'_>) -> bool {
     match node.kind() {
@@ -183,7 +183,7 @@ fn ungrouped(node: Node<'_>) -> Node<'_> {
 }
 // DECISION: D037
 pub fn comment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let forbidden = crate::shared::syntax::reference(text(node, source)).is_none();
+    let forbidden = crate::shared::source_parsers::reference(text(node, source)).is_none();
     if forbidden {
         output.push(Measurement {
             kind: Kind::Reference(Reference::Comment),
@@ -195,7 +195,7 @@ pub fn comment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) 
 }
 // DECISION: D067
 pub fn credential(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let found = crate::shared::syntax::secret(text(node, source));
+    let found = crate::shared::source_parsers::secret(text(node, source));
     if let Some(name) = found {
         output.push(Measurement {
             kind: Kind::Reference(Reference::HardcodedSecret),

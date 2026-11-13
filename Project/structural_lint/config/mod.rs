@@ -1,6 +1,6 @@
 use super::catalog as rules;
-pub use crate::shared::diagnostics::lint::Level;
-use crate::shared::{diagnostics::skills, paths::patterns::globs};
+pub use crate::shared::diagnostics::actionable_findings::Level;
+use crate::shared::{diagnostics::skill_refs, paths::glob_patterns::globs};
 use crate::structural_lint::rules::control_flow::{ControlFlow, Junctions};
 use crate::structural_lint::rules::ownership::{Ownership, Pair};
 use crate::structural_lint::rules::structure::Structure;
@@ -86,7 +86,7 @@ impl Config {
         if unsupported_version {
             bail!("unsupported config version {}", self.version);
         }
-        skills::reference(resources, &self.config_skill)?;
+        skill_refs::reference(resources, &self.config_skill)?;
         globs(&self.exclude)?;
         let missing_rules = self.rules.is_empty();
         if missing_rules {
@@ -154,8 +154,8 @@ impl Rule {
         rules::validate_extensions(self.kind, &self.extensions)?;
         rules::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
-        skills::reference(root, &self.warning_skill)?;
-        skills::reference(root, &self.error_skill)?;
+        skill_refs::reference(root, &self.warning_skill)?;
+        skill_refs::reference(root, &self.error_skill)?;
         for entry in &self.overrides {
             self.validate_override(entry)?;
         }

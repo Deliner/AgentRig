@@ -1,7 +1,7 @@
 // DECISION: D020
 use super::format;
 use crate::project_config::{Context, FILE};
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::{Entry, Repository};
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -73,7 +73,7 @@ fn prior_memory(
     let configured = tree.contains_key(FILE);
     if configured {
         let prior: serde_json::Value =
-            crate::shared::yaml::decode(&committed(repository, revision, Path::new(FILE))?)
+            crate::shared::strict_yaml::decode(&committed(repository, revision, Path::new(FILE))?)
                 .with_context(|| format!("committed {FILE}"))?;
         return Ok(prior["paths"]["memory"]
             .as_str()

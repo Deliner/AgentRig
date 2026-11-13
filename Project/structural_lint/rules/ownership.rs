@@ -1,6 +1,6 @@
 use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
-use crate::shared::diagnostics::lint::Level as Severity;
+use crate::shared::diagnostics::actionable_findings::Level as Severity;
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
 

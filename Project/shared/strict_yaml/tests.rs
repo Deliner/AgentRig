@@ -1,4 +1,4 @@
-use crate::shared::yaml;
+use crate::shared::strict_yaml;
 use serde::{Deserialize, Serialize};
 use std::{collections::BTreeMap, fs};
 
@@ -14,11 +14,11 @@ struct Config {
 fn typed_yaml_roundtrip_preserves_literals_and_nested_settings() {
     let source =
         "name: '&literal *literal !literal'\nenabled: true\nthresholds:\n  functions: 40\n";
-    let config: Config = yaml::decode(source).unwrap();
+    let config: Config = strict_yaml::decode(source).unwrap();
     assert_eq!(config.name, "&literal *literal !literal");
     assert_eq!(config.thresholds["functions"], 40);
-    let encoded = yaml::encode(&config).unwrap();
-    assert_eq!(yaml::decode::<Config>(&encoded).unwrap(), config);
+    let encoded = strict_yaml::encode(&config).unwrap();
+    assert_eq!(strict_yaml::decode::<Config>(&encoded).unwrap(), config);
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn duplicate_keys_and_yaml_composition_are_rejected() {
         "invalid: [",
     ] {
         assert!(
-            yaml::decode::<serde_json::Value>(source).is_err(),
+            strict_yaml::decode::<serde_json::Value>(source).is_err(),
             "{source}"
         );
     }
@@ -57,7 +57,7 @@ fn schema_errors_do_not_coerce_scalars_and_identify_the_field() {
         ("40", "1.5", "thresholds.functions"),
         ("name:", "unknown:", "unknown"),
     ] {
-        let error = yaml::decode::<Config>(&source.replace(from, to)).unwrap_err();
+        let error = strict_yaml::decode::<Config>(&source.replace(from, to)).unwrap_err();
         assert!(error.to_string().contains(field), "{error}");
     }
 }
@@ -71,13 +71,13 @@ fn file_errors_identify_source_and_do_not_read_toml_as_configuration() {
         "name='old'\nenabled=true\n[thresholds]\nfunctions=40",
     )
     .unwrap();
-    let error = yaml::read::<Config>(&path).unwrap_err();
+    let error = strict_yaml::read::<Config>(&path).unwrap_err();
     assert!(format!("{error:#}").contains("settings.yaml"));
     fs::write(
         &path,
         "name: ok\nenabled: false\nthresholds: {functions: invalid}",
     )
     .unwrap();
-    let error = format!("{:#}", yaml::read::<Config>(&path).unwrap_err());
+    let error = format!("{:#}", strict_yaml::read::<Config>(&path).unwrap_err());
     assert!(error.contains("settings.yaml") && error.contains("thresholds.functions"));
 }

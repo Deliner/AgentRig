@@ -24,7 +24,7 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         "exclude": [".git/**", settings.paths.service_path("bin/**"), format!("{}/**", settings.paths.runtime), "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
         "rules": rules,
     });
-    crate::shared::yaml::encode(&config)
+    crate::shared::strict_yaml::encode(&config)
 }
 
 fn cataloged(kind: rules::Kind) -> bool {

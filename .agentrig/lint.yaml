@@ -22,8 +22,8 @@ exclude:
 - '**/target'
 - '**/target/**'
 # DECISION: D112
-- Project/shared/syntax/tree-sitter-rust
-- Project/shared/syntax/tree-sitter-rust/**
+- Project/shared/source_parsers/tree-sitter-rust
+- Project/shared/source_parsers/tree-sitter-rust/**
 rules:
 - id: file-size
   kind: nonblank-lines
@@ -961,8 +961,8 @@ rules:
     python_root: .
     feature_root: Project
     disallowed:
-    - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs, allow: [Project/shared/fs/**, '**/tests/**', '**/tests.rs'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
-    - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs, allow: [Project/shared/fs/**, '**/tests/**', '**/tests.rs']}
+    - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
+    - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs']}
     - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, Project/shared/testing/examples/measure.rs, '**/tests/**', '**/tests.rs']}
   error_skill: .agents/skills/refactor-large-directory/SKILL.md
   extensions:

@@ -3,7 +3,7 @@ use crate::project_config;
 use crate::project_setup::template::{self, Scaffold};
 use crate::project_setup::{Config, Files, bundle};
 use crate::shared::console;
-use crate::shared::fs::{self, OpenOptions, Permissions, PermissionsExt};
+use crate::shared::fs_with_context::{self as fs, OpenOptions, Permissions, PermissionsExt};
 use crate::structural_lint::Location;
 use anyhow::{Result, ensure};
 use std::{io::Write, path::Path};

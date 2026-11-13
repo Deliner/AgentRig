@@ -2,7 +2,7 @@
 use crate::change_delivery::gate;
 use crate::command_runner;
 use crate::project_config::Context;
-use crate::shared::arguments::forwarded;
+use crate::shared::shared_options::forwarded;
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::path::Path;

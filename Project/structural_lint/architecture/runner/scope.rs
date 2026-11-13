@@ -1,4 +1,4 @@
-use crate::shared::paths::patterns::globs;
+use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::{
     config::{Rule, extension_matches},
     inventory::Inventory,

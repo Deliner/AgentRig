@@ -37,7 +37,7 @@ serde_yaml_ng = "0.10"
 yaml-rust2 = { version = "0.11", default-features = false }
 tree-sitter = "0.26"
 # DECISION: D112
-tree-sitter-rust = { path = "shared/syntax/tree-sitter-rust" }
+tree-sitter-rust = { path = "shared/source_parsers/tree-sitter-rust" }
 tree-sitter-python = "0.25"
 signal-hook = "0.3"
 libc = "0.2"

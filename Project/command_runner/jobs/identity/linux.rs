@@ -1,5 +1,5 @@
 use super::{Resources, Sample};
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result};
 
 pub fn boot() -> Result<String> {

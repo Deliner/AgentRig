@@ -1,8 +1,8 @@
 // DECISION: D020
 
-use agentrig::shared::arguments::take_option;
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
+use agentrig::shared::shared_options::take_option;
 use agentrig::structural_lint::Location;
 use agentrig::{agent_hooks, command_line, project_config, structural_lint};
 use anyhow::{Result, bail};
@@ -63,9 +63,9 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
         return agentrig::shared::paths::resolve(&env::current_dir()?.join(root));
     }
     if initializing {
-        agentrig::shared::fs::create_dir_all(&root)?;
+        agentrig::shared::fs_with_context::create_dir_all(&root)?;
     }
-    Ok(agentrig::shared::fs::canonicalize(&root)?)
+    Ok(agentrig::shared::fs_with_context::canonicalize(&root)?)
 }
 fn print_help() {
     console::stdout(

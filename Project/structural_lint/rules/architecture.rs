@@ -1,5 +1,5 @@
 // DECISION: D044
-use crate::shared::paths::patterns::globs;
+use crate::shared::paths::glob_patterns::globs;
 use anyhow::{Context, Result, ensure};
 use globset::GlobSet;
 use serde::{Deserialize, Serialize};

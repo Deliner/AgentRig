@@ -226,7 +226,7 @@ pub fn module(section: &str) -> String {
 }
 pub fn read(root: &Path) -> Result<Config> {
     let mut sections: serde_json::Map<String, serde_json::Value> =
-        crate::shared::yaml::read(&root.join(FILE))?;
+        crate::shared::strict_yaml::read(&root.join(FILE))?;
     for section in MODULES {
         let path = module(section);
         ensure!(
@@ -237,7 +237,7 @@ pub fn read(root: &Path) -> Result<Config> {
         if present {
             sections.insert(
                 section.into(),
-                crate::shared::yaml::read(&root.join(&path))?,
+                crate::shared::strict_yaml::read(&root.join(&path))?,
             );
         }
     }
@@ -259,7 +259,7 @@ pub fn sources(root: &Path) -> Vec<PathBuf> {
         (FILE.to_owned(), "/paths/lint"),
         (module("hooks"), "/reminder"),
     ] {
-        let document = crate::shared::yaml::read::<serde_json::Value>(&root.join(file)).ok();
+        let document = crate::shared::strict_yaml::read::<serde_json::Value>(&root.join(file)).ok();
         let referenced = document
             .as_ref()
             .and_then(|document| document.pointer(pointer))
@@ -285,17 +285,17 @@ pub fn files(config: &Config) -> Result<Vec<ModuleFile>> {
             .ok_or_else(|| anyhow::anyhow!("missing configuration section {section}"))?;
         files.push(ModuleFile {
             path: module(section),
-            source: crate::shared::yaml::encode(&value)?,
+            source: crate::shared::strict_yaml::encode(&value)?,
         });
     }
     files.push(ModuleFile {
         path: FILE.into(),
-        source: crate::shared::yaml::encode(&sections)?,
+        source: crate::shared::strict_yaml::encode(&sections)?,
     });
     Ok(files)
 }
 pub fn project_root(path: &Path) -> Result<PathBuf> {
-    Ok(crate::shared::fs::canonicalize(path)?)
+    Ok(crate::shared::fs_with_context::canonicalize(path)?)
 }
 pub fn relative(root: &Path, value: &str) -> Result<PathBuf> {
     let path = Path::new(value);

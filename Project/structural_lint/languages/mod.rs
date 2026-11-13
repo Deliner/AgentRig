@@ -20,8 +20,8 @@ pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
         registry::Inspect::Document(analyze) => return Ok(analyze(source)),
         registry::Inspect::Tree(inspect) => *inspect,
     };
-    let tree =
-        crate::shared::syntax::parse(path, source)?.context("unsupported source language")?;
+    let tree = crate::shared::source_parsers::parse(path, source)?
+        .context("unsupported source language")?;
     let mut analysis = Analysis::default();
     let valid = !tree.root_node().has_error();
     let code = Code::new(source);

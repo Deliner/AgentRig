@@ -1,4 +1,4 @@
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Result, bail};
 use std::path::Path;
 

@@ -1,7 +1,7 @@
 use super::Location;
 use crate::shared::console;
-use crate::shared::diagnostics::lint::{Diagnostic, Level};
-use crate::shared::fs;
+use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
+use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use std::collections::BTreeMap;
@@ -22,7 +22,7 @@ fn load(path: &Path) -> Result<Option<Counts>> {
         Err(error) if error.missing() => return Ok(None),
         Err(error) => return Err(error.into()),
     };
-    let counts = crate::shared::yaml::decode(&source)
+    let counts = crate::shared::strict_yaml::decode(&source)
         .with_context(|| format!("lint baseline {}", path.display()))?;
     Ok(Some(counts))
 }
@@ -127,7 +127,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
         .filter(|pair| pair.key.allowed(&findings) < pair.count)
         .count();
     let total: u64 = pairs(&findings).map(|pair| pair.count).sum();
-    fs::write(&path, crate::shared::yaml::encode(&findings)?)?;
+    fs::write(&path, crate::shared::strict_yaml::encode(&findings)?)?;
     console::stdout(format!(
         "Recorded {total} accepted lint errors in {}",
         path.display()
@@ -166,7 +166,7 @@ fn committed(repository: &Repository<'_>, head: &str, relative: &Path) -> Result
         return Ok(None);
     }
     let source = String::from_utf8(repository.read(head, relative)?)?;
-    let counts = crate::shared::yaml::decode(&source)
+    let counts = crate::shared::strict_yaml::decode(&source)
         .with_context(|| format!("committed lint baseline {name}"))?;
     Ok(Some(counts))
 }

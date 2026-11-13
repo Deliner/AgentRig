@@ -14,8 +14,8 @@ use tree_sitter::Node;
 
 pub fn extract(path: &Path, text: &str) -> Result<References> {
     let handler = languages::handler(path).context("unsupported dependency language")?;
-    let tree =
-        crate::shared::syntax::parse(path, text)?.context("unsupported dependency language")?;
+    let tree = crate::shared::source_parsers::parse(path, text)?
+        .context("unsupported dependency language")?;
     let mut source = Source {
         path,
         text: languages::Code::new(text),

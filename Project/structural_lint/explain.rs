@@ -2,8 +2,8 @@ use super::architecture::{Rooted, runner};
 use super::structure::{self, Texts};
 use super::{Location, config};
 use super::{inventory, selection};
-use crate::shared::paths::patterns::globs;
-use crate::shared::{console, fs};
+use crate::shared::paths::glob_patterns::globs;
+use crate::shared::{console, fs_with_context as fs};
 use crate::structural_lint::rules::{Kind, descriptor::TEST_CODE, structure::Structure};
 use anyhow::{Result, bail, ensure};
 use serde_json::{Value, json};
@@ -84,7 +84,7 @@ fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let path = path.as_path();
     let root = location.root;
     let config = location.load()?;
-    let excluded = crate::shared::paths::patterns::globs(&config.exclude)?;
+    let excluded = crate::shared::paths::glob_patterns::globs(&config.exclude)?;
     let inventory = inventory::collect(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
     let exclusion = if globally_excluded {

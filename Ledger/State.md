@@ -14,7 +14,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/structure-v36`, от master `fb5090e`.
-Revision: `fb5090e7201a5067573ddeff8c6fbd72a3c9a829`
+Revision: `502d2f695eeadf82ed27d017a64074a0061bccef`
 
 Установленный рантайм `d8e186b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -22,8 +22,9 @@ Revision: `fb5090e7201a5067573ddeff8c6fbd72a3c9a829`
 
 ## Progress
 
-- VAC 1 P131 записывает снимки «до» в `Ledger/Assets/P131/` и делает P131 активной.
-- Порядок дальше: `shared/`, затем верх `structural_lint/` (`targeting`, `rule_set`, `reporting`), затем
+- VAC 1 P131 `502d2f6` записал снимки «до» в `Ledger/Assets/P131/` и сделал P131 активной.
+- VAC 2 P131 переносит и делит части `Project/shared/` по карте; `total` упал с 24.0 до 21.7.
+- Порядок дальше: верх `structural_lint/` (`targeting`, `rule_set`, `reporting`), затем
   `structural_lint/architecture` и `languages`, затем остальные верхние части и `command_line` → `cli_dispatch`.
   Ссылки: `.agentrig/checks.yaml`, `.agentrig/lint.yaml`, `Project/Cargo.toml`, `tooling/pyproject.toml`,
   ссылки применения в `Ledger/Decisions.md` и `Ledger/Invariants.md`, README. Детали решений неизменны (D020).
@@ -31,6 +32,7 @@ Revision: `fb5090e7201a5067573ddeff8c6fbd72a3c9a829`
 ## Verification
 
 - Снимки сняты установленным рантаймом `d8e186b` на `fb5090e`: `total 24.0 units 192`.
+- На изменениях VAC 2 прошли сборка, `just lint`, `memory-check`, `config-check` и `lint-config-check`.
 
 ## Blockers
 
@@ -38,5 +40,6 @@ Revision: `fb5090e7201a5067573ddeff8c6fbd72a3c9a829`
 
 ## Next action
 
-После VAC 1 перенести и разделить части `Project/shared/` по строкам карты v36. Свободные ID: D173+, I022+, P132+,
+После VAC 2 перенести `structural_lint` `inventory`, `selection`, `rules`, `catalog`, `config`, `cli.rs`,
+`explain.rs` и `tree.rs` в `targeting`, `rule_set` и `reporting` и поделить их входные файлы по карте. Свободные ID: D173+, I022+, P132+,
 B128+ (B066 и D111 зарезервированы).

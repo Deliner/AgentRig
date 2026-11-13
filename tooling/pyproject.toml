@@ -28,7 +28,7 @@ known-first-party = ["Project"]
 
 # DECISION: D112
 [tool.typos.files]
-extend-exclude = ["Project/shared/syntax/tree-sitter-rust/"]
+extend-exclude = ["Project/shared/source_parsers/tree-sitter-rust/"]
 
 [tool.typos.default]
 extend-ignore-identifiers-re = ["^[0-9a-f]*[0-9][0-9a-f]*$"]

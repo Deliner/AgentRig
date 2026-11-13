@@ -5,7 +5,7 @@ use crate::{
     project_config::Context,
     project_memory::{self, evidence},
     project_setup,
-    shared::{arguments::forwarded, console, diagnostics},
+    shared::{console, diagnostics, shared_options::forwarded},
 };
 use anyhow::Result;
 

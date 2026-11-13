@@ -73,7 +73,7 @@ fn sandbox(root: &Path, argv: &[String], _scratch: &tempfile::TempDir) -> Result
 
 #[cfg(target_os = "macos")]
 fn sandbox(_root: &Path, argv: &[String], scratch: &tempfile::TempDir) -> Result<Command> {
-    let scratch = crate::shared::fs::canonicalize(scratch.path())?;
+    let scratch = crate::shared::fs_with_context::canonicalize(scratch.path())?;
     let profile = format!(
         "(version 1)(allow default)(deny network*)(deny file-write*)\
          (allow file-write* (literal \"/dev/null\") (literal \"/dev/zero\") \

@@ -1,0 +1,9 @@
+purpose: Read, fingerprint and atomically persist shared file artifacts for execution and verification
+type: flat
+files:
+  mod.rs: Declarations of the bounded read, fingerprint and atomic JSON parts
+  atomic_json.rs: Atomic JSON serialization and replacement after file synchronization
+  bounded_read.rs: Shared regular-file reading with caller limits
+  fingerprint.rs: SHA-256 content fingerprints
+  tests.rs: Bounded reads, fingerprints and JSON replacement and failure behavior
+directories: {}

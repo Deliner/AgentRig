@@ -1,7 +1,7 @@
 use crate::project_config::{Check, Context, Removed, module};
-use crate::shared::diagnostics::lint::{Diagnostic, Level, print_diagnostics};
-use crate::shared::fs;
-use crate::shared::paths::patterns::globs;
+use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level, print_diagnostics};
+use crate::shared::fs_with_context as fs;
+use crate::shared::paths::glob_patterns::globs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use std::path::Path;

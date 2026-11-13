@@ -3,7 +3,7 @@
 use super::evidence;
 use crate::project_config::Context;
 use crate::shared::console;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use serde_json::{Value, json};

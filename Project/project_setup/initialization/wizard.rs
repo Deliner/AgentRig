@@ -22,7 +22,7 @@ pub fn run(root: &Path) -> Result<i32> {
     console::stdout(format!(
         "Configuration for {root}:\n{config}\nFiles:\n{files}",
         root = root.display(),
-        config = crate::shared::yaml::encode(config)?,
+        config = crate::shared::strict_yaml::encode(config)?,
         files = listing(&root, &scaffold, &files)
     ));
     let Some(answer) = ask("Install this environment? yes/no", "no".into())? else {
@@ -31,7 +31,7 @@ pub fn run(root: &Path) -> Result<i32> {
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
         super::init::prepare(&root, config, &files)?;
-        crate::shared::fs::create_dir_all(&root)?;
+        crate::shared::fs_with_context::create_dir_all(&root)?;
         super::init::install(&root, &scaffold, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
         super::init::offer_ratchet(&root, config)?;

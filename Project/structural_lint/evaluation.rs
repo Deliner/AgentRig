@@ -1,8 +1,8 @@
 use super::architecture::runner;
 use super::{catalog, config, inventory, languages, rules, selection};
-use crate::shared::diagnostics::lint::{Diagnostic, Level};
-use crate::shared::fs;
-use crate::shared::paths::patterns::globs;
+use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
+use crate::shared::fs_with_context as fs;
+use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::rules::architecture::FILENAME;
 use crate::structural_lint::rules::control_flow::MIXED_JUNCTIONS;
 use crate::structural_lint::rules::ownership::Pair;

@@ -1,14 +1,7 @@
-pub mod json;
+use crate::shared::fs_with_context::{self as fs, OpenOptions, OpenOptionsExt};
 use anyhow::{Result, ensure};
-#[cfg(test)]
-mod tests;
-use crate::shared::fs::{self, OpenOptions, OpenOptionsExt};
-use sha2::{Digest, Sha256};
 use std::{io::Read, path::Path};
 
-pub fn digest(bytes: &[u8]) -> String {
-    format!("{:x}", Sha256::digest(bytes))
-}
 pub fn read_regular(path: &Path, max_bytes: u64) -> Result<Vec<u8>> {
     let metadata = fs::symlink_metadata(path)?;
     ensure!(

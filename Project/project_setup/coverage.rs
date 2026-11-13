@@ -3,7 +3,7 @@
 use crate::change_delivery::gate::{AffectedMap, files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
-use crate::shared::{console, fs};
+use crate::shared::{console, fs_with_context as fs};
 use crate::structural_lint::architecture::{resolution::rust::Rust, source};
 use anyhow::Result;
 use std::collections::BTreeMap;
