@@ -3,7 +3,7 @@
 // DECISION: D042
 pub mod agent_hooks;
 pub(crate) mod change_delivery;
-pub mod command_line;
+pub mod cli_dispatch;
 pub mod command_runner;
 pub mod project_config;
 pub(crate) mod project_memory;

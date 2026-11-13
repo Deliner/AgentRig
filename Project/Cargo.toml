@@ -12,11 +12,11 @@ path = "lib.rs"
 
 [[bin]]
 name = "agentrig"
-path = "command_line/main.rs"
+path = "cli_dispatch/main.rs"
 
 [[bin]]
 name = "agentrig-lint"
-path = "command_line/lint.rs"
+path = "cli_dispatch/standalone_lint.rs"
 
 [[example]]
 name = "measure"

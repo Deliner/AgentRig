@@ -2,7 +2,7 @@ purpose: Parse agentrig and agentrig-lint commands and dispatch them to the feat
 type: flat
 files:
   main.rs: AgentRig process entry with hook and lint command dispatch
-  lint.rs: Standalone agentrig-lint process entry and exit reporting
+  standalone_lint.rs: Standalone agentrig-lint process entry and exit reporting
   mod.rs: Parse command names, validate arguments and dispatch context-free commands
   project.rs: Run commands that need the loaded project configuration through their owning features
 directories:

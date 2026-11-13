@@ -955,8 +955,8 @@ rules:
     rust_roots:
     - Project/shared/testing/examples/rust/crates/engine/src/lib.rs
     - Project/lib.rs
-    - Project/command_line/main.rs
-    - Project/command_line/lint.rs
+    - Project/cli_dispatch/main.rs
+    - Project/cli_dispatch/standalone_lint.rs
     - Project/shared/testing/examples/measure.rs
     python_root: .
     feature_root: Project
