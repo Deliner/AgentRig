@@ -20,6 +20,10 @@ type Files = BTreeMap<String, Vec<u8>>;
 fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
     let config = &scaffold.config;
     let mut files = guidance(config);
+    let rust_project = scaffold.clippy.is_some();
+    if rust_project {
+        add_rust_capabilities(&mut files)?;
+    }
     for file in project_config::files(config)? {
         files.insert(file.path, file.source.into_bytes());
     }
@@ -49,6 +53,14 @@ pub(super) fn guidance(config: &Config) -> Files {
         assets::instructions(config).into_bytes(),
     );
     files
+}
+// DECISION: D175
+fn add_rust_capabilities(files: &mut Files) -> Result<()> {
+    let capabilities = rust::toolchain::Version::rig()?.capabilities();
+    let instructions = files.entry("AGENTS.md".into()).or_default();
+    instructions.push(b'\n');
+    instructions.extend_from_slice(capabilities.as_bytes());
+    Ok(())
 }
 fn add_policy(files: &mut Files, config: &Config, rust: &rust::cargo::Layout) -> Result<()> {
     if config.capabilities.lint {

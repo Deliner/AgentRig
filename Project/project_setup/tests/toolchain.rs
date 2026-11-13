@@ -1,4 +1,5 @@
 // DECISION: D174
+// DECISION: D175
 use super::write;
 use crate::shared::fs_with_context::{Permissions, PermissionsExt};
 use crate::shared::testing::{Run, repository, run, runtime, search_path};
@@ -101,6 +102,30 @@ fn rust_init_accepts_the_rig_rust_and_doctor_tells_it_from_an_older_one() {
     let line = format!("rust toolchain: OLDER OR MISSING, found {older}, requires {required}");
     assert_eq!(refused.code, Some(1), "{}", refused.output());
     assert!(refused.stdout.contains(&line), "{}", refused.output());
+}
+
+fn capability_section(root: &Path) -> Option<String> {
+    let instructions = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    let (_, section) = instructions.split_once("\n## Rust ")?;
+    Some(section.to_owned())
+}
+
+#[test]
+fn rust_init_writes_the_rig_rust_capability_section_and_python_init_does_not() {
+    let temp = tempfile::tempdir().unwrap();
+    let path = rustc(temp.path(), &rig_version());
+    let rust = rust_project(temp.path());
+    let python = temp.path().join("python");
+    fs::create_dir_all(&python).unwrap();
+    let python = python.canonicalize().unwrap();
+    for (root, language) in [(&rust, "rust"), (&python, "python")] {
+        let initialized = agentrig(root, &path, &["init", "--language", language]);
+        assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    }
+    let rig = capability_section(&repository());
+    assert!(rig.is_some(), "the rig AGENTS.md has no Rust section");
+    assert_eq!(capability_section(&rust), rig);
+    assert_eq!(capability_section(&python), None);
 }
 
 #[test]

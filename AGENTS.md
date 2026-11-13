@@ -12,9 +12,8 @@ project as a controlled, deterministic environment where an agent cannot write c
 
 Read Ledger/State.md, Ledger/Plan.md and any relevant feature detail, then inspect Git status and recent commits.
 Reconcile recorded progress with live evidence; preserve unrelated work. Follow the current decision index and explicit
-successors rather than superseded historical details. Apply complexity-discipline for non-trivial implementation,
-type-driven-discipline when a value carries an invariant, a mode or a lifecycle, and norm-or-choice for durable policy
-changes.
+successors, not superseded details. Apply complexity-discipline for non-trivial implementation, type-driven-discipline
+when a value carries an invariant, a mode or a lifecycle, and norm-or-choice for durable policy changes.
 
 Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit
 maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product
@@ -30,20 +29,18 @@ Runtime paths, Git base/prefix, commands, checks, tools, hook routes and oracle 
 **Per the user's explicit instruction, agents may edit files directly with editing tools such as `apply_patch`, `Edit`
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
-Invoke shell operations through the Just recipes grouped under just/ (`just --list`). `just list` lists the configured
-command catalog. Use `just read -- PROGRAM ...` for sandboxed inspection and `just write -- PROGRAM ...` for shell
-mutations with the programs configured in .agentrig/commands.yaml, `just run NAME -- ...` for catalog commands and
-`just scratch -- TEXT` for temporary code in the branch task area. Recipes are thin adapters and require an
-immediately preceding What/Why comment.
+Invoke shell operations through the Just recipes grouped under just/ (`just --list`; `just list` shows the catalog).
+Use `just read -- PROGRAM ...` for sandboxed inspection and `just write -- PROGRAM ...` for shell mutations with the
+programs configured in .agentrig/commands.yaml, `just run NAME -- ...` for catalog commands and `just scratch -- TEXT`
+for temporary code in the branch task area. Each recipe is a thin adapter directly preceded by a What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
-change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises
-and verify through the public surface, not internal state. Commit through .agentrig/hooks/pre-commit, which runs the
-configured exported-index gate with affected test
-groups plus smoke tests. Do not substitute the full test suite for unmapped commit paths; maintain the impact map
-instead. Never bypass the hook. Avoid repeating the gate immediately before the same commit unless needed for diagnosis.
-Finish on a clean feature branch with `just feature-merge`, which runs the tests affected by the whole branch; retain
-the branch after integration. Branch policy comes from .agentrig/git.yaml; never commit directly to its configured base.
+change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises and
+verify through the public surface, not internal state. Commit through .agentrig/hooks/pre-commit, which runs the
+configured exported-index gate with affected test groups plus smoke tests. Do not substitute the full test suite for
+unmapped commit paths; maintain the impact map instead. Never bypass the hook; avoid rerunning the gate just before
+the same commit except for diagnosis. Finish on a clean feature branch with `just feature-merge`, which runs the tests
+affected by the whole branch; retain the branch. Never commit directly to the base configured in .agentrig/git.yaml.
 
 ## Memory and skills
 
@@ -66,24 +63,30 @@ referencing the agreed Backlog outcome and acceptance. Archive retains completed
 
 D020 governs consolidation: committed decision IDs, statements and detail contents are immutable; application links
 identify current owners and may migrate with refactoring. Each linked Rust/Python/shell owner needs a real DECISION:
-DNNN comment. Invariants bind a marked Rust/Python test to its exact configured executable oracle. Use the scaffold
-guide for schema details; do not duplicate those contracts here.
+DNNN comment. Invariants bind a marked Rust/Python test to its exact configured executable oracle.
 
 ## Runtime changes
 
-Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. This
-build/install recipe is the explicit bootstrap exception to runtime dispatch. Use tooling/worker/run for the installed
-development runtime; it never builds candidate sources. All command, hook, memory, gate and Git logic belongs to the
-Rust runtime; adapters only forward calls. Python dependencies support repository checks and example consumer tests.
+Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. Use
+tooling/worker/run for the installed development runtime; it never builds candidate sources. All command, hook, memory,
+gate and Git logic belongs to the Rust runtime; adapters only forward calls.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
 select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish
 every branch that changes Project by writing its gate-accepted head to stable.txt and bootstrapping it in one command,
-then commit the pin before `just feature-merge` (D051). Project policy and canonical skill sources remain reviewable
-repository files. See tooling/distribution/README.md for clean-clone setup and release instructions.
+then commit the pin before `just feature-merge` (D051). See tooling/distribution/README.md for clean-clone setup.
 
-Use `just config-check` for project configuration, `just lint-config-check` for lint settings, and `just lint-rules` for
-actual rule/language capabilities. Apply the reported repair skill. Preserve policy intent; do not weaken thresholds or
-selectors merely to pass. New rules and language handlers require implemented measurements, capability declarations,
-behavioral verification and repair guidance. Consult Project/README.md for counting semantics and parser limits.
-Rust changes participate in rustfmt, Clippy and native behavioral tests through the configured gate.
+Use `just config-check`, `just lint-config-check` and `just lint-rules` for configuration, lint settings and actual rule
+capabilities. Apply the reported repair skill; preserve policy intent, never weakening thresholds or selectors to pass.
+New rules and language handlers need implemented measurements, declared capabilities, tests and repair guidance.
+
+## Rust 1.100
+
+Write current Rust: use these stable capabilities where they fit, even when your training predates them.
+
+- `!` is a stable type and `Infallible` its alias: write `Result<T, !>` and `let Ok(value) = result;`.
+- `std::mem::DropGuard::new(value, f)` calls `f(value)` on drop; `DropGuard::dismiss` cancels it, returning the value.
+- `trim_prefix` and `trim_suffix` on `str`, slices and `Path` replace `strip_prefix(p).unwrap_or(x)`.
+- `bool::toggle`, `Vec::from_fn(len, f)`, `Box::map`, `Rc::map`, `Arc::map` and `Box::take`.
+- The allocator API: `Allocator`, `Global`, `Box::new_in` and `Vec::new_in`.
+- `[lints.cargo]` in `Cargo.toml` and `global-min-publish-age` in `.cargo/config.toml`.

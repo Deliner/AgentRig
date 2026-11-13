@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `0f5bb42a25aa3fdb7b8d51f699a58fa4b360f34f`
+Revision: `84c7fe9bdf41537d52a4281f10a0af66b9bfbb87`
 
 Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -26,12 +26,13 @@ Revision: `0f5bb42a25aa3fdb7b8d51f699a58fa4b360f34f`
 - VAC 3 P132 вынес `cargo.rs` и `clippy.rs` в `Project/project_setup/rust/` без смены поведения: в
   `project_setup` нет места для модуля версии Rust. Бюджет зависимых `shared/fs_with_context` поднят до 23.
 - VAC 4 P132 закрыл AC6 по D174: `init --language rust` и `doctor` требуют `rustc` не старше версии рига.
+- VAC 5 P132 закрыл AC7 по D175: раздел «Rust 1.100» в AGENTS.md рига и Rust-проектов из `rust/capabilities.txt`.
 
 ## Verification
 
-- VAC 2 и VAC 3 прошли гейт; путь bootstrap с архивом файла toolchain проверит пин D051.
-- VAC 4: rustfmt, Clippy, `lint` и `memory-check` проходят; `just run test -- project_setup::` дал 45 из 45, включая
-  3 новых теста с поддельным `rustc` в PATH. Кандидат `doctor` на риге печатает `found 1.100.0, requires 1.100.0`.
+- VAC 2–4 прошли гейт; путь bootstrap с архивом файла toolchain проверит пин D051.
+- VAC 5: rustfmt и `lint` проходят, `memory-check` даёт лишь предупреждение о маркере в `.txt`, как у D112;
+  `just run test -- project_setup::` дал 46 из 46. Заголовок «Rust 1.101» в AGENTS.md рига роняет новый тест.
 
 ## Blockers
 
@@ -39,6 +40,6 @@ Revision: `0f5bb42a25aa3fdb7b8d51f699a58fa4b360f34f`
 
 ## Next action
 
-AC7 B128: раздел о Rust в AGENTS.md рига и Rust-проектов из одного источника, затем AC3–AC4, правило старых форм
-AC8 двухфазно с мид-бранч пином и AC2. AGENTS.md рига уже на пределе lint в 70 строк, раздел потребует сжатия.
-Свободные ID: D175+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
+AC3–AC4 B128: `[lints.cargo] unused_dependencies = "deny"` с проверкой лишней зависимости и `.cargo/config.toml`
+с `global-min-publish-age`, затем правило старых форм AC8 двухфазно с мид-бранч пином и AC2. AGENTS.md рига на
+пределе lint в 70 строк. Свободные ID: D176+, I022+, P133+, B129+ (B066 и D111 зарезервированы).

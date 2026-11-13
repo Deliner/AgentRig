@@ -9,6 +9,8 @@ use std::{fmt, path::Path};
 const RIG_TOOLCHAIN: &str = include_str!("../../../rust-toolchain.toml");
 const UPDATE: &str =
     "run `rustup update` or raise the channel in the project's rust-toolchain.toml";
+// DECISION: D175
+const CAPABILITIES: &str = include_str!("capabilities.txt");
 
 #[derive(Deserialize)]
 struct ToolchainFile {
@@ -35,6 +37,12 @@ impl Version {
         let channel = file.toolchain.channel;
         Self::parse(&channel)
             .with_context(|| format!("the rig's toolchain channel {channel} is not a version"))
+    }
+
+    // DECISION: D175
+    pub fn capabilities(self) -> String {
+        let Self { major, minor, .. } = self;
+        format!("## Rust {major}.{minor}\n\n{CAPABILITIES}")
     }
 
     fn parse(text: &str) -> Option<Self> {
