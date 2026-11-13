@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P132](Plan/132.md) | active | - | [B128](Backlog/128.md): rust-1100 — Rust 1.100 как стандарт рига и проектов | Версия Rust меняется в одном месте, риг и проекты пишутся на актуальном Rust, а модель без знаний о 1.100 видит новинки в AGENTS.md и подсказки lint. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
