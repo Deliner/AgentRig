@@ -2,32 +2,32 @@
 
 ## Focus
 
-Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P132 выполнены и перенесены в Archive.
+Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P133 выполнены и перенесены в Archive.
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B109 и B126 сохранены, в работу не выбраны.
 
-P132 по B128 перевела риг и Rust-проекты на версию Rust из корневого `rust-toolchain.toml` и выполнена. Новая работа
-не выбрана, Plan пуст.
+P133 по B129 научила правило `superseded-form` брать `Vec` из возвращаемого типа и выполнена. Новая работа не
+выбрана, Plan пуст.
 
 ## Workspace
 
-Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `f57a156990f59049bd4bfd14354f8293b5ee835e`
+Branch: `feature/superseded-return`, от master `560c308`, где влита P132.
+Revision: `582fd9586fc7d2308036afb73ef00f9104b4ac70`
 
-Установленный рантайм `f57a156`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `582fd95`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
 ## Progress
 
-- P132 выполнена в VAC 1–10 на ветке `feature/rust-1100`, итоги и приёмка в
-  [Archive/Plan/132.md](Archive/Plan/132.md). Решения D173–D177.
-- Закрывающий VAC ставит пин D051 на `f57a156` и переносит P132 и B128 в Archive.
+- P133 выполнена в VAC 1–2 на ветке `feature/superseded-return`, итоги и приёмка в
+  [Archive/Plan/133.md](Archive/Plan/133.md). Решение D178.
+- Закрывающий VAC ставит пин D051 на `582fd95` и переносит P133 и B129 в Archive.
 
 ## Verification
 
-- VAC 10 `f57a156` прошёл гейт со всеми 490 тестами.
-- После bootstrap `f57a156` lint рига чист, `lint-rules` описывает `superseded-form`.
+- VAC 2 `582fd95` прошёл гейт с 440 тестами.
+- После bootstrap `582fd95` lint рига чист, `lint-rules` называет оба новых случая.
 
 ## Blockers
 
@@ -35,5 +35,5 @@ Revision: `f57a156990f59049bd4bfd14354f8293b5ee835e`
 
 ## Next action
 
-`just feature-merge` ветки `feature/rust-1100` с сохранением ветки, затем отчёт пользователю.
-Свободные ID: D178+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
+`just feature-merge` ветки `feature/superseded-return` с сохранением ветки, затем отчёт пользователю.
+Свободные ID: D179+, I022+, P134+, B130+ (B066 и D111 зарезервированы).

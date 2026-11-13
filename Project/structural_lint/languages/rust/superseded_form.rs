@@ -1,6 +1,7 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
+use std::iter::successors;
 use tree_sitter::Node;
 
 // DECISION: D177
@@ -52,10 +53,11 @@ fn filled(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
             arguments.named_child(0)?,
         )
     } else {
-        let binding = call
+        let bound = call
             .parent()
-            .filter(|parent| parent.kind() == "let_declaration")?;
-        (function, binding.child_by_field_name("type")?)
+            .filter(|parent| parent.kind() == "let_declaration")
+            .and_then(|binding| binding.child_by_field_name("type"));
+        (function, bound.or_else(|| returned(call))?)
     };
     let collected = access
         .child_by_field_name("field")
@@ -71,6 +73,23 @@ fn filled(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
     let (name, range) = method(mapped, source)?;
     let indexed = name == "map" && sole_argument(mapped).is_some() && from_zero(range, source);
     indexed.then_some("(0..n).map(f).collect() -> Vec::from_fn(n, f)")
+}
+// DECISION: D178
+fn returned(call: Node<'_>) -> Option<Node<'_>> {
+    let parent = call.parent()?;
+    let owner = match parent.kind() {
+        "return_expression" => {
+            successors(parent.parent(), Node::parent).find(|node| callable(*node))
+        }
+        "block" => parent
+            .parent()
+            .filter(|owner| callable(*owner) && owner.child_by_field_name("body") == Some(parent)),
+        _ => None,
+    };
+    owner?.child_by_field_name("return_type")
+}
+fn callable(node: Node<'_>) -> bool {
+    matches!(node.kind(), "function_item" | "closure_expression")
 }
 fn from_zero(parenthesized: Node<'_>, source: Code<'_>) -> bool {
     let Some(range) = parenthesized

@@ -502,9 +502,9 @@ fn coupling_uses_the_default_budget_when_unspecified() {
         contracts: loaded, ..
     } = Contracts::load(temp.path(), &directories);
     let into_wide = |count: usize| -> Vec<Dependency> {
-        (0..count)
-            .map(|n| edge(&format!("Project/d{n}/f.rs"), "Project/wide/f.rs"))
-            .collect()
+        Vec::from_fn(count, |n| {
+            edge(&format!("Project/d{n}/f.rs"), "Project/wide/f.rs")
+        })
     };
     let over = loaded.check_coupling(&into_wide(7));
     let named = Vec::from_fn(7, |n| {
