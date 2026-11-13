@@ -1,7 +1,7 @@
-use super::context::{attributed, in_test_context, test_marker};
-use crate::structural_lint::languages::measure::{Code, Measurement, text};
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::structure::Structure;
+use super::exemptions::{attributed, in_test_context, test_marker};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::structure::Structure;
 use tree_sitter::Node;
 
 // DECISION: D145

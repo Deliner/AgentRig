@@ -1,9 +1,9 @@
 // DECISION: D013
 // DECISION: D022
-use super::evidence;
+use super::check_evidence;
 use crate::project_config::Context;
 use crate::shared::console;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -22,7 +22,7 @@ pub fn run(context: &Context) -> Result<()> {
     let recorded = claims.revision(repository.as_ref(), revision);
     let snapshot = claims.snapshot(branch, &recorded);
     let report = json!({"state": state, "plan": plan, "vcs": observed,
-        "snapshot": snapshot, "state_revision": recorded, "checks": evidence::resume(context),
+        "snapshot": snapshot, "state_revision": recorded, "checks": check_evidence::resume(context),
         "jobs": crate::command_runner::jobs::list(&context.path(&context.config.paths.runtime)?)?});
     console::stdout(report);
     Ok(())

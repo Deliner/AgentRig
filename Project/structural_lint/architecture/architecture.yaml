@@ -9,6 +9,6 @@ files:
   tests.rs: Contract validation, feature types and measured cycle behavior
   README.md: Rule configuration, contract format, feature types and source analysis limits
 directories:
+  contract_check: Combine configured scope, extraction, resolution and actionable findings
+  extraction: Extract located dependency references from supported syntax
   resolution: Resolve extracted references to concrete project source files
-  runner: Combine configured scope, extraction, resolution and actionable findings
-  source: Extract located dependency references from supported syntax

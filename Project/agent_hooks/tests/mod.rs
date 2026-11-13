@@ -1,7 +1,7 @@
 mod memory;
 mod reminders;
-mod requirements;
 mod shell;
+mod skill_requirements;
 
 use super::dispatch;
 use serde_json::{Value, json};

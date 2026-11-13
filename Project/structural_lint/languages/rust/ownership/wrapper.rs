@@ -1,9 +1,9 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::context::{
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
+use crate::structural_lint::languages::rust::exemptions::{
     in_test_context, justified_item, type_name,
 };
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Ownership;
 use std::collections::BTreeMap;
 use tree_sitter::Node;
 

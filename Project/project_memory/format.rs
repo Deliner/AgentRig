@@ -1,5 +1,5 @@
 use crate::project_config::Context;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
     collections::HashSet,

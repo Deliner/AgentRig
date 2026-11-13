@@ -6,8 +6,8 @@ mod paired_calls;
 mod recursive_deletion;
 mod unit_lock;
 mod wrapper;
-use crate::structural_lint::languages::measure::{Code, Measurement};
-use crate::structural_lint::rules::ownership::Pair;
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
+use crate::structural_lint::rule_identities::ownership::Pair;
 use tree_sitter::Node;
 pub(super) fn inspect(
     node: Node<'_>,

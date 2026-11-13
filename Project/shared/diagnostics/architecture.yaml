@@ -1,8 +1,10 @@
 purpose: Represent actionable findings, validate their skill references and render diagnostic guidance with reproducible rerun commands
 type: flat
-dependents: 11
+dependents: 12
 files:
-  mod.rs: Shared guidance formatting and command failure recovery instructions
-  lint.rs: Serializable lint findings and their text rendering grouped by shared cause
-  skills.rs: Validation that configured guidance references a repository SKILL.md
+  mod.rs: Command failure recovery instructions built from guidance and the rerun command
+  actionable_findings.rs: Serializable lint findings and their text rendering grouped by shared cause
+  guidance.rs: Shared guidance formatting and the repair skill a failure names
+  rerun_command.rs: Reproducible rerun commands from the invocation and the running executable
+  skill_refs.rs: Validation that configured guidance references a repository SKILL.md
 directories: {}

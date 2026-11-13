@@ -2,9 +2,9 @@ use super::{
     Issue,
     policy::{Declaration, Rooted},
 };
-use crate::shared::fs;
-use crate::structural_lint::inventory::Inventory;
-use crate::structural_lint::rules::architecture::FILENAME;
+use crate::shared::fs_with_context as fs;
+use crate::structural_lint::rule_identities::contract_settings::FILENAME;
+use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{collections::BTreeMap, path::Path};
 
 // DECISION: D062

@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rules::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 
 #[test]
 fn rust_flags_equality_with_a_variant_path_and_matches_naming_a_variant() {

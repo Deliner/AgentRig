@@ -1,7 +1,7 @@
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::reference::Reference;
 use std::path::Path;
 
 const GUARD: Kind = Kind::Ownership(Ownership::GuardAcrossAwait);

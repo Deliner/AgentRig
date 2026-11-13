@@ -1,16 +1,16 @@
+pub mod contract_check;
+pub mod extraction;
 mod features;
 mod graph;
 mod inventory;
 mod policy;
 pub mod resolution;
-pub mod runner;
-pub mod source;
 #[cfg(test)]
 mod tests;
 
 use std::path::PathBuf;
 
-pub use super::rules::architecture::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
+pub use super::rule_identities::contract_settings::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use graph::Neighbours;
 pub use policy::{Contracts, Loaded, Rooted};
 

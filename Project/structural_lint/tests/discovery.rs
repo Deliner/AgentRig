@@ -1,6 +1,6 @@
 use super::consumer::{check, consumer, write};
 use crate::shared::testing::{Run, hermetic, repository, run, worker};
-use crate::structural_lint::catalog;
+use crate::structural_lint::rule_set::capabilities;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, env, fs, path::Path};
 
@@ -76,7 +76,7 @@ fn described(args: &[&str]) -> String {
 }
 
 fn rules() -> Vec<Value> {
-    serde_json::from_value(catalog::catalog()).unwrap()
+    serde_json::from_value(capabilities::catalog()).unwrap()
 }
 
 fn copy_skill(root: &Path, skill: &Value) {

@@ -8,7 +8,7 @@ files:
 directories:
   agent_hooks: Interpret agent hook events and deliver command guards, edit guidance and context reminders
   change_delivery: Gate commits on selected checks and integrate feature branches
-  command_line: Parse agentrig commands and dispatch them to the features that own them
+  cli_dispatch: Parse agentrig commands and dispatch them to the features that own them
   command_runner: Run catalog commands in the foreground and as tracked background jobs
   project_config: Define, load and validate the project configuration that workflow features read
   project_memory: Validate project memory contracts, record check evidence and report recovery context

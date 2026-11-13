@@ -1,6 +1,6 @@
 use super::installed_runtime;
 use crate::shared::{
-    fs::{Permissions, PermissionsExt},
+    fs_with_context::{Permissions, PermissionsExt},
     testing::{Run, git, hermetic, invoke, launch, run, search_path, worker},
 };
 use std::{

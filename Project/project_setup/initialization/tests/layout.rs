@@ -17,7 +17,7 @@ path = "lib.rs"
 
 [[bin]]
 name = "agentrig"
-path = "command_line/main.rs"
+path = "cli_dispatch/main.rs"
 
 [[bin]]
 name = "agentrig-lint"
@@ -239,7 +239,7 @@ fn rust_init_keeps_the_agentrig_layout() {
     let (_temp, root) = consumer();
     let roots = [
         "Project/lib.rs",
-        "Project/command_line/main.rs",
+        "Project/cli_dispatch/main.rs",
         "Project/structural_lint/standalone.rs",
     ];
     touch(&root, &roots);

@@ -1,8 +1,8 @@
-use super::context::{in_test_context, last_segment};
+use super::exemptions::{in_test_context, last_segment};
 use super::suppression;
-use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
 const UNWRAPPING: [&str; 4] = ["unwrap", "expect", "unwrap_err", "expect_err"];

@@ -1,0 +1,6 @@
+purpose: Describe implemented rule capabilities and load and validate strict lint policy
+files:
+  mod.rs: Declarations of the capability and configuration parts
+directories:
+  capabilities: Describe implemented rule and language capabilities
+  lint_config: Load and validate strict lint policy and guidance paths

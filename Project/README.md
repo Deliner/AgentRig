@@ -50,17 +50,17 @@ offers it when existing files already have errors. The gate reads the baseline f
 `--staged`.
 
 Rust (`.rs`) and Python (`.py`, `.pyi`) files are parsed once per run with Tree-sitter; a file that does not parse
-fails with its location. Rust uses the fork of tree-sitter-rust 0.24.2 in `shared/syntax/tree-sitter-rust`, which also
-parses `safe` items of `unsafe extern` blocks, macros named after primitive types and lifetimes first after `dyn`;
-other valid Rust the grammar does not know still fails. Syntax rules reject extensions without a handler. Analysis is
-syntactic: no type checking, macro expansion, decorator alias resolution or generated declarations. Repository policy
-and installed defaults block every language rule. Do not add exceptions to turn the gate green; change policy through a
-recorded decision.
+fails with its location. Rust uses the fork of tree-sitter-rust 0.24.2 in `shared/source_parsers/tree-sitter-rust`,
+which also parses `safe` items of `unsafe extern` blocks, macros named after primitive types and lifetimes first after
+`dyn`; other valid Rust the grammar does not know still fails. Syntax rules reject extensions without a handler.
+Analysis is syntactic: no type checking, macro expansion, decorator alias resolution or generated declarations.
+Repository policy and installed defaults block every language rule. Do not add exceptions to turn the gate green;
+change policy through a recorded decision.
 
-`structural_lint/rules` owns each kind's identity, target, metric, parameters, skill and defaults; the catalog,
-validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection functions to
-extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests with accepted
-and rejected examples.
+`structural_lint/rule_identities` owns each kind's identity, target, metric, parameters, skill and defaults;
+the catalog, validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection
+functions to extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests
+with accepted and rejected examples.
 
 The release build also produces `agentrig-lint`, which assesses another project without installing the worker:
 

@@ -1,0 +1,202 @@
+total 24.0 units 192
+100 split command_runner/jobs/identity/ parts: 2 missing: pid start process identity time never boot reuse trusted
+100 split project_config/ parts: 1 missing: read configured project validate feature load define workflow
+100 split project_memory/evidence/ parts: 1 missing: result matches record project verify input still whether attempt establish
+100 split project_setup/initialization/ parts: 2 missing: file agent configured consumer keep contents existing initializer environment
+100 split shared/arguments/ parts: 0 missing: command option line owner call arguments shared parse literal consumer preserving
+100 split shared/artifacts/ parts: 1 missing: file read shared verify execute artifact fingerprint persist atomically
+100 split shared/console/ parts: 0 missing: line output stdout stderr print reach product leaf console
+100 split shared/fs/ parts: 0 missing: name path error access action product filesystem
+100 split shared/syntax/tree-sitter-rust/bindings/rust/ parts: 1 missing: rust tree parse language crate supported sitter library provide
+100 split shared/testing/ parts: 1 missing: test command configured project consumer behavior construct invoked workflow
+100 split shared/testing/examples/rust/ parts: 1 missing: rust consumer example provide independently installable
+100 split shared/testing/examples/rust/crates/ parts: 1 missing: rust consumer build package compose
+100 split shared/testing/examples/rust/crates/engine/ parts: 1 missing: rust consumer crate invariant executable define minimal
+100 split shared/testing/examples/rust/crates/engine/src/ parts: 0 missing: rust consumer crate invariant executable demonstrate
+100 split shared/yaml/ parts: 0 missing: configured shared yaml capabilities encode decode strict
+100 split structural_lint/architecture/resolution/ parts: 2 missing: file reference declaration project module resolved language external extract explicitly
+100 split structural_lint/architecture/resolution/python/ parts: 0 missing: package root configured module python resolved import regular namespace
+100 rename structural_lint/architecture/source/ parts: 3 missing: reference source module dependencies language supported extract resolution located
+100 split structural_lint/architecture/source/model/ parts: 0 missing: reference collect find handler dependencies language extract located invoked represent
+100 rename structural_lint/architecture/source/rust/ parts: 5 missing: path rust item module dependencies language extract normalized specific
+100 split structural_lint/catalog/ parts: 0 missing: rule validate handler language existing capabilities definition describe using
+100 split structural_lint/config/ parts: 0 missing: configured rule validate lint selected load repair guidance strict severity
+100 split structural_lint/inventory/ parts: 0 missing: file collect directory project maintain unversioned consistently versioned
+100 split structural_lint/languages/measure/ parts: 0 missing: measurement record shared handler language syntax define located detectors neutral
+100 group structural_lint/languages/rust/ parts: 14 subdirectories: 5 files: 9
+100 rename structural_lint/languages/rust/ parts: 14 missing: rust source measurement function rule parameters comment condition length
+100 split structural_lint/selection/ parts: 0 missing: target configured lint selected thresholds overrides effective compute
+ 81 split shared/paths/ parts: 1 missing: path matches repository resolved globs existing link tail normalized created symbolic yet
+ 79 split shared/diagnostics/ parts: 2 missing: reference find command validate guidance diagnostic rerun render actionable represent reproducible
+ 75 rename project_config/settings/ parts: 3 missing: settings project state load execute recovery define workflow independently
+ 75 rename project_memory/ parts: 6 missing: check context record project validate report memory contract recovery
+ 75 rename structural_lint/architecture/resolution/rust/ parts: 3 missing: rust reference declaration module resolved crate supported aliases origin
+ 75 split structural_lint/languages/rust/errors/ parts: 1 missing: rust code handler instead propagated detect disappears trace being
+ 72 split command_runner/registry/ parts: 1 missing: tools owner record list placement registered registration removal
+ 72 rename structural_lint/languages/ parts: 5 missing: source rule handler language supported syntax registered scalar
+ 71 group project_setup/ parts: 12 subdirectories: 1 files: 11
+ 71 group structural_lint/ parts: 12 subdirectories: 8 files: 4
+ 69 split change_delivery/git/ parts: 1 missing: check branch feature guard commit vcs coordinate
+ 69 split shared/testing/examples/ parts: 2 missing: agent consumer behavior installed rig independent demonstrate
+ 64 split change_delivery/ parts: 2 missing: check branch feature selected commit integration
+ 64 rename command_runner/ parts: 5 missing: command run catalog tracked background foreground
+ 64 split shared/syntax/ parts: 1 missing: reference source lint parse mode python comment exclude invariant decision rs shell exact recognize beside fork typos vendored
+ 64 rename structural_lint/languages/rust/control_flow/ parts: 6 missing: path rust call macro handler changes control whose flow action case loop hide leaves whether shape detect suffices
+ 62 rename change_delivery/gate/ parts: 3 missing: result configured record project memory worker execute revision input evidence against
+ 62 rename structural_lint/architecture/ parts: 7 missing: file type directory validate resolved contract dependencies out over cycle fan
+ 58 split command_line/ parts: 2 missing: agentrig command feature parse dispatch
+ 58 rename structural_lint/architecture/runner/ parts: 3 missing: measurement find configured lint contract execute architecture diagnostic over converts
+ 55 split structural_lint/languages/rust/context/ parts: 1 missing: rust test node scope debug sitter classify exempt detectors
+ 50 rename . parts: 9 missing: feature runtime first level impl supported rig portable
+ 50 rename project_setup/ parts: 12 missing: agent inspect environment readiness
+ 50 rename structural_lint/ parts: 12 missing: source check output configured lint capabilities actionable compose
+ 50 rename structural_lint/rules/ parts: 9 missing: settings rule handler language identity metric define independently
+ 44 rename command_runner/jobs/ parts: 10 missing: output owner control execute capture tracked lifetime
+ 44 rename structural_lint/structure/ parts: 6 missing: name show rust code directory structure clearly
+ 43 group command_runner/jobs/ parts: 10 subdirectories: 1 files: 9
+ 43 group shared/ parts: 10 subdirectories: 10 files: 0
+ 43 group structural_lint/languages/rust/signature/ parts: 10 subdirectories: 0 files: 10
+ 38 rename agent_hooks/ parts: 6 missing: context agent command skill hooks event delivered interpret coordinated
+ 33 split agent_hooks/reminder.rs clusters: 2
+ 33 split project_setup/clippy.rs clusters: 2
+ 33 split structural_lint/explain.rs clusters: 2
+ 33 split structural_lint/languages/rust/panic_surface.rs clusters: 2
+ 33 split structural_lint/rules/control_flow.rs clusters: 2
+ 33 split structural_lint/rules/ownership.rs clusters: 2
+ 29 group . parts: 9 subdirectories: 9 files: 0
+ 29 rename structural_lint/languages/rust/ownership/ parts: 8 missing: rust value owner process whose resources access lifetime bypasses detect
+ 29 group structural_lint/rules/ parts: 9 subdirectories: 0 files: 9
+ 23 rename shared/ parts: 10 missing: source shared feature parse skill repository pattern access supported
+ 21 move structural_lint/rules/descriptor.rs closer: structural_lint/catalog/
+ 17 rename shared/vcs/ parts: 6 missing: command shared feature repository registration query provide controlled
+ 17 rename structural_lint/languages/rust/signature/ parts: 10 missing: rust function signature implementation hide detect promise misstate
+ 14 group structural_lint/languages/rust/ownership/ parts: 8 subdirectories: 0 files: 8
+ 13 merge structural_lint/languages/rust/signature/ord_equality.rs close: partial_impl.rs
+ 13 merge structural_lint/languages/rust/signature/partial_impl.rs close: ord_equality.rs
+ 10 merge structural_lint/languages/rust/signature/same_type.rs close: tuple_record.rs
+ 10 merge structural_lint/languages/rust/signature/tuple_record.rs close: same_type.rs
+  7 merge structural_lint/languages/rust/signature/derived_trait.rs close: ord_equality.rs
+  7 move structural_lint/languages/rust/unsafe_site.rs closer: structural_lint/languages/rust/context/
+  5 move agent_hooks/input.rs closer: shared/artifacts/
+  4 merge structural_lint/languages/rust/signature/constant_default.rs close: implicit_order.rs
+  4 merge structural_lint/languages/rust/signature/implicit_order.rs close: constant_default.rs
+  3 merge command_runner/jobs/background.rs close: stop.rs
+  3 merge command_runner/jobs/stop.rs close: background.rs
+  2 merge structural_lint/languages/rust/false_pass.rs close: suppression.rs
+  2 merge structural_lint/languages/rust/suppression.rs close: false_pass.rs
+  1 merge structural_lint/languages/rust/signature/type_shape.rs close: tuple_record.rs
+  0 ok agent_hooks/guard.rs
+  0 ok agent_hooks/recovery.rs
+  0 ok agent_hooks/requirements.rs
+  0 ok agent_hooks/transcript.rs
+  0 ok change_delivery/gate/check.rs
+  0 ok change_delivery/gate/selection.rs
+  0 ok change_delivery/gate/staged.rs
+  0 ok change_delivery/git/integration.rs
+  0 ok command_line/lint.rs
+  0 ok command_line/project.rs
+  0 ok command_runner/jobs/cleanup.rs
+  0 ok command_runner/jobs/group.rs
+  0 ok command_runner/jobs/identity/linux.rs
+  0 ok command_runner/jobs/identity/macos.rs
+  0 ok command_runner/jobs/logs.rs
+  0 ok command_runner/jobs/process.rs
+  0 ok command_runner/jobs/report.rs
+  0 ok command_runner/jobs/storage.rs
+  0 ok command_runner/jobs/streams.rs
+  0 ok command_runner/registry/check.rs
+  0 ok command_runner/sandbox.rs
+  0 ok command_runner/scratch.rs
+  0 ok command_runner/summary.rs
+  0 ok project_config/settings/access.rs
+  0 ok project_config/settings/capabilities.rs
+  0 ok project_config/settings/validation.rs
+  0 ok project_memory/evidence/content.rs
+  0 ok project_memory/format.rs
+  0 ok project_memory/history.rs
+  0 ok project_memory/oracles.rs
+  0 ok project_memory/resume.rs
+  0 ok project_memory/source.rs
+  0 ok project_setup/adapters.rs
+  0 ok project_setup/assets.rs
+  0 ok project_setup/cargo.rs
+  0 ok project_setup/claude.rs
+  0 ok project_setup/coverage.rs
+  0 ok project_setup/doctor.rs
+  0 ok project_setup/initialization/init.rs
+  0 ok project_setup/initialization/wizard.rs
+  0 ok project_setup/lint.rs
+  0 ok project_setup/runtime.rs
+  0 ok project_setup/skills.rs
+  0 ok project_setup/template.rs
+  0 ok shared/artifacts/json.rs
+  0 ok shared/diagnostics/lint.rs
+  0 ok shared/diagnostics/skills.rs
+  0 ok shared/paths/patterns.rs
+  0 undescribed shared/syntax/tree-sitter-rust/
+  0 undescribed shared/syntax/tree-sitter-rust/bindings/
+  0 undescribed shared/syntax/tree-sitter-rust/bindings/rust/build.rs
+  0 ok shared/testing/examples/measure.rs
+  0 ok shared/vcs/branches.rs
+  0 ok shared/vcs/directories.rs
+  0 ok shared/vcs/export.rs
+  0 ok shared/vcs/git.rs
+  0 ok shared/vcs/hooks.rs
+  0 ok shared/vcs/observation.rs
+  0 ok structural_lint/architecture/features.rs
+  0 ok structural_lint/architecture/graph.rs
+  0 ok structural_lint/architecture/inventory.rs
+  0 ok structural_lint/architecture/policy.rs
+  0 ok structural_lint/architecture/resolution/rust/macros.rs
+  0 ok structural_lint/architecture/resolution/rust/paths.rs
+  0 ok structural_lint/architecture/resolution/rust/tree.rs
+  0 ok structural_lint/architecture/runner/analysis.rs
+  0 ok structural_lint/architecture/runner/disallowed.rs
+  0 ok structural_lint/architecture/runner/scope.rs
+  0 ok structural_lint/architecture/source/python.rs
+  0 ok structural_lint/architecture/source/rust/attributes.rs
+  0 ok structural_lint/architecture/source/rust/calls.rs
+  0 ok structural_lint/architecture/source/rust/conditions.rs
+  0 ok structural_lint/architecture/source/rust/macros.rs
+  0 ok structural_lint/architecture/source/rust/prelude.rs
+  0 ok structural_lint/baseline.rs
+  0 ok structural_lint/cli.rs
+  0 ok structural_lint/evaluation.rs
+  0 ok structural_lint/languages/manifest.rs
+  0 ok structural_lint/languages/python.rs
+  0 ok structural_lint/languages/registry.rs
+  0 ok structural_lint/languages/rust/blocking_async.rs
+  0 ok structural_lint/languages/rust/context/async_code.rs
+  0 ok structural_lint/languages/rust/control_flow/hidden_exit.rs
+  0 ok structural_lint/languages/rust/control_flow/length_subtraction.rs
+  0 ok structural_lint/languages/rust/control_flow/range_chain.rs
+  0 ok structural_lint/languages/rust/control_flow/stale_check.rs
+  0 ok structural_lint/languages/rust/control_flow/unlabeled_exit.rs
+  0 ok structural_lint/languages/rust/control_flow/variant_equality.rs
+  0 ok structural_lint/languages/rust/errors/silent_error.rs
+  0 ok structural_lint/languages/rust/naming.rs
+  0 ok structural_lint/languages/rust/ownership/disabled_raii.rs
+  0 ok structural_lint/languages/rust/ownership/exposed_guard.rs
+  0 ok structural_lint/languages/rust/ownership/global_state.rs
+  0 ok structural_lint/languages/rust/ownership/guard_await.rs
+  0 ok structural_lint/languages/rust/ownership/paired_calls.rs
+  0 ok structural_lint/languages/rust/ownership/recursive_deletion.rs
+  0 ok structural_lint/languages/rust/ownership/unit_lock.rs
+  0 ok structural_lint/languages/rust/ownership/wrapper.rs
+  0 ok structural_lint/languages/rust/shell_command.rs
+  0 ok structural_lint/languages/rust/signature/checked_constructor.rs
+  0 ok structural_lint/languages/rust/signature/untyped_conversion.rs
+  0 ok structural_lint/languages/rust/super_reach.rs
+  0 ok structural_lint/languages/rust/test_placement.rs
+  0 ok structural_lint/rules/architecture.rs
+  0 ok structural_lint/rules/kind.rs
+  0 ok structural_lint/rules/parameters.rs
+  0 ok structural_lint/rules/reference.rs
+  0 ok structural_lint/rules/signature.rs
+  0 ok structural_lint/rules/structure.rs
+  0 ok structural_lint/structure/clusters.rs
+  0 ok structural_lint/structure/corpus.rs
+  0 ok structural_lint/structure/scores.rs
+  0 ok structural_lint/structure/tree.rs
+  0 ok structural_lint/structure/units.rs
+  0 ok structural_lint/structure/words.rs

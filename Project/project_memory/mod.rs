@@ -5,7 +5,7 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
-pub(crate) mod evidence;
+pub(crate) mod check_evidence;
 pub(super) mod format;
 mod history;
 mod oracles;
@@ -17,9 +17,9 @@ pub use resume::run as resume;
 
 use crate::project_config::Context;
 use crate::shared::console;
-use crate::shared::fs;
-use crate::shared::paths::patterns::globs;
-use crate::structural_lint::inventory;
+use crate::shared::fs_with_context as fs;
+use crate::shared::paths::glob_patterns::globs;
+use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, ensure};
 use format::{Catalog, Row, sections, table, target};
 use source::Invariant;
@@ -50,7 +50,7 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
         .map(|row| row.id)
         .collect();
     let sources = globs(&context.config.paths.sources)?;
-    let files = inventory::collect(&context.root, &globs(&[])?)?.files;
+    let files = file_discovery::collect(&context.root, &globs(&[])?)?.files;
     for path in files.iter().filter(|path| sources.is_match(path)) {
         let Some(source) = source::inspect(&context.root.join(path))? else {
             continue;

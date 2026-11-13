@@ -8,7 +8,7 @@ use std::{
 const REVISION: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const LAUNCHER_ENVIRONMENT: [&str; 2] = ["WORKER_BINARY", "WORKER_SOURCE_ROOT"];
 const RESOURCES: [&str; 3] = [
-    "command_line/main.rs",
+    "cli_dispatch/main.rs",
     "shared/architecture.yaml",
     "shared/skills/repair/SKILL.md",
 ];

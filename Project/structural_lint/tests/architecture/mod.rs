@@ -1,6 +1,7 @@
 use crate::shared::testing::{Snapshot, launch, run, snapshot, worker};
-use crate::structural_lint::rules::{Kind, structure::Structure};
-use crate::structural_lint::{Diagnostic, Location, Mode, analyze, catalog};
+use crate::structural_lint::rule_identities::{Kind, structure::Structure};
+use crate::structural_lint::rule_set::capabilities;
+use crate::structural_lint::{Diagnostic, Location, Mode, analyze};
 use serde_json::Value;
 use std::{
     collections::BTreeMap,
@@ -297,7 +298,7 @@ pub fn messages(found: &[Diagnostic]) -> Vec<&str> {
 }
 
 pub fn described() -> Value {
-    catalog::describe(Kind::Structure(Structure::DirectoryArchitecture))
+    capabilities::describe(Kind::Structure(Structure::DirectoryArchitecture))
 }
 
 pub fn binaries() -> [PathBuf; 2] {

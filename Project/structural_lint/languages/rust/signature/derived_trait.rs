@@ -1,11 +1,11 @@
 use super::checked_constructor::{Owner, owned};
-use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::context::{
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
+use crate::structural_lint::languages::rust::exemptions::{
     attributed, derives, in_test_context, justified_item, last_segment, listed, type_name,
 };
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::signature::Signature;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 

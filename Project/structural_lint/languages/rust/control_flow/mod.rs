@@ -4,7 +4,7 @@ mod range_chain;
 mod stale_check;
 mod unlabeled_exit;
 mod variant_equality;
-use crate::structural_lint::languages::measure::{Code, Measurement};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use tree_sitter::Node;
 
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {

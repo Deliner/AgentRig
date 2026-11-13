@@ -1,6 +1,6 @@
 purpose: Own console output for the product so every printed line reaches stdout or stderr through this leaf
 type: flat
-dependents: 13
+dependents: 14
 files:
   mod.rs: Line writers for stdout and stderr and the flushed prompt
 directories: {}

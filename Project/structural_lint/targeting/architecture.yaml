@@ -1,0 +1,6 @@
+purpose: Discover maintained files and directories and select lint targets with their effective thresholds
+files:
+  mod.rs: Declarations of the file discovery and target selection parts
+directories:
+  file_discovery: Discover maintained files and directories
+  lint_targets: Select targets and compute effective thresholds

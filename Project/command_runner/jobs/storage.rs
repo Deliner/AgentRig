@@ -1,5 +1,5 @@
 use super::Record;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::path::{Path, PathBuf};
 
@@ -13,7 +13,7 @@ pub fn create(runtime: &Path) -> Result<PathBuf> {
         .keep())
 }
 pub fn save(directory: &Path, record: &Record) -> Result<()> {
-    crate::shared::artifacts::json::save(&directory.join("record.json"), record)
+    crate::shared::atomic_files::atomic_json::save(&directory.join("record.json"), record)
 }
 pub fn load(runtime: &Path, id: &str) -> Result<Record> {
     ensure!(

@@ -1,5 +1,5 @@
 use super::Rust;
-use crate::structural_lint::architecture::source::{self, References, Target};
+use crate::structural_lint::architecture::extraction::{self, References, Target};
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -13,7 +13,7 @@ fn sources(files: &[(&str, &str)]) -> BTreeMap<PathBuf, References> {
         .map(|(path, text)| {
             (
                 PathBuf::from(path),
-                source::extract(Path::new(path), text).unwrap(),
+                extraction::extract(Path::new(path), text).unwrap(),
             )
         })
         .collect()
@@ -463,7 +463,7 @@ fn includes_and_local_macros_resolve_to_their_files() {
     };
     let included = resolver.resolve(Path::new("lib.rs"), &include).unwrap();
     assert_eq!(included.files, expected("parts/wire.rs"));
-    let local = Target::RustMacro(source::RustMacro {
+    let local = Target::RustMacro(extraction::RustMacro {
         path: "make".into(),
         scope: Vec::new(),
         literal: None,

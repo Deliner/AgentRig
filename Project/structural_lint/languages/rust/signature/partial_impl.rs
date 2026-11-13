@@ -1,9 +1,9 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::context::{
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
+use crate::structural_lint::languages::rust::exemptions::{
     in_test_context, justified_item, type_name,
 };
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
 
 const MIRRORS: &[&str] = &["PartialEq", "Hash", "PartialOrd", "Ord", "Clone"];

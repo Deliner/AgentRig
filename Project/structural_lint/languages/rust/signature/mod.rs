@@ -8,7 +8,7 @@ mod same_type;
 mod tuple_record;
 mod type_shape;
 mod untyped_conversion;
-use crate::structural_lint::languages::measure::{Code, Measurement};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use tree_sitter::Node;
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     match node.kind() {

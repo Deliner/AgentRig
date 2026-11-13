@@ -1,5 +1,5 @@
 use super::{Python, module_parts};
-use crate::structural_lint::architecture::source::{self, Target};
+use crate::structural_lint::architecture::extraction::{self, Target};
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
@@ -16,7 +16,7 @@ fn resolve(paths: &[&str], source: &str, code: &str) -> Result<BTreeSet<PathBuf>
     let inventory = files(paths);
     let external = BTreeSet::new();
     let resolver = Python::new(Path::new("src"), &inventory, &external)?;
-    let references = source::extract(Path::new(source), code)?;
+    let references = extraction::extract(Path::new(source), code)?;
     ensure!(references.issues.is_empty(), "unexpected syntax issue");
     let mut targets = BTreeSet::new();
     for reference in references.items {

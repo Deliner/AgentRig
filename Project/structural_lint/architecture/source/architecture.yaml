@@ -1,8 +1,0 @@
-purpose: Extract located dependency references from supported source languages before module resolution
-files:
-  mod.rs: Language dispatch and malformed syntax reporting with the public extraction API
-  python.rs: Python import and static loader extraction
-  tests.rs: Cross-language extraction behavior and source location tests
-directories:
-  model: Shared reference records and source context used by language handlers
-  rust: Rust syntax extraction and path normalization

@@ -1,5 +1,0 @@
-purpose: Load strict lint configuration and validate rule selection, severity and repair guidance
-type: flat
-files:
-  mod.rs: YAML schema and validation of rule selection, severity and guidance
-directories: {}

@@ -3,15 +3,11 @@ files:
   mod.rs: Configuration checks and configured diagnostic output
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
-  cli.rs: Embedded and standalone command arguments and rule discovery output
-  explain.rs: Explain why a configured rule selects or excludes a target, list measured directory edges and read the files behind the tree and structure reports
 directories:
-  structure: Show directory structure as a tree of names and score how clearly names show the code beneath them
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
-  catalog: Describe implemented rule and language capabilities
-  config: Load and validate strict lint policy and guidance paths
-  inventory: Discover maintained files and directories
   languages: Parse source syntax and measure language-specific scalar rules
-  rules: Define stable rule identities, parameters and architecture settings
-  selection: Select targets and compute effective thresholds
+  reporting: Parse lint commands and print rule discovery, explanations, measured edges and the tree and structure reports
+  rule_identities: Define stable rule identities, parameters and architecture settings
+  rule_set: Describe implemented rule capabilities and load and validate strict lint policy
+  targeting: Discover maintained files and directories and select targets with their effective thresholds

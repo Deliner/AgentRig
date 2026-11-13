@@ -1,8 +1,8 @@
 mod test_substitution;
 mod untargeted_panic;
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::reference::Reference;
 use std::path::Path;
 
 fn measured(source: &str, kind: Reference) -> Vec<(usize, String)> {

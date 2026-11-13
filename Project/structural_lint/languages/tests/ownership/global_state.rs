@@ -1,6 +1,6 @@
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Ownership;
 use std::path::Path;
 
 // DECISION: D096

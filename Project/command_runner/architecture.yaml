@@ -7,4 +7,4 @@ files:
 directories:
   tests: Configured execution, managed job lifecycle and shared command fixtures
   jobs: Track and control owned process execution, lifetime, process groups and captured output
-  registry: List registered tools with their owners and check tool placement, registration and removal records
+  tool_registry: List registered tools with their owners and check tool placement, registration and removal records

@@ -1,0 +1,8 @@
+purpose: Collect maintained files and directories consistently from versioned and unversioned projects
+type: flat
+dependents: 7
+files:
+  mod.rs: Inventory of files and directories, directory entries from file paths and structural entry counting
+  versioned.rs: Discovery from tracked and non-ignored Git files with exclusions, walking the tree outside a repository
+  unversioned.rs: Discovery by walking the directory tree without following symbolic links, with exclusions
+directories: {}

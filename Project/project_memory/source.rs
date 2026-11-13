@@ -1,5 +1,5 @@
 // DECISION: D002
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
     collections::{HashMap, HashSet},
@@ -19,7 +19,7 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let shebang = source.lines().next().unwrap_or("");
     let shell = path.extension().is_none() && shebang.starts_with("#!") && shebang.contains("sh");
     let parse_path = if shell { Path::new("source.sh") } else { path };
-    let Some(tree) = crate::shared::syntax::parse(parse_path, &source)? else {
+    let Some(tree) = crate::shared::source_parsers::parse(parse_path, &source)? else {
         return Ok(None);
     };
     ensure!(
@@ -77,7 +77,7 @@ impl Source {
     pub fn references(&self) -> impl Iterator<Item = &str> {
         self.comments
             .iter()
-            .filter_map(|comment| crate::shared::syntax::reference(comment))
+            .filter_map(|comment| crate::shared::source_parsers::reference(comment))
     }
     pub fn marker(&self, id: &str) -> bool {
         self.references().any(|reference| reference == id)

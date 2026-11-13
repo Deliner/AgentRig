@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rules::ownership::{Ownership, Pair};
+use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
 
 fn pairs() -> [Pair; 2] {
     let pair = |open: &str, close: &str| Pair {

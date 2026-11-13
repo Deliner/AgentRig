@@ -1,6 +1,6 @@
 use crate::project_config::{Access, Context};
 use crate::shared::console;
-use crate::shared::fs::{self, PermissionsExt};
+use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::structural_lint::Location;
 use anyhow::Result;
 use std::{env, path::Path};

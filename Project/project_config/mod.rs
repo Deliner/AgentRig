@@ -1,8 +1,8 @@
-pub(crate) mod settings;
+pub(crate) mod settings_schema;
 #[cfg(test)]
 mod tests;
 use anyhow::Result;
-pub use settings::{
+pub use settings_schema::{
     Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git,
     Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Tools, VERSION,
     View, Views, access, files, module, read, relative, sources,
@@ -17,7 +17,7 @@ pub struct Context {
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
-        let root = settings::project_root(root)?;
+        let root = settings_schema::project_root(root)?;
         let config = read(&root)?;
         config.validate(&root)?;
         let runtime = relative(&root, &config.paths.runtime)?;

@@ -1,7 +1,7 @@
 // DECISION: D006
 use super::input::{object, text};
 use super::transcript;
-use crate::shared::fs::{self, File, OpenOptions};
+use crate::shared::fs_with_context::{self as fs, File, OpenOptions};
 use anyhow::{Context, Result};
 use fs2::FileExt;
 use serde_json::{Value, json};

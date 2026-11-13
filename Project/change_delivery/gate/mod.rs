@@ -1,19 +1,19 @@
-use crate::project_memory::evidence::{Input, native_index};
+use crate::project_memory::check_evidence::{Input, native_index};
 use crate::shared::console;
+mod affected_checks;
 mod check;
-mod selection;
 mod staged;
 #[cfg(test)]
 mod tests;
-pub use selection::AffectedMap;
-use selection::Scope;
+pub use affected_checks::AffectedMap;
+use affected_checks::Scope;
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
 // DECISION: D004
 use crate::project_config::{self, Check, CheckKind, Context};
-use crate::shared::paths::patterns::globs;
-use crate::structural_lint::inventory;
+use crate::shared::paths::glob_patterns::globs;
+use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, ensure};
 use check::{CheckRun, Outcome};
 use std::path::{Path, PathBuf};
@@ -81,7 +81,8 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
         "unknown check {}",
         only.unwrap_or_default()
     );
-    let mut attempt = crate::project_memory::evidence::Attempt::start(&context, root, input, only)?;
+    let mut attempt =
+        crate::project_memory::check_evidence::Attempt::start(&context, root, input, only)?;
     let code = execute_checks(&context, root, &mut attempt, &options)?;
     let stable = attempt.finish(&context, root, code)?;
     ensure!(
@@ -96,7 +97,7 @@ fn prepare(
     options: &Options<'_>,
 ) -> Result<(
     Option<tempfile::TempDir>,
-    crate::project_memory::evidence::Input,
+    crate::project_memory::check_evidence::Input,
 )> {
     if options.staged {
         let index = native_index(root)?;
@@ -111,22 +112,22 @@ fn prepare(
     }
     Ok((None, Input::Worktree))
 }
-fn change_index(options: &Options<'_>) -> selection::Index {
+fn change_index(options: &Options<'_>) -> affected_checks::Index {
     if options.staged {
-        selection::Index::Staged
+        affected_checks::Index::Staged
     } else {
-        selection::Index::Working
+        affected_checks::Index::Working
     }
 }
 fn execute_checks(
     context: &Context,
     root: &Path,
-    attempt: &mut crate::project_memory::evidence::Attempt,
+    attempt: &mut crate::project_memory::check_evidence::Attempt,
     options: &Options<'_>,
 ) -> Result<i32> {
     let files = files(context)?;
     let index = change_index(options);
-    let changes = selection::changes(root, index, options.base)?;
+    let changes = affected_checks::changes(root, index, options.base)?;
     for check in context
         .config
         .checks
@@ -156,9 +157,9 @@ fn execute_checks(
 fn affected(
     check: &Check,
     changes: &Scope<PathBuf>,
-    attempt: &mut crate::project_memory::evidence::Attempt,
+    attempt: &mut crate::project_memory::check_evidence::Attempt,
 ) -> Result<Scope<String>> {
-    let scope = selection::targets(check, changes)?;
+    let scope = affected_checks::targets(check, changes)?;
     if let Scope::Only(targets) = &scope {
         attempt.selective()?;
         console::stdout(format!("SELECT [{}]: {targets:?}", check.id));
@@ -199,7 +200,7 @@ fn execute_selected(
     context: &Context,
     source: Selected<'_>,
     check: &Check,
-    attempt: &mut crate::project_memory::evidence::Attempt,
+    attempt: &mut crate::project_memory::check_evidence::Attempt,
 ) -> Result<Option<i32>> {
     let rerun = attempt.rerun(source.root, &check.id);
     let input = CheckRun {
@@ -236,5 +237,5 @@ pub fn files(context: &Context) -> Result<Vec<PathBuf>> {
         context.config.paths.runtime.clone(),
         format!("{}/**", context.config.paths.runtime),
     ];
-    Ok(inventory::collect(&context.root, &globs(&excludes)?)?.files)
+    Ok(file_discovery::collect(&context.root, &globs(&excludes)?)?.files)
 }

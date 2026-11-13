@@ -1,11 +1,11 @@
-use super::measure::{
+use super::neutral_metrics::{
     Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, text,
 };
-use crate::structural_lint::languages::measure::Code;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Pair;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::languages::neutral_metrics::Code;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Pair;
+use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D017

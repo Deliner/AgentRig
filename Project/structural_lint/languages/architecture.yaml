@@ -5,6 +5,6 @@ files:
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, boolean expressions, function lengths, parameters and comments
 directories:
-  measure: Located measurement record and the condition, boolean expression, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers
+  neutral_metrics: Located measurement record and the condition, boolean expression, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers
   rust: Measure Rust conditions, function lengths, parameters, comments and the Rust-only source rules
   tests: Verify language measurements and delivery enforcement

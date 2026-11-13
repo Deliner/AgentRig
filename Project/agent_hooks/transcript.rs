@@ -1,4 +1,4 @@
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use serde_json::Value;
 use std::{

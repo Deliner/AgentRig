@@ -1,15 +1,15 @@
 mod manifest;
-mod measure;
+mod neutral_metrics;
 mod python;
 mod registry;
 mod rust;
 #[cfg(test)]
 mod tests;
-pub use measure::{Analysis, Code, Measurement, text};
+pub use neutral_metrics::{Analysis, Code, Measurement, text};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::in_test_context;
 
-use crate::structural_lint::rules::ownership::Pair;
+use crate::structural_lint::rule_identities::ownership::Pair;
 use anyhow::{Context, Result};
 use std::path::Path;
 
@@ -20,8 +20,8 @@ pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
         registry::Inspect::Document(analyze) => return Ok(analyze(source)),
         registry::Inspect::Tree(inspect) => *inspect,
     };
-    let tree =
-        crate::shared::syntax::parse(path, source)?.context("unsupported source language")?;
+    let tree = crate::shared::source_parsers::parse(path, source)?
+        .context("unsupported source language")?;
     let mut analysis = Analysis::default();
     let valid = !tree.root_node().has_error();
     let code = Code::new(source);

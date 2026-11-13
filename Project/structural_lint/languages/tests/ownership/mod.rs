@@ -5,8 +5,8 @@ mod recursive_deletion;
 mod unit_lock;
 mod wrapper;
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::{Ownership, Pair};
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
 use std::path::Path;
 
 fn measured(source: &str, pairs: &[Pair], kind: Ownership) -> Vec<(usize, String)> {

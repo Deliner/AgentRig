@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rules::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 
 #[test]
 fn rust_flags_if_chains_and_match_guards_splitting_one_value_by_literal_bounds() {

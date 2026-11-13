@@ -2,7 +2,7 @@
 // DECISION: D161
 use crate::project_config::Context;
 use crate::shared::{
-    fs,
+    fs_with_context as fs,
     vcs::{Entry, FileKind, Repository},
 };
 use anyhow::Result;

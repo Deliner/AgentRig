@@ -1,6 +1,6 @@
+mod affected_checks;
 mod outcomes;
 mod revision;
-mod selection;
 mod staged;
 
 use crate::shared::testing::{FAIL, GATE, git, project};

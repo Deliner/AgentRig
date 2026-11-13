@@ -7,17 +7,17 @@
 // DECISION: D019
 // DECISION: D046
 // DECISION: D047
-mod guard;
 pub mod input;
 mod recovery;
 mod reminder;
-mod requirements;
+mod shell_guard;
+mod skill_requirements;
 #[cfg(test)]
 mod tests;
 mod transcript;
 
 use self::input::text;
-use self::requirements::Answer;
+use self::skill_requirements::Answer;
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::console;
 use crate::shared::paths::resolve;
@@ -135,9 +135,9 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     Ok(Some(context(Event::SessionStart, &message)))
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
-    let validated = guard::arguments(guard::command(event))
-        .and_then(|args| guard::hook_commands(configured, args))
-        .and_then(|args| guard::enters_check(&args).map(|check| (args, check)));
+    let validated = shell_guard::arguments(shell_guard::command(event))
+        .and_then(|args| shell_guard::hook_commands(configured, args))
+        .and_then(|args| shell_guard::enters_check(&args).map(|check| (args, check)));
     let (argv, check) = match validated {
         Ok(validated) => validated,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
@@ -156,14 +156,14 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     });
     let mut found = Vec::new();
     if opaque {
-        found.extend(requirements::events(
+        found.extend(skill_requirements::events(
             configured,
             RouteEvent::Shell,
             "opaque shell write",
         ));
     }
     if check {
-        found.extend(requirements::events(
+        found.extend(skill_requirements::events(
             configured,
             RouteEvent::Check,
             "VAC check entry",
@@ -176,20 +176,20 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
         .iter()
         .filter_map(|path| target(root, event, path))
         .collect();
-    let found = requirements::edits(configured, &paths)?;
+    let found = skill_requirements::edits(configured, &paths)?;
     respond(event, configured, found, Reminding::Active)
 }
 // DECISION: D047
 fn respond(
     event: &Value,
     configured: &Context,
-    found: Vec<requirements::Occurrence>,
+    found: Vec<skill_requirements::Occurrence>,
     reminding: Reminding,
 ) -> Result<Option<Value>> {
     let answer = match reminder::open(event, &state_directory(configured)?) {
         Ok(mut session) => {
             let mut answer = remind(event, configured, session.state_mut(), reminding);
-            answer.found = requirements::pending(session.state_mut(), configured, found);
+            answer.found = skill_requirements::pending(session.state_mut(), configured, found);
             if let Err(error) = session.save() {
                 console::stderr(format!("complexity reminder: {error}"));
                 answer.discipline = None;

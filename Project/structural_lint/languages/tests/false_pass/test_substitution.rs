@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rule_identities::reference::Reference;
 
 // DECISION: D169
 #[test]

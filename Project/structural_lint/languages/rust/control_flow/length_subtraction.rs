@@ -1,7 +1,7 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
-use crate::structural_lint::languages::rust::context::in_test_context;
-use crate::structural_lint::rules::control_flow::ControlFlow;
-use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::rust::exemptions::in_test_context;
+use crate::structural_lint::rule_identities::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D155

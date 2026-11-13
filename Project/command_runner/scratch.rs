@@ -1,8 +1,8 @@
 use super::jobs::{self, Job};
 use crate::project_config::{Access, Context, Lifetime};
-use crate::shared::arguments::forwarded;
 use crate::shared::console;
-use crate::shared::fs;
+use crate::shared::fs_with_context as fs;
+use crate::shared::shared_options::forwarded;
 use anyhow::{Result, ensure};
 use std::{path::PathBuf, process::Command};
 

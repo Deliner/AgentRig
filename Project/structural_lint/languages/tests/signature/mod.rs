@@ -8,7 +8,7 @@ mod tuple_as_record;
 mod type_shape;
 mod untyped_conversion;
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rules::kind::Kind;
+use crate::structural_lint::rule_identities::kind::Kind;
 use std::path::Path;
 
 fn measured(source: &str, kind: Kind) -> Vec<(usize, String)> {

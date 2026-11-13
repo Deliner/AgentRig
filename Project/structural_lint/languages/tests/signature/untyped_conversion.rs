@@ -1,6 +1,6 @@
 use super::measured;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 
 const UNTYPED: Kind = Kind::Signature(Signature::UntypedConversion);
 
