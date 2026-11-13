@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P133](Plan/133.md) | active | - | [B129](Backlog/129.md): superseded-return — правило superseded-form видит `Vec` в возвращаемом типе | Модель, которая пишет функцию, возвращающую вектор по индексам, получает ту же подсказку про `Vec::from_fn`, что и при записи через `let`. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 

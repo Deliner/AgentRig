@@ -2,34 +2,32 @@
 
 ## Focus
 
-Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P132 выполнены и перенесены в Archive.
+Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P133 выполнены и перенесены в Archive.
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B109 и B126 сохранены, в работу не выбраны.
 
-2026-11-13 пользователь одобрил карточку B129 о том, чтобы правило `superseded-form` видело `Vec` в возвращаемом
-типе: «Сохрани и сразу сделай». Выбрана P133, она активна.
+P133 по B129 научила правило `superseded-form` брать `Vec` из возвращаемого типа и выполнена. Новая работа не
+выбрана, Plan пуст.
 
 ## Workspace
 
 Branch: `feature/superseded-return`, от master `560c308`, где влита P132.
-Revision: `26fc15dd8ac7b66d237f25eeff3ba80e84f351cd`
+Revision: `582fd9586fc7d2308036afb73ef00f9104b4ac70`
 
-Установленный рантайм `f57a156`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `582fd95`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
 ## Progress
 
-- VAC 1 P133 `26fc15d` сохранил B129 и выбрал P133.
-- VAC 2 P133 по D178: `superseded-form` берёт `Vec` из возвращаемого типа функции или замыкания, место рига в
-  `structural_lint/architecture/tests.rs` переписано на `Vec::from_fn`.
+- P133 выполнена в VAC 1–2 на ветке `feature/superseded-return`, итоги и приёмка в
+  [Archive/Plan/133.md](Archive/Plan/133.md). Решение D178.
+- Закрывающий VAC ставит пин D051 на `582fd95` и переносит P133 и B129 в Archive.
 
 ## Verification
 
-- master `560c308`: `feature-merge` P132 прошёл со всеми 490 тестами.
-- VAC 2: rustfmt чист, 341 тест `structural_lint` и `project_setup` прошёл, включая два новых теста D178. Кандидат
-  с одним правилом нашёл одно место рига, после правки lint кандидата по всему ригу чист, `lint-rules` называет оба
-  случая.
+- VAC 2 `582fd95` прошёл гейт с 440 тестами.
+- После bootstrap `582fd95` lint рига чист, `lint-rules` называет оба новых случая.
 
 ## Blockers
 
@@ -37,6 +35,5 @@ Revision: `26fc15dd8ac7b66d237f25eeff3ba80e84f351cd`
 
 ## Next action
 
-Закрытие P133: приёмка в `Plan/133.md`, перенос P133 и B129 в Archive, пин D051 на коммит VAC 2 и
-`just feature-merge` с сохранением ветки.
+`just feature-merge` ветки `feature/superseded-return` с сохранением ветки, затем отчёт пользователю.
 Свободные ID: D179+, I022+, P134+, B130+ (B066 и D111 зарезервированы).
