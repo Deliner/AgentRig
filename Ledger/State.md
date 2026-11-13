@@ -14,9 +14,9 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/structure-v36`, от master `fb5090e`.
-Revision: `ac7cd5815f758cd2219053180aa53f9f4c6fc735`
+Revision: `b28fd10d87f893e6812178f4f2009b14c409f6af`
 
-Установленный рантайм `d8e186b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -29,13 +29,15 @@ Revision: `ac7cd5815f758cd2219053180aa53f9f4c6fc735`
   Delivery `Archive/Plan/131.md` и перенёс P131 и B127 в Archive.
 - Отступления записаны в Delivery: `rule_identities` вне `rule_set` из-за цикла и бюджеты `dependents` +1 у пяти
   каталогов, принятые пользователем.
+- Пин D051: голова `b28fd10` после гейта записана в `stable.txt` и поставлена `just bootstrap`.
 
 ## Verification
 
 - `lint-structure Project`: `total 24.0 units 192` на `fb5090e`, `total 18.2 units 222` на `ac7cd58`; оба снимка
   сняты установленным рантаймом `d8e186b`.
 - Гейт коммита VAC 8 выбрал все тесты: lint, rustfmt, clippy, 484 теста и проверки Python прошли.
-- На изменениях VAC 9 прошли `memory-check` и 5 тестов `agent_hooks::tests::skill_requirements::`.
+- Гейт коммита VAC 9 `b28fd10` прошёл: lint, memory, rustfmt, clippy, 104 выбранных теста и проверки Python.
+- Установленный рантайм `b28fd10` проходит `config-check` и даёт `total 18.2 units 222` на Project.
 
 ## Blockers
 
@@ -43,6 +45,5 @@ Revision: `ac7cd5815f758cd2219053180aa53f9f4c6fc735`
 
 ## Next action
 
-Пин D051: записать голову ветки после гейта в `tooling/distribution/stable.txt`, `just bootstrap`, закоммитить пин и
-State, затем `just feature-merge`, ветку сохранить. Свободные ID: D173+, I022+, P132+, B128+ (B066 и D111
-зарезервированы).
+`just feature-merge` ветки `feature/structure-v36`, ветку сохранить. Затем отчёт пользователю. Свободные ID: D173+,
+I022+, P132+, B128+ (B066 и D111 зарезервированы).
