@@ -2,6 +2,7 @@
 // DECISION: D019
 // DECISION: D035
 mod integration;
+mod push;
 #[cfg(test)]
 mod tests;
 use super::gate;
@@ -36,9 +37,16 @@ pub fn merge(context: &Context) -> Result<i32> {
     let passed = code == 0;
     if passed {
         console::stdout(format!("merged {feature}; branch retained"));
-        return cleanup_merged(context, &feature);
+        let pushed = push::merged(&repository, settings, &feature);
+        return Ok(cleanup_merged(context, &feature)?.max(pushed));
     }
     Ok(code)
+}
+
+pub fn push(context: &Context) -> Result<i32> {
+    let repository = crate::shared::vcs::Repository::discover(&context.root)?
+        .ok_or_else(|| anyhow::anyhow!("feature-push requires a VCS repository"))?;
+    push::committed(&repository, &context.config.git)
 }
 
 fn checked(context: &Context) -> Result<i32> {

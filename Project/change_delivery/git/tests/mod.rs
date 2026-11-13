@@ -1,6 +1,7 @@
 mod cleanup;
 mod guards;
 mod integration;
+mod push;
 mod start;
 
 use crate::shared::testing::{configure, git, invoke};

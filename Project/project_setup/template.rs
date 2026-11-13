@@ -131,6 +131,7 @@ fn git(options: &Options<'_>) -> Git {
     Git {
         base: options["base"].clone(),
         prefix: options["prefix"].clone(),
+        remote: None,
     }
 }
 

@@ -3,5 +3,6 @@ type: flat
 files:
   mod.rs: Coordinate feature starts, checked branch integration and native transaction guards
   integration.rs: Start feature branches and rebase and merge them onto the base after checks
+  push.rs: Push the merged base and feature or a committed feature branch to the configured remote
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios
