@@ -7,6 +7,8 @@ its architecture minimizing corner cases, undefined states and error-prone place
 conforming to the rig is repaired. Keep every check that raises quality, even if the rig lacks the construct;
 refactoring cost never rejects one, and decisions may be revised. The rig dogfoods its checks and fully configures any
 project as a controlled, deterministic environment where an agent cannot write code that its built-in linter rejects.
+No backward compatibility (D185): a change may break projects, configurations and runtimes from an older rig, which
+then update by hand. No migration, upgrade path or compatibility shim is required until the user explicitly asks.
 
 ## Resume and scope
 
@@ -51,11 +53,8 @@ until refactor-large-directory and its contracts are applied, and stop the first
 (D047). Opaque shell writes require applying the relevant skill yourself.
 
 Use edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user
-agreement. All new product outcomes pass through Backlog before Plan. Plan contains only agreed work selected for
-current or resumed execution, referencing the same acceptance contract. A selected set runs autonomously without
-repeated questions about implementation or permission between cards. Backlog has no execution priority. Follow the
-canonical skills for unresolved behavior, criterion-based acceptance and automatic rotation of completed Plan rows/cards
-and their Backlog cards into Archive/. Required work remains in the current task.
+agreement. New product outcomes pass through Backlog, which has no priority, to Plan, which holds only selected work.
+A selected set runs autonomously without repeated questions between cards; completed work rotates into Archive/.
 
 State is a factual recovery snapshot. Refresh it at meaningful task/VAC boundaries, blockers and handoffs, with actual
 verification and a concrete next action; include it in the relevant VAC. Plan owns current selection and delivery,
