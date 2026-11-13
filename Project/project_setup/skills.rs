@@ -102,6 +102,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/refactor/relocate-tests/SKILL.md"),
     ),
     (
+        "use-the-current-form",
+        include_str!("../shared/skills/refactor/use-the-current-form/SKILL.md"),
+    ),
+    (
         "remove-secret",
         include_str!("../shared/skills/remove-secret/SKILL.md"),
     ),

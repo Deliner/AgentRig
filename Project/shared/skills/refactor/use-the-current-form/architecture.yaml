@@ -1,0 +1,5 @@
+purpose: "Replace a Rust form the project's toolchain supersedes with its direct standard form, or justify keeping it with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to write trim_prefix, trim_suffix, ! and Vec::from_fn instead of the forms they replace"
+directories: {}

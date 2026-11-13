@@ -8,6 +8,7 @@ mod panic_surface;
 mod shell_command;
 mod signature;
 mod super_reach;
+mod superseded_form;
 mod suppression;
 mod test_code;
 mod unsafe_site;
@@ -33,6 +34,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
     test_code::inspect(node, source, output);
+    superseded_form::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),

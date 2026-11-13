@@ -6,6 +6,7 @@ files:
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
+  superseded_form.rs: Rust strip fallbacks to the receiver, Infallible types and Vec collections of a map over 0..n named with their current form in product and test code, with current forms, other fallbacks, ranges and targets and justified lines skipped, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
   shell_command.rs: Rust shell launches whose command flag is followed by data in the argument chain, with literal and constant commands, other flags, programs, order, justified and test-only launches skipped, from native analysis
 directories:

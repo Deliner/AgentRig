@@ -18,6 +18,7 @@ mod panic_surface;
 mod reference;
 mod shell_command;
 mod signature;
+mod superseded_form;
 mod test_code;
 mod unsafe_site;
 

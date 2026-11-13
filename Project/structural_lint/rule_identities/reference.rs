@@ -26,6 +26,7 @@ pub enum Reference {
     UntargetedPanic,
     TestSubstitution,
     InterpolatedShell,
+    SupersededForm,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -51,6 +52,7 @@ impl Reference {
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
             Self::InterpolatedShell => &INTERPOLATEDSHELL,
+            Self::SupersededForm => &SUPERSEDEDFORM,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -295,6 +297,18 @@ const INTERPOLATEDSHELL: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, keep the script literal and pass values apart from it, as positional parameters of a POSIX shell or fish or environment variables read by PowerShell, or put a DECISION: or INVARIANT: reference on the line directly above the call",
+    },
+};
+// DECISION: D177
+const SUPERSEDEDFORM: Descriptor = Descriptor {
+    default_id: "superseded-form",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust .strip_prefix(p).unwrap_or(x) or .strip_suffix(p).unwrap_or(x) call whose x, or the operand of &x, has the text of the stripped receiver, every Infallible type name, and every .collect() of a .map(f) over a parenthesized range from 0 or 0usize up to n whose turbofish or let type is Vec, test code included, outside macro arguments, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "use-the-current-form",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the rig's Rust replaces this form with a direct standard one that states the intent in one call or name; write trim_prefix(p) or trim_suffix(p), ! or Vec::from_fn(n, f), as the finding names, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
 // DECISION: D037
