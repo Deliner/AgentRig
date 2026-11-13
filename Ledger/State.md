@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/superseded-return`, от master `560c308`, где влита P132.
-Revision: `560c3089b223f3037e2f2263fc285e2dbdc025a4`
+Revision: `26fc15dd8ac7b66d237f25eeff3ba80e84f351cd`
 
 Установленный рантайм `f57a156`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -20,11 +20,16 @@ Revision: `560c3089b223f3037e2f2263fc285e2dbdc025a4`
 
 ## Progress
 
-- VAC 1 P133 сохранил B129 и выбрал P133.
+- VAC 1 P133 `26fc15d` сохранил B129 и выбрал P133.
+- VAC 2 P133 по D178: `superseded-form` берёт `Vec` из возвращаемого типа функции или замыкания, место рига в
+  `structural_lint/architecture/tests.rs` переписано на `Vec::from_fn`.
 
 ## Verification
 
 - master `560c308`: `feature-merge` P132 прошёл со всеми 490 тестами.
+- VAC 2: rustfmt чист, 341 тест `structural_lint` и `project_setup` прошёл, включая два новых теста D178. Кандидат
+  с одним правилом нашёл одно место рига, после правки lint кандидата по всему ригу чист, `lint-rules` называет оба
+  случая.
 
 ## Blockers
 
@@ -32,8 +37,6 @@ Revision: `560c3089b223f3037e2f2263fc285e2dbdc025a4`
 
 ## Next action
 
-VAC 2 P133: в детекторе `languages/rust/superseded_form.rs` тип `Vec` из возвращаемого типа функции или замыкания
-для последнего выражения тела и для `return`, тесты, описание правила и навык `use-the-current-form`, решение D178
-преемником предиката D177, место `structural_lint/architecture/tests.rs:504` на `Vec::from_fn`. Затем пин D051 и
-`just feature-merge`.
-Свободные ID: D178+, I022+, P134+, B130+ (B066 и D111 зарезервированы).
+Закрытие P133: приёмка в `Plan/133.md`, перенос P133 и B129 в Archive, пин D051 на коммит VAC 2 и
+`just feature-merge` с сохранением ветки.
+Свободные ID: D179+, I022+, P134+, B130+ (B066 и D111 зарезервированы).

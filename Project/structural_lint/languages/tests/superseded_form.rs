@@ -77,3 +77,67 @@ fn rust_accepts_current_forms_other_fallbacks_ranges_targets_and_justified_lines
 ";
     assert_eq!(superseded(source), []);
 }
+
+// DECISION: D178
+#[test]
+fn rust_names_vec_from_fn_for_an_index_collect_returned_as_a_vec() {
+    let source = "fn labels(count: usize) -> Vec<String> {
+    (0..count).map(label).collect()
+}
+fn early(count: usize) -> std::vec::Vec<usize> {
+    if count == 0 {
+        return (0..count).map(|index| index + 1).collect();
+    }
+    Vec::new()
+}
+fn wide() {
+    let edges = |count: usize| -> Vec<Edge> {
+        (0..count)
+            .map(|index| edge(index))
+            .collect()
+    };
+}
+";
+    let from_fn = "(0..n).map(f).collect() -> Vec::from_fn(n, f)";
+    assert_eq!(
+        superseded(source),
+        [
+            (2, from_fn.to_string()),
+            (6, from_fn.to_string()),
+            (12, from_fn.to_string()),
+        ]
+    );
+}
+
+#[test]
+fn rust_accepts_returned_collects_into_other_types_branches_inner_closures_and_justified_lines() {
+    let source = "fn labels(count: usize) -> Vec<String> {
+    Vec::from_fn(count, label)
+}
+fn unique(count: usize) -> HashSet<usize> {
+    (0..count).map(|index| index % 2).collect()
+}
+fn parsed(count: usize) -> Option<Vec<usize>> {
+    (0..count).map(|index| index.checked_add(1)).collect()
+}
+fn branch(flag: bool) -> Vec<usize> {
+    if flag {
+        (0..2).map(|index| index).collect()
+    } else {
+        Vec::new()
+    }
+}
+fn outer() -> Vec<usize> {
+    let inner = |count: usize| {
+        return (0..count).map(|index| index).collect();
+    };
+    let untyped = |count: usize| (0..count).map(|index| index).collect();
+    Vec::new()
+}
+fn kept(count: usize) -> Vec<u32> {
+    // DECISION: D178
+    (0..count).map(|index| index as u32).collect()
+}
+";
+    assert_eq!(superseded(source), []);
+}

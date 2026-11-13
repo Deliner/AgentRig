@@ -300,11 +300,12 @@ const INTERPOLATEDSHELL: Descriptor = Descriptor {
     },
 };
 // DECISION: D177
+// DECISION: D178
 const SUPERSEDEDFORM: Descriptor = Descriptor {
     default_id: "superseded-form",
     exclude: &[],
     target: "file",
-    metric: "every Rust .strip_prefix(p).unwrap_or(x) or .strip_suffix(p).unwrap_or(x) call whose x, or the operand of &x, has the text of the stripped receiver, every Infallible type name, and every .collect() of a .map(f) over a parenthesized range from 0 or 0usize up to n whose turbofish or let type is Vec, test code included, outside macro arguments, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust .strip_prefix(p).unwrap_or(x) or .strip_suffix(p).unwrap_or(x) call whose x, or the operand of &x, has the text of the stripped receiver, every Infallible type name, and every .collect() of a .map(f) over a parenthesized range from 0 or 0usize up to n whose turbofish or let type is Vec or that is the last expression of the body of, or the value of a return in, the nearest function or closure whose return type is Vec, test code included, outside macro arguments, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "use-the-current-form",
     parameters: Parameters::Level {
         default: Severity::Error,

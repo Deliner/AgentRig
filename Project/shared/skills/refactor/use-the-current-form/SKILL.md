@@ -20,8 +20,8 @@ reviewer recognizes it at once.
    - `Infallible` by `!`; a `Result<T, !>` then unpacks with
      `let Ok(value) = result;`, and the `Infallible` import goes;
    - `(0..n).map(f).collect::<Vec<_>>()`, or the same collect bound by
-     `let v: Vec<_>`, by `Vec::from_fn(n, f)`, whose `f` takes each index as
-     `usize`.
+     `let v: Vec<_>` or returned from a function or closure that returns
+     `Vec`, by `Vec::from_fn(n, f)`, whose `f` takes each index as `usize`.
 2. When the old form must stay, such as indices of another integer type than
    `usize`, record why as an owned `DECISION:`/`INVARIANT:` reference on the
    line directly above it.
@@ -33,11 +33,13 @@ The measurement flags every Rust `.unwrap_or` call whose single argument, or
 the operand of `&` in it, has the text of the receiver of the `.strip_prefix` or
 `.strip_suffix` call it is chained to, every `Infallible` type name, also as the
 last segment of a path, and every `.collect()` of a `.map(f)` over a
-parenthesized `0..n` or `0usize..n` whose turbofish or `let` type is `Vec`, test
-code included, outside macro arguments, without a `DECISION:`/`INVARIANT:`
-reference on the line directly above it. Types are not resolved, so a method of
-the same name on another type counts. A fallback other than the receiver, an
-inclusive range, another start and an inferred or other collection are not
-flagged. Do not weaken the rule or its selectors merely to pass. Apply
+parenthesized `0..n` or `0usize..n` whose turbofish or `let` type is `Vec` or
+that is the last expression of the body of, or the value of a `return` in, the
+nearest function or closure whose return type is `Vec`, test code included,
+outside macro arguments, without a `DECISION:`/`INVARIANT:` reference on the
+line directly above it. Types are not resolved, so a method of the same name on
+another type counts. A fallback other than the receiver, an inclusive range,
+another start, an inferred or other collection and a collect in a branch, an
+argument or a field are not flagged. Do not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the current form replaces the old one or an
 owned reference justifies keeping it.
