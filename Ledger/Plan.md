@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P134](Plan/134.md) | active | - | Ветки уходят в удалённый репозиторий после коммита и слияния, [B130](Backlog/130.md) | Ни слитая, ни незаконченная, ни отложенная работа не теряется вместе с машиной. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
