@@ -1,0 +1,70 @@
+split command_runner/jobs/identity/mod.rs -> command_runner/jobs/identity/mod.rs command_runner/jobs/identity/boot.rs command_runner/jobs/identity/process_sample.rs
+split project_config/mod.rs -> project_config/mod.rs project_config/project_context.rs
+split project_memory/evidence/mod.rs -> project_memory/evidence/mod.rs project_memory/evidence/attempt.rs project_memory/evidence/record.rs project_memory/evidence/freshness.rs
+split project_setup/initialization/init.rs -> project_setup/initialization/init.rs project_setup/initialization/baseline_offer.rs project_setup/initialization/existing_files.rs project_setup/initialization/file_install.rs
+split shared/arguments/mod.rs -> shared/arguments/mod.rs shared/arguments/option.rs shared/arguments/literal.rs
+split shared/artifacts/mod.rs -> shared/artifacts/mod.rs shared/artifacts/fingerprint.rs shared/artifacts/regular_file.rs
+split shared/fs/mod.rs -> shared/fs/mod.rs shared/fs/error.rs shared/fs/file_access.rs shared/fs/path_access.rs
+split shared/console/mod.rs -> shared/console/mod.rs shared/console/stdout_line.rs shared/console/stderr_line.rs shared/console/prompt.rs
+split shared/yaml/mod.rs -> shared/yaml/mod.rs shared/yaml/strict_syntax.rs shared/yaml/strict_values.rs
+split structural_lint/architecture/resolution/mod.rs -> structural_lint/architecture/resolution/mod.rs structural_lint/architecture/resolution/project_path.rs structural_lint/architecture/resolution/resolved.rs
+split structural_lint/architecture/resolution/python/mod.rs -> structural_lint/architecture/resolution/python/mod.rs structural_lint/architecture/resolution/python/import_root.rs structural_lint/architecture/resolution/python/module_name.rs structural_lint/architecture/resolution/python/package_modules.rs structural_lint/architecture/resolution/python/relative_import.rs
+split structural_lint/architecture/source/model/mod.rs -> structural_lint/architecture/source/references/mod.rs structural_lint/architecture/source/references/target.rs structural_lint/architecture/source/references/reference_records.rs structural_lint/architecture/source/references/located_findings.rs
+move structural_lint/architecture/source/rust/attributes.rs -> structural_lint/architecture/source/rust_extraction/module_attributes.rs
+move structural_lint/architecture/source/rust/macros.rs -> structural_lint/architecture/source/rust_extraction/macro_dependencies.rs
+move structural_lint/architecture/source/rust/prelude.rs -> structural_lint/architecture/source/rust_extraction/path_prelude.rs
+move structural_lint/architecture/source/model/ -> structural_lint/architecture/source/references/
+move structural_lint/architecture/source/rust/ -> structural_lint/architecture/source/rust_extraction/
+move structural_lint/architecture/source/python.rs -> structural_lint/architecture/source/python_extraction.rs
+split structural_lint/catalog/mod.rs -> structural_lint/capabilities/mod.rs structural_lint/capabilities/rule_definitions.rs structural_lint/capabilities/language_support.rs structural_lint/capabilities/rule_description.rs
+split structural_lint/config/mod.rs -> structural_lint/config/mod.rs structural_lint/config/rule_schema.rs structural_lint/config/rule_validation.rs structural_lint/config/severity.rs structural_lint/config/guidance.rs structural_lint/config/extensions.rs
+split structural_lint/inventory/mod.rs -> structural_lint/inventory/mod.rs structural_lint/inventory/versioned.rs structural_lint/inventory/unversioned.rs structural_lint/inventory/directory_entries.rs
+split structural_lint/languages/measure/mod.rs -> structural_lint/languages/measure/mod.rs structural_lint/languages/measure/located_measurement.rs structural_lint/languages/measure/syntax_text.rs structural_lint/languages/measure/boolean_expressions.rs structural_lint/languages/measure/comment_credentials.rs structural_lint/languages/measure/function_signature.rs structural_lint/languages/measure/nesting_depth.rs structural_lint/languages/measure/branch_budget.rs
+split structural_lint/selection/mod.rs -> structural_lint/selection/mod.rs structural_lint/selection/threshold_overrides.rs structural_lint/selection/target_selector.rs
+move structural_lint/languages/rust/blocking_async.rs -> structural_lint/languages/rust/source_rules/blocking_async.rs
+move structural_lint/languages/rust/super_reach.rs -> structural_lint/languages/rust/source_rules/super_reach.rs
+move structural_lint/languages/rust/suppression.rs -> structural_lint/languages/rust/source_rules/suppression.rs
+move structural_lint/languages/rust/test_placement.rs -> structural_lint/languages/rust/source_rules/test_placement.rs
+move structural_lint/languages/rust/unsafe_site.rs -> structural_lint/languages/rust/source_rules/unsafe_site.rs
+move structural_lint/languages/rust/panic_surface.rs -> structural_lint/languages/rust/source_rules/panic_surface.rs
+move structural_lint/languages/rust/naming.rs -> structural_lint/languages/rust/source_rules/naming.rs
+move structural_lint/languages/rust/shell_command.rs -> structural_lint/languages/rust/source_rules/shell_command.rs
+move structural_lint/languages/rust/false_pass.rs -> structural_lint/languages/rust/source_rules/false_pass.rs
+move shared/paths/patterns.rs -> shared/paths/glob_patterns.rs
+split shared/paths/mod.rs -> shared/paths/mod.rs shared/paths/symbolic_links.rs
+split shared/diagnostics/mod.rs -> shared/diagnostics/mod.rs shared/diagnostics/guidance.rs shared/diagnostics/rerun_command.rs shared/diagnostics/command_failure.rs
+split project_config/settings/mod.rs -> project_config/settings/mod.rs project_config/settings/project_schema.rs project_config/settings/project_loading.rs
+move project_memory/format.rs -> project_memory/memory_format.rs
+move project_memory/history.rs -> project_memory/memory_history.rs
+move project_memory/resume.rs -> project_memory/recovery_context.rs
+move structural_lint/architecture/resolution/rust/tree.rs -> structural_lint/architecture/resolution/rust/module_tree.rs
+move structural_lint/architecture/resolution/rust/paths.rs -> structural_lint/architecture/resolution/rust/path_aliases.rs
+move structural_lint/architecture/resolution/rust/macros.rs -> structural_lint/architecture/resolution/rust/macro_origins.rs
+split command_runner/registry/mod.rs -> command_runner/registry/mod.rs command_runner/registry/tool_files.rs command_runner/registry/tool_list.rs command_runner/registry/removal_records.rs
+move structural_lint/languages/registry.rs -> structural_lint/languages/syntax_handlers.rs
+move structural_lint/languages/python.rs -> structural_lint/languages/python_handler.rs
+move structural_lint/languages/manifest.rs -> structural_lint/languages/manifest_handler.rs
+split change_delivery/git/mod.rs -> change_delivery/feature_branch/mod.rs change_delivery/feature_branch/commit_guard.rs change_delivery/feature_branch/merge_cleanup.rs
+move change_delivery/git/ -> change_delivery/feature_branch/
+split command_runner/mod.rs -> command_runner/mod.rs command_runner/catalog_command.rs command_runner/foreground.rs command_runner/background.rs
+split shared/syntax/mod.rs -> shared/syntax/mod.rs shared/syntax/reference_comment.rs shared/syntax/secret_tokens.rs
+move structural_lint/languages/rust/control_flow/hidden_exit.rs -> structural_lint/languages/rust/control_flow/macro_exit.rs
+move structural_lint/languages/rust/control_flow/stale_check.rs -> structural_lint/languages/rust/control_flow/checked_path.rs
+move structural_lint/languages/rust/control_flow/unlabeled_exit.rs -> structural_lint/languages/rust/control_flow/loop_exit.rs
+split change_delivery/gate/mod.rs -> change_delivery/gate/mod.rs change_delivery/gate/input_options.rs change_delivery/gate/input_snapshot.rs change_delivery/gate/execute_checks.rs
+move structural_lint/architecture/policy.rs -> structural_lint/architecture/directory_contract.rs
+move structural_lint/architecture/features.rs -> structural_lint/architecture/feature_types.rs
+move structural_lint/architecture/graph.rs -> structural_lint/architecture/dependency_cycles.rs
+move structural_lint/architecture/inventory.rs -> structural_lint/architecture/file_coverage.rs
+split command_line/mod.rs -> command_line/mod.rs command_line/command_names.rs command_line/dispatch.rs
+split structural_lint/architecture/runner/mod.rs -> structural_lint/architecture/runner/mod.rs structural_lint/architecture/runner/convert_diagnostics.rs structural_lint/architecture/runner/unused_externals.rs
+split structural_lint/languages/rust/context/mod.rs -> structural_lint/languages/rust/context/mod.rs structural_lint/languages/rust/context/test_context.rs structural_lint/languages/rust/context/item_attributes.rs structural_lint/languages/rust/context/cfg_predicates.rs structural_lint/languages/rust/context/path_names.rs
+move project_setup/adapters.rs -> project_setup/agent_adapters.rs
+move project_setup/doctor.rs -> project_setup/readiness_check.rs
+move structural_lint/catalog/ -> structural_lint/capabilities/
+move structural_lint/rules/kind.rs -> structural_lint/rules/rule_identity.rs
+move command_runner/jobs/streams.rs -> command_runner/jobs/output_capture.rs
+move command_runner/jobs/cleanup.rs -> command_runner/jobs/lifetime_cleanup.rs
+move agent_hooks/guard.rs -> agent_hooks/command_guard.rs
+move agent_hooks/requirements.rs -> agent_hooks/skill_requirements.rs
+move agent_hooks/reminder.rs -> agent_hooks/context_reminder.rs

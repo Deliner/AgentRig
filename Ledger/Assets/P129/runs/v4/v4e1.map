@@ -1,0 +1,51 @@
+move project_memory/evidence/ -> project_memory/check_records/
+move project_memory/evidence/content.rs -> project_memory/check_records/input_fingerprint.rs
+move shared/fs/ -> shared/file_access/
+split shared/fs/mod.rs -> shared/file_access/mod.rs shared/file_access/error.rs
+move structural_lint/architecture/resolution/ -> structural_lint/architecture/reference_files/
+move structural_lint/architecture/source/model/ -> structural_lint/architecture/source/references/
+split structural_lint/architecture/source/model/mod.rs -> structural_lint/architecture/source/references/mod.rs structural_lint/architecture/source/references/extraction.rs
+move structural_lint/catalog/ -> structural_lint/rule_capability/
+split structural_lint/catalog/mod.rs -> structural_lint/rule_capability/mod.rs structural_lint/rule_capability/description.rs structural_lint/rule_capability/validation.rs
+move structural_lint/config/ -> structural_lint/lint_config/
+split structural_lint/config/mod.rs -> structural_lint/lint_config/mod.rs structural_lint/lint_config/rule_validation.rs
+move structural_lint/inventory/ -> structural_lint/project_files/
+split structural_lint/inventory/mod.rs -> structural_lint/project_files/mod.rs structural_lint/project_files/directories.rs structural_lint/project_files/unversioned.rs
+move shared/arguments/ -> shared/command_options/
+move structural_lint/languages/measure/ -> structural_lint/languages/syntax_measures/
+split structural_lint/languages/measure/mod.rs -> structural_lint/languages/syntax_measures/mod.rs structural_lint/languages/syntax_measures/branching.rs structural_lint/languages/syntax_measures/conditions.rs structural_lint/languages/syntax_measures/nesting.rs
+move structural_lint/languages/rust/errors/ -> structural_lint/languages/rust_rules/error_detection/
+move command_runner/jobs/identity/ -> command_runner/jobs/pid_identity/
+move command_runner/registry/ -> command_runner/tool_register/
+move project_setup/initialization/ -> setup_readiness/agent_files/
+move shared/artifacts/ -> shared/persist_files/
+move shared/console/ -> shared/line_output/
+move structural_lint/architecture/resolution/python/ -> structural_lint/architecture/reference_files/python_imports/
+move structural_lint/architecture/source/rust/ -> structural_lint/architecture/source/rust_item_paths/
+move structural_lint/languages/rust/ -> structural_lint/languages/rust_rules/
+move structural_lint/languages/rust/blocking_async.rs -> structural_lint/languages/rust_rules/reference_gaps/blocking_async.rs
+move structural_lint/languages/rust/shell_command.rs -> structural_lint/languages/rust_rules/reference_gaps/shell_command.rs
+move structural_lint/languages/rust/suppression.rs -> structural_lint/languages/rust_rules/reference_gaps/suppression.rs
+move structural_lint/languages/rust/unsafe_site.rs -> structural_lint/languages/rust_rules/reference_gaps/unsafe_site.rs
+move structural_lint/languages/rust/panic_surface.rs -> structural_lint/languages/rust_rules/reference_gaps/panic_surface.rs
+move change_delivery/git/ -> change_delivery/feature_branch/
+split change_delivery/git/mod.rs -> change_delivery/feature_branch/mod.rs change_delivery/feature_branch/commit_guard.rs
+move project_config/ -> project_loader/
+move structural_lint/selection/ -> structural_lint/lint_targets/
+split shared/syntax/mod.rs -> shared/syntax/mod.rs shared/syntax/reference_comment.rs shared/syntax/secret_tokens.rs
+move shared/yaml/ -> shared/strict_yaml/
+move change_delivery/gate/ -> change_delivery/check_execution/
+move shared/paths/ -> shared/resolve_paths/
+move shared/diagnostics/ -> shared/guidance/
+move shared/diagnostics/lint.rs -> shared/guidance/findings.rs
+move structural_lint/architecture/runner/ -> structural_lint/architecture/lint_analysis/
+move structural_lint/languages/rust/context/ -> structural_lint/languages/rust_rules/node_scope/
+move project_config/settings/ -> project_loader/define_settings/
+move project_setup/cargo.rs -> setup_readiness/rust_consumer/cargo.rs
+move project_setup/clippy.rs -> setup_readiness/rust_consumer/clippy.rs
+move project_setup/lint.rs -> setup_readiness/rust_consumer/lint.rs
+move project_setup/ -> setup_readiness/
+move structural_lint/cli.rs -> structural_lint/command_output/cli.rs
+move structural_lint/explain.rs -> structural_lint/command_output/explain.rs
+move structural_lint/tree.rs -> structural_lint/command_output/tree.rs
+move structural_lint/architecture/resolution/rust/ -> structural_lint/architecture/reference_files/rust_modules/
