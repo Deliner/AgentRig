@@ -11,7 +11,6 @@ mod async_code;
 mod control_flow;
 mod declarations;
 mod errors;
-mod false_pass;
 mod manifest;
 mod markers;
 mod ownership;
@@ -19,7 +18,7 @@ mod panic_surface;
 mod reference;
 mod shell_command;
 mod signature;
-mod test_placement;
+mod test_code;
 mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {

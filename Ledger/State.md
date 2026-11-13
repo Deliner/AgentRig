@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `3f6bda18db4d47a36ef67073ba0169d18e3d1f82`
+Revision: `10390e984fc6a0b36c2a2f9fa296756f5af1b5f6`
 
 Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -27,13 +27,16 @@ Revision: `3f6bda18db4d47a36ef67073ba0169d18e3d1f82`
   `project_setup` нет места для модуля версии Rust. Бюджет зависимых `shared/fs_with_context` поднят до 23.
 - VAC 4 P132 закрыл AC6 по D174: `init --language rust` и `doctor` требуют `rustc` не старше версии рига.
 - VAC 5 P132 `3f6bda1` закрыл AC7 по D175: раздел «Rust 1.100» в AGENTS.md рига и Rust-проектов.
-- VAC 6 P132 закрыл AC3 и AC4 по D176: `unused_dependencies = "deny"` и карантин новых версий в 3 дня.
+- VAC 6 P132 `10390e9` закрыл AC3 и AC4 по D176: `unused_dependencies = "deny"` и карантин новых версий в 3 дня.
+- VAC 7 P132 собрал детекторы тестового кода `false_pass.rs` и `test_placement.rs` и их тесты в папки `test_code`
+  без смены поведения: в `languages/rust` и `languages/tests` по 15 записей, предел lint, а AC8 добавляет в обе.
 
 ## Verification
 
 - VAC 2–5 прошли гейт, VAC 5 со всеми 488 тестами; путь bootstrap с архивом toolchain проверит пин D051.
 - VAC 6: Clippy гейта в копии рига с лишней `hex` даёт код 101, без неё 0; `generate-lockfile` из корня берёт
   `sonic-rs` 0.5.10 вместо опубликованной минуту назад 0.5.11. Транзитивную `memchr` cargo не замечает.
+- VAC 7: rustfmt и lint чисты, 138 тестов `structural_lint::languages` прошли, в том числе перенесённые.
 
 ## Blockers
 
@@ -41,6 +44,7 @@ Revision: `3f6bda18db4d47a36ef67073ba0169d18e3d1f82`
 
 ## Next action
 
-AC8 B128: правило старых форм двухфазно, сначала вид правила и пин D051 в середине ветки, затем включение в
-`.agentrig/lint.yaml` и шаблоне init; потом AC2 и проверка AC5. AGENTS.md рига на пределе lint в 70 строк.
+AC8 B128: правило старых форм двухфазно, сначала вид правила `superseded-form` в семействе Reference с детектором
+`languages/rust/superseded_form.rs` и тестами `languages/tests/superseded_form.rs`, пин D051 в середине ветки, затем
+включение в `.agentrig/lint.yaml` и шаблоне init; потом AC2 и проверка AC5. AGENTS.md рига на пределе в 70 строк.
 Свободные ID: D177+, I022+, P133+, B129+ (B066 и D111 зарезервированы).

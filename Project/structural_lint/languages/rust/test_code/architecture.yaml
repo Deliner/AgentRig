@@ -1,0 +1,7 @@
+purpose: Detect Rust test code placed outside the test locations and attributes that let tests pass without checking the product
+type: flat
+files:
+  mod.rs: Dispatch attributes and module declarations to the test-code detectors
+  false_pass.rs: Rust should_panic attributes that let a test pass on any panic, and cfg attributes that exclude an item from every test build
+  test_placement.rs: Rust file module declared under cfg(test) or inside a test-only module whose file is neither tests.rs nor under a tests directory
+directories: {}

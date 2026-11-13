@@ -6,13 +6,12 @@ files:
   manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
   panic_surface.rs: Rust debug-only assert, unwrap_err, expect_err and resume_unwind, panics inside macro_rules! bodies, panics covered by a referenced Clippy allow on an enclosing item, and unjustified catch_unwind or AssertUnwindSafe measurements from native analysis
-  test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
   unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
   shell_command.rs: Rust shell launches whose command flag is followed by data in the argument chain, with literal and constant commands, other flags, programs, order, justified and test-only launches skipped, from native analysis
 directories:
   control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
   errors: Verify measurements of code where an error disappears without a trace, from native analysis
-  false_pass: Verify Rust measurements of tests that pass on any panic and of items no test build compiles, from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis
   signature: Verify Rust function signature, type shape and trait implementation measurements from native analysis
+  test_code: Verify Rust measurements of test modules outside the test locations, tests that pass on any panic and items no test build compiles, from native analysis
