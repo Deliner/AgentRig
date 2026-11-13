@@ -7,10 +7,12 @@ use std::{
 
 const REVISION: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 const LAUNCHER_ENVIRONMENT: [&str; 2] = ["WORKER_BINARY", "WORKER_SOURCE_ROOT"];
-const RESOURCES: [&str; 3] = [
+// DECISION: D173
+const RESOURCES: [&str; 4] = [
     "cli_dispatch/main.rs",
     "shared/architecture.yaml",
     "shared/skills/repair/SKILL.md",
+    "../rust-toolchain.toml",
 ];
 const FAKE_CARGO: &str = r#"#!/bin/sh
 while [ "$#" -gt 0 ]; do
@@ -49,6 +51,8 @@ fn development_tree(temp: &Path) -> PathBuf {
     let pin = root.join("tooling/distribution/stable.txt");
     fs::create_dir_all(pin.parent().unwrap()).unwrap();
     fs::write(pin, format!("{REVISION}\n")).unwrap();
+    let toolchain = root.join("rust-toolchain.toml");
+    fs::copy(repository().join("rust-toolchain.toml"), toolchain).unwrap();
     fs::create_dir_all(root.join("Project")).unwrap();
     let manifest = root.join("Project/Cargo.toml");
     fs::write(manifest, "deliberately invalid manifest\n").unwrap();
@@ -79,6 +83,7 @@ fn candidate_build_rebuilds_changed_content_even_with_an_old_mtime() {
         let payload = root.join("Project").join(resource);
         fs::create_dir_all(payload.parent().unwrap()).unwrap();
         fs::write(root.join("Project/Cargo.toml"), "manifest").unwrap();
+        fs::write(root.join("rust-toolchain.toml"), "toolchain").unwrap();
         fs::write(&payload, "ONE").unwrap();
         let written = fs::metadata(&payload).unwrap().modified().unwrap();
         let cargo = root.join("bin/cargo");

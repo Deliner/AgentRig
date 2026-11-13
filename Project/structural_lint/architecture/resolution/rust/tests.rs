@@ -324,7 +324,7 @@ fn compile_and_run(files: &[(&str, &str)]) {
         fs::write(project.path().join(file), text).unwrap();
     }
     let output = Command::new("rustc")
-        .args(["+1.98.1", "--edition=2021", "main.rs", "-o", "consumer"])
+        .args(["--edition=2021", "main.rs", "-o", "consumer"])
         .current_dir(project.path())
         .output()
         .unwrap();

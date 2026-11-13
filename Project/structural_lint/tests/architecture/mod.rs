@@ -267,7 +267,7 @@ impl Consumer {
 
     pub fn compiles(&self, entry: &str, args: &[&str]) {
         let output = Command::new("rustc")
-            .args(["+1.98.1", "--edition=2021", "--crate-type=lib"])
+            .args(["--edition=2021", "--crate-type=lib"])
             .args(["--emit=metadata", "--out-dir"])
             .arg(self.temp.path())
             .arg("-L")

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # DECISION: D027
 # DECISION: D041
+# DECISION: D173
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 read -r revision < "$root/tooling/distribution/stable.txt"
@@ -19,11 +20,9 @@ if [[ -d "$installed" ]]; then
 fi
 staging="$(mktemp -d "$cache/.install-XXXXXX")"
 trap 'rm -rf -- "$staging"' EXIT
-git -C "$root" archive "$revision" Project > "$staging/source.tar"
+git -C "$root" archive "$revision" Project rust-toolchain.toml > "$staging/source.tar"
 tar -xf "$staging/source.tar" -C "$staging"
-cargo +1.98.1 build --locked --release \
-    --manifest-path "$staging/Project/Cargo.toml" \
-    --target-dir "$cache/build"
+(cd "$staging" && cargo build --locked --release --manifest-path Project/Cargo.toml --target-dir "$cache/build")
 "$cache/build/release/agentrig" init --root "$staging/environment" --language rust
 mv "$staging/environment" "$installed"
 "$installed/.agentrig/bin/agentrig" --version

@@ -3,7 +3,7 @@
 `agentrig init` installs the runtime into a consumer project configured by the `.agentrig/` modules. Consumers need
 Git, Just, their own configured tools and a read-only sandbox (bubblewrap on Linux, sandbox-exec on macOS); they do not
 compile the worker or run its tests; see the [independent examples](../shared/testing/examples/README.md). A distributor
-builds both executables with `cargo +1.98.1 build --release --locked --manifest-path Project/Cargo.toml`.
+builds both executables with `cargo build --release --locked --manifest-path Project/Cargo.toml`.
 
 ## Installation
 

@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `b0ca86b387858ab6049de2d78710fde537b563aa`
+Revision: `c55e2bd6ec1de2306ab2d527a4c399aa3f2e598d`
 
 Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -20,11 +20,16 @@ Revision: `b0ca86b387858ab6049de2d78710fde537b563aa`
 
 ## Progress
 
-- VAC 1 P132 сохранил B128 и выбрал P132.
+- VAC 1 P132 `c55e2bd` сохранил B128 и выбрал P132.
+- VAC 2 P132 перевёл риг на корневой `rust-toolchain.toml` с 1.100.0 по D173: гейт, сборка рантайма, bootstrap, CI,
+  README и фикстуры `rustc` больше не называют версию.
 
 ## Verification
 
-- `memory-check` проходит с B128 и P132.
+- toolchain 1.100.0 поставлен через rustup. На нём rustfmt и Clippy рига проходят без находок; полный `just run test`
+  дал 482 пройденных и 2 упавших теста лаунчеров. Их временное дерево не имело `rust-toolchain.toml`; после правки
+  фикстуры 3 теста `shared::testing::launchers` проходят, включая пересборку при смене файла toolchain.
+- `memory-check` и `lint` проходят. Путь bootstrap с архивом файла toolchain проверит пин D051.
 
 ## Blockers
 
@@ -32,5 +37,6 @@ Revision: `b0ca86b387858ab6049de2d78710fde537b563aa`
 
 ## Next action
 
-Поставить toolchain 1.100.0, перевести риг на единый `rust-toolchain.toml` и собрать на 1.100.0, затем AC2–AC8 B128.
+AC6 B128: проверка версии Rust проекта в init и doctor, затем AC7, AC3–AC4, правило старых форм AC8 двухфазно с
+мид-бранч пином и AC2.
 Свободные ID: D173+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
