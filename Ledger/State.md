@@ -6,30 +6,31 @@
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B109 и B126 сохранены, в работу не выбраны.
 
-2026-11-13 пользователь одобрил показанную карточку B135 о флаге `--force-warn`: «Сохрани и сразу сделай». P139
-выполнена, решение D183; ветка запинена и ждёт слияния. Plan пуст.
+2026-11-13 пользователь одобрил показанную карточку B136 о флагах в команде clippy: «Сохрани и сразу сделай». Выбрана
+и выполняется P140, решение D184.
 
 ## Workspace
 
-Branch: `feature/force-warn`, от master `f38284e`, где влиты P137 и P138.
-Revision: `37e93cf24a1610d5e060341e01bea9fead2e6a02`
+Branch: `feature/command-flags`, от master `df9e60a`, где влита P139.
+Revision: `df9e60a427c3cbb55ca2b861e23d867534275ccb`
 
-Установленный рантайм `37e93cf` — голова VAC 2 этой ветки, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `37e93cf` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
 `origin`, `feature/init-probe` не трогать.
 
 ## Progress
 
-- VAC 1 `21ba37a`: карточка B135 и P139; `allow-justification` сообщает `--force-warn` в списке `rustflags` без
-  ссылки; текст ошибки и навыки `justify-allow` и `move-rustflags` называют четыре флага; решение D183.
-- VAC 2 `37e93cf`: перенос P139 и B135 в архив с таблицей AC; итог в Archive/Plan/139.md.
-- Пин: `stable.txt` называет `37e93cf`, `just bootstrap` его установил.
+- VAC 1, этот коммит: карточка B136 и P140; `allow-justification` сообщает элемент после `--` в `argv` команды, чей
+  первый элемент `cargo` и где до `--` стоит `clippy` или `rustc`, если он начинается с `-A`, `--allow`, `--cap-lints`
+  или `--force-warn` и выше нет ссылки; шаблон `init` добавляет `.agentrig/commands.yaml` в include правила; навык
+  `justify-allow` и текст ошибки описывают этот случай; решение D184.
 
 ## Verification
 
-На `21ba37a` гейт прошёл 461 затронутый тест, на `37e93cf` — 12 затронутых тестов. Проба кандидата `21ba37a` на временном проекте: `init` перенёс
-`--force-warn` из `build.rustflags`, lint дал ошибку `allow-justification` с навыком `justify-allow`; в правленом
-списке флаг без ссылки дал находку, со ссылкой нет.
+До коммита прошли 9 тестов по фильтрам `flag_list`, `shipped_rules_check_lowering_flags_of_the_clippy_command` и
+`shipped_rules_keep_compiler_flags_in_the_rig_list`. Lint кандидата на самом репозитории чист. Проба кандидата на
+временном проекте после `init`: lint без находок в `commands.yaml`; `--cap-lints allow` в конце команды clippy дал
+ошибку `allow-justification` с навыком `justify-allow`, со ссылкой выше lint прошёл.
 
 ## Blockers
 
@@ -37,4 +38,5 @@ Revision: `37e93cf24a1610d5e060341e01bea9fead2e6a02`
 
 ## Next action
 
-Влить ветку `just feature-merge`; слияние отправит master и ветку в `origin`. Свободные ID: D184+, I022+, P140+, B136+.
+VAC 2: перенести P140 и B136 в архив с таблицей AC, затем пин D051 и `just feature-merge`. Свободные ID: D185+, I022+,
+P141+, B137+.

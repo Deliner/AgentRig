@@ -1,7 +1,7 @@
 purpose: Measure scalar rules in supported source languages through registered syntax handlers
 files:
   manifest.rs: TOML manifest lint tables, a lint set to allow under lints or workspace.lints without a reference above, and rustflags keys in any table
-  flag_list.rs: YAML rustflags sequences, an item that lowers lint levels without a reference above
+  flag_list.rs: YAML rustflags sequences and compiler arguments of cargo clippy or rustc argv, an item that lowers lint levels without a reference above
   mod.rs: Scalar measurement traversal of a parsed source with located results
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   python.rs: Python conditions, boolean expressions, function lengths, parameters and comments

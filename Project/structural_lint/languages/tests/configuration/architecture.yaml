@@ -2,5 +2,5 @@ purpose: Verify measurements of TOML and YAML configuration documents from nativ
 files:
   mod.rs: Declare the configuration document measurement test modules
   manifest.rs: TOML lint-table allow-level and rustflags key measurements and syntax-error location from native analysis
-  flag_list.rs: YAML rustflags items that lower lint levels and syntax-error location from native analysis
+  flag_list.rs: YAML rustflags and cargo compiler argv items that lower lint levels and syntax-error location from native analysis
 directories: {}
