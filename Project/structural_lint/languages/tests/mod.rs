@@ -8,10 +8,10 @@ use crate::structural_lint::rule_identities::structure::Structure;
 use std::path::Path;
 
 mod async_code;
+mod configuration;
 mod control_flow;
 mod declarations;
 mod errors;
-mod manifest;
 mod markers;
 mod ownership;
 mod panic_surface;

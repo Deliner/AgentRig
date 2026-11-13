@@ -9,6 +9,7 @@ mod defaults;
 mod delivery;
 mod doctor;
 mod runtime;
+mod rustflags;
 mod toolchain;
 
 fn write(root: &Path, path: &str, text: &str) {

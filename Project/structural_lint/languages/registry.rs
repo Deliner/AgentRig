@@ -1,6 +1,6 @@
 // DECISION: D033
 // DECISION: D098
-use super::{Analysis, Code, manifest, python, rust};
+use super::{Analysis, Code, flag_list, manifest, python, rust};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
@@ -120,8 +120,19 @@ pub const HANDLERS: &[Handler] = &[
         name: "toml",
         title: "TOML",
         extensions: &[".toml"],
-        rules: &[Kind::Reference(Reference::AllowJustification)],
+        rules: &[
+            Kind::Reference(Reference::AllowJustification),
+            Kind::Reference(Reference::CargoRustflags),
+        ],
         inspect: Inspect::Document(manifest::analyze),
+    },
+    // DECISION: D182
+    Handler {
+        name: "yaml",
+        title: "YAML",
+        extensions: &[".yaml"],
+        rules: &[Kind::Reference(Reference::AllowJustification)],
+        inspect: Inspect::Document(flag_list::analyze),
     },
 ];
 pub fn handler(path: &Path) -> Option<&'static Handler> {

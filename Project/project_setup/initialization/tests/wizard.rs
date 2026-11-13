@@ -15,7 +15,7 @@ use std::{
 const QUESTIONS: usize = 11;
 const CONFIRMATION: &str = "Install this environment?";
 const CHANGE: &str = "User change after preview.\n";
-const COMPARED: [&str; 10] = [
+const COMPARED: [&str; 11] = [
     ".agentrig/project.yaml",
     ".agentrig/git.yaml",
     ".agentrig/commands.yaml",
@@ -23,6 +23,7 @@ const COMPARED: [&str; 10] = [
     ".agentrig/hooks.yaml",
     ".agentrig/oracles.yaml",
     ".agentrig/tools.yaml",
+    ".agentrig/rust.yaml",
     "AGENTS.md",
     "justfile",
     ".codex/config.toml",

@@ -20,6 +20,7 @@ pub fn run(context: &Context, args: &[String]) -> Result<i32> {
         .args(&argv[1..])
         .current_dir(&context.root)
         .env("AGENTRIG_SCRATCH", &area);
+    super::sandbox::compile_with(&mut command, &context.config.rust.rustflags);
     let result = jobs::process::execute(&mut command, jobs::Capture::Stream, Some(&mut job));
     if let Err(error) = &result {
         console::stderr(format!("{error:#}"));

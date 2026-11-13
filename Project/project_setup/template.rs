@@ -1,8 +1,8 @@
 use super::rust::cargo::{self, Layout};
-use super::rust::{clippy, toolchain::Requirement};
+use super::rust::{clippy, flags, toolchain::Requirement};
 use crate::project_config::{
     self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
-    Tools, View, Views,
+    Rust, Tools, View, Views,
 };
 use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -65,8 +65,8 @@ pub(super) struct Scaffold {
 pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let source = &options["source"];
     let python = options["language"] == "python";
-    let (rust, clippy) = if python {
-        (Layout::fallback(source), None)
+    let (rust, clippy, rustflags) = if python {
+        (Layout::fallback(source), None, Vec::new())
     } else {
         // DECISION: D174
         let toolchain = Requirement::inspect(root)?;
@@ -76,15 +76,15 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
         );
         let rust = cargo::layout(root, source)?;
         let clippy = clippy::settings(root, &rust)?;
-        (rust, Some(clippy))
+        (rust, Some(clippy), flags::build_rustflags(root)?)
     };
     Ok(Scaffold {
-        config: config(options, &rust),
+        config: config(options, &rust, rustflags),
         rust,
         clippy,
     })
 }
-fn config(options: &Options<'_>, rust: &Layout) -> Config {
+fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Config {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
@@ -115,6 +115,7 @@ fn config(options: &Options<'_>, rust: &Layout) -> Config {
         },
         oracles: BTreeMap::new(),
         tools: tools(service),
+        rust: Rust { rustflags },
     }
 }
 // DECISION: D150

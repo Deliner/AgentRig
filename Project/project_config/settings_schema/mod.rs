@@ -14,7 +14,9 @@ use std::{
 
 // DECISION: D038
 pub const FILE: &str = ".agentrig/project.yaml";
-const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "oracles", "tools"];
+const MODULES: [&str; 7] = [
+    "git", "commands", "checks", "hooks", "oracles", "tools", "rust",
+];
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -39,6 +41,14 @@ pub struct Config {
     pub oracles: BTreeMap<String, Oracle>,
     #[serde(default)]
     pub tools: Tools,
+    #[serde(default)]
+    pub rust: Rust,
+}
+// DECISION: D182
+#[derive(Default, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Rust {
+    pub rustflags: Vec<String>,
 }
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

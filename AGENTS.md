@@ -20,7 +20,7 @@ maintenance instructions independently authorize tooling work; they do not autho
 features. This repository develops the portable worker itself. Worker capabilities, including lint, are first-level
 features placed directly in Project under two-word names, with leaf support in Project/shared; tooling holds the
 development launchers, distribution and Python verification configuration, and repository memory is Ledger (D042).
-Runtime paths, Git base/prefix, commands, checks, tools, hook routes and oracle bindings belong to .agentrig/ modules.
+Runtime paths, Git base/prefix, commands, checks, tools, hook routes, oracles and Rust flags live in .agentrig/ modules.
 
 ## Commands and verification
 

@@ -4,6 +4,7 @@ use crate::structural_lint::languages;
 use crate::structural_lint::rule_identities::contract_settings;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::ownership::{self, Ownership};
+use crate::structural_lint::rule_identities::reference::Reference;
 use crate::structural_lint::rule_identities::structure::Structure;
 use serde_json::{Value, json};
 
@@ -79,6 +80,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
         // DECISION: D156
         Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
+        // DECISION: D182
+        Kind::Reference(Reference::CargoRustflags) => {
+            value["include"] = json!(["**/.cargo/config.toml"]);
+        }
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

@@ -31,6 +31,7 @@ pub enum Reference {
     EpsilonTolerance,
     DottedExtension,
     FixedTestPort,
+    CargoRustflags,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -60,6 +61,7 @@ impl Reference {
             Self::EpsilonTolerance => &std_form::EPSILONTOLERANCE,
             Self::DottedExtension => &std_form::DOTTEDEXTENSION,
             Self::FixedTestPort => &FIXEDTESTPORT,
+            Self::CargoRustflags => &CARGORUSTFLAGS,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -147,7 +149,7 @@ const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     default_id: "allow-justification",
     exclude: &[],
     target: "file",
-    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, and every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute or the key",
+    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, and every item of a YAML rustflags sequence starting with -A, --allow or --cap-lints, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute, the key or the item",
     skill: "justify-allow",
     parameters: Parameters::Level {
         default: Severity::Error,
@@ -316,6 +318,18 @@ const FIXEDTESTPORT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a fixed port is shared by every test and process on the machine, so parallel runs collide and the test fails or talks to a stranger; bind port 0 and read the assigned port with local_addr, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D182
+const CARGORUSTFLAGS: Descriptor = Descriptor {
+    default_id: "cargo-rustflags",
+    exclude: &[],
+    target: "file",
+    metric: "every rustflags key in any table of a TOML file, such as build.rustflags or target.<triple>.rustflags of a Cargo configuration",
+    skill: "move-rustflags",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the rig runs cargo with its own flag list only, so flags in a Cargo configuration act in plain cargo and the editor but not in the gate; move them into the rustflags list of the rig's rust module and delete the key",
     },
 };
 // DECISION: D037

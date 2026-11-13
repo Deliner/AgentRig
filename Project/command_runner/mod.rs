@@ -108,6 +108,7 @@ fn logged(
             access: spec.access,
             capture,
             cargo_target: context.cargo_target.as_deref(),
+            rustflags: &context.config.rust.rustflags,
         },
         Some(&mut job),
     );
@@ -148,6 +149,7 @@ pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
             access,
             capture: jobs::Capture::Stream,
             cargo_target: None,
+            rustflags: &context.config.rust.rustflags,
         },
         Some(&mut job),
     );

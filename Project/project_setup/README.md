@@ -48,8 +48,7 @@ Every command accepts `--root PATH`, by default the current directory.
 | `jobs`, `job-start`, `job-status`, `job-logs`, `job-stop`, `job-cleanup` | Manage owned background runs. |
 | `hook` | Read an agent event as JSON on stdin and emit guidance or denial. |
 
-Lint shows warnings only with `--warnings`, and they never fail it; blocking findings exit 1 and configuration
-failures exit 2. Diagnostics name the check, scope, cause, repair skill and a shell-quoted RERUN command.
+Lint shows warnings only with `--warnings` and they never fail it; findings exit 1, configuration failures exit 2.
 
 ## Configuration
 
@@ -71,6 +70,7 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 - `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
   reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, check, runner (`pytest` or `cargo`) and target, for cargo the test's module path.
+- `rust.yaml`: `rustflags`, the only compiler flags of rig-launched cargo runs; init copies `build.rustflags` there.
 
 Unknown fields are errors naming their module; paths cannot escape the root; see [lint settings](../README.md#lint).
 

@@ -11,6 +11,11 @@ pub struct Sandboxing<'a> {
     pub access: Access,
     pub capture: Capture,
     pub cargo_target: Option<&'a Path>,
+    pub rustflags: &'a [String],
+}
+// DECISION: D182
+pub fn compile_with(command: &mut Command, rustflags: &[String]) {
+    command.env("CARGO_ENCODED_RUSTFLAGS", rustflags.join("\u{1f}"));
 }
 pub fn tracked(
     root: &Path,
@@ -22,6 +27,7 @@ pub fn tracked(
         access,
         capture,
         cargo_target,
+        rustflags,
     } = options;
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
@@ -34,6 +40,7 @@ pub fn tracked(
         }
     };
     command.current_dir(root);
+    compile_with(&mut command, rustflags);
     // DECISION: D160
     if let Some(target) = cargo_target {
         command.env("CARGO_TARGET_DIR", target);

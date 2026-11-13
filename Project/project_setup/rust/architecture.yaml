@@ -4,5 +4,6 @@ files:
   mod.rs: Declare the Rust project support modules
   cargo.rs: Derive Rust crate roots, crate names and the test manifest from the consumer's Cargo manifest
   clippy.rs: Build the Clippy command with the AgentRig lint profile and complete the consumer's effective Clippy file with its thresholds
+  flags.rs: Read the build.rustflags of the consumer's .cargo/config.toml for init to move into the rig's flag list
   toolchain.rs: Read the rig's Rust version from its rust-toolchain.toml, compare the project's rustc with it and title its capability section
   capabilities.txt: The AGENTS.md section body listing the rig's Rust capabilities agents should use
