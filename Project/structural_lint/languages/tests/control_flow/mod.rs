@@ -2,7 +2,6 @@ mod hidden_exit;
 mod mixed_junction;
 mod range_chain;
 mod stale_check;
-mod unlooped_retry;
 mod variant_equality;
 mod variant_list;
 use crate::structural_lint::languages::analyze;

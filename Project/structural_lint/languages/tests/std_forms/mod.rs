@@ -1,10 +1,6 @@
 mod dotted_extension;
 mod epsilon_tolerance;
-mod front_removal;
-mod partial_order;
-mod remainder_sign;
 mod superseded_form;
-mod unstable_output;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;

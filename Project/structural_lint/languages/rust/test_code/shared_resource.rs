@@ -7,41 +7,36 @@ use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let Some((reference, name)) = shared(call, source) else {
-        return;
-    };
     let product = !in_test_context(call, source);
-    let allowed = product || justified(call, source);
-    if allowed {
+    let skipped = product || justified(call, source) || !fixed_bind(call, source);
+    if skipped {
         return;
     }
     output.push(Measurement {
-        kind: Kind::Reference(reference),
+        kind: Kind::Reference(Reference::FixedTestPort),
         line: call.start_position().row + 1,
-        symbol: name.into(),
+        symbol: "bind".into(),
         actual: 1,
     });
 }
-fn shared<'a>(call: Node<'_>, source: Code<'a>) -> Option<(Reference, &'a str)> {
-    let function = call
+fn fixed_bind(call: Node<'_>, source: Code<'_>) -> bool {
+    let Some(function) = call
         .child_by_field_name("function")
-        .filter(|function| function.kind() == "scoped_identifier")?;
-    let name = last_segment(function, source);
-    let owner = last_segment(function.child_by_field_name("path")?, source);
-    let arguments = call.child_by_field_name("arguments")?;
-    let first = arguments
-        .named_children(&mut arguments.walk())
-        .find(|argument| !argument.is_extra())?;
-    let literal = matches!(first.kind(), "string_literal" | "raw_string_literal");
-    match (owner, name) {
-        ("TcpListener" | "UdpSocket", "bind") => {
-            fixed_port(first, source).then_some((Reference::FixedTestPort, name))
-        }
-        ("File", "create") | ("fs", "write" | "create_dir" | "create_dir_all") => {
-            literal.then_some((Reference::FixedTestPath, name))
-        }
-        _ => None,
-    }
+        .filter(|function| function.kind() == "scoped_identifier")
+    else {
+        return false;
+    };
+    let owner = function
+        .child_by_field_name("path")
+        .map(|path| last_segment(path, source));
+    let socket = matches!(owner, Some("TcpListener" | "UdpSocket"));
+    let bound = socket && last_segment(function, source) == "bind";
+    let address = call.child_by_field_name("arguments").and_then(|arguments| {
+        arguments
+            .named_children(&mut arguments.walk())
+            .find(|argument| !argument.is_extra())
+    });
+    bound && address.is_some_and(|address| fixed_port(address, source))
 }
 fn fixed_port(address: Node<'_>, source: Code<'_>) -> bool {
     match address.kind() {

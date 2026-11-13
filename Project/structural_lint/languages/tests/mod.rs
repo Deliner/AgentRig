@@ -11,6 +11,7 @@ mod async_code;
 mod control_flow;
 mod declarations;
 mod errors;
+mod manifest;
 mod markers;
 mod ownership;
 mod panic_surface;
@@ -19,7 +20,7 @@ mod shell_command;
 mod signature;
 mod std_forms;
 mod test_code;
-mod unsafe_code;
+mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     let analysis = analyze(Path::new(path), source, &[]).unwrap();

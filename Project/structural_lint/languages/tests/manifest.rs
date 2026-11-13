@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::analyze;
+use super::super::analyze;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use std::path::Path;

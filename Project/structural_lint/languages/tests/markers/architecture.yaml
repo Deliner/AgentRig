@@ -1,7 +1,0 @@
-purpose: Verify measurements of markers that disable a test or silence a rule or a warning, from native analysis
-files:
-  mod.rs: Declare the marker measurement test modules
-  attributes.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
-  manifest.rs: TOML lint-table allow-level measurements and syntax-error location from native analysis
-  silenced_binding.rs: Rust wildcard lets of a variable that silence its unused warning, with constants, typed, computed, named, justified and test-only bindings skipped, from native analysis
-directories: {}

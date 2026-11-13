@@ -1,4 +1,4 @@
-use super::exemptions::{attributed, in_test_context};
+use super::exemptions::attributed;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -26,34 +26,6 @@ pub(super) fn attribute(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
             actual: 1,
         });
     }
-}
-pub(super) fn binding(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let Some(name) = silenced(node, source) else {
-        return;
-    };
-    let allowed = justified(node, source) || in_test_context(node, source);
-    if allowed {
-        return;
-    }
-    output.push(Measurement {
-        kind: Kind::Reference(Reference::SilencedBinding),
-        line: node.start_position().row + 1,
-        symbol: name.into(),
-        actual: 1,
-    });
-}
-fn silenced<'a>(binding: Node<'_>, source: Code<'a>) -> Option<&'a str> {
-    let wildcard = binding
-        .child_by_field_name("pattern")
-        .is_some_and(|pattern| pattern.kind() == "_");
-    let untyped = binding.child_by_field_name("type").is_none();
-    let value = binding
-        .child_by_field_name("value")
-        .filter(|value| value.kind() == "identifier")?;
-    let name = text(value, source);
-    let variable = name.chars().any(char::is_lowercase);
-    let silenced = wildcard && untyped && variable;
-    silenced.then_some(name)
 }
 // DECISION: D147
 pub(super) fn clippy_allowed(node: Node<'_>, source: Code<'_>, symbol: &str) -> bool {

@@ -1,6 +1,6 @@
 purpose: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
 type: flat
-dependents: 8
+dependents: 7
 files:
   mod.rs: Walk the attributes above an item, read derive and other attribute lists, decide whether an item with attributes carries a reference above them, decide whether an item is a member of a trait impl, decide whether a literal is a numeric zero, and name the last segment of a path or the base name of a type
   test_code.rs: Decide whether a Rust node sits inside test-only code for rule exemptions and whether an attribute marks a test

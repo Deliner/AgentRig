@@ -1,8 +1,8 @@
-purpose: Detect Rust test code placed outside the test locations, tests that pass without checking the product and tests that share a fixed port or path
+purpose: Detect Rust test code placed outside the test locations, attributes that let tests pass without checking the product and tests that share a fixed port
 type: flat
 files:
-  mod.rs: Dispatch attributes, functions, module declarations and calls to the test-code detectors
-  false_pass.rs: Rust should_panic attributes that let a test pass on any panic, test functions whose every assertion sits in a branch of an if chain without a final else, and cfg attributes that exclude an item from every test build
-  shared_resource.rs: Rust test code binding a TcpListener or UdpSocket to a fixed nonzero port, or creating or writing a file or directory at a literal path, which parallel tests and runs share
+  mod.rs: Dispatch attributes, module declarations and calls to the test-code detectors
+  false_pass.rs: Rust should_panic attributes that let a test pass on any panic, and cfg attributes that exclude an item from every test build
+  shared_resource.rs: Rust test code binding a TcpListener or UdpSocket to a fixed nonzero port, which parallel tests and runs share
   test_placement.rs: Rust file module declared under cfg(test) or inside a test-only module whose file is neither tests.rs nor under a tests directory
 directories: {}

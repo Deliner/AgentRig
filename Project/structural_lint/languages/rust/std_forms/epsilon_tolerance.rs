@@ -1,4 +1,3 @@
-use super::bare;
 use crate::structural_lint::languages::neutral_metrics::{Code, text};
 use crate::structural_lint::languages::rust::exemptions::last_segment;
 use tree_sitter::Node;
@@ -29,4 +28,13 @@ fn epsilon(operand: Node<'_>, source: Code<'_>) -> bool {
 }
 fn negated(operand: Node<'_>) -> bool {
     operand.kind() == "unary_expression" && operand.child(0).is_some_and(|sign| sign.kind() == "-")
+}
+fn bare(mut operand: Node<'_>) -> Node<'_> {
+    while let Some(inner) = operand
+        .named_child(0)
+        .filter(|_| operand.kind() == "parenthesized_expression")
+    {
+        operand = inner;
+    }
+    operand
 }

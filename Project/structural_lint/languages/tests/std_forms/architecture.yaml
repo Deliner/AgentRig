@@ -2,10 +2,6 @@ purpose: Verify Rust measurements of operators and standard library calls whose 
 files:
   mod.rs: Declare the standard-form measurement test modules and filter one reference kind from native analysis
   superseded_form.rs: Rust strip fallbacks to the receiver, Infallible types and Vec collections of a map over 0..n named with their current form in product and test code, with current forms, other fallbacks, ranges and targets and justified lines skipped, from native analysis
-  remainder_sign.rs: Rust remainders equal to a nonzero literal or ordered against a literal, with zero equality, named bounds, negated literals, justified and test-only remainders skipped, from native analysis
   epsilon_tolerance.rs: Rust f32 or f64 EPSILON compared directly, alone, in parentheses or negated, with scaled, unequal, named, other-constant, justified and test-only tolerances skipped, from native analysis
-  partial_order.rs: Rust fixed orderings in place of a missing partial comparison, with total orders, variable fallbacks, mapped, other, justified and test-only comparisons skipped, from native analysis
-  unstable_output.rs: Rust DefaultHasher in expression paths, type_name and type_name_of_val calls and unstable sorts by a comparator or key, with types, imports, argument calls, other sorts, justified and test-only sites skipped, from native analysis
-  front_removal.rs: Rust remove calls on the first element by a zero literal, with other indexes and methods, bare calls, references, justified and test-only removals skipped, from native analysis
   dotted_extension.rs: Rust extension literals written with their dot, with plain, empty, variable, other-method, justified and test-only extensions skipped, from native analysis
 directories: {}

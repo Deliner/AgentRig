@@ -8,6 +8,5 @@ files:
   range_chain.rs: Rust if-else chain or match guards that split one value into ranges by comparisons with literals
   unlabeled_exit.rs: Rust break or continue without a label inside a loop nested in another loop of the same function
   variant_equality.rs: Rust equality test or matches! pattern that names an enum variant instead of matching all variants
-  unlooped_retry.rs: Rust compare_exchange_weak, thread::park or thread::park_timeout call with no enclosing loop before the closure, async block or function boundary, though it may fail or wake spuriously
   variant_list.rs: Rust array literal of three or more paths naming every unit variant of an enum of the same file in declaration order, which a new variant leaves stale
 directories: {}

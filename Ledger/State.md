@@ -13,29 +13,27 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/list5-rules`, от master `447eb73`, где влита P135.
-Revision: `6d0b50c051a22b16f16b7cbcab7771de6c6fe166`
+Revision: `78736bacbe917381501c748a31266f14cfe02ebd`
 
 Установленный рантайм `9cd3cef`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
-`origin`, `feature/init-probe` не трогать. Замороженные копии рига, voxel и корпуса P136 и скрипт заморозки лежат в
-`scratchpad/p136`; скрипты замера списка IV — в `scratchpad/p135/old`.
+`origin`, `feature/init-probe` не трогать. Бинарник замера, выдачи, выборки и вердикты P136 лежат в `scratchpad/p136`.
 
 ## Progress
 
-- P136 VAC 1 `6d0b50c` записал протокол замера 18 форм списка V до первого прогона.
-- VAC 2 замораживает предикаты: инертные виды 17 форм с детекторами, дескрипторами и тестами и расширение
-  `blocking-in-async`. Детекторы лежат в новых `rust/std_forms` и `rust/unsafe_code` и в прежних семействах. Виды не
-  внесены в реестр обработчика, каталог, capabilities и `lint.yaml`; навыки ремонта ещё не написаны.
+- P136 VAC 1 `6d0b50c` записал протокол, VAC 2 `78736ba` заморозил предикаты 17 инертных видов и расширение
+  `blocking-in-async`.
+- Замер записан в Plan/136.md: прошли `epsilon-tolerance`, `trait-path-call`, `variant-list`, по D151 без находок
+  `dotted-extension` и `fixed-test-port`; двенадцать видов и расширение V-8 не прошли.
+- VAC 3 удаляет не прошедшие виды с тестами, возвращает каталоги `unsafe_code` и `markers` к прежней раскладке,
+  ссылки Decisions на `unsafe_site.rs`, `markers.rs` и `manifest.rs` и `blocking-in-async` к тексту до заморозки;
+  бюджеты dependents выросли на один из-за нового `std_forms`: 9, 7 и 16.
 - В rustc 1.100 `-A warnings` глушит и lint, включённый после него: замеры Clippy идут с одним `-W` и отбором по
   коду lint-а.
-- V-4, V-26, V-21 и V-22 уже ловят правила рига `disabled-test`, `disabled-raii`, `comments` и
-  `unsafe-justification`; V-12 в части `Default`, V-17, V-18, V-19 и V-30 поставлены через Clippy по D180, V-16 не
-  прошёл замер.
 
 ## Verification
 
-Суммы замороженных копий voxel и корпуса совпали с P120: `c1d2075286a3cd66` и `c8e1cf461d1379b9`. На дереве VAC 2:
-`cargo test --lib` 527 из 527, линт кандидатом, Clippy, rustfmt и memory-check чистые.
+На дереве VAC 3: `cargo test --lib` 506 из 506, линт кандидатом и Clippy чистые.
 
 ## Blockers
 
@@ -43,5 +41,6 @@ Revision: `6d0b50c051a22b16f16b7cbcab7771de6c6fe166`
 
 ## Next action
 
-Записать хеш коммита заморозки в P136, собрать из него на 1.100 бинарник замера с видами в обработчике Rust и
-прогнать риг, voxel и корпус по протоколу. Свободные ID: D181+, I022+, P137+, B133+.
+Закоммитить VAC 3, затем внести пять видов в реестр обработчика Rust, закрепить этот коммит в `stable.txt` с
+`just bootstrap` и включить правила с навыками ремонта и исправлением находки рига. Свободные ID: D181+, I022+, P137+,
+B133+.
