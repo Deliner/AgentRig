@@ -1,6 +1,6 @@
 purpose: Own filesystem access for the product with errors naming the action and the path
 type: flat
-dependents: 22
+dependents: 23
 files:
   mod.rs: Path-carrying wrappers over std::fs and re-exported handle and permission types
   path_errors.rs: Errors naming the action and the path, and absence of their target

@@ -1,6 +1,6 @@
 // DECISION: D021
 // DECISION: D036
-use super::cargo::Layout;
+use super::rust::cargo::Layout;
 use crate::project_config::Paths;
 use crate::structural_lint::rule_identities;
 use crate::structural_lint::rule_identities::{contract_settings::RUST_SEED, structure::Structure};

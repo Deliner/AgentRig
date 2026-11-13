@@ -1,5 +1,5 @@
-use super::cargo::{self, Layout};
-use super::clippy;
+use super::rust::cargo::{self, Layout};
+use super::rust::clippy;
 use crate::project_config::{
     self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
     Tools, View, Views,

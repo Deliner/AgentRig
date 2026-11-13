@@ -1,13 +1,12 @@
 pub(super) mod adapters;
 mod assets;
-mod cargo;
 mod claude;
-mod clippy;
 mod coverage;
 mod doctor;
 pub(super) mod initialization;
 mod lint;
 mod runtime;
+mod rust;
 mod skills;
 mod template;
 #[cfg(test)]
@@ -51,7 +50,7 @@ pub(super) fn guidance(config: &Config) -> Files {
     );
     files
 }
-fn add_policy(files: &mut Files, config: &Config, rust: &cargo::Layout) -> Result<()> {
+fn add_policy(files: &mut Files, config: &Config, rust: &rust::cargo::Layout) -> Result<()> {
     if config.capabilities.lint {
         files.insert(
             config.paths.lint.clone(),
