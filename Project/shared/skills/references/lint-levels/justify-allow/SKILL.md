@@ -1,6 +1,6 @@
 ---
 name: justify-allow
-description: Remove a lint suppression (allow, expect, a cfg_attr form, an allow level in a TOML lint table or an allowing flag in the rig's flag list) and fix the finding, or record why it is suppressed with a reference.
+description: Remove a lint suppression (allow, expect, a cfg_attr form, an allow level in a TOML lint table or a flag lowering lint levels in the rig's flag list) and fix the finding, or record why it is suppressed with a reference.
 ---
 
 # Remove a suppression, or record why the lint is silenced
@@ -11,10 +11,13 @@ error once the lint stops firing. A conditional `#[cfg_attr(cond, allow(...))]`,
 `#[cfg_attr(cond, expect(...))]` or `#[cfg_attr(cond, ignore)]` is the same
 suppression behind a configuration predicate, and a lint set to `"allow"` or
 `{ level = "allow" }` under `[lints.*]` or `[workspace.lints.*]` in Cargo.toml
-silences it for a whole package. An item starting with `-A`, `--allow` or
-`--cap-lints` in the `rustflags` list of the rig's `.agentrig/rust.yaml`
-silences lints in every build the rig runs, and `--cap-lints` turns the gate's
-denied lints back into warnings. In every form the gate stays green while the
+silences it for a whole package. An item starting with `-A`, `--allow`,
+`--cap-lints` or `--force-warn` in the `rustflags` list of the rig's
+`.agentrig/rust.yaml` lowers lint levels in every build the rig runs: `-A` and
+`--allow` silence a lint, `--cap-lints` turns the gate's denied lints back into
+warnings, and `--force-warn` turns a denied lint into a warning that
+`-D warnings` does not raise again. Delete such an item to restore the level.
+In every form the gate stays green while the
 finding it would raise goes unaddressed: an agent can quiet a rule instead of
 fixing the code. Every suppression must be removed with its finding fixed, or
 carry a DECISION: or INVARIANT: reference on the line directly above the
@@ -56,7 +59,7 @@ direct argument after a comma is `allow`, `expect` or `ignore` (a conditional
 `ignore` reports under disabled-test), and every lint set to `"allow"` or
 `{ level = "allow" }` under a `[lints.*]` or `[workspace.lints.*]` table of a
 TOML manifest, and every item of a YAML `rustflags` sequence starting with
-`-A`, `--allow` or `--cap-lints`, without a DECISION: or INVARIANT: reference
+`-A`, `--allow`, `--cap-lints` or `--force-warn`, without a DECISION: or INVARIANT: reference
 comment on the line directly above the attribute, the key or the item. The
 flag list is read only when the rule selects `.agentrig/rust.yaml` and the
 `.yaml` extension. No other comment and no `reason`

@@ -40,6 +40,27 @@ nested:
     );
 }
 
+// DECISION: D183
+#[test]
+fn yaml_flags_force_warn_rustflags_items_without_a_reference_above() {
+    let source = "rustflags:
+- --force-warn
+- clippy::panic
+- --force-warn=unused_variables
+# DECISION: D001
+- --force-warn
+- clippy::unwrap_used
+- -W
+- dead_code
+- --warn=unused_imports
+argv: [--force-warn, clippy::todo]
+";
+    assert_eq!(
+        findings(Reference::AllowJustification, ".agentrig/rust.yaml", source),
+        ["2:--force-warn", "4:--force-warn=unused_variables"]
+    );
+}
+
 #[test]
 fn yaml_reports_the_line_of_a_syntax_error() {
     let source = "rustflags: []\nkey: value: other\n";

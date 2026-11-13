@@ -145,15 +145,16 @@ const DISABLEDTEST: Descriptor = Descriptor {
 };
 // DECISION: D080
 // DECISION: D098
+// DECISION: D183
 const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     default_id: "allow-justification",
     exclude: &[],
     target: "file",
-    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, and every item of a YAML rustflags sequence starting with -A, --allow or --cap-lints, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute, the key or the item",
+    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, and every item of a YAML rustflags sequence starting with -A, --allow, --cap-lints or --force-warn, without a DECISION: or INVARIANT: reference comment on the line directly above the attribute, the key or the item",
     skill: "justify-allow",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a blanket allow, expect, conditional suppression or lint-silencing compiler flag silences a rule, and a reason = \"...\" inside an attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
+        violation: "a blanket allow, expect, conditional suppression or a compiler flag lowering lint levels, such as -A, --allow, --cap-lints or --force-warn, weakens a rule, and a reason = \"...\" inside an attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
     },
 };
 // DECISION: D081
