@@ -7,6 +7,7 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use std::iter::successors;
 use tree_sitter::Node;
 
+// DECISION: D181
 pub(super) fn inspect(array: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(owner) = listed_enum(array, source) else {
         return;

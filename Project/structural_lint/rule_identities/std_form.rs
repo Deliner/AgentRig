@@ -15,6 +15,7 @@ pub(super) const SUPERSEDEDFORM: Descriptor = Descriptor {
         violation: "the rig's Rust replaces this form with a direct standard one that states the intent in one call or name; write trim_prefix(p) or trim_suffix(p), ! or Vec::from_fn(n, f), as the finding names, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D181
 pub(super) const EPSILONTOLERANCE: Descriptor = Descriptor {
     default_id: "epsilon-tolerance",
     exclude: TEST_CODE,
@@ -26,6 +27,7 @@ pub(super) const EPSILONTOLERANCE: Descriptor = Descriptor {
         violation: "EPSILON is the gap between 1.0 and the next float, so as an absolute tolerance it is stricter than rounding for values above 2 and looser than the values near zero; compare with a named tolerance scaled to the magnitude and the accuracy of the computation, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D181
 pub(super) const DOTTEDEXTENSION: Descriptor = Descriptor {
     default_id: "dotted-extension",
     exclude: TEST_CODE,

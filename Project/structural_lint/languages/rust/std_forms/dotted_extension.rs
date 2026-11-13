@@ -2,6 +2,7 @@ use super::{method, sole_argument};
 use crate::structural_lint::languages::neutral_metrics::{Code, text};
 use tree_sitter::Node;
 
+// DECISION: D181
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
     let (name, _) = method(call, source)?;
     let symbol = match name {

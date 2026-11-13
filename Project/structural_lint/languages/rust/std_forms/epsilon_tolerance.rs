@@ -2,6 +2,7 @@ use crate::structural_lint::languages::neutral_metrics::{Code, text};
 use crate::structural_lint::languages::rust::exemptions::last_segment;
 use tree_sitter::Node;
 
+// DECISION: D181
 pub(super) fn inspect(comparison: Node<'_>, source: Code<'_>) -> Option<&'static str> {
     let operator = comparison.child_by_field_name("operator")?.kind();
     let compared = matches!(operator, "<" | "<=" | ">" | ">=" | "==");

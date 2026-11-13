@@ -172,6 +172,7 @@ const STALECHECK: Descriptor = Descriptor {
         violation: "the path can appear, vanish or change its kind between the check and the action, so the action fails or is skipped where its own error would tell what happened; perform the action and match its error kind such as NotFound or AlreadyExists, or put a DECISION: or INVARIANT: reference on the line directly above the check",
     },
 };
+// DECISION: D181
 const VARIANTLIST: Descriptor = Descriptor {
     default_id: "variant-list",
     exclude: TEST_CODE,

@@ -6,6 +6,7 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
+// DECISION: D181
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let product = !in_test_context(call, source);
     let skipped = product || justified(call, source) || !fixed_bind(call, source);

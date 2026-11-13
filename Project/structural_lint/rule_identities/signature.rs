@@ -230,6 +230,7 @@ const UNTYPEDCONVERSION: Descriptor = Descriptor {
         violation: "a conversion bound by let without a type takes its target type from a later use, so changing that use silently changes what the conversion accepts; write the type on the let or as a turbofish, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D181
 const TRAITPATHCALL: Descriptor = Descriptor {
     default_id: "trait-path-call",
     exclude: TEST_CODE,

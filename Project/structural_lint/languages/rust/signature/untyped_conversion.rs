@@ -43,6 +43,7 @@ pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Meas
         actual: 1,
     });
 }
+// DECISION: D181
 pub(super) fn trait_path(path: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(symbol) = trait_call(path, source) else {
         return;
