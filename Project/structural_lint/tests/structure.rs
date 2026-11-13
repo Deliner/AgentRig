@@ -38,7 +38,7 @@ fn described_directories(root: &Path) {
     write(
         root,
         "reader/architecture.yaml",
-        "purpose: Reader of bytes, frames, pages and lines\n",
+        "purpose: Reader of bytes\n",
     );
     write(root, "reader/mod.rs", "pub fn fetch() {}\n");
     write(
@@ -56,8 +56,12 @@ fn described_directories(root: &Path) {
         "engine/architecture.yaml",
         "purpose: Schedule ticks and render frames\n",
     );
-    write(root, "engine/mod.rs", "pub mod one;\npub mod two;\n");
-    for (part, word) in [("one", "north"), ("two", "south")] {
+    write(
+        root,
+        "engine/mod.rs",
+        "pub mod one;\npub mod three;\npub mod two;\n",
+    );
+    for (part, word) in [("one", "north"), ("two", "south"), ("three", "east")] {
         write(
             root,
             &format!("engine/{part}.rs"),
@@ -94,12 +98,13 @@ fn structure_reports_the_edit_kind_of_each_problem() {
     let found = rows(temp.path());
     for expected in [
         row("100", "split", "gadget/"),
-        row("20", "split", "reader/"),
+        row("100", "split", "reader/"),
         row("100", "rename", "engine/"),
         row("100", "merge", "twin_one.rs"),
         row("100", "merge", "twin_two.rs"),
         row("33", "split", "mixed.rs"),
-        row("20", "split", "crowd/"),
+        row("71", "group", "crowd/"),
+        row("0", "undescribed", "crowd/"),
         row("0", "ok", "spooler/"),
         row("0", "undescribed", "plain.rs"),
         row("0", "undescribed", "."),
@@ -119,6 +124,17 @@ fn structure_output_is_identical_across_runs_and_locations() {
     assert!(baseline.starts_with("total "), "{baseline}");
     assert_eq!(structure(first.path(), ".").stdout, baseline);
     assert_eq!(structure(&elsewhere, ".").stdout, baseline);
+}
+
+#[test]
+fn structure_keeps_width_lines_out_of_the_total() {
+    let temp = tempfile::tempdir().unwrap();
+    for word in CROWD {
+        write(temp.path(), &format!("{word}.rs"), "pub fn same() {}\n");
+    }
+    let output = structure(temp.path(), ".").stdout;
+    assert!(output.starts_with("total 0.0 units 13\n"), "{output}");
+    assert!(rows(temp.path()).contains(&row("71", "group", ".")));
 }
 
 #[test]

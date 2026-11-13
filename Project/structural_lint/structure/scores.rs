@@ -3,11 +3,11 @@ use super::units::{Unit, Units, Vector, name, real};
 use super::words::split;
 use std::path::{Path, PathBuf};
 
-const COVERED: f64 = 0.25;
-const PARTS: usize = 2;
+const COVERED: f64 = 0.4;
+const PARTS: usize = 3;
 const CLUSTERS: usize = 3;
 const NAME_WORDS: usize = 3;
-const ENTRIES: usize = 10;
+const WIDE: usize = 7;
 const SIMILAR: f64 = 0.5;
 
 pub struct Finding {
@@ -17,25 +17,24 @@ pub struct Finding {
     pub detail: String,
 }
 
+pub struct Measured {
+    pub findings: Vec<Finding>,
+    pub widths: Vec<Finding>,
+}
+
 struct Problem {
     value: f64,
     kind: &'static str,
     detail: String,
 }
 
-pub fn measure(corpus: &Corpus) -> Vec<Finding> {
+pub fn measure(corpus: &Corpus) -> Measured {
     let units = Units::new(corpus);
-    let mut findings: Vec<Finding> = units
-        .all()
-        .iter()
-        .map(|unit| finding(&units, unit))
-        .collect();
-    findings.sort_by(|a, b| {
-        b.score
-            .total_cmp(&a.score)
-            .then_with(|| a.path.cmp(&b.path))
-    });
-    findings
+    let all = units.all();
+    Measured {
+        findings: all.iter().map(|unit| finding(&units, unit)).collect(),
+        widths: all.iter().filter_map(|unit| width(&units, unit)).collect(),
+    }
 }
 
 fn finding(units: &Units<'_>, unit: &Unit<'_>) -> Finding {
@@ -45,7 +44,6 @@ fn finding(units: &Units<'_>, unit: &Unit<'_>) -> Finding {
         unshown(units, unit, &described),
         hidden(units, unit),
         long(unit),
-        crowded(units, unit),
         misplaced(units, unit, &vector),
         duplicate(units, unit, &vector),
     ];
@@ -129,18 +127,20 @@ fn hidden(units: &Units<'_>, unit: &Unit<'_>) -> Problem {
     }
 }
 
-fn crowded(units: &Units<'_>, unit: &Unit<'_>) -> Problem {
-    let count = if unit.directory {
-        units.children.get(unit.path).map_or(0, Vec::len)
-    } else {
-        0
-    };
-    let over = count.saturating_sub(ENTRIES);
-    Problem {
-        value: (real(over) / real(ENTRIES)).min(1.0),
-        kind: "split",
-        detail: format!("entries: {count}"),
-    }
+fn width(units: &Units<'_>, unit: &Unit<'_>) -> Option<Finding> {
+    let parts = units.children.get(unit.path)?;
+    let over = parts.len().saturating_sub(WIDE);
+    let subdirectories = parts.iter().filter(|(_, directory)| *directory).count();
+    let files = parts.iter().filter(|(_, directory)| !*directory).count();
+    (over > 0).then(|| Finding {
+        score: ((real(over) / real(WIDE)).min(1.0) * 100.0).round(),
+        kind: "group",
+        path: label(unit),
+        detail: format!(
+            "parts: {} subdirectories: {subdirectories} files: {files}",
+            parts.len()
+        ),
+    })
 }
 
 fn misplaced(units: &Units<'_>, unit: &Unit<'_>, vector: &Vector) -> Problem {
