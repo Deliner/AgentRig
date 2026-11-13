@@ -12,9 +12,9 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `494d9873104bacecfc989d85c3b70cb329e72eb9`
+Revision: `d638a34950f75dcd049bf91d4cfe80988b9dcf6b`
 
-Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `d638a34`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -32,7 +32,10 @@ Revision: `494d9873104bacecfc989d85c3b70cb329e72eb9`
   `test_code` без смены поведения: в `languages/rust` и `languages/tests` по 15 записей, предел lint.
 - VAC 8 P132 `494d987` ввёл по D177 вид `superseded-form` с детектором, тестами и навыком `use-the-current-form`,
   пока вне каталога: I020 требует одинаковых видов в init и `.agentrig/lint.yaml`.
-- VAC 9 P132 добавил вид в реестр Rust: без этого пинованный рантайм отвергнет правило для `.rs`.
+- VAC 9 P132 `d638a34` добавил вид в реестр Rust: без этого пинованный рантайм отвергнет правило для `.rs`.
+- VAC 10 P132 закрыл AC8 и AC2: пин D051 на `d638a34`, вид в `capabilities::ALL` и правило в `.agentrig/lint.yaml`,
+  10 мест рига переписаны на `trim_prefix`, `trim_suffix` и `Vec::from_fn`, ручные Drop-стражи тестов
+  `change_delivery` заменены на `DropGuard`.
 
 ## Verification
 
@@ -41,8 +44,10 @@ Revision: `494d9873104bacecfc989d85c3b70cb329e72eb9`
   `sonic-rs` 0.5.10 вместо опубликованной минуту назад 0.5.11. Транзитивную `memchr` cargo не замечает.
 - VAC 7 прошёл гейт с 433 тестами.
 - VAC 8 прошёл гейт с 438 тестами. С видом в каталоге до включения в `.agentrig/lint.yaml` падал тест I020.
-- VAC 9: 339 тестов `structural_lint` и `project_setup` прошли. Кандидат с одним правилом `superseded-form` нашёл в
-  риге 10 мест: 8 `strip_*(..).unwrap_or(..)` и 2 `(0..n).map(f).collect()`.
+- VAC 9 прошёл гейт с 435 тестами. Кандидат с одним правилом `superseded-form` нашёл в риге 10 мест:
+  8 `strip_*(..).unwrap_or(..)` и 2 `(0..n).map(f).collect()`.
+- VAC 10: rustfmt чист, 395 тестов прошли, включая I020 и `cleanup`. lint установленного рантайма `d638a34` с
+  включённым правилом находок не дал; `lint-rules` кандидата описывает `superseded-form`.
 
 ## Blockers
 
@@ -50,8 +55,7 @@ Revision: `494d9873104bacecfc989d85c3b70cb329e72eb9`
 
 ## Next action
 
-AC8 B128, вторая фаза: пин D051 на коммит VAC 9 и bootstrap, затем в одном VAC вид в `capabilities::ALL`,
-правило с `# DECISION: D177` в `.agentrig/lint.yaml` и ссылка на него в D177, исправление 10 находок в коде рига по
-AC2 и замена ручных Drop-стражей на `DropGuard`. Потом проверка AC5 и закрытие P132.
+Проверка AC5 через `git grep` номера версии вне разрешённых мест, затем закрытие P132: доказательства приёмки в
+`Plan/132.md`, перенос P132 и B128 в Archive, финальный пин D051 и `just feature-merge` с сохранением ветки.
 AGENTS.md рига на пределе в 70 строк.
 Свободные ID: D178+, I022+, P133+, B129+ (B066 и D111 зарезервированы).

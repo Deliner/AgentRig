@@ -56,7 +56,7 @@ fn shell_name(call: Node<'_>, source: Code<'_>) -> Option<String> {
     let arguments = expressions(call.child_by_field_name("arguments")?);
     let value = literal_value(*arguments.first()?, source)?;
     let file = value.rsplit(['/', '\\']).next()?.to_ascii_lowercase();
-    let name = file.strip_suffix(".exe").unwrap_or(&file);
+    let name = file.trim_suffix(".exe");
     SHELLS.contains(&name).then(|| name.to_string())
 }
 fn chained_arguments<'a>(call: Node<'a>, source: Code<'_>) -> Vec<Node<'a>> {
@@ -154,7 +154,7 @@ fn literal_value(node: Node<'_>, source: Code<'_>) -> Option<String> {
     Some(value)
 }
 fn escaped(sequence: &str) -> &str {
-    let rest = sequence.strip_prefix('\\').unwrap_or(sequence);
+    let rest = sequence.trim_prefix('\\');
     let continued = rest.starts_with(char::is_whitespace);
     if continued {
         return "";

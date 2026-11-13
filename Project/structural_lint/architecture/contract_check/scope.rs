@@ -82,7 +82,7 @@ fn selected_inventory(
             .iter()
             .filter(|name| {
                 let path = directory.join(name);
-                let path = path.strip_prefix(".").unwrap_or(&path);
+                let path = path.trim_prefix(".");
                 let child = inventory.directories.contains_key(path);
                 let included = !excluded.is_match(path);
                 let reachable = !child || selected.contains(path);
