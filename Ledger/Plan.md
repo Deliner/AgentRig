@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P131](Plan/131.md) | pending | - | [B127](Backlog/127.md): structure-v36 — структура Project по эталону v36 | Агент и человек понимают назначение и части Project по одному дереву, не читая кода. |
+| [P131](Plan/131.md) | active | - | [B127](Backlog/127.md): structure-v36 — структура Project по эталону v36 | Агент и человек понимают назначение и части Project по одному дереву, не читая кода. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
