@@ -74,6 +74,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/act-and-match-the-error/SKILL.md"),
     ),
     (
+        "derive-the-variants",
+        include_str!("../shared/skills/control-flow/derive-the-variants/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
@@ -104,6 +108,14 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "use-the-current-form",
         include_str!("../shared/skills/refactor/use-the-current-form/SKILL.md"),
+    ),
+    (
+        "name-the-tolerance",
+        include_str!("../shared/skills/refactor/name-the-tolerance/SKILL.md"),
+    ),
+    (
+        "drop-the-dot",
+        include_str!("../shared/skills/refactor/drop-the-dot/SKILL.md"),
     ),
     (
         "remove-secret",
@@ -293,6 +305,10 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "guard-the-pair",
         include_str!("../shared/skills/ownership/guard-the-pair/SKILL.md"),
+    ),
+    (
+        "bind-port-zero",
+        include_str!("../shared/skills/ownership/bind-port-zero/SKILL.md"),
     ),
     (
         "match-every-variant",

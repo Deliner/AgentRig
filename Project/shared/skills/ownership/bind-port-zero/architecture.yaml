@@ -1,0 +1,5 @@
+purpose: "Let a test bind port 0 and read the port the system assigns instead of a fixed port, or justify the fixed port with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to give a test a port no other test or process holds"
+directories: {}

@@ -1,0 +1,5 @@
+purpose: "Write the extension passed to with_extension or set_extension without its leading dot, or justify the dot with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to pass a path extension without the dot the standard method adds itself"
+directories: {}

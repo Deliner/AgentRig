@@ -1,0 +1,5 @@
+purpose: "Replace f32::EPSILON or f64::EPSILON compared as an absolute tolerance with a named tolerance scaled to the values, or justify it with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to compare floats with a tolerance the magnitude and accuracy of the computation justify"
+directories: {}

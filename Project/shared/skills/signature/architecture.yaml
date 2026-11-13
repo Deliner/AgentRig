@@ -3,7 +3,7 @@ files: {}
 directories:
   align-order-with-equality: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with a reference"
   check-deserialize: "Route a derived Deserialize through the check its constructor enforces"
-  name-the-target: "Write the target type of a conversion bound by a let without a type, or justify the inferred type with a reference"
+  name-the-target: "Write the target type of a conversion bound by a let without a type or called through its trait path, or justify the inferred type with a reference"
   name-the-record: "Replace a signature tuple with a named struct, or justify the deliberate small tuple with a reference"
   pin-the-order: "Give a derived enum order explicit discriminants or a named rank, or justify the declaration order with a reference"
   redact-secret: "Keep a secret field out of a derived Debug through a redacting type or a hand-written Debug"

@@ -13,9 +13,9 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/list5-rules`, от master `447eb73`, где влита P135.
-Revision: `88c5dbbdb669f7f80c60ad022fef5bce6e4ac371`
+Revision: `01ccc1b55fb4eae3b5548f920aad26823742069e`
 
-Установленный рантайм `9cd3cef`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `01ccc1b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
 `origin`, `feature/init-probe` не трогать. Бинарник замера, выдачи, выборки и вердикты P136 лежат в `scratchpad/p136`.
 
@@ -27,13 +27,15 @@ Revision: `88c5dbbdb669f7f80c60ad022fef5bce6e4ac371`
   `dotted-extension` и `fixed-test-port`; двенадцать видов и расширение V-8 не прошли.
 - VAC 3 `88c5dbb` удалил не прошедшие виды с тестами, вернул каталоги `unsafe_code` и `markers` к прежней
   раскладке, ссылки Decisions и `blocking-in-async` к тексту до заморозки; бюджеты dependents 9, 7 и 16.
-- VAC 4 вносит пять поставляемых видов в обработчик Rust для закрепления в `stable.txt` до включения правил.
+- VAC 4 `01ccc1b` внёс пять поставляемых видов в обработчик Rust; он закреплён в `stable.txt` и установлен.
+- VAC 5 включает пять правил с навыками ремонта, каталогом init и исправлением находки рига в `relative_imports.rs`.
 - В rustc 1.100 `-A warnings` глушит и lint, включённый после него: замеры Clippy идут с одним `-W` и отбором по
   коду lint-а.
 
 ## Verification
 
-VAC 3 прошёл шлюз коммита. На дереве VAC 4 тесты `structural_lint` и `project_setup` 351 из 351.
+VAC 4 прошёл шлюз коммита. На дереве VAC 5 тесты `structural_lint` и `project_setup` 351 из 351, lint кандидата
+без находок, `lint-config-check`, `config-check` и Clippy чистые.
 
 ## Blockers
 
@@ -41,6 +43,6 @@ VAC 3 прошёл шлюз коммита. На дереве VAC 4 тесты `
 
 ## Next action
 
-Закоммитить VAC 4, закрепить его в `stable.txt` с `just bootstrap` и включить правила с навыками ремонта и
-исправлением находки рига. Свободные ID: D181+, I022+, P137+,
-B133+.
+Закоммитить VAC 5, записать D181 о пяти поставленных правилах и D182 о двенадцати не прошедших формах и расширении
+V-8, перенести P136 с B132 в Archive, закрепить голову в `stable.txt` и влить ветку. Затем разметить статусы в файле
+списка V. Свободные ID: D181+, I022+, P137+, B133+.

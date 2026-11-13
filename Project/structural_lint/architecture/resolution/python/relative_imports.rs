@@ -1,5 +1,6 @@
 use super::{Python, module_parts};
 use anyhow::{Context, Result, ensure};
+use std::borrow::Cow;
 use std::path::Path;
 
 impl Python<'_> {
@@ -20,7 +21,7 @@ impl Python<'_> {
         let suffix = module.trim_start_matches('.');
         let has_suffix = !suffix.is_empty();
         if has_suffix {
-            parts.extend(module_parts(suffix)?.into_iter().map(Into::into));
+            parts.extend(module_parts(suffix)?.into_iter().map(Cow::from));
         }
         Ok(parts.join("."))
     }

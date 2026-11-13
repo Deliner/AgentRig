@@ -180,6 +180,6 @@ const VARIANTLIST: Descriptor = Descriptor {
     skill: "derive-the-variants",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a hand-written list of every variant stays complete only until the enum gains one, and nothing reports the stale list; derive the list from the enum, for example with a const array checked by an exhaustive match or a derive that enumerates the variants, or put a DECISION: or INVARIANT: reference on the line directly above the array",
+        violation: "a hand-written list of every variant stays complete only until the enum gains one, and nothing reports the stale list; derive the list from the enum's declaration, with a derive that enumerates the variants or a macro that declares the enum and its list together, or put a DECISION: or INVARIANT: reference on the line directly above the array",
     },
 };
