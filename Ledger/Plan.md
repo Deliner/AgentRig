@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P139](Plan/139.md) | active | - | [B135](Backlog/135.md): force-warn — флаг `--force-warn` в списке рига требует ссылку на решение | `--force-warn` больше не может молча провести через гейт код с запрещённым lint-ом. Флаг в списке либо опирается на решение, либо даёт ошибку lint. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
