@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P137](Plan/137.md) | active | - | [B134](Backlog/134.md): extension-case — расширение файла в строке без учёта регистра | Проверка расширения по строке не пропускает файл, у которого расширение то же, но в другом регистре. |
 | [P138](Plan/138.md) | pending | - | [B133](Backlog/133.md): rust-flags — флаги компилятора Rust живут в риге | Ни переменная окружения, ни строка в конфиге cargo не выключают lint-ы гейта молча. Флаги проекта видны и проверены в одном месте. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
