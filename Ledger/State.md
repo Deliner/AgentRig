@@ -13,7 +13,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/list5-rules`, от master `447eb73`, где влита P135.
-Revision: `78736bacbe917381501c748a31266f14cfe02ebd`
+Revision: `88c5dbbdb669f7f80c60ad022fef5bce6e4ac371`
 
 Установленный рантайм `9cd3cef`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -25,15 +25,15 @@ Revision: `78736bacbe917381501c748a31266f14cfe02ebd`
   `blocking-in-async`.
 - Замер записан в Plan/136.md: прошли `epsilon-tolerance`, `trait-path-call`, `variant-list`, по D151 без находок
   `dotted-extension` и `fixed-test-port`; двенадцать видов и расширение V-8 не прошли.
-- VAC 3 удаляет не прошедшие виды с тестами, возвращает каталоги `unsafe_code` и `markers` к прежней раскладке,
-  ссылки Decisions на `unsafe_site.rs`, `markers.rs` и `manifest.rs` и `blocking-in-async` к тексту до заморозки;
-  бюджеты dependents выросли на один из-за нового `std_forms`: 9, 7 и 16.
+- VAC 3 `88c5dbb` удалил не прошедшие виды с тестами, вернул каталоги `unsafe_code` и `markers` к прежней
+  раскладке, ссылки Decisions и `blocking-in-async` к тексту до заморозки; бюджеты dependents 9, 7 и 16.
+- VAC 4 вносит пять поставляемых видов в обработчик Rust для закрепления в `stable.txt` до включения правил.
 - В rustc 1.100 `-A warnings` глушит и lint, включённый после него: замеры Clippy идут с одним `-W` и отбором по
   коду lint-а.
 
 ## Verification
 
-На дереве VAC 3: `cargo test --lib` 506 из 506, линт кандидатом и Clippy чистые.
+VAC 3 прошёл шлюз коммита. На дереве VAC 4 тесты `structural_lint` и `project_setup` 351 из 351.
 
 ## Blockers
 
@@ -41,6 +41,6 @@ Revision: `78736bacbe917381501c748a31266f14cfe02ebd`
 
 ## Next action
 
-Закоммитить VAC 3, затем внести пять видов в реестр обработчика Rust, закрепить этот коммит в `stable.txt` с
-`just bootstrap` и включить правила с навыками ремонта и исправлением находки рига. Свободные ID: D181+, I022+, P137+,
+Закоммитить VAC 4, закрепить его в `stable.txt` с `just bootstrap` и включить правила с навыками ремонта и
+исправлением находки рига. Свободные ID: D181+, I022+, P137+,
 B133+.
