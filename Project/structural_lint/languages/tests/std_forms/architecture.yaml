@@ -1,0 +1,7 @@
+purpose: Verify Rust measurements of operators and standard library calls whose behavior differs from what the form appears to state, from native analysis
+files:
+  mod.rs: Declare the standard-form measurement test modules and filter one reference kind from native analysis
+  superseded_form.rs: Rust strip fallbacks to the receiver, Infallible types and Vec collections of a map over 0..n named with their current form in product and test code, with current forms, other fallbacks, ranges and targets and justified lines skipped, from native analysis
+  epsilon_tolerance.rs: Rust f32 or f64 EPSILON compared directly, alone, in parentheses or negated, with scaled, unequal, named, other-constant, justified and test-only tolerances skipped, from native analysis
+  dotted_extension.rs: Rust extension literals written with their dot, with plain, empty, variable, other-method, justified and test-only extensions skipped, from native analysis
+directories: {}

@@ -1,7 +1,8 @@
-purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, exits hidden in a macro body, subtractions from a length, comparisons with one enum variant, chains of integer bounds and a path check before acting on the path"
+purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, exits hidden in a macro body, subtractions from a length, comparisons with one enum variant, chains of integer bounds, a path check before acting on the path and a hand-written list of every variant of an enum"
 files: {}
 directories:
   act-and-match-the-error: "Perform a file action and match its error kind instead of checking the path first, or justify the stable path with a reference"
+  derive-the-variants: "Derive a list of every variant of an enum from its declaration instead of writing it by hand, or justify the selection with a reference"
   expose-the-exit: "Write the exit of a macro at its call site, name the macro after its exit, or justify the hidden exit with a reference"
   flatten-nesting: "Reduce control-flow nesting depth while preserving behavior"
   label-the-exit: "Label the loop an exit of a nested loop leaves, extract the inner loop, or justify the unlabeled exit with a reference"

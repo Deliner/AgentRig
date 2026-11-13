@@ -1,6 +1,7 @@
-purpose: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction or a call pair an owner with a bounded responsibility, or justify the intended exception with a reference"
+purpose: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction, a call pair or a test's network port an owner with a bounded responsibility, or justify the intended exception with a reference"
 files: {}
 directories:
+  bind-port-zero: "Let a test bind port 0 and read the port the system assigns instead of a fixed port, or justify the fixed port with a reference"
   own-the-resource: "Let a Rust value drop or hold its guard instead of defeating RAII, or justify the intended leak with a reference"
   release-the-guard: "Release a std lock guard before the next .await, switch to an async-aware lock, or justify holding it across the suspension with a reference"
   scope-the-guard: "Replace a visible function returning a lock guard or a RefCell borrow with one that runs a closure over the guarded value, or justify handing out the guard with a reference"

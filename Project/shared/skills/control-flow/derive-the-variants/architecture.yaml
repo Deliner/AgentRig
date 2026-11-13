@@ -1,0 +1,5 @@
+purpose: "Derive a list of every variant of an enum from its declaration instead of writing it by hand, or justify the selection with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a list of every variant complete when the enum gains one"
+directories: {}

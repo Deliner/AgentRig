@@ -7,6 +7,14 @@ use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
 
 const CONVERSIONS: [&str; 6] = ["parse", "into", "try_into", "sum", "product", "collect"];
+const TRAIT_CALLS: [(&str, &str); 5] = [
+    ("From", "from"),
+    ("Into", "into"),
+    ("TryFrom", "try_from"),
+    ("TryInto", "try_into"),
+    ("FromStr", "from_str"),
+];
+const TRAIT_MODULES: [&str; 4] = ["std::convert", "core::convert", "std::str", "core::str"];
 
 // DECISION: D171
 pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
@@ -34,6 +42,59 @@ pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Meas
         symbol: symbol.into(),
         actual: 1,
     });
+}
+// DECISION: D181
+pub(super) fn trait_path(path: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+    let Some(symbol) = trait_call(path, source) else {
+        return;
+    };
+    let allowed = bound(path, &symbol) || justified(path, source) || in_test_context(path, source);
+    if allowed {
+        return;
+    }
+    output.push(Measurement {
+        kind: Kind::Signature(Signature::TraitPathCall),
+        line: path.start_position().row + 1,
+        symbol,
+        actual: 1,
+    });
+}
+fn trait_call(path: Node<'_>, source: Code<'_>) -> Option<String> {
+    let owner = path.child_by_field_name("path")?;
+    let method = text(path.child_by_field_name("name")?, source);
+    let module = owner.child_by_field_name("path");
+    let anchored = match owner.kind() {
+        "identifier" => true,
+        "scoped_identifier" => {
+            module.is_some_and(|module| TRAIT_MODULES.contains(&text(module, source)))
+        }
+        _ => false,
+    };
+    let name = last_segment(owner, source);
+    let paired = anchored && TRAIT_CALLS.contains(&(name, method));
+    paired.then(|| [name, "::", method].concat())
+}
+fn bound(path: Node<'_>, symbol: &str) -> bool {
+    let Some(binding) = std::iter::successors(Some(path), |node| node.parent())
+        .zip(std::iter::successors(path.parent(), |node| node.parent()))
+        .find(|(_, parent)| parent.kind() == "let_declaration")
+        .filter(|(child, parent)| parent.child_by_field_name("value") == Some(*child))
+        .map(|(_, parent)| parent)
+    else {
+        return false;
+    };
+    let typed = binding.child_by_field_name("type").is_some();
+    let plain = binding
+        .child_by_field_name("pattern")
+        .is_some_and(|pattern| pattern.kind() == "identifier");
+    let converted = binding
+        .child_by_field_name("value")
+        .map(unwrapped)
+        .filter(|call| call.kind() == "call_expression")
+        .and_then(|call| call.child_by_field_name("function"))
+        == Some(path);
+    let owned = plain && converted && symbol == "From::from";
+    typed || owned
 }
 fn unwrapped(node: Node<'_>) -> Node<'_> {
     let propagated = node.kind() == "try_expression";

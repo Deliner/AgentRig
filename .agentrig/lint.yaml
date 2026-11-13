@@ -792,6 +792,73 @@ rules:
   level: error
   warning_skill: .agents/skills/use-the-current-form/SKILL.md
   error_skill: .agents/skills/use-the-current-form/SKILL.md
+# DECISION: D181
+- id: epsilon-tolerance
+  kind: epsilon-tolerance
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-tolerance/SKILL.md
+  error_skill: .agents/skills/name-the-tolerance/SKILL.md
+# DECISION: D181
+- id: trait-path-call
+  kind: trait-path-call
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/name-the-target/SKILL.md
+  error_skill: .agents/skills/name-the-target/SKILL.md
+# DECISION: D181
+- id: variant-list
+  kind: variant-list
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/derive-the-variants/SKILL.md
+  error_skill: .agents/skills/derive-the-variants/SKILL.md
+# DECISION: D181
+- id: dotted-extension
+  kind: dotted-extension
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/drop-the-dot/SKILL.md
+  error_skill: .agents/skills/drop-the-dot/SKILL.md
+# DECISION: D181
+- id: fixed-test-port
+  kind: fixed-test-port
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/bind-port-zero/SKILL.md
+  error_skill: .agents/skills/bind-port-zero/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

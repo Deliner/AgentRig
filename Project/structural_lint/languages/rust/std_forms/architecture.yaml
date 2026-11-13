@@ -1,0 +1,7 @@
+purpose: Detect Rust operators and standard library calls whose behavior differs from what the form appears to state, where a direct standard form states the intent
+type: flat
+files:
+  mod.rs: Dispatch comparisons and calls to the standard-form detectors, report each form outside test code lacking a reference on the line above, and share the method and sole argument helpers
+  superseded_form.rs: Rust forms the rig's toolchain replaces directly, a strip_prefix or strip_suffix falling back to its receiver, an Infallible type and a Vec collected from a map over 0..n, lacking a reference on the line above
+  epsilon_tolerance.rs: Rust comparison whose operand is f32::EPSILON or f64::EPSILON, an absolute tolerance that does not scale with the compared values
+  dotted_extension.rs: Rust with_extension or set_extension given a string literal that starts with a dot, which doubles the dot

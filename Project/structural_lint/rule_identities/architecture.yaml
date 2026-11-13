@@ -1,6 +1,6 @@
 purpose: Define rule identities, metrics, parameters and architecture settings independently of language handlers
 type: flat
-dependents: 15
+dependents: 16
 files:
   mod.rs: Declare the definition modules and export the rule identity and descriptor types
   kind.rs: Stable rule identity as a wrapper over the family enums, and its serialized names
@@ -10,6 +10,7 @@ files:
   signature.rs: Function signature and derived-trait rule identities with their metrics, defaults and repair skills
   ownership.rs: Resource, global-state, deletion and lock-guard rule identities with their metrics, defaults and repair skills
   reference.rs: Code-site rule identities repaired by handling, removing or justifying the site, with their metrics, defaults and repair skills
+  std_form.rs: Code-site rule identities of operators and standard library calls repaired by the direct standard form, with their metrics, defaults and repair skills
   parameters.rs: Threshold and policy-level parameter contracts, their description and example defaults
   contract_settings.rs: Architecture rule settings, schema validation and capability description
 directories: {}

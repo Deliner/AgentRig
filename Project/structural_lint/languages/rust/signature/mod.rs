@@ -33,6 +33,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         "impl_item" => partial_impl::inspect(node, source, output),
         "trait_item" => constant_default::inspect(node, source, output),
         "let_declaration" => untyped_conversion::inspect(node, source, output),
+        "scoped_identifier" => untyped_conversion::trait_path(node, source, output),
         _ => {}
     }
 }

@@ -1,7 +1,8 @@
 purpose: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
 type: flat
+dependents: 7
 files:
-  mod.rs: Walk the attributes above an item, read derive and other attribute lists, decide whether an item with attributes carries a reference above them, decide whether an item is a member of a trait impl, and name the last segment of a path or the base name of a type
+  mod.rs: Walk the attributes above an item, read derive and other attribute lists, decide whether an item with attributes carries a reference above them, decide whether an item is a member of a trait impl, decide whether a literal is a numeric zero, and name the last segment of a path or the base name of a type
   test_code.rs: Decide whether a Rust node sits inside test-only code for rule exemptions and whether an attribute marks a test
   debug_code.rs: Decide whether a Rust node sits inside debug-only code, under a debug_assertions attribute or a cfg! branch, for debug assertions
   cfg_flags.rs: Decide whether a cfg attribute requires a flag in every build it enables or excludes every build with the flag set

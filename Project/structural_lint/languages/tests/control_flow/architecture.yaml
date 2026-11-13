@@ -6,4 +6,5 @@ files:
   range_chain.rs: Rust if-else chains and match guards splitting one value by literal bounds, with mixed subjects, named limits, justified and test-only chains skipped, from native analysis
   stale_check.rs: Rust exists, is_file and is_dir checks in an if condition or a tested let, followed by a propagated filesystem action on the same path in the presence branch or after a skipping absence branch, with failing absence branches, unguarded, unpropagated, independent, other-path, justified and test-only checks skipped, from native analysis
   variant_equality.rs: Rust equality with an enum variant path and matches! naming a variant, with constants, calls, literal patterns, justified and test-only sites skipped, from native analysis
+  variant_list.rs: Rust arrays listing every unit variant of a same-file enum in declaration order, with partial, reordered, short, foreign, mixed, repeated, justified and test-only lists skipped, from native analysis
 directories: {}

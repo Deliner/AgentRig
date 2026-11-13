@@ -3,6 +3,7 @@ mod mixed_junction;
 mod range_chain;
 mod stale_check;
 mod variant_equality;
+mod variant_list;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;

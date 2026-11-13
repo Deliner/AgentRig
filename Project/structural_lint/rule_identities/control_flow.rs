@@ -17,6 +17,7 @@ pub enum ControlFlow {
     RangeChain,
     HiddenExit,
     StaleCheck,
+    VariantList,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -31,6 +32,7 @@ impl ControlFlow {
             Self::RangeChain => &RANGECHAIN,
             Self::HiddenExit => &HIDDENEXIT,
             Self::StaleCheck => &STALECHECK,
+            Self::VariantList => &VARIANTLIST,
         }
     }
 }
@@ -168,5 +170,17 @@ const STALECHECK: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "the path can appear, vanish or change its kind between the check and the action, so the action fails or is skipped where its own error would tell what happened; perform the action and match its error kind such as NotFound or AlreadyExists, or put a DECISION: or INVARIANT: reference on the line directly above the check",
+    },
+};
+// DECISION: D181
+const VARIANTLIST: Descriptor = Descriptor {
+    default_id: "variant-list",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust array literal, alone or under &, of three or more paths E::V, or Self::V inside an impl of E, where E is an enum declared in the same file and the paths name all of its unit variants in declaration order, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the array",
+    skill: "derive-the-variants",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a hand-written list of every variant stays complete only until the enum gains one, and nothing reports the stale list; derive the list from the enum's declaration, with a derive that enumerates the variants or a macro that declares the enum and its list together, or put a DECISION: or INVARIANT: reference on the line directly above the array",
     },
 };

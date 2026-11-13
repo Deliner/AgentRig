@@ -86,6 +86,20 @@ pub(super) fn last_segment<'a>(path: Node<'_>, source: Code<'a>) -> &'a str {
     }
     text(path, source)
 }
+pub(super) fn zero_literal(node: Node<'_>, source: Code<'_>) -> bool {
+    let value = text(node, source);
+    let digits = match node.kind() {
+        "integer_literal" => {
+            let radix = ["0x", "0o", "0b"]
+                .into_iter()
+                .find_map(|prefix| value.strip_prefix(prefix));
+            radix.unwrap_or(value).split(['u', 'i']).next()
+        }
+        "float_literal" => value.split(['e', 'E', 'f']).next(),
+        _ => None,
+    };
+    digits.is_some_and(|digits| digits.chars().all(|digit| matches!(digit, '0' | '_' | '.')))
+}
 pub(super) fn type_name<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     match node.kind() {
         "generic_type" => type_name(node.child_by_field_name("type")?, source),

@@ -6,6 +6,7 @@ pub mod ownership;
 pub(super) mod parameters;
 pub mod reference;
 pub mod signature;
+mod std_form;
 pub mod structure;
 
 pub use descriptor::Descriptor;

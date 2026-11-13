@@ -1,5 +1,6 @@
 use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
+use super::std_form;
 use crate::shared::diagnostics::actionable_findings::Level as Severity;
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +28,9 @@ pub enum Reference {
     TestSubstitution,
     InterpolatedShell,
     SupersededForm,
+    EpsilonTolerance,
+    DottedExtension,
+    FixedTestPort,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -52,7 +56,10 @@ impl Reference {
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
             Self::InterpolatedShell => &INTERPOLATEDSHELL,
-            Self::SupersededForm => &SUPERSEDEDFORM,
+            Self::SupersededForm => &std_form::SUPERSEDEDFORM,
+            Self::EpsilonTolerance => &std_form::EPSILONTOLERANCE,
+            Self::DottedExtension => &std_form::DOTTEDEXTENSION,
+            Self::FixedTestPort => &FIXEDTESTPORT,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -299,17 +306,16 @@ const INTERPOLATEDSHELL: Descriptor = Descriptor {
         violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, keep the script literal and pass values apart from it, as positional parameters of a POSIX shell or fish or environment variables read by PowerShell, or put a DECISION: or INVARIANT: reference on the line directly above the call",
     },
 };
-// DECISION: D177
-// DECISION: D178
-const SUPERSEDEDFORM: Descriptor = Descriptor {
-    default_id: "superseded-form",
+// DECISION: D181
+const FIXEDTESTPORT: Descriptor = Descriptor {
+    default_id: "fixed-test-port",
     exclude: &[],
     target: "file",
-    metric: "every Rust .strip_prefix(p).unwrap_or(x) or .strip_suffix(p).unwrap_or(x) call whose x, or the operand of &x, has the text of the stripped receiver, every Infallible type name, and every .collect() of a .map(f) over a parenthesized range from 0 or 0usize up to n whose turbofish or let type is Vec or that is the last expression of the body of, or the value of a return in, the nearest function or closure whose return type is Vec, test code included, outside macro arguments, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "use-the-current-form",
+    metric: "every Rust call in test code of a path ending in TcpListener::bind or UdpSocket::bind whose argument is a string literal with a nonzero port after its last colon or a tuple whose second element is a nonzero integer literal, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "bind-port-zero",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "the rig's Rust replaces this form with a direct standard one that states the intent in one call or name; write trim_prefix(p) or trim_suffix(p), ! or Vec::from_fn(n, f), as the finding names, or put a DECISION: or INVARIANT: reference on the line directly above it",
+        violation: "a fixed port is shared by every test and process on the machine, so parallel runs collide and the test fails or talks to a stranger; bind port 0 and read the assigned port with local_addr, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
 // DECISION: D037
