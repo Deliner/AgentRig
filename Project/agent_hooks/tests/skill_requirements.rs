@@ -45,7 +45,10 @@ fn first_edit_in_an_area_stops_until_its_requirement_is_delivered() {
         assert!(message.contains(expected), "{expected}: {message}");
     }
     assert_eq!(edit(&root, "Project/agent_hooks/mod.rs"), Value::Null);
-    assert_eq!(edit(&root, "Project/agent_hooks/guard.rs"), Value::Null);
+    assert_eq!(
+        edit(&root, "Project/agent_hooks/shell_guard.rs"),
+        Value::Null
+    );
     assert_eq!(
         answer(&edit(&root, "Project/agent_hooks/tests/mod.rs")).0,
         "deny"
