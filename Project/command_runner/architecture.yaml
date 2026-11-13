@@ -1,4 +1,5 @@
 purpose: Run catalog commands in the foreground and as tracked background jobs
+dependents: 7
 files:
   mod.rs: Catalog arguments, foreground/background execution and job reporting
   sandbox.rs: Run catalog commands as tracked subprocesses, read-only ones inside the platform sandbox

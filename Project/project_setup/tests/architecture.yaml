@@ -6,5 +6,6 @@ files:
   doctor.rs: Diagnose installed hooks, client registration, tools and runtime compatibility
   defaults.rs: Verify installed Rust and Python lint limits block delivery and accept boundaries, and shipped rule scopes
   coverage.rs: Report affected-map sources and tests left without selected tests through config-check
+  toolchain.rs: Verify Rust init and doctor require the rig's Rust version from the project's rustc, and Python ones do not
   clippy.rs: Verify a Rust scaffold delivers the AgentRig Clippy profile equal to the dev gate and its thresholds in the effective Clippy file, refusing a conflicting value, and a Python scaffold none
 directories: {}

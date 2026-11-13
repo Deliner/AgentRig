@@ -1,5 +1,5 @@
 use super::rust::cargo::{self, Layout};
-use super::rust::clippy;
+use super::rust::{clippy, toolchain::Requirement};
 use crate::project_config::{
     self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
     Tools, View, Views,
@@ -68,6 +68,12 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let (rust, clippy) = if python {
         (Layout::fallback(source), None)
     } else {
+        // DECISION: D174
+        let toolchain = Requirement::inspect(root)?;
+        ensure!(
+            toolchain.met(),
+            "init refused for a Rust project: {toolchain}; no files were written"
+        );
         let rust = cargo::layout(root, source)?;
         let clippy = clippy::settings(root, &rust)?;
         (rust, Some(clippy))

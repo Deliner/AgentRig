@@ -1,5 +1,5 @@
 purpose: Define, load and validate the project configuration that workflow features read
-dependents: 11
+dependents: 12
 files:
   mod.rs: Canonical project root, validated configuration loading and configuration exports
 directories:

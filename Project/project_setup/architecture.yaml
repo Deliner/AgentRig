@@ -14,4 +14,4 @@ files:
 directories:
   tests: Verify generated lint policy and runtime readiness
   initialization: Initialize the configured environment, keeping existing consumer file contents
-  rust: Read a Rust project's Cargo manifest and complete its Clippy profile
+  rust: Read a Rust project's Cargo manifest, complete its Clippy profile and require the rig's Rust version

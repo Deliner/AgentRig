@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `c8b3434ad4fb2ebf6ce121d5e13e8be61d66a1ad`
+Revision: `0f5bb42a25aa3fdb7b8d51f699a58fa4b360f34f`
 
 Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -25,12 +25,13 @@ Revision: `c8b3434ad4fb2ebf6ce121d5e13e8be61d66a1ad`
   README и фикстуры `rustc` больше не называют версию.
 - VAC 3 P132 вынес `cargo.rs` и `clippy.rs` в `Project/project_setup/rust/` без смены поведения: в
   `project_setup` нет места для модуля версии Rust. Бюджет зависимых `shared/fs_with_context` поднят до 23.
+- VAC 4 P132 закрыл AC6 по D174: `init --language rust` и `doctor` требуют `rustc` не старше версии рига.
 
 ## Verification
 
-- VAC 2: на 1.100.0 rustfmt, Clippy и 484 теста гейта прошли. Путь bootstrap с архивом файла toolchain проверит
-  пин D051.
-- VAC 3: кандидат собирается, `lint`, `memory-check` и `cargo fmt --check` проходят.
+- VAC 2 и VAC 3 прошли гейт; путь bootstrap с архивом файла toolchain проверит пин D051.
+- VAC 4: rustfmt, Clippy, `lint` и `memory-check` проходят; `just run test -- project_setup::` дал 45 из 45, включая
+  3 новых теста с поддельным `rustc` в PATH. Кандидат `doctor` на риге печатает `found 1.100.0, requires 1.100.0`.
 
 ## Blockers
 
@@ -38,6 +39,6 @@ Revision: `c8b3434ad4fb2ebf6ce121d5e13e8be61d66a1ad`
 
 ## Next action
 
-AC6 B128: проверка версии Rust проекта в init и doctor, затем AC7, AC3–AC4, правило старых форм AC8 двухфазно с
-мид-бранч пином и AC2.
-Свободные ID: D174+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
+AC7 B128: раздел о Rust в AGENTS.md рига и Rust-проектов из одного источника, затем AC3–AC4, правило старых форм
+AC8 двухфазно с мид-бранч пином и AC2. AGENTS.md рига уже на пределе lint в 70 строк, раздел потребует сжатия.
+Свободные ID: D175+, I022+, P133+, B129+ (B066 и D111 зарезервированы).

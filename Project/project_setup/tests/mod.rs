@@ -9,6 +9,7 @@ mod defaults;
 mod delivery;
 mod doctor;
 mod runtime;
+mod toolchain;
 
 fn write(root: &Path, path: &str, text: &str) {
     let path = root.join(path);
