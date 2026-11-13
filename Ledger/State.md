@@ -12,7 +12,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/rust-1100`, от master `b0ca86b`, где влита P131.
-Revision: `84c7fe9bdf41537d52a4281f10a0af66b9bfbb87`
+Revision: `3f6bda18db4d47a36ef67073ba0169d18e3d1f82`
 
 Установленный рантайм `b28fd10`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -26,13 +26,14 @@ Revision: `84c7fe9bdf41537d52a4281f10a0af66b9bfbb87`
 - VAC 3 P132 вынес `cargo.rs` и `clippy.rs` в `Project/project_setup/rust/` без смены поведения: в
   `project_setup` нет места для модуля версии Rust. Бюджет зависимых `shared/fs_with_context` поднят до 23.
 - VAC 4 P132 закрыл AC6 по D174: `init --language rust` и `doctor` требуют `rustc` не старше версии рига.
-- VAC 5 P132 закрыл AC7 по D175: раздел «Rust 1.100» в AGENTS.md рига и Rust-проектов из `rust/capabilities.txt`.
+- VAC 5 P132 `3f6bda1` закрыл AC7 по D175: раздел «Rust 1.100» в AGENTS.md рига и Rust-проектов.
+- VAC 6 P132 закрыл AC3 и AC4 по D176: `unused_dependencies = "deny"` и карантин новых версий в 3 дня.
 
 ## Verification
 
-- VAC 2–4 прошли гейт; путь bootstrap с архивом файла toolchain проверит пин D051.
-- VAC 5: rustfmt и `lint` проходят, `memory-check` даёт лишь предупреждение о маркере в `.txt`, как у D112;
-  `just run test -- project_setup::` дал 46 из 46. Заголовок «Rust 1.101» в AGENTS.md рига роняет новый тест.
+- VAC 2–5 прошли гейт, VAC 5 со всеми 488 тестами; путь bootstrap с архивом toolchain проверит пин D051.
+- VAC 6: Clippy гейта в копии рига с лишней `hex` даёт код 101, без неё 0; `generate-lockfile` из корня берёт
+  `sonic-rs` 0.5.10 вместо опубликованной минуту назад 0.5.11. Транзитивную `memchr` cargo не замечает.
 
 ## Blockers
 
@@ -40,6 +41,6 @@ Revision: `84c7fe9bdf41537d52a4281f10a0af66b9bfbb87`
 
 ## Next action
 
-AC3–AC4 B128: `[lints.cargo] unused_dependencies = "deny"` с проверкой лишней зависимости и `.cargo/config.toml`
-с `global-min-publish-age`, затем правило старых форм AC8 двухфазно с мид-бранч пином и AC2. AGENTS.md рига на
-пределе lint в 70 строк. Свободные ID: D176+, I022+, P133+, B129+ (B066 и D111 зарезервированы).
+AC8 B128: правило старых форм двухфазно, сначала вид правила и пин D051 в середине ветки, затем включение в
+`.agentrig/lint.yaml` и шаблоне init; потом AC2 и проверка AC5. AGENTS.md рига на пределе lint в 70 строк.
+Свободные ID: D177+, I022+, P133+, B129+ (B066 и D111 зарезервированы).

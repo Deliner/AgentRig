@@ -42,3 +42,7 @@ tree-sitter-python = "0.25"
 signal-hook = "0.3"
 libc = "0.2"
 tree-sitter-bash = "0.25.1"
+
+# DECISION: D176
+[lints.cargo]
+unused_dependencies = "deny"
