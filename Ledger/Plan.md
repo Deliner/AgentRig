@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P140](Plan/140.md) | active | - | [B136](Backlog/136.md): command-flags — флаги, понижающие уровень lint-ов, в команде clippy требуют ссылку на решение | Ни список флагов рига, ни команда clippy не ослабляют гейт молча. Флаг, понижающий уровень lint-ов, в любом из этих мест либо опирается на решение, либо даёт ошибку lint. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
