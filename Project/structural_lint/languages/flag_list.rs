@@ -4,7 +4,8 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use yaml_rust2::parser::{Event, Parser};
 
-const SILENCING: [&str; 3] = ["-A", "--allow", "--cap-lints"];
+// DECISION: D183
+const LOWERING: [&str; 4] = ["-A", "--allow", "--cap-lints", "--force-warn"];
 
 #[derive(Clone, Copy)]
 enum Slot {
@@ -35,7 +36,7 @@ pub(super) fn analyze(source: &str) -> Analysis {
     }
     analysis.measurements = items
         .into_iter()
-        .filter(|(line, flag)| silencing(flag) && !justified_line(line - 1, source))
+        .filter(|(line, flag)| lowering(flag) && !justified_line(line - 1, source))
         .map(|(line, symbol)| Measurement {
             kind: Kind::Reference(Reference::AllowJustification),
             line,
@@ -90,6 +91,6 @@ fn advance(slots: &mut [Slot], scalar: &str) -> Option<Slot> {
     };
     Some(previous)
 }
-fn silencing(flag: &str) -> bool {
-    SILENCING.iter().any(|prefix| flag.starts_with(prefix))
+fn lowering(flag: &str) -> bool {
+    LOWERING.iter().any(|prefix| flag.starts_with(prefix))
 }

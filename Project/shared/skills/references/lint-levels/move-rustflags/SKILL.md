@@ -20,8 +20,8 @@ editor, so the gate and those builds silently compile different code.
    only, while the rig's list applies to every build. Move it like a build flag
    when every target the project builds needs it. Otherwise stop and report the
    conflict: the rig's list has no per-target form.
-4. A flag that allows lints or caps their level, such as `-A`, `--allow` or
-   `--cap-lints`, needs a `DECISION:` or `INVARIANT:` reference on the line
+4. A flag that lowers lint levels, such as `-A`, `--allow`, `--cap-lints` or
+   `--force-warn`, needs a `DECISION:` or `INVARIANT:` reference on the line
    directly above its item in the list; apply justify-allow to it.
 5. Rerun the reported lint check and the affected build and test checks.
 
