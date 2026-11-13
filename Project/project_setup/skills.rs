@@ -78,6 +78,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
     (
+        "clarify-structure",
+        include_str!("../shared/skills/refactor/clarify-structure/SKILL.md"),
+    ),
+    (
         "extract-embedded-text",
         include_str!("../shared/skills/refactor/extract-embedded-text/SKILL.md"),
     ),

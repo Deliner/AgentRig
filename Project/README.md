@@ -27,6 +27,7 @@ repair skill; an error finding exits 1; warnings exit 0 and are printed only wit
 - `just lint-explain PATH` shows why each rule selects or skips a path, with effective thresholds and overrides.
 - `just lint-edges DIR` lists the measured incoming and outgoing edges of a directory that architecture findings count.
 - `just lint-tree DIR` prints the directory as a box-drawing tree of file and directory names after global excludes.
+- `just lint-structure DIR` scores how Rust part names show each directory's job, as advice that never fails a check.
 - `just lint --json` prints each finding's rule, path, line, symbol, actual, limit, level, message, skill and rerun
   command.
 
@@ -82,5 +83,4 @@ successful feature-merge stop the owner's task runs, skip the run they execute i
 services. Read-only commands run under bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary
 directory and no network.
 
-[measure.rs](shared/testing/examples/measure.rs) measures first and repeated standalone process latency of a
-built binary.
+[measure.rs](shared/testing/examples/measure.rs) measures first and repeated standalone process latency.

@@ -144,8 +144,8 @@ pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>
             anyhow::ensure!(!forwarded(&argv[2..]).is_empty(), "scratch -- TEXT");
         }
         "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "lint-edges"
-        | "lint-tree" | "jobs" | "job-status" | "job-logs" | "job-stop" | "job-start"
-        | "job-cleanup" => {}
+        | "lint-tree" | "lint-structure" | "jobs" | "job-status" | "job-logs" | "job-stop"
+        | "job-start" | "job-cleanup" => {}
         name => {
             command_runner::argv(context, name, forwarded(&argv[2..]))?;
         }
