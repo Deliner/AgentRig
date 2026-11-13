@@ -57,6 +57,7 @@ fn installed_binary(context: &Context) -> bool {
             access: Access::Writable,
             capture: crate::command_runner::jobs::Capture::Collect,
             cargo_target: None,
+            rustflags: &context.config.rust.rustflags,
         },
         None,
     );

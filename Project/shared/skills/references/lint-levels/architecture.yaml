@@ -1,0 +1,5 @@
+purpose: "Repair where lint levels are lowered outside the code they govern or without a reference: a broad allow or a silencing flag, and compiler flags kept in a Cargo configuration instead of the rig's flag list"
+files: {}
+directories:
+  justify-allow: "Remove a Rust allow, expect, cfg_attr, TOML allow-level or rig flag-list suppression and fix the finding, or record why it is suppressed with a reference"
+  move-rustflags: "Move the compiler flags of a Cargo configuration's rustflags key into the rig's flag list and delete the key"

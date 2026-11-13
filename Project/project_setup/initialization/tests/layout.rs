@@ -49,7 +49,7 @@ prost-build = "1"
 libc = "0.2"
 "#;
 const ROOT_TESTS: &str = "[cargo, test, --manifest-path, Cargo.toml]";
-const MODULES: [&str; 7] = [
+const MODULES: [&str; 8] = [
     "project.yaml",
     "git.yaml",
     "commands.yaml",
@@ -57,6 +57,7 @@ const MODULES: [&str; 7] = [
     "hooks.yaml",
     "oracles.yaml",
     "tools.yaml",
+    "rust.yaml",
 ];
 const SERVICE: &str = "rig space's $cash";
 const SESSION: &str = r#"{"hook_event_name": "SessionStart", "session_id": "custom-service"}"#;

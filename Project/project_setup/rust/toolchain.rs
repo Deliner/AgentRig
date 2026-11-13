@@ -124,6 +124,7 @@ fn project_rustc(root: &Path) -> Option<Version> {
         access: Access::Writable,
         capture: Capture::Collect,
         cargo_target: None,
+        rustflags: &[],
     };
     let output = sandbox::tracked(directory, &argv, options, None).ok()?;
     let printed = output.status.success().then_some(output.stdout)?;

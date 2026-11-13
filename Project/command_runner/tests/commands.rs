@@ -176,3 +176,16 @@ fn scratch_runs_temporary_code_in_its_task_area() {
         (&json!("scratch"), &json!("feature/probe"), &json!("task"))
     );
 }
+
+// DECISION: D182
+#[test]
+fn scratch_code_compiles_with_the_rig_flag_list() {
+    let (_temp, root) = initialized();
+    git(&root, &["symbolic-ref", "HEAD", "refs/heads/feature/probe"]);
+    let module = root.join(".agentrig/rust.yaml");
+    fs::write(module, "rustflags: [--cfg, rig_flag]\n").unwrap();
+    let text = "printf %s \"$CARGO_ENCODED_RUSTFLAGS\"";
+    let result = invoke(&root, &["scratch", "--", text]);
+    assert_eq!(result.code, Some(0), "{}", result.output());
+    assert_eq!(result.stdout, "--cfg\u{1f}rig_flag");
+}

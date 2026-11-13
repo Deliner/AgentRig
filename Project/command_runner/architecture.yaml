@@ -2,7 +2,7 @@ purpose: Run catalog commands in the foreground and as tracked background jobs
 dependents: 7
 files:
   mod.rs: Catalog arguments, foreground/background execution and job reporting
-  sandbox.rs: Run catalog commands as tracked subprocesses, read-only ones inside the platform sandbox
+  sandbox.rs: Run catalog commands as tracked subprocesses with the project's Rust compiler flags, read-only ones inside the platform sandbox
   scratch.rs: Run temporary shell scenarios as tracked task jobs with a per-branch task area
   summary.rs: Print the configured outcome view of captured command output with its status and log
 directories:

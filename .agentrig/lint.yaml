@@ -279,6 +279,7 @@ rules:
   error_skill: .agents/skills/justify-skip/SKILL.md
 # DECISION: D080
 # DECISION: D098
+# DECISION: D182
 - id: allow-justification
   kind: allow-justification
   target: file
@@ -287,9 +288,21 @@ rules:
   extensions:
   - .rs
   - .toml
+  - .yaml
   level: error
   warning_skill: .agents/skills/justify-allow/SKILL.md
   error_skill: .agents/skills/justify-allow/SKILL.md
+# DECISION: D182
+- id: cargo-rustflags
+  kind: cargo-rustflags
+  target: file
+  include:
+  - '**/.cargo/config.toml'
+  extensions:
+  - .toml
+  level: error
+  warning_skill: .agents/skills/move-rustflags/SKILL.md
+  error_skill: .agents/skills/move-rustflags/SKILL.md
 # DECISION: D081
 - id: debug-artifact
   kind: debug-artifact

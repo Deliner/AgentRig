@@ -9,7 +9,10 @@ use toml::de::{DeString, DeTable, DeValue};
 pub(super) fn analyze(source: &str) -> Analysis {
     let mut analysis = Analysis::default();
     match DeTable::parse(source) {
-        Ok(document) => scan(document.get_ref(), source, &mut analysis.measurements),
+        Ok(document) => {
+            scan(document.get_ref(), source, &mut analysis.measurements);
+            flags(document.get_ref(), source, &mut analysis.measurements);
+        }
         Err(error) => {
             let offset = error.span().map_or(0, |span| span.start);
             analysis.parse_error = Some(row(source, offset) + 1);
@@ -32,6 +35,24 @@ fn scan(root: &DeTable<'_>, source: &str, output: &mut Vec<Measurement>) {
     for tool in tools {
         for (name, level) in tool.iter() {
             report(name, level, source, output);
+        }
+    }
+}
+// DECISION: D182
+fn flags(root: &DeTable<'_>, source: &str, output: &mut Vec<Measurement>) {
+    let mut pending = vec![root];
+    while let Some(table) = pending.pop() {
+        for (name, value) in table.iter() {
+            let flagged = name.get_ref() == "rustflags";
+            if flagged {
+                output.push(Measurement {
+                    kind: Kind::Reference(Reference::CargoRustflags),
+                    line: row(source, name.span().start) + 1,
+                    symbol: "rustflags".into(),
+                    actual: 1,
+                });
+            }
+            pending.extend(value.get_ref().as_table());
         }
     }
 }

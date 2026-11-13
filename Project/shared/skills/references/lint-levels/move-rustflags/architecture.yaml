@@ -1,0 +1,5 @@
+purpose: "Move the compiler flags of a Cargo configuration's rustflags key into the rig's flag list and delete the key"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move Cargo configuration flags into the rig's flag list"
+directories: {}

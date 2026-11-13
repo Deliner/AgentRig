@@ -1,10 +1,11 @@
 use super::{WAIT, background, by_command, command, configured, owned, parsed, pid, ready, status};
 use crate::shared::testing::{configure, git, invoke, worker};
 use serde_json::{Value, json};
-use std::path::Path;
+use std::{fs, path::Path};
 
 const DESCENDANT: &str = "sleep 60 & echo ready; sleep 60";
 const STUBBORN: &str = "trap '' TERM; echo ready; sleep 60";
+const FLAGGED: &str = "printf '%s\\n' \"$CARGO_ENCODED_RUSTFLAGS\"; echo ready; sleep 60";
 
 fn stopped(root: &Path, owner: &str, identifier: &str) -> Value {
     parsed(&owned(root, owner, &["job-stop", identifier]))
@@ -74,6 +75,20 @@ fn forced_background_stop_keeps_logs() {
     emptied(&stopped(&root, owner, &identifier));
     let logs = parsed(&invoke(&root, &["job-logs", &identifier]));
     assert_eq!(logs["stdout"]["text"], "ready\n");
+    stopped(&root, owner, &identifier);
+}
+
+// DECISION: D182
+#[test]
+fn background_runs_compile_with_the_rig_flag_list() {
+    let owner = "flag-list-owner";
+    let (_temp, root) = configured(&command("wait", &["sh", "-c", FLAGGED]));
+    let module = root.join(".agentrig/rust.yaml");
+    fs::write(module, "rustflags: [--cfg, rig_flag]\n").unwrap();
+    let identifier = background(&root, owner);
+    ready(&root, &identifier);
+    let logs = parsed(&invoke(&root, &["job-logs", &identifier]));
+    assert_eq!(logs["stdout"]["text"], "--cfg\u{1f}rig_flag\nready\n");
     stopped(&root, owner, &identifier);
 }
 

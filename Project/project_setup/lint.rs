@@ -3,7 +3,9 @@
 use super::rust::cargo::Layout;
 use crate::project_config::Paths;
 use crate::structural_lint::rule_identities;
-use crate::structural_lint::rule_identities::{contract_settings::RUST_SEED, structure::Structure};
+use crate::structural_lint::rule_identities::{
+    contract_settings::RUST_SEED, reference::Reference, structure::Structure,
+};
 use crate::structural_lint::rule_set::capabilities;
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -15,7 +17,7 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let mut rules: Vec<Value> = capabilities::ALL
         .iter()
         .filter(|kind| cataloged(**kind))
-        .map(|kind| capabilities::example(*kind, skills, sources))
+        .map(|kind| example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources, rust));
     rules.extend(markdown(&settings.paths));
@@ -26,6 +28,24 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         "rules": rules,
     });
     crate::shared::strict_yaml::encode(&config)
+}
+
+fn example(kind: rule_identities::Kind, skills: &str, sources: &[String]) -> Value {
+    let mut rule = capabilities::example(kind, skills, sources);
+    // DECISION: D182
+    let flags = matches!(
+        kind,
+        rule_identities::Kind::Reference(Reference::AllowJustification)
+    );
+    if flags {
+        let include: Vec<String> = sources
+            .iter()
+            .cloned()
+            .chain([crate::project_config::module("rust")])
+            .collect();
+        rule["include"] = json!(include);
+    }
+    rule
 }
 
 fn cataloged(kind: rule_identities::Kind) -> bool {

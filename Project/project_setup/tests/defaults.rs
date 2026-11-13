@@ -172,6 +172,41 @@ fn shipped_rules_skip_test_files_only_where_decided() {
     }
 }
 
+// DECISION: D182
+#[test]
+fn shipped_rules_keep_compiler_flags_in_the_rig_list() {
+    let (_temp, root) = initialized("rust");
+    write(
+        &root,
+        ".agentrig/rust.yaml",
+        "rustflags:\n- --cap-lints\n- allow\n",
+    );
+    let config = "[build]\nrustflags = [\"--cfg\", \"probe\"]\n";
+    write(&root, ".cargo/config.toml", config);
+    let (code, found) = lint(&root);
+    assert_eq!(code, Some(1), "{found:?}");
+    let expected = [
+        (
+            "allow-justification",
+            ".agentrig/rust.yaml",
+            "justify-allow",
+        ),
+        ("cargo-rustflags", ".cargo/config.toml", "move-rustflags"),
+    ];
+    for (rule, path, skill) in expected {
+        let finding = found
+            .iter()
+            .find(|item| text(item, "rule") == rule && text(item, "path") == path);
+        let finding = finding.unwrap_or_else(|| panic!("{rule}: {found:?}"));
+        let repair = text(finding, "skill").ends_with(&format!("{skill}/SKILL.md"));
+        assert_eq!(
+            (text(finding, "level"), repair),
+            ("error", true),
+            "{finding:?}"
+        );
+    }
+}
+
 #[test]
 fn shipped_file_size_skips_package_manager_lock_files() {
     let (_temp, root) = initialized("rust");

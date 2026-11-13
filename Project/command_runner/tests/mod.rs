@@ -1,5 +1,6 @@
 mod background;
 mod commands;
+mod compiler_flags;
 mod foreground;
 
 use crate::shared::testing::{FAIL, Run, invoke, project, run, runtime};

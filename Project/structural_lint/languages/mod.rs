@@ -1,3 +1,4 @@
+mod flag_list;
 mod manifest;
 mod neutral_metrics;
 mod python;

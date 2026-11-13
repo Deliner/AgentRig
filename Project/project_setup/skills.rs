@@ -140,7 +140,11 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "justify-allow",
-        include_str!("../shared/skills/references/justify-allow/SKILL.md"),
+        include_str!("../shared/skills/references/lint-levels/justify-allow/SKILL.md"),
+    ),
+    (
+        "move-rustflags",
+        include_str!("../shared/skills/references/lint-levels/move-rustflags/SKILL.md"),
     ),
     (
         "remove-debug",

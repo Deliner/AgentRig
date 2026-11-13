@@ -4,8 +4,8 @@ mod tests;
 use anyhow::Result;
 pub use settings_schema::{
     Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git,
-    Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Tools, VERSION,
-    View, Views, access, files, module, read, relative, sources,
+    Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,
+    VERSION, View, Views, access, files, module, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 

@@ -113,6 +113,22 @@ fn configuration_errors_are_actionable() {
     }
 }
 
+// DECISION: D182
+#[test]
+fn rust_module_takes_only_a_list_of_compiler_flags() {
+    for text in [
+        "rustflags: --cap-lints allow\n",
+        "rustflags: []\nflags: []\n",
+    ] {
+        let (_temp, root) = configured("", GATE);
+        fs::write(root.join(".agentrig/rust.yaml"), text).unwrap();
+        let result = rejected(&root, text);
+        let (message, _) = result.stderr.split_once("ACTION:").unwrap();
+        let named = message.contains(".agentrig/rust.yaml");
+        assert!(named, "{text}: {}", result.stderr);
+    }
+}
+
 // DECISION: D038
 #[test]
 fn project_module_rejects_another_module_section() {

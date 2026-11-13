@@ -1,16 +1,16 @@
-use super::super::analyze;
+use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use std::path::Path;
 
 // DECISION: D098
-fn allow_findings(path: &str, source: &str) -> Vec<String> {
+pub(super) fn findings(kind: Reference, path: &str, source: &str) -> Vec<String> {
     let analysis = analyze(Path::new(path), source, &[]).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements
         .into_iter()
-        .filter(|item| item.kind == Kind::Reference(Reference::AllowJustification))
+        .filter(|item| item.kind == Kind::Reference(kind))
         .map(|item| (item.line, item.symbol))
         .collect();
     found.sort();
@@ -41,7 +41,7 @@ unused_imports = \"allow\"
 allow = \"1\"
 ";
     assert_eq!(
-        allow_findings("Cargo.toml", source),
+        findings(Reference::AllowJustification, "Cargo.toml", source),
         [
             "1:private_intra_doc_links",
             "5:unused",
@@ -49,6 +49,27 @@ allow = \"1\"
             "12:pedantic",
             "15:unused_imports"
         ]
+    );
+}
+
+// DECISION: D182
+#[test]
+fn toml_flags_every_rustflags_key_in_any_table() {
+    let source = "build.rustflags = \"--cap-lints allow\"
+[target.x86_64-unknown-linux-gnu]
+# DECISION: D001
+rustflags = [\"-C\", \"target-cpu=native\"]
+[target.'cfg(unix)']
+linker = \"cc\"
+rustflags = []
+[env]
+RUSTFLAGS = \"-Awarnings\"
+[profile.dev]
+package.probe = { rustflags = [\"-Zshare-generics\"] }
+";
+    assert_eq!(
+        findings(Reference::CargoRustflags, ".cargo/config.toml", source),
+        ["1:rustflags", "4:rustflags", "7:rustflags", "11:rustflags"]
     );
 }
 

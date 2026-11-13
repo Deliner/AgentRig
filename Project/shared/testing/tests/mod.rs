@@ -13,13 +13,15 @@ use tempfile::TempDir;
 
 mod launchers;
 
-const FOREIGN: [&str; 6] = [
+const FOREIGN: [&str; 8] = [
     "WORKER_OWNER",
     "WORKER_PARENT_RUN",
     "AGENTRIG_SCRATCH",
     "CODEX_THREAD_ID",
     "CODEX_SESSION_ID",
     "CARGO_TARGET_DIR",
+    "CARGO_ENCODED_RUSTFLAGS",
+    "RUSTFLAGS",
 ];
 const INTERPRETER: &str = "import os, sys; print(os.path.dirname(sys.executable))";
 pub const REPAIR: &str = "guides/repair/SKILL.md";
