@@ -1,6 +1,7 @@
 // DECISION: D021
 use super::write;
 use crate::project_setup::initialization::init;
+use crate::shared::strict_yaml;
 use crate::shared::testing::invoke;
 use serde_json::Value;
 use std::{
@@ -205,6 +206,32 @@ fn shipped_rules_keep_compiler_flags_in_the_rig_list() {
             "{finding:?}"
         );
     }
+}
+
+// DECISION: D184
+#[test]
+fn shipped_rules_check_lowering_flags_of_the_clippy_command() {
+    let (_temp, root) = initialized("rust");
+    let commands = root.join(".agentrig/commands.yaml");
+    let (_, before) = lint(&root);
+    let mut config: Value = strict_yaml::read(&commands).unwrap();
+    let argv = config["clippy"]["argv"].as_array_mut().unwrap();
+    argv.extend(["--cap-lints", "allow"].map(Value::from));
+    fs::write(&commands, strict_yaml::encode(&config).unwrap()).unwrap();
+    let (code, after) = lint(&root);
+    let skills = |found: &[Value]| -> Vec<String> {
+        let reported = |item: &&Value| {
+            text(item, "rule") == "allow-justification"
+                && text(item, "path") == ".agentrig/commands.yaml"
+        };
+        let skill = |item: &Value| text(item, "skill").to_owned();
+        found.iter().filter(reported).map(skill).collect()
+    };
+    assert_eq!(skills(&before), Vec::<String>::new(), "{before:?}");
+    assert_eq!(code, Some(1), "{after:?}");
+    let after = skills(&after);
+    assert_eq!(after.len(), 1, "{after:?}");
+    assert!(after[0].ends_with("justify-allow/SKILL.md"), "{after:?}");
 }
 
 #[test]

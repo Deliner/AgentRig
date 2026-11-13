@@ -1,6 +1,6 @@
 ---
 name: justify-allow
-description: Remove a lint suppression (allow, expect, a cfg_attr form, an allow level in a TOML lint table or a flag lowering lint levels in the rig's flag list) and fix the finding, or record why it is suppressed with a reference.
+description: Remove a lint suppression (allow, expect, a cfg_attr form, an allow level in a TOML lint table or a flag lowering lint levels in the rig's flag list or Clippy command) and fix the finding, or record why it is suppressed with a reference.
 ---
 
 # Remove a suppression, or record why the lint is silenced
@@ -16,7 +16,10 @@ silences it for a whole package. An item starting with `-A`, `--allow`,
 `.agentrig/rust.yaml` lowers lint levels in every build the rig runs: `-A` and
 `--allow` silence a lint, `--cap-lints` turns the gate's denied lints back into
 warnings, and `--force-warn` turns a denied lint into a warning that
-`-D warnings` does not raise again. Delete such an item to restore the level.
+`-D warnings` does not raise again. The same flags after the `--` of a
+`cargo clippy` or `cargo rustc` command in `.agentrig/commands.yaml` reach the
+compiler of that command, the gate's Clippy check among them, wherever they
+stand among its `-D` flags. Delete such an item to restore the level.
 In every form the gate stays green while the
 finding it would raise goes unaddressed: an agent can quiet a rule instead of
 fixing the code. Every suppression must be removed with its finding fixed, or
@@ -58,11 +61,14 @@ The measurement flags every Rust `#[allow(...)]`, `#![allow(...)]`,
 direct argument after a comma is `allow`, `expect` or `ignore` (a conditional
 `ignore` reports under disabled-test), and every lint set to `"allow"` or
 `{ level = "allow" }` under a `[lints.*]` or `[workspace.lints.*]` table of a
-TOML manifest, and every item of a YAML `rustflags` sequence starting with
-`-A`, `--allow`, `--cap-lints` or `--force-warn`, without a DECISION: or INVARIANT: reference
+TOML manifest, and every item starting with `-A`, `--allow`, `--cap-lints` or
+`--force-warn` of a YAML `rustflags` sequence or after the `--` of a YAML
+`argv` sequence whose first item is `cargo` and which names `clippy` or `rustc`
+before the `--`, without a DECISION: or INVARIANT: reference
 comment on the line directly above the attribute, the key or the item. The
-flag list is read only when the rule selects `.agentrig/rust.yaml` and the
-`.yaml` extension. No other comment and no `reason`
+flag list and the commands are read only when the rule selects
+`.agentrig/rust.yaml` and `.agentrig/commands.yaml` and the `.yaml` extension.
+No other comment and no `reason`
 argument is read. Rerun the reported lint check and relevant behavior checks. Do
 not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the suppression is removed or justified.

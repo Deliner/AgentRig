@@ -33,16 +33,14 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
 fn example(kind: rule_identities::Kind, skills: &str, sources: &[String]) -> Value {
     let mut rule = capabilities::example(kind, skills, sources);
     // DECISION: D182
+    // DECISION: D184
     let flags = matches!(
         kind,
         rule_identities::Kind::Reference(Reference::AllowJustification)
     );
     if flags {
-        let include: Vec<String> = sources
-            .iter()
-            .cloned()
-            .chain([crate::project_config::module("rust")])
-            .collect();
+        let modules = ["rust", "commands"].map(crate::project_config::module);
+        let include: Vec<String> = sources.iter().cloned().chain(modules).collect();
         rule["include"] = json!(include);
     }
     rule
