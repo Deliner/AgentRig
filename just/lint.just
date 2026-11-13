@@ -29,3 +29,7 @@ lint-edges *args:
 # What: print a directory as a tree of names; Why: see the structure of the lint inventory without file contents.
 lint-tree *args:
     @tooling/worker/run lint-tree "$@"
+
+# What: score how the names of a Rust tree show what each directory does; Why: find where the structure is unclear.
+lint-structure *args:
+    @tooling/worker/run lint-structure "$@"

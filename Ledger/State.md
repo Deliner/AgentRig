@@ -2,19 +2,19 @@
 
 ## Focus
 
-Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P129 выполнены и перенесены в Archive.
+Пользователь 2026-11-10 задал стандарт рига, записан в AGENTS.md и D151. P110–P130 выполнены и перенесены в Archive.
 B107 о сверке имён узлов с грамматикой сохранена, но в работу не взята: она требует дополнительного согласования,
 пользователь вернётся к ней сам. B112 ждёт доступа к Linux-машине. B126 о блокирующих правилах на числах
 `lint-structure` сохранена, в работу не выбрана.
 
-2026-11-13 пользователь одобрил B125, B126 и B127: «Сохраняй, выполняй B125, потом B127». Активна P130 по B125:
-`just lint-structure` и навык `clarify-structure` из навыка v5 P129 ставятся в Rust-проекты через `init` как
-подсказка, без блокировки. Затем P131 по B127: структура Project по эталону v36 из P128.
+2026-11-13 пользователь одобрил B125, B126 и B127: «Сохраняй, выполняй B125, потом B127». P130 по B125 выполнена:
+`just lint-structure` и навык `clarify-structure` ставятся через `init` как подсказка, без блокировки. Дальше P131 по
+B127: структура Project по эталону v36 из P128.
 
 ## Workspace
 
 Branch: `feature/structure-skill-delivery`, от master `3dddae9`.
-Revision: `3dddae97a4162343e66de97b7b978c9a8921f675`
+Revision: `2666c1c0be883d881c6a71e4256ba915dc6d2586`
 
 Установленный рантайм `c17b785`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -22,15 +22,16 @@ Revision: `3dddae97a4162343e66de97b7b978c9a8921f675`
 
 ## Progress
 
-- P129 влита слиянием `1d69014`, поправка к её итогу слиянием `3dddae9`. Выбраны `lint-structure` `b89fb25` и навык
-  `Ledger/Assets/P129/skill-v5.md`: Sonnet 66,67 % против 51,6 % у исходного дерева.
-- VAC 1 P130 сохраняет B125, B126 и B127 и выбирает P130 и P131.
+- VAC 1 P130 сохранил B125, B126 и B127 и выбрал P130 и P131.
+- VAC 2 P130 добавляет рецепт `lint-structure` в шаблон `init` и в рецепты рига, пропуск в защите оболочки, навык
+  `clarify-structure` из навыка v5 P129, строку README и проверки, переносит P130 и B125 в Archive.
 
 ## Verification
 
-- Шлюзы коммитов `c17b785` и `43654d8` прошли; bootstrap установил `c17b785`, `agentrig 0.3.0`.
-- `feature-merge` влил `feature/structure-signal` слиянием `1d69014` и `feature/structure-signal-note` слиянием
-  `3dddae9`.
+- На кандидате прошли `rust_project_is_delivered_in_an_independent_layout`,
+  `python_project_is_delivered_in_an_independent_layout`, `shell_catalog_and_recipe_listing` и
+  `shell_guard_rejects_bypass`.
+- `just lint`, `just config-check`, `just lint-config-check` и `memory-check` прошли на изменениях VAC 2.
 
 ## Blockers
 
@@ -38,6 +39,6 @@ Revision: `3dddae97a4162343e66de97b7b978c9a8921f675`
 
 ## Next action
 
-После VAC 1 найти, как `init` пишет рецепты `just` и навыки, и добавить рецепт `lint-structure`, пропуск в защите
-оболочки и канонический навык `clarify-structure`. Свободные ID: D173+, I022+, P132+, B128+ (B066 и D111
+После шлюза VAC 2 записать голову ветки в `stable.txt`, выполнить `just bootstrap`, закоммитить пин и влить ветку
+через `just feature-merge`. Затем ветка P131 от master. Свободные ID: D173+, I022+, P132+, B128+ (B066 и D111
 зарезервированы).

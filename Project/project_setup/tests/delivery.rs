@@ -165,6 +165,16 @@ fn ready(root: &Path) {
     just(root, &["run", "test"]);
 }
 
+fn structure_is_scored(root: &Path, layout: &Layout) {
+    let skill = root.join(layout.skills).join("clarify-structure/SKILL.md");
+    assert!(skill.is_file(), "{}", skill.display());
+    let recipe = consumer("just", root, &["lint-structure", layout.source]);
+    assert_eq!(recipe.code, Some(0), "{}", recipe.output());
+    assert!(recipe.stdout.starts_with("total "), "{}", recipe.stdout);
+    let direct = agentrig(root, &["lint-structure", layout.source], "");
+    assert_eq!(recipe.stdout, direct.stdout);
+}
+
 fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
     let config = root.join(".agentrig/lint.yaml");
     let before = fs::read_to_string(&config).unwrap();
@@ -239,6 +249,7 @@ fn integrate(root: &Path, layout: &Layout) {
 fn deliver(layout: &Layout) {
     let (_temp, root) = install(layout);
     ready(&root);
+    structure_is_scored(&root, layout);
     unsupported_extension_is_rejected(&root, layout);
     hooks(&root, layout);
     integrate(&root, layout);

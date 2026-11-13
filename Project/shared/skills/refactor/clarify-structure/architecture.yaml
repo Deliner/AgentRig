@@ -1,0 +1,5 @@
+purpose: "Rename, split and group the parts of a Rust tree by lint-structure scores so their names show what each directory does"
+type: flat
+files:
+  SKILL.md: "Canonical two-loop procedure that applies lint-structure name and group scores to a project tree on a feature branch"
+directories: {}
