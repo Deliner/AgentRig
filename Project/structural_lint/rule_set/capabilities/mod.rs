@@ -109,6 +109,7 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::VariantList),
     Kind::Reference(Reference::DottedExtension),
     Kind::Reference(Reference::FixedTestPort),
+    Kind::Reference(Reference::CargoRustflags),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),

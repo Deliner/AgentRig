@@ -153,7 +153,7 @@ const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     skill: "justify-allow",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a blanket allow, expect or conditional suppression silences a rule, and a reason = \"...\" inside the attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
+        violation: "a blanket allow, expect, conditional suppression or lint-silencing compiler flag silences a rule, and a reason = \"...\" inside an attribute is not a reference; remove it and fix the underlying finding, or put a DECISION: or INVARIANT: reference on the line directly above it to justify the suppression",
     },
 };
 // DECISION: D081

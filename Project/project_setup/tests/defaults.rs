@@ -185,11 +185,14 @@ fn shipped_rules_keep_compiler_flags_in_the_rig_list() {
     write(&root, ".cargo/config.toml", config);
     let (code, found) = lint(&root);
     assert_eq!(code, Some(1), "{found:?}");
-    let expected = [(
-        "allow-justification",
-        ".agentrig/rust.yaml",
-        "justify-allow",
-    )];
+    let expected = [
+        (
+            "allow-justification",
+            ".agentrig/rust.yaml",
+            "justify-allow",
+        ),
+        ("cargo-rustflags", ".cargo/config.toml", "move-rustflags"),
+    ];
     for (rule, path, skill) in expected {
         let finding = found
             .iter()
