@@ -14,7 +14,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/structure-v36`, от master `fb5090e`.
-Revision: `d7b21fd4eb12305ab113747a9eecbe5c1cfe6b90`
+Revision: `21243fd67535e19475c9b1a8f7b50949cc5402d7`
 
 Установленный рантайм `d8e186b`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
@@ -29,17 +29,19 @@ Revision: `d7b21fd4eb12305ab113747a9eecbe5c1cfe6b90`
   пяти каталогов. Бюджеты пользователь ещё не видел, в отчёте их нужно вынести на решение.
 - VAC 4 P131 `d7b21fd` перенёс `structural_lint/architecture`: `contract_check`, `extraction/references`,
   переименования rust-резолвера и деление python-резолвера.
-- VAC 5 P131 переносит `languages/rust/context` в `exemptions` и `languages/measure` в `neutral_metrics` с делением.
-- Порядок дальше: остальные верхние части и `command_line` → `cli_dispatch`. Ссылки: `.agentrig/checks.yaml`,
-  `.agentrig/lint.yaml`, `Project/Cargo.toml`, `tooling/pyproject.toml`, ссылки применения в `Ledger/Decisions.md`
-  и `Ledger/Invariants.md`, README. Детали решений неизменны (D020).
+- VAC 5 P131 `21243fd` перенёс `languages/rust/context` в `exemptions` и `languages/measure` в `neutral_metrics`.
+- VAC 6 P131 переименовывает файлы `agent_hooks`, `change_delivery/gate`, `initialization` и
+  `project_config/settings` по карте.
+- Порядок дальше: `command_runner`, `project_memory/evidence`, `command_line` → `cli_dispatch`. Ссылки:
+  `.agentrig/checks.yaml`, `.agentrig/lint.yaml`, `Project/Cargo.toml`, `tooling/pyproject.toml`, ссылки применения
+  в `Ledger/Decisions.md` и `Ledger/Invariants.md`, README. Детали решений неизменны (D020).
 
 ## Verification
 
 - Снимки сняты установленным рантаймом `d8e186b` на `fb5090e`: `total 24.0 units 192`.
-- Гейт коммита VAC 4 прошёл: lint, rustfmt, clippy, 432 теста и проверки Python.
-- На изменениях VAC 5 прошли сборка всех целей, `just lint`, `memory-check`, `config-check`, `lint-config-check` и
-  291 тест `structural_lint::`.
+- Гейт коммита VAC 5 прошёл: lint, rustfmt, clippy, 429 тестов и проверки Python.
+- На изменениях VAC 6 прошли сборка всех целей, `just lint`, `memory-check`, `config-check` и 98 тестов
+  `agent_hooks::`, `change_delivery::`, `project_setup::` и `project_config::`.
 
 ## Blockers
 
@@ -47,8 +49,7 @@ Revision: `d7b21fd4eb12305ab113747a9eecbe5c1cfe6b90`
 
 ## Next action
 
-VAC 6: по карте `agent_hooks` `guard.rs` и `requirements.rs`, `change_delivery/gate/selection.rs`,
-`command_runner/registry` → `tool_registry` с делением `check.rs`, `jobs/identity` → `jobs/pid_reuse_guard`,
-`project_config/settings` → `settings_schema`, `project_memory/evidence` → `check_evidence`,
-`initialization/init.rs` → `no_overwrite_init.rs`, затем `command_line` → `cli_dispatch`. Свободные ID: D173+,
-I022+, P132+, B128+ (B066 и D111 зарезервированы).
+VAC 7: по карте `command_runner/registry` → `tool_registry` с делением `check.rs` на `placement_check.rs` и
+`removal_records.rs`, `jobs/identity` → `jobs/pid_reuse_guard`, `project_memory/evidence` → `check_evidence` с
+`content.rs` → `input_fingerprint.rs`; затем `command_line` → `cli_dispatch`. Свободные ID: D173+, I022+, P132+,
+B128+ (B066 и D111 зарезервированы).

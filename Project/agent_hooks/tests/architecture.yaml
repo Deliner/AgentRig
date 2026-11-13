@@ -1,7 +1,7 @@
 purpose: Verify agent hook command guards, memory guidance and context reminder behavior
 files:
   mod.rs: Verify configuration recovery permissions, diagnostics and return to normal work
-  requirements.rs: Verify blocking delivery, merged ordering, order conflicts, shell classification and VAC check reminders
+  skill_requirements.rs: Verify blocking delivery, merged ordering, order conflicts, shell classification and VAC check reminders
   memory.rs: Verify memory edit guidance and session recovery context
   shell.rs: Verify shell invocation guards
   reminders.rs: Verify Codex and Claude token accounting, reminder scheduling and storage recovery

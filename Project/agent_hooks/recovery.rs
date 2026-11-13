@@ -1,6 +1,6 @@
 // DECISION: D045
 // DECISION: D046
-use super::{Event, context, deny, guard, input::text, paths, target};
+use super::{Event, context, deny, input::text, paths, shell_guard, target};
 use crate::{project_config, shared::diagnostics};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -12,10 +12,10 @@ pub(super) fn respond(root: &Path, event: &Value, error: &anyhow::Error) -> Opti
     match (text(event, "hook_event_name"), text(event, "tool_name")) {
         ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
         ("PreToolUse", "Bash" | "Shell" | "exec_command") => {
-            let command = guard::command(event);
-            let argv = guard::arguments(command).unwrap_or_default();
+            let command = shell_guard::command(event);
+            let argv = shell_guard::arguments(command).unwrap_or_default();
             let check = matches!(argv.as_slice(), [_, recipe] if recipe == "config-check");
-            let words = command.and_then(|command| guard::words(command).ok());
+            let words = command.and_then(|command| shell_guard::words(command).ok());
             let readable = [sources, vec![PathBuf::from(skill)]].concat();
             let read = match words.as_deref() {
                 Some([cat, files @ ..]) => cat == "cat" && within(root, event, files, &readable),

@@ -1,6 +1,6 @@
 // DECISION: D033
-mod init;
+mod no_overwrite_init;
 #[cfg(test)]
 mod tests;
 mod wizard;
-pub use init::run as init;
+pub use no_overwrite_init::run as init;

@@ -1,12 +1,12 @@
 use crate::project_memory::evidence::{Input, native_index};
 use crate::shared::console;
+mod affected_checks;
 mod check;
-mod selection;
 mod staged;
 #[cfg(test)]
 mod tests;
-pub use selection::AffectedMap;
-use selection::Scope;
+pub use affected_checks::AffectedMap;
+use affected_checks::Scope;
 // DECISION: D016
 // DECISION: D015
 // DECISION: D005
@@ -111,11 +111,11 @@ fn prepare(
     }
     Ok((None, Input::Worktree))
 }
-fn change_index(options: &Options<'_>) -> selection::Index {
+fn change_index(options: &Options<'_>) -> affected_checks::Index {
     if options.staged {
-        selection::Index::Staged
+        affected_checks::Index::Staged
     } else {
-        selection::Index::Working
+        affected_checks::Index::Working
     }
 }
 fn execute_checks(
@@ -126,7 +126,7 @@ fn execute_checks(
 ) -> Result<i32> {
     let files = files(context)?;
     let index = change_index(options);
-    let changes = selection::changes(root, index, options.base)?;
+    let changes = affected_checks::changes(root, index, options.base)?;
     for check in context
         .config
         .checks
@@ -158,7 +158,7 @@ fn affected(
     changes: &Scope<PathBuf>,
     attempt: &mut crate::project_memory::evidence::Attempt,
 ) -> Result<Scope<String>> {
-    let scope = selection::targets(check, changes)?;
+    let scope = affected_checks::targets(check, changes)?;
     if let Scope::Only(targets) = &scope {
         attempt.selective()?;
         console::stdout(format!("SELECT [{}]: {targets:?}", check.id));

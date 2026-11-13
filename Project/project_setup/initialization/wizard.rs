@@ -18,7 +18,7 @@ pub fn run(root: &Path) -> Result<i32> {
     };
     let config = &scaffold.config;
     let files = package::bundle(&scaffold)?;
-    super::init::prepare(&root, config, &files)?;
+    super::no_overwrite_init::prepare(&root, config, &files)?;
     console::stdout(format!(
         "Configuration for {root}:\n{config}\nFiles:\n{files}",
         root = root.display(),
@@ -30,11 +30,11 @@ pub fn run(root: &Path) -> Result<i32> {
     };
     let confirmed = matches!(answer.to_ascii_lowercase().as_str(), "yes" | "y");
     if confirmed {
-        super::init::prepare(&root, config, &files)?;
+        super::no_overwrite_init::prepare(&root, config, &files)?;
         crate::shared::fs_with_context::create_dir_all(&root)?;
-        super::init::install(&root, &scaffold, &files)?;
+        super::no_overwrite_init::install(&root, &scaffold, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
-        super::init::offer_ratchet(&root, config)?;
+        super::no_overwrite_init::offer_ratchet(&root, config)?;
         package::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()
