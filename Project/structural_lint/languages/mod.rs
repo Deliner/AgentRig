@@ -1,11 +1,11 @@
 mod manifest;
-mod measure;
+mod neutral_metrics;
 mod python;
 mod registry;
 mod rust;
 #[cfg(test)]
 mod tests;
-pub use measure::{Analysis, Code, Measurement, text};
+pub use neutral_metrics::{Analysis, Code, Measurement, text};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::in_test_context;
 

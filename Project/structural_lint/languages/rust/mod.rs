@@ -1,7 +1,7 @@
 mod blocking_async;
-mod context;
 mod control_flow;
 mod errors;
+mod exemptions;
 mod false_pass;
 mod naming;
 mod ownership;
@@ -12,7 +12,7 @@ mod super_reach;
 mod suppression;
 mod test_placement;
 mod unsafe_site;
-use crate::structural_lint::languages::measure::{
+use crate::structural_lint::languages::neutral_metrics::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, reparse, text,
 };
@@ -20,8 +20,8 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Pair;
 use crate::structural_lint::rule_identities::reference::Reference;
 use crate::structural_lint::rule_identities::structure::Structure;
-use context::in_debug_only_context;
-pub(crate) use context::in_test_context;
+use exemptions::in_debug_only_context;
+pub(crate) use exemptions::in_test_context;
 use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037

@@ -1,5 +1,5 @@
 use super::Analysis;
-use super::measure::{Measurement, justified_line};
+use super::neutral_metrics::{Measurement, justified_line};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use toml::Spanned;

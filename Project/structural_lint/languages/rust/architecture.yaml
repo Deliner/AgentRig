@@ -11,7 +11,7 @@ files:
   shell_command.rs: Rust shell launch whose command flag is followed by a value that is neither a literal nor a constant, so the value is parsed as shell code, lacking a reference on the line above
   false_pass.rs: Rust should_panic attributes that let a test pass on any panic, and cfg attributes that exclude an item from every test build
 directories:
-  context: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
+  exemptions: Classify where a Rust node sits, test-only, debug-only or async code, for the exemptions and scope of every Rust detector
   control_flow: Detect Rust control flow whose shape hides which loop it leaves, which case it handles or whether the length suffices
   errors: Detect Rust code where an error disappears without a trace instead of being handled or propagated
   ownership: Detect Rust resources, locks, process-global state and wrapped values whose lifetime or access bypasses an owner

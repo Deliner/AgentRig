@@ -1,5 +1,7 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, descendants, justified, text};
-use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
+use crate::structural_lint::languages::neutral_metrics::{
+    Code, Measurement, descendants, justified, text,
+};
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
 use tree_sitter::Node;

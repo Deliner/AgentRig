@@ -1,5 +1,5 @@
 mod silent_error;
-use crate::structural_lint::languages::measure::{Code, Measurement};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use tree_sitter::Node;
 
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {

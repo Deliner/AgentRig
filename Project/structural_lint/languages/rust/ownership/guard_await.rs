@@ -1,6 +1,6 @@
-use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
-use crate::structural_lint::languages::rust::context::async_code::scope_boundary;
-use crate::structural_lint::languages::rust::context::{in_test_context, last_segment};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::rust::exemptions::async_code::scope_boundary;
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
 use tree_sitter::Node;

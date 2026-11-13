@@ -1,6 +1,6 @@
-use super::context::async_code::in_async_context;
-use super::context::{in_test_context, last_segment};
-use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
+use super::exemptions::async_code::in_async_context;
+use super::exemptions::{in_test_context, last_segment};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;

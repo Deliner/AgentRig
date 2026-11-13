@@ -1,5 +1,5 @@
-use crate::structural_lint::languages::measure::{Code, descendants, text};
-use crate::structural_lint::languages::rust::context::{last_segment, type_name};
+use crate::structural_lint::languages::neutral_metrics::{Code, descendants, text};
+use crate::structural_lint::languages::rust::exemptions::{last_segment, type_name};
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 
