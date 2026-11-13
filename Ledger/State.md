@@ -13,9 +13,9 @@ P129 (B124) вернули 2026-11-12: пользователь не приня�
 ## Workspace
 
 Branch: `feature/structure-signal`, от master `3071695`.
-Revision: `7007ad0223b45aad22c212f4ab2a53962ac73292`
+Revision: `c17b7857a887f68dcbe3cd75fcb08d3df728f7b8`
 
-Установленный рантайм `7d93827`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
+Установленный рантайм `c17b785`, он же в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены,
 `feature/init-probe` не трогать.
 
@@ -24,8 +24,8 @@ Revision: `7007ad0223b45aad22c212f4ab2a53962ac73292`
 - VAC 5–23 на ветке: команда `lint-structure` v3 `2e53c39`, v4 `e3431fc` и v5 `b89fb25`, навыки v3–v5, диагностика
   после сравнения с v36 и пилоты; критерий каждого варианта записан в Delivery P129 до его прогонов. v3 и v4 критерий
   не выполнили: Sonnet 60,77 и 59,20 % при пороге 64,25 %.
-- VAC 24 записывает итог v5 и итог P129 в Delivery, карты v3–v5 в `Ledger/Assets/P129/runs/v3/`, `v4/` и `v5/` и
-  переносит P129 и B124 в Archive. Итог v5: Sonnet 63,8, 65,9 и 70,3 %, среднее 66,67 % не ниже 64,25 %, итог 0,510 выше 0,213, разброс
+- VAC 24 `c17b785` записал итог v5 и итог P129 в Delivery, карты v3–v5 в `Ledger/Assets/P129/runs/v3/`, `v4/` и
+  `v5/` и перенёс P129 и B124 в Archive; пин D051 ставит `c17b785` в `stable.txt`. Итог v5: Sonnet 63,8, 65,9 и 70,3 %, среднее 66,67 % не ниже 64,25 %, итог 0,510 выше 0,213, разброс
   0,050, F1 с v36 0,424; критерий выполнен. Выбраны `lint-structure` `b89fb25` с полным выводом и навык
   `Ledger/Assets/P129/skill-v5.md`. Копии прогонов без `target`, бинари и обёртки лежат в
   `/Users/admin/projects/structure-metrics-test/p129/`.
@@ -38,6 +38,7 @@ Revision: `7007ad0223b45aad22c212f4ab2a53962ac73292`
   байт в байт, `total 16.0 units 34`; разница с 17,2 у v3 — убранная строка `crowded`.
 - Прогоны `v5e1`–`v5e3`: сборка 0, `check ok`, аудит записал только временные файлы в `/tmp`; по четыре оценки
   Sonnet на дерево, ложных ролей нет.
+- Шлюз коммита `c17b785` прошёл; bootstrap установил `c17b785`, `agentrig 0.3.0`.
 
 ## Blockers
 
@@ -45,6 +46,5 @@ Revision: `7007ad0223b45aad22c212f4ab2a53962ac73292`
 
 ## Next action
 
-После коммита VAC 24 записать его хэш в `tooling/distribution/stable.txt`, выполнить bootstrap, закоммитить пин (D051)
-и выполнить `just feature-merge`, ветку сохранить. Свободные ID: D173+, I022+, P130+, B125+ (B066 и D111
-зарезервированы).
+Выполнить `just feature-merge` после коммита пина, ветку сохранить. Свободные ID: D173+, I022+, P130+, B125+ (B066
+и D111 зарезервированы).
