@@ -1,7 +1,6 @@
 mod clusters;
 mod corpus;
 mod scores;
-pub(super) mod tree;
 mod units;
 mod words;
 

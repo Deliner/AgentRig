@@ -1,8 +1,7 @@
 use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::{
-    config::{Rule, extension_matches},
-    inventory::Inventory,
-    selection,
+    rule_set::lint_config::{Rule, extension_matches},
+    targeting::{file_discovery::Inventory, lint_targets},
 };
 use anyhow::{Result, ensure};
 use std::{
@@ -18,7 +17,7 @@ pub struct Scope {
 
 impl Scope {
     pub fn new(rule: &Rule, inventory: &Inventory) -> Result<Self> {
-        let directories: BTreeSet<_> = selection::select(rule, inventory)?
+        let directories: BTreeSet<_> = lint_targets::select(rule, inventory)?
             .into_iter()
             .map(|selected| selected.path.to_path_buf())
             .collect();

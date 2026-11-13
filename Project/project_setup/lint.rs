@@ -2,8 +2,9 @@
 // DECISION: D036
 use super::cargo::Layout;
 use crate::project_config::Paths;
-use crate::structural_lint::rules::{architecture::RUST_SEED, structure::Structure};
-use crate::structural_lint::{catalog, rules};
+use crate::structural_lint::rule_identities;
+use crate::structural_lint::rule_identities::{contract_settings::RUST_SEED, structure::Structure};
+use crate::structural_lint::rule_set::capabilities;
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
@@ -11,10 +12,10 @@ use std::collections::BTreeSet;
 pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     let skills = &settings.paths.skills;
     let sources = &settings.paths.sources;
-    let mut rules: Vec<Value> = catalog::ALL
+    let mut rules: Vec<Value> = capabilities::ALL
         .iter()
         .filter(|kind| cataloged(**kind))
-        .map(|kind| catalog::example(*kind, skills, sources))
+        .map(|kind| capabilities::example(*kind, skills, sources))
         .collect();
     rules.push(architecture(skills, sources, rust));
     rules.extend(markdown(&settings.paths));
@@ -27,12 +28,12 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
     crate::shared::strict_yaml::encode(&config)
 }
 
-fn cataloged(kind: rules::Kind) -> bool {
+fn cataloged(kind: rule_identities::Kind) -> bool {
     match kind {
-        rules::Kind::Structure(
+        rule_identities::Kind::Structure(
             Structure::DirectoryArchitecture | Structure::LineWidth | Structure::ForbiddenFile,
         ) => false,
-        rules::Kind::Structure(
+        rule_identities::Kind::Structure(
             Structure::NonblankLines
             | Structure::DirectoryEntries
             | Structure::DumpName
@@ -40,10 +41,10 @@ fn cataloged(kind: rules::Kind) -> bool {
             | Structure::EmbeddedText
             | Structure::TestPlacement,
         )
-        | rules::Kind::ControlFlow(_)
-        | rules::Kind::Signature(_)
-        | rules::Kind::Ownership(_)
-        | rules::Kind::Reference(_) => true,
+        | rule_identities::Kind::ControlFlow(_)
+        | rule_identities::Kind::Signature(_)
+        | rule_identities::Kind::Ownership(_)
+        | rule_identities::Kind::Reference(_) => true,
     }
 }
 
@@ -66,8 +67,8 @@ fn markdown(paths: &Paths) -> Vec<Value> {
 }
 
 fn architecture(skills: &str, sources: &[String], rust: &Layout) -> Value {
-    let mut rule = catalog::example(
-        rules::Kind::Structure(Structure::DirectoryArchitecture),
+    let mut rule = capabilities::example(
+        rule_identities::Kind::Structure(Structure::DirectoryArchitecture),
         skills,
         sources,
     );

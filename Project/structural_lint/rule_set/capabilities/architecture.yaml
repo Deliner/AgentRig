@@ -1,0 +1,7 @@
+purpose: Describe and validate rule capabilities using the existing definitions and language handlers
+type: flat
+files:
+  mod.rs: Supported rules and parsing a configured rule kind name
+  language_support.rs: Language compatibility of rule kinds with the registered handlers and their selected extensions
+  describe.rs: Configuration examples and catalogue output
+directories: {}

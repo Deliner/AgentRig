@@ -1,15 +1,13 @@
-use super::architecture::{Rooted, runner};
-use super::structure::{self, Texts};
-use super::{Location, config};
-use super::{inventory, selection};
+use crate::shared::console;
 use crate::shared::paths::glob_patterns::globs;
-use crate::shared::{console, fs_with_context as fs};
-use crate::structural_lint::rules::{Kind, descriptor::TEST_CODE, structure::Structure};
-use anyhow::{Result, bail, ensure};
+use crate::structural_lint::Location;
+use crate::structural_lint::architecture::{Rooted, runner};
+use crate::structural_lint::rule_identities::{Kind, structure::Structure};
+use crate::structural_lint::rule_set::lint_config;
+use crate::structural_lint::targeting::{file_discovery, lint_targets};
+use anyhow::{Result, ensure};
 use serde_json::{Value, json};
 use std::path::{Component, Path, PathBuf};
-
-const UNMEASURED: [&str; 2] = ["**/.*", "**/target"];
 
 // DECISION: D062
 #[derive(Clone, Copy)]
@@ -25,58 +23,9 @@ pub fn inspection(command: &str) -> Option<Inspection> {
     match command {
         "lint-explain" => Some(run),
         "lint-edges" => Some(edges),
-        "lint-tree" => Some(tree),
+        "lint-tree" => Some(super::tree::run),
         _ => None,
     }
-}
-
-fn tree(location: Location<'_>, args: &[String]) -> Result<i32> {
-    let [path] = args else {
-        bail!("lint-tree PATH");
-    };
-    let path = selected_path(path)?;
-    let config = location.load()?;
-    let inventory = inventory::collect(location.root, &globs(&config.exclude)?)?;
-    ensure!(
-        inventory.directories.contains_key(&path),
-        "lint-tree PATH must name a directory of the lint inventory: {}",
-        path.display()
-    );
-    console::stdout(structure::tree::render(&inventory.directories, &path));
-    Ok(0)
-}
-
-pub fn lint_structure(args: &[String]) -> Result<i32> {
-    let [path] = args else {
-        bail!("lint-structure PATH");
-    };
-    let root = fs::canonicalize(path)?;
-    ensure!(
-        fs::metadata(&root)?.is_dir(),
-        "lint-structure PATH must name a directory: {path}"
-    );
-    let inventory = inventory::unversioned(&root, &globs(&UNMEASURED.map(String::from))?)?;
-    let tests = globs(&TEST_CODE.iter().map(|&p| p.into()).collect::<Vec<_>>())?;
-    let mut texts = Texts::default();
-    for file in &inventory.files {
-        let contract = file
-            .file_name()
-            .is_some_and(|name| name == "architecture.yaml");
-        let rust = file.extension().is_some_and(|extension| extension == "rs");
-        let production = rust && !tests.is_match(file);
-        if contract {
-            let directory = file.parent().unwrap_or(Path::new("")).to_path_buf();
-            texts
-                .contracts
-                .insert(directory, fs::read_to_string(root.join(file))?);
-        } else if production {
-            texts
-                .code
-                .insert(file.clone(), fs::read_to_string(root.join(file))?);
-        }
-    }
-    console::stdout(structure::report(&texts)?);
-    Ok(0)
 }
 
 fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
@@ -85,7 +34,7 @@ fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let root = location.root;
     let config = location.load()?;
     let excluded = crate::shared::paths::glob_patterns::globs(&config.exclude)?;
-    let inventory = inventory::collect(root, &excluded)?;
+    let inventory = file_discovery::collect(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
     let exclusion = if globally_excluded {
         Exclusion::Global
@@ -109,7 +58,7 @@ fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
     let root = location.root;
     let config = location.load()?;
-    let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
     let mut rows = Vec::new();
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
@@ -163,7 +112,7 @@ fn arguments(command: &str, args: &[String]) -> Result<(PathBuf, bool)> {
     Ok((selected_path(path)?, !flags.is_empty()))
 }
 
-fn selected_path(value: &str) -> Result<PathBuf> {
+pub(super) fn selected_path(value: &str) -> Result<PathBuf> {
     let path = Path::new(value);
     ensure!(
         !path.is_absolute()
@@ -183,22 +132,21 @@ fn selected_path(value: &str) -> Result<PathBuf> {
     })
 }
 fn explain(
-    rule: &config::Rule,
+    rule: &lint_config::Rule,
     path: &Path,
-    inventory: &inventory::Inventory,
+    inventory: &file_discovery::Inventory,
     exclusion: Exclusion,
 ) -> Result<Value> {
-    let selector = selection::Selector::new(rule)?;
+    let selector = lint_targets::Selector::new(rule)?;
     let mut reason = match (rule.enabled, exclusion) {
         (false, _) => Some("disabled"),
         (_, Exclusion::Global) => Some("global exclude matches"),
         _ => inventory_reason(rule, path, inventory).or_else(|| selector.reason(rule, path)),
     };
-    let architecture = rule.kind == super::rules::Kind::Structure(Structure::DirectoryArchitecture);
+    let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
     let selected_architecture = architecture && reason.is_none();
     if selected_architecture {
-        let lacks_sources =
-            !super::architecture::runner::contains_directory(rule, path, inventory)?;
+        let lacks_sources = !runner::contains_directory(rule, path, inventory)?;
         if lacks_sources {
             reason = Some("directory has no selected source files");
         }
@@ -212,7 +160,7 @@ fn explain(
     }
     let selected = reason.is_none();
     if selected {
-        let effective = selection::effective(rule, path, selector.overrides())?;
+        let effective = lint_targets::effective(rule, path, selector.overrides())?;
         row["warning"] = json!(effective.warning);
         row["error"] = json!(effective.error);
         row["level"] = json!(rule.level.map(|level| level.name()));
@@ -221,9 +169,9 @@ fn explain(
     Ok(row)
 }
 fn inventory_reason(
-    rule: &config::Rule,
+    rule: &lint_config::Rule,
     path: &Path,
-    inventory: &inventory::Inventory,
+    inventory: &file_discovery::Inventory,
 ) -> Option<&'static str> {
     let file = inventory.files.iter().any(|entry| entry == path);
     let directory = inventory.directories.contains_key(path);

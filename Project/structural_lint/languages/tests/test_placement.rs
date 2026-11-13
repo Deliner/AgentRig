@@ -1,6 +1,6 @@
 use super::super::analyze;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::structure::Structure;
 use std::path::Path;
 
 fn placements(source: &str) -> Vec<String> {

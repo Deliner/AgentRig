@@ -1,8 +1,8 @@
 use super::context::async_code::in_async_context;
 use super::context::{in_test_context, last_segment};
 use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D118

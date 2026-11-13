@@ -34,8 +34,8 @@ fn run() -> Result<i32> {
         "hook" => hook(&root),
         "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree"
         | "lint-baseline" => run_lint(&root, &mut args, &command),
-        "lint-rules" | "lint-rule" => structural_lint::cli::discovery(&command, &args),
-        "lint-structure" => structural_lint::explain::lint_structure(&args),
+        "lint-rules" | "lint-rule" => structural_lint::reporting::cli::discovery(&command, &args),
+        "lint-structure" => structural_lint::reporting::tree::lint_structure(&args),
         _ => bail!("unknown command {command:?}; run agentrig --help for the command table"),
     }
 }
@@ -97,7 +97,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         None => Ok(root.join("lint.yaml")),
     };
     // DECISION: D143
-    let inspection = structural_lint::explain::inspection(command);
+    let inspection = structural_lint::reporting::explain::inspection(command);
     // DECISION: D123
     let baseline = command == "lint-baseline";
     anyhow::ensure!(
@@ -120,7 +120,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     if baseline {
         return structural_lint::baseline::record(location);
     }
-    structural_lint::cli::execute(location, args, structural_lint::Mode::of(command))
+    structural_lint::reporting::cli::execute(location, args, structural_lint::Mode::of(command))
 }
 fn unresolved(root: &Path, command: &str, args: &[String], error: anyhow::Error) -> Result<i32> {
     let invocation: Vec<String> = std::iter::once(command.to_owned())
@@ -131,7 +131,7 @@ fn unresolved(root: &Path, command: &str, args: &[String], error: anyhow::Error)
         root,
         config: &path,
     };
-    structural_lint::cli::failure(location, error, &invocation)
+    structural_lint::reporting::cli::failure(location, error, &invocation)
 }
 fn project_lint(root: &Path) -> Result<PathBuf> {
     let context = project_config::Context::load(root)?;

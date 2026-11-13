@@ -1,8 +1,8 @@
-use crate::structural_lint::rules::control_flow::ControlFlow;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::reference::Reference;
-use crate::structural_lint::rules::signature::Signature;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rule_identities::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::structure::Structure;
 use std::collections::BTreeSet;
 use std::path::Path;
 use tree_sitter::{Node, Tree};

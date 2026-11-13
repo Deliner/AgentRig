@@ -57,10 +57,10 @@ Analysis is syntactic: no type checking, macro expansion, decorator alias resolu
 Repository policy and installed defaults block every language rule. Do not add exceptions to turn the gate green;
 change policy through a recorded decision.
 
-`structural_lint/rules` owns each kind's identity, target, metric, parameters, skill and defaults; the catalog,
-validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection functions to
-extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests with accepted
-and rejected examples.
+`structural_lint/rule_identities` owns each kind's identity, target, metric, parameters, skill and defaults;
+the catalog, validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection
+functions to extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests
+with accepted and rejected examples.
 
 The release build also produces `agentrig-lint`, which assesses another project without installing the worker:
 

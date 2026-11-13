@@ -1,9 +1,11 @@
-use super::catalog as rules;
+mod repair_guidance;
+
+use super::capabilities;
 pub use crate::shared::diagnostics::actionable_findings::Level;
 use crate::shared::{diagnostics::skill_refs, paths::glob_patterns::globs};
-use crate::structural_lint::rules::control_flow::{ControlFlow, Junctions};
-use crate::structural_lint::rules::ownership::{Ownership, Pair};
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rule_identities::control_flow::{ControlFlow, Junctions};
+use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
+use crate::structural_lint::rule_identities::structure::Structure;
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -30,7 +32,7 @@ pub struct Rule {
     #[serde(default = "enabled_by_default")]
     pub enabled: bool,
     pub id: String,
-    pub kind: rules::Kind,
+    pub kind: capabilities::Kind,
     pub target: String,
     pub include: Vec<String>,
     #[serde(default)]
@@ -45,7 +47,7 @@ pub struct Rule {
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub architecture: Option<super::rules::architecture::Settings>,
+    pub architecture: Option<crate::structural_lint::rule_identities::contract_settings::Settings>,
     // DECISION: D156
     #[serde(default, skip_serializing_if = "Junctions::mixed")]
     pub junctions: Junctions,
@@ -102,22 +104,6 @@ impl Config {
         }
         single_pairs(&self.rules)
     }
-    pub fn resolve_guidance(&mut self, resources: &Path) {
-        self.config_skill = resources
-            .join(&self.config_skill)
-            .to_string_lossy()
-            .into_owned();
-        for rule in &mut self.rules {
-            rule.warning_skill = resources
-                .join(&rule.warning_skill)
-                .to_string_lossy()
-                .into_owned();
-            rule.error_skill = resources
-                .join(&rule.error_skill)
-                .to_string_lossy()
-                .into_owned();
-        }
-    }
 }
 // DECISION: D156
 fn single_pairs(rules: &[Rule]) -> Result<()> {
@@ -128,12 +114,6 @@ fn single_pairs(rules: &[Rule]) -> Result<()> {
     Ok(())
 }
 impl Rule {
-    pub fn skill(&self, level: Level) -> String {
-        match level {
-            Level::Warning => self.warning_skill.clone(),
-            Level::Error => self.error_skill.clone(),
-        }
-    }
     fn validate(&self, root: &Path) -> Result<()> {
         let incompatible_target = self.kind.descriptor().target != self.target;
         if incompatible_target {
@@ -145,14 +125,15 @@ impl Rule {
         }
         globs(&self.include)?;
         globs(&self.exclude)?;
-        let architecture = self.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
+        let architecture =
+            self.kind == capabilities::Kind::Structure(Structure::DirectoryArchitecture);
         let extension_target = if architecture { "file" } else { &self.target };
         validate_extensions(&self.extensions, extension_target)?;
         self.validate_architecture()?;
         self.validate_junctions()?;
         self.validate_pairs()?;
-        rules::validate_extensions(self.kind, &self.extensions)?;
-        rules::validate_includes(self.kind, &self.include)?;
+        capabilities::validate_extensions(self.kind, &self.extensions)?;
+        capabilities::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
         skill_refs::reference(root, &self.warning_skill)?;
         skill_refs::reference(root, &self.error_skill)?;
@@ -163,7 +144,7 @@ impl Rule {
     }
     fn validate_severity(&self) -> Result<()> {
         match self.kind.descriptor().parameters {
-            rules::Parameters::Level { .. } => {
+            capabilities::Parameters::Level { .. } => {
                 let thresholds =
                     self.warning.is_some() || self.error.is_some() || !self.overrides.is_empty();
                 let invalid_level = self.level.is_none() || thresholds;
@@ -175,7 +156,7 @@ impl Rule {
                     );
                 }
             }
-            rules::Parameters::Thresholds { .. } => {
+            capabilities::Parameters::Thresholds { .. } => {
                 let has_level = self.level.is_some();
                 if has_level {
                     bail!("{}: numeric rules use thresholds, not level", self.id);
@@ -188,7 +169,8 @@ impl Rule {
         Ok(())
     }
     fn validate_architecture(&self) -> Result<()> {
-        let architecture = self.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
+        let architecture =
+            self.kind == capabilities::Kind::Structure(Structure::DirectoryArchitecture);
         if architecture {
             let settings = self.architecture.as_ref().ok_or_else(|| {
                 anyhow::anyhow!(
@@ -213,7 +195,7 @@ impl Rule {
     }
     // DECISION: D156
     fn validate_junctions(&self) -> Result<()> {
-        let boolean = self.kind == rules::Kind::ControlFlow(ControlFlow::BooleanExpression);
+        let boolean = self.kind == capabilities::Kind::ControlFlow(ControlFlow::BooleanExpression);
         let single = !self.junctions.mixed();
         let misplaced = single && !boolean;
         if misplaced {
@@ -223,7 +205,7 @@ impl Rule {
     }
     // DECISION: D156
     fn validate_pairs(&self) -> Result<()> {
-        let paired = self.kind == rules::Kind::Ownership(Ownership::PairedCalls);
+        let paired = self.kind == capabilities::Kind::Ownership(Ownership::PairedCalls);
         match (&self.pairs, paired) {
             (Some(pairs), true) => {
                 let valid = !pairs.is_empty() && pairs.iter().all(Pair::valid);
@@ -247,8 +229,8 @@ impl Rule {
         }
         globs(&entry.include)?;
         validate_extensions(&entry.extensions, &self.target)?;
-        rules::validate_extensions(self.kind, &entry.extensions)?;
-        rules::validate_includes(self.kind, &entry.include)?;
+        capabilities::validate_extensions(self.kind, &entry.extensions)?;
+        capabilities::validate_includes(self.kind, &entry.include)?;
         if let (Some(warning), Some(error)) = (entry.warning, entry.error) {
             let invalid_order = warning >= error;
             if invalid_order {

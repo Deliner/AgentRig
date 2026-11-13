@@ -1,5 +1,5 @@
 // DECISION: D036
-use super::{config::Config, evaluation::evaluate};
+use super::{evaluation::evaluate, rule_set::lint_config::Config};
 use std::fs;
 
 mod architecture;

@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rule_identities::ownership::Ownership;
 
 #[test]
 fn rust_flags_one_visible_field_per_struct_whose_constructor_checks_it() {

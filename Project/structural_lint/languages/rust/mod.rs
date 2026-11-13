@@ -16,10 +16,10 @@ use crate::structural_lint::languages::measure::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, reparse, text,
 };
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Pair;
-use crate::structural_lint::rules::reference::Reference;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Pair;
+use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::structure::Structure;
 use context::in_debug_only_context;
 pub(crate) use context::in_test_context;
 use tree_sitter::Node;

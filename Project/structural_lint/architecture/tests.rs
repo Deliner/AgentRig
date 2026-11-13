@@ -31,7 +31,9 @@ fn features(contracts: &[(&str, &str)], root: Option<&str>, edges: &[Dependency]
         write(temp.path(), directory, &format!("purpose: Test\n{extra}"));
     }
     let exclusions = crate::shared::paths::glob_patterns::globs(&[]).unwrap();
-    let inventory = crate::structural_lint::inventory::collect(temp.path(), &exclusions).unwrap();
+    let inventory =
+        crate::structural_lint::targeting::file_discovery::collect(temp.path(), &exclusions)
+            .unwrap();
     let directories = contracts.iter().map(|(path, _)| path.into()).collect();
     let Loaded {
         contracts: loaded,

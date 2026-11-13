@@ -1,16 +1,12 @@
 pub mod architecture;
 pub mod baseline;
-pub mod catalog;
-pub mod cli;
-// DECISION: D007
-pub mod config;
 mod evaluation;
-pub mod explain;
-pub mod inventory;
 pub mod languages;
-pub mod rules;
-mod selection;
-mod structure;
+pub mod reporting;
+pub mod rule_identities;
+// DECISION: D007
+pub mod rule_set;
+pub mod targeting;
 #[cfg(test)]
 mod tests;
 
@@ -19,9 +15,11 @@ pub use crate::shared::diagnostics::actionable_findings::Diagnostic;
 use crate::shared::diagnostics::actionable_findings::{Level, print_diagnostics};
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::glob_patterns::globs;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::rule_identities::structure::Structure;
 use anyhow::Result;
+use rule_set::lint_config;
 use std::path::Path;
+use targeting::{file_discovery, lint_targets};
 
 // DECISION: D062
 #[derive(Clone, Copy)]
@@ -60,8 +58,8 @@ pub struct Location<'a> {
     pub config: &'a Path,
 }
 impl Location<'_> {
-    pub fn load(self) -> Result<config::Config> {
-        let mut config: config::Config = crate::shared::strict_yaml::read(self.config)?;
+    pub fn load(self) -> Result<lint_config::Config> {
+        let mut config: lint_config::Config = crate::shared::strict_yaml::read(self.config)?;
         let directory = self.config.parent().unwrap_or(self.root);
         let external = config
             .skill_root
@@ -155,11 +153,11 @@ fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
     location.load().and_then(|config| {
         let config_check = mode.config_check();
         if config_check {
-            let inventory = inventory::collect(root, &globs(&config.exclude)?)?;
+            let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
-                selection::select(rule, &inventory)?;
+                lint_targets::select(rule, &inventory)?;
                 let architecture =
-                    rule.kind == rules::Kind::Structure(Structure::DirectoryArchitecture);
+                    rule.kind == rule_identities::Kind::Structure(Structure::DirectoryArchitecture);
                 if architecture {
                     architecture::runner::validate(rule, &inventory)?;
                 }

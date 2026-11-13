@@ -3,7 +3,7 @@
 // DECISION: D044
 use super::{Dependency, EnvironmentUse, Issue};
 use crate::shared::fs_with_context as fs;
-use crate::structural_lint::rules::architecture::FILENAME;
+use crate::structural_lint::rule_identities::contract_settings::FILENAME;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
@@ -92,7 +92,7 @@ impl Contracts {
     pub fn check_inventory(
         &self,
         root: &Path,
-        inventory: &crate::structural_lint::inventory::Inventory,
+        inventory: &crate::structural_lint::targeting::file_discovery::Inventory,
     ) -> Vec<Issue> {
         let mut issues = Vec::new();
         for (path, declaration) in &self.declarations {
@@ -105,7 +105,7 @@ impl Contracts {
     pub fn check_features(
         &self,
         root: Option<&Path>,
-        inventory: &crate::structural_lint::inventory::Inventory,
+        inventory: &crate::structural_lint::targeting::file_discovery::Inventory,
         edges: &[Dependency],
     ) -> Vec<Issue> {
         super::features::check(root, &self.declarations, inventory, edges)

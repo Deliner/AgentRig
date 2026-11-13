@@ -1,6 +1,6 @@
 use super::measured;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 
 const SECRET_DEBUG: Kind = Kind::Signature(Signature::SecretDebug);
 const UNCHECKED: Kind = Kind::Signature(Signature::UncheckedDeserialize);

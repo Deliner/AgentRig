@@ -1,12 +1,18 @@
-use super::Location;
 use crate::shared::console;
 use crate::shared::shared_options::take_option;
-use crate::structural_lint::rules::structure::Structure;
+use crate::structural_lint::Location;
+use crate::structural_lint::rule_identities;
+use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_set::capabilities;
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
 
 // DECISION: D049
-pub fn execute(location: Location<'_>, args: &[String], mode: super::Mode) -> Result<i32> {
+pub fn execute(
+    location: Location<'_>,
+    args: &[String],
+    mode: crate::structural_lint::Mode,
+) -> Result<i32> {
     ensure!(
         args.iter()
             .all(|arg| matches!(arg.as_str(), "--json" | "--warnings")),
@@ -14,13 +20,13 @@ pub fn execute(location: Location<'_>, args: &[String], mode: super::Mode) -> Re
     );
     let json = args.iter().any(|arg| arg == "--json");
     let format = if json {
-        super::Format::Json
+        crate::structural_lint::Format::Json
     } else {
-        super::Format::Text
+        crate::structural_lint::Format::Text
     };
-    super::run_output(
+    crate::structural_lint::run_output(
         location,
-        super::Output {
+        crate::structural_lint::Output {
             format,
             warnings: args.iter().any(|arg| arg == "--warnings"),
             mode,
@@ -34,7 +40,7 @@ pub fn failure(location: Location<'_>, error: anyhow::Error, invocation: &[Strin
     if text {
         return Err(error);
     }
-    let mut finding = super::configuration_error(location.config, error);
+    let mut finding = crate::structural_lint::configuration_error(location.config, error);
     finding.rerun = crate::shared::diagnostics::rerun(location.root, invocation);
     console::stdout(serde_json::to_string(&[finding])?);
     Ok(2)
@@ -75,20 +81,20 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     if let Some(inspect) = super::explain::inspection(&command) {
         return inspect(location, &args);
     }
-    execute(location, &args, super::Mode::of(&command))
+    execute(location, &args, crate::structural_lint::Mode::of(&command))
 }
 
 pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let catalog = command == "lint-rules";
     if catalog {
         ensure!(args.is_empty(), "lint-rules takes no arguments");
-        console::stdout(super::catalog::catalog());
+        console::stdout(capabilities::catalog());
         return Ok(0);
     }
     let kind = args
         .first()
         .ok_or_else(|| anyhow::anyhow!("lint-rule requires a rule kind"))?;
-    let kind: super::rules::Kind = serde_json::from_value(serde_json::json!(kind))?;
+    let kind: rule_identities::Kind = serde_json::from_value(serde_json::json!(kind))?;
     ensure!(
         args.iter()
             .skip(1)
@@ -99,17 +105,17 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let json = args.iter().any(|arg| arg == "--json");
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
-            "rules": [super::catalog::example(kind, ".agents/skills", &["src/**".into()])]});
+            "rules": [capabilities::example(kind, ".agents/skills", &["src/**".into()])]});
         console::stdout(crate::shared::strict_yaml::encode(&value)?);
     } else if json {
-        console::stdout(super::catalog::describe(kind));
+        console::stdout(capabilities::describe(kind));
     } else {
         print_rule(kind);
     }
     Ok(0)
 }
 
-fn print_rule(kind: super::rules::Kind) {
+fn print_rule(kind: rule_identities::Kind) {
     let descriptor = kind.descriptor();
     console::stdout(format!(
         "{kind}: {metric}\nTarget: {target}\nRepair skill: {skill}\nParameters: {parameters}",
@@ -118,15 +124,15 @@ fn print_rule(kind: super::rules::Kind) {
         skill = descriptor.skill,
         parameters = descriptor.parameters.describe()
     ));
-    let syntax = super::catalog::syntax(kind);
+    let syntax = capabilities::syntax(kind);
     if syntax {
-        console::stdout(format!("Languages: {}", super::catalog::support(kind)));
+        console::stdout(format!("Languages: {}", capabilities::support(kind)));
     }
-    let architecture = kind == super::rules::Kind::Structure(Structure::DirectoryArchitecture);
+    let architecture = kind == rule_identities::Kind::Structure(Structure::DirectoryArchitecture);
     if architecture {
         console::stdout(format!(
             "Architecture settings and limits: {}",
-            super::architecture::Settings::describe()
+            crate::structural_lint::architecture::Settings::describe()
         ));
     }
     console::stdout(format!(

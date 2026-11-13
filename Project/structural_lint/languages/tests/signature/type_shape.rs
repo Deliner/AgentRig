@@ -1,6 +1,6 @@
 use super::measured;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 
 const ALIAS: Kind = Kind::Signature(Signature::PrimitiveAlias);
 const OPTION: Kind = Kind::Signature(Signature::AmbiguousOption);

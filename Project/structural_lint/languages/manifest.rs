@@ -1,7 +1,7 @@
 use super::Analysis;
 use super::measure::{Measurement, justified_line};
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::reference::Reference;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::reference::Reference;
 use toml::Spanned;
 use toml::de::{DeString, DeTable, DeValue};
 

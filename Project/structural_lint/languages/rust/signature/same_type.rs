@@ -2,8 +2,8 @@ use crate::structural_lint::languages::measure::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::context::{
     in_test_context, justified_item, trait_impl_member,
 };
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 

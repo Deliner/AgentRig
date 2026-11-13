@@ -1,4 +1,4 @@
-pub mod architecture;
+pub mod contract_settings;
 pub mod control_flow;
 pub(super) mod descriptor;
 pub mod kind;

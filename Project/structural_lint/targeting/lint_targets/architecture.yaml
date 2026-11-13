@@ -1,0 +1,6 @@
+purpose: Select configured lint targets and compute their effective thresholds and overrides
+type: flat
+files:
+  mod.rs: Inclusion reasons and selection of configured targets
+  threshold_overrides.rs: Language compatibility and ordered threshold overrides of a selected target
+directories: {}

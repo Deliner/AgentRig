@@ -1,0 +1,8 @@
+purpose: Parse lint commands and print rule discovery, explanations, measured edges and the tree and structure reports
+files:
+  mod.rs: Declarations of the command, explanation, tree and structure report parts
+  cli.rs: Embedded and standalone command arguments and rule discovery output
+  explain.rs: Explain why a configured rule selects or excludes a target and list measured directory edges
+  tree.rs: Print the lint inventory under a directory as a box-drawing tree of names and read the code and contracts of a Rust tree for its structure score
+directories:
+  structure: Score how clearly the names of a Rust tree show the code beneath them

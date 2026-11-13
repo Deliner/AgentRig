@@ -9,7 +9,7 @@ pub use measure::{Analysis, Code, Measurement, text};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::in_test_context;
 
-use crate::structural_lint::rules::ownership::Pair;
+use crate::structural_lint::rule_identities::ownership::Pair;
 use anyhow::{Context, Result};
 use std::path::Path;
 

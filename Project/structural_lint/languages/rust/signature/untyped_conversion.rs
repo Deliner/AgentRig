@@ -1,7 +1,7 @@
 use crate::structural_lint::languages::measure::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::context::{in_test_context, last_segment, type_name};
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::signature::Signature;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
 
 const CONVERSIONS: [&str; 6] = ["parse", "into", "try_into", "sum", "product", "collect"];

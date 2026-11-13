@@ -1,7 +1,7 @@
 use crate::structural_lint::languages::measure::{Code, Measurement, justified, reparse, text};
 use crate::structural_lint::languages::rust::context::in_test_context;
-use crate::structural_lint::rules::kind::Kind;
-use crate::structural_lint::rules::ownership::Ownership;
+use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::ownership::Ownership;
 use std::path::Path;
 use tree_sitter::Node;
 
