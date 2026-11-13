@@ -1,4 +1,4 @@
-use super::super::analyze;
+use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
 use crate::structural_lint::rule_identities::reference::Reference;

@@ -1,6 +1,8 @@
-purpose: Verify Rust measurements of test modules outside the test locations, tests that pass on any panic and items no test build compiles, from native analysis
+purpose: Verify Rust measurements of test modules outside the test locations, tests that pass on any panic or without a check and tests that share a fixed port or path, from native analysis
 files:
   mod.rs: Declare the test-code measurement test modules and filter one reference kind from native analysis
+  conditional_check.rs: Rust tests whose every check sits in an if without else, with else branches, unconditional checks, tests without checks, helpers and justified tests skipped, from native analysis
+  shared_resource.rs: Rust tests that bind a fixed port or write a fixed path, with port zero, named, hostless, computed, read, justified and product resources skipped, from native analysis
   test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
   test_substitution.rs: Rust items whose cfg excludes every test build, with cfg_attr, partial, other-flag, statement, field, justified and test-only attributes skipped, from native analysis
   untargeted_panic.rs: Rust should_panic attributes without expected, with an expected argument, a = value or a reference skipped, from native analysis

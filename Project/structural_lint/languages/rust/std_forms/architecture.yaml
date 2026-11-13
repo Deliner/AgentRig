@@ -1,0 +1,11 @@
+purpose: Detect Rust operators and standard library calls whose behavior differs from what the form appears to state, where a direct standard form states the intent
+type: flat
+files:
+  mod.rs: Dispatch comparisons, calls and identifiers to the standard-form detectors, report each form outside test code lacking a reference on the line above, and share method, sole argument and parenthesis helpers
+  superseded_form.rs: Rust forms the rig's toolchain replaces directly, a strip_prefix or strip_suffix falling back to its receiver, an Infallible type and a Vec collected from a map over 0..n, lacking a reference on the line above
+  remainder_sign.rs: Rust remainder compared for equality with a nonzero numeric literal or ordered against any numeric literal, which reads the sign of a negative dividend
+  epsilon_tolerance.rs: Rust comparison whose operand is f32::EPSILON or f64::EPSILON, an absolute tolerance that does not scale with the compared values
+  partial_order.rs: Rust partial_cmp whose None for NaN is replaced by a fixed Ordering through unwrap_or or unwrap_or_else
+  unstable_output.rs: Rust values and orders the standard library leaves unspecified across versions or runs, a DefaultHasher expression path, a type_name or type_name_of_val call and an unstable sort by a comparator or key
+  front_removal.rs: Rust remove(0) that shifts every remaining element
+  dotted_extension.rs: Rust with_extension or set_extension given a string literal that starts with a dot, which doubles the dot

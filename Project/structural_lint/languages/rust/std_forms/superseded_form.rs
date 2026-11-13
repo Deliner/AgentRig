@@ -1,3 +1,4 @@
+use super::{method, sole_argument};
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -106,20 +107,4 @@ fn from_zero(parenthesized: Node<'_>, source: Code<'_>) -> bool {
         start.kind() == "integer_literal" && matches!(text(start, source), "0" | "0usize")
     });
     exclusive && zero
-}
-fn method<'t, 's>(call: Node<'t>, source: Code<'s>) -> Option<(&'s str, Node<'t>)> {
-    let invoked = call.kind() == "call_expression";
-    let function = call.child_by_field_name("function").filter(|_| invoked)?;
-    let field = function.child_by_field_name("field")?;
-    Some((text(field, source), function.child_by_field_name("value")?))
-}
-fn sole_argument(call: Node<'_>) -> Option<Node<'_>> {
-    let arguments = call.child_by_field_name("arguments")?;
-    let mut cursor = arguments.walk();
-    let mut values = arguments
-        .named_children(&mut cursor)
-        .filter(|argument| !argument.is_extra());
-    let first = values.next()?;
-    let single = values.next().is_none();
-    single.then_some(first)
 }

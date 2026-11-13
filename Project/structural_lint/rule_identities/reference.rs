@@ -1,5 +1,6 @@
 use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
+use super::std_form;
 use crate::shared::diagnostics::actionable_findings::Level as Severity;
 use serde::{Deserialize, Serialize};
 
@@ -27,6 +28,20 @@ pub enum Reference {
     TestSubstitution,
     InterpolatedShell,
     SupersededForm,
+    RemainderSign,
+    PartialOrderFallback,
+    EpsilonTolerance,
+    UnstableValue,
+    UnstableSort,
+    FrontRemoval,
+    DottedExtension,
+    TransmuteCall,
+    UnboundedSend,
+    UncheckedCall,
+    ConditionalCheck,
+    FixedTestPort,
+    FixedTestPath,
+    SilencedBinding,
     #[serde(rename = "comment-reference")]
     Comment,
 }
@@ -52,7 +67,21 @@ impl Reference {
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
             Self::InterpolatedShell => &INTERPOLATEDSHELL,
-            Self::SupersededForm => &SUPERSEDEDFORM,
+            Self::SupersededForm => &std_form::SUPERSEDEDFORM,
+            Self::RemainderSign => &std_form::REMAINDERSIGN,
+            Self::PartialOrderFallback => &std_form::PARTIALORDERFALLBACK,
+            Self::EpsilonTolerance => &std_form::EPSILONTOLERANCE,
+            Self::UnstableValue => &std_form::UNSTABLEVALUE,
+            Self::UnstableSort => &std_form::UNSTABLESORT,
+            Self::FrontRemoval => &std_form::FRONTREMOVAL,
+            Self::DottedExtension => &std_form::DOTTEDEXTENSION,
+            Self::TransmuteCall => &TRANSMUTECALL,
+            Self::UnboundedSend => &UNBOUNDEDSEND,
+            Self::UncheckedCall => &UNCHECKEDCALL,
+            Self::ConditionalCheck => &CONDITIONALCHECK,
+            Self::FixedTestPort => &FIXEDTESTPORT,
+            Self::FixedTestPath => &FIXEDTESTPATH,
+            Self::SilencedBinding => &SILENCEDBINDING,
             Self::Comment => &COMMENTREFERENCE,
         }
     }
@@ -256,11 +285,11 @@ const BLOCKINGINASYNC: Descriptor = Descriptor {
     default_id: "blocking-in-async",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust call whose path ends in thread::sleep, a bare sleep imported from a thread module in the same file, or a function or method named block_on, inside an async fn or async block with no closure or ordinary fn between the call and that boundary, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    metric: "every Rust call whose path ends in thread::sleep, a bare sleep imported from a thread module in the same file, or a function or method named block_on, and every call not awaited whose path, after an optional std::, starts with fs::, net::TcpStream::, net::TcpListener:: or net::UdpSocket::, inside an async fn or async block with no closure or ordinary fn between the call and that boundary, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
     skill: "await-not-block",
     parameters: Parameters::Level {
         default: Severity::Warning,
-        violation: "a blocking thread::sleep or nested block_on inside async code stalls the executor thread, freezes every task on a single-threaded runtime and panics inside a tokio runtime; await an async sleep or the future itself, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
+        violation: "a blocking thread::sleep, std fs or std net call or a nested block_on inside async code stalls the executor thread and freezes every task on a single-threaded runtime, and block_on panics inside a tokio runtime; await an async sleep, the future itself or the runtime's async file or socket call, move blocking work into spawn_blocking, or put a DECISION: or INVARIANT: reference on the line directly above the call to justify it",
     },
 };
 // DECISION: D169
@@ -299,17 +328,81 @@ const INTERPOLATEDSHELL: Descriptor = Descriptor {
         violation: "a value substituted into a shell command string is parsed as shell code, so a space, ; or $( ) in a path or name changes or extends the command; run the program directly with each value as its own argument, keep the script literal and pass values apart from it, as positional parameters of a POSIX shell or fish or environment variables read by PowerShell, or put a DECISION: or INVARIANT: reference on the line directly above the call",
     },
 };
-// DECISION: D177
-// DECISION: D178
-const SUPERSEDEDFORM: Descriptor = Descriptor {
-    default_id: "superseded-form",
-    exclude: &[],
+const TRANSMUTECALL: Descriptor = Descriptor {
+    default_id: "transmute-call",
+    exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust .strip_prefix(p).unwrap_or(x) or .strip_suffix(p).unwrap_or(x) call whose x, or the operand of &x, has the text of the stripped receiver, every Infallible type name, and every .collect() of a .map(f) over a parenthesized range from 0 or 0usize up to n whose turbofish or let type is Vec or that is the last expression of the body of, or the value of a return in, the nearest function or closure whose return type is Vec, test code included, outside macro arguments, without a DECISION: or INVARIANT: reference comment on the line directly above it",
-    skill: "use-the-current-form",
+    metric: "every Rust call of a path ending in transmute or transmute_copy, with or without a turbofish, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "convert-checked",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "the rig's Rust replaces this form with a direct standard one that states the intent in one call or name; write trim_prefix(p) or trim_suffix(p), ! or Vec::from_fn(n, f), as the finding names, or put a DECISION: or INVARIANT: reference on the line directly above it",
+        violation: "transmute reinterprets the bits of one type as another and checks neither the validity of the value nor the layout or the lifetime, so a type changed later turns the call into undefined behavior silently; use a checked conversion such as from_bits, to_bits, from_ne_bytes, an as cast or TryFrom, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const UNBOUNDEDSEND: Descriptor = Descriptor {
+    default_id: "unbounded-send",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust unsafe impl of Send or Sync with a type parameter bounded by neither Send nor Sync in its parameter list or a where clause, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the impl",
+    skill: "bound-the-parameter",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an unsafe impl of Send or Sync for a generic type vouches for every type parameter, also one such as Rc or Cell that must not cross or be shared between threads, and the compiler stops checking it; bound the parameter by Send or Sync as the impl requires, or put a DECISION: or INVARIANT: reference on the line directly above the impl",
+    },
+};
+const UNCHECKEDCALL: Descriptor = Descriptor {
+    default_id: "unchecked-call",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust call of a function or method whose name ends in _unchecked or starts with unchecked_, except one with one or more arguments that are all literals and one inside a function whose name has the same form, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "use-the-checked-twin",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "an unchecked call skips the check of its precondition, so a wrong index, length or encoding becomes undefined behavior instead of a panic or an error; call the checked twin and handle its None or Err, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the precondition",
+    },
+};
+const CONDITIONALCHECK: Descriptor = Descriptor {
+    default_id: "conditional-check",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust function with an attribute whose path ends in test that holds at least one assert!, assert_eq! or assert_ne!, closures included, each of them in a branch of an if or if let whose chain does not end in else, without a DECISION: or INVARIANT: reference comment on the line directly above the function",
+    skill: "check-unconditionally",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a test whose every check sits in an if without else passes without checking anything when the condition is false; assert the condition itself, bind the value with let-else and panic in the else, or put a DECISION: or INVARIANT: reference on the line directly above the function",
+    },
+};
+const FIXEDTESTPORT: Descriptor = Descriptor {
+    default_id: "fixed-test-port",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust call in test code of a path ending in TcpListener::bind or UdpSocket::bind whose argument is a string literal with a nonzero port after its last colon or a tuple whose second element is a nonzero integer literal, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "bind-port-zero",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a fixed port is shared by every test and process on the machine, so parallel runs collide and the test fails or talks to a stranger; bind port 0 and read the assigned port with local_addr, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const FIXEDTESTPATH: Descriptor = Descriptor {
+    default_id: "fixed-test-path",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust call in test code of a path ending in File::create, fs::write, fs::create_dir or fs::create_dir_all whose first argument is a string literal, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "write-in-a-tempdir",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a fixed path is shared by every test run, so parallel tests overwrite each other's files and the leftovers of a failed run change the next one; write into a fresh temporary directory owned by the test, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const SILENCEDBINDING: Descriptor = Descriptor {
+    default_id: "silenced-binding",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust let _ = x; without a type where x is one identifier that is not all upper case, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "remove-the-binding",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "let _ = x only silences the unused warning of x, so a value computed for nothing or a parameter the code forgot to use stays hidden; use the value, remove it with the code that computes it, name a parameter that a trait or callback dictates with a leading underscore, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
 // DECISION: D037

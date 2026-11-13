@@ -22,6 +22,7 @@ pub enum Signature {
     ConstantDefault,
     PositionalFlag,
     UntypedConversion,
+    TraitPathCall,
 }
 impl Signature {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -41,6 +42,7 @@ impl Signature {
             Self::ConstantDefault => &CONSTANTDEFAULT,
             Self::PositionalFlag => &POSITIONALFLAG,
             Self::UntypedConversion => &UNTYPEDCONVERSION,
+            Self::TraitPathCall => &TRAITPATHCALL,
         }
     }
 }
@@ -226,5 +228,16 @@ const UNTYPEDCONVERSION: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a conversion bound by let without a type takes its target type from a later use, so changing that use silently changes what the conversion accepts; write the type on the let or as a turbofish, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+const TRAITPATHCALL: Descriptor = Descriptor {
+    default_id: "trait-path-call",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust call or path value From::from, Into::into, TryFrom::try_from, TryInto::try_into or FromStr::from_str whose trait is a single segment or follows std::convert, core::convert, std::str or core::str, without type arguments, except inside the value of a let with a type and except a From::from call that, through ?, is the whole value of a let of a plain name without a type, which untyped-conversion reports, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "name-the-target",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a conversion called through its trait path names neither the source nor the target type, so the compiler infers the target from later code and a change there silently selects another conversion; call it on the target type, as Target::from(value) or value.parse::<Target>(), or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };

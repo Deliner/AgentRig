@@ -17,6 +17,8 @@ pub enum ControlFlow {
     RangeChain,
     HiddenExit,
     StaleCheck,
+    UnloopedRetry,
+    VariantList,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -31,6 +33,8 @@ impl ControlFlow {
             Self::RangeChain => &RANGECHAIN,
             Self::HiddenExit => &HIDDENEXIT,
             Self::StaleCheck => &STALECHECK,
+            Self::UnloopedRetry => &UNLOOPEDRETRY,
+            Self::VariantList => &VARIANTLIST,
         }
     }
 }
@@ -168,5 +172,27 @@ const STALECHECK: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "the path can appear, vanish or change its kind between the check and the action, so the action fails or is skipped where its own error would tell what happened; perform the action and match its error kind such as NotFound or AlreadyExists, or put a DECISION: or INVARIANT: reference on the line directly above the check",
+    },
+};
+const UNLOOPEDRETRY: Descriptor = Descriptor {
+    default_id: "unlooped-retry",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust compare_exchange_weak method call, and every call whose path ends in thread::park or thread::park_timeout, with no loop, while or for enclosing it before the nearest closure, async block or fn, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the call",
+    skill: "retry-in-a-loop",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "compare_exchange_weak may fail although the value matched and park may return without an unpark, so a single call reads a spurious failure or wake-up as the event; repeat the call in a loop until the expected state holds, use compare_exchange for a single attempt, or put a DECISION: or INVARIANT: reference on the line directly above the call",
+    },
+};
+const VARIANTLIST: Descriptor = Descriptor {
+    default_id: "variant-list",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust array literal, alone or under &, of three or more paths E::V, or Self::V inside an impl of E, where E is an enum declared in the same file and the paths name all of its unit variants in declaration order, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above the array",
+    skill: "derive-the-variants",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a hand-written list of every variant stays complete only until the enum gains one, and nothing reports the stale list; derive the list from the enum, for example with a const array checked by an exhaustive match or a derive that enumerates the variants, or put a DECISION: or INVARIANT: reference on the line directly above the array",
     },
 };

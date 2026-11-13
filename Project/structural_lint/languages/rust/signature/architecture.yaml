@@ -1,7 +1,7 @@
 purpose: Detect Rust signatures, type shapes, trait implementations and conversions that misstate or hide what a type or function promises
 type: flat
 files:
-  mod.rs: Dispatch source files, structs, enums, variants, functions, aliases, generic types, impls, traits and let bindings to the signature detectors
+  mod.rs: Dispatch source files, structs, enums, variants, functions, aliases, generic types, impls, traits, let bindings and paths to the signature detectors
   checked_constructor.rs: Find the constructor in the same file that refuses on a tested parameter, directly or through a derived local, and stores it in a field of its own type
   constant_default.rs: Rust trait method without a self receiver whose default body supplies a value implementors may silently inherit
   derived_trait.rs: Rust struct whose derived trait or open field bypasses its own handling, a Debug printing a field with a secret name and a string or byte type, a Deserialize skipping the check of a constructor in the same file, or a public field of a type that a constructor checks
@@ -10,6 +10,6 @@ files:
   partial_impl.rs: Rust manual PartialEq, Hash, PartialOrd, Ord or Clone that reads its fields without a complete pattern or struct literal
   same_type.rs: Rust function or tuple declaration with two or more parameters or positions of the same type, and a tuple declaration with a bool among two or more positions
   tuple_record.rs: Rust function signature using a tuple of three or more elements with a scalar as a record, top-level or nested in a generic or array type, outside test code and lacking a reference above it
-  untyped_conversion.rs: Rust let of a plain name without a type whose value is a generic conversion, parse, into, try_into, sum, product, collect, Default::default or From::from, except an into on a parameter whose own type bounds it by Into
+  untyped_conversion.rs: Rust let of a plain name without a type whose value is a generic conversion, parse, into, try_into, sum, product, collect, Default::default or From::from, except an into on a parameter whose own type bounds it by Into, and a call or path value of a conversion trait method, From::from, Into::into, TryFrom::try_from, TryInto::try_into or FromStr::from_str, outside a typed let value
   type_shape.rs: Rust alias of a scalar or String, an Option over a bool, and an Option over another Option where Clippy does not check it and no implemented trait sets it
 directories: {}

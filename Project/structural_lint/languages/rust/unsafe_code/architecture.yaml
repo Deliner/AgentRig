@@ -1,0 +1,7 @@
+purpose: Detect Rust unsafe surface lacking a recorded justification and unsafe operations whose safety the compiler no longer checks
+type: flat
+files:
+  mod.rs: Dispatch every node to the unsafe-site detector, impls to the Send and Sync bound detector and calls to the unchecked-operation detector
+  unsafe_site.rs: Rust unsafe surface, a block, function, impl, trait, static mut or unsafe token in a macro token tree, lacking a reference above its attributes
+  unchecked_operation.rs: Rust transmute or transmute_copy path call, and a call of a function or method named *_unchecked or unchecked_* whose arguments are not all literals, outside a function named the same way
+  send_bound.rs: Rust unsafe impl of Send or Sync with a type parameter bounded by neither Send nor Sync in its parameter list or where clause

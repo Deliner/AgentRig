@@ -5,12 +5,19 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
+const BLOCKING_IO: [&str; 4] = [
+    "fs::",
+    "net::TcpStream::",
+    "net::TcpListener::",
+    "net::UdpSocket::",
+];
+
 // DECISION: D118
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
     };
-    let Some(symbol) = blocking(function, source) else {
+    let Some(symbol) = blocking(function, source).or_else(|| blocking_io(node, source)) else {
         return;
     };
     let allowed = justified(node, source) || in_test_context(node, source);
@@ -46,6 +53,17 @@ fn blocking<'a>(function: Node<'_>, source: Code<'a>) -> Option<&'a str> {
         "generic_function" => blocking(function.child_by_field_name("function")?, source),
         _ => None,
     }
+}
+fn blocking_io<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
+    let function = call
+        .child_by_field_name("function")
+        .filter(|function| function.kind() == "scoped_identifier")?;
+    let awaited = call
+        .parent()
+        .is_some_and(|parent| parent.kind() == "await_expression");
+    let path = text(function, source).trim_prefix("std::");
+    let io = !awaited && BLOCKING_IO.iter().any(|prefix| path.starts_with(prefix));
+    io.then_some(path)
 }
 fn imports_thread_sleep(node: Node<'_>, source: Code<'_>) -> bool {
     let mut root = node;

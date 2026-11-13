@@ -1,5 +1,5 @@
-use super::exemptions::justified_item;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
+use crate::structural_lint::languages::rust::exemptions::justified_item;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;

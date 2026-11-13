@@ -1,0 +1,7 @@
+purpose: Verify Rust measurements of unsafe surface lacking a recorded justification and unsafe operations the compiler no longer checks, from native analysis
+files:
+  mod.rs: Declare the unsafe-code measurement test modules and filter one reference kind from native analysis
+  unsafe_site.rs: Rust unsafe block, function, impl, trait, static mut and macro-body unsafe token measurements, justified across attributes, from native analysis
+  unchecked_operation.rs: Rust transmute paths and calls named unchecked, with checked, all-literal, method transmute, inherited, justified and test-only operations skipped, from native analysis
+  send_bound.rs: Rust unsafe Send and Sync impls with a type parameter bounded by neither, with bounded, concrete, safe, other-trait, justified and test-only impls skipped, from native analysis
+directories: {}

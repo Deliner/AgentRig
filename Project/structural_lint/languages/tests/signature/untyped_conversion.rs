@@ -3,6 +3,7 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
 
 const UNTYPED: Kind = Kind::Signature(Signature::UntypedConversion);
+const TRAIT_PATH: Kind = Kind::Signature(Signature::TraitPathCall);
 
 // DECISION: D171
 #[test]
@@ -109,4 +110,50 @@ where
 }
 ";
     assert!(measured(source, UNTYPED).is_empty());
+}
+
+#[test]
+fn rust_flags_conversion_trait_paths_whose_target_type_the_statement_does_not_name() {
+    let source = "fn convert(bytes: Vec<u8>, text: &str, values: &[u8]) -> Result<Wrapper, Error> {
+    take(Into::into(bytes));
+    store(std::convert::TryFrom::try_from(text)?);
+    let parsed = FromStr::from_str(text)?;
+    values.iter().copied().map(From::from).for_each(store);
+    let sum = 1 + core::convert::TryInto::try_into(2)?;
+    Ok(Wrapper::from(parsed))
+}
+";
+    assert_eq!(
+        measured(source, TRAIT_PATH),
+        [
+            (2, "Into::into".to_string()),
+            (3, "TryFrom::try_from".to_string()),
+            (4, "FromStr::from_str".to_string()),
+            (5, "From::from".to_string()),
+            (6, "TryInto::try_into".to_string()),
+        ]
+    );
+}
+
+#[test]
+fn rust_skips_typed_owned_turbofish_other_owner_foreign_justified_and_test_trait_paths() {
+    let source = "fn convert(bytes: Vec<u8>, text: &str) -> Result<u64, Error> {
+    let wide: u64 = From::from(1u8) + u64::from(2u8);
+    let owned = From::from(text);
+    let value: Wrapper = Into::into(bytes);
+    let typed = From::<u8>::from(1);
+    let other = Wrapper::from(1);
+    let foreign = mine::convert::From::from(1);
+    // DECISION: D001
+    take(Into::into(bytes));
+    Ok(wide)
+}
+#[cfg(test)]
+mod tests {
+    fn check(bytes: Vec<u8>) {
+        take(Into::into(bytes));
+    }
+}
+";
+    assert!(measured(source, TRAIT_PATH).is_empty());
 }

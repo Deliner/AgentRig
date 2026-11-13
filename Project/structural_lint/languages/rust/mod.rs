@@ -7,11 +7,11 @@ mod ownership;
 mod panic_surface;
 mod shell_command;
 mod signature;
+mod std_forms;
 mod super_reach;
-mod superseded_form;
 mod suppression;
 mod test_code;
-mod unsafe_site;
+mod unsafe_code;
 use crate::structural_lint::languages::neutral_metrics::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, justified, mixed_junction, nesting, reparse, text,
@@ -34,16 +34,15 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
     test_code::inspect(node, source, output);
-    superseded_form::inspect(node, source, output);
+    std_forms::inspect(node, source, output);
+    unsafe_code::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
         "unsafe_block" | "impl_item" | "trait_item" | "token_tree" | "token_repetition" => {
-            unsafe_site::inspect(node, source, output);
             panic_surface::definition_tokens(node, source, output);
         }
         "attribute_item" | "inner_attribute_item" => suppression::attribute(node, source, output),
-        "static_item" => unsafe_site::inspect(node, source, output),
         "macro_invocation" => {
             debug_macro(node, source, output);
             assertion_macro(node, source, output);
@@ -51,14 +50,17 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
             macro_body(node, source, output);
         }
         "call_expression" => call(node, source, output),
-        "expression_statement" | "let_declaration" => discarded_result(node, source, output),
+        "expression_statement" => discarded_result(node, source, output),
+        "let_declaration" => {
+            discarded_result(node, source, output);
+            suppression::binding(node, source, output);
+        }
         "scoped_identifier" => super_reach::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, output),
         "binary_expression" | "let_chain" => boolean_expression(node, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
             declaration(node, source, output);
-            unsafe_site::inspect(node, source, output);
         }
         _ => {}
     }
