@@ -4,25 +4,25 @@ use anyhow::{Context, Result, ensure};
 use std::path::{Path, PathBuf};
 
 // DECISION: D154
-const SETTINGS: &str = include_str!("../clippy.toml");
+const SETTINGS: &str = include_str!("../../clippy.toml");
 const FILES: [&str; 2] = [".clippy.toml", "clippy.toml"];
 
-pub(super) struct Settings {
+pub struct Settings {
     path: PathBuf,
     contents: String,
 }
 
 impl Settings {
-    pub(super) fn path(&self) -> &Path {
+    pub fn path(&self) -> &Path {
         &self.path
     }
-    pub(super) fn write(&self) -> Result<()> {
+    pub fn write(&self) -> Result<()> {
         Ok(fs::write(&self.path, &self.contents)?)
     }
 }
 
 // DECISION: D154
-pub(super) fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
+pub fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
     let manifest = root.join(&rust.manifest);
     let directory = manifest
         .parent()
@@ -102,7 +102,7 @@ const PROFILE: &[&str] = &[
     "allow_attributes",
 ];
 
-pub(super) fn argv(rust: &Layout) -> Vec<String> {
+pub fn argv(rust: &Layout) -> Vec<String> {
     let mut argv: Vec<String> = ["cargo", "clippy", "--manifest-path"]
         .into_iter()
         .map(String::from)

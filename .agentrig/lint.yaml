@@ -781,6 +781,17 @@ rules:
   level: error
   warning_skill: .agents/skills/name-the-target/SKILL.md
   error_skill: .agents/skills/name-the-target/SKILL.md
+# DECISION: D177
+- id: superseded-form
+  kind: superseded-form
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agents/skills/use-the-current-form/SKILL.md
+  error_skill: .agents/skills/use-the-current-form/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import

@@ -4,6 +4,7 @@ use serde_json::{Value, json};
 use std::{
     fs,
     io::{BufRead, BufReader},
+    mem::DropGuard,
     path::Path,
     process::{Child, Stdio},
     time::{Duration, Instant},
@@ -63,22 +64,16 @@ impl Jobs<'_> {
     }
 }
 
-impl Drop for Jobs<'_> {
-    fn drop(&mut self) {
-        for (owner, identifier) in &self.started {
-            owned(self.root, owner, &["job-stop", identifier]);
-        }
+fn stop(jobs: Jobs<'_>) {
+    for (owner, identifier) in &jobs.started {
+        owned(jobs.root, owner, &["job-stop", identifier]);
     }
 }
 
-struct Foreign(Child);
-
-impl Drop for Foreign {
-    fn drop(&mut self) {
-        let process = self.0.id().to_string();
-        hermetic("kill").arg(process).status().unwrap();
-        self.0.wait().unwrap();
-    }
+fn kill(mut child: Child) {
+    let process = child.id().to_string();
+    hermetic("kill").arg(process).status().unwrap();
+    child.wait().unwrap();
 }
 
 #[test]
@@ -87,10 +82,11 @@ fn merge_cleans_only_owned_task_runs() {
     start(&root, "jobs");
     configure(&root, "commands", BACKGROUND);
     commit(&root, "work.txt", "feature");
-    let mut jobs = Jobs {
+    let started = Jobs {
         root: &root,
         started: Vec::new(),
     };
+    let mut jobs = DropGuard::new(started, stop);
     let task = jobs.start("merge-owner", "wait");
     let service = jobs.start("merge-owner", "service");
     let other = jobs.start("other-owner", "wait");
@@ -123,9 +119,9 @@ fn merge_inside_a_run_lists_only_other_live_runs() {
         .env("WORKER_OWNER", "merge-owner")
         .stdin(Stdio::null())
         .stdout(Stdio::piped());
-    let mut foreign = Foreign(waiting.spawn().unwrap());
+    let mut foreign = DropGuard::new(waiting.spawn().unwrap(), kill);
     let mut line = String::new();
-    let output = foreign.0.stdout.as_mut().unwrap();
+    let output = foreign.stdout.as_mut().unwrap();
     BufReader::new(output).read_line(&mut line).unwrap();
     assert_eq!(line, "ready\n");
     let rows = json(&owned(&root, "merge-owner", &["jobs"]));

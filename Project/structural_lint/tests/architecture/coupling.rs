@@ -36,7 +36,7 @@ fn budget(consumer: &Consumer, dependents: usize) {
 
 fn python_hub(packages: usize, filename: &str) -> Consumer {
     let consumer = Consumer::empty(Language::Python);
-    let names: Vec<_> = (0..packages).map(|index| format!("p{index}")).collect();
+    let names = Vec::from_fn(packages, |index| format!("p{index}"));
     let mut imports = String::new();
     for name in &names {
         consumer.write(

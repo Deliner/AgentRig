@@ -1,0 +1,8 @@
+Write current Rust: use these stable capabilities where they fit, even when your training predates them.
+
+- `!` is a stable type and `Infallible` its alias: write `Result<T, !>` and `let Ok(value) = result;`.
+- `std::mem::DropGuard::new(value, f)` calls `f(value)` on drop; `DropGuard::dismiss` cancels it, returning the value.
+- `trim_prefix` and `trim_suffix` on `str`, slices and `Path` replace `strip_prefix(p).unwrap_or(x)`.
+- `bool::toggle`, `Vec::from_fn(len, f)`, `Box::map`, `Rc::map`, `Arc::map` and `Box::take`.
+- The allocator API: `Allocator`, `Global`, `Box::new_in` and `Vec::new_in`.
+- `[lints.cargo]` in `Cargo.toml` and `global-min-publish-age` in `.cargo/config.toml`.

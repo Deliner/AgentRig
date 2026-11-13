@@ -103,6 +103,7 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::HiddenExit),
     Kind::ControlFlow(ControlFlow::StaleCheck),
     Kind::Signature(Signature::UntypedConversion),
+    Kind::Reference(Reference::SupersededForm),
     Kind::ControlFlow(ControlFlow::BooleanExpression),
     Kind::Structure(Structure::EmbeddedText),
     Kind::ControlFlow(ControlFlow::NamedIfCondition),

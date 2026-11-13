@@ -125,7 +125,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let (name, extra) = args
         .split_first()
         .ok_or_else(|| anyhow::anyhow!("job-start COMMAND [-- ARGS]"))?;
-    let extra = extra.strip_prefix(&["--".into()]).unwrap_or(extra);
+    let extra = extra.trim_prefix(&["--".into()]);
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;

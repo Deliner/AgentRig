@@ -51,7 +51,7 @@ fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -
     let names = inventory.directories.get(directory).into_iter().flatten();
     for name in names.filter(|name| name.as_str() != FILENAME) {
         let path = directory.join(name);
-        let path = path.strip_prefix(".").unwrap_or(&path);
+        let path = path.trim_prefix(".");
         let child_directory = inventory.directories.contains_key(path);
         let entries = if child_directory {
             declaration.directories()

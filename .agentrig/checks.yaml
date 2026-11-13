@@ -26,8 +26,10 @@
   command: test
   affected:
   - {include: ['**'], targets: ['structural_lint::tests::configuration::', 'structural_lint::tests::discovery::']}
-  - include: ['.agentrig/**', 'Project/Cargo.*', 'Project/lib.rs', 'Project/cli_dispatch/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
+  - include: ['.agentrig/**', 'rust-toolchain.toml', 'Project/Cargo.*', 'Project/lib.rs', 'Project/cli_dispatch/main.rs', 'Project/shared/mod.rs', 'Project/shared/console/**']
     targets: ['::']
+  - include: ['AGENTS.md']
+    targets: ['project_setup::tests::toolchain::']
   - include: ['Project/structural_lint/**', 'Project/shared/testing/**']
     targets: ['structural_lint::', 'cli_dispatch::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/cli_dispatch/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']

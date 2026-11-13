@@ -1,3 +1,4 @@
+use super::rust::toolchain::Requirement;
 use crate::project_config::{Access, Context};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
@@ -25,6 +26,7 @@ pub fn run(context: &Context) -> Result<i32> {
     ));
     let mut failed = !installed_binary(context);
     failed |= !command_availability(context)?;
+    failed |= !rust_toolchain(context)?;
     failed |= !sandbox_availability(context);
     failed |= !vcs_registration(context)?;
     failed |= !match context.config.frontend {
@@ -86,6 +88,24 @@ fn command_availability(context: &Context) -> Result<bool> {
         }
     }
     Ok(!failed)
+}
+// DECISION: D174
+fn rust_toolchain(context: &Context) -> Result<bool> {
+    let cargo = context.config.commands.values().any(|command| {
+        let program = command.argv.first().map(Path::new);
+        program
+            .and_then(Path::file_name)
+            .is_some_and(|name| name == "cargo")
+    });
+    let without_cargo = !cargo;
+    if without_cargo {
+        return Ok(true);
+    }
+    let toolchain = Requirement::inspect(&context.root)?;
+    let met = toolchain.met();
+    let status = if met { "" } else { "OLDER OR MISSING, " };
+    console::stdout(format!("rust toolchain: {status}{toolchain}"));
+    Ok(met)
 }
 fn sandbox_availability(context: &Context) -> bool {
     let mut failed = false;

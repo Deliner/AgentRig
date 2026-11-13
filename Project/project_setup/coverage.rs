@@ -132,7 +132,7 @@ fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result
         let text = fs::read_to_string(root.join(path))?;
         sources.insert(path.clone(), extraction::extract(path, &text)?);
     }
-    let layout = super::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
+    let layout = super::rust::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
     for crate_root in layout.roots {
         for (file, bases) in Rust::modules(Path::new(&crate_root), &sources) {
             modules.entry(file).or_default().extend(bases);

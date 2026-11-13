@@ -1,4 +1,4 @@
-purpose: "Decompose an oversized or ill-structured unit by responsibility, name and group a tree's parts so they show each directory's job, or move long embedded text or a misplaced test file where it belongs, while preserving its contract"
+purpose: "Decompose an oversized or ill-structured unit by responsibility, name and group a tree's parts so they show each directory's job, move long embedded text or a misplaced test file where it belongs, or rewrite a superseded form in its current one, while preserving its contract"
 files: {}
 directories:
   clarify-structure: "Rename, split and group the parts of a Rust tree by lint-structure scores so their names show what each directory does"
@@ -7,3 +7,4 @@ directories:
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
   relocate-tests: "Move a Rust test-only module file into a tests/ directory or a tests.rs file while its tests keep seeing the same code"
+  use-the-current-form: "Replace a Rust form the project's toolchain supersedes with its direct standard form, or justify keeping it with a reference"

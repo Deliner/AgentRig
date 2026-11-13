@@ -1,3 +1,4 @@
+mod test_placement;
 mod test_substitution;
 mod untargeted_panic;
 use crate::structural_lint::languages::analyze;

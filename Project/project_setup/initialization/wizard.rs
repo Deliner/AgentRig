@@ -42,13 +42,10 @@ pub fn run(root: &Path) -> Result<i32> {
 }
 
 fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
-    let clippy = scaffold.clippy.iter().map(|settings| {
-        let path = settings.path();
-        path.strip_prefix(root)
-            .unwrap_or(path)
-            .display()
-            .to_string()
-    });
+    let clippy = scaffold
+        .clippy
+        .iter()
+        .map(|settings| settings.path().trim_prefix(root).display().to_string());
     let listed: Vec<String> = files.keys().cloned().chain(clippy).collect();
     listed.join("\n")
 }

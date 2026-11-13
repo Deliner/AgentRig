@@ -507,9 +507,9 @@ fn coupling_uses_the_default_budget_when_unspecified() {
             .collect()
     };
     let over = loaded.check_coupling(&into_wide(7));
-    let named: Vec<_> = (0..7)
-        .map(|n| format!("Project/d{n} (Project/d{n}/f.rs:7 uses Project/wide/f.rs)"))
-        .collect();
+    let named = Vec::from_fn(7, |n| {
+        format!("Project/d{n} (Project/d{n}/f.rs:7 uses Project/wide/f.rs)")
+    });
     assert_eq!(
         messages(&over),
         [format!(

@@ -2,15 +2,15 @@ mod blocking_async;
 mod control_flow;
 mod errors;
 mod exemptions;
-mod false_pass;
 mod naming;
 mod ownership;
 mod panic_surface;
 mod shell_command;
 mod signature;
 mod super_reach;
+mod superseded_form;
 mod suppression;
-mod test_placement;
+mod test_code;
 mod unsafe_site;
 use crate::structural_lint::languages::neutral_metrics::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
@@ -33,7 +33,8 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
     control_flow::inspect(node, source, output);
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
-    false_pass::inspect(node, source, output);
+    test_code::inspect(node, source, output);
+    superseded_form::inspect(node, source, output);
     match node.kind() {
         "line_comment" | "block_comment" => comment(node, source, output),
         "string_literal" | "raw_string_literal" => literal(node, source, output),
@@ -52,7 +53,6 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
         "call_expression" => call(node, source, output),
         "expression_statement" | "let_declaration" => discarded_result(node, source, output),
         "scoped_identifier" => super_reach::inspect(node, source, output),
-        "mod_item" => test_placement::inspect(node, source, output),
         "use_wildcard" => wildcard_use(node, source, output),
         "if_expression" => conditional(node, output),
         "binary_expression" | "let_chain" => boolean_expression(node, output),

@@ -7,7 +7,7 @@ use std::{
     path::{Component, Path, PathBuf},
 };
 
-pub(super) struct Layout {
+pub struct Layout {
     pub manifest: String,
     pub roots: Vec<String>,
     pub crates: BTreeMap<String, String>,
@@ -60,7 +60,7 @@ struct Workspace {
 }
 
 impl Layout {
-    pub(super) fn fallback(source: &str) -> Self {
+    pub fn fallback(source: &str) -> Self {
         Self {
             manifest: format!("{source}/Cargo.toml"),
             roots: vec![format!("{source}/src/lib.rs")],
@@ -70,7 +70,7 @@ impl Layout {
     }
 }
 
-pub(super) fn layout(root: &Path, source: &str) -> Result<Layout> {
+pub fn layout(root: &Path, source: &str) -> Result<Layout> {
     let found = [format!("{source}/Cargo.toml"), "Cargo.toml".to_owned()]
         .into_iter()
         .find(|candidate| root.join(candidate).is_file());
@@ -81,7 +81,7 @@ pub(super) fn layout(root: &Path, source: &str) -> Result<Layout> {
 }
 
 // DECISION: D144
-pub(super) fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
+pub fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
     let directory = Path::new(manifest).parent().unwrap_or(Path::new(""));
     let parsed = read(&root.join(manifest))?;
     let mut layout = Layout {

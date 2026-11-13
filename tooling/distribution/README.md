@@ -5,7 +5,7 @@ hooks. `just bootstrap` builds that exact Git tree and installs it through the e
 `.cache/development/<revision>`. It never builds the current checkout as a fallback. Generated installations are local
 and excluded from publication.
 
-After cloning the full Git history, install the prerequisites listed in the scaffold guide, Rust 1.98.1 and uv; on macOS
+After cloning the full Git history, install the prerequisites listed in the scaffold guide, rustup and uv; on macOS
 also install `flock` (for example `brew install flock`). Run `just bootstrap`, then `just resume`. Bootstrap is the
 explicit shell entrypoint available before the worker exists. It registers the repository's .agentrig/hooks and rejects
 a different existing hooksPath. Repeating it retains the same installation.
@@ -30,13 +30,13 @@ If agent hooks use the pinned launcher, changing the pin to an uninstalled revis
 running. In that case run `just bootstrap` from an ordinary terminal; the agent's PreToolUse hook can otherwise reject
 bootstrap itself before the recipe starts.
 
-The CI workflow runs on Ubuntu 24.04 and macOS. It installs Rust 1.98.1, Just 1.58.0, uv 0.10.10 and cargo-about 0.9.2,
-prepares bubblewrap on Linux and flock on macOS, bootstraps the pinned runtime and runs `just check`. It then runs
-`just release` to package the candidate executables, revision, MIT and dependency attribution. A release tag must match
-the crate version. Tag builds publish the verified archives and SHA-256 files; branch and pull-request builds retain
-them as CI artifacts.
+The CI workflow runs on Ubuntu 24.04 and macOS. It installs the Rust of `rust-toolchain.toml`, Just 1.58.0, uv 0.10.10
+and cargo-about 0.9.2, prepares bubblewrap on Linux and flock on macOS, bootstraps the pinned runtime and runs
+`just check`. It then runs `just release` to package the candidate executables, revision, MIT and dependency
+attribution. A release tag must match the crate version. Tag builds publish the verified archives and SHA-256 files;
+branch and pull-request builds retain them as CI artifacts.
 
-For local packaging, run `cargo +1.98.1 install --locked cargo-about --version 0.9.2 --features cli`, then
+For local packaging, run `cargo install --locked cargo-about --version 0.9.2 --features cli`, then
 `just release` after acceptance from a clean committed checkout. The CLI feature is required to install the executable.
 Outputs go to `.cache/distribution`. Packaging alone is not evidence that the development gate passed. The distributed
 binaries target Linux x86_64, built on Ubuntu 24.04, and macOS arm64. A source build can target the developer's

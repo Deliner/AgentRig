@@ -141,7 +141,7 @@ impl Features<'_> {
             .flatten()
             .map(|name| {
                 let path = directory.join(name);
-                (name.clone(), path.strip_prefix(".").unwrap_or(&path).into())
+                (name.clone(), path.trim_prefix(".").into())
             })
             .filter(|(_, path)| self.inventory.directories.contains_key(path))
             .collect()

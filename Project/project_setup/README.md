@@ -3,18 +3,18 @@
 `agentrig init` installs the runtime into a consumer project configured by the `.agentrig/` modules. Consumers need
 Git, Just, their own configured tools and a read-only sandbox (bubblewrap on Linux, sandbox-exec on macOS); they do not
 compile the worker or run its tests; see the [independent examples](../shared/testing/examples/README.md). A distributor
-builds both executables with `cargo +1.98.1 build --release --locked --manifest-path Project/Cargo.toml`.
+builds both executables with `cargo build --release --locked --manifest-path Project/Cargo.toml`.
 
 ## Installation
 
-`agentrig init --root CONSUMER` copies its executable and bundled assets, pins the package version in the
-configuration, rejects collisions before writing, creates a Git repository on the base branch when none exists and
-registers the Git hooks through `core.hooksPath`. Options: `--language python|rust`, `--frontend codex|claude-code`,
-`--source` (default `Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There
-is no update or rollback: a changed release is installed into a fresh project. Rust projects also receive a `clippy`
-command and check that runs the Clippy profile of the AgentRig development gate on the project's own toolchain. Init
-prepends the AgentRig thresholds missing from the file Clippy reads, the first `.clippy.toml` or `clippy.toml` from the
-manifest directory up to the root, or creates a root `clippy.toml`; a different value there is a collision.
+`agentrig init --root CONSUMER` copies its executable and bundled assets, pins the package version in the configuration,
+rejects collisions before writing, creates a Git repository on the base branch when none exists and registers the Git
+hooks through `core.hooksPath`. Options: `--language python|rust`, `--frontend codex|claude-code`, `--source` (default
+`Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There is no update or
+rollback: a changed release is installed into a fresh project. Rust projects need a `rustc` of at least the rig's Rust,
+else init refuses before writing, and get a `clippy` command and check running the development gate's Clippy profile on
+their own toolchain. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
+`clippy.toml` upward from the manifest directory, or a new root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills, lint settings, reminders and runtime data;
 the configuration modules always stay in `.agentrig`. The root `justfile` imports the recipes under `just/`, which
@@ -36,7 +36,7 @@ Every command accepts `--root PATH`, by default the current directory.
 | --- | --- |
 | `init [--interactive]` | Create configuration, memory, skills, runtime and adapters, keeping existing file contents. |
 | `runtime-add` | Install the launcher and this executable as this platform's runtime; converts a single binary. |
-| `config-check` / `doctor` | Validate configuration and affected maps; diagnose runtime, executables, sandbox, hooks. |
+| `config-check` / `doctor` | Check configuration and affected maps; diagnose runtime, tools, rustc, sandbox, hooks. |
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
 | `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |

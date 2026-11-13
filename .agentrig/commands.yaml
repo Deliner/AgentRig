@@ -59,7 +59,6 @@ rustfmt:
   purpose: Check Rust formatting
   argv:
   - cargo
-  - +1.98.1
   - fmt
   - --manifest-path
   - Project/Cargo.toml
@@ -68,7 +67,6 @@ clippy:
   purpose: Check Rust code with Clippy, denying warnings
   argv:
   - cargo
-  - +1.98.1
   - clippy
   - --manifest-path
   - Project/Cargo.toml
@@ -147,7 +145,6 @@ test:
   purpose: Run Rust library tests, optionally filtered by test path
   argv:
   - cargo
-  - +1.98.1
   - test
   - --manifest-path
   - Project/Cargo.toml
