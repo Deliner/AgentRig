@@ -22,7 +22,7 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
     (
         "Edit",
         r#"{"file_path": "Ledger/Decisions.md"}"#,
-        &["edit-decisions"],
+        &["edit-decisions", "norm-or-choice"],
     ),
     (
         "Write",
@@ -37,7 +37,7 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
     (
         "Edit",
         r#"{"file_path": "Ledger/Decisions/001.md"}"#,
-        &["edit-decisions"],
+        &["edit-decisions", "norm-or-choice"],
     ),
     (
         "Edit",
@@ -65,7 +65,7 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
     (
         "apply_patch",
         r#"{"patch": "*** Update File: Ledger/Decisions/001.md\n*** Move to: Ledger/Invariants/001.md\n"}"#,
-        &["edit-decisions", "edit-invariants"],
+        &["edit-decisions", "edit-invariants", "norm-or-choice"],
     ),
     (
         "apply_patch",
@@ -83,12 +83,13 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
         &[],
     ),
 ];
-const MEMORY_SKILLS: [&str; 5] = [
+const MEMORY_SKILLS: [&str; 6] = [
     "edit-plan",
     "edit-backlog",
     "edit-decisions",
     "edit-invariants",
     "edit-state",
+    "norm-or-choice",
 ];
 
 fn in_session(root: &Path, mut event: Value, session: &str) -> Value {
@@ -103,8 +104,16 @@ fn guidance(root: &Path, output: &Value, expected: &[&str]) {
         return;
     }
     let specific = &output["hookSpecificOutput"];
-    assert!(specific.get("permissionDecision").is_none(), "{output}");
-    let message = specific["additionalContext"].as_str().unwrap();
+    let decision = specific["permissionDecision"].as_str();
+    // DECISION: D186
+    let decision_record = expected.contains(&"norm-or-choice");
+    let message = if decision_record {
+        assert_eq!(decision, Some("deny"), "{output}");
+        specific["permissionDecisionReason"].as_str().unwrap()
+    } else {
+        assert_eq!(decision, None, "{output}");
+        specific["additionalContext"].as_str().unwrap()
+    };
     for skill in MEMORY_SKILLS {
         let path = root.join("guides").join(skill).join("SKILL.md");
         assert!(path.is_file(), "{}", path.display());

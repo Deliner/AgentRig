@@ -58,6 +58,19 @@ fn first_edit_in_an_area_stops_until_its_requirement_is_delivered() {
     assert_eq!(answer(&edit(&root, "Project/agent_hooks/mod.rs")).0, "deny");
 }
 
+// DECISION: D186
+#[test]
+fn first_decision_edit_stops_until_norm_or_choice_is_delivered() {
+    let (_temp, root) = project();
+    let first = edit(&root, "Ledger/Decisions/001.md");
+    let (decision, message) = answer(&first);
+    assert_eq!(decision, "deny");
+    let required = "- Required: read and apply {root}/.agentrig/skills/norm-or-choice/SKILL.md for edit of Ledger/Decisions/001.md. Source: hooks.routes[8].";
+    let required = required.replace("{root}", &root.display().to_string());
+    assert!(message.contains(&required), "{message}");
+    assert_eq!(edit(&root, "Ledger/Decisions/001.md"), Value::Null);
+}
+
 fn patched(files: &[&str]) -> String {
     let (_temp, root) = project();
     fs::write(
