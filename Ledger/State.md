@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/dogfood-setup`, от master `502a35e`.
-Revision: `1f219c5ebdec88375e19fe9ff3e472e8cf30c64b`
+Revision: `2e496c07fc60b4506b2df1f94975fda41bcfe190`
 
 Установленный рантайм `05f345a` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -25,14 +25,18 @@ Revision: `1f219c5ebdec88375e19fe9ff3e472e8cf30c64b`
 ## Progress
 
 - VAC 1 `1f219c5`: карточка B145 с комментариями пользователя, строка и карточка P143, State.
-- VAC 2, этот коммит, AC4: ссылки агентов на `.agentrig/skills` в `init` и в риге, решение D188.
+- VAC 2 `2e496c0`, AC4: ссылки агентов на `.agentrig/skills` в `init` и в риге, решение D188.
+- VAC 3, этот коммит, AC5 для хука: `hook --agent` из регистрации, `init` ставит обе регистрации без `--frontend`,
+  путь к навыку идёт через каталог агента; модуль агентов вынесен в `Project/shared/calling_agent`. Регистрации рига
+  тоже передают `--agent`; установленный рантайм `05f345a` этот флаг пока игнорирует.
 
 ## Verification
 
-`cargo test --lib -- project_setup:: structural_lint::tests::discovery`: 54 прошли, среди них новый тест ссылок
-навыков; `cargo fmt --check` чист.
+`cargo test` всего пакета: 522 прошли; `cargo fmt` чист; `tooling/worker/run lint` по всему репозиторию без находок.
+Кандидат на риге для правки решения выдаёт `<root>/.claude/skills/norm-or-choice/SKILL.md` для Claude Code и
+`<root>/.agents/skills/norm-or-choice/SKILL.md` для Codex.
 
-Проба 2026-11-19: Codex 0.167 в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
+Проба 2026-11-19: Codex в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
 PreToolUse; их вход не называет агента, переменных Codex у хука нет; команды Codex получают `CODEX_THREAD_ID`, команды
 Claude Code получают `CLAUDECODE=1`.
 
@@ -42,5 +46,6 @@ Claude Code получают `CLAUDECODE=1`.
 
 ## Next action
 
-VAC 3 по AC5: обе регистрации клиентов с `--agent` и таймаутом 30, путь к навыку в хуке через каталог агента. Затем
-VAC 4: lint и гейт по переменной агента; VAC 5: AC1–AC3. Свободные ID: D189+, I023+, P144+, B146+.
+VAC 4 по AC5: lint, гейт и doctor узнают агента по `CODEX_THREAD_ID` или `CLAUDECODE` и печатают абсолютный путь
+через его каталог, без переменной через `paths.skills`; тест lint на каждую переменную. Затем VAC 5: AC1–AC3, проба
+пустого проекта с Codex и Claude Code, пин D051. Свободные ID: D189+, I023+, P144+, B146+.

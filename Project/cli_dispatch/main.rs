@@ -1,5 +1,6 @@
 // DECISION: D020
 
+use agentrig::shared::calling_agent::Agent;
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::shared::shared_options::take_option;
@@ -31,7 +32,7 @@ fn run() -> Result<i32> {
         return cli_dispatch::run(&root, workflow, &args);
     }
     match command.as_str() {
-        "hook" => hook(&root),
+        "hook" => hook(&root, &mut args),
         "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree"
         | "lint-baseline" => run_lint(&root, &mut args, &command),
         "lint-rules" | "lint-rule" => structural_lint::reporting::cli::discovery(&command, &args),
@@ -69,15 +70,20 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     console::stdout(
-        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge | feature-push\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --frontend codex|claude-code, --skills, --service, --base and --prefix.",
+        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | scratch -- TEXT | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge | feature-push\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook --agent codex|claude-code | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --skills, --service, --base and --prefix.",
     );
 }
-fn hook(root: &Path) -> Result<i32> {
+// DECISION: D188
+fn hook(root: &Path, args: &mut Vec<String>) -> Result<i32> {
+    let names = Agent::ALL.map(Agent::name).join("|");
+    let name = take_option(args, "--agent")?
+        .ok_or_else(|| anyhow::anyhow!("hook requires --agent {names} from its registration"))?;
+    let agent = Agent::parse(&name)?;
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
     let result = serde_json::from_str::<Value>(&input)
         .map_err(anyhow::Error::from)
-        .and_then(|event| agent_hooks::dispatch(root, &event));
+        .and_then(|event| agent_hooks::dispatch(root, &event, agent));
     let output = match result {
         Ok(value) => value,
         Err(error) => Some(agent_hooks::deny(&format!(

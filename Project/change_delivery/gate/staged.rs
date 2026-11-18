@@ -39,8 +39,10 @@ pub(super) fn reuse(root: &Path, export: TempDir, context: &mut Context) -> Resu
     let previous = recorded(&manifest)?;
     let tree = placed(&previous.tree, export)?;
     let runtime = context.runtime.clone();
+    let caller = context.caller.clone();
     *context = Context {
         runtime,
+        caller,
         ..Context::load(tree.path())?
     };
     let same_tree = context.root == previous.tree;

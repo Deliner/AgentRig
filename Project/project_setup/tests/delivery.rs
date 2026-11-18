@@ -190,16 +190,19 @@ fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
 fn hook(root: &Path, tool: &str, input: Value) -> String {
     let event = json!({"hook_event_name": "PreToolUse", "tool_name": tool,
         "tool_input": input, "cwd": root});
-    let result = agentrig(root, &["hook"], &event.to_string());
+    let result = agentrig(root, &["hook", "--agent", "codex"], &event.to_string());
     assert_eq!(result.code, Some(0), "{}", result.output());
     result.stdout
 }
 
-fn hooks(root: &Path, layout: &Layout) {
+fn hooks(root: &Path) {
     let state = format!("{MEMORY}/State.md");
     let guidance = hook(root, "Write", json!({"file_path": state}));
-    let edit_state = format!("{}/edit-state/SKILL.md", layout.skills);
-    assert!(guidance.contains(&edit_state), "{guidance}");
+    let edit_state = root.join(".agents/skills/edit-state/SKILL.md");
+    assert!(
+        guidance.contains(edit_state.to_str().unwrap()),
+        "{guidance}"
+    );
     let shell = |command: &str| hook(root, "exec_command", json!({"cmd": command}));
     assert!(shell("just run unknown").contains("deny"));
     assert!(shell("echo bypass").contains("deny"));
@@ -209,13 +212,14 @@ fn hooks(root: &Path, layout: &Layout) {
         entry.contains("deny") && entry.contains("edit-state/SKILL.md for VAC check entry");
     assert!(reminded, "{entry}");
     assert!(!shell("just check --only lint").contains("deny"));
-    let skill = format!("{}/refactor-large-directory/SKILL.md", layout.skills);
+    let skill = root.join(".agents/skills/refactor-large-directory/SKILL.md");
+    let skill = skill.to_str().unwrap();
     let edit = |name: &str| {
         let path = format!("{SOURCE}/unit/{name}");
         hook(root, "Write", json!({"file_path": path}))
     };
     let first = edit("first");
-    assert!(first.contains("deny") && first.contains(&skill), "{first}");
+    assert!(first.contains("deny") && first.contains(skill), "{first}");
     assert!(!edit("second").contains("deny"));
 }
 
@@ -243,7 +247,7 @@ fn deliver(layout: &Layout) {
     ready(&root);
     structure_is_scored(&root, layout);
     unsupported_extension_is_rejected(&root, layout);
-    hooks(&root, layout);
+    hooks(&root);
     integrate(&root, layout);
 }
 

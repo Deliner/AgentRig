@@ -1,4 +1,8 @@
-use std::{fmt, path::Path};
+use crate::shared::calling_agent::{Agent, Caller};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 
 pub struct Guidance<'a> {
     pub level: &'a str,
@@ -24,7 +28,11 @@ impl fmt::Display for Guidance<'_> {
         )
     }
 }
-pub(super) fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &str) -> &'a str {
+pub const UNNAMED_SKILL: &str = "the repair skill named by config_skill in .agentrig/project.yaml, by default .agentrig/skills/repair/SKILL.md";
+pub(super) fn repair_skill<'a>(
+    config: Option<&'a serde_json::Value>,
+    command: &str,
+) -> Option<&'a str> {
     let memory = command == "memory-check";
     let check_skill = config
         .and_then(|config| config.get("checks"))
@@ -38,11 +46,23 @@ pub(super) fn repair_skill<'a>(config: Option<&'a serde_json::Value>, command: &
     check_skill
         .or_else(|| config.and_then(|config| config.get("config_skill")))
         .and_then(serde_json::Value::as_str)
-        .unwrap_or("the repair skill named by config_skill in .agentrig/project.yaml, by default .agentrig/skills/repair/SKILL.md")
 }
-pub fn config_skill(root: &Path) -> String {
+// DECISION: D188
+pub fn config_skill(root: &Path, agent: Option<Agent>) -> Option<PathBuf> {
     let config =
         crate::shared::strict_yaml::read::<serde_json::Value>(&root.join(".agentrig/project.yaml"))
-            .ok();
-    repair_skill(config.as_ref(), "config-check").to_owned()
+            .ok()?;
+    let skill = repair_skill(Some(&config), "config-check")?;
+    let Some(skills) = config
+        .pointer("/paths/skills")
+        .and_then(serde_json::Value::as_str)
+    else {
+        return Some(root.join(skill));
+    };
+    let caller = Caller {
+        root: root.to_owned(),
+        skills: skills.into(),
+        agent,
+    };
+    Some(caller.skill(skill))
 }

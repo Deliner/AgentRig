@@ -3,6 +3,7 @@ files:
   mod.rs: Shared module declarations
 directories:
   atomic_files: Read, fingerprint and atomically persist shared file artifacts
+  calling_agent: Name the coding agents, their skill directories and the skill path shown to the calling agent
   console: Own console output for the product with line writers for stdout and stderr and a flushed prompt
   diagnostics: Render failures and actionable repair guidance and validate referenced skills
   fs_with_context: Own filesystem access for the product with errors naming the action and the path

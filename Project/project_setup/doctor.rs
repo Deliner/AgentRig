@@ -1,5 +1,6 @@
 use super::rust::toolchain::Requirement;
 use crate::project_config::{Access, Context};
+use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::structural_lint::Location;
@@ -29,10 +30,8 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !rust_toolchain(context)?;
     failed |= !sandbox_availability(context);
     failed |= !vcs_registration(context)?;
-    failed |= !match context.config.frontend {
-        crate::project_config::Frontend::Codex => codex_registration(context)?,
-        crate::project_config::Frontend::ClaudeCode => super::claude::registration(context)?,
-    };
+    failed |= !codex_registration(context)?;
+    failed |= !super::claude::registration(context)?;
     if failed {
         let rerun = crate::shared::diagnostics::rerun(&context.root, &["doctor".into()]);
         console::stderr(crate::shared::diagnostics::Guidance {
@@ -158,7 +157,7 @@ fn codex_registration(context: &Context) -> Result<bool> {
     let configured = fs::read(context.root.join(".codex/hooks.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
-    let codex = enabled && hooks_registered(context, configured.as_ref())?;
+    let codex = enabled && hooks_registered(context, configured.as_ref(), Agent::Codex)?;
     console::stdout(format!(
         "Codex registration: {}",
         if codex {
@@ -173,10 +172,12 @@ fn codex_registration(context: &Context) -> Result<bool> {
 pub(super) fn hooks_registered(
     context: &Context,
     configured: Option<&serde_json::Value>,
+    agent: Agent,
 ) -> Result<bool> {
     let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
         &context.config,
         &super::adapters::generated(&context.config)?.root_command,
+        agent,
     )?)?;
     Ok(configured.is_some_and(|value| {
         expected["hooks"].as_object().is_some_and(|hooks| {

@@ -49,7 +49,7 @@ just run test
 just check
 git add .
 just check --staged
-printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook
+printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook --agent codex
 git commit -m "Attach portable scaffold"
 just feature-merge
 just feature-start next

@@ -12,7 +12,7 @@ mod template;
 #[cfg(test)]
 mod tests;
 use crate::project_config::{self, Config};
-use crate::shared::diagnostics::calling_agent::Agent;
+use crate::shared::calling_agent::Agent;
 use anyhow::{Result, ensure};
 pub use doctor::{config_check, run as doctor};
 pub use runtime::add as runtime_add;
@@ -114,19 +114,15 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     }
     Ok(())
 }
+// DECISION: D188
 fn client_files(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
-    match config.frontend {
-        project_config::Frontend::Codex => {
-            files.insert(
-                ".codex/config.toml".into(),
-                adapters::CODEX_CONFIG.as_bytes().to_vec(),
-            );
-            files.insert(
-                ".codex/hooks.json".into(),
-                adapters::registration(config, root_command)?,
-            );
-        }
-        project_config::Frontend::ClaudeCode => claude::bundle(files, config, root_command)?,
-    }
-    Ok(())
+    files.insert(
+        ".codex/config.toml".into(),
+        adapters::CODEX_CONFIG.as_bytes().to_vec(),
+    );
+    files.insert(
+        ".codex/hooks.json".into(),
+        adapters::registration(config, root_command, Agent::Codex)?,
+    );
+    claude::bundle(files, config, root_command)
 }

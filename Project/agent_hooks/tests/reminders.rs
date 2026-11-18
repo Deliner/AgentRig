@@ -1,6 +1,8 @@
 // DECISION: D019
 // DECISION: D006
 use super::{initialized, respond};
+use crate::agent_hooks::dispatch;
+use crate::shared::calling_agent::Agent;
 use crate::shared::testing::{FAIL, GATE, project};
 use serde_json::{Value, json};
 use std::{
@@ -25,10 +27,17 @@ const SCHEDULE: [(u64, Option<&str>); 10] = [
 const CONTEXT_RESET: usize = 7;
 const FULL_REFRESH: &str = "FULL_REFRESH_REQUIRED";
 const UNAVAILABLE: &str = "Hook session state unavailable";
-const STATE_GUIDANCE: &str = "guides/edit-state/SKILL.md";
 
-fn session(frontend: &str) -> (TempDir, PathBuf) {
-    let (temp, root) = initialized(&["--skills", "guides", "--frontend", frontend]);
+fn skill(agent: Agent, name: &str) -> String {
+    format!("{}/{name}/SKILL.md", agent.skills())
+}
+
+fn answer(root: &Path, event: &Value, agent: Agent) -> Value {
+    dispatch(root, event, agent).unwrap().unwrap_or(Value::Null)
+}
+
+fn session() -> (TempDir, PathBuf) {
+    let (temp, root) = initialized(&["--skills", "guides"]);
     for (name, before, after) in [
         (
             "project",
@@ -72,12 +81,12 @@ fn writing(common: &Value, path: &str) -> Value {
     merged(common, fields)
 }
 
-fn usage(count: u64, frontend: &str) -> Value {
-    match frontend {
-        "claude-code" => json!({"type": "assistant", "message": {"usage": {
+fn usage(count: u64, agent: Agent) -> Value {
+    match agent {
+        Agent::ClaudeCode => json!({"type": "assistant", "message": {"usage": {
             "input_tokens": count / 2, "cache_creation_input_tokens": count / 4,
             "cache_read_input_tokens": count - count / 2 - count / 4, "output_tokens": 10000}}}),
-        _ => json!({"type": "event_msg", "payload": {"type": "token_count",
+        Agent::Codex => json!({"type": "event_msg", "payload": {"type": "token_count",
             "info": {"last_token_usage": {"input_tokens": count}}}}),
     }
 }
@@ -105,17 +114,16 @@ fn reminded(output: &Value, expected: Option<&str>) {
             assert!(reason.contains(text), "{text}: {reason}");
         }
     }
-    assert!(!output.to_string().contains(".agents/"), "{output}");
 }
 
-fn follow_schedule(root: &Path, edit: &Value, frontend: &str) {
+fn follow_schedule(root: &Path, edit: &Value, agent: Agent) {
     let transcript = root.join(".scratch/transcript.jsonl");
     for (index, (count, expected)) in SCHEDULE.into_iter().enumerate() {
-        append(&transcript, &format!("{}\n", usage(count, frontend)));
-        let output = respond(root, edit);
+        append(&transcript, &format!("{}\n", usage(count, agent)));
+        let output = answer(root, edit, agent);
         reminded(&output, expected);
         let delivered = [0, CONTEXT_RESET].contains(&index);
-        let guided = output.to_string().contains(STATE_GUIDANCE);
+        let guided = output.to_string().contains(&skill(agent, "edit-state"));
         assert_eq!(guided, delivered, "{index}: {output}");
     }
     let size = fs::metadata(&transcript).unwrap().len();
@@ -128,31 +136,31 @@ fn follow_schedule(root: &Path, edit: &Value, frontend: &str) {
 // INVARIANT: I007
 #[test]
 fn portable_reminder_schedule_retry_and_compaction() {
-    for frontend in ["codex", "claude-code"] {
-        let (_temp, root) = session(frontend);
+    for agent in Agent::ALL {
+        let (_temp, root) = session();
         let common = common(&root);
         let start = merged(&common, json!({"hook_event_name": "SessionStart"}));
-        let started = respond(&root, &start).to_string();
-        let skill = "guides/complexity-discipline/SKILL.md";
-        for expected in [FULL_REFRESH, skill, "Ledger/State.md"] {
+        let started = answer(&root, &start, agent).to_string();
+        let discipline = skill(agent, "complexity-discipline");
+        for expected in [FULL_REFRESH, &discipline, "Ledger/State.md"] {
             assert!(started.contains(expected), "{expected}: {started}");
         }
-        assert!(!started.contains(".agents/"), "{started}");
         let edit = writing(&common, "Ledger/State.md");
-        follow_schedule(&root, &edit, frontend);
+        follow_schedule(&root, &edit, agent);
         let compact = merged(&start, json!({"source": "compact"}));
-        let refreshed = respond(&root, &compact).to_string();
+        let refreshed = answer(&root, &compact, agent).to_string();
         assert!(refreshed.contains(FULL_REFRESH), "{refreshed}");
         let state = saved(&root.join(".scratch/state/reminders"));
         assert_eq!(state["baseline_tokens"], 150);
-        let output = respond(&root, &edit);
+        let output = answer(&root, &edit, agent);
         let decided = output["hookSpecificOutput"].get("permissionDecision");
         assert!(decided.is_none(), "{output}");
-        assert!(output.to_string().contains(STATE_GUIDANCE), "{output}");
+        let guided = output.to_string().contains(&skill(agent, "edit-state"));
+        assert!(guided, "{output}");
         for name in ["Plan", "Decisions", "Invariants"] {
             let edit = writing(&common, &format!("Ledger/{name}.md"));
-            let output = respond(&root, &edit).to_string();
-            let guidance = format!("guides/edit-{}/SKILL.md", name.to_lowercase());
+            let output = answer(&root, &edit, agent).to_string();
+            let guidance = skill(agent, &format!("edit-{}", name.to_lowercase()));
             assert!(output.contains(&guidance), "{guidance}: {output}");
         }
     }
@@ -174,10 +182,10 @@ fn no_configured_discipline_does_not_invent_a_skill() {
 #[test]
 fn reminder_storage_failure_is_visible_and_recovers() {
     for path in ["src/example.rs", "Ledger/State.md"] {
-        let (_temp, root) = session("codex");
+        let (_temp, root) = session();
         let runtime = root.join(".scratch/state");
         fs::write(&runtime, "occupied").unwrap();
-        let tokens = format!("{}\n", usage(300, "codex"));
+        let tokens = format!("{}\n", usage(300, Agent::Codex));
         append(&root.join(".scratch/transcript.jsonl"), &tokens);
         let fields = json!({"hook_event_name": "PreToolUse", "tool_name": "Edit",
             "tool_input": {"file_path": path}});
@@ -190,7 +198,9 @@ fn reminder_storage_failure_is_visible_and_recovers() {
         for expected in [UNAVAILABLE, reminders.to_str().unwrap()] {
             assert!(context.contains(expected), "{expected}: {context}");
         }
-        let guided = output.to_string().contains(STATE_GUIDANCE);
+        let guided = output
+            .to_string()
+            .contains(&skill(Agent::Codex, "edit-state"));
         assert_eq!(guided, path == "Ledger/State.md", "{path}: {output}");
         fs::remove_file(&runtime).unwrap();
         let recovered = respond(&root, &event).to_string();
@@ -216,7 +226,7 @@ fn partial_and_truncated_transcripts_recover() {
     let event = merged(&common, fields);
     let denied = || respond(&root, &event).to_string().contains("deny");
     let reminders = root.join(".agentrig/runtime/reminders");
-    let record = usage(100, "codex").to_string();
+    let record = usage(100, Agent::Codex).to_string();
     fs::write(&transcript, record.strip_suffix("}}").unwrap()).unwrap();
     assert!(!denied());
     assert_eq!(saved(&reminders)["scan_offset"], 0);

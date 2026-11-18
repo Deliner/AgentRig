@@ -6,20 +6,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
-            "timeout": 30
+            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/tooling/worker/run hook --root \"$root\" --agent claude-code",
+            "timeout": 30,
+            "statusMessage": "Loading worker context and edit guidance"
           }
         ]
       }
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Edit|Write",
+        "matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write",
         "hooks": [
           {
             "type": "command",
-            "command": "\"$(git rev-parse --show-toplevel)/tooling/worker/run\" hook --root \"$(git rev-parse --show-toplevel)\"",
-            "timeout": 30
+            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/tooling/worker/run hook --root \"$root\" --agent claude-code",
+            "timeout": 30,
+            "statusMessage": "Loading worker context and edit guidance"
           }
         ]
       }

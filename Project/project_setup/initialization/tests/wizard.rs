@@ -12,7 +12,7 @@ use std::{
     time::Duration,
 };
 
-const QUESTIONS: usize = 9;
+const QUESTIONS: usize = 8;
 const CONFIRMATION: &str = "Install this environment?";
 const CHANGE: &str = "User change after preview.\n";
 const COMPARED: [&str; 11] = [
@@ -142,14 +142,13 @@ fn interactive_invalid_selection_preserves_existing_files() {
 }
 
 #[test]
-fn interactive_selects_layout_client_and_checks() {
+fn interactive_selects_layout_and_checks() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     let mut answers = [""; QUESTIONS];
     answers[2] = "wizard rig";
-    answers[6] = "claude-code";
-    answers[7] = "lint,memory";
-    answers[8] = "yes";
+    answers[6] = "lint,memory";
+    answers[7] = "yes";
     let result = interactive(&root, &root, &answers);
     assert_eq!(result.code, Some(0), "{}", result.output());
     // DECISION: D187

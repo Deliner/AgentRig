@@ -1,0 +1,5 @@
+purpose: Name the coding agents the rig serves, the directory through which each reaches the skills and the skill path shown to the calling agent
+type: flat
+files:
+  mod.rs: The agents, their skill directories and the caller that moves a skill path under paths.skills into its agent's directory
+directories: {}

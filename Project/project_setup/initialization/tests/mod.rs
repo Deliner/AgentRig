@@ -1,4 +1,4 @@
-mod claude;
+mod agents;
 mod layout;
 mod wizard;
 

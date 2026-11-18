@@ -21,8 +21,6 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Config {
-    #[serde(default)]
-    pub frontend: Frontend,
     pub version: u32,
     pub runtime: String,
     pub config_skill: String,
@@ -89,13 +87,6 @@ impl Paths {
 }
 fn service() -> String {
     ".agentrig".into()
-}
-#[derive(Clone, Copy, Default, Deserialize, Serialize)]
-#[serde(rename_all = "kebab-case")]
-pub enum Frontend {
-    #[default]
-    Codex,
-    ClaudeCode,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

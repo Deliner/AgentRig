@@ -19,6 +19,7 @@ mod transcript;
 use self::input::text;
 use self::skill_requirements::Answer;
 use crate::project_config::{Context, RouteEvent};
+use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
@@ -96,15 +97,17 @@ fn target(root: &Path, event: &Value, path: &str) -> Option<PathBuf> {
     let resolved = resolve(&cwd.join(path)).ok()?;
     resolved.strip_prefix(root).ok().map(Path::to_owned)
 }
-pub fn dispatch(root: &Path, event: &Value) -> Result<Option<Value>> {
+// DECISION: D188
+pub fn dispatch(root: &Path, event: &Value, agent: Agent) -> Result<Option<Value>> {
     let invalid_event = !event.is_object();
     if invalid_event {
         bail!("expected a hook event object");
     }
-    let configured = match Context::load(root) {
+    let mut configured = match Context::load(root) {
         Ok(configured) => configured,
-        Err(error) => return Ok(recovery::respond(root, event, &error)),
+        Err(error) => return Ok(recovery::respond(root, agent, event, &error)),
     };
+    configured.caller.agent = Some(agent);
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),
         "PreToolUse" => match text(event, "tool_name") {
@@ -208,7 +211,7 @@ fn respond(
             }
         }
     };
-    answer.output(configured, text(event, "tool_name"))
+    Ok(answer.output(configured, text(event, "tool_name")))
 }
 fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Reminding) -> Answer {
     let schedule = configured
@@ -264,7 +267,7 @@ fn full_refresh(context: &crate::project_config::Context) -> String {
         .map(|skill| {
             reminder::FULL.replace(
                 "{discipline_skill}",
-                &context.root.join(skill).to_string_lossy(),
+                &context.caller.skill(skill).to_string_lossy(),
             )
         })
         .unwrap_or_default()

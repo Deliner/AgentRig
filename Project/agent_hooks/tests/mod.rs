@@ -4,6 +4,7 @@ mod shell;
 mod skill_requirements;
 
 use super::dispatch;
+use crate::shared::calling_agent::Agent;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -25,7 +26,9 @@ fn pre_tool(cwd: &Path, tool: &str, input: Value) -> Value {
 }
 
 fn respond(root: &Path, event: &Value) -> Value {
-    dispatch(root, event).unwrap().unwrap_or(Value::Null)
+    dispatch(root, event, Agent::Codex)
+        .unwrap()
+        .unwrap_or(Value::Null)
 }
 
 fn hook(root: &Path, tool: &str, input: Value) -> Value {
@@ -56,9 +59,13 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
     assert_eq!(edit(&root, &commands.display().to_string()), "");
     assert_eq!(shell(&root, "just config-check"), "");
     let denied = edit(&root, "Project/main.py");
+    let repair = format!(
+        "ACTION: Apply {}/.agents/skills/repair/SKILL.md",
+        root.display()
+    );
     for expected in [
         ".agentrig/commands.yaml: commands.read: empty argv requires accepts_args",
-        "ACTION: Apply .agentrig/skills/repair/SKILL.md",
+        &repair,
         "only edits of .agentrig/project.yaml, .agentrig/git.yaml",
         "`just config-check`",
     ] {
@@ -74,11 +81,8 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
         reason(&hook(&root, "apply_patch", json!({"command": codex}))),
         ""
     );
-    let session = dispatch(&root, &json!({"hook_event_name": "SessionStart"})).unwrap();
-    assert_eq!(
-        session.unwrap()["hookSpecificOutput"]["additionalContext"],
-        denied
-    );
+    let session = respond(&root, &json!({"hook_event_name": "SessionStart"}));
+    assert_eq!(session["hookSpecificOutput"]["additionalContext"], denied);
     fs::write(&commands, valid).unwrap();
     assert_eq!(edit(&root, "README.md"), "");
     assert_eq!(shell(&root, "just run test"), "");
@@ -91,7 +95,12 @@ fn invalid_configuration_can_be_read_only_through_cat_of_its_files() {
     let read = "cat .agentrig/commands.yaml '.agentrig/skills/repair/SKILL.md'";
     assert_eq!(shell(&root, read), "");
     let denied = edit(&root, "Project/main.py");
-    assert!(denied.contains("`cat` of these files and .agentrig/skills/repair/SKILL.md"));
+    let repair = format!("{}/.agents/skills/repair/SKILL.md", root.display());
+    assert!(
+        denied.contains(&format!("`cat` of these files and {repair}")),
+        "{denied}"
+    );
+    assert_eq!(shell(&root, &format!("cat {repair}")), "");
     for command in [
         "cat Project/main.py",
         "cat .agentrig/commands.yaml > Project/main.py",

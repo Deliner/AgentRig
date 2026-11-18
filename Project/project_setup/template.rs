@@ -4,7 +4,7 @@ use crate::project_config::{
     self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
     Rust, Tools, View, Views,
 };
-use crate::shared::diagnostics::calling_agent::Agent;
+use crate::shared::calling_agent::Agent;
 use anyhow::{Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
@@ -19,14 +19,13 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
         ("service", ".agentrig"),
         ("base", "main"),
         ("prefix", "feature/"),
-        ("frontend", "codex"),
     ]
     .into_iter()
     .map(|(key, value)| (key, value.into()))
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--frontend codex|claude-code] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
+        "init [--language python|rust] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -45,10 +44,6 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     Ok(options)
 }
 fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
-    ensure!(
-        ["codex", "claude-code"].contains(&options["frontend"].as_str()),
-        "init --frontend expects codex or claude-code"
-    );
     let language = options["language"].as_str();
     ensure!(
         ["python", "rust"].contains(&language),
@@ -103,10 +98,6 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Confi
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     Config {
-        frontend: match options["frontend"].as_str() {
-            "claude-code" => project_config::Frontend::ClaudeCode,
-            _ => project_config::Frontend::Codex,
-        },
         version: 1,
         capabilities: project_config::Capabilities::default(),
         runtime: project_config::VERSION.into(),

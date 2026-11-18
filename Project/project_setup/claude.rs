@@ -1,15 +1,16 @@
 use super::{Config, Files, adapters};
 use crate::project_config::Context;
+use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use serde_json::Value;
 
 pub(super) fn bundle(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
-    files.insert("CLAUDE.md".into(), b"@AGENTS.md\n".to_vec());
+    files.insert(".claude/CLAUDE.md".into(), b"@../AGENTS.md\n".to_vec());
     files.insert(
         ".claude/settings.json".into(),
-        adapters::registration(config, root_command)?,
+        adapters::registration(config, root_command, Agent::ClaudeCode)?,
     );
     Ok(())
 }
@@ -23,7 +24,8 @@ pub(super) fn registration(context: &Context) -> Result<bool> {
             .get("disableAllHooks")
             .is_none_or(|value| value == false)
     });
-    let registered = enabled && super::doctor::hooks_registered(context, settings.as_ref())?;
+    let registered =
+        enabled && super::doctor::hooks_registered(context, settings.as_ref(), Agent::ClaudeCode)?;
     console::stdout(format!(
         "Claude Code registration: {}",
         if registered {

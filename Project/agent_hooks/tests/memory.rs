@@ -115,7 +115,7 @@ fn guidance(root: &Path, output: &Value, expected: &[&str]) {
         specific["additionalContext"].as_str().unwrap()
     };
     for skill in MEMORY_SKILLS {
-        let path = root.join("guides").join(skill).join("SKILL.md");
+        let path = root.join(".agents/skills").join(skill).join("SKILL.md");
         assert!(path.is_file(), "{}", path.display());
         let count = message.matches(path.to_str().unwrap()).count();
         let delivered = usize::from(expected.contains(&skill));
@@ -181,7 +181,7 @@ fn storage_failure_keeps_recovery_context() {
     fs::remove_dir(&storage).unwrap();
     fs::write(&storage, "occupied").unwrap();
     let session = r#"{"hook_event_name": "SessionStart"}"#;
-    let result = run(&mut runtime(&root, &["hook"]), session);
+    let result = run(&mut runtime(&root, &["hook", "--agent", "codex"]), session);
     let reminders = storage.join("reminders");
     let recovery = [
         "Ledger/State.md",

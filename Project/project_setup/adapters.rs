@@ -1,4 +1,5 @@
 use super::Config;
+use crate::shared::calling_agent::Agent;
 use anyhow::Result;
 
 pub const CODEX_CONFIG: &str = "[features]\nhooks = true\n";
@@ -27,12 +28,15 @@ pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
         .collect())
 }
 
-pub fn registration(config: &Config, root_command: &str) -> Result<Vec<u8>> {
+// DECISION: D188
+pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result<Vec<u8>> {
     let command = format!(
-        "root=$({root_command}) && exec {binary} hook --root \"$root\"",
-        binary = binary(&config.paths.service)
+        "root=$({root_command}) && exec {binary} hook --root \"$root\" --agent {agent}",
+        binary = binary(&config.paths.service),
+        agent = agent.name()
     );
-    let handler = serde_json::json!({"type": "command", "command": command, "timeout": 10});
+    let handler = serde_json::json!({"type": "command", "command": command, "timeout": 30,
+        "statusMessage": "Loading worker context and edit guidance"});
     let value = serde_json::json!({"hooks": {
         "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [handler.clone()]}],
         "PreToolUse": [{"matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write", "hooks": [handler]}]

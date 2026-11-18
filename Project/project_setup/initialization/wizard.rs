@@ -83,7 +83,6 @@ fn project_config(root: &Path) -> Result<Option<Scaffold>> {
         ("skills", "Skills directory"),
         ("base", "Base branch"),
         ("prefix", "Feature branch prefix"),
-        ("frontend", "Agent client: codex/claude-code"),
     ] {
         let default = match key {
             "skills" => format!("{}/skills", options["service"]),

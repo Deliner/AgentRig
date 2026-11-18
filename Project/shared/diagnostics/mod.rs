@@ -1,6 +1,5 @@
 // DECISION: D022
 pub mod actionable_findings;
-pub mod calling_agent;
 mod guidance;
 mod rerun_command;
 pub mod skill_refs;
@@ -8,7 +7,7 @@ pub mod skill_refs;
 use guidance::repair_skill;
 use rerun_command::{Invocation, executable, invocation};
 
-pub use guidance::{Guidance, config_skill};
+pub use guidance::{Guidance, UNNAMED_SKILL, config_skill};
 pub use rerun_command::rerun;
 
 pub fn failure(error: &anyhow::Error) -> String {
@@ -17,7 +16,7 @@ pub fn failure(error: &anyhow::Error) -> String {
     let config =
         crate::shared::strict_yaml::read::<serde_json::Value>(&root.join(".agentrig/project.yaml"))
             .ok();
-    let skill = repair_skill(config.as_ref(), command);
+    let skill = repair_skill(config.as_ref(), command).unwrap_or(UNNAMED_SKILL);
     let binary = executable();
     let rerun = shell_words::join(
         std::iter::once(binary.to_string_lossy().into_owned()).chain(args.iter().cloned()),
