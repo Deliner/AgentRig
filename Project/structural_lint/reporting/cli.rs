@@ -104,8 +104,8 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let example = args.iter().any(|arg| arg == "--example");
     let json = args.iter().any(|arg| arg == "--json");
     if example {
-        let value = serde_json::json!({"version": 1, "config_skill": ".agents/skills/repair/SKILL.md",
-            "rules": [capabilities::example(kind, ".agents/skills", &["src/**".into()])]});
+        let value = serde_json::json!({"version": 1, "config_skill": ".agentrig/skills/repair/SKILL.md",
+            "rules": [capabilities::example(kind, ".agentrig/skills", &["src/**".into()])]});
         console::stdout(crate::shared::strict_yaml::encode(&value)?);
     } else if json {
         console::stdout(capabilities::describe(kind));

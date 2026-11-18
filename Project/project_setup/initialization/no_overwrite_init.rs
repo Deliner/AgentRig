@@ -1,7 +1,7 @@
 use super::wizard;
 use crate::project_config;
 use crate::project_setup::template::{self, Scaffold};
-use crate::project_setup::{Config, Files, bundle};
+use crate::project_setup::{Config, Files, bundle, skill_links};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, OpenOptions, Permissions, PermissionsExt};
 use crate::structural_lint::Location;
@@ -46,7 +46,7 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
     Ok(())
 }
 pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()> {
-    check_collisions(root, files)?;
+    check_collisions(root, files.keys().chain(skill_links(config).keys()))?;
     let repository = crate::shared::vcs::Repository::discover(root)?;
     if let Some(repository) = &repository {
         repository.validate_registration(&config.paths.service_path("hooks"))?;
@@ -58,8 +58,8 @@ pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()>
     }
     validate_bundle(files)
 }
-fn check_collisions(root: &Path, files: &Files) -> Result<()> {
-    for path in files.keys() {
+fn check_collisions<'a>(root: &Path, paths: impl Iterator<Item = &'a String>) -> Result<()> {
+    for path in paths {
         let resolved = project_config::relative(root, path)?;
         for parent in resolved
             .ancestors()
@@ -107,6 +107,14 @@ pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result
         if executable {
             fs::set_permissions(&path, Permissions::from_mode(0o755))?;
         }
+    }
+    for (path, target) in skill_links(config) {
+        let link = project_config::relative(root, &path)?;
+        let parent = link
+            .parent()
+            .ok_or_else(|| anyhow::anyhow!("link path has no parent"))?;
+        fs::create_dir_all(parent)?;
+        fs::symlink(target.as_os_str(), &link)?;
     }
     if let Some(settings) = &scaffold.clippy {
         settings.write()?;

@@ -12,11 +12,28 @@ mod template;
 #[cfg(test)]
 mod tests;
 use crate::project_config::{self, Config};
+use crate::shared::diagnostics::calling_agent::Agent;
 use anyhow::{Result, ensure};
 pub use doctor::{config_check, run as doctor};
 pub use runtime::add as runtime_add;
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 type Files = BTreeMap<String, Vec<u8>>;
+type Links = BTreeMap<String, PathBuf>;
+// DECISION: D188
+fn skill_links(config: &Config) -> Links {
+    Agent::ALL
+        .into_iter()
+        .map(|agent| {
+            let link = Path::new(agent.skills());
+            let depth = link
+                .parent()
+                .map_or(0, |parent| parent.components().count());
+            let target: PathBuf = std::iter::repeat_n("..", depth).collect();
+            (agent.skills().to_owned(), target.join(&config.paths.skills))
+        })
+        .collect()
+}
 fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
     let config = &scaffold.config;
     let mut files = guidance(config);

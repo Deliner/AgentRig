@@ -9,7 +9,7 @@
 # Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
 # Supports Rust (.rs), Python (.py/.pyi); other languages are rejected.
 version: 1
-config_skill: .agents/skills/repair/SKILL.md
+config_skill: .agentrig/skills/repair/SKILL.md
 exclude:
 - .git
 - .git/**
@@ -53,8 +53,8 @@ rules:
   - Ledger/Assets/**
   warning: 300
   error: 500
-  warning_skill: .agents/skills/refactor-large-file/SKILL.md
-  error_skill: .agents/skills/refactor-large-file/SKILL.md
+  warning_skill: .agentrig/skills/refactor-large-file/SKILL.md
+  error_skill: .agentrig/skills/refactor-large-file/SKILL.md
 # DECISION: D036
 - id: markdown-size
   kind: nonblank-lines
@@ -65,8 +65,8 @@ rules:
   exclude:
   - Ledger/**
   error: 70
-  warning_skill: .agents/skills/condense-markdown/SKILL.md
-  error_skill: .agents/skills/condense-markdown/SKILL.md
+  warning_skill: .agentrig/skills/condense-markdown/SKILL.md
+  error_skill: .agentrig/skills/condense-markdown/SKILL.md
 - id: markdown-width
   kind: line-width
   target: file
@@ -76,8 +76,8 @@ rules:
   exclude:
   - Ledger/**
   error: 120
-  warning_skill: .agents/skills/condense-markdown/SKILL.md
-  error_skill: .agents/skills/condense-markdown/SKILL.md
+  warning_skill: .agentrig/skills/condense-markdown/SKILL.md
+  error_skill: .agentrig/skills/condense-markdown/SKILL.md
 - id: markdown-placement
   kind: forbidden-file
   target: file
@@ -90,8 +90,8 @@ rules:
   - '**/AGENTS.md'
   - '**/SKILL.md'
   level: error
-  warning_skill: .agents/skills/condense-markdown/SKILL.md
-  error_skill: .agents/skills/condense-markdown/SKILL.md
+  warning_skill: .agentrig/skills/condense-markdown/SKILL.md
+  error_skill: .agentrig/skills/condense-markdown/SKILL.md
 - id: directory-size
   kind: directory-entries
   target: directory
@@ -110,8 +110,8 @@ rules:
   - Ledger/Archive/Backlog
   warning: 10
   error: 15
-  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
-  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  warning_skill: .agentrig/skills/refactor-large-directory/SKILL.md
+  error_skill: .agentrig/skills/refactor-large-directory/SKILL.md
 # DECISION: D072
 - id: dump-name
   kind: dump-name
@@ -120,8 +120,8 @@ rules:
   - Project
   - 'Project/**'
   level: error
-  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
-  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  warning_skill: .agentrig/skills/refactor-large-directory/SKILL.md
+  error_skill: .agentrig/skills/refactor-large-directory/SKILL.md
 - id: named-if-condition
   kind: named-if-condition
   target: file
@@ -132,8 +132,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/name-if-condition/SKILL.md
-  error_skill: .agents/skills/name-if-condition/SKILL.md
+  warning_skill: .agentrig/skills/name-if-condition/SKILL.md
+  error_skill: .agentrig/skills/name-if-condition/SKILL.md
 - id: function-lines
   kind: function-lines
   target: file
@@ -144,8 +144,8 @@ rules:
   - .py
   - .pyi
   error: 40
-  warning_skill: .agents/skills/refactor-long-function/SKILL.md
-  error_skill: .agents/skills/refactor-long-function/SKILL.md
+  warning_skill: .agentrig/skills/refactor-long-function/SKILL.md
+  error_skill: .agentrig/skills/refactor-long-function/SKILL.md
 - id: parameter-count
   kind: parameter-count
   target: file
@@ -156,8 +156,8 @@ rules:
   - .py
   - .pyi
   error: 4
-  warning_skill: .agents/skills/reduce-parameters/SKILL.md
-  error_skill: .agents/skills/reduce-parameters/SKILL.md
+  warning_skill: .agentrig/skills/reduce-parameters/SKILL.md
+  error_skill: .agentrig/skills/reduce-parameters/SKILL.md
 # DECISION: D061
 - id: nesting-depth
   kind: nesting-depth
@@ -169,8 +169,8 @@ rules:
   - .py
   - .pyi
   error: 4
-  warning_skill: .agents/skills/flatten-nesting/SKILL.md
-  error_skill: .agents/skills/flatten-nesting/SKILL.md
+  warning_skill: .agentrig/skills/flatten-nesting/SKILL.md
+  error_skill: .agentrig/skills/flatten-nesting/SKILL.md
 # DECISION: D062
 - id: boolean-parameter
   kind: boolean-parameter
@@ -182,8 +182,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/split-boolean-parameter/SKILL.md
-  error_skill: .agents/skills/split-boolean-parameter/SKILL.md
+  warning_skill: .agentrig/skills/split-boolean-parameter/SKILL.md
+  error_skill: .agentrig/skills/split-boolean-parameter/SKILL.md
 # DECISION: D063
 - id: branch-budget
   kind: branch-budget
@@ -195,8 +195,8 @@ rules:
   - .py
   - .pyi
   error: 5
-  warning_skill: .agents/skills/reduce-branching/SKILL.md
-  error_skill: .agents/skills/reduce-branching/SKILL.md
+  warning_skill: .agentrig/skills/reduce-branching/SKILL.md
+  error_skill: .agentrig/skills/reduce-branching/SKILL.md
 # DECISION: D120
 - id: boolean-expression
   kind: boolean-expression
@@ -210,8 +210,8 @@ rules:
   error: 3
   # DECISION: D156
   junctions: single
-  warning_skill: .agents/skills/split-boolean-expression/SKILL.md
-  error_skill: .agents/skills/split-boolean-expression/SKILL.md
+  warning_skill: .agentrig/skills/split-boolean-expression/SKILL.md
+  error_skill: .agentrig/skills/split-boolean-expression/SKILL.md
 # DECISION: D122
 - id: embedded-text
   kind: embedded-text
@@ -224,8 +224,8 @@ rules:
   extensions:
   - .rs
   error: 20
-  warning_skill: .agents/skills/extract-embedded-text/SKILL.md
-  error_skill: .agents/skills/extract-embedded-text/SKILL.md
+  warning_skill: .agentrig/skills/extract-embedded-text/SKILL.md
+  error_skill: .agentrig/skills/extract-embedded-text/SKILL.md
 # DECISION: D065
 - id: unsafe-justification
   kind: unsafe-justification
@@ -235,8 +235,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/justify-unsafe/SKILL.md
-  error_skill: .agents/skills/justify-unsafe/SKILL.md
+  warning_skill: .agentrig/skills/justify-unsafe/SKILL.md
+  error_skill: .agentrig/skills/justify-unsafe/SKILL.md
 # DECISION: D067
 - id: hardcoded-secret
   kind: hardcoded-secret
@@ -248,8 +248,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/remove-secret/SKILL.md
-  error_skill: .agents/skills/remove-secret/SKILL.md
+  warning_skill: .agentrig/skills/remove-secret/SKILL.md
+  error_skill: .agentrig/skills/remove-secret/SKILL.md
 # DECISION: D069
 # DECISION: D097
 - id: silent-error
@@ -262,8 +262,8 @@ rules:
   - .pyi
   - .rs
   level: error
-  warning_skill: .agents/skills/handle-error/SKILL.md
-  error_skill: .agents/skills/handle-error/SKILL.md
+  warning_skill: .agentrig/skills/handle-error/SKILL.md
+  error_skill: .agentrig/skills/handle-error/SKILL.md
 # DECISION: D074
 - id: disabled-test
   kind: disabled-test
@@ -275,8 +275,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/justify-skip/SKILL.md
-  error_skill: .agents/skills/justify-skip/SKILL.md
+  warning_skill: .agentrig/skills/justify-skip/SKILL.md
+  error_skill: .agentrig/skills/justify-skip/SKILL.md
 # DECISION: D080
 # DECISION: D098
 # DECISION: D182
@@ -290,8 +290,8 @@ rules:
   - .toml
   - .yaml
   level: error
-  warning_skill: .agents/skills/justify-allow/SKILL.md
-  error_skill: .agents/skills/justify-allow/SKILL.md
+  warning_skill: .agentrig/skills/justify-allow/SKILL.md
+  error_skill: .agentrig/skills/justify-allow/SKILL.md
 # DECISION: D182
 - id: cargo-rustflags
   kind: cargo-rustflags
@@ -301,8 +301,8 @@ rules:
   extensions:
   - .toml
   level: error
-  warning_skill: .agents/skills/move-rustflags/SKILL.md
-  error_skill: .agents/skills/move-rustflags/SKILL.md
+  warning_skill: .agentrig/skills/move-rustflags/SKILL.md
+  error_skill: .agentrig/skills/move-rustflags/SKILL.md
 # DECISION: D081
 - id: debug-artifact
   kind: debug-artifact
@@ -312,8 +312,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/remove-debug/SKILL.md
-  error_skill: .agents/skills/remove-debug/SKILL.md
+  warning_skill: .agentrig/skills/remove-debug/SKILL.md
+  error_skill: .agentrig/skills/remove-debug/SKILL.md
 # DECISION: D082
 - id: panic-path
   kind: panic-path
@@ -326,8 +326,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/handle-panic/SKILL.md
-  error_skill: .agents/skills/handle-panic/SKILL.md
+  warning_skill: .agentrig/skills/handle-panic/SKILL.md
+  error_skill: .agentrig/skills/handle-panic/SKILL.md
 # DECISION: D084
 - id: debug-assertion
   kind: debug-assertion
@@ -340,8 +340,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/firm-up-assertion/SKILL.md
-  error_skill: .agents/skills/firm-up-assertion/SKILL.md
+  warning_skill: .agentrig/skills/firm-up-assertion/SKILL.md
+  error_skill: .agentrig/skills/firm-up-assertion/SKILL.md
 # DECISION: D115
 - id: unwind-justification
   kind: unwind-justification
@@ -354,8 +354,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/justify-unwind/SKILL.md
-  error_skill: .agents/skills/justify-unwind/SKILL.md
+  warning_skill: .agentrig/skills/justify-unwind/SKILL.md
+  error_skill: .agentrig/skills/justify-unwind/SKILL.md
 # DECISION: D117
 - id: guard-across-await
   kind: guard-across-await
@@ -368,8 +368,8 @@ rules:
   extensions:
   - .rs
   level: warning
-  warning_skill: .agents/skills/release-the-guard/SKILL.md
-  error_skill: .agents/skills/release-the-guard/SKILL.md
+  warning_skill: .agentrig/skills/release-the-guard/SKILL.md
+  error_skill: .agentrig/skills/release-the-guard/SKILL.md
 # DECISION: D118
 - id: blocking-in-async
   kind: blocking-in-async
@@ -382,8 +382,8 @@ rules:
   extensions:
   - .rs
   level: warning
-  warning_skill: .agents/skills/await-not-block/SKILL.md
-  error_skill: .agents/skills/await-not-block/SKILL.md
+  warning_skill: .agentrig/skills/await-not-block/SKILL.md
+  error_skill: .agentrig/skills/await-not-block/SKILL.md
 # DECISION: D119
 - id: ord-eq-mismatch
   kind: ord-eq-mismatch
@@ -396,8 +396,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/align-order-with-equality/SKILL.md
-  error_skill: .agents/skills/align-order-with-equality/SKILL.md
+  warning_skill: .agentrig/skills/align-order-with-equality/SKILL.md
+  error_skill: .agentrig/skills/align-order-with-equality/SKILL.md
 # DECISION: D130
 - id: secret-debug
   kind: secret-debug
@@ -410,8 +410,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/redact-secret/SKILL.md
-  error_skill: .agents/skills/redact-secret/SKILL.md
+  warning_skill: .agentrig/skills/redact-secret/SKILL.md
+  error_skill: .agentrig/skills/redact-secret/SKILL.md
 # DECISION: D131
 - id: unchecked-deserialize
   kind: unchecked-deserialize
@@ -424,8 +424,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/check-deserialize/SKILL.md
-  error_skill: .agents/skills/check-deserialize/SKILL.md
+  warning_skill: .agentrig/skills/check-deserialize/SKILL.md
+  error_skill: .agentrig/skills/check-deserialize/SKILL.md
 # DECISION: D155
 - id: implicit-order
   kind: implicit-order
@@ -438,8 +438,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/pin-the-order/SKILL.md
-  error_skill: .agents/skills/pin-the-order/SKILL.md
+  warning_skill: .agentrig/skills/pin-the-order/SKILL.md
+  error_skill: .agentrig/skills/pin-the-order/SKILL.md
 # DECISION: D155
 - id: unit-lock
   kind: unit-lock
@@ -452,8 +452,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/lock-the-data/SKILL.md
-  error_skill: .agents/skills/lock-the-data/SKILL.md
+  warning_skill: .agentrig/skills/lock-the-data/SKILL.md
+  error_skill: .agentrig/skills/lock-the-data/SKILL.md
 # DECISION: D155
 - id: unlabeled-exit
   kind: unlabeled-exit
@@ -466,8 +466,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/label-the-exit/SKILL.md
-  error_skill: .agents/skills/label-the-exit/SKILL.md
+  warning_skill: .agentrig/skills/label-the-exit/SKILL.md
+  error_skill: .agentrig/skills/label-the-exit/SKILL.md
 # DECISION: D155
 - id: length-subtraction
   kind: length-subtraction
@@ -480,8 +480,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/subtract-checked/SKILL.md
-  error_skill: .agents/skills/subtract-checked/SKILL.md
+  warning_skill: .agentrig/skills/subtract-checked/SKILL.md
+  error_skill: .agentrig/skills/subtract-checked/SKILL.md
 # DECISION: D156
 - id: same-type-parameters
   kind: same-type-parameters
@@ -494,8 +494,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-arguments/SKILL.md
-  error_skill: .agents/skills/name-the-arguments/SKILL.md
+  warning_skill: .agentrig/skills/name-the-arguments/SKILL.md
+  error_skill: .agentrig/skills/name-the-arguments/SKILL.md
 # DECISION: D156
 - id: same-type-positions
   kind: same-type-positions
@@ -508,8 +508,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-positions/SKILL.md
-  error_skill: .agents/skills/name-the-positions/SKILL.md
+  warning_skill: .agentrig/skills/name-the-positions/SKILL.md
+  error_skill: .agentrig/skills/name-the-positions/SKILL.md
 # DECISION: D156
 - id: primitive-alias
   kind: primitive-alias
@@ -522,8 +522,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/wrap-the-primitive/SKILL.md
-  error_skill: .agents/skills/wrap-the-primitive/SKILL.md
+  warning_skill: .agentrig/skills/wrap-the-primitive/SKILL.md
+  error_skill: .agentrig/skills/wrap-the-primitive/SKILL.md
 # DECISION: D156
 - id: ambiguous-option
   kind: ambiguous-option
@@ -536,8 +536,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-states/SKILL.md
-  error_skill: .agents/skills/name-the-states/SKILL.md
+  warning_skill: .agentrig/skills/name-the-states/SKILL.md
+  error_skill: .agentrig/skills/name-the-states/SKILL.md
 # DECISION: D156
 - id: partial-impl
   kind: partial-impl
@@ -550,8 +550,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/destructure-the-fields/SKILL.md
-  error_skill: .agents/skills/destructure-the-fields/SKILL.md
+  warning_skill: .agentrig/skills/destructure-the-fields/SKILL.md
+  error_skill: .agentrig/skills/destructure-the-fields/SKILL.md
 # DECISION: D156
 - id: constant-default
   kind: constant-default
@@ -564,8 +564,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/require-the-method/SKILL.md
-  error_skill: .agents/skills/require-the-method/SKILL.md
+  warning_skill: .agentrig/skills/require-the-method/SKILL.md
+  error_skill: .agentrig/skills/require-the-method/SKILL.md
 # DECISION: D156
 - id: open-checked-field
   kind: open-checked-field
@@ -578,8 +578,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/hide-checked-field/SKILL.md
-  error_skill: .agents/skills/hide-checked-field/SKILL.md
+  warning_skill: .agentrig/skills/hide-checked-field/SKILL.md
+  error_skill: .agentrig/skills/hide-checked-field/SKILL.md
 # DECISION: D156
 - id: wrapper-deref
   kind: wrapper-deref
@@ -592,8 +592,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/delegate-not-deref/SKILL.md
-  error_skill: .agents/skills/delegate-not-deref/SKILL.md
+  warning_skill: .agentrig/skills/delegate-not-deref/SKILL.md
+  error_skill: .agentrig/skills/delegate-not-deref/SKILL.md
 # DECISION: D156
 - id: primitive-from
   kind: primitive-from
@@ -606,8 +606,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/construct-explicitly/SKILL.md
-  error_skill: .agents/skills/construct-explicitly/SKILL.md
+  warning_skill: .agentrig/skills/construct-explicitly/SKILL.md
+  error_skill: .agentrig/skills/construct-explicitly/SKILL.md
 # DECISION: D156
 - id: paired-calls
   kind: paired-calls
@@ -620,8 +620,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/guard-the-pair/SKILL.md
-  error_skill: .agents/skills/guard-the-pair/SKILL.md
+  warning_skill: .agentrig/skills/guard-the-pair/SKILL.md
+  error_skill: .agentrig/skills/guard-the-pair/SKILL.md
   pairs:
   - open: begin
     close: commit
@@ -647,8 +647,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/match-every-variant/SKILL.md
-  error_skill: .agents/skills/match-every-variant/SKILL.md
+  warning_skill: .agentrig/skills/match-every-variant/SKILL.md
+  error_skill: .agentrig/skills/match-every-variant/SKILL.md
 # DECISION: D156
 - id: range-chain
   kind: range-chain
@@ -661,8 +661,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/match-the-ranges/SKILL.md
-  error_skill: .agents/skills/match-the-ranges/SKILL.md
+  warning_skill: .agentrig/skills/match-the-ranges/SKILL.md
+  error_skill: .agentrig/skills/match-the-ranges/SKILL.md
 # DECISION: D156
 - id: positional-format
   kind: positional-format
@@ -675,8 +675,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-placeholders/SKILL.md
-  error_skill: .agents/skills/name-the-placeholders/SKILL.md
+  warning_skill: .agentrig/skills/name-the-placeholders/SKILL.md
+  error_skill: .agentrig/skills/name-the-placeholders/SKILL.md
 # DECISION: D156
 - id: crossed-field
   kind: crossed-field
@@ -689,8 +689,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/align-field-names/SKILL.md
-  error_skill: .agents/skills/align-field-names/SKILL.md
+  warning_skill: .agentrig/skills/align-field-names/SKILL.md
+  error_skill: .agentrig/skills/align-field-names/SKILL.md
 # DECISION: D166
 - id: positional-flag
   kind: positional-flag
@@ -703,8 +703,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-flag/SKILL.md
-  error_skill: .agents/skills/name-the-flag/SKILL.md
+  warning_skill: .agentrig/skills/name-the-flag/SKILL.md
+  error_skill: .agentrig/skills/name-the-flag/SKILL.md
 # DECISION: D166
 - id: exposed-guard
   kind: exposed-guard
@@ -717,8 +717,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/scope-the-guard/SKILL.md
-  error_skill: .agents/skills/scope-the-guard/SKILL.md
+  warning_skill: .agentrig/skills/scope-the-guard/SKILL.md
+  error_skill: .agentrig/skills/scope-the-guard/SKILL.md
 - id: untargeted-panic
   kind: untargeted-panic
   target: file
@@ -727,8 +727,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/expect-the-panic/SKILL.md
-  error_skill: .agents/skills/expect-the-panic/SKILL.md
+  warning_skill: .agentrig/skills/expect-the-panic/SKILL.md
+  error_skill: .agentrig/skills/expect-the-panic/SKILL.md
 - id: test-substitution
   kind: test-substitution
   target: file
@@ -740,8 +740,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/inject-the-variant/SKILL.md
-  error_skill: .agents/skills/inject-the-variant/SKILL.md
+  warning_skill: .agentrig/skills/inject-the-variant/SKILL.md
+  error_skill: .agentrig/skills/inject-the-variant/SKILL.md
 - id: interpolated-shell
   kind: interpolated-shell
   target: file
@@ -753,8 +753,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/pass-arguments-apart/SKILL.md
-  error_skill: .agents/skills/pass-arguments-apart/SKILL.md
+  warning_skill: .agentrig/skills/pass-arguments-apart/SKILL.md
+  error_skill: .agentrig/skills/pass-arguments-apart/SKILL.md
 - id: hidden-exit
   kind: hidden-exit
   target: file
@@ -766,8 +766,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/expose-the-exit/SKILL.md
-  error_skill: .agents/skills/expose-the-exit/SKILL.md
+  warning_skill: .agentrig/skills/expose-the-exit/SKILL.md
+  error_skill: .agentrig/skills/expose-the-exit/SKILL.md
 - id: stale-check
   kind: stale-check
   target: file
@@ -779,8 +779,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/act-and-match-the-error/SKILL.md
-  error_skill: .agents/skills/act-and-match-the-error/SKILL.md
+  warning_skill: .agentrig/skills/act-and-match-the-error/SKILL.md
+  error_skill: .agentrig/skills/act-and-match-the-error/SKILL.md
 - id: untyped-conversion
   kind: untyped-conversion
   target: file
@@ -792,8 +792,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-target/SKILL.md
-  error_skill: .agents/skills/name-the-target/SKILL.md
+  warning_skill: .agentrig/skills/name-the-target/SKILL.md
+  error_skill: .agentrig/skills/name-the-target/SKILL.md
 # DECISION: D177
 - id: superseded-form
   kind: superseded-form
@@ -803,8 +803,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/use-the-current-form/SKILL.md
-  error_skill: .agents/skills/use-the-current-form/SKILL.md
+  warning_skill: .agentrig/skills/use-the-current-form/SKILL.md
+  error_skill: .agentrig/skills/use-the-current-form/SKILL.md
 # DECISION: D181
 - id: epsilon-tolerance
   kind: epsilon-tolerance
@@ -817,8 +817,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-tolerance/SKILL.md
-  error_skill: .agents/skills/name-the-tolerance/SKILL.md
+  warning_skill: .agentrig/skills/name-the-tolerance/SKILL.md
+  error_skill: .agentrig/skills/name-the-tolerance/SKILL.md
 # DECISION: D181
 - id: trait-path-call
   kind: trait-path-call
@@ -831,8 +831,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-target/SKILL.md
-  error_skill: .agents/skills/name-the-target/SKILL.md
+  warning_skill: .agentrig/skills/name-the-target/SKILL.md
+  error_skill: .agentrig/skills/name-the-target/SKILL.md
 # DECISION: D181
 - id: variant-list
   kind: variant-list
@@ -845,8 +845,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/derive-the-variants/SKILL.md
-  error_skill: .agents/skills/derive-the-variants/SKILL.md
+  warning_skill: .agentrig/skills/derive-the-variants/SKILL.md
+  error_skill: .agentrig/skills/derive-the-variants/SKILL.md
 # DECISION: D181
 - id: dotted-extension
   kind: dotted-extension
@@ -859,8 +859,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/drop-the-dot/SKILL.md
-  error_skill: .agents/skills/drop-the-dot/SKILL.md
+  warning_skill: .agentrig/skills/drop-the-dot/SKILL.md
+  error_skill: .agentrig/skills/drop-the-dot/SKILL.md
 # DECISION: D181
 - id: fixed-test-port
   kind: fixed-test-port
@@ -870,8 +870,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/bind-port-zero/SKILL.md
-  error_skill: .agents/skills/bind-port-zero/SKILL.md
+  warning_skill: .agentrig/skills/bind-port-zero/SKILL.md
+  error_skill: .agentrig/skills/bind-port-zero/SKILL.md
 # DECISION: D085
 - id: wildcard-import
   kind: wildcard-import
@@ -886,8 +886,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/narrow-import/SKILL.md
-  error_skill: .agents/skills/narrow-import/SKILL.md
+  warning_skill: .agentrig/skills/narrow-import/SKILL.md
+  error_skill: .agentrig/skills/narrow-import/SKILL.md
 # DECISION: D088
 - id: tuple-as-record
   kind: tuple-as-record
@@ -900,8 +900,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/name-the-record/SKILL.md
-  error_skill: .agents/skills/name-the-record/SKILL.md
+  warning_skill: .agentrig/skills/name-the-record/SKILL.md
+  error_skill: .agentrig/skills/name-the-record/SKILL.md
 # DECISION: D089
 - id: eager-fallback
   kind: eager-fallback
@@ -914,8 +914,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/eager-to-lazy/SKILL.md
-  error_skill: .agents/skills/eager-to-lazy/SKILL.md
+  warning_skill: .agentrig/skills/eager-to-lazy/SKILL.md
+  error_skill: .agentrig/skills/eager-to-lazy/SKILL.md
 # DECISION: D090
 - id: discarded-result
   kind: discarded-result
@@ -928,8 +928,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/handle-discarded/SKILL.md
-  error_skill: .agents/skills/handle-discarded/SKILL.md
+  warning_skill: .agentrig/skills/handle-discarded/SKILL.md
+  error_skill: .agentrig/skills/handle-discarded/SKILL.md
 # DECISION: D092
 - id: disabled-raii
   kind: disabled-raii
@@ -942,8 +942,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/own-the-resource/SKILL.md
-  error_skill: .agents/skills/own-the-resource/SKILL.md
+  warning_skill: .agentrig/skills/own-the-resource/SKILL.md
+  error_skill: .agentrig/skills/own-the-resource/SKILL.md
 # DECISION: D096
 - id: global-state
   kind: global-state
@@ -956,8 +956,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/own-the-state/SKILL.md
-  error_skill: .agents/skills/own-the-state/SKILL.md
+  warning_skill: .agentrig/skills/own-the-state/SKILL.md
+  error_skill: .agentrig/skills/own-the-state/SKILL.md
 # DECISION: D100
 - id: super-super-reach
   kind: super-super-reach
@@ -970,8 +970,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/anchor-at-crate/SKILL.md
-  error_skill: .agents/skills/anchor-at-crate/SKILL.md
+  warning_skill: .agentrig/skills/anchor-at-crate/SKILL.md
+  error_skill: .agentrig/skills/anchor-at-crate/SKILL.md
 # DECISION: D145
 - id: test-placement
   kind: test-placement
@@ -984,8 +984,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/relocate-tests/SKILL.md
-  error_skill: .agents/skills/relocate-tests/SKILL.md
+  warning_skill: .agentrig/skills/relocate-tests/SKILL.md
+  error_skill: .agentrig/skills/relocate-tests/SKILL.md
 # DECISION: D102
 - id: recursive-deletion
   kind: recursive-deletion
@@ -998,8 +998,8 @@ rules:
   extensions:
   - .rs
   level: error
-  warning_skill: .agents/skills/contain-the-deletion/SKILL.md
-  error_skill: .agents/skills/contain-the-deletion/SKILL.md
+  warning_skill: .agentrig/skills/contain-the-deletion/SKILL.md
+  error_skill: .agentrig/skills/contain-the-deletion/SKILL.md
 # DECISION: D037
 - id: comments
   kind: comment-reference
@@ -1011,8 +1011,8 @@ rules:
   - .py
   - .pyi
   level: error
-  warning_skill: .agents/skills/replace-comment/SKILL.md
-  error_skill: .agents/skills/replace-comment/SKILL.md
+  warning_skill: .agentrig/skills/replace-comment/SKILL.md
+  error_skill: .agentrig/skills/replace-comment/SKILL.md
 
 # Project subtree inventory; dependency extensions do not limit file coverage.
 - architecture:
@@ -1055,7 +1055,7 @@ rules:
     - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
     - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs']}
     - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, Project/shared/testing/examples/measure.rs, '**/tests/**', '**/tests.rs']}
-  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agentrig/skills/refactor-large-directory/SKILL.md
   extensions:
   - .rs
   - .py
@@ -1067,4 +1067,4 @@ rules:
   kind: directory-architecture
   level: error
   target: directory
-  warning_skill: .agents/skills/refactor-large-directory/SKILL.md
+  warning_skill: .agentrig/skills/refactor-large-directory/SKILL.md

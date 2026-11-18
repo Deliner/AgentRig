@@ -17,7 +17,7 @@ A command check runs its whole command unless it declares `affected` groups:
 - id: tests
   kind: command
   command: test
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   affected:
   - include: [src/lint/**, tests/lint/**]
     targets: [tests/lint]

@@ -4,7 +4,8 @@ use crate::project_config::{
     self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
     Rust, Tools, View, Views,
 };
-use anyhow::{Result, ensure};
+use crate::shared::diagnostics::calling_agent::Agent;
+use anyhow::{Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
 // DECISION: D040
@@ -55,6 +56,19 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
     );
     for key in ["skills", "service"] {
         project_config::relative(root, &options[key])?;
+    }
+    // DECISION: D188
+    let skills = Path::new(&options["skills"]);
+    let overlapping = Agent::ALL.into_iter().find(|agent| {
+        let directory = Path::new(agent.skills());
+        skills.starts_with(directory) || directory.starts_with(skills)
+    });
+    if let Some(agent) = overlapping {
+        bail!(
+            "init --skills {} overlaps {}, which init links to the skills",
+            skills.display(),
+            agent.skills()
+        );
     }
     Ok(())
 }

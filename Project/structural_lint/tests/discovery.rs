@@ -112,7 +112,7 @@ fn description_names_its_skill(kind: &str) {
     assert_eq!(item["kind"], kind);
     let skill = item["skill"].as_str().unwrap();
     let path = repository()
-        .join(".agents/skills")
+        .join(".agentrig/skills")
         .join(skill)
         .join("SKILL.md");
     assert!(path.is_file(), "{kind}: {skill}");

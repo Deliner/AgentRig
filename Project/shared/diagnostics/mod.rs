@@ -1,5 +1,6 @@
 // DECISION: D022
 pub mod actionable_findings;
+pub mod calling_agent;
 mod guidance;
 mod rerun_command;
 pub mod skill_refs;

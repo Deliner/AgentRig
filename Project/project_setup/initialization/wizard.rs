@@ -46,7 +46,10 @@ fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
         .clippy
         .iter()
         .map(|settings| settings.path().trim_prefix(root).display().to_string());
-    let listed: Vec<String> = files.keys().cloned().chain(clippy).collect();
+    let links = package::skill_links(&scaffold.config)
+        .into_iter()
+        .map(|(path, target)| format!("{path} -> {}", target.display()));
+    let listed: Vec<String> = files.keys().cloned().chain(clippy).chain(links).collect();
     listed.join("\n")
 }
 

@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/dogfood-setup`, от master `502a35e`.
-Revision: `502a35e4a5aaa31f9c10d512feb3d0061642c40a`
+Revision: `1f219c5ebdec88375e19fe9ff3e472e8cf30c64b`
 
 Установленный рантайм `05f345a` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -24,9 +24,13 @@ Revision: `502a35e4a5aaa31f9c10d512feb3d0061642c40a`
 
 ## Progress
 
-- VAC 1 этой ветки, этот коммит: карточка B145 с комментариями пользователя, строка и карточка P143, State.
+- VAC 1 `1f219c5`: карточка B145 с комментариями пользователя, строка и карточка P143, State.
+- VAC 2, этот коммит, AC4: ссылки агентов на `.agentrig/skills` в `init` и в риге, решение D188.
 
 ## Verification
+
+`cargo test --lib -- project_setup:: structural_lint::tests::discovery`: 54 прошли, среди них новый тест ссылок
+навыков; `cargo fmt --check` чист.
 
 Проба 2026-11-19: Codex 0.167 в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
 PreToolUse; их вход не называет агента, переменных Codex у хука нет; команды Codex получают `CODEX_THREAD_ID`, команды
@@ -38,5 +42,5 @@ Claude Code получают `CLAUDECODE=1`.
 
 ## Next action
 
-Коммит VAC 1, затем VAC по AC5: абсолютный путь к навыку через каталог агента в хуке, lint и гейте. Свободные ID:
-D188+, I023+, P144+, B146+.
+VAC 3 по AC5: обе регистрации клиентов с `--agent` и таймаутом 30, путь к навыку в хуке через каталог агента. Затем
+VAC 4: lint и гейт по переменной агента; VAC 5: AC1–AC3. Свободные ID: D189+, I023+, P144+, B146+.

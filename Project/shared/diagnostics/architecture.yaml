@@ -4,6 +4,7 @@ dependents: 12
 files:
   mod.rs: Command failure recovery instructions built from guidance and the rerun command
   actionable_findings.rs: Serializable lint findings and their text rendering grouped by shared cause
+  calling_agent.rs: The coding agents the rig serves and the directory through which each one reaches the skills
   guidance.rs: Shared guidance formatting and the repair skill a failure names
   rerun_command.rs: Reproducible rerun commands from the invocation and the running executable
   skill_refs.rs: Validation that configured guidance references a repository SKILL.md

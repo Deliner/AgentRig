@@ -61,10 +61,14 @@ const MODULES: [&str; 8] = [
 ];
 const SERVICE: &str = "rig space's $cash";
 const SESSION: &str = r#"{"hook_event_name": "SessionStart", "session_id": "custom-service"}"#;
-const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 2] = [
+const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 5] = [
     (Some(".codex"), &[]),
+    (Some(".claude"), &[]),
     (None, &["--skills", ".agentrig/bin/agentrig"]),
+    (None, &["--skills", ".agents/skills"]),
+    (None, &["--skills", ".claude"]),
 ];
+const AGENT_SKILLS: [&str; 2] = [".agents/skills", ".claude/skills"];
 
 fn consumer() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
@@ -169,6 +173,20 @@ fn init_always_keeps_memory_in_ledger_and_sources_in_project() {
     let layout = (&paths["memory"], &paths["sources"]);
     assert_eq!(layout, (&flow("Ledger"), &flow("[Project/**]")));
     assert!(root.join("Ledger/State.md").is_file());
+}
+
+// DECISION: D188
+#[test]
+fn init_links_each_agent_skill_directory_to_the_installed_skills() {
+    let (_temp, root) = consumer();
+    assert_eq!(initialize(&root, &[]).unwrap(), 0);
+    let installed = fs::read_to_string(root.join(".agentrig/skills/repair/SKILL.md")).unwrap();
+    for directory in AGENT_SKILLS {
+        let target = fs::read_link(root.join(directory)).unwrap();
+        assert_eq!(target, Path::new("../.agentrig/skills"), "{directory}");
+        let seen = fs::read_to_string(root.join(directory).join("repair/SKILL.md")).unwrap();
+        assert_eq!(seen, installed, "{directory}");
+    }
 }
 
 // DECISION: D123
