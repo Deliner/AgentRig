@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/decision-norm-stop`, от master `5d64f59`, где влита карточка B142.
-Revision: `5d64f590d5849369264dc727fc7e0e622a4d78e1`
+Revision: `0716177f7f5016b19be707cc695c32cc1e4c4974`
 
 Установленный рантайм `998edcc` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -26,11 +26,16 @@ Revision: `5d64f590d5849369264dc727fc7e0e622a4d78e1`
 
 ## Progress
 
-- VAC этой ветки, этот коммит: карточки B143 и B144, их строки в Backlog.md, P141 активна и P142 ждёт в Plan.
+- `0716177`: карточки B143 и B144, их строки в Backlog.md, P141 активна и P142 ждёт в Plan.
+- VAC этой ветки, этот коммит: маршрут, который останавливает первую правку решения до навыка norm-or-choice, в
+  `.agentrig/hooks.yaml` и в шаблоне `init`; решение D186; предикат I012 пересмотрен вместе с его тестом; новый тест
+  остановки и повтора.
 
 ## Verification
 
-Слияние `feature/state-after-vac-card` в master `5d64f59` прошло гейт и отправлено в origin.
+Слияние `feature/state-after-vac-card` в master `5d64f59` прошло гейт и отправлено в origin. `0716177` прошёл гейт.
+На рабочем дереве этого VAC `just run test -- agent_hooks::tests` дал 22 из 22, `project_setup::` дал 49 из 49,
+включая I020. Маршрут уже действует в риге: запись D186 остановилась до чтения norm-or-choice.
 
 ## Blockers
 
@@ -38,6 +43,5 @@ Revision: `5d64f590d5849369264dc727fc7e0e622a4d78e1`
 
 ## Next action
 
-VAC P141: маршрут хука, который останавливает первую правку Decisions до навыка norm-or-choice, в
-`.agentrig/hooks.yaml` и в шаблоне `init`, решение D186, тест хука. Затем пин D051, архив P141 и слияние, потом P142
-своей веткой. Свободные ID: D186+, I022+, P143+, B145+.
+Пин головы ветки по D051, затем архив P141 и B143, слияние, потом P142 своей веткой. Свободные ID: D187+, I022+,
+P143+, B145+.

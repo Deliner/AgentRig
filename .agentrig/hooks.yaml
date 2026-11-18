@@ -27,6 +27,11 @@ routes:
   skill: .agents/skills/edit-state/SKILL.md
   events: [check]
   block: true
+# DECISION: D186
+- include: [Ledger/Decisions.md, 'Ledger/Decisions/**/*.md']
+  skill: .agents/skills/norm-or-choice/SKILL.md
+  events: [edit]
+  block: true
 - include: ['Project/agent_hooks/**', 'Project/change_delivery/**']
   skill: .agents/skills/fail-closed-enforcement/SKILL.md
   events: [edit]

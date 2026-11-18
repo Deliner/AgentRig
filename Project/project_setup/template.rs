@@ -323,12 +323,16 @@ fn routes(options: &Options<'_>) -> Vec<Route> {
     }];
     routes.extend(memory_routes(options));
     routes.push(Route {
-        include: vec![
-            format!("{memory}/State.md"),
-            format!("{memory}/State/**/*.md"),
-        ],
+        include: memory_files(&format!("{memory}/State")),
         skill: format!("{skill_root}/edit-state/SKILL.md"),
         events: vec![RouteEvent::Check],
+        block: true,
+    });
+    // DECISION: D186
+    routes.push(Route {
+        include: memory_files(&format!("{memory}/Decisions")),
+        skill: format!("{skill_root}/norm-or-choice/SKILL.md"),
+        events: vec![RouteEvent::Edit],
         block: true,
     });
     routes.push(Route {
@@ -352,15 +356,15 @@ fn memory_routes(options: &Options<'_>) -> Vec<Route> {
     ]
     .into_iter()
     .map(|(file, skill)| Route {
-        include: vec![
-            format!("{memory}/{file}.md"),
-            format!("{memory}/{file}/**/*.md"),
-        ],
+        include: memory_files(&format!("{memory}/{file}")),
         skill: format!("{skill_root}/{skill}/SKILL.md"),
         events: vec![RouteEvent::Edit, RouteEvent::Shell],
         block: false,
     })
     .collect()
+}
+fn memory_files(stem: &str) -> Vec<String> {
+    vec![format!("{stem}.md"), format!("{stem}/**/*.md")]
 }
 fn checks(options: &Options<'_>, skill_root: &str) -> Vec<Check> {
     let skill = |name| format!("{skill_root}/{name}/SKILL.md");
