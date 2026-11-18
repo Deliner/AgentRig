@@ -80,7 +80,7 @@ fn denied(argv: &[&str]) -> BTreeSet<String> {
 #[test]
 fn rust_scaffold_delivers_the_dev_gate_clippy_profile() {
     let (_temp, root) = rust_project(".");
-    let args = ["--language", "rust", "--source", "src"];
+    let args = ["--language", "rust"];
     assert_eq!(initialize(&root, &args).unwrap(), 0);
     let commands = yaml(&root.join(".agentrig/commands.yaml"));
     let argv = strings(&commands["clippy"]["argv"]);
@@ -110,7 +110,7 @@ fn rust_init_adds_missing_thresholds_to_the_effective_clippy_file() {
     let completes = |name: &str| {
         let (_temp, root) = rust_project("Project");
         write(&root, name, TEAM);
-        let args = ["--language", "rust", "--source", "Project"];
+        let args = ["--language", "rust"];
         assert_eq!(initialize(&root, &args).unwrap(), 0, "{name}");
         assert_eq!(
             read(&root.join(name)),
@@ -133,7 +133,7 @@ fn rust_init_completes_the_file_clippy_reads_first() {
     let (_temp, root) = rust_project(".");
     write(&root, ".clippy.toml", TEAM);
     write(&root, "clippy.toml", CONFLICT);
-    let args = ["--language", "rust", "--source", "src"];
+    let args = ["--language", "rust"];
     assert_eq!(initialize(&root, &args).unwrap(), 0);
     assert_eq!(
         read(&root.join(".clippy.toml")),
@@ -147,7 +147,7 @@ fn rust_init_refuses_a_conflicting_clippy_threshold() {
     let (_temp, root) = rust_project(".");
     write(&root, "clippy.toml", CONFLICT);
     let before = snapshot(&root);
-    let args = ["--language", "rust", "--source", "src"];
+    let args = ["--language", "rust"];
     let error = initialize(&root, &args).unwrap_err().to_string();
     assert!(error.contains("max-struct-bools = 3"), "{error}");
     assert_eq!(snapshot(&root), before);

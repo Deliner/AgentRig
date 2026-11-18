@@ -9,8 +9,8 @@ builds both executables with `cargo build --release --locked --manifest-path Pro
 
 `agentrig init --root CONSUMER` copies its executable and bundled assets, pins the package version in the configuration,
 rejects collisions before writing, creates a Git repository on the base branch when none exists and registers the Git
-hooks through `core.hooksPath`. Options: `--language python|rust`, `--frontend codex|claude-code`, `--source` (default
-`Project`), `--memory` (default `Ledger`), `--skills`, `--service`, `--base` and `--prefix`. There is no update or
+hooks through `core.hooksPath`. Sources go in `Project`, memory in `Ledger`. Options: `--language python|rust`,
+`--frontend codex|claude-code`, `--skills`, `--service`, `--base` and `--prefix`. There is no update or
 rollback: a changed release is installed into a fresh project. Rust projects need a `rustc` of at least the rig's Rust,
 else init refuses before writing, and get a `clippy` command and check running the development gate's Clippy profile on
 their own toolchain. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or

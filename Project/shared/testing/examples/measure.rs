@@ -7,16 +7,7 @@ use std::{
 };
 
 const USAGE: &str = "usage: measure --worker ABSOLUTE_AGENTRIG [--samples N]";
-const CONSUMERS: [Consumer; 2] = [
-    Consumer {
-        language: "python",
-        source: "application",
-    },
-    Consumer {
-        language: "rust",
-        source: "crates/engine",
-    },
-];
+const LANGUAGES: [&str; 2] = ["python", "rust"];
 const OPERATIONS: [Operation; 3] = [
     Operation {
         label: "SessionStart",
@@ -26,7 +17,7 @@ const OPERATIONS: [Operation; 3] = [
     Operation {
         label: "PreToolUse edit",
         command: "hook",
-        event: r#"{"hook_event_name": "PreToolUse", "tool_name": "Write", "tool_input": {"file_path": "memory/State.md"}}"#,
+        event: r#"{"hook_event_name": "PreToolUse", "tool_name": "Write", "tool_input": {"file_path": "Ledger/State.md"}}"#,
     },
     Operation {
         label: "small source lint",
@@ -34,11 +25,6 @@ const OPERATIONS: [Operation; 3] = [
         event: "{}",
     },
 ];
-
-struct Consumer {
-    language: &'static str,
-    source: &'static str,
-}
 
 struct Operation {
     label: &'static str,
@@ -57,8 +43,8 @@ fn main() -> Result<()> {
     let (worker, samples) = arguments()?;
     let version = text(launch(Command::new(&worker).arg("--version"), "")?);
     let mut rows = Vec::new();
-    for consumer in &CONSUMERS {
-        rows.extend(consumer_rows(&worker, consumer, samples)?);
+    for language in LANGUAGES {
+        rows.extend(consumer_rows(&worker, language, samples)?);
     }
     let measured = text(launch(
         Command::new("date").arg("-u").arg("+%Y-%m-%dT%H:%M:%SZ"),
@@ -94,8 +80,7 @@ fn arguments() -> Result<(PathBuf, usize)> {
     Ok((worker, samples))
 }
 
-fn consumer_rows(worker: &Path, consumer: &Consumer, samples: usize) -> Result<Vec<String>> {
-    let Consumer { language, source } = *consumer;
+fn consumer_rows(worker: &Path, language: &str, samples: usize) -> Result<Vec<String>> {
     let directory = tempfile::Builder::new()
         .prefix(&format!("worker-latency-{language}-"))
         .tempdir()?;
@@ -106,7 +91,7 @@ fn consumer_rows(worker: &Path, consumer: &Consumer, samples: usize) -> Result<V
         .arg(example.join(language).join("."))
         .arg(root);
     launch(&mut copy, "")?;
-    let init = ["init", "--language", language, "--source", source, "--root"];
+    let init = ["init", "--language", language, "--root"];
     launch(Command::new(worker).args(init).arg(root), "")?;
     let mut rows = Vec::new();
     for operation in &OPERATIONS {

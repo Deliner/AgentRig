@@ -14,13 +14,13 @@ const IGNORED: &str = "**/target/\n**/__pycache__/\n**/.pytest_cache/\n";
 const GENERATED: [&str; 3] = ["target", "__pycache__", ".pytest_cache"];
 const DETAIL: &str =
     "# I001\n\n## Predicate\n\nDoubles correctly.\n\n## Oracle\n\nRun configured I001.\n";
+const SOURCE: &str = "Project";
+const MEMORY: &str = "Ledger";
 
 struct Layout {
     language: &'static str,
     base: &'static str,
     prefix: &'static str,
-    source: &'static str,
-    memory: &'static str,
     skills: &'static str,
     runner: &'static str,
     target: &'static str,
@@ -32,11 +32,9 @@ const PYTHON: Layout = Layout {
     language: "python",
     base: "trunk",
     prefix: "topic/",
-    source: "application",
-    memory: "notes",
     skills: "guides",
     runner: "pytest",
-    target: "application/test_sample.py::test_doubles",
+    target: "Project/test_sample.py::test_doubles",
     test: "test_sample.py",
     function: "test_doubles",
 };
@@ -45,8 +43,6 @@ const RUST: Layout = Layout {
     language: "rust",
     base: "release",
     prefix: "change/",
-    source: "crates/engine",
-    memory: "knowledge",
     skills: "policies",
     runner: "cargo",
     target: "tests::doubles",
@@ -96,12 +92,12 @@ fn bind(root: &Path, layout: &Layout) {
         layout.runner, layout.target
     );
     configure(root, "oracles", &oracle);
-    let memory = root.join(layout.memory);
+    let memory = root.join(MEMORY);
     fs::create_dir(memory.join("Invariants")).unwrap();
     let index = memory.join("Invariants.md");
     let row = format!(
-        "| [I001](Invariants/001.md) | Doubles correctly | [{}](../{}/{}) |\n",
-        layout.function, layout.source, layout.test
+        "| [I001](Invariants/001.md) | Doubles correctly | [{}](../{SOURCE}/{}) |\n",
+        layout.function, layout.test
     );
     fs::write(&index, fs::read_to_string(&index).unwrap() + &row).unwrap();
     fs::write(memory.join("Invariants/001.md"), DETAIL).unwrap();
@@ -118,7 +114,7 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     git(&root, &["commit", "-qm", "base"]);
     let bootstrap = format!("{}bootstrap", layout.prefix);
     git(&root, &["switch", "-c", &bootstrap]);
-    let (language, source, memory) = (layout.language, layout.source, layout.memory);
+    let language = layout.language;
     let (skills, base, prefix) = (layout.skills, layout.base, layout.prefix);
     let initialized = invoke(
         &root,
@@ -126,10 +122,6 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
             "init",
             "--language",
             language,
-            "--source",
-            source,
-            "--memory",
-            memory,
             "--skills",
             skills,
             "--base",
@@ -142,7 +134,7 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     let copied = fs::read(installed_runtime(&root)).unwrap();
     assert!(copied == fs::read(worker()).unwrap());
     let examples = repository().join("Project/shared/testing/examples");
-    copy(&examples.join(language).join(source), &root.join(source));
+    copy(&examples.join(language).join(SOURCE), &root.join(SOURCE));
     bind(&root, layout);
     (temp, root)
 }
@@ -168,22 +160,21 @@ fn ready(root: &Path) {
 fn structure_is_scored(root: &Path, layout: &Layout) {
     let skill = root.join(layout.skills).join("clarify-structure/SKILL.md");
     assert!(skill.is_file(), "{}", skill.display());
-    let recipe = consumer("just", root, &["lint-structure", layout.source]);
+    let recipe = consumer("just", root, &["lint-structure", SOURCE]);
     assert_eq!(recipe.code, Some(0), "{}", recipe.output());
     assert!(recipe.stdout.starts_with("total "), "{}", recipe.stdout);
-    let direct = agentrig(root, &["lint-structure", layout.source], "");
+    let direct = agentrig(root, &["lint-structure", SOURCE], "");
     assert_eq!(recipe.stdout, direct.stdout);
 }
 
 fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
     let config = root.join(".agentrig/lint.yaml");
     let before = fs::read_to_string(&config).unwrap();
-    let script = root.join(layout.source).join("tool.sh");
+    let script = root.join(SOURCE).join("tool.sh");
     fs::write(script, "if true; then echo example; fi\n").unwrap();
     let skill = format!("{}/refactor-long-function/SKILL.md", layout.skills);
     let rule = format!(
-        "\n- id: unsupported\n  kind: function-lines\n  target: file\n  include: [\"{}/**\"]\n  extensions: [\".sh\"]\n  warning: 40\n  warning_skill: \"{skill}\"\n  error_skill: \"{skill}\"\n",
-        layout.source
+        "\n- id: unsupported\n  kind: function-lines\n  target: file\n  include: [\"{SOURCE}/**\"]\n  extensions: [\".sh\"]\n  warning: 40\n  warning_skill: \"{skill}\"\n  error_skill: \"{skill}\"\n"
     );
     fs::write(&config, before.clone() + &rule).unwrap();
     let rejected = agentrig(root, &["config-check"], "");
@@ -205,7 +196,7 @@ fn hook(root: &Path, tool: &str, input: Value) -> String {
 }
 
 fn hooks(root: &Path, layout: &Layout) {
-    let state = format!("{}/State.md", layout.memory);
+    let state = format!("{MEMORY}/State.md");
     let guidance = hook(root, "Write", json!({"file_path": state}));
     let edit_state = format!("{}/edit-state/SKILL.md", layout.skills);
     assert!(guidance.contains(&edit_state), "{guidance}");
@@ -220,7 +211,7 @@ fn hooks(root: &Path, layout: &Layout) {
     assert!(!shell("just check --only lint").contains("deny"));
     let skill = format!("{}/refactor-large-directory/SKILL.md", layout.skills);
     let edit = |name: &str| {
-        let path = format!("{}/unit/{name}", layout.source);
+        let path = format!("{SOURCE}/unit/{name}");
         hook(root, "Write", json!({"file_path": path}))
     };
     let first = edit("first");
@@ -241,7 +232,8 @@ fn integrate(root: &Path, layout: &Layout) {
     just(root, &["feature-start", "next"]);
     let next = format!("{}next", layout.prefix);
     assert_eq!(git(root, &["branch", "--show-current"]), next);
-    assert!(!root.join("Project/Cargo.toml").exists());
+    let cargo = root.join("Project/Cargo.toml").exists();
+    assert_eq!(cargo, layout.language == "rust");
     let repeated = agentrig(root, &["init"], "");
     assert_eq!(repeated.code, Some(2), "{}", repeated.output());
 }

@@ -66,10 +66,10 @@ fn lose(notes: &Path, part: &str) {
 fn initialized_backlog_accepts_an_idea() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init", "--memory", "ideas", "--skills", "guides"]);
+    let initialized = invoke(&root, &["init", "--skills", "guides"]);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
     assert!(root.join("guides/edit-backlog/SKILL.md").is_file());
-    let notes = root.join("ideas");
+    let notes = root.join("Ledger");
     assert!(notes.join("Backlog.md").is_file());
     accepts(&root);
     write_idea(&notes);

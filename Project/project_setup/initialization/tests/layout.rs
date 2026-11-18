@@ -61,8 +61,7 @@ const MODULES: [&str; 8] = [
 ];
 const SERVICE: &str = "rig space's $cash";
 const SESSION: &str = r#"{"hook_event_name": "SessionStart", "session_id": "custom-service"}"#;
-const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 3] = [
-    (None, &["--source", "src/["]),
+const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 2] = [
     (Some(".codex"), &[]),
     (None, &["--skills", ".agentrig/bin/agentrig"]),
 ];
@@ -151,9 +150,14 @@ fn adapters(root: &Path, service: &Path) {
 }
 
 // DECISION: D040
+// DECISION: D187
+// INVARIANT: I022
 #[test]
-fn default_layout_keeps_memory_in_ledger_and_sources_in_project() {
+fn init_always_keeps_memory_in_ledger_and_sources_in_project() {
     let (_temp, root) = consumer();
+    for option in ["--source", "--memory"] {
+        refused(&root, &[option, "Other"]);
+    }
     let result = invoke(&root, &["init"]);
     assert_eq!(result.code, Some(0), "{}", result.output());
     assert!(
@@ -188,7 +192,7 @@ fn init_offers_a_lint_baseline_for_errors_in_existing_files() {
 fn rust_init_derives_a_binary_crate_from_the_root_manifest() {
     let (_temp, root) = consumer();
     package(&root, "tool", "main.rs");
-    rust(&root, &["--source", "src"]);
+    rust(&root, &[]);
     assert_layout(&root, "[src/main.rs]", "{}", ROOT_TESTS);
     let lint = invoke(&root, &["lint", "--json"]);
     let findings: serde_json::Value = serde_json::from_str(&lint.stdout).unwrap();
@@ -211,7 +215,7 @@ fn rust_init_derives_workspace_member_roots() {
         fs::write(root.join("Cargo.toml"), workspace).unwrap();
         package(&root.join("crates/a"), name, "lib.rs");
         package(&root.join("crates/b"), "b", "main.rs");
-        rust(&root, &["--source", "crates"]);
+        rust(&root, &[]);
         let roots = "[crates/a/src/lib.rs, crates/b/src/main.rs]";
         let crates = format!("{{{library}: crates/a/src/lib.rs}}");
         assert_layout(&root, roots, &crates, ROOT_TESTS);
@@ -227,7 +231,7 @@ fn rust_init_adds_target_roots_build_script_and_dependency_externals() {
     let text = fs::read_to_string(&manifest).unwrap() + TARGETS;
     fs::write(&manifest, text).unwrap();
     touch(&root, &["examples/demo.rs", "tests/flow.rs", "build.rs"]);
-    rust(&root, &["--source", "src"]);
+    rust(&root, &[]);
     let settings = architecture(&root);
     let roots = flow("[src/lib.rs, examples/demo.rs, tests/flow.rs, build.rs]");
     assert_eq!(settings["rust_roots"], roots);
@@ -258,7 +262,7 @@ fn rust_init_expands_recursive_member_globs() {
     fs::write(root.join("Cargo.toml"), workspace).unwrap();
     package(&root.join("crates/a/b"), "b", "lib.rs");
     package(&root.join("crates/c"), "c", "main.rs");
-    rust(&root, &["--source", "crates"]);
+    rust(&root, &[]);
     let roots = "[crates/a/b/src/lib.rs, crates/c/src/main.rs]";
     assert_layout(&root, roots, "{b: crates/a/b/src/lib.rs}", ROOT_TESTS);
 }
@@ -273,7 +277,7 @@ fn rust_init_accepts_parent_paths_inside_the_root() {
     let workspace = "[workspace]\nmembers = [\"crates/x\"]\n";
     fs::write(root.join("Cargo.toml"), workspace).unwrap();
     fs::write(root.join("crates/x/Cargo.toml"), PARENT_PATHS).unwrap();
-    rust(&root, &["--source", "crates"]);
+    rust(&root, &[]);
     let crates = "{x: crates/shared/lib.rs}";
     assert_layout(&root, "[crates/shared/lib.rs]", crates, ROOT_TESTS);
 }
@@ -284,7 +288,7 @@ fn rust_init_skips_member_globs_over_missing_directories() {
     let workspace = "[workspace]\nmembers = [\"crates/*\", \"missing/*\"]\n";
     fs::write(root.join("Cargo.toml"), workspace).unwrap();
     package(&root.join("crates/a"), "a", "lib.rs");
-    rust(&root, &["--source", "crates"]);
+    rust(&root, &[]);
     let crates = "{a: crates/a/src/lib.rs}";
     assert_layout(&root, "[crates/a/src/lib.rs]", crates, ROOT_TESTS);
 }
@@ -296,7 +300,7 @@ fn rust_init_skips_excluded_workspace_members() {
     fs::write(root.join("Cargo.toml"), workspace).unwrap();
     package(&root.join("crates/a"), "a", "lib.rs");
     package(&root.join("crates/skip"), "skip", "lib.rs");
-    rust(&root, &["--source", "crates"]);
+    rust(&root, &[]);
     let crates = "{a: crates/a/src/lib.rs}";
     assert_layout(&root, "[crates/a/src/lib.rs]", crates, ROOT_TESTS);
 }
