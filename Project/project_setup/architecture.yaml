@@ -5,8 +5,8 @@ files:
   assets.rs: Scaffold memory and agent instructions
   skills.rs: Ship the canonical skill bodies under their installed names
   claude.rs: Generate and inspect Claude Code client settings
-  coverage.rs: Report source files and tests that a check's affected map leaves without selected tests
-  doctor.rs: Check installed runtime, hooks, tools, client readiness and scaffold configuration validity
+  coverage.rs: Check scaffold configuration validity, the lint configuration and source files and tests that a check's affected map leaves without selected tests
+  doctor.rs: Check installed runtime, hooks, tools and client readiness
   lint.rs: Generate supported lint rule examples for the consumer
   runtime.rs: Install the platform launcher and the runtime built for the current platform
   template.rs: Interpret scaffold options and generate project configuration and command adapters

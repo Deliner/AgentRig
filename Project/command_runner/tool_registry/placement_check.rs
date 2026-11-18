@@ -21,6 +21,7 @@ pub fn run(context: &Context, source: Source<'_>, check: &Check, rerun: &str) ->
     placement(context, &tools, &mut findings)?;
     catalog(context, &mut findings);
     removal_records::removed(context, &repository, &files, &mut findings);
+    let skill = context.caller.skill(&check.skill);
     let diagnostics: Vec<_> = findings
         .into_iter()
         .map(|finding| Diagnostic {
@@ -29,7 +30,7 @@ pub fn run(context: &Context, source: Source<'_>, check: &Check, rerun: &str) ->
             level: Level::Error,
             actual: None,
             limit: None,
-            skill: check.skill.clone(),
+            skill: skill.clone(),
             message: finding.message,
             line: None,
             symbol: None,

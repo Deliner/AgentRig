@@ -1,7 +1,7 @@
 // DECISION: D188
 use crate::project_setup::initialization::init;
 use crate::shared::calling_agent::Agent;
-use crate::shared::testing::{hermetic, invoke, run, snapshot};
+use crate::shared::testing::{hermetic, invoke, run, runtime, snapshot};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -61,6 +61,28 @@ fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
             guided.contains(skill.to_str().unwrap()),
             "{agent:?}: {guided}"
         );
+    }
+}
+
+#[test]
+fn lint_names_the_skill_through_the_directory_of_the_agent_its_variable_names() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let initialized = invoke(&root, &["init"]);
+    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let wide = format!("# Title\n\n{}\n", "x".repeat(130));
+    fs::write(root.join("README.md"), wide).unwrap();
+    let agents = Agent::ALL.map(|agent| (Some(agent.variable()), agent.skills()));
+    for (variable, skills) in agents.into_iter().chain([(None, ".agentrig/skills")]) {
+        let mut lint = runtime(&root, &["lint", "--json"]);
+        lint.envs(variable.map(|name| (name, "1")));
+        let result = run(&mut lint, "");
+        assert_eq!(result.code, Some(1), "{variable:?}: {}", result.output());
+        let findings: Vec<Value> = serde_json::from_str(&result.stdout).unwrap();
+        let skill = root.join(skills).join("condense-markdown/SKILL.md");
+        let named = |finding: &Value| finding["skill"] == skill.to_str().unwrap();
+        let guided = !findings.is_empty() && findings.iter().all(named);
+        assert!(guided, "{variable:?}: {}", result.stdout);
     }
 }
 

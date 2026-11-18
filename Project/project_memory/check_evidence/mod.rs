@@ -244,7 +244,9 @@ pub fn report(context: &Context) -> Result<()> {
                 "Repeated check failure [{id}]: {attempts} attempts. Guidance presented: {skill}. RERUN: {rerun}. Compare actual failures and revise guidance if applying it did not help; this does not prove the skill was read or the root cause repeated.",
                 id = result["id"].as_str().unwrap_or_default(),
                 attempts = result["consecutive_failures"],
-                skill = result["skill"].as_str().unwrap_or_default(),
+                skill = context
+                    .caller
+                    .skill(result["skill"].as_str().unwrap_or_default()),
                 rerun = result["rerun"].as_str().unwrap_or_default()
             ));
         }

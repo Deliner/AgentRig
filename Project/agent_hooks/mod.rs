@@ -264,11 +264,6 @@ fn full_refresh(context: &crate::project_config::Context) -> String {
         .hooks
         .discipline_skill
         .as_ref()
-        .map(|skill| {
-            reminder::FULL.replace(
-                "{discipline_skill}",
-                &context.caller.skill(skill).to_string_lossy(),
-            )
-        })
+        .map(|skill| reminder::FULL.replace("{discipline_skill}", &context.caller.skill(skill)))
         .unwrap_or_default()
 }

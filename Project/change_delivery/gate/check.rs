@@ -30,7 +30,7 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
                 root: &context.root,
                 config: &config,
             };
-            structural_lint::check(location, rerun)
+            structural_lint::reporting::findings::check(location, &context.caller, rerun)
         }
         CheckKind::Memory => {
             crate::project_memory::check_with_history(context, source.root, source.revision)
@@ -68,7 +68,7 @@ pub(super) fn checked(
             id: &check.id,
             location: &check.include.join(", "),
             message: &message,
-            skill: &check.skill,
+            skill: &context.caller.skill(&check.skill),
             rerun,
         });
     }

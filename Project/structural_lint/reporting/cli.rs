@@ -1,17 +1,20 @@
+use super::findings::{Output, configuration_error, run_output};
+use crate::shared::calling_agent::{Agent, Caller};
 use crate::shared::console;
 use crate::shared::shared_options::take_option;
-use crate::structural_lint::Location;
 use crate::structural_lint::rule_identities;
 use crate::structural_lint::rule_identities::structure::Structure;
 use crate::structural_lint::rule_set::capabilities;
+use crate::structural_lint::{Format, Location, Mode};
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
 
 // DECISION: D049
 pub fn execute(
     location: Location<'_>,
+    caller: &Caller,
     args: &[String],
-    mode: crate::structural_lint::Mode,
+    mode: Mode,
 ) -> Result<i32> {
     ensure!(
         args.iter()
@@ -19,28 +22,30 @@ pub fn execute(
         "unknown lint argument"
     );
     let json = args.iter().any(|arg| arg == "--json");
-    let format = if json {
-        crate::structural_lint::Format::Json
-    } else {
-        crate::structural_lint::Format::Text
-    };
-    crate::structural_lint::run_output(
+    let format = if json { Format::Json } else { Format::Text };
+    run_output(
         location,
-        crate::structural_lint::Output {
+        Output {
             format,
             warnings: args.iter().any(|arg| arg == "--warnings"),
             mode,
             rerun: None,
+            caller,
         },
     )
 }
-pub fn failure(location: Location<'_>, error: anyhow::Error, invocation: &[String]) -> Result<i32> {
+pub fn failure(
+    location: Location<'_>,
+    caller: &Caller,
+    error: anyhow::Error,
+    invocation: &[String],
+) -> Result<i32> {
     let json = invocation.iter().any(|arg| arg == "--json");
     let text = !json;
     if text {
         return Err(error);
     }
-    let mut finding = crate::structural_lint::configuration_error(location.config, error);
+    let mut finding = configuration_error(location.config, caller, error);
     finding.rerun = crate::shared::diagnostics::rerun(location.root, invocation);
     console::stdout(serde_json::to_string(&[finding])?);
     Ok(2)
@@ -81,7 +86,9 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
     if let Some(inspect) = super::explain::inspection(&command) {
         return inspect(location, &args);
     }
-    execute(location, &args, crate::structural_lint::Mode::of(&command))
+    // DECISION: D188
+    let caller = crate::shared::diagnostics::caller(&root, Agent::calling());
+    execute(location, &caller, &args, Mode::of(&command))
 }
 
 pub fn discovery(command: &str, args: &[String]) -> Result<i32> {

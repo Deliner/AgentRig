@@ -1,6 +1,6 @@
 // DECISION: D020
 
-use agentrig::shared::calling_agent::Agent;
+use agentrig::shared::calling_agent::{Agent, Caller};
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::shared::shared_options::take_option;
@@ -111,9 +111,11 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         "lint-baseline takes only --root and --config"
     );
     let reported = inspection.is_none() && !baseline;
+    // DECISION: D188
+    let caller = diagnostics::caller(root, Agent::calling());
     let config = match resolved {
         Ok(config) => config,
-        Err(error) if reported => return unresolved(root, command, args, error),
+        Err(error) if reported => return unresolved(&caller, command, args, error),
         Err(error) => return Err(error),
     };
     let location = Location {
@@ -126,18 +128,24 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     if baseline {
         return structural_lint::baseline::record(location);
     }
-    structural_lint::reporting::cli::execute(location, args, structural_lint::Mode::of(command))
+    let mode = structural_lint::Mode::of(command);
+    structural_lint::reporting::cli::execute(location, &caller, args, mode)
 }
-fn unresolved(root: &Path, command: &str, args: &[String], error: anyhow::Error) -> Result<i32> {
+fn unresolved(
+    caller: &Caller,
+    command: &str,
+    args: &[String],
+    error: anyhow::Error,
+) -> Result<i32> {
     let invocation: Vec<String> = std::iter::once(command.to_owned())
         .chain(args.iter().cloned())
         .collect();
-    let path = root.join(project_config::FILE);
+    let path = caller.root.join(project_config::FILE);
     let location = Location {
-        root,
+        root: &caller.root,
         config: &path,
     };
-    structural_lint::reporting::cli::failure(location, error, &invocation)
+    structural_lint::reporting::cli::failure(location, caller, error, &invocation)
 }
 fn project_lint(root: &Path) -> Result<PathBuf> {
     let context = project_config::Context::load(root)?;

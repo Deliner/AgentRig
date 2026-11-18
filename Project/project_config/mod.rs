@@ -1,7 +1,7 @@
 pub(crate) mod settings_schema;
 #[cfg(test)]
 mod tests;
-use crate::shared::calling_agent::Caller;
+use crate::shared::calling_agent::{Agent, Caller};
 use anyhow::Result;
 pub use settings_schema::{
     Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Git, Hooks,
@@ -26,7 +26,7 @@ impl Context {
         let caller = Caller {
             root: root.clone(),
             skills: config.paths.skills.clone().into(),
-            agent: None,
+            agent: Agent::calling(),
         };
         Ok(Self {
             root,

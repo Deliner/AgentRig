@@ -15,10 +15,9 @@ pub(super) fn respond(
 ) -> Option<Value> {
     let sources = project_config::sources(root);
     let skill = diagnostics::config_skill(root, Some(agent));
-    let shown = skill.as_ref().map_or_else(
-        || diagnostics::UNNAMED_SKILL.to_owned(),
-        |skill| skill.display().to_string(),
-    );
+    let shown = skill
+        .clone()
+        .unwrap_or_else(|| diagnostics::UNNAMED_SKILL.to_owned());
     let message = message(error, &sources, &shown);
     match (text(event, "hook_event_name"), text(event, "tool_name")) {
         ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
@@ -27,7 +26,7 @@ pub(super) fn respond(
             let argv = shell_guard::arguments(command).unwrap_or_default();
             let check = matches!(argv.as_slice(), [_, recipe] if recipe == "config-check");
             let words = command.and_then(|command| shell_guard::words(command).ok());
-            let named = skill.and_then(|skill| target(root, event, &skill.to_string_lossy()));
+            let named = skill.and_then(|skill| target(root, event, &skill));
             let readable = [sources, named.into_iter().collect()].concat();
             let read = match words.as_deref() {
                 Some([cat, files @ ..]) => cat == "cat" && within(root, event, files, &readable),

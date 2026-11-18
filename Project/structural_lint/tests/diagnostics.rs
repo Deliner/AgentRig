@@ -59,7 +59,7 @@ fn threshold(lines: usize, level: Option<&str>, code: i32) {
     );
     for item in findings {
         assert_eq!(item["level"].as_str(), level, "{item}");
-        assert_eq!(item["skill"], SKILL, "{item}");
+        assert_eq!(item["skill"], root.join(SKILL).to_str().unwrap(), "{item}");
         assert_eq!(item["actual"], lines, "{item}");
         assert_eq!(item["rule"], "source", "{item}");
     }

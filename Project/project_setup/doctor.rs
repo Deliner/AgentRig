@@ -3,7 +3,6 @@ use crate::project_config::{Access, Context};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
-use crate::structural_lint::Location;
 use anyhow::Result;
 use std::{env, path::Path};
 
@@ -39,7 +38,7 @@ pub fn run(context: &Context) -> Result<i32> {
             id: "doctor",
             location: &context.root.display().to_string(),
             message: "installation checks failed; see the individual results above",
-            skill: &context.config.config_skill,
+            skill: &context.caller.skill(&context.config.config_skill),
             rerun: &rerun,
         });
     }
@@ -190,30 +189,4 @@ pub(super) fn hooks_registered(
             })
         })
     }))
-}
-pub fn config_check(context: &Context) -> Result<i32> {
-    let lint = if context.config.capabilities.lint {
-        let config = context.path(&context.config.paths.lint)?;
-        crate::structural_lint::run(
-            Location {
-                root: &context.root,
-                config: &config,
-            },
-            crate::structural_lint::Format::Json,
-            crate::structural_lint::Mode::ConfigCheck,
-        )?
-    } else {
-        0
-    };
-    let uncovered = super::coverage::report(context)?;
-    let linted = lint == 0;
-    let code = if linted { i32::from(uncovered) } else { lint };
-    let valid = code == 0;
-    if valid {
-        console::stdout(format!(
-            "Scaffold configuration is valid (runtime {})",
-            crate::project_config::VERSION
-        ));
-    }
-    Ok(code)
 }

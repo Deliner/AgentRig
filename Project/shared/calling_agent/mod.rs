@@ -21,6 +21,17 @@ impl Agent {
             Self::ClaudeCode => ".claude/skills",
         }
     }
+    pub fn variable(self) -> &'static str {
+        match self {
+            Self::Codex => "CODEX_THREAD_ID",
+            Self::ClaudeCode => "CLAUDECODE",
+        }
+    }
+    pub fn calling() -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|agent| std::env::var_os(agent.variable()).is_some())
+    }
     pub fn parse(name: &str) -> Result<Self> {
         Self::ALL
             .into_iter()
@@ -39,12 +50,20 @@ pub struct Caller {
     pub agent: Option<Agent>,
 }
 impl Caller {
-    pub fn skill(&self, configured: &str) -> PathBuf {
+    pub fn plain(root: &Path) -> Self {
+        Self {
+            root: root.to_owned(),
+            skills: PathBuf::new(),
+            agent: None,
+        }
+    }
+    pub fn skill(&self, configured: &str) -> String {
         let configured = Path::new(configured);
         let through = self.agent.and_then(|agent| {
             let inner = configured.strip_prefix(&self.skills).ok()?;
             Some(Path::new(agent.skills()).join(inner))
         });
-        self.root.join(through.as_deref().unwrap_or(configured))
+        let shown = self.root.join(through.as_deref().unwrap_or(configured));
+        shown.to_string_lossy().into_owned()
     }
 }

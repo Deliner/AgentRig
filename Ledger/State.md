@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/dogfood-setup`, от master `502a35e`.
-Revision: `2e496c07fc60b4506b2df1f94975fda41bcfe190`
+Revision: `98f7ca85768721ff2dd59b7510e7051101693244`
 
 Установленный рантайм `05f345a` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -26,15 +26,18 @@ Revision: `2e496c07fc60b4506b2df1f94975fda41bcfe190`
 
 - VAC 1 `1f219c5`: карточка B145 с комментариями пользователя, строка и карточка P143, State.
 - VAC 2 `2e496c0`, AC4: ссылки агентов на `.agentrig/skills` в `init` и в риге, решение D188.
-- VAC 3, этот коммит, AC5 для хука: `hook --agent` из регистрации, `init` ставит обе регистрации без `--frontend`,
-  путь к навыку идёт через каталог агента; модуль агентов вынесен в `Project/shared/calling_agent`. Регистрации рига
-  тоже передают `--agent`; установленный рантайм `05f345a` этот флаг пока игнорирует.
+- VAC 3 `98f7ca8`, AC5 для хука: `hook --agent` из регистрации, `init` ставит обе регистрации без `--frontend`, путь
+  к навыку идёт через каталог агента; модуль агентов в `Project/shared/calling_agent`. Регистрации рига тоже передают
+  `--agent`; установленный рантайм `05f345a` этот флаг пока игнорирует.
+- VAC 4, этот коммит, AC5 для lint, гейта и doctor: агент из `CODEX_THREAD_ID` или `CLAUDECODE`, все сообщения с
+  навыком дают абсолютный путь через каталог агента. Вывод находок lint перенесён в
+  `Project/structural_lint/reporting/findings.rs`, `config_check` — в `Project/project_setup/coverage.rs`.
 
 ## Verification
 
-`cargo test` всего пакета: 522 прошли; `cargo fmt` чист; `tooling/worker/run lint` по всему репозиторию без находок.
-Кандидат на риге для правки решения выдаёт `<root>/.claude/skills/norm-or-choice/SKILL.md` для Claude Code и
-`<root>/.agents/skills/norm-or-choice/SKILL.md` для Codex.
+`cargo test` всего пакета: 523 прошли; `cargo fmt` чист; `tooling/worker/run lint` по всему репозиторию без находок.
+Тест lint после `init` получает `.agents/skills/...` при `CODEX_THREAD_ID`, `.claude/skills/...` при `CLAUDECODE` и
+`.agentrig/skills/...` без переменной, все пути абсолютные.
 
 Проба 2026-11-19: Codex в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
 PreToolUse; их вход не называет агента, переменных Codex у хука нет; команды Codex получают `CODEX_THREAD_ID`, команды
@@ -46,6 +49,5 @@ Claude Code получают `CLAUDECODE=1`.
 
 ## Next action
 
-VAC 4 по AC5: lint, гейт и doctor узнают агента по `CODEX_THREAD_ID` или `CLAUDECODE` и печатают абсолютный путь
-через его каталог, без переменной через `paths.skills`; тест lint на каждую переменную. Затем VAC 5: AC1–AC3, проба
-пустого проекта с Codex и Claude Code, пин D051. Свободные ID: D189+, I023+, P144+, B146+.
+VAC 5: AC1–AC3, `init` равен настройке рига, список оставшихся отличий с причинами и тест сравнения; затем проба
+пустого проекта с Codex и Claude Code и пин D051. Свободные ID: D189+, I023+, P144+, B146+.
