@@ -19,7 +19,7 @@ git config user.email "example@example.invalid"
 git add .
 git commit -m "Initial example"
 git switch -c topic/bootstrap
-"$WORKER_BINARY" init --language python --source application --memory notes --skills guides --base trunk --prefix topic/
+"$WORKER_BINARY" init --language python --skills guides --base trunk --prefix topic/
 ```
 
 ## Rust
@@ -33,8 +33,7 @@ git config user.email "example@example.invalid"
 git add .
 git commit -m "Initial example"
 git switch -c change/bootstrap
-"$WORKER_BINARY" init --language rust --source crates/engine --memory knowledge --skills policies \
-  --base release --prefix change/
+"$WORKER_BINARY" init --language rust --skills policies --base release --prefix change/
 ```
 
 Generated defaults enforce named conditions, function length, parameter limits and decision/invariant-only comments as
@@ -60,17 +59,17 @@ just feature-start next
 The initial commit precedes hook installation, so bootstrap never bypasses an installed guard.
 
 The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a
-predicate, and `[test_doubles](../application/test_sample.py)` as one index row; create `notes/Invariants/001.md` with
+predicate, and `[test_doubles](../Project/test_sample.py)` as one index row; create `Ledger/Invariants/001.md` with
 nonempty `Predicate` and `Oracle` sections. Write `.agentrig/oracles.yaml`:
 
 ```yaml
 I001:
   check: tests
   runner: pytest
-  target: application/test_sample.py::test_doubles
+  target: Project/test_sample.py::test_doubles
 ```
 
-For Rust use `knowledge/Invariants/001.md`, `[doubles](../crates/engine/src/lib.rs)` and:
+For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/src/lib.rs)` and:
 
 ```yaml
 I001:

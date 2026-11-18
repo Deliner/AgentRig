@@ -12,7 +12,7 @@ use std::{
     time::Duration,
 };
 
-const QUESTIONS: usize = 11;
+const QUESTIONS: usize = 9;
 const CONFIRMATION: &str = "Install this environment?";
 const CHANGE: &str = "User change after preview.\n";
 const COMPARED: [&str; 11] = [
@@ -147,16 +147,19 @@ fn interactive_selects_layout_client_and_checks() {
     let root = temp.path().canonicalize().unwrap();
     let mut answers = [""; QUESTIONS];
     answers[2] = "wizard rig";
-    answers[4] = "notes";
-    answers[8] = "claude-code";
-    answers[9] = "lint,memory";
-    answers[10] = "yes";
+    answers[6] = "claude-code";
+    answers[7] = "lint,memory";
+    answers[8] = "yes";
     let result = interactive(&root, &root, &answers);
     assert_eq!(result.code, Some(0), "{}", result.output());
+    // DECISION: D187
+    for unasked in ["Source directory", "Memory directory"] {
+        assert!(!result.stdout.contains(unasked), "{}", result.stdout);
+    }
     let paths = &yaml(&root.join(".agentrig/project.yaml"))["paths"];
     assert_eq!(text(&paths["service"]), "wizard rig");
     assert_eq!(text(&paths["skills"]), "wizard rig/skills");
-    assert_eq!(text(&paths["memory"]), "notes");
+    assert_eq!(text(&paths["memory"]), "Ledger");
     let checks = yaml(&root.join(".agentrig/checks.yaml"));
     let selected = names(&checks, |check| text(&check["id"]));
     assert_eq!(selected, BTreeSet::from(["lint".into(), "memory".into()]));

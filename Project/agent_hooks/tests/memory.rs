@@ -126,7 +126,7 @@ fn guidance(root: &Path, output: &Value, expected: &[&str]) {
 // INVARIANT: I012
 #[test]
 fn ledger_edit_guidance() {
-    let (_temp, root) = initialized(&["--memory", "Ledger", "--skills", "guides"]);
+    let (_temp, root) = initialized(&["--skills", "guides"]);
     let outside = root.parent().unwrap().to_str().unwrap();
     for (index, (tool, payload, expected)) in LEDGER_EDITS.into_iter().enumerate() {
         let payload = payload.replace("{root}", root.to_str().unwrap());
@@ -142,7 +142,7 @@ fn ledger_edit_guidance() {
 
 #[test]
 fn archived_plan_edits_are_guided_without_writing() {
-    let (_temp, root) = initialized(&["--memory", "Ledger", "--skills", "guides"]);
+    let (_temp, root) = initialized(&["--skills", "guides"]);
     let archive = root.join("Ledger/Archive");
     fs::create_dir_all(archive.join("Plan")).unwrap();
     let paths = [archive.join("Plan.md"), archive.join("Plan/001.md")];
@@ -160,11 +160,15 @@ fn archived_plan_edits_are_guided_without_writing() {
 
 #[test]
 fn nested_cwd_and_symlinks() {
-    let (_temp, root) = initialized(&["--memory", "notes"]);
-    let event = pre_tool(&root.join("notes"), "Edit", json!({"file_path": "Plan.md"}));
+    let (_temp, root) = project();
+    let event = pre_tool(
+        &root.join("Ledger"),
+        "Edit",
+        json!({"file_path": "Plan.md"}),
+    );
     let guided = in_session(&root, event.clone(), "direct");
     assert!(guided.to_string().contains("edit-plan"), "{guided}");
-    let path = root.join("notes/Plan.md");
+    let path = root.join("Ledger/Plan.md");
     fs::remove_file(&path).unwrap();
     symlink(root.parent().unwrap().join("outside.md"), &path).unwrap();
     assert!(in_session(&root, event, "linked").is_null());

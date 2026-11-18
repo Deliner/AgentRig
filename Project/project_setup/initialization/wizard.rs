@@ -77,8 +77,6 @@ fn project_config(root: &Path) -> Result<Option<Scaffold>> {
     for (key, label) in [
         ("language", "Language: python/rust"),
         ("service", "Service directory"),
-        ("source", "Source directory"),
-        ("memory", "Memory directory"),
         ("skills", "Skills directory"),
         ("base", "Base branch"),
         ("prefix", "Feature branch prefix"),

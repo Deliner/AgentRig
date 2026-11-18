@@ -8,11 +8,12 @@ use anyhow::{Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
 // DECISION: D040
+// DECISION: D187
+const SOURCE: &str = "Project";
+const MEMORY: &str = "Ledger";
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
-        ("source", "Project"),
-        ("memory", "Ledger"),
         ("skills", ".agentrig/skills"),
         ("service", ".agentrig"),
         ("base", "main"),
@@ -24,7 +25,7 @@ pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--frontend codex|claude-code] [--source PATH] [--memory PATH] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
+        "init [--language python|rust] [--frontend codex|claude-code] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
     );
     for pair in args.as_chunks::<2>().0 {
         let key = pair[0].strip_prefix("--").unwrap_or("");
@@ -52,7 +53,7 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
         ["python", "rust"].contains(&language),
         "init supports python or rust"
     );
-    for key in ["source", "memory", "skills", "service"] {
+    for key in ["skills", "service"] {
         project_config::relative(root, &options[key])?;
     }
     Ok(())
@@ -63,10 +64,9 @@ pub(super) struct Scaffold {
     pub clippy: Option<clippy::Settings>,
 }
 pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
-    let source = &options["source"];
     let python = options["language"] == "python";
     let (rust, clippy, rustflags) = if python {
-        (Layout::fallback(source), None, Vec::new())
+        (Layout::fallback(SOURCE), None, Vec::new())
     } else {
         // DECISION: D174
         let toolchain = Requirement::inspect(root)?;
@@ -74,7 +74,7 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
             toolchain.met(),
             "init refused for a Rust project: {toolchain}; no files were written"
         );
-        let rust = cargo::layout(root, source)?;
+        let rust = cargo::layout(root, SOURCE)?;
         let clippy = clippy::settings(root, &rust)?;
         (rust, Some(clippy), flags::build_rustflags(root)?)
     };
@@ -99,8 +99,8 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Confi
         config_skill: repair.clone(),
         paths: Paths {
             service: service.clone(),
-            sources: vec![format!("{}/**", options["source"])],
-            memory: options["memory"].clone(),
+            sources: vec![format!("{SOURCE}/**")],
+            memory: MEMORY.into(),
             skills: skill_root.into(),
             lint: format!("{service}/lint.yaml"),
             runtime: format!("{service}/runtime"),
@@ -299,7 +299,7 @@ fn test_command(options: &Options<'_>, rust: &Layout) -> Vec<String> {
             "python3".into(),
             "-m".into(),
             "pytest".into(),
-            options["source"].clone(),
+            SOURCE.into(),
         ]
     } else {
         vec![
@@ -312,31 +312,29 @@ fn test_command(options: &Options<'_>, rust: &Layout) -> Vec<String> {
 }
 // DECISION: D110
 fn routes(options: &Options<'_>) -> Vec<Route> {
-    let memory = &options["memory"];
-    let source = &options["source"];
     let skill_root = &options["skills"];
     let mut routes = vec![Route {
-        include: vec![format!("{source}/**")],
+        include: vec![format!("{SOURCE}/**")],
         skill: format!("{skill_root}/refactor-large-directory/SKILL.md"),
         events: vec![RouteEvent::Edit],
         block: true,
     }];
     routes.extend(memory_routes(options));
     routes.push(Route {
-        include: memory_files(&format!("{memory}/State")),
+        include: memory_files("State"),
         skill: format!("{skill_root}/edit-state/SKILL.md"),
         events: vec![RouteEvent::Check],
         block: true,
     });
     // DECISION: D186
     routes.push(Route {
-        include: memory_files(&format!("{memory}/Decisions")),
+        include: memory_files("Decisions"),
         skill: format!("{skill_root}/norm-or-choice/SKILL.md"),
         events: vec![RouteEvent::Edit],
         block: true,
     });
     routes.push(Route {
-        include: vec![format!("{source}/**")],
+        include: vec![format!("{SOURCE}/**")],
         skill: format!("{skill_root}/fail-closed-enforcement/SKILL.md"),
         events: vec![RouteEvent::Edit],
         block: false,
@@ -344,7 +342,6 @@ fn routes(options: &Options<'_>) -> Vec<Route> {
     routes
 }
 fn memory_routes(options: &Options<'_>) -> Vec<Route> {
-    let memory = &options["memory"];
     let skill_root = &options["skills"];
     [
         ("Plan", "edit-plan"),
@@ -356,22 +353,24 @@ fn memory_routes(options: &Options<'_>) -> Vec<Route> {
     ]
     .into_iter()
     .map(|(file, skill)| Route {
-        include: memory_files(&format!("{memory}/{file}")),
+        include: memory_files(file),
         skill: format!("{skill_root}/{skill}/SKILL.md"),
         events: vec![RouteEvent::Edit, RouteEvent::Shell],
         block: false,
     })
     .collect()
 }
-fn memory_files(stem: &str) -> Vec<String> {
-    vec![format!("{stem}.md"), format!("{stem}/**/*.md")]
+fn memory_files(file: &str) -> Vec<String> {
+    vec![
+        format!("{MEMORY}/{file}.md"),
+        format!("{MEMORY}/{file}/**/*.md"),
+    ]
 }
 fn checks(options: &Options<'_>, skill_root: &str) -> Vec<Check> {
     let skill = |name| format!("{skill_root}/{name}/SKILL.md");
-    let source = &options["source"];
     let run = |id, command: &str| Check {
         command: Some(command.into()),
-        include: vec![format!("{source}/**")],
+        include: vec![format!("{SOURCE}/**")],
         ..check(id, CheckKind::Command, skill("repair"))
     };
     let mut checks = vec![

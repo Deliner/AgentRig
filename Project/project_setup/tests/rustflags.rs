@@ -25,7 +25,7 @@ fn rust_init_copies_build_rustflags_into_the_rig_list_and_keeps_the_cargo_config
         write(&root, "Cargo.toml", MANIFEST);
         write(&root, "src/main.rs", "fn main() {}\n");
         write(&root, ".cargo/config.toml", config);
-        let args = ["--language", "rust", "--source", "src"].map(str::to_owned);
+        let args = ["--language", "rust"].map(str::to_owned);
         assert_eq!(init(&root, &args).unwrap(), 0, "{config}");
         let module = fs::read_to_string(root.join(".agentrig/rust.yaml")).unwrap();
         let module: Value = serde_yaml_ng::from_str(&module).unwrap();

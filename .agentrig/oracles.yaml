@@ -78,4 +78,8 @@ I021:
   check: rust-test
   runner: cargo
   target: change_delivery::git::tests::guards::reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved
+I022:
+  check: rust-test
+  runner: cargo
+  target: project_setup::initialization::tests::layout::init_always_keeps_memory_in_ledger_and_sources_in_project
 

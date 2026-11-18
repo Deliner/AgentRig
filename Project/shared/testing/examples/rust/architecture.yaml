@@ -2,4 +2,4 @@ purpose: Provide an independently installable Rust consumer example
 files:
   .gitignore: Exclude generated Rust consumer state from version control
 directories:
-  crates: Consumer build packages
+  Project: Minimal independently testable consumer crate

@@ -28,15 +28,7 @@ const UNAVAILABLE: &str = "Hook session state unavailable";
 const STATE_GUIDANCE: &str = "guides/edit-state/SKILL.md";
 
 fn session(frontend: &str) -> (TempDir, PathBuf) {
-    let options = [
-        "--memory",
-        "notes",
-        "--skills",
-        "guides",
-        "--frontend",
-        frontend,
-    ];
-    let (temp, root) = initialized(&options);
+    let (temp, root) = initialized(&["--skills", "guides", "--frontend", frontend]);
     for (name, before, after) in [
         (
             "project",
@@ -142,13 +134,11 @@ fn portable_reminder_schedule_retry_and_compaction() {
         let start = merged(&common, json!({"hook_event_name": "SessionStart"}));
         let started = respond(&root, &start).to_string();
         let skill = "guides/complexity-discipline/SKILL.md";
-        for expected in [FULL_REFRESH, skill, "notes/State.md"] {
+        for expected in [FULL_REFRESH, skill, "Ledger/State.md"] {
             assert!(started.contains(expected), "{expected}: {started}");
         }
-        for absent in ["Ledger/", ".agents/"] {
-            assert!(!started.contains(absent), "{absent}: {started}");
-        }
-        let edit = writing(&common, "notes/State.md");
+        assert!(!started.contains(".agents/"), "{started}");
+        let edit = writing(&common, "Ledger/State.md");
         follow_schedule(&root, &edit, frontend);
         let compact = merged(&start, json!({"source": "compact"}));
         let refreshed = respond(&root, &compact).to_string();
@@ -160,7 +150,7 @@ fn portable_reminder_schedule_retry_and_compaction() {
         assert!(decided.is_none(), "{output}");
         assert!(output.to_string().contains(STATE_GUIDANCE), "{output}");
         for name in ["Plan", "Decisions", "Invariants"] {
-            let edit = writing(&common, &format!("notes/{name}.md"));
+            let edit = writing(&common, &format!("Ledger/{name}.md"));
             let output = respond(&root, &edit).to_string();
             let guidance = format!("guides/edit-{}/SKILL.md", name.to_lowercase());
             assert!(output.contains(&guidance), "{guidance}: {output}");
@@ -183,7 +173,7 @@ fn no_configured_discipline_does_not_invent_a_skill() {
 
 #[test]
 fn reminder_storage_failure_is_visible_and_recovers() {
-    for path in ["src/example.rs", "notes/State.md"] {
+    for path in ["src/example.rs", "Ledger/State.md"] {
         let (_temp, root) = session("codex");
         let runtime = root.join(".scratch/state");
         fs::write(&runtime, "occupied").unwrap();
@@ -201,7 +191,7 @@ fn reminder_storage_failure_is_visible_and_recovers() {
             assert!(context.contains(expected), "{expected}: {context}");
         }
         let guided = output.to_string().contains(STATE_GUIDANCE);
-        assert_eq!(guided, path == "notes/State.md", "{path}: {output}");
+        assert_eq!(guided, path == "Ledger/State.md", "{path}: {output}");
         fs::remove_file(&runtime).unwrap();
         let recovered = respond(&root, &event).to_string();
         assert!(recovered.contains(FULL_REFRESH), "{recovered}");
