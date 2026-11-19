@@ -2,24 +2,23 @@
 
 ## Focus
 
-P157 (B158), VAC 2: refuse decision and invariant changes relative to the fork from the base (AC4, AC5), D215.
+P157 (B158), VAC 3: a decision marker counts only in a source file its decision links (AC2), D216.
 
 ## Workspace
 
 Branch: feature/gate-base-rules
-Revision: 4c861c1f62b137dd9b507aabbe7289354a70ec4e
+Revision: 74f93a3b7c4a1e0b6c6cb263bc1947b2b7f38270
 
 ## Progress
 
-VAC 1 committed (D214, AC1 and AC3). VAC 2: `Repository::fork` finds the merge-base with the configured base branch;
-`history::check` also compares decisions with the fork; `invariant_history` compares each invariant's statement,
-detail, oracle and marked test text with the fork and accepts a change only when a new decision names its ID.
+VAC 1 (D214) and VAC 2 (D215) committed. VAC 3: the memory check refuses a `DECISION:` marker in a source file that
+the decision does not link under Applies in, naming each decision and file; `INVARIANT:` markers keep the existence
+check. Eighteen decision rows gained links to the files that already carried their markers.
 
 ## Verification
 
-`just run clippy`, `just run rustfmt`, `just lint` and `just candidate check --only memory` pass. `just run test --
-project_memory change_delivery shared::vcs` passes 88 tests, including the two-commit merge test and the invariant
-test with and without a new decision.
+`just run clippy`, `just run rustfmt`, `just lint` and `just candidate check --only memory` pass. `just run test`
+passes 585 tests, including the E3 test of a marker over `unwrap` in an unlinked file, refused and then accepted.
 
 ## Blockers
 
@@ -27,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 2, then VAC 3: AC2 decision markers only in files their decision links (D216).
+Commit VAC 3, then VAC 4: AC6 the installed linter also checks a rig change (D217).

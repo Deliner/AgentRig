@@ -21,12 +21,12 @@ use crate::shared::console;
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::targeting::file_discovery;
-use anyhow::{Result, ensure};
+use anyhow::{Context as _, Result, ensure};
 use format::{Catalog, Row, sections, table, target};
 use source::Invariant;
 use std::{
-    collections::{BTreeMap, HashMap, HashSet},
-    path::Path,
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    path::{Path, PathBuf},
 };
 
 pub fn check(context: &Context) -> Result<i32> {
@@ -44,27 +44,55 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     Ok(0)
 }
 // DECISION: D037
+// DECISION: D216
 fn references(context: &Context, memory: &Path) -> Result<()> {
-    let records: HashSet<String> = table(&memory.join("Decisions.md"), Catalog::Decisions)?
+    let applications = applications(context, memory)?;
+    let invariants: HashSet<String> = table(&memory.join("Invariants.md"), Catalog::Invariants)?
         .into_iter()
-        .chain(table(&memory.join("Invariants.md"), Catalog::Invariants)?)
         .map(|row| row.id)
         .collect();
     let sources = globs(&context.config.paths.sources)?;
     let files = file_discovery::collect(&context.root, &globs(&[])?)?.files;
+    let mut unlinked = BTreeSet::new();
     for path in files.iter().filter(|path| sources.is_match(path)) {
-        let Some(source) = source::inspect(&context.root.join(path))? else {
+        let file = context.root.join(path);
+        let Some(source) = source::inspect(&file)? else {
             continue;
         };
-        for id in source.references() {
-            ensure!(
-                records.contains(id),
-                "{}: {id} is not a recorded decision or invariant",
-                path.display()
-            );
+        let file = crate::shared::paths::resolve(&file)?;
+        let decisions = source.references().filter(|id| !invariants.contains(*id));
+        for id in decisions {
+            let linked = applications.get(id).with_context(|| {
+                format!(
+                    "{}: {id} is not a recorded decision or invariant",
+                    path.display()
+                )
+            })?;
+            let outside = !linked.contains(&file);
+            if outside {
+                unlinked.insert(format!("{id} in {}", path.display()));
+            }
         }
     }
+    let unlinked: Vec<String> = unlinked.into_iter().collect();
+    ensure!(
+        unlinked.is_empty(),
+        "a decision marker counts only in a file its decision links under Applies in; link the file from the decision or remove the marker: {}",
+        unlinked.join(", ")
+    );
     Ok(())
+}
+fn applications(context: &Context, memory: &Path) -> Result<HashMap<String, HashSet<PathBuf>>> {
+    let decisions = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
+    let mut applications = HashMap::new();
+    for row in decisions {
+        let paths = format::links(&row.cells[2])
+            .iter()
+            .map(|link| target(context, memory, link))
+            .collect::<Result<HashSet<PathBuf>>>()?;
+        applications.insert(row.id, paths);
+    }
+    Ok(applications)
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> Result<()> {
     let layout = catalog.detail_sections();
