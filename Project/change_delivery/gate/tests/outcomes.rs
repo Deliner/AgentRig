@@ -1,5 +1,31 @@
-use super::{gated, large};
+use super::{gated, large, stage_an_oversized_source};
 use crate::shared::testing::{FAIL, GATE, REPAIR, invoke, project, rerun};
+use std::fs;
+
+const CANDIDATE: &str = "- id: candidate-lint
+  kind: command
+  command: candidate-lint
+  skill: guides/repair/SKILL.md
+- id: lint
+  kind: lint
+  skill: guides/repair/SKILL.md
+";
+
+// DECISION: D217
+#[test]
+fn the_installed_lint_blocks_code_that_a_weakened_candidate_accepts() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let weakened = "candidate-lint:\n  argv: [sh, candidate.sh]\n";
+    project(&root, weakened, CANDIDATE);
+    fs::write(root.join("candidate.sh"), "exit 0\n").unwrap();
+    stage_an_oversized_source(&root);
+    let result = invoke(&root, &["check", "--staged"]);
+    assert_eq!(result.code, Some(1), "{}", result.output());
+    let accepted = result.stdout.contains("PASS [candidate-lint]");
+    let refused = result.stderr.contains("ERROR [lint]");
+    assert!(accepted && refused, "{}", result.output());
+}
 
 #[test]
 fn gate_warns_on_a_failing_warning_check_and_blocks_on_an_error() {
