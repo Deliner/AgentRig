@@ -1,5 +1,6 @@
 mod memory;
 mod named_commands;
+mod protected;
 mod reminders;
 mod shell;
 mod skill_requirements;
@@ -9,6 +10,8 @@ use super::dispatch;
 use crate::shared::calling_agent::Agent;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
+
+const PROTECTED_CONFIGURATION: [&str; 2] = ["project.yaml", "hooks.yaml"];
 
 fn initialized(args: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
     let temp = tempfile::tempdir().unwrap();
@@ -54,11 +57,11 @@ fn shell(root: &Path, command: &str) -> String {
 #[test]
 fn invalid_configuration_leaves_only_its_repair_and_check_available() {
     let (_temp, root) = project();
-    let commands = root.join(".agentrig/commands.yaml");
-    let valid = fs::read_to_string(&commands).unwrap();
-    fs::write(&commands, "read:\n  argv: []\n").unwrap();
-    assert_eq!(edit(&root, ".agentrig/commands.yaml"), "");
-    assert_eq!(edit(&root, &commands.display().to_string()), "");
+    let checks = root.join(".agentrig/checks.yaml");
+    let valid = fs::read_to_string(&checks).unwrap();
+    fs::write(&checks, "- id: x\n  kind: memory\n  skill: none.md\n").unwrap();
+    assert_eq!(edit(&root, ".agentrig/checks.yaml"), "");
+    assert_eq!(edit(&root, &checks.display().to_string()), "");
     assert_eq!(shell(&root, "just config-check"), "");
     let denied = edit(&root, "Project/main.py");
     let repair = format!(
@@ -66,26 +69,28 @@ fn invalid_configuration_leaves_only_its_repair_and_check_available() {
         root.display()
     );
     for expected in [
-        ".agentrig/commands.yaml: commands.read: empty argv requires accepts_args",
+        ".agentrig/checks.yaml: checks.x.skill",
         &repair,
-        "only edits of .agentrig/project.yaml, .agentrig/git.yaml",
+        "only edits of .agentrig/checks.yaml, .agentrig/oracles.yaml",
+        "protected .agentrig/project.yaml, .agentrig/git.yaml, .agentrig/commands.yaml, .agentrig/hooks.yaml;",
         "`just config-check`",
     ] {
         assert!(denied.contains(expected), "{expected}: {denied}");
     }
+    assert_eq!(edit(&root, ".agentrig/commands.yaml"), denied);
     for command in ["just run test", "just config-check; touch x", "just list"] {
         assert_eq!(shell(&root, command), denied, "{command}");
     }
-    let patch = "*** Update File: .agentrig/commands.yaml\n*** Add File: Project/x.py\n";
+    let patch = "*** Update File: .agentrig/checks.yaml\n*** Add File: Project/x.py\n";
     assert_eq!(reason(&hook(&root, "apply_patch", json!(patch))), denied);
-    let codex = "*** Begin Patch\n*** Update File: .agentrig/commands.yaml\n*** End Patch";
+    let codex = "*** Begin Patch\n*** Update File: .agentrig/checks.yaml\n*** End Patch";
     assert_eq!(
         reason(&hook(&root, "apply_patch", json!({"command": codex}))),
         ""
     );
     let session = respond(&root, &json!({"hook_event_name": "SessionStart"}));
     assert_eq!(session["hookSpecificOutput"]["additionalContext"], denied);
-    fs::write(&commands, valid).unwrap();
+    fs::write(&checks, valid).unwrap();
     assert_eq!(edit(&root, "README.md"), "");
     assert_eq!(shell(&root, "just run test"), "");
 }
@@ -99,7 +104,9 @@ fn invalid_configuration_can_be_read_only_through_cat_of_its_files() {
     let denied = edit(&root, "Project/main.py");
     let repair = format!("{}/.agents/skills/repair/SKILL.md", root.display());
     assert!(
-        denied.contains(&format!("`cat` of these files and {repair}")),
+        denied.contains(&format!(
+            "`cat` of these files, .agentrig/project.yaml, .agentrig/git.yaml, .agentrig/commands.yaml, .agentrig/hooks.yaml and {repair}"
+        )),
         "{denied}"
     );
     assert_eq!(shell(&root, &format!("cat {repair}")), "");
@@ -144,7 +151,9 @@ fn diagnostics_distinguish_missing_corrupt_unknown_and_invalid_configuration() {
         let denied = edit(&root, "Project/main.py");
         assert!(denied.contains(expected), "{file}: {denied}");
         assert!(!denied.contains("required"), "{file}: {denied}");
-        assert_eq!(edit(&root, &format!(".agentrig/{file}")), "", "{file}");
+        let protected = PROTECTED_CONFIGURATION.contains(&file);
+        let repair = if protected { denied.as_str() } else { "" };
+        assert_eq!(edit(&root, &format!(".agentrig/{file}")), repair, "{file}");
     }
 }
 

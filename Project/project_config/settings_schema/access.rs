@@ -18,6 +18,13 @@ impl Access {
             Self::Project | Self::Unconfined => false,
         }
     }
+    // DECISION: D213
+    pub fn project(self) -> bool {
+        match self {
+            Self::Project => true,
+            Self::ReadOnly | Self::Unconfined => false,
+        }
+    }
     pub fn sandboxed(self) -> bool {
         match self {
             Self::ReadOnly | Self::Project => true,

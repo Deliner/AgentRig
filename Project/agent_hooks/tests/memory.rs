@@ -195,7 +195,7 @@ fn nested_cwd_and_symlinks() {
 fn storage_failure_keeps_recovery_context() {
     let (_temp, root) = project();
     let storage = root.join(".cache/runtime");
-    fs::remove_dir(&storage).unwrap();
+    fs::rename(&storage, root.join(".cache/moved")).unwrap();
     fs::write(&storage, "occupied").unwrap();
     let session = r#"{"hook_event_name": "SessionStart"}"#;
     let result = run(&mut runtime(&root, &["hook", "--agent", "codex"]), session);

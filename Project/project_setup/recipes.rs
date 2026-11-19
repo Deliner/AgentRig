@@ -28,6 +28,8 @@ const RECIPES: [(&str, &[Entry]); 5] = [
             ("report", "report", false),
             ("feature-start", "feature-start", true),
             ("feature-merge", "feature-merge", false),
+            // DECISION: D213
+            ("approve", "approve", false),
         ],
     ),
     (

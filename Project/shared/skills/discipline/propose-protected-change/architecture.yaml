@@ -1,0 +1,5 @@
+purpose: "Propose a change of a protected enforcement file for the user's approval"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions for the protected files, the proposal directory and the user's just approve"
+directories: {}

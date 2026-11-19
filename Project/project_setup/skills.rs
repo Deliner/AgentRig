@@ -276,6 +276,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/discipline/fail-closed-enforcement/SKILL.md"),
     ),
     (
+        "propose-protected-change",
+        include_str!("../shared/skills/discipline/propose-protected-change/SKILL.md"),
+    ),
+    (
         "name-the-arguments",
         include_str!("../shared/skills/naming/name-the-arguments/SKILL.md"),
     ),

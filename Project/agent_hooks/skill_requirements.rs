@@ -1,7 +1,7 @@
 // DECISION: D047
 use super::{Event, context, deny};
 use crate::project_config::{Context, RouteEvent};
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::glob_patterns::{globs, literal};
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::path::{Path, PathBuf};
@@ -41,14 +41,10 @@ pub fn writes(configured: &Context, paths: &[PathBuf]) -> Vec<Occurrence> {
 }
 fn overlaps(include: &[String], path: &Path) -> bool {
     include.iter().any(|pattern| {
-        let literal: PathBuf = Path::new(pattern)
-            .components()
-            .take_while(|part| !part.as_os_str().to_string_lossy().contains(GLOB_SYNTAX))
-            .collect();
+        let literal = literal(pattern);
         path.starts_with(&literal) || literal.starts_with(path)
     })
 }
-const GLOB_SYNTAX: [char; 6] = ['*', '?', '[', ']', '{', '\\'];
 fn occurrence(route: usize, path: &Path, action: &str) -> Occurrence {
     let area = path
         .parent()
@@ -95,7 +91,6 @@ pub struct Answer {
     pub discipline: Option<String>,
     pub found: Vec<Occurrence>,
     pub notes: Vec<String>,
-    pub tracked: bool,
 }
 impl Answer {
     pub fn output(mut self, configured: &Context, tool: &str) -> Option<Value> {
@@ -108,7 +103,8 @@ impl Answer {
             routes[left.route].skill == routes[right.route].skill
         };
         for group in self.found.chunk_by(same_skill) {
-            let required = self.tracked && group.iter().any(|item| routes[item.route].block);
+            // DECISION: D213
+            let required = group.iter().any(|item| routes[item.route].block);
             blocking |= required;
             let enforcement = if required {
                 Enforcement::Required

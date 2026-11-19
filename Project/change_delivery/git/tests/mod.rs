@@ -1,3 +1,4 @@
+mod approval;
 mod cleanup;
 mod guards;
 mod integration;
@@ -44,6 +45,12 @@ fn installed() -> (TempDir, PathBuf) {
 fn start(root: &Path, name: &str) {
     let started = invoke(root, &["feature-start", name]);
     assert_eq!(started.code, Some(0), "{}", started.output());
+}
+
+fn approve_commands(root: &Path, addition: &str) {
+    configure(root, "commands", addition);
+    let approved = invoke(root, &["approve"]);
+    assert_eq!(approved.code, Some(0), "{}", approved.output());
 }
 
 fn merge(root: &Path) {

@@ -149,6 +149,9 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
         Ok(shell) => shell,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
     };
+    if let Some(refusal) = protected(configured, &shell.named) {
+        return Ok(Some(refusal));
+    }
     let opaque = shell.catalog.as_deref().is_some_and(|name| {
         configured
             .config
@@ -178,8 +181,40 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
         .iter()
         .filter_map(|path| target(root, event, path))
         .collect();
+    if let Some(refusal) = protected(configured, &paths) {
+        return Ok(Some(refusal));
+    }
     let found = skill_requirements::edits(configured, &paths)?;
     respond(event, configured, found, Reminding::Active)
+}
+// DECISION: D213
+fn protected(configured: &Context, paths: &[PathBuf]) -> Option<Value> {
+    let mut touched: Vec<String> = paths
+        .iter()
+        .filter(|path| configured.protection.touched(path))
+        .map(|path| shown(path))
+        .collect();
+    touched.dedup();
+    let allowed = touched.is_empty();
+    if allowed {
+        return None;
+    }
+    let skills = &configured.config.paths.skills;
+    let skill = configured
+        .caller
+        .skill(&format!("{skills}/propose-protected-change/SKILL.md"));
+    Some(deny(&format!(
+        "AgentRig refused this call: it changes the protected enforcement files {}. Agents do not change them directly; read and apply {skill} to propose the change for the user's approval.",
+        touched.join(", ")
+    )))
+}
+fn shown(path: &Path) -> String {
+    let root = path.as_os_str().is_empty();
+    if root {
+        ".".into()
+    } else {
+        path.display().to_string()
+    }
 }
 // DECISION: D047
 fn respond(
@@ -195,7 +230,6 @@ fn respond(
             if let Err(error) = session.save() {
                 console::stderr(format!("complexity reminder: {error}"));
                 answer.discipline = None;
-                answer.tracked = false;
                 answer.notes.push(state_failure(configured, &error));
             }
             answer
@@ -206,7 +240,6 @@ fn respond(
                 discipline: None,
                 found,
                 notes: vec![state_failure(configured, &error)],
-                tracked: false,
             }
         }
     };
@@ -227,7 +260,6 @@ fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Rem
         discipline: None,
         found: Vec::new(),
         notes: Vec::new(),
-        tracked: true,
     };
     match due {
         Ok(due) => {
@@ -248,7 +280,7 @@ fn state_directory(configured: &Context) -> Result<PathBuf> {
 }
 fn state_failure(configured: &Context, error: &anyhow::Error) -> String {
     format!(
-        "Hook session state unavailable: {error}. Check the state storage at {} and the hook transcript_path; repair the unavailable input and retry. Until then requirements repeat without stopping actions; ordinary file editing remains available.",
+        "Hook session state unavailable: {error}. Ask the user to repair the state storage at {} or the hook transcript_path. Until then a call that needs a required skill stops every time, because its delivery cannot be recorded; calls without one proceed.",
         configured
             .root
             .join(&configured.config.paths.runtime)

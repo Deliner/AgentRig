@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P156](Plan/156.md) | paused | - | [B157](Backlog/157.md): enforcement-files — агент не выключает механизмы контроля | Проверки рига нельзя выключить или ослабить изнутри сессии агента. |
 | [P157](Plan/157.md) | paused | - | [B158](Backlog/158.md): gate-base-rules — гейт проверяет правку по правилам, которые она не может ослабить | Проверку нельзя ослабить той же правкой, которую она проверяет. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.

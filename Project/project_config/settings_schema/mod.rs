@@ -185,6 +185,9 @@ pub struct Hooks {
     pub routes: Vec<Route>,
     pub reminder: Option<String>,
     pub discipline_skill: Option<String>,
+    // DECISION: D213
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub protected: Vec<String>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]

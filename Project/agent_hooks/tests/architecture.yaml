@@ -5,6 +5,7 @@ files:
   memory.rs: Verify memory edit guidance and session recovery context
   named_commands.rs: Verify that every just command the rig's instructions, READMEs and skills name passes the hook in the rig and after init
   shell.rs: Verify shell invocation guards
+  protected.rs: Verify that edits and just write operands reaching enforcement files are refused alike, git staging and proposals stay allowed and an unresolvable word refuses
   tools.rs: Verify that every tool call is checked as a shell command or file edit, passes as passive or is refused by name
   reminders.rs: Verify Codex and Claude token accounting, reminder scheduling and storage recovery
 directories: {}

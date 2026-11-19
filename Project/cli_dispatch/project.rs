@@ -27,6 +27,7 @@ pub(super) fn configured_command(
         Configured::FeatureMerge => git::merge(context),
         Configured::FeaturePush => git::push(context),
         Configured::StateReset => git::reset_state(context),
+        Configured::Approve => git::approval::approve(context),
         Configured::MemoryCheck => project_memory::check(context),
         Configured::Resume => {
             project_memory::resume(context)?;
@@ -36,12 +37,7 @@ pub(super) fn configured_command(
             command_runner::tool_registry::list(context)?;
             Ok(0)
         }
-        Configured::Run => {
-            let (name, extra) = args
-                .split_first()
-                .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
-            run_command(context, name, forwarded(extra))
-        }
+        Configured::Run => run_command(context, args),
         Configured::Report => {
             command_runner::report(context)?;
             check_evidence::report(context)?;
@@ -50,7 +46,11 @@ pub(super) fn configured_command(
     }
 }
 
-fn run_command(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
+fn run_command(context: &Context, args: &[String]) -> Result<i32> {
+    let (name, extra) = args
+        .split_first()
+        .ok_or_else(|| anyhow::anyhow!("run COMMAND [-- ARGS]"))?;
+    let extra = forwarded(extra);
     let code = command_runner::run(context, name, extra)?;
     let failed = code != 0;
     let check = context

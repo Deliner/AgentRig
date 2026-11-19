@@ -37,7 +37,9 @@ registration, with the installed binary's `doctor` in a terminal. While hooks
 report invalid configuration, only edits of the listed configuration files,
 `cat` of them and of this skill, and `just config-check` run: read and edit the
 reported file directly and rerun `just config-check`; normal work resumes once
-it passes. Apply the named skill, then rerun through Just: a RERUN line names
+it passes. The protected `.agentrig/project.yaml`, `git.yaml`, `commands.yaml`
+and `hooks.yaml` are readable but not editable: when the error lies in one of
+them, ask the user to correct it. Apply the named skill, then rerun through Just: a RERUN line names
 the runtime binary, which the shell guard does not run. Rerun the recipe that
 failed, and a gate check as `just check` with the arguments that follow
 `--root ROOT`, such as `just check --only CHECK_ID --staged`. `just report`

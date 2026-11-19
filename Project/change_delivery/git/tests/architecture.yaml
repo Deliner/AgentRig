@@ -2,6 +2,7 @@ purpose: Verify Git feature delivery and transaction guards through the runtime 
 files:
   mod.rs: Install a project on its base branch and start, merge and read its features
   guards.rs: Commit and reference transaction guard verdicts
+  approval.rs: The user's approval of enforcement files, its proposal and the forward-only pin at the commit guard
   integration.rs: Feature integration, rebase, conflicts and refusals that preserve branches
   cleanup.rs: Post-merge cleanup of owned runs
   push.rs: Pushes to a configured remote after commits and merges, and their failures

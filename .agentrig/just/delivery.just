@@ -13,3 +13,7 @@ feature-start *args:
 # What: invoke feature-merge; Why: use the configured native runtime.
 feature-merge:
     @.agentrig/bin/agentrig feature-merge --root .
+
+# What: invoke approve; Why: use the configured native runtime.
+approve:
+    @.agentrig/bin/agentrig approve --root .

@@ -156,9 +156,34 @@ pub(super) fn tree(root: &Path, revision: &str) -> Result<BTreeMap<String, Entry
 }
 
 pub(super) fn index(root: &Path) -> Result<BTreeMap<String, Entry>> {
-    let bytes = index_entries(root)?;
+    staged(&index_entries(root)?)
+}
+
+// DECISION: D213
+pub(super) fn stageable(root: &Path, paths: &[String]) -> Result<BTreeMap<String, Entry>> {
+    let directory = tempfile::tempdir()?;
+    let index = directory.path().join("index");
+    let run = |args: &[&str]| -> Result<Vec<u8>> {
+        let output = command(root, args).env("GIT_INDEX_FILE", &index).output()?;
+        ensure!(
+            output.status.success(),
+            "git failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(output.stdout)
+    };
+    if let Some(head) = head(root)? {
+        run(&["read-tree", &head])?;
+    }
+    let mut update = vec!["update-index", "--add", "--remove", "--"];
+    update.extend(paths.iter().map(String::as_str));
+    run(&update)?;
+    staged(&run(&["ls-files", "--stage", "-z"])?)
+}
+
+fn staged(bytes: &[u8]) -> Result<BTreeMap<String, Entry>> {
     let mut entries = BTreeMap::new();
-    for record in records(&bytes) {
+    for record in records(bytes) {
         let ([mode, object, stage], path) = record?;
         let merged = stage == "0";
         if merged {

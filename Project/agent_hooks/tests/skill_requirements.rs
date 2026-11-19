@@ -149,7 +149,7 @@ fn contradictory_route_order_is_rejected_until_repaired() {
     assert_eq!(decision, "deny");
     let conflict = ".agentrig/hooks.yaml: hooks.routes[0] and hooks.routes[7] order .agentrig/skills/edit-state/SKILL.md both before and after .agentrig/skills/refactor-large-directory/SKILL.md (hooks.routes[1])";
     assert!(message.contains(conflict), "{message}");
-    assert_eq!(edit(&root, ".agentrig/hooks.yaml"), Value::Null);
+    assert_eq!(edit(&root, ".agentrig/hooks.yaml"), denied);
     fs::write(&hooks, valid).unwrap();
     assert_eq!(edit(&root, "README.md"), Value::Null);
 }
@@ -220,4 +220,34 @@ fn vac_check_entry_reminds_state_once_per_context() {
         json!({"command": "just run write -- touch ok"}),
     );
     assert_eq!(write, Value::Null);
+}
+
+// DECISION: D213
+#[test]
+fn corrupt_or_unavailable_route_state_stops_like_an_unapplied_requirement() {
+    let (_temp, root) = project();
+    let source = "Project/agent_hooks/mod.rs";
+    let decision = |path: &str| answer(&edit(&root, path)).0.to_owned();
+    assert_eq!(decision(source), "deny");
+    assert_eq!(edit(&root, source), Value::Null);
+    let reminders = root.join(".cache/runtime/reminders");
+    for entry in fs::read_dir(&reminders).unwrap() {
+        let path = entry.unwrap().path();
+        let state = path
+            .extension()
+            .is_some_and(|extension| extension == "json");
+        if state {
+            fs::write(&path, "corrupt").unwrap();
+        }
+    }
+    assert_eq!(decision(source), "deny");
+    fs::rename(&reminders, root.join(".cache/moved")).unwrap();
+    fs::write(&reminders, "occupied").unwrap();
+    for _ in 0..2 {
+        let stopped = edit(&root, source);
+        let (decision, message) = answer(&stopped);
+        assert_eq!(decision, "deny", "{message}");
+        assert!(message.contains("state unavailable"), "{message}");
+    }
+    assert_eq!(decision("notes.txt"), "allow");
 }

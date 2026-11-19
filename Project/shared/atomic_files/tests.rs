@@ -49,6 +49,45 @@ fn json_serialization_failure_preserves_the_previous_artifact() {
 }
 
 #[test]
+fn json_loads_saved_values_and_tells_an_absent_file_from_an_invalid_one() {
+    let root = tempfile::tempdir().unwrap();
+    let path = root.path().join("result.json");
+    let absent: Option<Vec<u8>> = super::atomic_json::load(&path).unwrap();
+    assert_eq!(absent, None);
+    super::atomic_json::save(&path, &vec![1, 2]).unwrap();
+    let loaded: Option<Vec<u8>> = super::atomic_json::load(&path).unwrap();
+    assert_eq!(loaded, Some(vec![1, 2]));
+    fs::write(&path, b"{").unwrap();
+    let invalid = super::atomic_json::load::<Vec<u8>>(&path).unwrap_err();
+    assert!(invalid.to_string().contains("result.json"), "{invalid}");
+}
+
+#[test]
+fn an_overlay_restores_replaced_and_created_files_or_commits_by_removing_its_mirror() {
+    let temp = tempfile::tempdir().unwrap();
+    let (root, mirror) = (temp.path().join("root"), temp.path().join("mirror"));
+    fs::create_dir_all(mirror.join("new")).unwrap();
+    fs::create_dir_all(&root).unwrap();
+    fs::write(root.join("kept"), "before").unwrap();
+    fs::write(mirror.join("kept"), "after").unwrap();
+    fs::write(mirror.join("new/file"), "created").unwrap();
+    let overlay = super::overlay::Overlay {
+        mirror: &mirror,
+        root: &root,
+    };
+    overlay.apply().unwrap().restore().unwrap();
+    assert_eq!(fs::read_to_string(root.join("kept")).unwrap(), "before");
+    assert!(!root.join("new/file").exists());
+    overlay.apply().unwrap().commit().unwrap();
+    assert_eq!(fs::read_to_string(root.join("kept")).unwrap(), "after");
+    assert_eq!(
+        fs::read_to_string(root.join("new/file")).unwrap(),
+        "created"
+    );
+    assert!(!mirror.exists());
+}
+
+#[test]
 fn json_replacement_preserves_symlink_targets_and_reports_missing_parents() {
     let root = tempfile::tempdir().unwrap();
     let source = root.path().join("original.json");

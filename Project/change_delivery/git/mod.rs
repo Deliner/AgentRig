@@ -1,6 +1,7 @@
 // DECISION: D010
 // DECISION: D019
 // DECISION: D035
+pub mod approval;
 mod integration;
 mod push;
 mod state;
@@ -130,6 +131,12 @@ pub fn guard_commit(context: &Context) -> Result<i32> {
     let prefix = settings.prefix.as_str();
     let feature = branch.starts_with(prefix);
     if feature {
+        // DECISION: D213
+        let approved = approval::guard(context, &repository)?;
+        let refused = approved != 0;
+        if refused {
+            return Ok(approved);
+        }
         return state::State::of(context)?.guard(&repository);
     }
     let base_merge = branch == base && merge;

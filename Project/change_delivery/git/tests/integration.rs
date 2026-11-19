@@ -1,7 +1,7 @@
 // DECISION: D010
 // DECISION: D012
-use super::{STATE, commit, installed, merge, read, start};
-use crate::shared::testing::{configure, git, git_run, invoke, run, runtime};
+use super::{STATE, approve_commands, commit, installed, merge, read, start};
+use crate::shared::testing::{git, git_run, invoke, run, runtime};
 use std::{fs, path::Path};
 
 const MUTATING_COMMAND: &str = r#"probe:
@@ -126,7 +126,7 @@ fn gate_failure_and_dirty_workspace_preserve_branches() {
 fn integration_rejects_mutated_gate_inputs() {
     let (_temp, root) = installed();
     start(&root, "mutating-check");
-    configure(&root, "commands", MUTATING_COMMAND);
+    approve_commands(&root, MUTATING_COMMAND);
     commit(&root, "product.txt", "verified");
     let feature = git(&root, &["rev-parse", "HEAD"]);
     let base = git(&root, &["rev-parse", "trunk"]);

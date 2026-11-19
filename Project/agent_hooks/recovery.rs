@@ -16,11 +16,12 @@ pub(super) fn respond(
     error: &anyhow::Error,
 ) -> Option<Value> {
     let sources = project_config::sources(root);
+    let editable = editable(&sources);
     let skill = diagnostics::config_skill(root, Some(agent));
     let shown = skill
         .clone()
         .unwrap_or_else(|| diagnostics::UNNAMED_SKILL.to_owned());
-    let message = message(error, &sources, &shown);
+    let message = message(error, &editable, &shown);
     match (text(event, "hook_event_name"), tools::classify(event)) {
         ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
         ("PreToolUse", Tool::Shell) => {
@@ -37,7 +38,7 @@ pub(super) fn respond(
             (!check && !read).then(|| deny(&message))
         }
         ("PreToolUse", Tool::Edit) => {
-            let configuration = within(root, event, &paths(event), &sources);
+            let configuration = within(root, event, &paths(event), &editable);
             (!configuration).then(|| deny(&message))
         }
         ("PreToolUse", Tool::Refused) => Some(deny(&tools::refusal(event))),
@@ -52,13 +53,24 @@ fn within(root: &Path, event: &Value, files: &[String], allowed: &[PathBuf]) -> 
             .all(|file| target(root, event, file).is_some_and(|file| allowed.contains(&file)))
 }
 
-fn message(error: &anyhow::Error, sources: &[PathBuf], skill: &str) -> String {
-    let editable: Vec<_> = sources
+// DECISION: D213
+fn editable(sources: &[PathBuf]) -> Vec<PathBuf> {
+    let protected = project_config::protection::configuration();
+    sources
         .iter()
-        .map(|source| source.display().to_string())
+        .filter(|source| !protected.iter().any(|path| *source == Path::new(path)))
+        .cloned()
+        .collect()
+}
+
+fn message(error: &anyhow::Error, editable: &[PathBuf], skill: &str) -> String {
+    let editable: Vec<_> = editable
+        .iter()
+        .map(|path| path.display().to_string())
         .collect();
+    let protected = project_config::protection::configuration().join(", ");
     format!(
-        "AgentRig configuration error: {error:#}. Until `just config-check` passes, only edits of {}, `cat` of these files and {skill}, and `just config-check` are available. ACTION: Apply {skill}: correct the reported file directly, then run `just config-check`.",
-        editable.join(", ")
+        "AgentRig configuration error: {error:#}. Until `just config-check` passes, only edits of {editable}, `cat` of these files, {protected} and {skill}, and `just config-check` are available. ACTION: Apply {skill}: correct the reported file directly, then run `just config-check`. Agents do not change the protected {protected}; when the error lies there, ask the user to correct it.",
+        editable = editable.join(", ")
     )
 }

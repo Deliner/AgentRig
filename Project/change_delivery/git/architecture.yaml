@@ -5,5 +5,6 @@ files:
   integration.rs: Start feature branches and rebase and merge them onto the base after checks
   push.rs: Push the merged base and feature or a committed feature branch to the configured remote
   state.rs: Reject a feature commit with the empty State template, reset State after commits and commit it before merge
+  approval.rs: Apply a proposal of protected enforcement files at the user's approval, record the approved content, and refuse a feature commit of unapproved content or a backward pin
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios
