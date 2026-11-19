@@ -504,87 +504,56 @@ D135 supersedes D131's clause that the refusing condition names the parameter it
 
 D137 supersedes D132's count of 23 lints with 24; the rest of D132 remains.
 
-D138 supersedes D124's inspection of every inventory file with the runner's extension: only the files a check's
-include matches are inspected for that check; the rest of D124 remains.
+D138 supersedes D124's inspection of every inventory file with the runner's extension: only the files a check's include matches are inspected for that check; the rest of D124 remains.
 
-D139 supersedes D123's rule that `lint-baseline` never raises a count: a rerun may raise a count up to the one
-committed at `HEAD`; the rest of D123 remains.
+D139 supersedes D123's rule that `lint-baseline` never raises a count: a rerun may raise a count up to the one committed at `HEAD`; the rest of D123 remains.
 
-D140 supersedes D123's consequence that renaming a file with accepted errors needs a fresh baseline: a rename Git
-detects against `HEAD` carries the counts; the rest of D123 and D139 remains.
+D140 supersedes D123's consequence that renaming a file with accepted errors needs a fresh baseline: a rename Git detects against `HEAD` carries the counts; the rest of D123 and D139 remains.
 
-D141 supersedes D076's finding text and its report regardless of analysis completeness: the finding names the
-files the rule reads and waits for complete analysis; the rest of D076 remains.
+D141 supersedes D076's finding text and its report regardless of analysis completeness: the finding names the files the rule reads and waits for complete analysis; the rest of D076 remains.
 
-D142 supersedes D079's finding that names only the count and budget: the finding lists each dependent with an
-edge; the rest of D079 remains.
+D142 supersedes D079's finding that names only the count and budget: the finding lists each dependent with an edge; the rest of D079 remains.
 
-D144 supersedes D124's Rust module prefix below the nearest `lib.rs`, else `main.rs`: the prefix is the module path
-the declared tree gives the file, and a target may also begin with its trailing segments; the rest of D124 remains.
+D144 supersedes D124's Rust module prefix below the nearest `lib.rs`, else `main.rs`: the prefix is the module path the declared tree gives the file, and a target may also begin with its trailing segments; the rest of D124 remains.
 
-D146 supersedes D079 on which edges the dependents budget counts: test-only edges do not count; the rest of D079
-remains.
+D146 supersedes D079 on which edges the dependents budget counts: test-only edges do not count; the rest of D079 remains.
 
-D147 supersedes D082 on what justifies a panic: a referenced `#[allow]` or `#[expect]` of its Clippy lint on an
-enclosing item also does; the rest of D082 remains.
+D147 supersedes D082 on what justifies a panic: a referenced `#[allow]` or `#[expect]` of its Clippy lint on an enclosing item also does; the rest of D082 remains.
 
-D151 supersedes the rejection grounds of D127 that zero-hit lints have no target code, of D132 that `init` does not
-rewrite existing configurations and of D137 that `init` would own a project's `clippy.toml`; their chosen behavior
-remains until successors re-decide those alternatives.
+D151 supersedes the rejection grounds of D127 that zero-hit lints have no target code, of D132 that `init` does not rewrite existing configurations and of D137 that `init` would own a project's `clippy.toml`; their chosen behavior remains until successors re-decide those alternatives.
 
 D152 supersedes D137's count of 24 lints with 29; the rest of D137 remains.
 
-D153 supersedes D107's exclusion of `wildcard_enum_match_arm` and of numeric casts and the `#[allow]` form chosen by
-D107, D109, D127 and D129 with `#[expect]`; the rest of those decisions remains.
+D153 supersedes D107's exclusion of `wildcard_enum_match_arm` and of numeric casts and the `#[allow]` form chosen by D107, D109, D127 and D129 with `#[expect]`; the rest of those decisions remains.
 
-D154 supersedes D137's choice that `avoid-breaking-exported-api` keeps its default and re-decides the alternatives
-D151 reopened in D132, rewriting an existing configuration, for the Clippy file, and in D137, `init` writing a
-project's `clippy.toml`; the rest of D132 and D137 remains.
+D154 supersedes D137's choice that `avoid-breaking-exported-api` keeps its default and re-decides the alternatives D151 reopened in D132, rewriting an existing configuration, for the Clippy file, and in D137, `init` writing a project's `clippy.toml`; the rest of D132 and D137 remains.
 
-D158 supersedes D053's listing of `rust-test` among the worker-local checks: the rig's cargo test command is named
-`test` and carries the universal tests capability; the rest of D053 remains.
+D158 supersedes D053's listing of `rust-test` among the worker-local checks: the rig's cargo test command is named `test` and carries the universal tests capability; the rest of D053 remains.
 
-D161 supersedes D160's new random export directory for each staged run: the export moves onto a temporary path reused
-across runs, and recorded modification times apply only at the recorded path; the rest of D160 remains.
+D161 supersedes D160's new random export directory for each staged run: the export moves onto a temporary path reused across runs, and recorded modification times apply only at the recorded path; the rest of D160 remains.
 
-D162 supersedes D156's inclusion of `Option<Option<..>>` in `ambiguous-option`: the Clippy lint `option_option` is
-the only owner of the nested form; the rest of D156 remains.
+D162 supersedes D156's inclusion of `Option<Option<..>>` in `ambiguous-option`: the Clippy lint `option_option` is the only owner of the nested form; the rest of D156 remains.
 
-D163 supersedes D162's rejection of reporting `Option<Option<..>>` in `ambiguous-option` where Clippy is silent and its
-consequence that aliases and `let` annotations go unreported: each place has one owner, the rig rule or Clippy; the
-rest of D162 remains.
+D163 supersedes D162's rejection of reporting `Option<Option<..>>` in `ambiguous-option` where Clippy is silent and its consequence that aliases and `let` annotations go unreported: each place has one owner, the rig rule or Clippy; the rest of D162 remains.
 
-D164 supersedes D163's inclusion of the parameters, return type and `const` type of a trait impl member among the
-places `ambiguous-option` reports: the trait declaration or the impl header carries the finding; the rest of D163
-remains.
+D164 supersedes D163's inclusion of the parameters, return type and `const` type of a trait impl member among the places `ambiguous-option` reports: the trait declaration or the impl header carries the finding; the rest of D163 remains.
 
-D165 supersedes D097's restriction of `.filter_map(ok)` to chains rooted at `read_dir`: `.filter_map(ok)` and
-`.flat_map(ok)` count on any chain except the `.lines()` spellings Clippy reports; the rest of D097 remains. D165 also
-supersedes D155's dependents budget of 12 for the rules directory with 13; the rest of D155 remains.
+D165 supersedes D097's restriction of `.filter_map(ok)` to chains rooted at `read_dir`: `.filter_map(ok)` and `.flat_map(ok)` count on any chain except the `.lines()` spellings Clippy reports; the rest of D097 remains. D165 also supersedes D155's dependents budget of 12 for the rules directory with 13; the rest of D155 remains.
 
-D168 supersedes D089's restriction of `eager-fallback` to `.unwrap_or`, `.ok_or` and `.map_or` and to a propagating
-`?`: `.or` counts too, and so does a division by a divisor that is not a literal; the rest of D089 remains.
+D168 supersedes D089's restriction of `eager-fallback` to `.unwrap_or`, `.ok_or` and `.map_or` and to a propagating `?`: `.or` counts too, and so does a division by a divisor that is not a literal; the rest of D089 remains.
 
-D173 supersedes D042's removal of `Project/rust-toolchain.toml` and its `+1.98.1` pins: one root `rust-toolchain.toml`
-names the rig's Rust for every cargo call; the rest of D042 remains.
+D173 supersedes D042's removal of `Project/rust-toolchain.toml` and its `+1.98.1` pins: one root `rust-toolchain.toml` names the rig's Rust for every cargo call; the rest of D042 remains.
 
-D174 limits D132's free choice of the consumer toolchain: a Rust project's `rustc` must be at least the rig's version,
-checked by init and doctor; the project still chooses its toolchain, and the rest of D132 remains.
+D174 limits D132's free choice of the consumer toolchain: a Rust project's `rustc` must be at least the rig's version, checked by init and doctor; the project still chooses its toolchain, and the rest of D132 remains.
 
-D186 supersedes D047's rejection of blocking Ledger edits for decision records only: their first edit in each area of a
-context window stops until norm-or-choice is delivered; the rest of D047 remains.
+D186 supersedes D047's rejection of blocking Ledger edits for decision records only: their first edit in each area of a context window stops until norm-or-choice is delivered; the rest of D047 remains.
 
-D187 supersedes D040's configurable `--source` and `--memory`: init always uses `Project` and `Ledger`; D040's names
-and its other choices remain.
+D187 supersedes D040's configurable `--source` and `--memory`: init always uses `Project` and `Ledger`; D040's names and its other choices remain.
 
-D189 supersedes D179's consequence that init does not write `remote`: init writes `remote: origin` when the repository
-has that remote; the rest of D179 remains.
+D189 supersedes D179's consequence that init does not write `remote`: init writes `remote: origin` when the repository has that remote; the rest of D179 remains.
 
-D194 supersedes D190's consequence that the first change starts with `git switch -c`: it starts with `feature-start`,
-which keeps the uncommitted setup; the rest of D190 remains.
+D194 supersedes D190's consequence that the first change starts with `git switch -c`: it starts with `feature-start`, which keeps the uncommitted setup; the rest of D190 remains.
 
-D196 narrows D047's opaque shell write: a write through mkdir, cp, mv, rm, touch or chmod names only the shell routes
-its operands reach; Git, `just scratch` and other programs stay opaque, and the rest of D047 remains.
+D196 narrows D047's opaque shell write: a write through mkdir, cp, mv, rm, touch or chmod names only the shell routes its operands reach; Git, `just scratch` and other programs stay opaque, and the rest of D047 remains.
 
-D197 supersedes D051's pin written to stable.txt and bootstrapped in the same command: `just bootstrap HEAD` installs
-the revision and only then writes stable.txt; the rest of D051 remains.
+D197 supersedes D051's pin written to stable.txt and bootstrapped in the same command: `just bootstrap HEAD` installs the revision and only then writes stable.txt; the rest of D051 remains.
