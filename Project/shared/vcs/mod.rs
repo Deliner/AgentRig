@@ -29,6 +29,9 @@ pub struct Settings {
     // DECISION: D179
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub remote: Option<String>,
+    // DECISION: D213
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pin: Option<String>,
 }
 
 impl Default for Settings {
@@ -37,6 +40,7 @@ impl Default for Settings {
             base: "main".into(),
             prefix: "feature/".into(),
             remote: None,
+            pin: None,
         }
     }
 }

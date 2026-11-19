@@ -16,7 +16,8 @@ Capabilities run through the command catalog by name.
 3. Place a permanent tool under `tools.locations` in the directory that owns
    its responsibility. Register it as a catalog command with `purpose` and,
    where details exist, `doc`; list it in `tools.entries` only when Git, Just
-   or another tool starts it directly.
+   or another tool starts it directly. The catalog `.agentrig/commands.yaml` is
+   protected: change it through the propose-protected-change skill.
 4. Update the instructions, checks and documentation that name it.
 
 Do not add unrequested modes, generality or a duplicate that differs only in

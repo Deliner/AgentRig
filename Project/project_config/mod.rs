@@ -1,8 +1,10 @@
+pub mod protection;
 pub(crate) mod settings_schema;
 #[cfg(test)]
 mod tests;
 use crate::shared::calling_agent::{Agent, Caller};
 use anyhow::Result;
+pub use protection::Protection;
 pub use settings_schema::{
     Access, AffectedTests, Arguments, Capabilities, Check, CheckKind, Command, Config, FILE, Flag,
     Git, Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,
@@ -16,6 +18,7 @@ pub struct Context {
     pub runtime: PathBuf,
     pub cargo_target: Option<PathBuf>,
     pub caller: Caller,
+    pub protection: Protection,
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
@@ -23,6 +26,7 @@ impl Context {
         let config = read(&root)?;
         config.validate(&root)?;
         let runtime = relative(&root, &config.paths.runtime)?;
+        let protection = Protection::of(&root, &config)?;
         let caller = Caller {
             root: root.clone(),
             skills: config.paths.skills.clone().into(),
@@ -34,6 +38,7 @@ impl Context {
             runtime,
             cargo_target: None,
             caller,
+            protection,
         })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {

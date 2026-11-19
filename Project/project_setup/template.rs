@@ -136,6 +136,7 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Resul
             routes: routes(options),
             reminder: Some(format!("{discipline}/context-reminder.json")),
             discipline_skill: Some(format!("{discipline}/SKILL.md")),
+            protected: Vec::new(),
         },
         oracles: BTreeMap::new(),
         tools: tools(service),
@@ -157,6 +158,7 @@ fn git(options: &Options<'_>) -> Git {
         base: options["base"].clone(),
         prefix: options["prefix"].clone(),
         remote: None,
+        pin: None,
     }
 }
 

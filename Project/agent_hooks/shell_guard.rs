@@ -3,7 +3,7 @@ use crate::change_delivery::gate;
 use crate::command_runner;
 use crate::project_config::Context;
 use crate::project_setup;
-use crate::shared::paths::resolve;
+use crate::shared::paths::{glob_patterns::literal, resolve};
 use crate::shared::shared_options::forwarded;
 use anyhow::{Result, bail, ensure};
 use serde_json::Value;
@@ -11,6 +11,8 @@ use std::path::{Path, PathBuf};
 
 // DECISION: D196
 const PATH_PROGRAMS: [&str; 6] = ["mkdir", "cp", "mv", "rm", "touch", "chmod"];
+// DECISION: D213
+const GIT_TREE: [&str; 4] = ["rm", "mv", "restore", "checkout"];
 // DECISION: D201
 const QUOTED_SUBSTITUTIONS: [&[char]; 3] = [&['\u{60}'], &['$', '('], &['$', '{', '(']];
 const LISTING: project_setup::Recipe = project_setup::Recipe {
@@ -123,6 +125,7 @@ pub struct Inspection {
     pub catalog: Option<String>,
     pub check: bool,
     pub written: Option<Vec<PathBuf>>,
+    pub named: Vec<PathBuf>,
 }
 enum Call<'a> {
     Catalog {
@@ -147,11 +150,50 @@ pub fn inspect(context: &Context, argv: &[String]) -> Result<Inspection> {
     let written = catalog
         .as_ref()
         .and_then(|(_, command)| written(&context.root, command));
+    let named = catalog
+        .as_ref()
+        .filter(|(name, _)| {
+            let spec = context.config.commands.get(*name);
+            spec.is_some_and(|spec| spec.access.project())
+        })
+        .map(|(_, command)| named(&context.root, command))
+        .transpose()?
+        .unwrap_or_default();
     Ok(Inspection {
         catalog: catalog.map(|(name, _)| name.to_owned()),
         check: enters_check(argv)?,
         written,
+        named,
     })
+}
+// DECISION: D213
+fn named(root: &Path, command: &[String]) -> Result<Vec<PathBuf>> {
+    let Some((program, words)) = command.split_first() else {
+        return Ok(Vec::new());
+    };
+    let git = Path::new(program)
+        .file_name()
+        .is_some_and(|name| name == "git");
+    let operands: &[String] = if git {
+        match words.split_first() {
+            Some((subcommand, rest)) if GIT_TREE.contains(&subcommand.as_str()) => rest,
+            _ => &[],
+        }
+    } else {
+        words
+    };
+    let words = operands.iter().flat_map(|word| {
+        let value = word.split_once('=').map(|(_, value)| value);
+        std::iter::once(word.as_str()).chain(value)
+    });
+    let mut named = Vec::new();
+    for word in words {
+        let path = resolve(&root.join(literal(word))).map_err(|error| {
+            anyhow::anyhow!("AgentRig refused this call: `{word}` cannot be checked against the protected enforcement files: {error:#}")
+        })?;
+        named.extend(path.strip_prefix(root).ok().map(Path::to_owned));
+    }
+    Ok(named)
 }
 // DECISION: D197
 fn call(argv: &[String]) -> Result<Call<'_>> {

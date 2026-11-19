@@ -2,6 +2,7 @@ purpose: Define, load and validate the project configuration that workflow featu
 dependents: 12
 files:
   mod.rs: Canonical project root, validated configuration loading and configuration exports
+  protection.rs: Enforcement files that an agent changes only through the user's approval
 directories:
   tests: Verify invalid runtime and execution settings are rejected before project operations
   settings_schema: Decode and validate the project configuration schema

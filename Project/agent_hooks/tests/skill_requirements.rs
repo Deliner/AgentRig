@@ -149,7 +149,7 @@ fn contradictory_route_order_is_rejected_until_repaired() {
     assert_eq!(decision, "deny");
     let conflict = ".agentrig/hooks.yaml: hooks.routes[0] and hooks.routes[7] order .agentrig/skills/edit-state/SKILL.md both before and after .agentrig/skills/refactor-large-directory/SKILL.md (hooks.routes[1])";
     assert!(message.contains(conflict), "{message}");
-    assert_eq!(edit(&root, ".agentrig/hooks.yaml"), Value::Null);
+    assert_eq!(edit(&root, ".agentrig/hooks.yaml"), denied);
     fs::write(&hooks, valid).unwrap();
     assert_eq!(edit(&root, "README.md"), Value::Null);
 }
