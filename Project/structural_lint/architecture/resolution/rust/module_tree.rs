@@ -18,12 +18,15 @@ impl<'a> Rust<'a> {
         let mut pending: Vec<_> = planted.then(|| Pending::root(root)).into_iter().collect();
         while let Some(next) = pending.pop() {
             for reference in &sources[&next.file].items {
-                pending.extend(tree.declare(&next.base, reference).ok().flatten());
-                pending.extend(
-                    tree.include(&next.file, &next.base, reference)
-                        .ok()
-                        .flatten(),
-                );
+                // DECISION: D144
+                let declared = tree.declare(&next.base, reference).ok().flatten();
+                // DECISION: D144
+                let included = tree
+                    .include(&next.file, &next.base, reference)
+                    .ok()
+                    .flatten();
+                pending.extend(declared);
+                pending.extend(included);
             }
         }
         let files = tree.files.keys().chain(tree.included.keys());

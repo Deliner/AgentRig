@@ -12,7 +12,11 @@ went wrong. A Rust `read_dir` chain collapsed by `.flatten()`,
 drops every entry that failed to read, so an unreadable directory silently
 reads as empty. Any `.filter_map` or `.flat_map` that keeps only the `Ok`
 values, such as `.filter_map(|text| text.parse().ok())`, drops every failed
-item the same way: the result is just shorter. A Rust `Err(_)` arm that answers `Ok(false)` or `Ok(true)` in a
+item the same way: the result is just shorter. A `.ok().flatten()` turns a
+`Result<Option<T>, E>` into `Option<T>`, so a failed parse reads as an absent
+value. A thread's `.join()` followed by `.unwrap_or_default()`, `.unwrap_or(..)`,
+`.unwrap_or_else(..)` or `.ok()` turns the thread's panic into a fallback value,
+such as an empty part of the result. A Rust `Err(_)` arm that answers `Ok(false)` or `Ok(true)` in a
 function returning `Result<bool, …>` turns a failed check into a verdict. A
 returned `Ok(status.success())` in such a function, with the status from
 `.status()?` or `.output()?.status` and no `.code()` read, turns a failed
@@ -32,6 +36,10 @@ Decide what the handler owes its caller instead of discarding the error.
    the traversal, write it as a `for` loop with a `match` whose `Err(error)`
    arm states why skipping is safe, and propagate the error from a check with
    `?` or `Err(error) => Err(error.into())` instead of answering a verdict.
+   Propagate the error of a `Result<Option<T>, E>` with `?` before taking the
+   option. Let a joined thread's panic continue with
+   `match handle.join() { Ok(value) => value, Err(panic) => resume_unwind(panic) }`
+   or turn it into an error with `.map_err(..)?`.
    For a command whose exit code is the answer, compare `status.code()` with
    the codes the command documents as answers, such as `Some(0 | 1)`, refuse
    every other code with an error, then answer; or call an owner that already
@@ -55,7 +63,9 @@ every Rust `read_dir` call chain collapsed by `.flatten()` or
 `.map_while(ok)`, every Rust `.filter_map(ok)` or `.flat_map(ok)` on any chain,
 where `ok` is `Result::ok` or a one-parameter closure whose body is only a
 `.ok()` call, except `Result::ok` and `|x| x.ok()` on a `.lines()` call, which
-Clippy's default `lines_filter_map_ok` reports, every Rust `match`/`if let` arm `Err(_)`/`Err(..)` whose body is `Ok(true)`,
+Clippy's default `lines_filter_map_ok` reports, every Rust `.ok().flatten()`,
+every Rust `.join()` without arguments directly followed by `.ok()`,
+`.unwrap_or_default()`, `.unwrap_or(..)` or `.unwrap_or_else(..)`, every Rust `match`/`if let` arm `Err(_)`/`Err(..)` whose body is `Ok(true)`,
 `Ok(false)` or a `return` of one inside a function declared to return
 `Result<bool, …>`, and every `Ok(<status>.success())` such a function returns
 as its tail or with `return` when the status comes from `.status()?`,

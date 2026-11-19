@@ -143,6 +143,61 @@ mod tests {
     assert!(silent_findings("source.rs", source).is_empty());
 }
 
+// DECISION: D207
+#[test]
+fn rust_flags_ok_flatten_and_join_fallbacks_that_erase_the_error() {
+    let source =
+        "fn load(saved: &Value, handles: Vec<Handle>, workers: Vec<Handle>) -> Result<Seed> {
+    let seed = saved::seed(integer(&field(saved, \"seed\")).ok().flatten())?;
+    let duplicate = request.error().ok().flatten().is_some_and(|error| error.duplicate());
+    let chunks: Vec<_> = handles.into_iter().flat_map(|h| h.join().unwrap_or_default()).collect();
+    let sum = workers.into_iter().fold(0, |sum, w| sum + w.join().unwrap_or_default());
+    let first = simulation.join().unwrap_or_default();
+    let kept = worker.join().ok();
+    let fallback = worker.join().unwrap_or(Vec::new());
+    let computed = worker.join().unwrap_or_else(|_| Vec::new());
+    Ok(seed)
+}
+";
+    assert_eq!(
+        silent_findings("source.rs", source),
+        [
+            "2:flatten",
+            "3:flatten",
+            "4:unwrap_or_default",
+            "5:unwrap_or_default",
+            "6:unwrap_or_default",
+            "7:ok",
+            "8:unwrap_or",
+            "9:unwrap_or_else"
+        ]
+    );
+}
+
+// DECISION: D207
+#[test]
+fn rust_keeps_raised_argued_plain_justified_and_test_join_and_ok_chains() {
+    let source = "fn keep(worker: Handle, cache: Cache, value: Option<Option<u32>>) -> Result<()> {
+    let joined = worker.join().unwrap();
+    let expected = worker.join().expect(\"the worker finishes\");
+    let mapped = worker.join().map_err(|_| anyhow!(\"the worker panicked\"))?;
+    let keyed = cache.join(key).unwrap_or_default();
+    let nested = value.flatten();
+    let parsed = text.parse::<u32>().ok().map(double);
+    // DECISION: D001
+    let justified = integer(&field).ok().flatten();
+    Ok(())
+}
+#[cfg(test)]
+mod tests {
+    fn probe(worker: Handle) -> u32 {
+        worker.join().unwrap_or_default()
+    }
+}
+";
+    assert!(silent_findings("source.rs", source).is_empty());
+}
+
 #[test]
 fn rust_flags_error_arms_that_answer_a_verdict_in_a_bool_result_function() {
     let source = "fn merged(root: &Path) -> Result<bool> {
