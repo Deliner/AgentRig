@@ -2,28 +2,23 @@
 
 ## Focus
 
-P166 (B173), VAC 3: the rig adopts D218. The approved settings set `git.install: bootstrap`, add the `propose-pin`
-catalog command and recipe, make bootstrap.sh install without pinning and extend the rig difference list.
+P166 (B173), final VAC: archive the completed P166 and B173, then move the runtime pin through the user's approval.
 
 ## Workspace
 
 Branch: feature/pin-approval
-Revision: 3637c88e801304146cb1e3bfa1f2557a3043d857
+Revision: 8389ae8dbb658955f74efd006a61e03929d5abab
 
 ## Progress
 
-- The user ran `just bootstrap HEAD`, which installed and pinned 3637c88, then `just approve`, which applied the
-  proposals for git.yaml, commands.yaml, development.just, bootstrap.sh and the rig difference list and approved them
-  with the pin.
-- launchers.rs bootstrap test installs without pinning; AGENTS.md, CLAUDE.md and the distribution guide tell agents to
-  run `just propose-pin HEAD` and ask for approval; D218 links the rig owners and D213 drops its bootstrap links.
+- VAC 3 committed at 8389ae8; its push failed on a network error and the next commit retries it.
+- Archive/Plan/166.md records the delivery and AC1–AC4 evidence; B173 moved to Archive/Backlog; the live rows are
+  gone; D218 links the archived card and delivery.
 
 ## Verification
 
-- `just config-check` passes; `just candidate check --only memory` passes.
-- `just run test -- project_setup::initialization::tests::rig bootstrap_installs shell::`: 12 passed.
-- Live: the hook refuses `just bootstrap HEAD` and names propose-protected-change.
-- The first commit gate failed only `named_commands`: the guide named `just approve`; reworded, 2 passed.
+- `just candidate check --only memory` passes after the rotation.
+- AC4: no text outside Ledger tells an agent to run `bootstrap HEAD`.
 
 ## Blockers
 
@@ -31,4 +26,5 @@ None.
 
 ## Next action
 
-Commit VAC 3, archive P166 and B173, then run `just propose-pin HEAD` and ask the user for `! just approve`.
+Commit the archive, run `just propose-pin HEAD`, ask the user for `! just approve`, commit the pin, then
+`just feature-merge` and start P167 on a new branch.
