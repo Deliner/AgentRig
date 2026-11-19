@@ -1,8 +1,8 @@
 use super::rust::cargo::{self, Layout};
 use super::rust::{clippy, flags, toolchain::Requirement};
 use crate::project_config::{
-    self, Access, Check, CheckKind, Command, Config, Git, Hooks, Paths, Program, Route, RouteEvent,
-    Rust, Tools, View, Views,
+    self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
+    Route, RouteEvent, Rust, Tools, View, Views,
 };
 use crate::shared::calling_agent::Agent;
 use anyhow::{Result, bail, ensure};
@@ -94,7 +94,7 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
         let clippy = clippy::settings(root, &rust)?;
         (rust, Some(clippy), flags::build_rustflags(root)?)
     };
-    let mut config = config(options, &rust, rustflags);
+    let mut config = config(options, &rust, rustflags)?;
     config.git.remote = remote(root)?;
     Ok(Scaffold {
         config,
@@ -111,12 +111,12 @@ fn remote(root: &Path) -> Result<Option<String>> {
     let origin = remotes.lines().any(|name| name == ORIGIN);
     Ok(origin.then(|| ORIGIN.to_owned()))
 }
-fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Config {
+fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Result<Config> {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     let discipline = format!("{skill_root}/complexity-discipline");
-    Config {
+    Ok(Config {
         version: 1,
         capabilities: project_config::Capabilities::default(),
         runtime: project_config::VERSION.into(),
@@ -130,7 +130,7 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Confi
             runtime: format!("{CACHE}/runtime"),
         },
         git: git(options),
-        commands: commands(options, rust),
+        commands: commands(options, rust)?,
         checks: checks(options, skill_root),
         hooks: Hooks {
             routes: routes(options),
@@ -140,7 +140,7 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Confi
         oracles: BTreeMap::new(),
         tools: tools(service),
         rust: Rust { rustflags },
-    }
+    })
 }
 // DECISION: D150
 fn tools(service: &str) -> Tools {
@@ -191,7 +191,8 @@ const READ: Programs = &[
     ("tail", &[], &[]),
     ("wc", &[], &[]),
     ("grep", &[], &[]),
-    ("rg", &[], &["--pre"]),
+    // DECISION: D202
+    ("rg", &[], &["--pre", "--hostname-bin"]),
     ("sed", &[], &[]),
     ("diff", &[], &[]),
     ("stat", &[], &[]),
@@ -224,50 +225,51 @@ const WRITE: Programs = &[
     // DECISION: D198
     ("ln", &[], &[]),
 ];
-fn programs(table: Programs) -> BTreeMap<String, Program> {
+fn programs(table: Programs) -> Result<BTreeMap<String, Program>> {
     let strings = |items: &[&str]| items.iter().map(|item| (*item).into()).collect();
     table
         .iter()
         .map(|(name, subcommands, deny)| {
+            let deny = deny
+                .iter()
+                .map(|flag| Flag::try_from(String::from(*flag)))
+                .collect::<Result<_>>()?;
             let program = Program {
                 subcommands: strings(subcommands),
-                deny: strings(deny),
+                deny,
             };
-            ((*name).into(), program)
+            Ok(((*name).into(), program))
         })
         .collect()
 }
-fn commands(options: &Options<'_>, rust: &Layout) -> BTreeMap<String, Command> {
-    let base = |purpose, access, table| Command {
-        programs: programs(table),
-        ..command(purpose, Vec::new(), access)
+fn commands(options: &Options<'_>, rust: &Layout) -> Result<BTreeMap<String, Command>> {
+    let base = |purpose, access, table| -> Result<Command> {
+        Ok(Command {
+            programs: programs(table)?,
+            ..command(purpose, Vec::new(), access)
+        })
     };
-    [
-        (
-            "read",
-            base(
-                "Inspect files and Git history with configured programs",
-                Access::ReadOnly,
-                READ,
-            ),
-        ),
-        (
-            "write",
-            base(
-                "Change files and Git state with configured programs",
-                Access::Writable,
-                WRITE,
-            ),
-        ),
-    ]
-    .into_iter()
-    .chain(language_commands(options, rust))
-    .map(|(id, command)| (id.into(), command))
-    .collect()
+    let read = base(
+        "Inspect files and Git history with configured programs",
+        Access::ReadOnly,
+        READ,
+    )?;
+    let write = base(
+        "Change files and Git state with configured programs",
+        Access::Writable,
+        WRITE,
+    )?;
+    Ok([("read", read), ("write", write)]
+        .into_iter()
+        .chain(language_commands(options, rust))
+        .map(|(id, command)| (id.into(), command))
+        .collect())
 }
 // DECISION: D132
 fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str, Command)> {
+    // DECISION: D202
     let test = Command {
+        accepts_args: Arguments::Operands,
         output: Some(test_views(options)),
         ..command(
             "Run the project tests, optionally filtered by test path",
@@ -279,7 +281,7 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
     let rust_project = options["language"] == "rust";
     if rust_project {
         let check = |purpose, argv| Command {
-            accepts_args: false,
+            accepts_args: Arguments::None,
             ..command(purpose, argv, Access::Writable)
         };
         // DECISION: D189
@@ -305,7 +307,7 @@ fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
         lifetime: project_config::Lifetime::Task,
         argv,
         cwd: ".".into(),
-        accepts_args: true,
+        accepts_args: Arguments::Any,
         access,
         programs: BTreeMap::new(),
         output: None,

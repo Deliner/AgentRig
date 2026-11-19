@@ -53,6 +53,25 @@ const UNRESOLVED_RECIPES: [&str; 6] = [
     "just --list bootstrap",
 ];
 
+// DECISION: D202
+const DENIED_SPELLINGS: [&str; 9] = [
+    "just write -- git rebase --exe=id main",
+    "just write -- git rebase --exec id main",
+    "just write -- git rebase -qxid main",
+    "just read -- git grep --open-files-in-pa=cat x",
+    "just read -- git grep -iOcat x",
+    "just read -- rg --pr cat x",
+    "just read -- rg --pre=cat x",
+    "just read -- rg --hostname-bin=sh x",
+    "just read -- find . -okdir id +",
+];
+const NEIGHBOR_FLAGS: [&str; 4] = [
+    "just write -- git rebase --empty=drop main",
+    "just read -- git grep --or x",
+    "just read -- rg --pretty --pre-glob '*.gz' x",
+    "just read -- find . -name x",
+];
+
 fn denied(root: &Path, command: &str) -> Value {
     let output = hook(root, "Bash", json!({"command": command}));
     let decision = &output["hookSpecificOutput"]["permissionDecision"];
@@ -145,6 +164,21 @@ fn shell_guard_refuses_a_recipe_just_would_not_run_as_written() {
     let second_recipe = denied(&root, "just jobs bootstrap");
     let named = reason(&second_recipe).contains("takes no arguments");
     assert!(named, "{second_recipe}");
+}
+
+// DECISION: D202
+#[test]
+fn denied_flags_are_refused_in_every_spelling_their_program_reads() {
+    let (_temp, root) = project();
+    for command in DENIED_SPELLINGS {
+        let output = denied(&root, command);
+        let named = reason(&output).contains(" does not run ");
+        assert!(named, "{command}: {output}");
+    }
+    for command in NEIGHBOR_FLAGS {
+        let output = hook(&root, "Bash", json!({"command": command}));
+        assert!(!output.to_string().contains("deny"), "{command}: {output}");
+    }
 }
 
 #[test]

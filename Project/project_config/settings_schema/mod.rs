@@ -1,8 +1,12 @@
 pub mod access;
+pub mod arguments;
 mod capabilities;
+mod flag;
 mod validation;
 pub use access::Access;
+pub use arguments::Arguments;
 pub use capabilities::Capabilities;
+pub use flag::Flag;
 // DECISION: D005
 pub use crate::shared::vcs::Settings as Git;
 use anyhow::{Result, ensure};
@@ -98,8 +102,12 @@ pub struct Command {
     pub argv: Vec<String>,
     #[serde(default = "dot")]
     pub cwd: String,
-    #[serde(default)]
-    pub accepts_args: bool,
+    #[serde(
+        default,
+        deserialize_with = "arguments::deserialize",
+        serialize_with = "arguments::serialize"
+    )]
+    pub accepts_args: Arguments,
     #[serde(
         default,
         rename = "read_only",
@@ -136,7 +144,7 @@ pub struct Program {
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub subcommands: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub deny: Vec<String>,
+    pub deny: Vec<Flag>,
 }
 #[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

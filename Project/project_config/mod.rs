@@ -4,9 +4,9 @@ mod tests;
 use crate::shared::calling_agent::{Agent, Caller};
 use anyhow::Result;
 pub use settings_schema::{
-    Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Git, Hooks,
-    Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools, VERSION,
-    View, Views, access, files, module, read, relative, sources,
+    Access, AffectedTests, Arguments, Capabilities, Check, CheckKind, Command, Config, FILE, Flag,
+    Git, Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,
+    VERSION, View, Views, access, files, module, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 

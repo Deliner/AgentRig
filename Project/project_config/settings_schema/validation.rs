@@ -65,7 +65,7 @@ impl Config {
         for (id, command) in &self.commands {
             ensure!(name(id), "commands.{id}: invalid command name");
             ensure!(
-                !command.argv.is_empty() || command.accepts_args,
+                !command.argv.is_empty() || command.accepts_args.accepted(),
                 "commands.{id}: empty argv requires accepts_args"
             );
             ensure!(
@@ -129,7 +129,7 @@ impl Check {
                 .as_ref()
                 .context("affected requires a command check")?;
             ensure!(
-                commands[command].accepts_args,
+                commands[command].accepts_args.accepted(),
                 "affected command must accept test targets"
             );
         }

@@ -13,7 +13,8 @@ read:
     tail: {}
     wc: {}
     grep: {}
-    rg: {deny: [--pre]}
+    # DECISION: D202
+    rg: {deny: [--pre, --hostname-bin]}
     sed: {}
     diff: {}
     stat: {}
