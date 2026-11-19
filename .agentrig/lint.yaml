@@ -899,6 +899,17 @@ rules:
   level: error
   warning_skill: .agentrig/skills/drop-the-dot/SKILL.md
   error_skill: .agentrig/skills/drop-the-dot/SKILL.md
+# DECISION: D205
+- id: indexed-array-literal
+  kind: indexed-array-literal
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/branch-on-the-index/SKILL.md
+  error_skill: .agentrig/skills/branch-on-the-index/SKILL.md
 # DECISION: D181
 - id: fixed-test-port
   kind: fixed-test-port

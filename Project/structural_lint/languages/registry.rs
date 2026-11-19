@@ -86,6 +86,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Signature(Signature::TraitPathCall),
             Kind::ControlFlow(ControlFlow::VariantList),
             Kind::Reference(Reference::DottedExtension),
+            Kind::Reference(Reference::IndexedArrayLiteral),
             Kind::Reference(Reference::FixedTestPort),
             Kind::ControlFlow(ControlFlow::BooleanExpression),
             Kind::Structure(Structure::EmbeddedText),

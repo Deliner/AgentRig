@@ -2,25 +2,25 @@
 
 ## Focus
 
-P159 (B161), VAC 1: the inert `indexed-array-literal` kind with its detector, tests and D205, before the mid-branch
-pin.
+P159 (B161), VAC 2: enable `indexed-array-literal` with its skill branch-on-the-index, with the mid-branch pin.
 
 ## Workspace
 
 - Branch: feature/array-index-literal
-- Revision: 6c1af207c60685185f6a01c321fcfeab9d71c187
+- Revision: 6badc8e376d2e93f84e4a13c2fe183bc7da951cf
 
 ## Progress
 
-- Detector `std_forms/indexed_array.rs` reports an array literal listing elements with a call, indexed by a value
-  other than an integer literal or `..`, test code included; a reference above lifts it.
-- Descriptor `INDEXEDARRAYLITERAL` with skill name `branch-on-the-index`; D205 records the predicate.
-- The kind stays out of the handler registry, the catalog, init and lint.yaml until the pin.
+- VAC 1 `6badc8e` added the inert kind, detector, tests and D205; its gate passed with 490 tests.
+- `just bootstrap HEAD` installed `6badc8e` and wrote it to stable.txt.
+- This VAC adds the kind to the Rust handler and the catalog, which init ships, the skill with its link and init
+  registry entry, and the rig's lint.yaml rule.
 
 ## Verification
 
-- `just run test -- std_forms::indexed_array`: 2 passed, the review's example among the findings.
-- `just lint`, `just run rustfmt` and `just run clippy` pass.
+- `just lint` passes with the rule enabled, so the rig has no finding.
+- `just lint-config-check` on the installed runtime accepts the rule.
+- `just run test -- project_setup::`: 57 passed; `just run test -- structural_lint::`: 314 passed.
 
 ## Blockers
 
@@ -28,5 +28,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then enable the kind in the registry, the catalog, init and lint.yaml
-with the skill branch-on-the-index and commit it with the pin.
+Commit this VAC, run `just bootstrap HEAD`, archive P159 and B161 with the pin, and run `just feature-merge`.
