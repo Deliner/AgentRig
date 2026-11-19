@@ -1,4 +1,6 @@
 // DECISION: D010
+use super::state::State;
+use crate::project_config::Context as ProjectContext;
 use crate::shared::vcs::{Repository, Revisions, Settings};
 use anyhow::{Context, Result, ensure};
 
@@ -27,39 +29,58 @@ pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) ->
     Ok(branch)
 }
 
+// DECISION: D191
 pub(super) fn integrate(
     repository: &Repository,
-    settings: &Settings,
+    context: &ProjectContext,
     mut check: impl FnMut() -> Result<i32>,
     mut run: impl FnMut(&[&str]) -> Result<i32>,
 ) -> Result<(String, i32)> {
+    let settings = &context.config.git;
     let feature = repository.observe()?.branch;
     ensure!(
         feature.starts_with(&settings.prefix),
         "integration requires a {} branch",
         settings.prefix
     );
-    clean(repository)?;
-    let divergent = !repository.ancestor(Revisions {
+    let state = State::of(context)?;
+    clean(repository, &[".", &state.excluded()])?;
+    let code = state.commit_reset(repository, &mut run)?;
+    let failed = code != 0;
+    if failed {
+        return Ok((feature, code));
+    }
+    let revisions = Revisions {
         from: &settings.base,
         to: &feature,
-    })?;
-    if divergent {
-        let code = run(&["rebase", "--rebase-merges", &settings.base])?;
-        let failed = code != 0;
-        if failed {
-            return Ok((feature, code));
-        }
+    };
+    let code = rebase_divergent(repository, revisions, &mut run)?;
+    let failed = code != 0;
+    if failed {
+        return Ok((feature, code));
     }
     let code = check()?;
     let failed = code != 0;
     if failed {
         return Ok((feature, code));
     }
-    clean(repository)?;
+    clean(repository, &[])?;
     select_base(repository, settings, &feature)?;
     let code = run(&["merge", "--no-ff", "--no-edit", &feature])?;
     Ok((feature, code))
+}
+
+fn rebase_divergent(
+    repository: &Repository,
+    revisions: Revisions,
+    run: &mut impl FnMut(&[&str]) -> Result<i32>,
+) -> Result<i32> {
+    let base = revisions.from;
+    let divergent = !repository.ancestor(revisions)?;
+    if divergent {
+        return run(&["rebase", "--rebase-merges", base]);
+    }
+    Ok(0)
 }
 
 fn select_base(repository: &Repository, settings: &Settings, feature: &str) -> Result<()> {
@@ -88,9 +109,10 @@ fn switch_or_restore_head(repository: &Repository, target: &str) -> Result<()> {
     Err(refused)
 }
 
-fn clean(repository: &Repository) -> Result<()> {
+fn clean(repository: &Repository, pathspecs: &[&str]) -> Result<()> {
+    let status = [&["status", "--porcelain", "--"][..], pathspecs].concat();
     ensure!(
-        repository.run(&["status", "--porcelain"])?.is_empty(),
+        repository.run(&status)?.is_empty(),
         "working tree must be clean; preserve or commit pending changes before switching branches"
     );
     Ok(())

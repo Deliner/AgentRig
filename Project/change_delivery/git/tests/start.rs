@@ -1,5 +1,5 @@
-use super::{installed, read};
-use crate::shared::testing::{commit, git, invoke};
+use super::{commit, installed, read};
+use crate::shared::testing::{git, invoke};
 use std::fs;
 
 #[test]

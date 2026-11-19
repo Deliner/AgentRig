@@ -3,6 +3,7 @@
 // DECISION: D035
 mod integration;
 mod push;
+mod state;
 #[cfg(test)]
 mod tests;
 use super::gate;
@@ -30,7 +31,7 @@ pub fn merge(context: &Context) -> Result<i32> {
         .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
     let (feature, code) = integration::integrate(
         &repository,
-        settings,
+        context,
         || checked(context),
         |args| execute_vcs(&repository, args),
     )?;
@@ -41,6 +42,18 @@ pub fn merge(context: &Context) -> Result<i32> {
         return Ok(cleanup_merged(context, &feature)?.max(pushed));
     }
     Ok(code)
+}
+
+// DECISION: D191
+pub fn reset_state(context: &Context) -> Result<i32> {
+    let repository = crate::shared::vcs::Repository::discover(&context.root)?
+        .ok_or_else(|| anyhow::anyhow!("state-reset requires a VCS repository"))?;
+    let (branch, _) = repository.commit_context()?;
+    let feature = branch.starts_with(&context.config.git.prefix);
+    if feature {
+        state::State::of(context)?.reset(&repository)?;
+    }
+    Ok(0)
 }
 
 pub fn push(context: &Context) -> Result<i32> {
@@ -112,16 +125,20 @@ fn cleanup_jobs(context: &Context, feature: &str) -> Result<i32> {
 }
 
 // DECISION: D015
-pub fn guard_commit(root: &Path, settings: &crate::shared::vcs::Settings) -> Result<i32> {
-    let repository = crate::shared::vcs::Repository::discover(root)?
+// DECISION: D191
+pub fn guard_commit(context: &Context) -> Result<i32> {
+    let settings = &context.config.git;
+    let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
     let (branch, merge) = repository.commit_context()?;
     let base = settings.base.as_str();
     let prefix = settings.prefix.as_str();
     let feature = branch.starts_with(prefix);
+    if feature {
+        return state::State::of(context)?.guard(&repository);
+    }
     let base_merge = branch == base && merge;
-    let permitted = feature || base_merge;
-    if permitted {
+    if base_merge {
         return Ok(0);
     }
     console::stderr(format!(

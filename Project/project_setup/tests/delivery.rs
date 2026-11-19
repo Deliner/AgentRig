@@ -1,6 +1,7 @@
 use super::installed_runtime;
 use crate::shared::testing::{
-    Run, configure, git, git_run, hermetic, invoke, launch, python_path, repository, run, worker,
+    Run, configure, describe_state, git, git_run, hermetic, invoke, launch, python_path,
+    repository, run, worker,
 };
 use serde_json::{Value, json};
 use std::{
@@ -227,9 +228,17 @@ fn hooks(root: &Path) {
     assert!(!edit("second").contains("deny"));
 }
 
+// DECISION: D191
 fn integrate(root: &Path, layout: &Layout) {
     git(root, &["add", "."]);
     just(root, &["check", "--staged"]);
+    let empty = consumer("git", root, &["commit", "-qm", "attach scaffold"]);
+    assert_eq!(empty.code, Some(1), "{}", empty.output());
+    let skill = root.join(layout.skills).join("edit-state/SKILL.md");
+    let named = empty.stderr.contains(skill.to_str().unwrap());
+    assert!(named, "{}", empty.stderr);
+    describe_state(root, "Attach the scaffold.");
+    git(root, &["add", "."]);
     let committed = consumer("git", root, &["commit", "-qm", "attach scaffold"]);
     assert_eq!(committed.code, Some(0), "{}", committed.output());
     just(root, &["feature-merge"]);

@@ -56,9 +56,9 @@ Use edit-backlog to draft new ideas and requirement changes in chat; save the sh
 agreement. New product outcomes pass through Backlog, which has no priority, to Plan, which holds only selected work.
 A selected set runs autonomously without repeated questions between cards; completed work rotates into Archive/.
 
-State is a factual recovery snapshot. Refresh it at meaningful task/VAC boundaries, blockers and handoffs, with actual
-verification and a concrete next action; include it in the relevant VAC. Plan owns current selection and delivery,
-referencing the agreed Backlog outcome and acceptance. Archive retains completed outcome cards; Git owns VAC history.
+State describes only the current VAC, with its verification and next action, and each feature commit carries it; the
+commit guard refuses the empty template that post-commit restores, and feature-merge commits it. Plan owns selection
+and delivery, referencing the agreed Backlog outcome and acceptance; Archive keeps completed cards; Git owns history.
 
 D020 governs consolidation: committed decision IDs, statements and detail contents are immutable; application links
 identify current owners and may migrate with refactoring. Each linked Rust/Python/shell owner needs a real DECISION:

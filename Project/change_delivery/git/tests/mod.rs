@@ -3,10 +3,13 @@ mod guards;
 mod integration;
 mod push;
 mod start;
+mod state;
 
-use crate::shared::testing::{configure, git, invoke};
+use crate::shared::testing::{configure, describe_state, git, invoke};
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
+
+const STATE: &str = "Ledger/State.md";
 
 const PROBE_COMMAND: &str = r#"probe:
   purpose: Block delivery on request
@@ -50,4 +53,11 @@ fn merge(root: &Path) {
 
 fn read(root: &Path, name: &str) -> String {
     fs::read_to_string(root.join(name)).unwrap()
+}
+
+fn commit(root: &Path, name: &str, text: &str) {
+    fs::write(root.join(name), text).unwrap();
+    describe_state(root, "A test VAC.");
+    git(root, &["add", "."]);
+    git(root, &["commit", "-qm", name]);
 }

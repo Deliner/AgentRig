@@ -322,3 +322,30 @@ fn shipped_markdown_bounds() {
     let accepted = invoke(&root, &["lint"]);
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
 }
+
+// DECISION: D192
+#[test]
+fn shipped_state_bounds() {
+    let (_temp, root) = initialized("python");
+    let state = |lines: usize, width: usize| {
+        let prose = "a line of the current VAC\n".repeat(lines - 2);
+        format!("# State\n\n{prose}\n{}\n", "x".repeat(width))
+    };
+    write(&root, "Ledger/State.md", &state(101, 121));
+    let (code, found) = lint(&root);
+    assert_eq!(code, Some(1), "{found:?}");
+    let of_state = |item: &&Value| text(item, "path") == "Ledger/State.md";
+    let found: Vec<Value> = found.iter().filter(of_state).cloned().collect();
+    let rules: BTreeSet<&str> = found.iter().map(|item| text(item, "rule")).collect();
+    let expected = BTreeSet::from(["state-size", "state-width"]);
+    assert_eq!(rules, expected, "{found:?}");
+    let skill = root.join(".agentrig/skills/edit-state/SKILL.md");
+    let named = |item: &Value| Path::new(text(item, "skill")) == skill;
+    assert!(found.iter().all(named), "{found:?}");
+    let check = invoke(&root, &["check"]);
+    assert_eq!(check.code, Some(1), "{}", check.output());
+    assert!(check.stderr.contains("ERROR [lint]"), "{}", check.output());
+    write(&root, "Ledger/State.md", &state(100, 120));
+    let accepted = invoke(&root, &["lint"]);
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+}

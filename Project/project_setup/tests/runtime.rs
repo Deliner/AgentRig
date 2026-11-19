@@ -1,7 +1,7 @@
 use super::installed_runtime;
 use crate::shared::{
     fs_with_context::{Permissions, PermissionsExt},
-    testing::{Run, git, hermetic, invoke, launch, run, search_path, worker},
+    testing::{Run, describe_state, git, hermetic, invoke, launch, run, search_path, worker},
 };
 use std::{
     fs,
@@ -91,6 +91,7 @@ fn runtime_add_moves_a_single_binary_project_to_platform_runtimes() {
     let script = fs::read_to_string(&launcher).unwrap();
     assert!(script.starts_with("#!/bin/sh\n"), "{script}");
     assert!(fs::read(&runtime).unwrap() == fs::read(worker()).unwrap());
+    describe_state(&root, "Add platform runtimes.");
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "platform runtimes"]);
     let merged = run(&mut launch(&launcher, &root, &["feature-merge"]), "");

@@ -105,8 +105,11 @@ fn cataloged(kind: Kind) -> bool {
     }
 }
 
+// DECISION: D192
 fn markdown(paths: &Paths) -> Vec<Value> {
     let condense = format!("{skills}/condense-markdown/SKILL.md", skills = paths.skills);
+    let edit_state = format!("{skills}/edit-state/SKILL.md", skills = paths.skills);
+    let state = format!("{memory}/State.md", memory = paths.memory);
     let memory_exclude = format!("{memory}/**", memory = paths.memory);
     let sources = &paths.sources;
     vec![
@@ -120,6 +123,12 @@ fn markdown(paths: &Paths) -> Vec<Value> {
             "include": sources, "extensions": [".md"],
             "exclude": ["**/README.md", "**/AGENTS.md", "**/SKILL.md"],
             "level": "error", "warning_skill": condense, "error_skill": condense}),
+        json!({"id": "state-size", "kind": "nonblank-lines", "target": "file",
+            "include": [state], "error": 100,
+            "warning_skill": edit_state, "error_skill": edit_state}),
+        json!({"id": "state-width", "kind": "line-width", "target": "file",
+            "include": [state], "error": 120,
+            "warning_skill": edit_state, "error_skill": edit_state}),
     ]
 }
 

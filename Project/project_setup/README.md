@@ -76,11 +76,11 @@ Unknown fields are errors naming their module; paths cannot escape the root; see
 
 ## Delivery and memory
 
-`feature-start` requires the base branch, a clean tree and no pending merge or rebase. `feature-merge` rebases a
-divergent feature, requires a passing gate on unchanged inputs and merges into the base with an explicit merge commit,
-then empties the branch scratch area except `results/` and deletes its scratch run logs. The pre-commit hook runs
-`guard-commit` and `check --staged`; the latest gate attempt is stored in `paths.runtime/checks.json`. With `remote`,
-merge pushes the base and, with `--force-with-lease`, the feature; the post-commit hook pushes each feature commit.
+`feature-start` needs the base, a clean tree and no pending merge or rebase. `feature-merge` commits the reset State,
+rebases a divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff`, deletes its run
+logs and scratch files but `results/`. Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`, and
+`guard-commit`, refusing the empty State template on a feature unless only State changes. Post-commit resets State.
+With `remote`, merge pushes the base, and merge and post-commit push the feature with `--force-with-lease`.
 
 Memory holds Plan, Backlog, Decisions, Invariants and State. Decision links to Rust, Python or shell owners need a
 `DECISION: DNNN` comment; committed decisions are immutable and superseded by new ones. Invariants link a test with

@@ -26,6 +26,7 @@ pub(super) fn configured_command(
         Configured::FeatureStart => git::start(context, &args[0]),
         Configured::FeatureMerge => git::merge(context),
         Configured::FeaturePush => git::push(context),
+        Configured::StateReset => git::reset_state(context),
         Configured::MemoryCheck => project_memory::check(context),
         Configured::Resume => {
             project_memory::resume(context)?;
