@@ -14,10 +14,6 @@ read *args:
 write *args:
     @.agentrig/bin/agentrig run write "$@"
 
-# What: run temporary code; Why: keep one-off work in its task area with recorded output.
-scratch *args:
-    @.agentrig/bin/agentrig scratch "$@"
-
 # What: invoke test; Why: use the configured native runtime.
 test *args:
     @.agentrig/bin/agentrig run test "$@"

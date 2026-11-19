@@ -3,7 +3,6 @@
 #[expect(unsafe_code)]
 pub mod jobs;
 pub(crate) mod sandbox;
-pub mod scratch;
 mod summary;
 #[cfg(test)]
 mod tests;
@@ -36,7 +35,7 @@ fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) 
     let known = programs.keys().cloned().collect::<Vec<_>>().join(", ");
     let program = programs.get(&argv[0]).with_context(|| {
         format!(
-            "{name} does not run {}; configured programs: {known}. Project commands: just list. Temporary code: just scratch -- TEXT",
+            "{name} does not run {}; configured programs: {known}. Project commands: just list",
             argv[0]
         )
     })?;

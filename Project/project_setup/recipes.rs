@@ -11,7 +11,6 @@ const RECIPES: [(&str, &[Recipe]); 5] = [
             ("run", "run", true),
             ("read", "run read", true),
             ("write", "run write", true),
-            ("scratch", "scratch", true),
             ("test", "run test", true),
         ],
     ),

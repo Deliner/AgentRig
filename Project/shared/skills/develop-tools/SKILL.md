@@ -6,8 +6,7 @@ description: Develop, repair or remove project tools and catalog commands, inclu
 # Keep one registered owner for each capability
 
 A tool is a file with a shebang, an executable bit or a `tools.recognize` match.
-Permanent capabilities run through the command catalog by name; temporary work
-runs through `scratch` in its branch task area and needs no registration.
+Capabilities run through the command catalog by name.
 
 1. Find existing capabilities with `just list`: active commands with purpose,
    parameters, location, owner and documentation, then removed tools.
@@ -21,7 +20,7 @@ runs through `scratch` in its branch task area and needs no registration.
 4. Update the instructions, checks and documentation that name it.
 
 Do not add unrequested modes, generality or a duplicate that differs only in
-name or location. Repeated temporary work becomes a permanent capability.
+name or location.
 
 ## Removal
 

@@ -39,7 +39,7 @@ pub fn merge(context: &Context) -> Result<i32> {
     if passed {
         console::stdout(format!("merged {feature}; branch retained"));
         let pushed = push::merged(&repository, settings, &feature);
-        return Ok(cleanup_merged(context, &feature)?.max(pushed));
+        return Ok(cleanup_jobs(context, &feature)?.max(pushed));
     }
     Ok(code)
 }
@@ -83,15 +83,6 @@ fn execute_vcs(repository: &crate::shared::vcs::Repository<'_>, args: &[&str]) -
     Ok(crate::command_runner::jobs::process::exit_code(&output))
 }
 
-fn cleanup_merged(context: &Context, feature: &str) -> Result<i32> {
-    let scratch = crate::command_runner::scratch::cleanup(context, feature);
-    if let Err(error) = &scratch {
-        console::stderr(format!(
-            "merge succeeded; scratch area cleanup failed: {error:#}"
-        ));
-    }
-    Ok(cleanup_jobs(context, feature)?.max(i32::from(scratch.is_err())))
-}
 fn cleanup_jobs(context: &Context, feature: &str) -> Result<i32> {
     let identified = crate::command_runner::jobs::owner().is_some();
     let anonymous = !identified;

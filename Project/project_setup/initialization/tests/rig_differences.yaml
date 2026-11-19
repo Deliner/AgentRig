@@ -1,8 +1,11 @@
 # DECISION: D189
 # Each entry names the setup paths where the AgentRig repository differs from init output and why.
-- reason: The rig launches its installed development runtime through tooling/worker/run instead of a copied platform binary.
+- reason: >-
+    The rig installs its development runtime with tooling/distribution/bootstrap.sh and launches it through
+    tooling/worker/run instead of a copied platform binary.
   at:
   - [.agentrig, bin]
+  - [.agentrig, commands.yaml, bootstrap]
 - reason: The rig keeps its skill sources in Project/shared/skills and links .agentrig/skills to them; init copies them.
   at:
   - [.agentrig, skills]

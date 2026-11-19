@@ -21,7 +21,6 @@ pub enum Command {
 }
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Runner {
-    Scratch,
     JobStart,
     JobRun,
     Jobs(jobs::Command),
@@ -68,7 +67,6 @@ const NAMES: &[(&str, Command)] = &[
     ),
     ("feature-push", Command::Configured(Configured::FeaturePush)),
     ("state-reset", Command::Configured(Configured::StateReset)),
-    ("scratch", Command::Runner(Runner::Scratch)),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
     ("jobs", Command::Runner(Runner::Jobs(jobs::Command::List))),
@@ -117,7 +115,6 @@ pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
 }
 fn run_runner(context: &Context, command: Runner, args: &[String]) -> Result<i32> {
     match command {
-        Runner::Scratch => command_runner::scratch::run(context, args),
         Runner::JobStart => command_runner::background(context, args),
         Runner::JobRun => command_runner::background_run(context, args),
         Runner::Jobs(job) => jobs::cli(&context.path(&context.config.paths.runtime)?, job, args),
