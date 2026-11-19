@@ -97,6 +97,23 @@ rules:
   level: error
   warning_skill: .agentrig/skills/condense-markdown/SKILL.md
   error_skill: .agentrig/skills/condense-markdown/SKILL.md
+# DECISION: D192
+- id: state-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - Ledger/State.md
+  error: 100
+  warning_skill: .agentrig/skills/edit-state/SKILL.md
+  error_skill: .agentrig/skills/edit-state/SKILL.md
+- id: state-width
+  kind: line-width
+  target: file
+  include:
+  - Ledger/State.md
+  error: 120
+  warning_skill: .agentrig/skills/edit-state/SKILL.md
+  error_skill: .agentrig/skills/edit-state/SKILL.md
 - id: directory-size
   kind: directory-entries
   target: directory

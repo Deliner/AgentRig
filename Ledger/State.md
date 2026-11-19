@@ -14,7 +14,7 @@ P144–P165 в порядке номеров карточек. Активна P1
 ## Workspace
 
 Branch: `feature/state-current-vac`, от master `339818e`.
-Revision: `ff666610d8ca532ba94e16a40514ccc83a08e25a`
+Revision: `595761d27801eb596d2b75fb6219e532156d5110`
 
 Установленный рантайм `9a4f621` в `stable.txt`. Ветки прежних поставок сохранены и отправлены в `origin`,
 `feature/init-probe` не трогать. Codex для проверок запускается только с `-s read-only`.
@@ -22,15 +22,15 @@ Revision: `ff666610d8ca532ba94e16a40514ccc83a08e25a`
 ## Progress
 
 - VAC 1 `ff66661`: выбор P144–P165 в Plan и State.
-- VAC 2, этот коммит: механизм D191 для AC2–AC4. `guard-commit` отклоняет коммит на ветке с пустым шаблоном State,
-  кроме коммита одного State; `post-commit` вызывает `state-reset`, который пишет и индексирует шаблон;
-  `feature-merge` останавливается на незакоммиченных заметках в State, иначе коммитит сброс и сливает ветку.
-  Хук `post-commit` рига уже вызывает `state-reset`: установленный рантайм `9a4f621` этой команды не знает, поэтому
-  до закрепления P144 хук останавливается до `feature-push`, и ветка уходит в `origin` только при слиянии.
+- VAC 2 `595761d`: механизм D191 для AC2–AC4. Хук `post-commit` рига уже вызывает `state-reset`, а установленный
+  рантайм `9a4f621` этой команды не знает: до закрепления P144 хук останавливается до `feature-push`, и State после
+  коммита не сбрасывается.
+- VAC 3, этот коммит: AC5 по D192, правила `state-size` и `state-width` на `Ledger/State.md` с навыком edit-state в
+  `lint.yaml` рига и шаблоне `init`, тест `shipped_state_bounds`.
 
 ## Verification
 
-Тесты `change_delivery::` 32 из 32 и `project_setup::` 53 из 53 прошли на кандидате; lint, rustfmt и clippy прошли.
+Тесты `project_setup::` 54 из 54 прошли на кандидате, включая сверку настроек рига и `init`; lint рига чистый.
 
 ## Blockers
 
@@ -38,5 +38,5 @@ Revision: `ff666610d8ca532ba94e16a40514ccc83a08e25a`
 
 ## Next action
 
-VAC 3 P144: AC5, правила lint для State, 100 непустых строк и ширина 120 с навыком edit-state, в `.agentrig/lint.yaml`
-и шаблоне `init`, с тестом. Затем AC1 и перенос заметок Focus в карточки. Свободные ID: D192+, I024+, P166+, B173+.
+VAC 4 P144: AC1, правило «State описывает текущую VAC» в AGENTS.md, тексте AGENTS от `init` и навыке edit-state;
+перенос долгосрочных заметок Focus в карточки. Свободные ID: D193+, I024+, P166+, B173+.
