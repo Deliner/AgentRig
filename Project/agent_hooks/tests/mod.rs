@@ -2,6 +2,7 @@ mod memory;
 mod reminders;
 mod shell;
 mod skill_requirements;
+mod tools;
 
 use super::dispatch;
 use crate::shared::calling_agent::Agent;

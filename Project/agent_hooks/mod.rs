@@ -14,10 +14,12 @@ mod shell_guard;
 mod skill_requirements;
 #[cfg(test)]
 mod tests;
+mod tools;
 mod transcript;
 
 use self::input::text;
 use self::skill_requirements::Answer;
+use self::tools::Tool;
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
@@ -64,7 +66,7 @@ pub fn deny(reason: &str) -> Value {
 fn paths(event: &Value) -> Vec<String> {
     let payload = &event["tool_input"];
     let mut paths = Vec::new();
-    for key in ["file_path", "path"] {
+    for key in ["file_path", "path", "notebook_path"] {
         if let Some(path) = payload[key].as_str() {
             paths.push(path.into());
         }
@@ -98,6 +100,7 @@ fn target(root: &Path, event: &Value, path: &str) -> Option<PathBuf> {
     resolved.strip_prefix(root).ok().map(Path::to_owned)
 }
 // DECISION: D188
+// DECISION: D200
 pub fn dispatch(root: &Path, event: &Value, agent: Agent) -> Result<Option<Value>> {
     let invalid_event = !event.is_object();
     if invalid_event {
@@ -110,10 +113,11 @@ pub fn dispatch(root: &Path, event: &Value, agent: Agent) -> Result<Option<Value
     configured.caller.agent = Some(agent);
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),
-        "PreToolUse" => match text(event, "tool_name") {
-            "Bash" | "Shell" | "exec_command" => shell_event(event, &configured),
-            "apply_patch" | "Edit" | "Write" => edit_event(root, event, &configured),
-            _ => Ok(None),
+        "PreToolUse" => match tools::classify(event) {
+            Tool::Shell => shell_event(event, &configured),
+            Tool::Edit => edit_event(root, event, &configured),
+            Tool::Passive => Ok(None),
+            Tool::Refused => Ok(Some(deny(&tools::refusal(event)))),
         },
         _ => Ok(None),
     }

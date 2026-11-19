@@ -2,23 +2,26 @@
 
 ## Focus
 
-P151 (B152) hook checks every tool call, VAC1 for AC3: path resolution takes the spelling the file system stores, so
-`ledger/State.md` on a case-insensitive file system gets the routes of `Ledger/State.md` (D199).
+P151 (B152) hook checks every tool call, VAC2 for AC1 and AC2: both agents call the hook for every tool, which checks
+shell commands and file edits, passes listed passive tools and refuses the rest by name; a hook that cannot start
+exits 2 with its reason (D200).
 
 ## Workspace
 
 Branch: feature/hook-every-tool
-Revision: 52d728b2961159227a34e843ac07e94d3f57e57f
+Revision: 28cf511523aea2738c459d31e176cc0d77bca654
 
 ## Progress
 
-`shared::paths::resolve` replaces each existing non-link component with the last name of its canonical path. P151 is
-active. Remaining: AC1 classifies every tool and refuses unknown ones, AC2 makes a failed hook launch exit 2.
+VAC1 (AC3, D199) is committed. VAC2 adds `agent_hooks/tools.rs`, uses it in dispatch and configuration recovery, reads
+`notebook_path` as an edit path, registers PreToolUse with matcher `*` and replaces `exec` in the hook command with a
+fallback that exits 2. The rig's `.claude/settings.json` and `.codex/hooks.json` match the init output.
 
 ## Verification
 
-Without the fix the new route test failed on macOS; with it `just run test` passed 536 tests. Candidate lint, Clippy
-and the memory check pass.
+`just run test -- agent_hooks:: project_setup::` passed 88 tests, including the new Monitor, NotebookEdit, refused,
+passive and recovery tests and the registration test with a non-executable and a missing launcher. Candidate lint,
+Clippy and the memory check pass.
 
 ## Blockers
 
@@ -26,4 +29,4 @@ None.
 
 ## Next action
 
-Commit VAC1, then register the hook for every tool and classify tools in the dispatcher (AC1, AC2).
+Commit VAC2, pin it with `just bootstrap HEAD`, probe Claude Code live, then archive P151 and B152 and merge.

@@ -29,9 +29,10 @@ pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
 }
 
 // DECISION: D188
+// DECISION: D200
 pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result<Vec<u8>> {
     let command = format!(
-        "root=$({root_command}) && exec {binary} hook --root \"$root\" --agent {agent}",
+        "root=$({root_command}) && {binary} hook --root \"$root\" --agent {agent} || {{ echo 'AgentRig hook could not run; repair its launcher and runtime' >&2; exit 2; }}",
         binary = binary(&config.paths.service),
         agent = agent.name()
     );
@@ -39,7 +40,7 @@ pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result
         "statusMessage": "Loading worker context and edit guidance"});
     let value = serde_json::json!({"hooks": {
         "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [handler.clone()]}],
-        "PreToolUse": [{"matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write", "hooks": [handler]}]
+        "PreToolUse": [{"matcher": "*", "hooks": [handler]}]
     }});
     Ok(serde_json::to_vec_pretty(&value)?)
 }
