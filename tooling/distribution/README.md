@@ -18,9 +18,9 @@ never applies here; paths outside feature groups select only the smoke tests. `j
 the tests affected by the whole branch; `just check` runs the full suite. `tooling/worker/run` performs no compilation.
 Repository configuration, memory and canonical skill sources remain versioned project policy.
 
-Repository lint also invokes the candidate through the configured command check,
-because its architecture analysis develops independently of the pinned runtime.
-The installed runtime retains gate orchestration and snapshot isolation.
+Repository lint runs twice. The native `lint` check lints with the installed runtime, so a change cannot weaken the
+rule that judges it, and the `candidate-lint` command check lints with the candidate, because its analysis develops
+independently of the pinned runtime. The installed runtime retains gate orchestration and snapshot isolation.
 
 Every branch that changes Project promotes its runtime before `just feature-merge`: once its head passes the commit
 gate, run `just bootstrap HEAD` and commit the pin. Given a revision, bootstrap installs it first and writes its full

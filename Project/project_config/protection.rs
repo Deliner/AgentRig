@@ -11,7 +11,8 @@ const FIXED: [&str; 6] = [
     ".codex/hooks.json",
     ".codex/config.toml",
 ];
-const MODULES: [&str; 3] = ["git", "commands", "hooks"];
+// DECISION: D214
+const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "tools", "rust"];
 const SERVICE: [&str; 2] = ["bin", "hooks"];
 const RUNTIME: [&str; 2] = ["reminders", "approved"];
 
@@ -24,6 +25,7 @@ pub fn configuration() -> Vec<String> {
 pub struct Protection {
     paths: Vec<PathBuf>,
     pin: Option<PathBuf>,
+    baseline: PathBuf,
 }
 impl Protection {
     pub(super) fn of(root: &Path, config: &Config) -> Result<Self> {
@@ -46,10 +48,21 @@ impl Protection {
             .map(|pin| inside(root, pin).context("git.pin"))
             .transpose()?;
         paths.extend(pin.clone());
-        Ok(Self { paths, pin })
+        // DECISION: D214
+        let lint = inside(root, &settings.lint).context("paths.lint")?;
+        let baseline = crate::structural_lint::baseline_file::location(&lint);
+        paths.extend([lint, baseline.clone()]);
+        Ok(Self {
+            paths,
+            pin,
+            baseline,
+        })
     }
     pub fn pin(&self) -> Option<&Path> {
         self.pin.as_deref()
+    }
+    pub fn baseline(&self) -> &Path {
+        &self.baseline
     }
     pub fn touched(&self, path: &Path) -> bool {
         self.paths

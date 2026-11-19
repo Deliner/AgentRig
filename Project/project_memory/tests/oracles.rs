@@ -148,6 +148,45 @@ fn invariant_oracle_must_name_a_discovered_test_carrying_its_marker() {
     }
 }
 
+// DECISION: D215
+#[test]
+fn an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it() {
+    let (_temp, root) = project(&PYTEST, PYTEST.valid);
+    git(&root, &["config", "user.name", "Test"]);
+    git(&root, &["config", "user.email", "test@example.invalid"]);
+    git(&root, &["add", "."]);
+    git(
+        &root,
+        &["-c", "core.hooksPath=/dev/null", "commit", "-qm", "base"],
+    );
+    git(&root, &["switch", "-q", "-c", "feature/change"]);
+    let changed =
+        "I001: the invariant's predicate, oracle or linked test changed since the fork from main";
+    let detail = root.join("Ledger/Invariants/001.md");
+    fs::write(&detail, DETAIL.replace("Doubles correctly.", "Doubles.")).unwrap();
+    rejected(&root, changed);
+    fs::write(&detail, DETAIL).unwrap();
+    bind(&root, &PYTEST, "Project/test_sample.py::test_other");
+    rejected(&root, changed);
+    bind(&root, &PYTEST, PYTEST.target);
+    write(
+        &root,
+        &PYTEST,
+        &PYTEST.valid.replace("pass", "assert 2 * 2 == 4"),
+    );
+    rejected(&root, changed);
+    let decisions = root.join("Ledger/Decisions.md");
+    let row = "| [D001](Decisions/001.md) | Assert the result in I001 | [oracles](../.agentrig/oracles.yaml) |\n";
+    fs::write(&decisions, fs::read_to_string(&decisions).unwrap() + row).unwrap();
+    fs::create_dir_all(root.join("Ledger/Decisions")).unwrap();
+    let sections = ["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
+    let sections = sections.map(|heading| format!("## {heading}\n\nText.\n"));
+    let decision = format!("# D001\n\n{}", sections.join("\n"));
+    fs::write(root.join("Ledger/Decisions/001.md"), decision).unwrap();
+    let checked = memory_check(&root);
+    assert_eq!(checked.code, Some(0), "{}", checked.output());
+}
+
 #[test]
 fn pytest_oracle_rejects_a_repeated_name_and_accepts_parametrized_markers() {
     let repeated = format!("{}\ndef test_doubles():\n    pass\n", PYTEST.valid);

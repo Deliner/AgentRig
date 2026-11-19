@@ -2,7 +2,7 @@
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     path::Path,
 };
 use tree_sitter::Node;
@@ -10,16 +10,20 @@ use tree_sitter::Node;
 pub struct Source {
     pub comments: HashSet<String>,
     pub functions: HashMap<String, Vec<HashSet<String>>>,
+    pub marked: HashMap<String, Vec<String>>,
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let bytes = fs::read(path)?;
     let Ok(source) = String::from_utf8(bytes) else {
         return Ok(None);
     };
+    parse(path, &source)
+}
+pub fn parse(path: &Path, source: &str) -> Result<Option<Source>> {
     let shebang = source.lines().next().unwrap_or("");
     let shell = path.extension().is_none() && shebang.starts_with("#!") && shebang.contains("sh");
     let parse_path = if shell { Path::new("source.sh") } else { path };
-    let Some(tree) = crate::shared::source_parsers::parse(parse_path, &source)? else {
+    let Some(tree) = crate::shared::source_parsers::parse(parse_path, source)? else {
         return Ok(None);
     };
     ensure!(
@@ -30,10 +34,11 @@ pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let mut result = Source {
         comments: HashSet::new(),
         functions: HashMap::new(),
+        marked: HashMap::new(),
     };
     let mut nodes = vec![tree.root_node()];
     while let Some(node) = nodes.pop() {
-        result.visit(node, &source);
+        result.visit(node, source);
         let mut cursor = node.walk();
         nodes.extend(node.named_children(&mut cursor));
     }
@@ -50,15 +55,32 @@ impl Source {
                 );
             }
             "function_definition" | "function_item" | "function_signature_item" => {
-                if let Some(name) = node.child_by_field_name("name") {
-                    self.functions
-                        .entry(qualified_name(name, source))
-                        .or_default()
-                        .push(preceding_markers(node, source));
-                }
+                self.function(node, source);
             }
             _ => {}
         }
+    }
+    // DECISION: D215
+    fn function(&mut self, node: Node<'_>, source: &str) {
+        let Some(name) = node.child_by_field_name("name") else {
+            return;
+        };
+        let markers = preceding_markers(node, source);
+        let text = source.get(node.byte_range()).unwrap_or_default();
+        let ids: BTreeSet<&str> = markers
+            .iter()
+            .filter_map(|marker| crate::shared::source_parsers::reference(marker))
+            .collect();
+        for id in ids {
+            self.marked
+                .entry(id.to_owned())
+                .or_default()
+                .push(text.to_owned());
+        }
+        self.functions
+            .entry(qualified_name(name, source))
+            .or_default()
+            .push(markers);
     }
 
     pub fn marked_function(&self, id: &str, named: impl Fn(&str) -> bool) -> bool {

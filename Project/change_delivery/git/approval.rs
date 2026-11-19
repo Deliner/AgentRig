@@ -1,8 +1,9 @@
 // DECISION: D213
-use crate::project_config::Context;
+use crate::project_config::{Context, protection::Protection};
 use crate::shared::atomic_files::{atomic_json, overlay::Overlay};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};
+use crate::structural_lint::baseline_file;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -97,21 +98,15 @@ pub(super) fn guard(context: &Context, repository: &Repository<'_>) -> Result<i3
     if unchanged {
         return Ok(0);
     }
-    let index = repository.index()?;
-    let committed = repository.tree("HEAD")?;
-    let approved: BTreeMap<String, Content> =
-        atomic_json::load(&record_path(context)?)?.unwrap_or_default();
+    let review = Review {
+        repository,
+        index: repository.index()?,
+        committed: repository.tree("HEAD")?,
+        approved: atomic_json::load(&record_path(context)?)?.unwrap_or_default(),
+    };
     let mut refused = Vec::new();
     for path in protected {
-        let pinned = context.protection.pin() == Some(Path::new(path));
-        let moved = pinned && committed.contains_key(path.as_str());
-        let introduced = pinned && !moved;
-        let accepted = if moved {
-            forward(repository, &index, path)?
-        } else {
-            introduced || approved.get(path.as_str()) == Some(&Content::of(&index, path))
-        };
-        let unapproved = !accepted;
+        let unapproved = !review.accepted(&context.protection, path)?;
         if unapproved {
             refused.push(path.as_str());
         }
@@ -124,13 +119,42 @@ pub(super) fn guard(context: &Context, repository: &Repository<'_>) -> Result<i3
     Ok(1)
 }
 
+struct Review<'a, 'r> {
+    repository: &'a Repository<'r>,
+    index: BTreeMap<String, Entry>,
+    committed: BTreeMap<String, Entry>,
+    approved: BTreeMap<String, Content>,
+}
+impl Review<'_, '_> {
+    fn accepted(&self, protection: &Protection, path: &str) -> Result<bool> {
+        let file = Path::new(path);
+        let pinned = protection.pin() == Some(file);
+        if pinned {
+            let moved = self.committed.contains_key(path);
+            return if moved {
+                forward(self.repository, &self.index, path)
+            } else {
+                Ok(true)
+            };
+        }
+        let approved = self.approved.get(path) == Some(&Content::of(&self.index, path));
+        // DECISION: D214
+        let lowerable = protection.baseline() == file && !approved;
+        if lowerable {
+            let removed = !self.index.contains_key(path);
+            return Ok(removed || baseline_file::admits(self.repository, file)?);
+        }
+        Ok(approved)
+    }
+}
+
 fn refuse(context: &Context, refused: &[&str]) {
     let skills = &context.config.paths.skills;
     let skill = context
         .caller
         .skill(&format!("{skills}/propose-protected-change/SKILL.md"));
     console::stderr(format!(
-        "AgentRig refused this commit: the user has not approved the staged content of the protected enforcement files {}, or a staged pin does not descend from the committed one. ACTION: Apply {skill}.",
+        "AgentRig refused this commit: the user has not approved the staged content of the protected enforcement files {}; without approval a staged pin must descend from the committed one and a staged lint baseline may only lower the committed counts. ACTION: Apply {skill}.",
         refused.join(", ")
     ));
 }

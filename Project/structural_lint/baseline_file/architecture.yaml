@@ -1,0 +1,5 @@
+purpose: Locate the lint baseline file, read its accepted error counts at a revision and decide whether a staged one only lowers them
+type: flat
+files:
+  mod.rs: Baseline location, counts per rule and path, their ceiling across renames and the admission of a lowered staged baseline
+directories: {}

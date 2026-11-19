@@ -60,6 +60,28 @@ fn source_references_name_recorded_entries() {
     accepts(&root);
 }
 
+// DECISION: D216
+#[test]
+fn a_decision_marker_counts_only_in_a_file_its_decision_links() {
+    let (_temp, root) = consumer();
+    record(&root, "src/lib.rs");
+    fs::write(
+        root.join("src/lib.rs"),
+        "// DECISION: D001\nfn example() {}",
+    )
+    .unwrap();
+    let lifted = "fn read() -> u8 {\n    // DECISION: D001\n    \"1\".parse().unwrap()\n}\n";
+    fs::write(root.join("src/other.rs"), lifted).unwrap();
+    rejects(&root, &["memory-check"], "D001 in src/other.rs");
+    let linked = "[code](../src/lib.rs), [parse](../src/other.rs)";
+    edit(
+        &root.join("notes/Decisions.md"),
+        "[code](../src/lib.rs)",
+        linked,
+    );
+    accepts(&root);
+}
+
 // INVARIANT: I003
 #[test]
 fn committed_decisions_checked_against_staged_memory() {

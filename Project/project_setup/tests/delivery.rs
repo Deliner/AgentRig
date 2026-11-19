@@ -205,10 +205,11 @@ fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
     let named = rejected.stderr.contains(".sh") && rejected.stderr.contains("handlers support");
     assert!(named, "{}", rejected.stderr);
     let supported = rule.replace("[\".sh\"]", "[\".rs\", \".py\"]");
-    fs::write(&config, before + &supported).unwrap();
+    fs::write(&config, before.clone() + &supported).unwrap();
     let accepted = agentrig(root, &["config-check"], "");
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
     fs::remove_file(script).unwrap();
+    fs::write(&config, before).unwrap();
 }
 
 fn hook(root: &Path, tool: &str, input: Value) -> String {

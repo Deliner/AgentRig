@@ -1,12 +1,17 @@
 // DECISION: D020
-use super::format;
+// DECISION: D215
+use super::{format, invariant_history};
 use crate::project_config::{Context, FILE};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::{Entry, Repository};
 use anyhow::{Context as _, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 
-fn committed(repository: &Repository<'_>, revision: &str, path: &Path) -> Result<String> {
+pub(super) fn committed(
+    repository: &Repository<'_>,
+    revision: &str,
+    path: &Path,
+) -> Result<String> {
     let bytes = repository
         .read(revision, path)
         .with_context(|| format!("cannot read committed memory {}", path.display()))?;
@@ -16,14 +21,29 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
     let Some(repository) = crate::shared::vcs::Repository::discover(root)? else {
         return Ok(());
     };
-    let revisions = match candidate {
-        Some(revision) => repository.parents(revision)?,
-        None => repository.head()?.into_iter().collect(),
+    let (mut revisions, tip) = match candidate {
+        Some(revision) => (repository.parents(revision)?, Some(revision.to_owned())),
+        None => {
+            let head = repository.head()?;
+            (head.iter().cloned().collect(), head)
+        }
     };
-    for revision in revisions {
-        check_revision(context, &repository, &revision)?;
+    let fork = match tip {
+        Some(tip) => repository.fork(&context.config.git, &tip)?,
+        None => None,
+    };
+    let unlisted = fork
+        .as_ref()
+        .filter(|fork| !revisions.contains(fork))
+        .cloned();
+    revisions.extend(unlisted);
+    for revision in &revisions {
+        check_revision(context, &repository, revision)?;
     }
-    Ok(())
+    match fork {
+        Some(fork) => invariant_history::check(context, &repository, &fork),
+        None => Ok(()),
+    }
 }
 
 fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str) -> Result<()> {
@@ -64,7 +84,7 @@ fn committed_table(
     )
 }
 
-fn prior_memory(
+pub(super) fn prior_memory(
     context: &Context,
     repository: &Repository<'_>,
     revision: &str,
