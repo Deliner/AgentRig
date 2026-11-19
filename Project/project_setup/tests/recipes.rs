@@ -3,7 +3,7 @@ use crate::shared::testing::{Run, configure, hermetic, invoke, run};
 use std::path::{Path, PathBuf};
 use tempfile::TempDir;
 
-const ECHOING_READ: &str = "read:\n  purpose: Print words\n  argv: []\n  accepts_args: true\n  read_only: true\n  programs:\n    echo: {}\n";
+const ECHOING_READ: &str = "read:\n  purpose: Print words\n  argv: []\n  accepts_args: true\n  access: read-only\n  programs:\n    echo: {}\n";
 
 fn initialized() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();

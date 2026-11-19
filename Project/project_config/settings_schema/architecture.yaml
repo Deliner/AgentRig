@@ -2,7 +2,7 @@ purpose: Define and validate project settings independently of loading recovery 
 type: flat
 files:
   mod.rs: Strict project schema, version constants, YAML reading, project-relative paths and repairable source files
-  access.rs: Command access mode and its read_only boolean form in YAML and job records
+  access.rs: Command access mode, read-only, project or unconfined, as YAML and job records name it
   arguments.rs: Which words of the agent a catalog command takes and their accepts_args form in YAML
   capabilities.rs: Enabled capability declarations and their check consistency
   flag.rs: Program flags a catalog denies, parsed once, and every spelling the program reads as each flag

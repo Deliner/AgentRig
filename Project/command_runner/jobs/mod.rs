@@ -1,4 +1,4 @@
-use crate::project_config::{Access, Context, Lifetime, access};
+use crate::project_config::{Access, Context, Lifetime};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, OpenOptions};
 mod background;
@@ -95,12 +95,7 @@ pub struct Record {
     pub duration_seconds: Option<f64>,
     #[serde(default)]
     pub group: Option<Identity>,
-    #[serde(
-        default,
-        rename = "read_only",
-        deserialize_with = "access::deserialize",
-        serialize_with = "access::serialize"
-    )]
+    #[serde(default)]
     pub access: Access,
     #[serde(default)]
     pub lifetime: Lifetime,
@@ -143,7 +138,7 @@ impl Job {
             grouping: Grouping::Inherited,
             duration_seconds: None,
             group: None,
-            access: Access::Writable,
+            access: Access::Unconfined,
             lifetime: Lifetime::Task,
             background: false,
         };

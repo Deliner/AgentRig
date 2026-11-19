@@ -7,7 +7,7 @@ mod summary;
 #[cfg(test)]
 mod tests;
 pub mod tool_registry;
-use crate::project_config::{Arguments, Context, Program};
+use crate::project_config::{Access, Arguments, Command, Context, Program};
 use crate::shared::console;
 use anyhow::{Context as _, Result, bail, ensure};
 use std::{collections::BTreeMap, path::PathBuf, process::Output};
@@ -38,6 +38,13 @@ fn accepted(name: &str, arguments: Arguments, extra: &[String]) -> Result<()> {
         Arguments::Any => {}
     }
     Ok(())
+}
+// DECISION: D203
+fn access(command: &Command, argv: &[String]) -> Access {
+    let program = argv.first().and_then(|name| command.programs.get(name));
+    program
+        .and_then(|program| program.access)
+        .unwrap_or(command.access)
 }
 fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) -> Result<()> {
     let unrestricted = programs.is_empty();
@@ -107,8 +114,9 @@ fn logged(
 ) -> Result<(Output, Option<PathBuf>)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
+    let access = access(spec, &argv);
     let options = sandbox::Sandboxing {
-        access: spec.access,
+        access,
         capture,
         cargo_target: context.cargo_target.as_deref(),
         rustflags: &context.config.rust.rustflags,
@@ -121,7 +129,7 @@ fn logged(
             return Ok((output, None));
         }
     };
-    job.prepare(&argv, spec.access, spec.lifetime)?;
+    job.prepare(&argv, access, spec.lifetime)?;
     let result = sandbox::tracked(&cwd, &argv, options, Some(&mut job));
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
@@ -142,7 +150,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
     let mut job = crate::command_runner::jobs::Job::create(context, name, &cwd)?;
-    job.prepare(&argv, spec.access, spec.lifetime)?;
+    job.prepare(&argv, access(spec, &argv), spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     console::stdout(serde_json::json!({"run_id": id}));
     Ok(0)

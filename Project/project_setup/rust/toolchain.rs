@@ -121,7 +121,7 @@ fn project_rustc(root: &Path) -> Option<Version> {
     let directory = root.ancestors().find(|directory| directory.is_dir())?;
     let argv = ["rustc", "--version"].map(String::from);
     let options = Sandboxing {
-        access: Access::Writable,
+        access: Access::Unconfined,
         capture: Capture::Collect,
         cargo_target: None,
         rustflags: &[],

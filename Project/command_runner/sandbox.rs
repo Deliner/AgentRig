@@ -15,6 +15,11 @@ pub struct Sandboxing<'a> {
     pub cargo_target: Option<&'a Path>,
     pub rustflags: &'a [String],
 }
+// DECISION: D203
+enum Confinement {
+    Reading,
+    Writing,
+}
 // DECISION: D182
 pub fn compile_with(command: &mut Command, rustflags: &[String]) {
     command.env("CARGO_ENCODED_RUSTFLAGS", rustflags.join("\u{1f}"));
@@ -28,18 +33,15 @@ pub fn tracked(
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
     let command = match options.access {
-        Access::ReadOnly => sandbox(root, argv, &scratch)?,
-        Access::Writable => direct(argv)?,
+        Access::ReadOnly => sandbox(root, argv, scratch.path(), &Confinement::Reading)?,
+        Access::Project => sandbox(root, argv, scratch.path(), &Confinement::Writing)?,
+        Access::Unconfined => direct(argv)?,
     };
     launch(command, root, options, job)
 }
 // DECISION: D193
 pub fn confined(root: &Path, argv: &[String], options: Sandboxing<'_>) -> Result<Option<Output>> {
-    let read_only = match options.access {
-        Access::ReadOnly => true,
-        Access::Writable => false,
-    };
-    let refused = read_only && refuses_writes(root)?;
+    let refused = options.access.read_only() && refuses_writes(root)?;
     if refused {
         return launch(direct(argv)?, root, options, None).map(Some);
     }
@@ -80,15 +82,22 @@ fn launch(
 }
 pub fn available() -> bool {
     let probe = tempfile::tempdir().and_then(|scratch| {
-        sandbox(Path::new("/"), &["true".into()], &scratch)
+        let reading = &Confinement::Reading;
+        sandbox(Path::new("/"), &["true".into()], scratch.path(), reading)
             .map_err(std::io::Error::other)?
             .output()
     });
     probe.is_ok_and(|output| output.status.success())
 }
 
+// DECISION: D203
 #[cfg(target_os = "linux")]
-fn sandbox(root: &Path, argv: &[String], _scratch: &tempfile::TempDir) -> Result<Command> {
+fn sandbox(
+    root: &Path,
+    argv: &[String],
+    _scratch: &Path,
+    confinement: &Confinement,
+) -> Result<Command> {
     let mut command = Command::new("bwrap");
     command.args([
         "--ro-bind",
@@ -105,19 +114,35 @@ fn sandbox(root: &Path, argv: &[String], _scratch: &tempfile::TempDir) -> Result
     if outside_tmp {
         command.args(["--tmpfs", "/tmp"]);
     }
+    match confinement {
+        Confinement::Reading => {}
+        Confinement::Writing => {
+            command.arg("--bind").arg(root).arg(root);
+        }
+    }
     command.arg("--chdir").arg(root).arg("--").args(argv);
     Ok(command)
 }
 
+// DECISION: D203
 #[cfg(target_os = "macos")]
-fn sandbox(_root: &Path, argv: &[String], scratch: &tempfile::TempDir) -> Result<Command> {
-    let scratch = crate::shared::fs_with_context::canonicalize(scratch.path())?;
+fn sandbox(
+    root: &Path,
+    argv: &[String],
+    scratch: &Path,
+    confinement: &Confinement,
+) -> Result<Command> {
+    let canonical = crate::shared::fs_with_context::canonicalize;
+    let scratch = canonical(scratch)?;
+    let subpath = |path: &Path| format!(" (subpath {})", quoted(&path.to_string_lossy()));
+    let writable = match confinement {
+        Confinement::Reading => subpath(&scratch),
+        Confinement::Writing => subpath(&scratch) + &subpath(&canonical(root)?),
+    };
     let profile = format!(
-        "(version 1)(allow default)(deny network*)(deny file-write*)\
+        "(version 1)(allow default)(deny network*)(deny file-write*)(deny appleevent-send)(deny lsopen)\
          (allow file-write* (literal \"/dev/null\") (literal \"/dev/zero\") \
-         (literal \"/dev/dtracehelper\") (regex #\"^/dev/tty\") (regex #\"^/dev/fd/\") \
-         (subpath {}))",
-        quoted(&scratch.to_string_lossy())
+         (literal \"/dev/dtracehelper\") (regex #\"^/dev/tty\") (regex #\"^/dev/fd/\"){writable})"
     );
     let mut command = Command::new("/usr/bin/sandbox-exec");
     command

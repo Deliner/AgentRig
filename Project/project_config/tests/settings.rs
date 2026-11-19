@@ -7,8 +7,8 @@ use std::{
 use tempfile::TempDir;
 
 const READ: &str =
-    "read:\n  argv: []\n  accepts_args: true\n  programs: {cat: {}, sh: {}}\n  read_only: true\n";
-const INVALID: [(&str, &str, &str); 15] = [
+    "read:\n  argv: []\n  accepts_args: true\n  programs: {cat: {}, sh: {}}\n  access: read-only\n";
+const INVALID: [(&str, &str, &str); 17] = [
     (
         "commands.yaml",
         "accepts_args: true",
@@ -19,7 +19,9 @@ const INVALID: [(&str, &str, &str); 15] = [
     ("project.yaml", VERSION, "9.0.0"),
     ("project.yaml", "version: 1", "version: 7"),
     ("project.yaml", "memory: notes", "memory: ../outside"),
-    ("commands.yaml", "read_only: true", "read_only: \"true\""),
+    ("commands.yaml", "access: read-only", "access: readonly"),
+    ("commands.yaml", "access: read-only", "access: true"),
+    ("commands.yaml", "access: read-only", "read_only: true"),
     ("commands.yaml", "accepts_args: true", "accept_arg: true"),
     ("project.yaml", "skills: guides", "skills: /outside"),
     ("git.yaml", "base: trunk", "base: bad branch"),

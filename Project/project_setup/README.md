@@ -1,7 +1,7 @@
 # Portable scaffold runtime
 
 `agentrig init` installs the runtime into a consumer project configured by the `.agentrig/` modules. Consumers need
-Git, Just, their own configured tools and a read-only sandbox (bubblewrap on Linux, sandbox-exec on macOS); they do not
+Git, Just, their own configured tools and a sandbox (bubblewrap on Linux, sandbox-exec on macOS); they do not
 compile the worker or run its tests; see the [independent examples](../shared/testing/examples/README.md). A distributor
 builds both executables with `cargo build --release --locked --manifest-path Project/Cargo.toml`.
 
@@ -59,9 +59,9 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 
 - `git.yaml`: base branch, feature-branch prefix and optional `remote`, the Git remote that receives branches.
 - `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args` (`operands` refuses words starting with
-  `-`), `read_only`, `lifetime`, `programs` and `output`. An empty `argv` runs only listed programs, each limited to
-  its `subcommands` and refusing `deny` flags in every spelling. `output` holds `success` and `failure` views of lines
-  with a `matching` part plus the last `tail` lines; such a run prints only its view, exit status and log directory.
+  `-`), `access` (`read-only`, `project` writing only in the project, `unconfined`), `lifetime`, `programs` and
+  `output`. An empty `argv` runs only listed programs, each within `subcommands`, refusing `deny` flags in any
+  spelling, optionally with own `access`. `output` views `success` and `failure` show `matching` and last `tail` lines.
 - `checks.yaml`: ordered IDs with `kind` (`command`, `lint`, `memory`, `tools`), command, `include`, `skill`, `warning`
   and [`affected`](../change_delivery/gate/README.md).
 - `tools.yaml`: `recognize` globs besides files with a shebang or executable bit, permitted `locations`, `entries`

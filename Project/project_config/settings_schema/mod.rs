@@ -1,4 +1,4 @@
-pub mod access;
+mod access;
 pub mod arguments;
 mod capabilities;
 mod flag;
@@ -108,12 +108,7 @@ pub struct Command {
         serialize_with = "arguments::serialize"
     )]
     pub accepts_args: Arguments,
-    #[serde(
-        default,
-        rename = "read_only",
-        deserialize_with = "access::deserialize",
-        serialize_with = "access::serialize"
-    )]
+    #[serde(default)]
     pub access: Access,
     #[serde(default)]
     pub lifetime: Lifetime,
@@ -145,6 +140,8 @@ pub struct Program {
     pub subcommands: Vec<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub deny: Vec<Flag>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub access: Option<Access>,
 }
 #[derive(Clone, Copy, Default, Deserialize, Serialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]

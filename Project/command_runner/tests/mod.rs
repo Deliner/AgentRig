@@ -21,7 +21,7 @@ read:
   argv: []
   accepts_args: true
   programs: {cat: {}, sh: {}}
-  read_only: true
+  access: read-only
 "#;
 const WAIT: &str = "wait:\n  argv: [sleep, '60']\n";
 

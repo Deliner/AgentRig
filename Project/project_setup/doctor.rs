@@ -52,7 +52,7 @@ fn installed_binary(context: &Context) -> bool {
         &context.root,
         &[binary.to_string_lossy().into_owned(), "--version".into()],
         crate::command_runner::sandbox::Sandboxing {
-            access: Access::Writable,
+            access: Access::Unconfined,
             capture: crate::command_runner::jobs::Capture::Collect,
             cargo_target: None,
             rustflags: &context.config.rust.rustflags,
@@ -108,15 +108,15 @@ fn rust_toolchain(context: &Context) -> Result<bool> {
 }
 fn sandbox_availability(context: &Context) -> bool {
     let mut failed = false;
-    let read_only = context
+    let sandboxed = context
         .config
         .commands
         .values()
-        .any(|command| command.access.read_only());
-    if read_only {
+        .any(|command| command.access.sandboxed());
+    if sandboxed {
         let works = crate::command_runner::sandbox::available();
         console::stdout(format!(
-            "read-only backend: {}",
+            "sandbox backend: {}",
             if works { "available" } else { "UNAVAILABLE" }
         ));
         failed |= !works;

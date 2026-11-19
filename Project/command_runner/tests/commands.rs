@@ -1,5 +1,5 @@
 use super::{command, configured, jobs};
-use crate::shared::testing::{Run, invoke, run, runtime};
+use crate::shared::testing::{Run, git, invoke, run, runtime};
 use serde_json::json;
 use std::{
     fs,
@@ -15,6 +15,10 @@ const VIEWS: &str = "  accepts_args: true
     failure: {matching: [FAILED], tail: 1}
 ";
 const JOBS: &str = ".runtime/jobs";
+#[cfg(target_os = "macos")]
+const PROBE: &str = "<plist version=\"1.0\"><dict><key>CFBundleExecutable</key><string>probe</string>\
+<key>CFBundleIdentifier</key><string>dev.agentrig.sandbox-probe</string>\
+<key>CFBundlePackageType</key><string>APPL</string></dict></plist>\n";
 const REFUSALS: [(&[&str], &str); 5] = [
     (
         &["read", "--", "sh", "-c", "ls"],
@@ -121,6 +125,45 @@ fn confinement() -> Command {
     command
 }
 
+#[cfg(target_os = "macos")]
+fn probe_application(root: &Path, marker: &Path) -> PathBuf {
+    use std::os::unix::fs::PermissionsExt;
+    let application = root.join("Probe.app/Contents");
+    fs::create_dir_all(application.join("MacOS")).unwrap();
+    fs::write(application.join("Info.plist"), PROBE).unwrap();
+    let executable = application.join("MacOS/probe");
+    let script = format!("#!/bin/sh\ntouch '{}'\n", marker.display());
+    fs::write(&executable, script).unwrap();
+    fs::set_permissions(&executable, fs::Permissions::from_mode(0o755)).unwrap();
+    root.join("Probe.app")
+}
+
+// DECISION: D203
+#[cfg(target_os = "macos")]
+#[test]
+fn read_commands_cannot_start_a_program_outside_the_sandbox() {
+    let (_temp, root) = configured("");
+    let marker = root.join("escaped");
+    let application = probe_application(&root, &marker);
+    let application = application.display();
+    let escapes = [
+        format!("open -g -j -n {application}"),
+        format!("osascript -e 'tell application \"{application}\" to launch'"),
+    ];
+    let mut report = String::new();
+    for script in &escapes {
+        let attempt = invoke(&root, &["run", "read", "--", "sh", "-c", script]);
+        report += &format!("{script}: {:?} {}\n", attempt.code, attempt.output());
+    }
+    let deadline = std::time::Instant::now() + std::time::Duration::from_secs(3);
+    let mut escaped = marker.exists();
+    while !escaped && std::time::Instant::now() < deadline {
+        std::thread::sleep(std::time::Duration::from_millis(100));
+        escaped = marker.exists();
+    }
+    assert!(!escaped, "{report}");
+}
+
 #[cfg(target_os = "linux")]
 fn confinement() -> Command {
     let mut command = Command::new("bwrap");
@@ -193,6 +236,38 @@ fn base_programs_and_argument_forms() {
     assert_eq!(invalid.code, Some(2));
     let named = "commands.read: empty argv requires programs";
     assert!(invalid.stderr.contains(named), "{}", invalid.stderr);
+}
+
+// DECISION: D203
+#[test]
+fn write_programs_change_only_the_project() {
+    let (_temp, root) = initialized();
+    let outside = tempfile::tempdir().unwrap();
+    let escaped = outside.path().join("escaped");
+    let escaped = escaped.to_str().unwrap();
+    fs::write(root.join("note"), "kept").unwrap();
+    let copying = invoke(&root, &["run", "write", "--", "cp", "note", escaped]);
+    assert_ne!(copying.code, Some(0), "{}", copying.output());
+    assert!(copying.stderr.contains(escaped), "{}", copying.stderr);
+    assert!(!outside.path().join("escaped").exists());
+}
+
+// DECISION: D203
+#[test]
+fn write_runs_git_and_its_hooks_outside_the_sandbox() {
+    let (_temp, root) = initialized();
+    git(&root, &["config", "user.name", "Test"]);
+    git(&root, &["config", "user.email", "test@example.invalid"]);
+    let outside = tempfile::tempdir().unwrap();
+    let hooked = outside.path().join("hooked");
+    let hook = format!("#!/bin/sh\ntouch '{}'\n", hooked.display());
+    fs::write(root.join(".agentrig/hooks/pre-commit"), hook).unwrap();
+    let commit: Vec<_> = "run write -- git commit --allow-empty -qm probe"
+        .split(' ')
+        .collect();
+    let committed = invoke(&root, &commit);
+    assert_eq!(committed.code, Some(0), "{}", committed.output());
+    assert!(hooked.exists(), "{}", committed.output());
 }
 
 #[test]
