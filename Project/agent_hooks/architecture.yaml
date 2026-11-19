@@ -3,7 +3,7 @@ type: flat
 files:
   mod.rs: Dispatch session and tool events using configured project services
   input.rs: Read optional hook state objects and text fields with colocated behavior tests
-  shell_guard.rs: Parse the permitted outer shell invocation and validate its Just recipe arguments
+  shell_guard.rs: Parse the permitted outer shell invocation, validate its Just recipe arguments and read the paths a path program writes
   recovery.rs: Keep configuration repair and its check available while the configuration is invalid
   reminder.rs: Own per-session hook state, track transcript progress and schedule configured context reminders
   skill_requirements.rs: Match configured routes, keep undelivered skill requirements and render one ordered response

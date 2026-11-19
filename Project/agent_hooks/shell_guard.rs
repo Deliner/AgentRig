@@ -2,10 +2,14 @@
 use crate::change_delivery::gate;
 use crate::command_runner;
 use crate::project_config::Context;
+use crate::shared::paths::resolve;
 use crate::shared::shared_options::forwarded;
 use anyhow::{Result, bail};
 use serde_json::Value;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+// DECISION: D196
+const PATH_PROGRAMS: [&str; 6] = ["mkdir", "cp", "mv", "rm", "touch", "chmod"];
 
 enum Role {
     StartEscape,
@@ -151,4 +155,55 @@ pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>
         }
     }
     Ok(argv)
+}
+
+// DECISION: D196
+pub fn written(context: &Context, argv: &[String]) -> Result<Option<Vec<PathBuf>>> {
+    let (name, extra) = match argv.get(1).map(String::as_str) {
+        Some("run") => (argv.get(2), argv.get(3..)),
+        _ => (argv.get(1), argv.get(2..)),
+    };
+    let catalog = name.filter(|name| context.config.commands.contains_key(name.as_str()));
+    let Some(name) = catalog else {
+        return Ok(None);
+    };
+    let command = command_runner::argv(context, name, forwarded(extra.unwrap_or_default()))?;
+    let Some((program, words)) = command.split_first() else {
+        return Ok(None);
+    };
+    let path_program = PATH_PROGRAMS.contains(&program.as_str());
+    if path_program {
+        Ok(operands(words).and_then(|operands| rooted(&context.root, &operands)))
+    } else {
+        Ok(None)
+    }
+}
+fn operands(words: &[String]) -> Option<Vec<String>> {
+    let mut operands = Vec::new();
+    let mut options = true;
+    for word in words {
+        let separator = options && word == "--";
+        let option = options && word.starts_with('-');
+        if separator {
+            options = false;
+        } else if option {
+            let carries_value = word.contains(['=', '/']);
+            if carries_value {
+                return None;
+            }
+        } else {
+            operands.push(word.clone());
+        }
+    }
+    Some(operands)
+}
+fn rooted(root: &Path, operands: &[String]) -> Option<Vec<PathBuf>> {
+    let resolved: Option<Vec<PathBuf>> = operands
+        .iter()
+        .map(|operand| resolve(&root.join(operand)).ok())
+        .collect();
+    let inside = resolved?
+        .into_iter()
+        .filter_map(|path| path.strip_prefix(root).ok().map(Path::to_owned));
+    Some(inside.collect())
 }

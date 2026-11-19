@@ -162,7 +162,7 @@ fn read_only_catalog_commands_carry_no_shell_guidance() {
     let write = hook(
         &root,
         "Bash",
-        json!({"command": "just run write -- touch x"}),
+        json!({"command": "just run write -- git add x"}),
     );
     let (decision, message) = answer(&write);
     assert_eq!(decision, "allow");
@@ -178,6 +178,35 @@ fn read_only_catalog_commands_carry_no_shell_guidance() {
     assert!(message.contains("for opaque shell write"), "{message}");
     let empty = hook(&root, "Bash", json!({"command": "just scratch --"}));
     assert_eq!(answer(&empty), ("deny", "scratch -- TEXT"));
+}
+
+// DECISION: D196
+#[test]
+fn path_program_writes_name_only_the_routes_their_paths_reach() {
+    let (_temp, root) = project();
+    let write = |command: &str| {
+        let response = hook(&root, "Bash", json!({"command": command}));
+        answer(&response).1.to_owned()
+    };
+    assert_eq!(write("just write -- mkdir -p Project/data"), "");
+    let plan = write("just write -- rm Ledger/Plan/001.md");
+    let named = "edit-plan/SKILL.md for shell write of Ledger/Plan/001.md.";
+    assert!(plan.contains(named), "{plan}");
+    assert!(!plan.contains("edit-backlog"), "{plan}");
+    let tree = write("just run write -- rm -r Ledger");
+    let skills = [
+        "edit-plan",
+        "edit-backlog",
+        "edit-decisions",
+        "edit-invariants",
+        "edit-state",
+    ];
+    for skill in skills {
+        let named = format!("{skill}/SKILL.md for shell write of Ledger.");
+        assert!(tree.contains(&named), "{tree}");
+    }
+    let attached = write("just write -- cp --target-directory=docs x");
+    assert!(attached.contains("for opaque shell write"), "{attached}");
 }
 
 #[test]
