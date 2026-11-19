@@ -233,3 +233,59 @@ fn single_junctions_report_each_mixed_expression_at_error_level() {
     );
     assert_eq!(lint(&root), (Some(0), Vec::new()));
 }
+
+const FAST: &str = "fn fast(mode: Mode) -> bool {
+    match mode {
+        Mode::Fast => true,
+        Mode::Slow | Mode::Idle => false,
+    }
+}
+";
+const REORDERED: &str = "fn ready(mode: Mode) -> bool {
+    let fast = match mode {
+        Mode::Idle | Mode::Slow => false,
+        engine::Mode::Fast => true,
+    };
+    fast
+}
+";
+const SLOW: &str = "fn slow(mode: Mode) -> bool {
+    match mode {
+        Mode::Slow => true,
+        Mode::Fast | Mode::Idle => false,
+    }
+}
+";
+
+// DECISION: D206
+#[test]
+fn repeated_classifications_report_each_later_copy_with_the_first() {
+    let rust =
+        configured("repeated-classification", LEVEL).replace(LANGUAGES, r#"extensions: [".rs"]"#);
+    let (_temp, root) = consumer(&rust);
+    for (path, source) in [
+        ("src/first.rs", FAST),
+        ("src/other.rs", SLOW),
+        ("src/second.rs", REORDERED),
+        ("src/third.rs", FAST),
+    ] {
+        write(&root, path, source);
+    }
+    let (code, findings) = lint(&root);
+    assert_eq!(code, Some(1), "{findings:?}");
+    let found: Vec<_> = findings
+        .iter()
+        .map(|item| (item["path"].as_str(), item["line"].as_u64()))
+        .collect();
+    assert_eq!(
+        found,
+        [
+            (Some("src/second.rs"), Some(2)),
+            (Some("src/third.rs"), Some(2))
+        ]
+    );
+    for item in &findings {
+        let message = item["message"].as_str().unwrap();
+        assert!(message.ends_with("; first at src/first.rs:2"), "{message}");
+    }
+}

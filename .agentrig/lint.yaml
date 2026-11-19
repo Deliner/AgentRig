@@ -910,6 +910,17 @@ rules:
   level: error
   warning_skill: .agentrig/skills/branch-on-the-index/SKILL.md
   error_skill: .agentrig/skills/branch-on-the-index/SKILL.md
+# DECISION: D206
+- id: repeated-classification
+  kind: repeated-classification
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/classify-in-the-enum/SKILL.md
+  error_skill: .agentrig/skills/classify-in-the-enum/SKILL.md
 # DECISION: D181
 - id: fixed-test-port
   kind: fixed-test-port

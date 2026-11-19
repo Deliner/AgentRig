@@ -1,6 +1,7 @@
 mod hidden_exit;
 mod mixed_junction;
 mod range_chain;
+mod repeated_classification;
 mod stale_check;
 mod variant_equality;
 mod variant_list;

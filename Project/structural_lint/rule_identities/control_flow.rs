@@ -18,6 +18,7 @@ pub enum ControlFlow {
     HiddenExit,
     StaleCheck,
     VariantList,
+    RepeatedClassification,
 }
 impl ControlFlow {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -33,6 +34,7 @@ impl ControlFlow {
             Self::HiddenExit => &HIDDENEXIT,
             Self::StaleCheck => &STALECHECK,
             Self::VariantList => &VARIANTLIST,
+            Self::RepeatedClassification => &REPEATEDCLASSIFICATION,
         }
     }
 }
@@ -183,5 +185,17 @@ const VARIANTLIST: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a hand-written list of every variant stays complete only until the enum gains one, and nothing reports the stale list; derive the list from the enum's declaration, with a derive that enumerates the variants or a macro that declares the enum and its list together, or put a DECISION: or INVARIANT: reference on the line directly above the array",
+    },
+};
+// DECISION: D206
+const REPEATEDCLASSIFICATION: Descriptor = Descriptor {
+    default_id: "repeated-classification",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust match whose arms are unguarded, map paths E::V, alone or joined by |, to the literals true and false, both present, and name three or more paths, test code included, without a DECISION: or INVARIANT: reference comment on the line directly above it, after the first such match with the same set of pairs of a path, as the last segment of E and V, and a result among the files the rule selects in path order and line order; the finding names that first match",
+    skill: "classify-in-the-enum",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the same classification of enum variants into true and false is written in more than one place, so a new variant or a changed answer must be found and fixed at each copy; move the classification into a method of the enum and call it in every place, or put a DECISION: or INVARIANT: reference on the line directly above the match",
     },
 };

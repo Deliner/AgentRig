@@ -82,6 +82,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/branch-on-the-index/SKILL.md"),
     ),
     (
+        "classify-in-the-enum",
+        include_str!("../shared/skills/control-flow/classify-in-the-enum/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),
