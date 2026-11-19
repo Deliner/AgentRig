@@ -1,4 +1,4 @@
-use serde::{Deserialize, Deserializer, Serialize};
+use serde::{Deserialize, Serialize};
 
 // DECISION: D062
 // DECISION: D154
@@ -24,19 +24,4 @@ impl Access {
             Self::Unconfined => false,
         }
     }
-}
-
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum Written {
-    Named(Access),
-    ReadOnly(bool),
-}
-pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Access, D::Error> {
-    let access = match Written::deserialize(deserializer)? {
-        Written::Named(access) => access,
-        Written::ReadOnly(true) => Access::ReadOnly,
-        Written::ReadOnly(false) => Access::Unconfined,
-    };
-    Ok(access)
 }

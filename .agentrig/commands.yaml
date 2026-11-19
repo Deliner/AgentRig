@@ -2,7 +2,7 @@ read:
   purpose: Inspect files and Git history with configured programs
   argv: []
   accepts_args: true
-  read_only: true
+  access: read-only
   programs:
     git:
       subcommands: [status, diff, log, show, rev-parse, branch, ls-files, grep, blame, merge-base, describe, cat-file, ls-tree]
@@ -23,10 +23,13 @@ write:
   purpose: Change files and Git state with configured programs
   argv: []
   accepts_args: true
+  # DECISION: D203
+  access: project
   programs:
     git:
       subcommands: [add, commit, rm, mv, restore, switch, checkout, stash, cherry-pick, rebase, branch]
       deny: [--exec, -x]
+      access: unconfined
     mkdir: {}
     cp: {}
     mv: {}

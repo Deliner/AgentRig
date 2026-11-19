@@ -108,7 +108,7 @@ pub struct Command {
         serialize_with = "arguments::serialize"
     )]
     pub accepts_args: Arguments,
-    #[serde(default, alias = "read_only", deserialize_with = "access::deserialize")]
+    #[serde(default)]
     pub access: Access,
     #[serde(default)]
     pub lifetime: Lifetime,
