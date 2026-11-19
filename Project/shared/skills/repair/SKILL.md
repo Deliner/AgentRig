@@ -30,14 +30,17 @@ does not justify changing the guidance.
 
 ## Runtime binding
 
-Use config-check for settings, lint-rules for implemented capabilities and doctor
-for installation problems. While hooks report invalid configuration, only edits of
-the listed configuration files, `cat` of them and of this skill, and
-`just config-check` run: read and edit the reported file directly and rerun
-`just config-check`; normal work resumes once it passes. Apply the named skill
-and execute the reported RERUN command through the repository's configured
-shell adapter. For a gate check,
-use just check --only CHECK_ID and preserve --staged when reported. just report
+Use `just config-check` for settings and `just lint-rules` for implemented
+capabilities. The shell guard runs only Just recipes, so the user diagnoses an
+installation problem, such as a missing runtime, program, sandbox or hook
+registration, with the installed binary's `doctor` in a terminal. While hooks
+report invalid configuration, only edits of the listed configuration files,
+`cat` of them and of this skill, and `just config-check` run: read and edit the
+reported file directly and rerun `just config-check`; normal work resumes once
+it passes. Apply the named skill, then rerun through Just: a RERUN line names
+the runtime binary, which the shell guard does not run. Rerun the recipe that
+failed, and a gate check as `just check` with the arguments that follow
+`--root ROOT`, such as `just check --only CHECK_ID --staged`. `just report`
 shows consecutive failures and delivered guidance, not proof of reading or a
 shared cause.
 

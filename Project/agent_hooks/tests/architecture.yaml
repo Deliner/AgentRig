@@ -3,6 +3,7 @@ files:
   mod.rs: Verify configuration recovery permissions, diagnostics and return to normal work
   skill_requirements.rs: Verify blocking delivery, merged ordering, order conflicts, shell classification, path program writes and VAC check reminders
   memory.rs: Verify memory edit guidance and session recovery context
+  named_commands.rs: Verify that every just command the rig's instructions, READMEs and skills name passes the hook in the rig and after init
   shell.rs: Verify shell invocation guards
   tools.rs: Verify that every tool call is checked as a shell command or file edit, passes as passive or is refused by name
   reminders.rs: Verify Codex and Claude token accounting, reminder scheduling and storage recovery

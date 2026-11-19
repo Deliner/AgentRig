@@ -94,9 +94,11 @@ following sections.
 основании. Не выбирай внутреннее устройство за исполнителя и не превращай
 его работу в пользовательскую функцию.
 
-Дай название и коротко изложи смысл изменения. Затем изложи основные
-пункты как прямые обязательства о доступном поведении; общие границы и существенное неизвестное
-помести в конце. Не выдавай анализ альтернатив и ход рассуждения.
+Дай название, передающее смысл изменения. В Context изложи запрос и его
+основание. В Proposal изложи основные пункты как прямые обязательства
+о доступном поведении, а общие границы и существенное неизвестное помести
+в конце. В Expected benefit назови ожидаемую пользу. Не выдавай анализ
+альтернатив и ход рассуждения.
 
 Проверь, можно ли пройти необходимый цикл по описанным операциям:
 получить нужные сведения, выполнить изменения и требуемые переходы,
@@ -110,7 +112,7 @@ following sections.
 Если желаемую границу определить нельзя, назови именно этот пробел.
 Отсутствующие сведения о текущем состоянии отдели от решения пользователя.
 
-Выведи только законченный рапорт на русском. Не более 1000 слов во всём итоговом сообщении, включая заголовки и таблицы; счёт по пробельным символам. Реализацию не начинай, файлы не изменяй.
+Выведи только законченный рапорт на языке пользователя. Не более 1000 слов во всём итоговом сообщении, включая заголовки и таблицы; счёт по пробельным символам. Реализацию не начинай, файлы не изменяй.
 
 ## Save the same contract
 
@@ -121,8 +123,8 @@ Preserve criterion IDs.
 Read paths.memory in .agentrig/project.yaml. Maintain Backlog.md with
 ID | Idea | Expected benefit and Backlog/NNN.md cards. Allocate an unused stable
 BNNN from the live and archived indexes and cards; never renumber other ideas. Save the approved body
-with only necessary identity/navigation metadata, updating index and architecture
-inventories together. Use the existing memory check and report failed saves.
+with only necessary identity/navigation metadata, updating the index and card
+together. Use the existing memory check and report failed saves.
 Ordinary editing needs no just write. Do not copy secrets or transcripts.
 
 Backlog order is not priority or authorization. Existing saved ideas are not
@@ -149,8 +151,10 @@ do not establish every criterion. Check new rejection conditions, transformation
 formats and side effects against scope. Do not invent requirements or claim
 review of criteria outside the review's actual scope.
 
-Keep work required by current acceptance in the task. On explicit deferral,
-preserve requirements, progress, blocker, branch and resumption condition before
-removing live Plan entries and reconciling dependencies. Preserve source context
-and delivery links; replace live links with Archive links on completion through
-edit-plan. Interruption alone is not deferral.
+Keep work required by current acceptance in the task. Only the user defers
+execution. Then record requirements, progress, blocker, branch and resumption
+condition in the agreed card before removing live Plan entries and reconciling
+dependencies; this record keeps the card's contract and needs no new agreement.
+A blocker alone pauses the item in Plan; interruption alone is not deferral.
+Preserve source context and delivery links; replace live links with Archive
+links on completion through edit-plan.

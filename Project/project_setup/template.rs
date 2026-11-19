@@ -273,18 +273,19 @@ fn commands(options: &Options<'_>, rust: &Layout) -> Result<BTreeMap<String, Com
 }
 // DECISION: D132
 fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str, Command)> {
+    let rust_project = options["language"] == "rust";
+    let purpose = if rust_project {
+        "Run the project tests, optionally filtered by test name"
+    } else {
+        "Run the project tests, optionally filtered by test path"
+    };
     // DECISION: D202
     let test = Command {
         accepts_args: Arguments::Operands,
         output: Some(test_views(options)),
-        ..command(
-            "Run the project tests, optionally filtered by test path",
-            test_command(options, rust),
-            Access::Unconfined,
-        )
+        ..command(purpose, test_command(options, rust), Access::Unconfined)
     };
     let mut commands = vec![("test", test)];
-    let rust_project = options["language"] == "rust";
     if rust_project {
         let check = |purpose, argv| Command {
             accepts_args: Arguments::None,

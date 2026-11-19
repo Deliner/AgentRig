@@ -1,6 +1,6 @@
 # Decisions
 
-Current precedence: [D054](Decisions/054.md) ships testing discipline as the `testing-discipline` norm skill to consumers and makes its statically checkable parts lint rules with invariant oracles, leaving unprovable parts as review norms. [D053](Decisions/053.md) divides delivered capabilities into universal — required in both the `init` delivery and this repository — and worker-local, present only in the worker-building repository, enforced by invariant I020. [D052](Decisions/052.md) requires directory architecture contracts only in the Project source tree, narrowing D028's repository-wide application. [D051](Decisions/051.md) has the agent pin and bootstrap the accepted head of every branch that changes Project before merging it, without asking, deciding when D027 promotes the pin. [D050](Decisions/050.md) moves the Backlog rows and cards of completed outcomes to Archive/Backlog, extending D031's rotation of completed Plan cards. [D049](Decisions/049.md) prints lint warnings only with `--warnings`, superseding D017's visible-by-default warnings. [D047](Decisions/047.md) merges hook requirements into one ordered response, delivers each skill and area once per context window and lets configured routes block until delivered, superseding D014's context-only guidance without delivery state. [D046](Decisions/046.md) lets configuration recovery read its sources and repair skill through `cat`, superseding D045's single permitted shell command. [D044](Decisions/044.md) adds an architecture type to contracts of features without nested features, superseding D043's three-field limit. [D043](Decisions/043.md) limits directory contracts to purpose, files and directories, superseding D028's permission and public-boundary checks. [D042](Decisions/042.md) places first-level features with two-word names directly in Project and adds Python verification configuration to tooling, superseding D041's tooling scope. [D041](Decisions/041.md) develops the worker under Project, superseding D025's placement under tooling/worker. [D035](Decisions/035.md) makes feature-merge select tests affected by the whole branch, superseding D022's complete integration gate for test commands. [D034](Decisions/034.md) replaces systemd scopes with process groups and adds a macOS read-only sandbox. [D033](Decisions/033.md) retires review, delegation, upgrade and its receipt, declarative setup, Mercurial and external VCS, and JavaScript/TypeScript analysis; D023 and D024 remain history and D025 keeps only lint ownership. [D032](Decisions/032.md) requires chat agreement before saving new or revised feature requirements, Backlog-origin Plan contracts and autonomous execution of selected sets; it supersedes immediate idea capture under D031 and new-outcome prerequisite bypasses under D012. [D031](Decisions/031.md) limits Plan to current execution and sends future ideas to unordered Backlog, superseding D012's future queue semantics. [D022](Decisions/022.md) adds actionable verification evidence and recovery facts without new checkpoints. [D021](Decisions/021.md) supersedes D017's warning-only language rollout. [D020](Decisions/020.md) consolidates the runtime and current guidance. D011 retires D003 edit checkpoints; D012 supersedes D009 delivery sequencing. Rows and details D001–D019 record historical choices, not additional active runtimes. Their statements and details are preserved; Applies in points to current owners.
+Current precedence: a later decision prevails where a succession note below the table says it supersedes, narrows, limits, extends, decides or retires part of an earlier one, and the rest of the earlier decision remains. Rows and details record historical choices; their statements and details are preserved, and Applies in points to current owners.
 
 | ID | Decision | Applies in |
 | --- | --- | --- |
@@ -441,16 +441,9 @@ group guards production Python; like D060 it hardens AgentRig's own code rather
 than `init`, which ships no ruff, and records the scoping as a choice, not a
 weakened selector.
 
-D063 adds the last of B029's complexity lints and supersedes nothing: a function
-over five decision points is a finding, each if, else-if and ternary counts one
-and each match or case counts one however many arms it has, and the threshold is
-read from the worker's own distribution rather than set to spare it. With 4.1,
-4.2 and 4.3 delivered, P036 is complete.
+D063 adds the last of B029's complexity lints and supersedes nothing: a function over five decision points is a finding, each if, else-if and ternary counts one and each match or case counts one however many arms it has, and the threshold is read from the worker's own distribution rather than set to spare it. With 4.1, 4.2 and 4.3 delivered, P036 is complete.
 
-D062 adds B029's boolean-parameter lint and supersedes nothing: a `bool`
-parameter is a finding in Rust and Python, the worker's own 33 sites become named
-mode enums or string labels built at the call site, and `Capture` moves into
-`command_runner::jobs` so the directory dependency graph stays acyclic.
+D062 adds B029's boolean-parameter lint and supersedes nothing: a `bool` parameter is a finding in Rust and Python, the worker's own 33 sites become named mode enums or string labels built at the call site, and `Capture` moves into `command_runner::jobs` so the directory dependency graph stays acyclic.
 
 D061 adds the first of B029's complexity lints and supersedes nothing: nesting depth is measured apart from function size and input count, else-if and elif stay flat, a nested function or closure is its own scope, and the depth-4 boundary reuses the parameter-count line rather than a weakened one.
 
@@ -463,6 +456,28 @@ D058 records the B024 coverage alternative to TC1 as rejected; TC1 remains the D
 D057 supersedes D054's consequence that TC2/TC4 become lint rules with invariant oracles; D054's norm-skill delivery and enforcement-split principle remain. With D055 (TC1), no part of testing discipline is a static rule on the current engine.
 
 D055 supersedes D054's consequence that TC1 becomes a lint rule with an invariant; D054's norm-skill delivery and enforcement-split principle remain.
+
+D052 requires directory architecture contracts only in the Project source tree, narrowing D028's repository-wide application.
+
+D051 has the agent pin and bootstrap the accepted head of every branch that changes Project before merging it, without asking, deciding when D027 promotes the pin.
+
+D050 moves the Backlog rows and cards of completed outcomes to Archive/Backlog, extending D031's rotation of completed Plan cards.
+
+D049 prints lint warnings only with `--warnings`, superseding D017's visible-by-default warnings.
+
+D035 makes feature-merge select tests affected by the whole branch, superseding D022's complete integration gate for test commands.
+
+D033 retires review, delegation, upgrade and its receipt, declarative setup, Mercurial and external VCS, and JavaScript/TypeScript analysis; D023 and D024 remain history and D025 keeps only lint ownership.
+
+D032 requires chat agreement before saving new or revised feature requirements, Backlog-origin Plan contracts and autonomous execution of selected sets; it supersedes immediate idea capture under D031 and new-outcome prerequisite bypasses under D012.
+
+D031 limits Plan to current execution and sends future ideas to unordered Backlog, superseding D012's future queue semantics.
+
+D021 supersedes D017's warning-only language rollout.
+
+D012 supersedes D009 delivery sequencing.
+
+D011 retires D003 edit checkpoints.
 
 D047 supersedes D014's context-only route guidance without delivery state; D014's single entrypoint and Ledger guidance without a denial remain.
 

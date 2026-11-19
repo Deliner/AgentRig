@@ -37,25 +37,27 @@ this way it survives refactoring and never forces internals to leak.
    is a defect: pass the dependency (clock, filesystem root, command runner)
    through the public surface, so production and tests take the same path. A
    seam at a security, linker or test-runtime boundary is the exception and
-   carries a `// DECISION:` reference naming that boundary.
+   carries a `// DECISION: DNNN` reference to the decision that names that
+   boundary.
 
 Stop when each changed behavior is pinned through its public surface at its
 owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
 
 ## Enforcement
 
-These are review norms. A principle earns a lint rule only once it can be
-checked statically without false positives, and none of these can be yet.
-Placement (1) cannot: an import edge shows that a test depends on code, not
-whether that code is the behavior under test or an incidental shared type, so
-flagging every out-of-area dependency would punish ordinary shared vocabulary
-and test helpers. Public surface and back doors (2, 4) cannot: no symbol
-visibility or reverse-reference analysis exists. Determinism (7) cannot either: a
-call to a clock, RNG or the network is not by itself a nondeterminism bug, and
-order dependence is not syntactic, so a blanket ban would be false-positive-prone.
-Seams (8) cannot: a parameter or `cfg` branch does not say whether a test is
-its only caller, and the security, linker and test-runtime exceptions share
-that syntax.
-The one decidable part — a test disabled without a justifying reference — is
-enforced by the `disabled-test` rule; the rest apply in review, where a finding
-would be repaired here.
+A principle earns a lint rule once it can be checked statically without false
+positives. The decidable parts are rules: `test-placement` reports a Rust
+test-only module file outside `tests.rs` or a tests directory (1),
+`untargeted-panic` a `#[should_panic]` without `expected` (3),
+`fixed-test-port` a test bound to a fixed port (7), `test-substitution` an item
+compiled only outside tests, such as under `cfg(not(test))` (8), and
+`disabled-test` a test disabled without a justifying reference.
+
+The rest are review norms. The level of a test (1) is not decidable: an import
+edge shows that a test depends on code, not whether that code is the behavior
+under test or an incidental shared type. Public surface and back doors (2, 4)
+need symbol visibility or reverse-reference analysis, which does not exist.
+Determinism beyond a fixed port (7) is not syntactic: a call to a clock, RNG or
+the network is not by itself a nondeterminism bug. Seams beyond test-only
+compilation (8) are not either: a parameter or `cfg` branch does not say
+whether a test is its only caller. A finding of either kind is repaired here.
