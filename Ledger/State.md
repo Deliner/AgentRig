@@ -2,24 +2,25 @@
 
 ## Focus
 
-Not recorded.
+P165 (B168), activation: mark P165 active before the inert `parallel-index` kind.
 
 ## Workspace
 
-Not recorded.
+- Branch: feature/parallel-index
+- Revision: 98588d057eab2779a9119b14d222fcff415873af
 
 ## Progress
 
-Not recorded.
+- P164 merged into master; P165 is the last selected card that is not paused.
 
 ## Verification
 
-Not recorded.
+- Plan status only; the commit gate checks memory.
 
 ## Blockers
 
-Not recorded.
+None.
 
 ## Next action
 
-Not recorded.
+Add the inert `parallel-index` detector, its test, descriptor and D211, then pin and enable it.
