@@ -90,6 +90,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         Kind::Reference(Reference::CargoRustflags) => {
             value["include"] = json!(["**/.cargo/config.toml"]);
         }
+        // DECISION: D195
+        Kind::Structure(Structure::SameText) => {
+            value["include"] = json!(["AGENTS.md", "CLAUDE.md"])
+        }
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

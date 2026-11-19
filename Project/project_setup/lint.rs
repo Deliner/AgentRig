@@ -92,7 +92,8 @@ fn cataloged(kind: Kind) -> bool {
             Structure::DirectoryArchitecture
             | Structure::LineWidth
             | Structure::ForbiddenFile
-            | Structure::ProgramLanguage,
+            | Structure::ProgramLanguage
+            | Structure::SameText,
         ) => false,
         Kind::Structure(
             Structure::NonblankLines
