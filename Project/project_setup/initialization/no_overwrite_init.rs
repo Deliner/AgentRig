@@ -27,6 +27,7 @@ pub fn run(root: &Path, args: &[String]) -> Result<i32> {
     Ok(0)
 }
 // DECISION: D123
+// DECISION: D214
 pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
     let disabled = !config.capabilities.lint;
     if disabled {
@@ -40,7 +41,7 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
     let existing = errors > 0;
     if existing {
         console::stdout(format!(
-            "Lint errors in existing files: {errors}. To adopt the rules without blocking the gate, run just lint-baseline: lint then fails only when a rule's errors in a path grow."
+            "Lint errors in existing files: {errors}. To adopt the rules without blocking the gate, run just lint-baseline and approve the recorded baseline with just approve: lint then fails only when a rule's errors in a path grow."
         ));
     }
     Ok(())

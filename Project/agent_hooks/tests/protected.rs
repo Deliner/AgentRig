@@ -1,13 +1,17 @@
 // DECISION: D213
+// DECISION: D214
 use super::{edit, hook, project, reason, shell};
 use crate::shared::testing::configure;
 use serde_json::{Value, json};
 use std::path::Path;
 
 const REFUSAL: &str = "protected enforcement files";
-const ENFORCEMENT: [&str; 11] = [
+const ENFORCEMENT: [&str; 14] = [
     ".agentrig/bin/agentrig",
     ".agentrig/commands.yaml",
+    ".agentrig/checks.yaml",
+    ".agentrig/lint.yaml",
+    ".agentrig/lint-baseline.yaml",
     ".agentrig/hooks/pre-commit",
     ".git/config",
     ".agentrig/just/x.just",
@@ -83,7 +87,7 @@ fn a_proposal_and_ordinary_files_stay_editable() {
     let (_temp, root) = project();
     for path in [
         ".cache/runtime/proposal/.agentrig/commands.yaml",
-        ".agentrig/checks.yaml",
+        ".agentrig/oracles.yaml",
         "README.md",
     ] {
         let input = json!({"file_path": path});

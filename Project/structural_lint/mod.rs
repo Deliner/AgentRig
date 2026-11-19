@@ -1,5 +1,6 @@
 pub mod architecture;
 pub mod baseline;
+pub mod baseline_file;
 mod evaluation;
 pub mod languages;
 pub mod reporting;

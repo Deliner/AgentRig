@@ -1,20 +1,11 @@
 use super::Location;
+use super::baseline_file::{Counts, Key, ceiling, committed, location, pairs};
 use crate::shared::console;
 use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
-use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
-
-// DECISION: D123
-type Counts = BTreeMap<String, BTreeMap<String, u64>>;
-
-// DECISION: D123
-pub fn location(config: &Path) -> PathBuf {
-    let stem = config.file_stem().unwrap_or_default().to_string_lossy();
-    config.with_file_name(format!("{stem}-baseline.yaml"))
-}
+use std::path::Path;
 
 fn load(path: &Path) -> Result<Option<Counts>> {
     let source = match fs::read_to_string(path) {
@@ -37,36 +28,6 @@ fn counts(diagnostics: &[Diagnostic]) -> Counts {
             .or_default() += 1;
     }
     counts
-}
-
-#[derive(Clone, Copy)]
-struct Key<'a> {
-    rule: &'a str,
-    path: &'a str,
-}
-
-impl Key<'_> {
-    fn allowed(self, counts: &Counts) -> u64 {
-        counts
-            .get(self.rule)
-            .and_then(|paths| paths.get(self.path))
-            .copied()
-            .unwrap_or_default()
-    }
-}
-
-struct Pair<'a> {
-    key: Key<'a>,
-    count: u64,
-}
-
-fn pairs(counts: &Counts) -> impl Iterator<Item = Pair<'_>> {
-    counts.iter().flat_map(|(rule, paths)| {
-        paths.iter().map(move |(path, count)| Pair {
-            key: Key { rule, path },
-            count: *count,
-        })
-    })
 }
 
 // DECISION: D123
@@ -116,6 +77,7 @@ pub fn errors(lint: Location<'_>) -> Result<u64> {
 
 // DECISION: D123
 // DECISION: D139
+// DECISION: D214
 pub fn record(lint: Location<'_>) -> Result<i32> {
     let current = current(lint)?;
     let path = location(lint.config);
@@ -135,7 +97,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
     let unaccepted = exceeding > 0;
     if unaccepted {
         console::stdout(format!(
-            "{exceeding} rule and path pairs exceed the baseline and were not raised; fix them, or delete {} and record again to accept them",
+            "{exceeding} rule and path pairs exceed the baseline and were not raised; fix them, or ask the user to delete {} and to approve with just approve the baseline that lint-baseline then records",
             path.display()
         ));
     }
@@ -156,39 +118,6 @@ fn limit(lint: Location<'_>, working: Counts) -> Result<Counts> {
     let committed = committed(&repository, &head, relative)?;
     let renames = repository.renames(&head)?;
     Ok(ceiling(&working, committed.as_ref(), &renames))
-}
-
-fn committed(repository: &Repository<'_>, head: &str, relative: &Path) -> Result<Option<Counts>> {
-    let name = relative.to_string_lossy();
-    let listed = repository.run(&["ls-tree", "--name-only", head, "--", &name])?;
-    let uncommitted = listed.is_empty();
-    if uncommitted {
-        return Ok(None);
-    }
-    let source = String::from_utf8(repository.read(head, relative)?)?;
-    let counts = crate::shared::strict_yaml::decode(&source)
-        .with_context(|| format!("committed lint baseline {name}"))?;
-    Ok(Some(counts))
-}
-
-fn ceiling(
-    working: &Counts,
-    committed: Option<&Counts>,
-    renames: &BTreeMap<String, String>,
-) -> Counts {
-    let mut ceiling = Counts::new();
-    for pair in pairs(working).chain(committed.into_iter().flat_map(pairs)) {
-        let path = renames
-            .get(pair.key.path)
-            .map_or(pair.key.path, String::as_str);
-        let count = ceiling
-            .entry(pair.key.rule.to_owned())
-            .or_default()
-            .entry(path.to_owned())
-            .or_default();
-        *count = (*count).max(pair.count);
-    }
-    ceiling
 }
 
 // DECISION: D123

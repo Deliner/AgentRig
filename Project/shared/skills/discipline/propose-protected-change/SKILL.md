@@ -14,8 +14,9 @@ staged change of them that the user has not approved. They are:
   agent hook registrations `.claude/settings.json`, `.codex/hooks.json` and
   `.codex/config.toml`, the recipes `justfile` and `.agentrig/just/`;
 - the configuration modules `.agentrig/project.yaml`, `git.yaml`,
-  `commands.yaml` and `hooks.yaml`, so a new catalog command or `just write`
-  program is a proposal too;
+  `commands.yaml`, `checks.yaml`, `hooks.yaml`, `tools.yaml` and `rust.yaml`,
+  the lint configuration `paths.lint` and its baseline, so a new catalog
+  command, `just write` program, check setting or lint rule is a proposal too;
 - `.git`, the route state `reminders/` and the approval record `approved` in
   the runtime directory;
 - every path listed in `hooks.protected` and the pin named by `git.pin`.
@@ -38,5 +39,8 @@ staged change of them that the user has not approved. They are:
 
 A deletion has no proposal: ask the user to delete the file before approving.
 The project's installer moves the pin, and the gate accepts a staged pin
-without approval only when its revision descends from the committed one. When
-the configuration is invalid in a protected file, ask the user to correct it.
+without approval only when its revision descends from the committed one. The
+gate accepts a lint baseline written by `just lint-baseline` without approval
+only when it raises no count and adds no pair; recording new errors needs the
+user's approval. When the configuration is invalid in a protected file, ask
+the user to correct it.

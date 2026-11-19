@@ -11,7 +11,8 @@ use crate::shared::calling_agent::Agent;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
-const PROTECTED_CONFIGURATION: [&str; 2] = ["project.yaml", "hooks.yaml"];
+const PROTECTED_CONFIGURATION: [&str; 3] = ["project.yaml", "checks.yaml", "hooks.yaml"];
+const PROTECTED_LIST: &str = ".agentrig/project.yaml, .agentrig/git.yaml, .agentrig/commands.yaml, .agentrig/checks.yaml, .agentrig/hooks.yaml, .agentrig/tools.yaml, .agentrig/rust.yaml";
 
 fn initialized(args: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
     let temp = tempfile::tempdir().unwrap();
@@ -57,40 +58,41 @@ fn shell(root: &Path, command: &str) -> String {
 #[test]
 fn invalid_configuration_leaves_only_its_repair_and_check_available() {
     let (_temp, root) = project();
-    let checks = root.join(".agentrig/checks.yaml");
-    let valid = fs::read_to_string(&checks).unwrap();
-    fs::write(&checks, "- id: x\n  kind: memory\n  skill: none.md\n").unwrap();
-    assert_eq!(edit(&root, ".agentrig/checks.yaml"), "");
-    assert_eq!(edit(&root, &checks.display().to_string()), "");
+    let oracles = root.join(".agentrig/oracles.yaml");
+    let valid = fs::read_to_string(&oracles).unwrap();
+    fs::write(&oracles, "I001:\n  surprise: 1\n").unwrap();
+    assert_eq!(edit(&root, ".agentrig/oracles.yaml"), "");
+    assert_eq!(edit(&root, &oracles.display().to_string()), "");
     assert_eq!(shell(&root, "just config-check"), "");
     let denied = edit(&root, "Project/main.py");
     let repair = format!(
         "ACTION: Apply {}/.agents/skills/repair/SKILL.md",
         root.display()
     );
+    let protected = format!("protected {PROTECTED_LIST};");
     for expected in [
-        ".agentrig/checks.yaml: checks.x.skill",
+        ".agentrig/oracles.yaml: oracles.I001",
         &repair,
-        "only edits of .agentrig/checks.yaml, .agentrig/oracles.yaml",
-        "protected .agentrig/project.yaml, .agentrig/git.yaml, .agentrig/commands.yaml, .agentrig/hooks.yaml;",
+        "only edits of .agentrig/oracles.yaml, .agentrig/lint.yaml",
+        &protected,
         "`just config-check`",
     ] {
         assert!(denied.contains(expected), "{expected}: {denied}");
     }
-    assert_eq!(edit(&root, ".agentrig/commands.yaml"), denied);
+    assert_eq!(edit(&root, ".agentrig/checks.yaml"), denied);
     for command in ["just run test", "just config-check; touch x", "just list"] {
         assert_eq!(shell(&root, command), denied, "{command}");
     }
-    let patch = "*** Update File: .agentrig/checks.yaml\n*** Add File: Project/x.py\n";
+    let patch = "*** Update File: .agentrig/oracles.yaml\n*** Add File: Project/x.py\n";
     assert_eq!(reason(&hook(&root, "apply_patch", json!(patch))), denied);
-    let codex = "*** Begin Patch\n*** Update File: .agentrig/checks.yaml\n*** End Patch";
+    let codex = "*** Begin Patch\n*** Update File: .agentrig/oracles.yaml\n*** End Patch";
     assert_eq!(
         reason(&hook(&root, "apply_patch", json!({"command": codex}))),
         ""
     );
     let session = respond(&root, &json!({"hook_event_name": "SessionStart"}));
     assert_eq!(session["hookSpecificOutput"]["additionalContext"], denied);
-    fs::write(&checks, valid).unwrap();
+    fs::write(&oracles, valid).unwrap();
     assert_eq!(edit(&root, "README.md"), "");
     assert_eq!(shell(&root, "just run test"), "");
 }
@@ -105,7 +107,7 @@ fn invalid_configuration_can_be_read_only_through_cat_of_its_files() {
     let repair = format!("{}/.agents/skills/repair/SKILL.md", root.display());
     assert!(
         denied.contains(&format!(
-            "`cat` of these files, .agentrig/project.yaml, .agentrig/git.yaml, .agentrig/commands.yaml, .agentrig/hooks.yaml and {repair}"
+            "`cat` of these files, {PROTECTED_LIST} and {repair}"
         )),
         "{denied}"
     );

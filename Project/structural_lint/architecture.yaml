@@ -4,6 +4,7 @@ files:
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings, reporting a classification only where it repeats an earlier one
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
 directories:
+  baseline_file: Read and compare the lint baseline file without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
   languages: Parse source syntax and measure language-specific scalar rules

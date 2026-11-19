@@ -2,21 +2,25 @@
 
 ## Focus
 
-P157 (B158): the gate checks a change by rules the change cannot weaken. VAC 0 activates P157 after the user's
-answer «B 1»: an intended weakening or baseline growth passes only with the user's `! just approve`.
+P157 (B158), VAC1: AC1 and AC3. The protected set holds check settings, the lint configuration and its baseline;
+without approval a staged baseline commits only when it adds no pair and raises no count (D214).
 
 ## Workspace
 
 Branch: feature/gate-base-rules
-Revision: fbd7ef95eb3466a1536c0ff291c713d74cb07961
+Revision: c2052f200e6273f2394bc4e7d11cdf50af8ca33a
 
 ## Progress
 
-- VAC 0: Plan marks P157 active; its Delivery records the answer, the branch and the master base `fbd7ef9`.
+- Protection covers `checks.yaml`, `tools.yaml`, `rust.yaml`, `paths.lint` and its baseline; the commit guard admits a
+  lowered or removed baseline without approval through the new leaf `structural_lint/baseline_file`.
+- Hook, delivery, approval and init offer tests follow the wider set; D214 row, detail and precedence note written.
+- Remaining ACs: AC4 and AC5 history against the fork point, AC2 marker links, AC6 installed lint in the rig gate.
 
 ## Verification
 
-- `just check --only memory` for the plan-only change.
+- `just run test`: 582 passed before the baseline split; after it the baseline, approval and init layout tests pass.
+- `just run clippy`, `just run rustfmt` and `just lint` pass.
 
 ## Blockers
 
@@ -24,4 +28,4 @@ None.
 
 ## Next action
 
-Commit VAC 0, then VAC 1: protect the check settings, the lint configuration and its baseline (AC1, AC3) with D214.
+Commit VAC1 through the hook, then start VAC2: compare decisions and invariants with the fork point from the base.
