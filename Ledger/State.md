@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/dogfood-setup`, от master `502a35e`.
-Revision: `85abb4febf8f0df89a0f22d9ecca70797431bd25`
+Revision: `98e284f33e6eb948e4ddba5f65b141b50da8c983`
 
 Установленный рантайм `05f345a` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -30,21 +30,22 @@ Revision: `85abb4febf8f0df89a0f22d9ecca70797431bd25`
   к навыку идёт через каталог агента; модуль агентов в `Project/shared/calling_agent`.
 - VAC 4 `85abb4f`, AC5 для lint, гейта и doctor: агент из `CODEX_THREAD_ID` или `CLAUDECODE`, все сообщения с навыком
   дают абсолютный путь через каталог агента.
-- VAC 5, этот коммит, AC1–AC3: `init` повторяет настройку рига, риг вызывает `.agentrig/bin/agentrig` поверх
+- VAC 5 `98e284f`, AC1–AC3: `init` повторяет настройку рига, риг вызывает `.agentrig/bin/agentrig` поверх
   `tooling/worker/run`, оставшиеся отличия с причинами в
-  `Project/project_setup/initialization/tests/rig_differences.yaml`; решение D189, инвариант I023. Генерация рецептов
-  Just вынесена в `Project/project_setup/recipes.rs`, пример Rust-проекта держит `lib.rs` и `Cargo.lock` в корне
-  `Project`.
+  `Project/project_setup/initialization/tests/rig_differences.yaml`; решение D189, инвариант I023.
+- VAC 6, этот коммит, AC5 в пустом проекте: `init` даёт базе без коммитов пустой первый коммит, не трогая индекс,
+  иначе `feature-merge` не проверял базу; решение D190.
 
 ## Verification
 
-`cargo test` всего пакета: 524 прошли; `cargo fmt` чист; `just lint` кандидатом без находок; `just config-check`
-валиден. Тест сравнения запускает `init` для Rust-проекта с `origin` и манифестом рига и находит только перечисленные
-отличия, каждое ещё действует и имеет причину.
+`cargo test` всего пакета: 525 прошли; тесты `project_setup::initialization` с проверкой индекса: 28 прошли;
+`cargo fmt` чист; `just candidate lint` без находок.
 
-Проба 2026-11-19: Codex в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
-PreToolUse; их вход не называет агента, переменных Codex у хука нет; команды Codex получают `CODEX_THREAD_ID`, команды
-Claude Code получают `CLAUDECODE=1`.
+Проба 2026-11-19 в пустом каталоге с `init` кандидатом: база получила коммит `Start the repository`, коммит
+настройки на `feature/setup` прошёл гейт, `feature-merge` слил ветку. Хук старта сессии, первая правка в `Project` и
+`just lint` дают абсолютный путь к конкретному `SKILL.md` через `.agents/skills` с `CODEX_THREAD_ID` и через
+`.claude/skills` с `CLAUDECODE=1`. Сам Codex с `-s read-only` получил при старте путь
+через `.agents/skills`; `just read` в этом режиме не работает, потому что рантайм создаёт свой каталог.
 
 ## Blockers
 
@@ -52,6 +53,5 @@ Claude Code получают `CLAUDECODE=1`.
 
 ## Next action
 
-Проба AC5: пустой проект после `init` кандидатом, Codex и Claude Code видят абсолютные пути к навыкам через свои
-каталоги, первый коммит проходит. Затем пин D051, архив P143 и B145, `feature-merge`. Свободные ID: D190+, I024+,
-P144+, B146+.
+Пин D051 принятой головы ветки в `tooling/distribution/stable.txt` с `just bootstrap`, коммит пина, архив P143 и
+B145, `feature-merge`. Свободные ID: D191+, I024+, P144+, B146+.

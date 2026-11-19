@@ -189,6 +189,28 @@ fn init_links_each_agent_skill_directory_to_the_installed_skills() {
     }
 }
 
+// DECISION: D190
+#[test]
+fn init_starts_a_repository_without_commits_on_its_base_with_an_empty_commit() {
+    for existing in [None, Some("trunk")] {
+        let (_temp, root) = consumer();
+        if let Some(branch) = existing {
+            git(&root, &["init", "-q", "-b", branch]);
+            fs::write(root.join("notes.txt"), "staged\n").unwrap();
+            git(&root, &["add", "notes.txt"]);
+        }
+        assert_eq!(initialize(&root, &["--base", "main"]).unwrap(), 0);
+        assert_eq!(git(&root, &["symbolic-ref", "HEAD"]), "refs/heads/main");
+        let subjects = git(&root, &["log", "--format=%s", "main"]);
+        assert_eq!(subjects, "Start the repository", "{existing:?}");
+        let tree = git(&root, &["ls-tree", "-r", "--name-only", "main"]);
+        assert_eq!(tree, "", "{existing:?}");
+        let staged = git(&root, &["diff", "--cached", "--name-only"]);
+        let expected = existing.map_or("", |_| "notes.txt");
+        assert_eq!(staged, expected, "{existing:?}");
+    }
+}
+
 // DECISION: D123
 #[test]
 fn init_offers_a_lint_baseline_for_errors_in_existing_files() {
