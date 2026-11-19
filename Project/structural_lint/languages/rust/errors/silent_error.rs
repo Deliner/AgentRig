@@ -10,6 +10,7 @@ const ERROR_ARMS: &[&str] = &["Err(_)", "Err(..)"];
 
 // DECISION: D097
 // DECISION: D165
+// DECISION: D207
 pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(function) = node.child_by_field_name("function") else {
         return;
@@ -27,17 +28,7 @@ pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec
         return;
     };
     let name = text(field, source);
-    let dropped = match (name, values(arguments).as_slice()) {
-        ("flatten", []) => read_dir_rooted(receiver, source),
-        ("map_while", [argument]) => {
-            result_ok(*argument, source) && read_dir_rooted(receiver, source)
-        }
-        ("filter_map" | "flat_map", [argument]) => {
-            let clippy = lines_call(receiver, source) && plain_ok(*argument, source);
-            result_ok(*argument, source) && !clippy
-        }
-        _ => false,
-    };
+    let dropped = drops_error(name, &values(arguments), receiver, source);
     let allowed = !dropped || justified(node, source) || in_test_context(node, source);
     if allowed {
         return;
@@ -48,6 +39,25 @@ pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec
         symbol: name.into(),
         actual: 1,
     });
+}
+// DECISION: D207
+fn drops_error(name: &str, arguments: &[Node<'_>], receiver: Node<'_>, source: Code<'_>) -> bool {
+    match (name, arguments) {
+        ("flatten", []) => {
+            read_dir_rooted(receiver, source) || method_receiver(receiver, "ok", source).is_some()
+        }
+        ("map_while", [argument]) => {
+            result_ok(*argument, source) && read_dir_rooted(receiver, source)
+        }
+        ("filter_map" | "flat_map", [argument]) => {
+            let clippy = lines_call(receiver, source) && plain_ok(*argument, source);
+            result_ok(*argument, source) && !clippy
+        }
+        ("ok" | "unwrap_or_default", []) | ("unwrap_or" | "unwrap_or_else", [_]) => {
+            method_receiver(receiver, "join", source).is_some()
+        }
+        _ => false,
+    }
 }
 fn result_ok(argument: Node<'_>, source: Code<'_>) -> bool {
     ok_path(argument, source) || ok_receiver(argument, source).is_some()
