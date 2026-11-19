@@ -5,7 +5,13 @@ use crate::shared::{
 };
 use std::{fs, path::Path};
 
-const CHANGES: [(&str, &str, &str, &str); 5] = [
+const CHANGES: [(&str, &str, &str, &str); 6] = [
+    (
+        ".claude/settings.json",
+        "--agent claude-code",
+        "--agent codex",
+        "Claude Code registration",
+    ),
     (
         ".codex/config.toml",
         "hooks = true",

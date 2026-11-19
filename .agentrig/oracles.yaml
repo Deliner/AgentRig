@@ -82,4 +82,8 @@ I022:
   check: rust-test
   runner: cargo
   target: project_setup::initialization::tests::layout::init_always_keeps_memory_in_ledger_and_sources_in_project
+I023:
+  check: rust-test
+  runner: cargo
+  target: project_setup::initialization::tests::rig::init_matches_the_rig_setup_except_listed_differences
 

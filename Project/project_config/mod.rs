@@ -1,11 +1,12 @@
 pub(crate) mod settings_schema;
 #[cfg(test)]
 mod tests;
+use crate::shared::calling_agent::{Agent, Caller};
 use anyhow::Result;
 pub use settings_schema::{
-    Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Frontend, Git,
-    Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,
-    VERSION, View, Views, access, files, module, read, relative, sources,
+    Access, AffectedTests, Capabilities, Check, CheckKind, Command, Config, FILE, Git, Hooks,
+    Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools, VERSION,
+    View, Views, access, files, module, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 
@@ -14,6 +15,7 @@ pub struct Context {
     pub config: Config,
     pub runtime: PathBuf,
     pub cargo_target: Option<PathBuf>,
+    pub caller: Caller,
 }
 impl Context {
     pub fn load(root: &Path) -> Result<Self> {
@@ -21,11 +23,17 @@ impl Context {
         let config = read(&root)?;
         config.validate(&root)?;
         let runtime = relative(&root, &config.paths.runtime)?;
+        let caller = Caller {
+            root: root.clone(),
+            skills: config.paths.skills.clone().into(),
+            agent: Agent::calling(),
+        };
         Ok(Self {
             root,
             config,
             runtime,
             cargo_target: None,
+            caller,
         })
     }
     pub fn path(&self, value: &str) -> Result<PathBuf> {

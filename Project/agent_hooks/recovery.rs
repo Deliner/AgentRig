@@ -1,14 +1,24 @@
 // DECISION: D045
 // DECISION: D046
 use super::{Event, context, deny, input::text, paths, shell_guard, target};
-use crate::{project_config, shared::diagnostics};
+use crate::project_config;
+use crate::shared::{calling_agent::Agent, diagnostics};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
-pub(super) fn respond(root: &Path, event: &Value, error: &anyhow::Error) -> Option<Value> {
+// DECISION: D188
+pub(super) fn respond(
+    root: &Path,
+    agent: Agent,
+    event: &Value,
+    error: &anyhow::Error,
+) -> Option<Value> {
     let sources = project_config::sources(root);
-    let skill = diagnostics::config_skill(root);
-    let message = message(error, &sources, &skill);
+    let skill = diagnostics::config_skill(root, Some(agent));
+    let shown = skill
+        .clone()
+        .unwrap_or_else(|| diagnostics::UNNAMED_SKILL.to_owned());
+    let message = message(error, &sources, &shown);
     match (text(event, "hook_event_name"), text(event, "tool_name")) {
         ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
         ("PreToolUse", "Bash" | "Shell" | "exec_command") => {
@@ -16,7 +26,8 @@ pub(super) fn respond(root: &Path, event: &Value, error: &anyhow::Error) -> Opti
             let argv = shell_guard::arguments(command).unwrap_or_default();
             let check = matches!(argv.as_slice(), [_, recipe] if recipe == "config-check");
             let words = command.and_then(|command| shell_guard::words(command).ok());
-            let readable = [sources, vec![PathBuf::from(skill)]].concat();
+            let named = skill.and_then(|skill| target(root, event, &skill));
+            let readable = [sources, named.into_iter().collect()].concat();
             let read = match words.as_deref() {
                 Some([cat, files @ ..]) => cat == "cat" && within(root, event, files, &readable),
                 _ => false,

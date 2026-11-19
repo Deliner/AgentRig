@@ -14,6 +14,7 @@ const DETAIL: &str = "# I001\n\n## Predicate\n\nDoubles correctly.\n\n## Oracle\
 struct Runner {
     language: &'static str,
     runner: &'static str,
+    check: &'static str,
     target: &'static str,
     file: &'static str,
     function: &'static str,
@@ -29,6 +30,7 @@ struct Runner {
 const PYTEST: Runner = Runner {
     language: "python",
     runner: "pytest",
+    check: "tests",
     target: "Project/test_sample.py::test_doubles",
     file: "Project/test_sample.py",
     function: "test_doubles",
@@ -47,6 +49,7 @@ const PYTEST: Runner = Runner {
 const CARGO: Runner = Runner {
     language: "rust",
     runner: "cargo",
+    check: "rust-test",
     target: "feature::tests::doubles",
     file: "Project/src/feature/tests.rs",
     function: "doubles",
@@ -89,8 +92,8 @@ fn project(runner: &Runner, tests: &str) -> (TempDir, PathBuf) {
 
 fn bind(root: &Path, runner: &Runner, target: &str) {
     let oracle = format!(
-        "I001: {{check: tests, runner: {}, target: '{target}'}}\n",
-        runner.runner
+        "I001: {{check: {}, runner: {}, target: '{target}'}}\n",
+        runner.check, runner.runner
     );
     configure(root, "oracles", &oracle);
 }

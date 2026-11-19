@@ -71,7 +71,7 @@ pub struct Answer {
     pub tracked: bool,
 }
 impl Answer {
-    pub fn output(mut self, configured: &Context, tool: &str) -> Result<Option<Value>> {
+    pub fn output(mut self, configured: &Context, tool: &str) -> Option<Value> {
         let routes = &configured.config.hooks.routes;
         self.found
             .sort_by(|left, right| (left.route, &left.reason).cmp(&(right.route, &right.reason)));
@@ -88,12 +88,12 @@ impl Answer {
             } else {
                 Enforcement::Guidance
             };
-            lines.push(requirement(configured, group, enforcement)?);
+            lines.push(requirement(configured, group, enforcement));
         }
         lines.extend(self.notes);
         let silent = lines.is_empty();
         if silent {
-            return Ok(None);
+            return None;
         }
         let status = if blocking {
             format!(
@@ -103,11 +103,11 @@ impl Answer {
             format!("AgentRig allowed this {tool} call. Apply the guidance below to the change.")
         };
         let message = format!("{status}\n\n{}", lines.join("\n\n"));
-        Ok(Some(if blocking {
+        Some(if blocking {
             deny(&message)
         } else {
             context(Event::PreToolUse, &message)
-        }))
+        })
     }
 }
 // DECISION: D062
@@ -124,13 +124,10 @@ impl Enforcement {
         }
     }
 }
-fn requirement(
-    configured: &Context,
-    group: &[Occurrence],
-    enforcement: Enforcement,
-) -> Result<String> {
+fn requirement(configured: &Context, group: &[Occurrence], enforcement: Enforcement) -> String {
     let routes = &configured.config.hooks.routes;
-    let skill = configured.path(&routes[group[0].route].skill)?;
+    // DECISION: D188
+    let skill = configured.caller.skill(&routes[group[0].route].skill);
     let mut reasons: Vec<&str> = group.iter().map(|item| item.reason.as_str()).collect();
     reasons.dedup();
     let mut sources: Vec<String> = group
@@ -139,10 +136,9 @@ fn requirement(
         .collect();
     sources.dedup();
     let kind = enforcement.label();
-    Ok(format!(
+    format!(
         "- {kind}: read and apply {skill} for {reasons}. Source: {sources}.",
-        skill = skill.display(),
         reasons = reasons.join("; "),
         sources = sources.join(", ")
-    ))
+    )
 }

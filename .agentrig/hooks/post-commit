@@ -2,4 +2,4 @@
 # DECISION: D179
 set -eu
 root=$(git rev-parse --show-toplevel)
-exec "$root/tooling/worker/run" feature-push --root "$root"
+exec "$root"/.agentrig/bin/agentrig feature-push --root "$root"

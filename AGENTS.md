@@ -47,7 +47,7 @@ affected by the whole branch; retain the branch. Never commit directly to the ba
 ## Memory and skills
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
-edit-* skill. Their canonical bodies live in Project/shared/skills and are exposed through .agents/skills. Do not
+edit-* skill. Their canonical bodies live in Project/shared/skills; agents reach them via .agentrig/skills. Do not
 create another instruction copy. Hook routes give memory-skill guidance, stop the first code edit in each directory
 until refactor-large-directory and its contracts are applied, and stop the first VAC commit in a context for edit-state
 (D047). Opaque shell writes require applying the relevant skill yourself.

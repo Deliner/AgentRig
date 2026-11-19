@@ -1,0 +1,79 @@
+# DECISION: D189
+# Each entry names the setup paths where the AgentRig repository differs from init output and why.
+- reason: The rig launches its installed development runtime through tooling/worker/run instead of a copied platform binary.
+  at:
+  - [.agentrig, bin]
+- reason: The rig keeps its skill sources in Project/shared/skills and links .agentrig/skills to them; init copies them.
+  at:
+  - [.agentrig, skills]
+- reason: The rig's development launchers and distribution scripts in tooling are sources, tools and edit routes.
+  at:
+  - [.agentrig, project.yaml, paths, sources, 'tooling/**']
+  - [.agentrig, tools.yaml, locations, 'tooling/**']
+  - [.agentrig, tools.yaml, entries, tooling/worker/run]
+  - [.agentrig, tools.yaml, entries, tooling/distribution/bootstrap.sh]
+  - [.agentrig, hooks.yaml, routes, '0', include, 'tooling/**']
+- reason: The rig builds, runs, lints and releases the candidate runtime it develops, so lint is a candidate command.
+  at:
+  - [.agentrig, commands.yaml, build]
+  - [.agentrig, commands.yaml, candidate]
+  - [.agentrig, commands.yaml, lint]
+  - [.agentrig, commands.yaml, release]
+  - [.agentrig, checks.yaml, build]
+  - [.agentrig, checks.yaml, lint, kind]
+  - [.agentrig, checks.yaml, lint, command]
+  - [just, lint.just, '@.agentrig/bin/agentrig run lint -- "$@"']
+  - [just, lint.just, '@.agentrig/bin/agentrig lint "$@"']
+  - [justfile, "import 'just/development.just'"]
+  - [just, development.just]
+- reason: The rig checks its Python test fixtures and the spelling of the whole repository with tools pinned in tooling.
+  at:
+  - [.agentrig, commands.yaml, ruff-format]
+  - [.agentrig, commands.yaml, ruff]
+  - [.agentrig, commands.yaml, mypy]
+  - [.agentrig, commands.yaml, typos]
+  - [.agentrig, commands.yaml, vulture]
+  - [.agentrig, checks.yaml, ruff-format]
+  - [.agentrig, checks.yaml, ruff]
+  - [.agentrig, checks.yaml, mypy]
+  - [.agentrig, checks.yaml, typos]
+  - [.agentrig, checks.yaml, vulture]
+  - [.agentrig, lint.yaml, rules, architecture, architecture, external, python]
+- reason: >-
+    The rig commits Cargo.lock, keeps every test in its library and also lints its example; init cannot assume a lock
+    file, a library target or a test layout in a project.
+  at:
+  - [.agentrig, commands.yaml, clippy, argv, --locked]
+  - [.agentrig, commands.yaml, clippy, argv, --lib]
+  - [.agentrig, commands.yaml, clippy, argv, --bins]
+  - [.agentrig, commands.yaml, clippy, argv, --examples]
+  - [.agentrig, commands.yaml, test, argv, --locked]
+  - [.agentrig, commands.yaml, test, argv, --lib]
+  - [.agentrig, commands.yaml, test, argv, '--']
+- reason: >-
+    Init runs language checks only for Project changes so a project without sources yet can commit; the rig always has
+    its crate and its tests also read the setup itself.
+  at:
+  - [.agentrig, checks.yaml, rustfmt, include]
+  - [.agentrig, checks.yaml, clippy, include]
+  - [.agentrig, checks.yaml, rust-test, include]
+- reason: The rig maps changed paths to its own test groups.
+  at:
+  - [.agentrig, checks.yaml, rust-test, affected]
+- reason: The rig binds its own invariants to their oracles.
+  at:
+  - [.agentrig, oracles.yaml]
+- reason: >-
+    The rig names its own enforcement owners for fail-closed review; init cannot know where a project enforces policy
+    and routes the whole source tree.
+  at:
+  - [.agentrig, hooks.yaml, routes, '9', include]
+- reason: The rig vendors the tree-sitter Rust grammar, which is generated code outside its architecture.
+  at:
+  - [.agentrig, lint.yaml, exclude, Project/shared/source_parsers/tree-sitter-rust]
+  - [.agentrig, lint.yaml, exclude, 'Project/shared/source_parsers/tree-sitter-rust/**']
+- reason: The rig carries the portable Rust example crate that delivery tests initialize, and its own layering rules.
+  at:
+  - [.agentrig, lint.yaml, rules, architecture, architecture, rust_roots,
+     Project/shared/testing/examples/rust/Project/lib.rs]
+  - [.agentrig, lint.yaml, rules, architecture, architecture, disallowed]

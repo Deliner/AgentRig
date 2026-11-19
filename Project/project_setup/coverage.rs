@@ -5,6 +5,7 @@ use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs_with_context as fs};
 use crate::structural_lint::architecture::{extraction, resolution::rust::Rust};
+use crate::structural_lint::{Format, Location, Mode};
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
@@ -54,7 +55,34 @@ struct Mapped<'a> {
     modules: Modules,
 }
 
-pub(super) fn report(context: &Context) -> Result<bool> {
+pub fn config_check(context: &Context) -> Result<i32> {
+    let lint = if context.config.capabilities.lint {
+        let config = context.path(&context.config.paths.lint)?;
+        crate::structural_lint::reporting::findings::run(
+            Location {
+                root: &context.root,
+                config: &config,
+            },
+            &context.caller,
+            Format::Json,
+            Mode::ConfigCheck,
+        )?
+    } else {
+        0
+    };
+    let uncovered = report(context)?;
+    let linted = lint == 0;
+    let code = if linted { i32::from(uncovered) } else { lint };
+    let valid = code == 0;
+    if valid {
+        console::stdout(format!(
+            "Scaffold configuration is valid (runtime {})",
+            crate::project_config::VERSION
+        ));
+    }
+    Ok(code)
+}
+fn report(context: &Context) -> Result<bool> {
     let files = files(context)?;
     let rerun = rerun(&context.root, &["config-check".into()]);
     let mut found = false;
@@ -74,7 +102,7 @@ pub(super) fn report(context: &Context) -> Result<bool> {
                 id: &check.id,
                 location: &path.display().to_string(),
                 message: &message,
-                skill: &context.config.config_skill,
+                skill: &context.caller.skill(&context.config.config_skill),
                 rerun: &rerun,
             });
         }

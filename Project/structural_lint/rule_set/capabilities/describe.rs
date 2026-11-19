@@ -15,7 +15,7 @@ pub fn describe(kind: Kind) -> Value {
     let descriptor = kind.descriptor();
     let mut value = json!({"kind": kind, "target": descriptor.target,
         "metric": descriptor.metric, "skill": descriptor.skill,
-        "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agents/skills", &["src/**".into()]),
+        "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agentrig/skills", &["src/**".into()]),
         "languages": "any UTF-8 text", "extensions": "configurable"});
     let directory = descriptor.target == "directory";
     if directory {

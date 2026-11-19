@@ -45,8 +45,9 @@ before following it. [Decisions](Ledger/Decisions.md) links current owners and p
 [Invariants](Ledger/Invariants.md) links executable behavior checks. Detailed historical decisions are evidence, not a
 second set of current instructions; the index identifies their successors.
 
-The runtime lives in Project. Skills have one source in Project/shared/skills; .agents/skills is a symlink
-to it, and installed packages embed those same files. Git and agent registrations are thin adapters. The gate runs
+The runtime lives in Project. Skills have one source in Project/shared/skills; .agentrig/skills links to it, Codex
+and Claude Code reach it through .agents/skills and .claude/skills, and installed packages embed those same files.
+Git and agent registrations are thin adapters. The gate runs
 against the actual staged tree at commit and the integration candidate before merge, selecting tests affected by the
 commit or the whole branch. It validates configured contracts and checks; semantic atomicity and acceptance adequacy
 remain the executing agent's responsibility.

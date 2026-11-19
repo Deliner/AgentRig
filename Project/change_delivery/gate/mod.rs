@@ -72,6 +72,7 @@ pub fn selected(root: &Path, options: Options<'_>) -> Result<i32> {
     let tree = snapshot.as_ref().map(|dir| dir.path()).unwrap_or(root);
     let mut context = Context::load(tree)?;
     context.runtime = project_config::relative(root, &context.config.paths.runtime)?;
+    context.caller.root = root.to_owned();
     let export = snapshot.take_if(|_| options.staged);
     let _staged = export
         .map(|export| staged::reuse(root, export, &mut context))

@@ -1,5 +1,6 @@
 purpose: Define the minimal Rust consumer crate and its executable invariant
 files:
-  Cargo.toml: Consumer package identity and Rust edition
-directories:
-  src: Crate entry point and invariant test
+  Cargo.toml: Consumer package identity, Rust edition and crate root
+  Cargo.lock: Locked consumer package graph
+  lib.rs: Minimal doubling assertion available as a configured invariant oracle
+directories: {}

@@ -25,12 +25,12 @@ const PYTHON: Language = Language {
     function: ["def example():\n", "    value = 0\n", ""],
     rules: [
         (
-            "named-if",
+            "named-if-condition",
             "if True:\n    pass\n",
             "ready = True\nif ready:\n    pass\n",
         ),
         (
-            "parameters",
+            "parameter-count",
             "def example(a, b, c, d, e): pass\n",
             "def example(a, b, c, d): pass\n",
         ),
@@ -47,12 +47,12 @@ const RUST: Language = Language {
     function: ["fn example() {\n", "    let value = 0;\n", "}\n"],
     rules: [
         (
-            "named-if",
+            "named-if-condition",
             "fn example() { if true {} }\n",
             "fn example() { let ready = true; if ready {} }\n",
         ),
         (
-            "parameters",
+            "parameter-count",
             "fn example(a:i8,b:i16,c:i32,d:i64,e:u8) {}\n",
             "fn example(a:i8,b:i16,c:i32,d:i64) {}\n",
         ),
@@ -86,7 +86,7 @@ fn function(language: &Language, lines: usize) -> String {
 
 fn cases(language: &Language) -> Vec<(&'static str, String, String)> {
     let size = (
-        "function-size",
+        "function-lines",
         function(language, FUNCTION_LIMIT + 1),
         function(language, FUNCTION_LIMIT),
     );
@@ -124,7 +124,7 @@ fn guided(found: &[Value], skill: &str) -> bool {
 
 fn blocks(language: &Language, (rule, invalid, boundary): (&str, String, String)) {
     let (_temp, root) = initialized(language.name);
-    let path = format!("Project/example.{}", language.extension);
+    let path = format!("example.{}", language.extension);
     write(&root, &path, &invalid);
     let (code, found) = lint(&root);
     assert_eq!(code, Some(1), "{rule}: {found:?}");
@@ -159,16 +159,13 @@ fn strict_defaults_block_delivery() {
 fn shipped_rules_skip_test_files_only_where_decided() {
     for language in [PYTHON, RUST] {
         let (_temp, root) = initialized(language.name);
-        for path in ["Project/x.rs", "Project/tests/x.rs"] {
+        for path in ["x.rs", "tests/x.rs"] {
             write(&root, path, PANICKING);
         }
         let (_, found) = lint(&root);
-        assert!(flagged(&found, "panic-path", "Project/x.rs"), "{found:?}");
-        assert!(
-            !flagged(&found, "panic-path", "Project/tests/x.rs"),
-            "{found:?}"
-        );
-        let unsafe_test = flagged(&found, "unsafe-justification", "Project/tests/x.rs");
+        assert!(flagged(&found, "panic-path", "x.rs"), "{found:?}");
+        assert!(!flagged(&found, "panic-path", "tests/x.rs"), "{found:?}");
+        let unsafe_test = flagged(&found, "unsafe-justification", "tests/x.rs");
         assert!(unsafe_test, "{found:?}");
     }
 }
@@ -320,6 +317,7 @@ fn shipped_markdown_bounds() {
         &format!("# Title\n\n{}", "a line\n".repeat(60)),
     );
     fs::remove_file(root.join("Project/notes.md")).unwrap();
+    fs::remove_dir(root.join("Project")).unwrap();
     fs::remove_file(root.join("Ledger/README.md")).unwrap();
     let accepted = invoke(&root, &["lint"]);
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());

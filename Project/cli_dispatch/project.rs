@@ -66,7 +66,7 @@ fn run_command(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
             id: &check.id,
             location: &context.config.commands[name].cwd,
             message: &format!("exited {code}; see original output above"),
-            skill: &check.skill,
+            skill: &context.caller.skill(&check.skill),
             rerun: &rerun,
         });
     }

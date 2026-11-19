@@ -17,7 +17,7 @@
     rust_roots: [src/lib.rs]
     feature_root: src
     external: {rust: [std, core, alloc], python: [json]}
-  error_skill: .agents/skills/refactor-large-directory/SKILL.md
+  error_skill: .agentrig/skills/refactor-large-directory/SKILL.md
 ```
 
 Every selected directory needs a contract, including documentation, resource and empty directories. Select a parent

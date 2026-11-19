@@ -1,13 +1,13 @@
 purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
 files:
-  mod.rs: Configuration checks and configured diagnostic output
+  mod.rs: Lint location and configuration loading, output modes and the analysis of configuration or sources into findings
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
 directories:
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
   languages: Parse source syntax and measure language-specific scalar rules
-  reporting: Parse lint commands and print rule discovery, explanations, measured edges and the tree and structure reports
+  reporting: Parse lint commands and print findings, rule discovery, explanations, measured edges and the tree and structure reports
   rule_identities: Define stable rule identities, parameters and architecture settings
   rule_set: Describe implemented rule capabilities and load and validate strict lint policy
   targeting: Discover maintained files and directories and select targets with their effective thresholds

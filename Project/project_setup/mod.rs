@@ -5,6 +5,7 @@ mod coverage;
 mod doctor;
 pub(super) mod initialization;
 mod lint;
+mod recipes;
 mod runtime;
 mod rust;
 mod skills;
@@ -12,11 +13,29 @@ mod template;
 #[cfg(test)]
 mod tests;
 use crate::project_config::{self, Config};
+use crate::shared::calling_agent::Agent;
 use anyhow::{Result, ensure};
-pub use doctor::{config_check, run as doctor};
+pub use coverage::config_check;
+pub use doctor::run as doctor;
 pub use runtime::add as runtime_add;
 use std::collections::BTreeMap;
+use std::path::{Path, PathBuf};
 type Files = BTreeMap<String, Vec<u8>>;
+type Links = BTreeMap<String, PathBuf>;
+// DECISION: D188
+fn skill_links(config: &Config) -> Links {
+    Agent::ALL
+        .into_iter()
+        .map(|agent| {
+            let link = Path::new(agent.skills());
+            let depth = link
+                .parent()
+                .map_or(0, |parent| parent.components().count());
+            let target: PathBuf = std::iter::repeat_n("..", depth).collect();
+            (agent.skills().to_owned(), target.join(&config.paths.skills))
+        })
+        .collect()
+}
 fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
     let config = &scaffold.config;
     let mut files = guidance(config);
@@ -79,12 +98,10 @@ fn add_policy(files: &mut Files, config: &Config, rust: &rust::cargo::Layout) ->
 }
 fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     let generated = adapters::generated(config)?;
-    files.insert(
-        config.paths.service_path(".gitignore"),
-        b"runtime/\n".to_vec(),
-    );
+    // DECISION: D189
+    files.insert(format!("{}/.gitignore", template::CACHE), b"*\n".to_vec());
     files.extend(runtime::files(config)?);
-    for justfile in template::justfiles(config) {
+    for justfile in recipes::justfiles(config) {
         files.insert(justfile.path, justfile.source.into_bytes());
     }
     client_files(files, config, &generated.root_command)?;
@@ -97,19 +114,15 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     }
     Ok(())
 }
+// DECISION: D188
 fn client_files(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
-    match config.frontend {
-        project_config::Frontend::Codex => {
-            files.insert(
-                ".codex/config.toml".into(),
-                adapters::CODEX_CONFIG.as_bytes().to_vec(),
-            );
-            files.insert(
-                ".codex/hooks.json".into(),
-                adapters::registration(config, root_command)?,
-            );
-        }
-        project_config::Frontend::ClaudeCode => claude::bundle(files, config, root_command)?,
-    }
-    Ok(())
+    files.insert(
+        ".codex/config.toml".into(),
+        adapters::CODEX_CONFIG.as_bytes().to_vec(),
+    );
+    files.insert(
+        ".codex/hooks.json".into(),
+        adapters::registration(config, root_command, Agent::Codex)?,
+    );
+    claude::bundle(files, config, root_command)
 }

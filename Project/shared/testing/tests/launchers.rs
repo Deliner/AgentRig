@@ -138,7 +138,8 @@ fn stable_runtime_survives_a_candidate_build_failure() {
         assert_eq!(result.code, Some(0), "{args:?}: {}", result.output());
     }
     let event = r#"{"hook_event_name":"SessionStart"}"#;
-    let hook = launch(&root, "run", &["hook", "--root", installed_root], event);
+    let args = ["hook", "--root", installed_root, "--agent", "codex"];
+    let hook = launch(&root, "run", &args, event);
     assert_eq!(hook.code, Some(0), "{}", hook.output());
     assert!(
         hook.stdout.contains("complexity-discipline"),

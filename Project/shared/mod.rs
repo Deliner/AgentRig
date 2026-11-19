@@ -1,4 +1,5 @@
 pub mod atomic_files;
+pub mod calling_agent;
 pub mod console;
 pub mod diagnostics;
 pub mod fs_with_context;

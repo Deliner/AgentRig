@@ -1,15 +1,15 @@
 # What: invoke resume; Why: use the configured native runtime.
 resume:
-    @tooling/worker/run resume
+    @.agentrig/bin/agentrig resume
 
 # What: invoke report; Why: use the configured native runtime.
 report:
-    @tooling/worker/run report
+    @.agentrig/bin/agentrig report
 
 # What: invoke feature-start; Why: use the configured native runtime.
 feature-start *args:
-    @tooling/worker/run feature-start "$@"
+    @.agentrig/bin/agentrig feature-start "$@"
 
 # What: invoke feature-merge; Why: use the configured native runtime.
 feature-merge:
-    @tooling/worker/run feature-merge
+    @.agentrig/bin/agentrig feature-merge

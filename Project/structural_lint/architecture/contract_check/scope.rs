@@ -16,12 +16,12 @@ pub struct Scope {
 }
 
 impl Scope {
-    pub fn new(rule: &Rule, inventory: &Inventory) -> Result<Self> {
-        let directories: BTreeSet<_> = lint_targets::select(rule, inventory)?
+    pub fn new(rule: &Rule, discovered: &Inventory) -> Result<Self> {
+        let directories: BTreeSet<_> = lint_targets::select(rule, discovered)?
             .into_iter()
             .map(|selected| selected.path.to_path_buf())
             .collect();
-        let inventory = selected_inventory(rule, inventory, &directories)?;
+        let inventory = selected_inventory(rule, discovered, &directories)?;
         let files: BTreeSet<_> = inventory
             .files
             .iter()
@@ -39,11 +39,21 @@ impl Scope {
             files,
             inventory,
         };
-        scope.validate_roots(rule)?;
+        scope.validate_roots(rule, discovered)?;
         Ok(scope)
     }
 
-    fn validate_roots(&self, rule: &Rule) -> Result<()> {
+    // DECISION: D189
+    fn selects(&self, rule: &Rule, inventory: &Inventory, directory: &Path) -> Result<bool> {
+        let present = inventory.directories.contains_key(directory);
+        if present {
+            return Ok(self.directories.contains(directory));
+        }
+        let included = globs(&rule.include)?.is_match(directory);
+        Ok(included && !globs(&rule.exclude)?.is_match(directory))
+    }
+
+    fn validate_roots(&self, rule: &Rule, inventory: &Inventory) -> Result<()> {
         let needs_rust_root = self
             .files
             .iter()
@@ -57,10 +67,11 @@ impl Scope {
             "{}: selected Rust sources need architecture.rust_roots",
             rule.id
         );
-        let unselected_root = settings
-            .feature_root
-            .as_ref()
-            .is_some_and(|root| !self.directories.contains(root));
+        let selected_root = match &settings.feature_root {
+            Some(root) => self.selects(rule, inventory, root)?,
+            None => true,
+        };
+        let unselected_root = !selected_root;
         ensure!(
             !unselected_root,
             "{}: architecture.feature_root must be a selected directory",

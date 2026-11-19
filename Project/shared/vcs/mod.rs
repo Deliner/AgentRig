@@ -71,10 +71,21 @@ pub struct Repository<'a> {
     root: &'a Path,
 }
 
+// DECISION: D190
 pub fn initialize(root: &Path, base: &str) -> Result<()> {
     let missing = Repository::discover(root)?.is_none();
     if missing {
         git::run(root, &["init", "-q", "-b", base])?;
+    }
+    let unborn = git::head(root)?.is_none();
+    if unborn {
+        let tree = String::from_utf8(git::run(root, &["mktree"])?)?;
+        let message = "Start the repository";
+        let commit = git::run(root, &["commit-tree", tree.trim(), "-m", message])?;
+        let commit = String::from_utf8(commit)?;
+        let reference = format!("refs/heads/{base}");
+        git::run(root, &["update-ref", &reference, commit.trim(), ""])?;
+        git::run(root, &["symbolic-ref", "HEAD", &reference])?;
     }
     Ok(())
 }

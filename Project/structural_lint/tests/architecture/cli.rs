@@ -20,8 +20,9 @@ fn reported(consumer: &Consumer, violation: &str) {
         let message = item["message"].as_str().unwrap();
         message.contains(violation)
     });
+    let skill = consumer.root.join(SKILL);
     let shaped = items.iter().all(|item| {
-        let attributed = item["rule"] == "architecture" && item["skill"] == SKILL;
+        let attributed = item["rule"] == "architecture" && item["skill"] == skill.to_str().unwrap();
         attributed && item["actual"].is_null() && item["limit"].is_null()
     });
     assert!(named && shaped, "{findings}");

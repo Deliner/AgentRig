@@ -1,7 +1,9 @@
-purpose: Verify environment initialization while preserving existing consumer files and client preferences
+purpose: Verify environment initialization while preserving existing consumer files
 files:
   mod.rs: Refuse colliding files and deliver the universal capabilities of this repository
   wizard.rs: Interactive initialization choices, collision recheck and parity with declarative init
   layout.rs: Installation locations, generated adapters and rejected layout changes
-  claude.rs: Claude Code hook registration that guards shell calls and collisions with existing client files
+  agents.rs: Codex and Claude Code hook registrations, the skill path each agent is shown and collisions with existing client files
+  rig.rs: Init output for a Rust project with origin equals this repository's setup except listed differences
+  rig_differences.yaml: Each remaining difference between this repository's setup and init output with its reason
 directories: {}

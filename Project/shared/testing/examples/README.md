@@ -49,7 +49,7 @@ just run test
 just check
 git add .
 just check --staged
-printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook
+printf '%s' '{"hook_event_name":"SessionStart","session_id":"example"}' | .agentrig/bin/agentrig hook --agent codex
 git commit -m "Attach portable scaffold"
 just feature-merge
 just feature-start next
@@ -69,11 +69,11 @@ I001:
   target: Project/test_sample.py::test_doubles
 ```
 
-For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/src/lib.rs)` and:
+For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/lib.rs)` and:
 
 ```yaml
 I001:
-  check: tests
+  check: rust-test
   runner: cargo
   target: tests::doubles
 ```

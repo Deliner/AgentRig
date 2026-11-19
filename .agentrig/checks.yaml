@@ -1,28 +1,28 @@
 - id: build
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: build
 - id: lint
   kind: command
   command: lint
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
 - id: memory
   kind: memory
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
 - id: tools
   kind: tools
-  skill: .agents/skills/develop-tools/SKILL.md
+  skill: .agentrig/skills/develop-tools/SKILL.md
 - id: rustfmt
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: rustfmt
 - id: clippy
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: clippy
 - id: rust-test
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: test
   affected:
   - {include: ['**'], targets: ['structural_lint::tests::configuration::', 'structural_lint::tests::discovery::']}
@@ -30,6 +30,8 @@
     targets: ['::']
   - include: ['AGENTS.md']
     targets: ['project_setup::tests::toolchain::']
+  - include: ['justfile', 'just/**', '.codex/**', '.claude/**']
+    targets: ['project_setup::initialization::tests::rig::']
   - include: ['Project/structural_lint/**', 'Project/shared/testing/**']
     targets: ['structural_lint::', 'cli_dispatch::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/cli_dispatch/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']
@@ -58,21 +60,21 @@
     targets: ['shared::testing::launchers::']
 - id: ruff-format
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: ruff-format
 - id: ruff
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: ruff
 - id: mypy
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: mypy
 - id: typos
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: typos
 - id: vulture
   kind: command
-  skill: .agents/skills/repair/SKILL.md
+  skill: .agentrig/skills/repair/SKILL.md
   command: vulture

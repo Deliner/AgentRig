@@ -1,6 +1,7 @@
 // DECISION: D047
-use super::{hook, project};
+use super::{hook, pre_tool, project};
 use crate::agent_hooks::dispatch;
+use crate::shared::calling_agent::Agent;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -54,27 +55,39 @@ fn first_edit_in_an_area_stops_until_its_requirement_is_delivered() {
         "deny"
     );
     let compact = json!({"hook_event_name": "SessionStart", "source": "compact"});
-    dispatch(&root, &compact).unwrap();
+    dispatch(&root, &compact, Agent::Codex).unwrap();
     assert_eq!(answer(&edit(&root, "Project/agent_hooks/mod.rs")).0, "deny");
 }
 
 // DECISION: D186
+// DECISION: D188
 #[test]
-fn first_decision_edit_stops_until_norm_or_choice_is_delivered() {
-    let (_temp, root) = project();
-    let first = edit(&root, "Ledger/Decisions/001.md");
-    let (decision, message) = answer(&first);
-    assert_eq!(decision, "deny");
-    let required = "- Required: read and apply {root}/.agentrig/skills/norm-or-choice/SKILL.md for edit of Ledger/Decisions/001.md. Source: hooks.routes[8].";
-    let required = required.replace("{root}", &root.display().to_string());
-    assert!(message.contains(&required), "{message}");
-    assert_eq!(edit(&root, "Ledger/Decisions/001.md"), Value::Null);
+fn each_agent_is_sent_to_the_skill_through_its_own_directory() {
+    for agent in Agent::ALL {
+        let (_temp, root) = project();
+        let event = pre_tool(
+            &root,
+            "Edit",
+            json!({"file_path": "Ledger/Decisions/001.md"}),
+        );
+        let first = dispatch(&root, &event, agent).unwrap().unwrap();
+        let (decision, message) = answer(&first);
+        assert_eq!(decision, "deny", "{agent:?}");
+        let skill = root.join(agent.skills()).join("norm-or-choice/SKILL.md");
+        assert!(skill.is_file(), "{}", skill.display());
+        let required = format!(
+            "- Required: read and apply {} for edit of Ledger/Decisions/001.md. Source: hooks.routes[8].",
+            skill.display()
+        );
+        assert!(message.contains(&required), "{agent:?}: {message}");
+        assert_eq!(dispatch(&root, &event, agent).unwrap(), None, "{agent:?}");
+    }
 }
 
 fn patched(files: &[&str]) -> String {
     let (_temp, root) = project();
     fs::write(
-        root.join(".agentrig/reminder.json"),
+        root.join(".agentrig/skills/complexity-discipline/context-reminder.json"),
         r#"{"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300}"#,
     )
     .unwrap();
@@ -83,7 +96,7 @@ fn patched(files: &[&str]) -> String {
     let common = json!({"session_id": "s", "transcript_path": transcript, "cwd": root});
     let mut start = common.clone();
     start["hook_event_name"] = json!("SessionStart");
-    dispatch(&root, &start).unwrap();
+    dispatch(&root, &start, Agent::Codex).unwrap();
     let usage = json!({"type": "event_msg", "payload": {"type": "token_count",
         "info": {"last_token_usage": {"input_tokens": 400}}}});
     fs::write(&transcript, format!("{usage}\n")).unwrap();
@@ -95,7 +108,7 @@ fn patched(files: &[&str]) -> String {
     event["hook_event_name"] = json!("PreToolUse");
     event["tool_name"] = json!("apply_patch");
     event["tool_input"] = json!({"command": format!("*** Begin Patch\n{patch}*** End Patch")});
-    let output = dispatch(&root, &event).unwrap().unwrap();
+    let output = dispatch(&root, &event, Agent::Codex).unwrap().unwrap();
     let (decision, message) = answer(&output);
     assert_eq!(decision, "deny");
     message.replace(&root.display().to_string(), "ROOT")
@@ -114,8 +127,8 @@ fn one_response_keeps_every_requirement_in_configured_order() {
     let mut reversed = files;
     reversed.reverse();
     assert_eq!(patched(&reversed), message);
-    let architecture = "- Required: read and apply ROOT/.agentrig/skills/refactor-large-directory/SKILL.md for edit of Project/a/y.rs; edit of Project/a/z.rs; edit of Project/b/x.rs. Source: hooks.routes[0].";
-    let plan = "- Guidance: read and apply ROOT/.agentrig/skills/edit-plan/SKILL.md for edit of Ledger/Plan.md; edit of Ledger/Archive/Plan.md. Source: hooks.routes[1], hooks.routes[2].";
+    let architecture = "- Required: read and apply ROOT/.agents/skills/refactor-large-directory/SKILL.md for edit of Project/a/y.rs; edit of Project/a/z.rs; edit of Project/b/x.rs. Source: hooks.routes[0].";
+    let plan = "- Guidance: read and apply ROOT/.agents/skills/edit-plan/SKILL.md for edit of Ledger/Plan.md; edit of Ledger/Archive/Plan.md. Source: hooks.routes[1], hooks.routes[2].";
     let refresh = message.find("COMPLEXITY_DISCIPLINE_FULL_REFRESH_REQUIRED");
     let positions = [refresh, message.find(architecture), message.find(plan)];
     assert!(positions.iter().all(Option::is_some), "{message}");
@@ -174,7 +187,7 @@ fn vac_check_entry_reminds_state_once_per_context() {
     let first = hook(&root, "exec_command", json!({"cmd": commit}));
     let (decision, message) = answer(&first);
     assert_eq!(decision, "deny");
-    let state = "- Required: read and apply {root}/.agentrig/skills/edit-state/SKILL.md for opaque shell write; VAC check entry. Source: hooks.routes[6], hooks.routes[7].";
+    let state = "- Required: read and apply {root}/.agents/skills/edit-state/SKILL.md for opaque shell write; VAC check entry. Source: hooks.routes[6], hooks.routes[7].";
     let state = state.replace("{root}", &root.display().to_string());
     assert!(message.contains(&state), "{message}");
     assert!(message.contains("- Guidance: read and apply"), "{message}");

@@ -9,5 +9,5 @@
 # DECISION: D020
 set -eu
 root=$(git rev-parse --show-toplevel)
-"$root/tooling/worker/run" guard-commit --root "$root"
-exec "$root/tooling/worker/run" check --root "$root" --staged
+"$root"/.agentrig/bin/agentrig guard-commit --root "$root"
+exec "$root"/.agentrig/bin/agentrig check --root "$root" --staged

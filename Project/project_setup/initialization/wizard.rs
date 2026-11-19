@@ -46,7 +46,10 @@ fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
         .clippy
         .iter()
         .map(|settings| settings.path().trim_prefix(root).display().to_string());
-    let listed: Vec<String> = files.keys().cloned().chain(clippy).collect();
+    let links = package::skill_links(&scaffold.config)
+        .into_iter()
+        .map(|(path, target)| format!("{path} -> {}", target.display()));
+    let listed: Vec<String> = files.keys().cloned().chain(clippy).chain(links).collect();
     listed.join("\n")
 }
 
@@ -80,7 +83,6 @@ fn project_config(root: &Path) -> Result<Option<Scaffold>> {
         ("skills", "Skills directory"),
         ("base", "Base branch"),
         ("prefix", "Feature branch prefix"),
-        ("frontend", "Agent client: codex/claude-code"),
     ] {
         let default = match key {
             "skills" => format!("{}/skills", options["service"]),

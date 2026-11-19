@@ -61,10 +61,14 @@ const MODULES: [&str; 8] = [
 ];
 const SERVICE: &str = "rig space's $cash";
 const SESSION: &str = r#"{"hook_event_name": "SessionStart", "session_id": "custom-service"}"#;
-const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 2] = [
+const INVALID_LAYOUTS: [(Option<&str>, &[&str]); 5] = [
     (Some(".codex"), &[]),
+    (Some(".claude"), &[]),
     (None, &["--skills", ".agentrig/bin/agentrig"]),
+    (None, &["--skills", ".agents/skills"]),
+    (None, &["--skills", ".claude"]),
 ];
+const AGENT_SKILLS: [&str; 2] = [".agents/skills", ".claude/skills"];
 
 fn consumer() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
@@ -146,7 +150,7 @@ fn adapters(root: &Path, service: &Path) {
     );
     assert_ne!(blocked.code, Some(0));
     assert!(blocked.stderr.contains("feature"), "{}", blocked.stderr);
-    assert!(service.join("runtime/reminders").is_dir());
+    assert!(root.join(".cache/runtime/reminders").is_dir());
 }
 
 // DECISION: D040
@@ -169,6 +173,42 @@ fn init_always_keeps_memory_in_ledger_and_sources_in_project() {
     let layout = (&paths["memory"], &paths["sources"]);
     assert_eq!(layout, (&flow("Ledger"), &flow("[Project/**]")));
     assert!(root.join("Ledger/State.md").is_file());
+}
+
+// DECISION: D188
+#[test]
+fn init_links_each_agent_skill_directory_to_the_installed_skills() {
+    let (_temp, root) = consumer();
+    assert_eq!(initialize(&root, &[]).unwrap(), 0);
+    let installed = fs::read_to_string(root.join(".agentrig/skills/repair/SKILL.md")).unwrap();
+    for directory in AGENT_SKILLS {
+        let target = fs::read_link(root.join(directory)).unwrap();
+        assert_eq!(target, Path::new("../.agentrig/skills"), "{directory}");
+        let seen = fs::read_to_string(root.join(directory).join("repair/SKILL.md")).unwrap();
+        assert_eq!(seen, installed, "{directory}");
+    }
+}
+
+// DECISION: D190
+#[test]
+fn init_starts_a_repository_without_commits_on_its_base_with_an_empty_commit() {
+    for existing in [None, Some("trunk")] {
+        let (_temp, root) = consumer();
+        if let Some(branch) = existing {
+            git(&root, &["init", "-q", "-b", branch]);
+            fs::write(root.join("notes.txt"), "staged\n").unwrap();
+            git(&root, &["add", "notes.txt"]);
+        }
+        assert_eq!(initialize(&root, &["--base", "main"]).unwrap(), 0);
+        assert_eq!(git(&root, &["symbolic-ref", "HEAD"]), "refs/heads/main");
+        let subjects = git(&root, &["log", "--format=%s", "main"]);
+        assert_eq!(subjects, "Start the repository", "{existing:?}");
+        let tree = git(&root, &["ls-tree", "-r", "--name-only", "main"]);
+        assert_eq!(tree, "", "{existing:?}");
+        let staged = git(&root, &["diff", "--cached", "--name-only"]);
+        let expected = existing.map_or("", |_| "notes.txt");
+        assert_eq!(staged, expected, "{existing:?}");
+    }
 }
 
 // DECISION: D123

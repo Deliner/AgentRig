@@ -11,24 +11,24 @@ const LANGUAGES: [&str; 2] = ["python", "rust"];
 const OPERATIONS: [Operation; 3] = [
     Operation {
         label: "SessionStart",
-        command: "hook",
+        args: &["hook", "--agent", "codex"],
         event: r#"{"hook_event_name": "SessionStart", "session_id": "latency"}"#,
     },
     Operation {
         label: "PreToolUse edit",
-        command: "hook",
+        args: &["hook", "--agent", "codex"],
         event: r#"{"hook_event_name": "PreToolUse", "tool_name": "Write", "tool_input": {"file_path": "Ledger/State.md"}}"#,
     },
     Operation {
         label: "small source lint",
-        command: "lint",
+        args: &["lint"],
         event: "{}",
     },
 ];
 
 struct Operation {
     label: &'static str,
-    command: &'static str,
+    args: &'static [&'static str],
     event: &'static str,
 }
 
@@ -110,7 +110,7 @@ fn measure(root: &Path, operation: &Operation, samples: usize) -> Result<Latency
     let mut timings = Vec::with_capacity(samples + 1);
     for _ in 0..=samples {
         let mut command = Command::new(&binary);
-        command.arg(operation.command).arg("--root").arg(root);
+        command.args(operation.args).arg("--root").arg(root);
         let started = Instant::now();
         launch(&mut command, operation.event)?;
         timings.push(started.elapsed());

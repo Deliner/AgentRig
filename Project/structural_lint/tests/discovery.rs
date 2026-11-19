@@ -4,7 +4,7 @@ use crate::structural_lint::rule_set::capabilities;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, env, fs, path::Path};
 
-const TEST_CODE_EXCLUDED: [&str; 46] = [
+const TEST_CODE_EXCLUDED: [&str; 47] = [
     "panic-path",
     "debug-assertion",
     "wildcard-import",
@@ -13,6 +13,7 @@ const TEST_CODE_EXCLUDED: [&str; 46] = [
     "discarded-result",
     "disabled-raii",
     "global-state",
+    "recursive-deletion",
     "super-super-reach",
     "unwind-justification",
     "guard-across-await",
@@ -112,7 +113,7 @@ fn description_names_its_skill(kind: &str) {
     assert_eq!(item["kind"], kind);
     let skill = item["skill"].as_str().unwrap();
     let path = repository()
-        .join(".agents/skills")
+        .join(".agentrig/skills")
         .join(skill)
         .join("SKILL.md");
     assert!(path.is_file(), "{kind}: {skill}");
