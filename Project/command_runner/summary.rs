@@ -2,7 +2,7 @@ use crate::project_config::{View, Views};
 use crate::shared::console;
 use std::{path::Path, process::Output};
 
-pub fn print(name: &str, views: &Views, output: &Output, log: &Path) {
+pub fn print(name: &str, views: &Views, output: &Output, log: Option<&Path>) {
     let code = super::jobs::process::exit_code(output);
     let view = match code {
         0 => &views.success,
@@ -14,7 +14,9 @@ pub fn print(name: &str, views: &Views, output: &Output, log: &Path) {
     for line in select(view, &lines) {
         console::stdout(line);
     }
-    console::stdout(format!("{name}: exit {code}; log: {}", log.display()));
+    // DECISION: D193
+    let log = log.map_or_else(|| "not kept".into(), |path| path.display().to_string());
+    console::stdout(format!("{name}: exit {code}; log: {log}"));
 }
 fn select<'a>(view: &View, lines: &[&'a str]) -> Vec<&'a str> {
     let start = lines.len().saturating_sub(view.tail);
