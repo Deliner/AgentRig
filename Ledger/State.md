@@ -2,23 +2,23 @@
 
 ## Focus
 
-P164 (B166), code VAC: `length-subtraction` also reports `.count_ones()` and `.count_zeros()` and a count passed as
-the only argument of a call; the skill `subtract-checked`, the descriptor and decision D210 follow.
+P164 (B166), final VAC: pin the revision with the extended rule and archive P164 with its Backlog card B166.
 
 ## Workspace
 
 - Branch: feature/bit-count-subtraction
-- Revision: 84301609acb64edb21016d2b41f27f2b2eba1123
+- Revision: 14dc249250dfe642f5086b85fee3f4151b8a3246
 
 ## Progress
 
-- `control_flow/length_subtraction.rs` unwraps one call with a single argument and accepts the two bit counts.
-- A new test in `tests/control_flow/mod.rs` covers the review's widened `count_ones()` and the skipped forms.
+- `just bootstrap HEAD` installed 14dc249 and wrote it to stable.txt.
+- P164 moved to Archive/Plan with its Delivery and the AC1 verdict; B166 moved to Archive/Backlog; the D210 card
+  and delivery links point to the archive.
 
 ## Verification
 
-- `just run test -- control_flow` passes, 20 tests; `just run rustfmt`, `just run clippy`, `just lint` and
-  `just check --only memory` pass; the rig has no newly reported site.
+- `just check --only memory` passes after the rotation.
+- The gate of 14dc249 passed with 504 tests.
 
 ## Blockers
 
@@ -26,4 +26,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then archive P164 and B166 with the pin and run `just feature-merge`.
+Commit this VAC, then run `just feature-merge` and continue with P165 (B168).
