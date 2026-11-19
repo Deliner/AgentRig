@@ -169,7 +169,8 @@ test:
   - --locked
   - --lib
   - --
-  accepts_args: true
+  # DECISION: D202
+  accepts_args: operands
   output:
     success: {matching: ["test result:"]}
     failure: {matching: [FAILED, panicked, "error", "test result:"]}

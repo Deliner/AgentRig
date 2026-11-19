@@ -53,9 +53,6 @@
   - [.agentrig, commands.yaml, test, argv, --locked]
   - [.agentrig, commands.yaml, test, argv, --lib]
   - [.agentrig, commands.yaml, test, argv, '--']
-- reason: The rig's test command takes any words until its pinned runtime reads accepts_args operands.
-  at:
-  - [.agentrig, commands.yaml, test, accepts_args]
 - reason: >-
     Init runs language checks only for Project changes so a project without sources yet can commit; the rig always has
     its crate and its tests also read the setup itself.
