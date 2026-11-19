@@ -4,6 +4,7 @@ files:
   flag_list.rs: YAML rustflags sequences and compiler arguments of cargo clippy or rustc argv, an item that lowers lint levels without a reference above
   mod.rs: Scalar measurement traversal of a parsed source with located results
   registry.rs: Rule and measurement capabilities exposed for supported extensions
+  program.rs: Known program languages and the language of a file by its extension or the interpreter of its #! line
   python.rs: Python conditions, boolean expressions, function lengths, parameters and comments
 directories:
   neutral_metrics: Located measurement record and the condition, boolean expression, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers

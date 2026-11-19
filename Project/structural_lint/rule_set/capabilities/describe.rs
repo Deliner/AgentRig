@@ -1,6 +1,6 @@
 use super::language_support::{extensions, syntax};
 use super::{ALL, Kind};
-use crate::structural_lint::languages;
+use crate::structural_lint::languages::{self, program};
 use crate::structural_lint::rule_identities::contract_settings;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::ownership::{self, Ownership};
@@ -50,6 +50,10 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         Kind::ControlFlow(ControlFlow::BooleanExpression) => {
             value["junctions"] = json!({"values": ["mixed", "single"], "default": "mixed", "single": "every expression joining && with || or and with or, directly or inside parentheses, is also an error finding"});
         }
+        // DECISION: D198
+        Kind::Structure(Structure::ProgramLanguage) => {
+            value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program::names()});
+        }
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)
@@ -80,6 +84,8 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
         // DECISION: D156
         Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
+        // DECISION: D198
+        Kind::Structure(Structure::ProgramLanguage) => value["allowed_languages"] = json!(["rust"]),
         // DECISION: D182
         Kind::Reference(Reference::CargoRustflags) => {
             value["include"] = json!(["**/.cargo/config.toml"]);

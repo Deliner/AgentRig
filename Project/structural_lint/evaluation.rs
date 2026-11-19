@@ -1,6 +1,6 @@
 use super::architecture::contract_check;
-use super::languages;
-use super::rule_identities;
+use super::languages::{self, program};
+use super::rule_identities::{self, Kind};
 use super::rule_set::{capabilities, lint_config};
 use super::targeting::{file_discovery, lint_targets};
 use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
@@ -10,7 +10,8 @@ use crate::structural_lint::rule_identities::contract_settings::FILENAME;
 use crate::structural_lint::rule_identities::control_flow::MIXED_JUNCTIONS;
 use crate::structural_lint::rule_identities::ownership::Pair;
 use crate::structural_lint::rule_identities::structure::Structure;
-use anyhow::Result;
+use anyhow::{Context, Result};
+use std::io::{BufRead, BufReader, Read};
 use std::{collections::HashMap, path::Path};
 
 #[derive(Default)]
@@ -32,17 +33,54 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         ..Evaluation::default()
     };
     for rule in &config.rules {
-        let architecture =
-            rule.kind == rule_identities::Kind::Structure(Structure::DirectoryArchitecture);
-        if architecture {
-            evaluation
+        match rule.kind {
+            Kind::Structure(Structure::DirectoryArchitecture) => evaluation
                 .output
-                .extend(contract_check::run(root, rule, &inventory)?);
-        } else {
-            scalar_findings(root, rule, &inventory, &mut evaluation)?;
+                .extend(contract_check::run(root, rule, &inventory)?),
+            Kind::Structure(Structure::ProgramLanguage) => evaluation
+                .output
+                .extend(foreign_programs(root, rule, &inventory)?),
+            Kind::Structure(_)
+            | Kind::ControlFlow(_)
+            | Kind::Signature(_)
+            | Kind::Ownership(_)
+            | Kind::Reference(_) => scalar_findings(root, rule, &inventory, &mut evaluation)?,
         }
     }
     Ok(evaluation.output)
+}
+// DECISION: D198
+fn foreign_programs(
+    root: &Path,
+    rule: &lint_config::Rule,
+    inventory: &file_discovery::Inventory,
+) -> Result<Vec<Diagnostic>> {
+    let allowed = rule.allowed_languages.as_deref().unwrap_or_default();
+    let list = allowed.join(", ");
+    let mut found = Vec::new();
+    for selected in lint_targets::select(rule, inventory)? {
+        let path = root.join(selected.path);
+        let Some(name) = program::of(&path, || first_line(&path))? else {
+            continue;
+        };
+        let foreign = !allowed.iter().any(|allowed_name| allowed_name == name);
+        if foreign {
+            let reported = finding(rule, &selected, 1)?;
+            let mut item = reported.context("program-language reports at its level")?;
+            item.message = format!(
+                "{name} program; allowed languages: {list}; rewrite it in an allowed language"
+            );
+            found.push(item);
+        }
+    }
+    Ok(found)
+}
+fn first_line(path: &Path) -> Result<Vec<u8>> {
+    let mut line = Vec::new();
+    BufReader::new(fs::open(path)?.take(SHEBANG_BYTES))
+        .read_until(b'\n', &mut line)
+        .with_context(|| format!("read the first line of {}", path.display()))?;
+    Ok(line)
 }
 fn scalar_findings(
     root: &Path,
@@ -78,6 +116,8 @@ fn scalar_findings(
 }
 // DECISION: D072
 const DUMP_NAMES: &[&str] = &["utils", "helpers", "misc", "common"];
+// DECISION: D198
+const SHEBANG_BYTES: u64 = 256;
 // DECISION: D036
 fn structural_measurements(
     root: &Path,
@@ -102,6 +142,7 @@ fn structural_measurements(
         rule_identities::Kind::Structure(Structure::DumpName) => dump_name(selected.path),
         rule_identities::Kind::Structure(
             Structure::FunctionLines
+            | Structure::ProgramLanguage
             | Structure::EmbeddedText
             | Structure::DirectoryArchitecture
             | Structure::TestPlacement,

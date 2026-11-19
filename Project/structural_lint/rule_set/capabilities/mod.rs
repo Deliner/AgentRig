@@ -6,6 +6,7 @@ pub use crate::structural_lint::rule_identities::{Descriptor, Parameters};
 pub use describe::{catalog, describe, example};
 pub use language_support::{
     support, supports_path, syntax, validate_extensions, validate_includes,
+    validate_program_languages,
 };
 
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
@@ -48,6 +49,7 @@ pub const ALL: &[Kind] = &[
     Kind::Structure(Structure::NonblankLines),
     Kind::Structure(Structure::LineWidth),
     Kind::Structure(Structure::ForbiddenFile),
+    Kind::Structure(Structure::ProgramLanguage),
     Kind::Structure(Structure::DirectoryEntries),
     Kind::Structure(Structure::DumpName),
     Kind::Structure(Structure::FunctionLines),

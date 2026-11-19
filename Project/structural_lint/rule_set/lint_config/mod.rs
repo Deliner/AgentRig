@@ -53,6 +53,9 @@ pub struct Rule {
     pub junctions: Junctions,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pairs: Option<Vec<Pair>>,
+    // DECISION: D198
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub allowed_languages: Option<Vec<String>>,
 }
 #[derive(Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -132,6 +135,7 @@ impl Rule {
         self.validate_architecture()?;
         self.validate_junctions()?;
         self.validate_pairs()?;
+        self.validate_languages()?;
         capabilities::validate_extensions(self.kind, &self.extensions)?;
         capabilities::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
@@ -217,6 +221,17 @@ impl Rule {
             }
             (None, true) => bail!("{}: paired-calls needs pairs", self.id),
             (Some(_), false) => bail!("{}: pairs require paired-calls", self.id),
+            (None, false) => {}
+        }
+        Ok(())
+    }
+    // DECISION: D198
+    fn validate_languages(&self) -> Result<()> {
+        let program = self.kind == capabilities::Kind::Structure(Structure::ProgramLanguage);
+        match (&self.allowed_languages, program) {
+            (Some(names), true) => capabilities::validate_program_languages(&self.id, names)?,
+            (None, true) => bail!("{}: program-language needs allowed_languages", self.id),
+            (Some(_), false) => bail!("{}: allowed_languages require program-language", self.id),
             (None, false) => {}
         }
         Ok(())

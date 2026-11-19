@@ -71,6 +71,12 @@
     and routes the whole source tree.
   at:
   - [.agentrig, hooks.yaml, routes, '9', include]
+- reason: >-
+    Besides Rust, the rig's programs include its shell launchers, hooks and distribution scripts and the Python test
+    example project.
+  at:
+  - [.agentrig, lint.yaml, rules, program-language, allowed_languages, shell]
+  - [.agentrig, lint.yaml, rules, program-language, allowed_languages, python]
 - reason: The rig vendors the tree-sitter Rust grammar, which is generated code outside its architecture.
   at:
   - [.agentrig, lint.yaml, exclude, Project/shared/source_parsers/tree-sitter-rust]

@@ -89,6 +89,31 @@ fn paired_calls_checks_only_the_pairs_its_rule_configures() {
     assert_eq!(found, [("src/save.rs".into(), Some(5), Some(1))]);
 }
 
+// DECISION: D198
+#[test]
+fn program_language_reports_programs_outside_the_allowed_languages() {
+    let files = [
+        ("tool/x.js", "console.log(1)"),
+        ("tool/build", "#!/usr/bin/env -S python3 -u\nprint(1)"),
+        ("tool/run", "#!/bin/bash\necho ok"),
+        ("tool/main.rs", "fn main() {}"),
+        ("tool/data.json", "{}"),
+        ("tool/notes", "plain text"),
+        ("vendor/lib.c", "int x;"),
+    ];
+    let rule = "id: languages, kind: program-language, target: file, include: ['**'], \
+        exclude: ['vendor/**'], allowed_languages: [rust, shell], level: error";
+    let mut found = findings(&files, rule);
+    found.sort();
+    assert_eq!(
+        found,
+        [
+            ("tool/build".into(), None, Some(1)),
+            ("tool/x.js".into(), None, Some(1)),
+        ]
+    );
+}
+
 #[test]
 fn forbidden_file_reports_every_selected_file() {
     let files = [

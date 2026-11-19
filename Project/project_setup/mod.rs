@@ -52,7 +52,7 @@ fn bundle(scaffold: &template::Scaffold) -> Result<Files> {
             source.into_bytes(),
         );
     }
-    add_policy(&mut files, config, &scaffold.rust)?;
+    add_policy(&mut files, scaffold)?;
     add_runtime(&mut files, config)?;
     Ok(files)
 }
@@ -81,11 +81,15 @@ fn add_rust_capabilities(files: &mut Files) -> Result<()> {
     instructions.extend_from_slice(capabilities.as_bytes());
     Ok(())
 }
-fn add_policy(files: &mut Files, config: &Config, rust: &rust::cargo::Layout) -> Result<()> {
+fn add_policy(files: &mut Files, scaffold: &template::Scaffold) -> Result<()> {
+    let config = &scaffold.config;
+    // DECISION: D198
+    let rust_project = scaffold.clippy.is_some();
+    let language = if rust_project { "rust" } else { "python" };
     if config.capabilities.lint {
         files.insert(
             config.paths.lint.clone(),
-            lint::template(config, rust)?.into_bytes(),
+            lint::template(config, &scaffold.rust, language)?.into_bytes(),
         );
     }
     if let Some(path) = &config.hooks.reminder {

@@ -97,6 +97,22 @@ rules:
   level: error
   warning_skill: .agentrig/skills/condense-markdown/SKILL.md
   error_skill: .agentrig/skills/condense-markdown/SKILL.md
+# DECISION: D198
+- id: program-language
+  kind: program-language
+  target: file
+  include:
+  - '**'
+  exclude:
+  - .agentrig/hooks/**
+  - .agentrig/bin/**
+  allowed_languages:
+  - rust
+  - shell
+  - python
+  level: error
+  warning_skill: .agentrig/skills/rewrite-in-allowed-language/SKILL.md
+  error_skill: .agentrig/skills/rewrite-in-allowed-language/SKILL.md
 # DECISION: D192
 - id: state-size
   kind: nonblank-lines

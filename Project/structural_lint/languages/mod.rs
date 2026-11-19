@@ -1,6 +1,7 @@
 mod flag_list;
 mod manifest;
 mod neutral_metrics;
+pub mod program;
 mod python;
 mod registry;
 mod rust;

@@ -221,6 +221,8 @@ const WRITE: Programs = &[
     ("rm", &[], &[]),
     ("touch", &[], &[]),
     ("chmod", &[], &[]),
+    // DECISION: D198
+    ("ln", &[], &[]),
 ];
 fn programs(table: Programs) -> BTreeMap<String, Program> {
     let strings = |items: &[&str]| items.iter().map(|item| (*item).into()).collect();
