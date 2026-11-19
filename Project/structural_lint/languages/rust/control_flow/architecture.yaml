@@ -3,7 +3,7 @@ type: flat
 files:
   mod.rs: Dispatch control-flow nodes, calls, array literals and macro_rules! arms to the control-flow detectors
   hidden_exit.rs: Rust macro_rules! transcriber that returns, propagates with ? or leaves the caller's loop, re-parsed as a function body, unless the macro name says it exits
-  length_subtraction.rs: Rust subtraction from a .len() or .count() call that underflows on a shorter collection
+  length_subtraction.rs: Rust subtraction from a .len(), .count(), .count_ones() or .count_zeros() call, alone or as the only argument of a call, that underflows on a smaller count
   stale_check.rs: Rust exists, is_file or is_dir check governing an if whose absence branch is normal, followed in its presence branch or after a skipping absence branch by a filesystem action on the same path whose error propagates with ?
   range_chain.rs: Rust if-else chain or match guards that split one value into ranges by comparisons with literals
   repeated_classification.rs: Rust match whose unguarded arms map three or more paths to true and false, measured with its classification for a comparison across files

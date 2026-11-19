@@ -5,6 +5,7 @@ use crate::structural_lint::rule_identities::kind::Kind;
 use tree_sitter::Node;
 
 // DECISION: D155
+// DECISION: D210
 pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let subtraction = binary
         .child_by_field_name("operator")
@@ -12,7 +13,7 @@ pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
     let Some(method) = subtraction
         .then(|| binary.child_by_field_name("left"))
         .flatten()
-        .and_then(|left| length(left, source))
+        .and_then(|left| counted(left, source))
     else {
         return;
     };
@@ -27,6 +28,14 @@ pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
         actual: 1,
     });
 }
+fn counted<'a>(operand: Node<'_>, source: Code<'a>) -> Option<&'a str> {
+    length(operand, source).or_else(|| length(sole_argument(operand)?, source))
+}
+fn sole_argument(call: Node<'_>) -> Option<Node<'_>> {
+    let arguments = call.child_by_field_name("arguments")?;
+    let single = arguments.named_child_count() == 1;
+    single.then(|| arguments.named_child(0)).flatten()
+}
 fn length<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let nullary = call.kind() == "call_expression"
         && call
@@ -37,5 +46,5 @@ fn length<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
         .filter(|function| nullary && function.kind() == "field_expression")?
         .child_by_field_name("field")?;
     let name = text(field, source);
-    matches!(name, "len" | "count").then_some(name)
+    matches!(name, "len" | "count" | "count_ones" | "count_zeros").then_some(name)
 }

@@ -14,4 +14,4 @@ directories:
   reduce-branching: "Reduce the decision points per function while preserving behavior"
   saturate-or-handle: "Handle the missing value before adding to or multiplying a MAX fallback, or saturate explicitly, or justify the unreachable fallback with a reference"
   split-boolean-expression: "Split long boolean expressions, and those joining conjunctions with disjunctions, into named parts while preserving behavior"
-  subtract-checked: "Make a subtraction from a length checked or saturating, rearrange it away, or justify the guaranteed length with a reference"
+  subtract-checked: "Make a subtraction from a length or a bit count checked or saturating, rearrange it away, or justify the guaranteed count with a reference"
