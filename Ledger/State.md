@@ -2,27 +2,24 @@
 
 ## Focus
 
-P152 (B153 AC1–AC4), VAC1: the hook allows a just command only as zsh and just will run it, and recipes keep the
-project of their justfile (D201).
+P152 (B153 AC1–AC4), VAC2: pin the runtime that refuses shell forms just would not run as written, and archive P152
+and B153.
 
 ## Workspace
 
 Branch: feature/hook-shell-parse
-Revision: 702a28f2b4562e9b74ea736e7da6f42d5ee612fc
+Revision: 07db0a44eed259ba449fe966e5f7d1949b051cf1
 
 ## Progress
 
-- Shell guard refuses an unquoted `(` and, in double quotes, `$(`, a backtick and `${(`; only `just` by name passes.
-- The hook resolves recipes through init's recipe table: no word after a recipe without parameters, no bare `just`;
-  `run`, `job-start` and catalog recipes get the catalog checks and write routes of their command.
-- Generated and rig recipes pass `--root .` before the agent's words.
-- D201 recorded; the D197 marker moved to the recipe resolver.
+- VAC1 `07db0a4` passed the gate; `just bootstrap HEAD` installed it and wrote it to stable.txt.
+- P152 and B153 moved to Archive with Delivery and the criterion table; D201 links point to the archived cards.
 
 ## Verification
 
-- `just run test -- agent_hooks project_setup command_runner`: 119 passed.
-- The recipe root test fails on the old recipe form, as checked by removing `--root .` from the generator.
-- `just lint`, `just run clippy`, `just check --only memory` and `just config-check` pass.
+- Live zsh after the pin: `=(…)` and `*(e:…:)` were refused and created no file, the same text in quotes passed the
+  hook, `just jobs bootstrap` and `./tooling/x/just lint` were refused, and an agent `--root` reached `cat`.
+- `just check --only memory` passes.
 
 ## Blockers
 
@@ -30,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC1, run `just bootstrap HEAD`, probe the refusals live in zsh, then archive P152 and B153 and merge.
+Commit VAC2, run `just feature-merge`, then start P153 (B154).
