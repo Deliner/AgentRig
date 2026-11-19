@@ -2,25 +2,23 @@
 
 ## Focus
 
-P148 (B149) AC1: a catalog write running mkdir, cp, mv, rm, touch or chmod names only the hook routes its operand paths
-reach; Git and `just scratch` stay opaque (D196).
+P148 (B149), VAC 2: pin `e3a8ca0` per D051 and archive P148 and B149.
 
 ## Workspace
 
 Branch: feature/write-hints
-Revision: 504ee0a3e80ed7373a489737e37930633fa722d2
+Revision: e3a8ca07bc5c75c8197834aca280c4408dee05bd
 
 ## Progress
 
-- `shell_guard::written` reads the operands of a path program as root-relative paths; an option with `=` or `/` or an
-  unresolvable operand leaves the command opaque.
-- `skill_requirements::writes` names shell routes whose pattern's literal directory prefix overlaps an operand.
-- `shell_event` uses the paths when present and the opaque list otherwise; D196 records the choice and narrows D047.
+- VAC 1 `e3a8ca0`: a catalog write through mkdir, cp, mv, rm, touch or chmod names only the hook routes its operands
+  reach; Git and `just scratch` stay opaque (D196).
+- `stable.txt` holds `e3a8ca0`, installed by `just bootstrap`; P148 and B149 move to Archive with their links.
 
 ## Verification
 
-- `just run test -- agent_hooks`: 25 passed, including `path_program_writes_name_only_the_routes_their_paths_reach`.
-- `just lint`: passed.
+- VAC 1 commit gate passed: 125 tests, lint, clippy and rustfmt.
+- `just bootstrap` installed `e3a8ca0`, and the hook runs on it.
 
 ## Blockers
 
@@ -28,4 +26,4 @@ None. P147 stays paused on the user's choice of the rig root repair.
 
 ## Next action
 
-Commit this VAC, pin the gate-accepted head (D051), archive P148 and B149, then `just feature-merge` and start P149.
+Commit this VAC, run `just feature-merge`, then start P149 (B150) with `just feature-start`.
