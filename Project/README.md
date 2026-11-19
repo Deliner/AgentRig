@@ -81,6 +81,6 @@ in the background as the leader of its own process group, and a delayed launch r
 escape it. Owners come from WORKER_OWNER, else CODEX_THREAD_ID or CODEX_SESSION_ID. `just job-cleanup` and a
 successful feature-merge stop the owner's task runs, skip the run they execute inside and keep `lifetime: shared`
 services. Read-only commands run under bubblewrap on Linux and sandbox-exec on macOS, with a private writable temporary
-directory and no network.
+directory and no network. If no job can be recorded and their directory refuses writes, they run there unsandboxed.
 
 [measure.rs](shared/testing/examples/measure.rs) measures first and repeated standalone process latency.

@@ -4,6 +4,7 @@ use serde_json::json;
 use std::{
     fs,
     path::{Path, PathBuf},
+    process::Command,
 };
 
 const NOISE: &str = "i=0; while [ $i -lt \"$2\" ]; do echo noise $i; i=$((i+1)); done; \
@@ -13,6 +14,7 @@ const VIEWS: &str = "  accepts_args: true
     success: {tail: 1}
     failure: {matching: [FAILED], tail: 1}
 ";
+const JOBS: &str = ".runtime/jobs";
 const REFUSALS: [(&[&str], &str); 5] = [
     (
         &["read", "--", "sh", "-c", "ls"],
@@ -108,6 +110,67 @@ fn read_commands_cannot_write() {
     let reading = invoke(&root, &["run", "read", "--", "cat", "src/protected"]);
     assert_eq!(reading.code, Some(0), "{}", reading.output());
     assert_eq!(reading.stdout, "original");
+}
+
+#[cfg(target_os = "macos")]
+fn confinement() -> Command {
+    let profile =
+        "(version 1)(allow default)(deny file-write*)(allow file-write* (literal \"/dev/null\"))";
+    let mut command = Command::new("/usr/bin/sandbox-exec");
+    command.args(["-p", profile, "--"]);
+    command
+}
+
+#[cfg(target_os = "linux")]
+fn confinement() -> Command {
+    let mut command = Command::new("bwrap");
+    command.args("--ro-bind / / --dev /dev --proc /proc --".split(' '));
+    command
+}
+
+fn refusing_writes(root: &Path, args: &[&str]) -> Run {
+    let inner = runtime(root, args);
+    let mut command = confinement();
+    command.arg(inner.get_program()).args(inner.get_args());
+    for (key, value) in inner.get_envs() {
+        match value {
+            Some(value) => command.env(key, value),
+            None => command.env_remove(key),
+        };
+    }
+    run(command.current_dir(root), "")
+}
+
+// DECISION: D193
+#[test]
+fn read_commands_run_inside_an_environment_that_refuses_writes() {
+    let (_temp, root) = configured("");
+    let target = root.join("src/protected");
+    fs::write(&target, "original").unwrap();
+    let reading = refusing_writes(&root, &["run", "read", "--", "cat", "src/protected"]);
+    assert_eq!(reading.code, Some(0), "{}", reading.output());
+    assert_eq!(reading.stdout, "original");
+    let replace = "echo replaced > src/protected";
+    let replacing = refusing_writes(&root, &["run", "read", "--", "sh", "-c", replace]);
+    assert_ne!(replacing.code, Some(0));
+    assert_eq!(fs::read_to_string(&target).unwrap(), "original");
+    let writable = refusing_writes(&root, &["run", "echo", "--", "ran"]);
+    assert_eq!(writable.code, Some(127), "{}", writable.output());
+    assert!(writable.stderr.contains(JOBS), "{}", writable.stderr);
+    assert!(!writable.stdout.contains("ran"), "{}", writable.stdout);
+}
+
+// DECISION: D193
+#[test]
+fn read_commands_without_a_run_log_in_a_writable_directory_are_refused() {
+    let (_temp, root) = configured("");
+    fs::write(root.join("src/protected"), "original").unwrap();
+    fs::create_dir_all(root.join(".runtime")).unwrap();
+    fs::write(root.join(".runtime/jobs"), "").unwrap();
+    let reading = invoke(&root, &["run", "read", "--", "cat", "src/protected"]);
+    assert_eq!(reading.code, Some(127), "{}", reading.output());
+    assert!(reading.stderr.contains(JOBS), "{}", reading.stderr);
+    assert!(!reading.stdout.contains("original"), "{}", reading.stdout);
 }
 
 #[test]

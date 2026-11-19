@@ -73,7 +73,7 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
         Ok((output, log)) => {
             let code = jobs::process::exit_code(&output);
             if let Some(views) = views {
-                summary::print(name, views, &output, &log);
+                summary::print(name, views, &output, log.as_deref());
             }
             Ok(code)
         }
@@ -96,28 +96,31 @@ fn logged(
     name: &str,
     argv: Vec<String>,
     capture: jobs::Capture,
-) -> Result<(Output, PathBuf)> {
+) -> Result<(Output, Option<PathBuf>)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
-    let mut job = crate::command_runner::jobs::Job::create(context, name, &cwd)?;
+    let options = sandbox::Sandboxing {
+        access: spec.access,
+        capture,
+        cargo_target: context.cargo_target.as_deref(),
+        rustflags: &context.config.rust.rustflags,
+    };
+    let mut job = match crate::command_runner::jobs::Job::create(context, name, &cwd) {
+        Ok(job) => job,
+        // DECISION: D193
+        Err(refusal) => {
+            let output = sandbox::confined(&cwd, &argv, options)?.ok_or(refusal)?;
+            return Ok((output, None));
+        }
+    };
     job.prepare(&argv, spec.access, spec.lifetime)?;
-    let result = sandbox::tracked(
-        &cwd,
-        &argv,
-        sandbox::Sandboxing {
-            access: spec.access,
-            capture,
-            cargo_target: context.cargo_target.as_deref(),
-            rustflags: &context.config.rust.rustflags,
-        },
-        Some(&mut job),
-    );
+    let result = sandbox::tracked(&cwd, &argv, options, Some(&mut job));
     let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
     job.finish(
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),
     )?;
-    result.map(|output| (output, job.directory().to_owned()))
+    result.map(|output| (output, Some(job.directory().to_owned())))
 }
 pub fn report(context: &Context) -> Result<()> {
     crate::command_runner::jobs::report::print(&context.runtime)
