@@ -38,8 +38,15 @@ staged change of them that the user has not approved. They are:
    needs a new approval.
 
 A deletion has no proposal: ask the user to delete the file before approving.
-The project's installer moves the pin, and the gate accepts a staged pin
-without approval only when its revision descends from the committed one. The
+To move the pin, run the `propose-pin` command with a revision that descends
+from the pinned one. It writes the pin's proposal and lists the source files
+changed since the pinned revision; show that list when you ask for approval.
+The approve command first runs the installer named by `git.install` with the
+revision and writes the pin only when the install succeeds; the gate accepts a
+changed pin only with approved content that descends from the committed one.
+Never run the installer with a revision: the hook refuses it, and without one
+it installs the pinned revision. A later change that needs an earlier one in
+the installed runtime waits for the user's approval of a pin mid-branch. The
 gate accepts a lint baseline written by `just lint-baseline` without approval
 only when it raises no count and adds no pair; recording new errors needs the
 user's approval. When the configuration is invalid in a protected file, ask

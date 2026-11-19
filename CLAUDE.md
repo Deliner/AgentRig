@@ -71,10 +71,10 @@ recipes reach the installed development runtime through tooling/worker/run, whic
 command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters only forward calls.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
-select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish
-every branch that changes Project with `just bootstrap HEAD` at its gate-accepted head, which installs that revision
-and then writes it to stable.txt; commit the pin before `just feature-merge` (D051). See tooling/distribution/README.md
-for clean-clone setup.
+select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Finish every branch
+that changes Project with `just propose-pin HEAD` at its gate-accepted head and ask the user to type `! just approve`,
+which installs that revision and then writes it to stable.txt; commit the pin before `just feature-merge`
+(D051, D218). See tooling/distribution/README.md for clean-clone setup.
 
 Use `just config-check`, `just lint-config-check` and `just lint-rules` for configuration, lint settings and actual rule
 capabilities. Apply the reported repair skill; preserve policy intent, never weakening thresholds or selectors to pass.

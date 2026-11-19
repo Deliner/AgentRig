@@ -199,10 +199,7 @@ fn protected(configured: &Context, paths: &[PathBuf]) -> Option<Value> {
     if allowed {
         return None;
     }
-    let skills = &configured.config.paths.skills;
-    let skill = configured
-        .caller
-        .skill(&format!("{skills}/propose-protected-change/SKILL.md"));
+    let skill = configured.protection_skill();
     Some(deny(&format!(
         "AgentRig refused this call: it changes the protected enforcement files {}. Agents do not change them directly; read and apply {skill} to propose the change for the user's approval.",
         touched.join(", ")

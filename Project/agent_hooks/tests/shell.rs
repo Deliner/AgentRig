@@ -103,26 +103,46 @@ fn shell_guard_refuses_unreadable_check_entry() {
     }
 }
 
+fn rig_bootstrap(root: &Path) {
+    let rig = fs::read_to_string(repository().join(".agentrig/commands.yaml")).unwrap();
+    let catalog: serde_yaml_ng::Value = serde_yaml_ng::from_str(&rig).unwrap();
+    let mut entry = serde_yaml_ng::Mapping::new();
+    entry.insert("bootstrap".into(), catalog["bootstrap"].clone());
+    let commands = serde_yaml_ng::to_string(&entry).unwrap();
+    configure(root, "commands", &commands);
+}
+
+fn allowed(root: &Path, command: &str) {
+    let output = hook(root, "Bash", json!({"command": command}));
+    assert!(!output.to_string().contains("deny"), "{command}: {output}");
+}
+
 // DECISION: D197
 #[test]
 fn shell_guard_runs_required_steps_and_refuses_scratch() {
     let (_temp, root) = project();
     let scratch = denied(&root, "just scratch -- ls");
     assert!(reason(&scratch).contains("scratch"), "{scratch}");
-    let rig = fs::read_to_string(repository().join(".agentrig/commands.yaml")).unwrap();
-    let catalog: serde_yaml_ng::Value = serde_yaml_ng::from_str(&rig).unwrap();
-    let mut entry = serde_yaml_ng::Mapping::new();
-    entry.insert("bootstrap".into(), catalog["bootstrap"].clone());
-    let commands = serde_yaml_ng::to_string(&entry).unwrap();
-    configure(&root, "commands", &commands);
-    let required = [
-        "just lint-baseline",
-        "just bootstrap",
-        "just bootstrap HEAD",
-    ];
-    for command in required {
-        let output = hook(&root, "Bash", json!({"command": command}));
-        assert!(!output.to_string().contains("deny"), "{command}: {output}");
+    rig_bootstrap(&root);
+    for command in ["just lint-baseline", "just bootstrap"] {
+        allowed(&root, command);
+    }
+}
+
+// DECISION: D218
+#[test]
+fn an_agent_installs_only_the_pinned_runtime_revision() {
+    let (_temp, root) = project();
+    rig_bootstrap(&root);
+    configure(&root, "git", "install: bootstrap\n");
+    allowed(&root, "just bootstrap");
+    let skill = "propose-protected-change/SKILL.md";
+    let refusals = ["just bootstrap HEAD", "just run bootstrap -- HEAD"];
+    for command in refusals {
+        let output = denied(&root, command);
+        for named in [skill, "propose-pin", "! just approve"] {
+            assert!(reason(&output).contains(named), "{command}: {output}");
+        }
     }
 }
 

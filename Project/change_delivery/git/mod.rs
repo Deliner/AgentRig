@@ -3,6 +3,7 @@
 // DECISION: D035
 pub mod approval;
 mod integration;
+pub mod pin;
 mod push;
 mod state;
 #[cfg(test)]

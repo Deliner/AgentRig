@@ -151,8 +151,9 @@ fn stable_runtime_survives_a_candidate_build_failure() {
 }
 
 // DECISION: D197
+// DECISION: D218
 #[test]
-fn bootstrap_pins_a_revision_only_after_installing_it() {
+fn bootstrap_installs_a_revision_without_pinning_it() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     let distribution = root.join("tooling/distribution");
@@ -181,15 +182,10 @@ fn bootstrap_pins_a_revision_only_after_installing_it() {
     fs::create_dir_all(binary.parent().unwrap()).unwrap();
     fs::write(&binary, "#!/bin/sh\necho installed\n").unwrap();
     fs::set_permissions(&binary, fs::Permissions::from_mode(0o755)).unwrap();
-    let pinned = bootstrap("HEAD");
-    assert_eq!(pinned.code, Some(0), "{}", pinned.output());
-    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{head}\n"));
-    // DECISION: D213
-    let backward = bootstrap(&base);
-    assert_eq!(backward.code, Some(2), "{}", backward.output());
-    let refused = backward.stderr.contains("does not descend");
-    assert!(refused, "{}", backward.stderr);
-    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{head}\n"));
+    let installs = bootstrap("HEAD");
+    assert_eq!(installs.code, Some(0), "{}", installs.output());
+    assert!(installs.stdout.contains("installed"), "{}", installs.stdout);
+    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{base}\n"));
 }
 
 #[test]

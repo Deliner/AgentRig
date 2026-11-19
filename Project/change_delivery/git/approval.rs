@@ -30,16 +30,22 @@ fn record_path(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 
+pub(super) fn mirror(context: &Context) -> Result<PathBuf> {
+    Ok(context
+        .path(&context.config.paths.runtime)?
+        .join("proposal"))
+}
+
 pub fn approve(context: &Context) -> Result<i32> {
     let repository = Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("approve requires a VCS repository"))?;
-    let mirror = context
-        .path(&context.config.paths.runtime)?
-        .join("proposal");
+    let mirror = mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,
         root: &context.root,
     };
+    // DECISION: D218
+    super::pin::install(context, &repository, &overlay)?;
     let applied = overlay.apply()?;
     let reloaded = match Context::load(&context.root) {
         Ok(reloaded) => reloaded,
@@ -128,16 +134,17 @@ struct Review<'a, 'r> {
 impl Review<'_, '_> {
     fn accepted(&self, protection: &Protection, path: &str) -> Result<bool> {
         let file = Path::new(path);
+        let approved = self.approved.get(path) == Some(&Content::of(&self.index, path));
+        // DECISION: D218
         let pinned = protection.pin() == Some(file);
         if pinned {
-            let moved = self.committed.contains_key(path);
-            return if moved {
+            let replaces = approved && self.committed.contains_key(path);
+            return if replaces {
                 forward(self.repository, &self.index, path)
             } else {
-                Ok(true)
+                Ok(approved)
             };
         }
-        let approved = self.approved.get(path) == Some(&Content::of(&self.index, path));
         // DECISION: D214
         let lowerable = protection.baseline() == file && !approved;
         if lowerable {
@@ -149,12 +156,9 @@ impl Review<'_, '_> {
 }
 
 fn refuse(context: &Context, refused: &[&str]) {
-    let skills = &context.config.paths.skills;
-    let skill = context
-        .caller
-        .skill(&format!("{skills}/propose-protected-change/SKILL.md"));
+    let skill = context.protection_skill();
     console::stderr(format!(
-        "AgentRig refused this commit: the user has not approved the staged content of the protected enforcement files {}; without approval a staged pin must descend from the committed one and a staged lint baseline may only lower the committed counts. ACTION: Apply {skill}.",
+        "AgentRig refused this commit: the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts. ACTION: Apply {skill}.",
         refused.join(", ")
     ));
 }

@@ -1,17 +1,20 @@
 # DECISION: D189
 # Each entry names the setup paths where the AgentRig repository differs from init output and why.
 - reason: >-
-    The rig installs its development runtime with tooling/distribution/bootstrap.sh and launches it through
-    tooling/worker/run instead of a copied platform binary.
+    The rig installs its development runtime with tooling/distribution/bootstrap.sh, launches it through
+    tooling/worker/run instead of a copied platform binary and prepares a move of its pin with propose-pin.
   at:
   - [.agentrig, bin]
   - [.agentrig, commands.yaml, bootstrap]
+  - [.agentrig, commands.yaml, propose-pin]
 - reason: >-
-    The rig protects its development launcher, installer and installed runtimes and this difference list and names
-    its pin, which the installer moves only forward; init has no such launcher, installer or list to protect.
+    The rig protects its development launcher, installer and installed runtimes and this difference list, and names
+    its pin and the installer that the user's approval runs before moving the pin; init has no such launcher,
+    installer or list to protect.
   at:
   - [.agentrig, hooks.yaml, protected]
   - [.agentrig, git.yaml, pin]
+  - [.agentrig, git.yaml, install]
 - reason: The rig keeps its skill sources in Project/shared/skills and links .agentrig/skills to them; init copies them.
   at:
   - [.agentrig, skills]

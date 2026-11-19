@@ -2,11 +2,12 @@ mod approval;
 mod cleanup;
 mod guards;
 mod integration;
+mod pin;
 mod push;
 mod start;
 mod state;
 
-use crate::shared::testing::{configure, describe_state, git, invoke};
+use crate::shared::testing::{Run, configure, describe_state, git, git_run, invoke};
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
@@ -60,6 +61,12 @@ fn merge(root: &Path) {
 
 fn read(root: &Path, name: &str) -> String {
     fs::read_to_string(root.join(name)).unwrap()
+}
+
+fn committed(root: &Path, message: &str) -> Run {
+    describe_state(root, "A test VAC.");
+    git(root, &["add", "."]);
+    git_run(root, &["commit", "-qm", message])
 }
 
 fn commit(root: &Path, name: &str, text: &str) {

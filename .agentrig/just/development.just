@@ -1,6 +1,10 @@
-# What: install a runtime revision, then pin it, or the pinned one; Why: work without any installed runtime.
+# What: install a runtime revision, or the pinned one; Why: work without an installed runtime and install approved pins.
 bootstrap *args:
     @bash tooling/distribution/bootstrap.sh "$@"
+
+# What: prepare moving the runtime pin; Why: only the user's approval moves the runtime that judges commits.
+propose-pin *args:
+    @tooling/worker/run run propose-pin -- "$@"
 
 # What: build and invoke the candidate; Why: test product changes separately from the installed runtime.
 candidate *args:

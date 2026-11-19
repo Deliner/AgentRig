@@ -44,4 +44,9 @@ impl Context {
     pub fn path(&self, value: &str) -> Result<PathBuf> {
         relative(&self.root, value)
     }
+    pub fn protection_skill(&self) -> String {
+        let skills = &self.config.paths.skills;
+        self.caller
+            .skill(&format!("{skills}/propose-protected-change/SKILL.md"))
+    }
 }
