@@ -88,6 +88,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Reference(Reference::DottedExtension),
             Kind::Reference(Reference::IndexedArrayLiteral),
             Kind::Reference(Reference::OuterFlagFilter),
+            Kind::Reference(Reference::MaxFallback),
             Kind::ControlFlow(ControlFlow::RepeatedClassification),
             Kind::Reference(Reference::FixedTestPort),
             Kind::ControlFlow(ControlFlow::BooleanExpression),

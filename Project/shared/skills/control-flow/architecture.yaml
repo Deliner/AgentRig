@@ -1,4 +1,4 @@
-purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, exits hidden in a macro body, subtractions from a length, comparisons with one enum variant, chains of integer bounds, a path check before acting on the path, a hand-written list of every variant of an enum, an array literal indexed to select one computed value, a classification of enum variants into true and false repeated in several places and a filter by a known flag on a computed value"
+purpose: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, exits hidden in a macro body, subtractions from a length, comparisons with one enum variant, chains of integer bounds, a path check before acting on the path, a hand-written list of every variant of an enum, an array literal indexed to select one computed value, a classification of enum variants into true and false repeated in several places, a filter by a known flag on a computed value and a MAX fallback added to or multiplied"
 files: {}
 directories:
   act-and-match-the-error: "Perform a file action and match its error kind instead of checking the path first, or justify the stable path with a reference"
@@ -12,5 +12,6 @@ directories:
   match-every-variant: "Replace a comparison with one enum variant with an exhaustive match, or justify the comparison with a reference"
   match-the-ranges: "Replace a chain of comparisons of one value with integer bounds by a match on range patterns, or justify the chain with a reference"
   reduce-branching: "Reduce the decision points per function while preserving behavior"
+  saturate-or-handle: "Handle the missing value before adding to or multiplying a MAX fallback, or saturate explicitly, or justify the unreachable fallback with a reference"
   split-boolean-expression: "Split long boolean expressions, and those joining conjunctions with disjunctions, into named parts while preserving behavior"
   subtract-checked: "Make a subtraction from a length checked or saturating, rearrange it away, or justify the guaranteed length with a reference"

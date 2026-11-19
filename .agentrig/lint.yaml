@@ -921,6 +921,20 @@ rules:
   level: error
   warning_skill: .agentrig/skills/check-the-flag-first/SKILL.md
   error_skill: .agentrig/skills/check-the-flag-first/SKILL.md
+# DECISION: D209
+- id: max-fallback
+  kind: max-fallback
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/saturate-or-handle/SKILL.md
+  error_skill: .agentrig/skills/saturate-or-handle/SKILL.md
 # DECISION: D206
 - id: repeated-classification
   kind: repeated-classification
