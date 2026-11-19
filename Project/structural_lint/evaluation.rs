@@ -7,12 +7,13 @@ use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::rule_identities::contract_settings::FILENAME;
-use crate::structural_lint::rule_identities::control_flow::MIXED_JUNCTIONS;
+use crate::structural_lint::rule_identities::control_flow::{ControlFlow, MIXED_JUNCTIONS};
 use crate::structural_lint::rule_identities::ownership::Pair;
 use crate::structural_lint::rule_identities::structure::Structure;
 use anyhow::{Context, Result};
+use std::collections::{HashMap, hash_map::Entry};
 use std::io::{BufRead, BufReader, Read};
-use std::{collections::HashMap, path::Path};
+use std::path::Path;
 
 #[derive(Default)]
 struct Evaluation<'a> {
@@ -40,6 +41,11 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
             Kind::Structure(Structure::ProgramLanguage) => evaluation
                 .output
                 .extend(foreign_programs(root, rule, &inventory)?),
+            Kind::ControlFlow(ControlFlow::RepeatedClassification) => {
+                let start = evaluation.output.len();
+                scalar_findings(root, rule, &inventory, &mut evaluation)?;
+                repeated(rule, &mut evaluation.output, start);
+            }
             Kind::Structure(_)
             | Kind::ControlFlow(_)
             | Kind::Signature(_)
@@ -48,6 +54,28 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         }
     }
     Ok(evaluation.output)
+}
+// DECISION: D206
+fn repeated(rule: &lint_config::Rule, output: &mut Vec<Diagnostic>, start: usize) {
+    let mut first = HashMap::new();
+    for mut item in output.split_off(start) {
+        let measured = item.rule == rule.id;
+        let Some(classification) = item.symbol.clone().filter(|_| measured) else {
+            output.push(item);
+            continue;
+        };
+        match first.entry(classification) {
+            Entry::Vacant(place) => {
+                let line = item.line.unwrap_or_default();
+                place.insert(format!("{}:{line}", item.path));
+            }
+            Entry::Occupied(place) => {
+                let first = place.get();
+                item.message = format!("{message}; first at {first}", message = item.message);
+                output.push(item);
+            }
+        }
+    }
 }
 // DECISION: D198
 fn foreign_programs(
