@@ -1,6 +1,7 @@
-use super::{Run, hermetic, invoke, repository, run, search_path};
+use super::{Run, git, hermetic, invoke, repository, run, search_path};
 use std::{
     fs,
+    os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -147,6 +148,40 @@ fn stable_runtime_survives_a_candidate_build_failure() {
         hook.stdout
     );
     assert_eq!(fs::read(&binary).unwrap(), before);
+}
+
+// DECISION: D197
+#[test]
+fn bootstrap_pins_a_revision_only_after_installing_it() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let distribution = root.join("tooling/distribution");
+    fs::create_dir_all(&distribution).unwrap();
+    let script = distribution.join("bootstrap.sh");
+    let source = repository().join("tooling/distribution/bootstrap.sh");
+    fs::copy(source, &script).unwrap();
+    let pin = distribution.join("stable.txt");
+    fs::write(&pin, format!("{REVISION}\n")).unwrap();
+    git(&root, &["init", "-q"]);
+    git(&root, &["config", "user.name", "Test"]);
+    git(&root, &["config", "user.email", "test@example.invalid"]);
+    git(&root, &["commit", "-q", "--allow-empty", "-m", "head"]);
+    let head = git(&root, &["rev-parse", "HEAD"]);
+    let bootstrap = || {
+        let mut command = hermetic("bash");
+        run(command.arg(&script).arg("HEAD").current_dir(&root), "")
+    };
+    let unbuildable = bootstrap();
+    assert_ne!(unbuildable.code, Some(0), "{}", unbuildable.output());
+    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{REVISION}\n"));
+    let installed = root.join(".cache/development").join(&head);
+    let binary = installed.join(".agentrig/bin/agentrig");
+    fs::create_dir_all(binary.parent().unwrap()).unwrap();
+    fs::write(&binary, "#!/bin/sh\necho installed\n").unwrap();
+    fs::set_permissions(&binary, fs::Permissions::from_mode(0o755)).unwrap();
+    let pinned = bootstrap();
+    assert_eq!(pinned.code, Some(0), "{}", pinned.output());
+    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{head}\n"));
 }
 
 #[test]

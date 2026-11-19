@@ -153,12 +153,11 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
         _ => argv.get(1),
     };
     let opaque = catalog.is_some_and(|name| {
-        name == "scratch"
-            || configured
-                .config
-                .commands
-                .get(name)
-                .is_some_and(|command| !command.access.read_only())
+        configured
+            .config
+            .commands
+            .get(name)
+            .is_some_and(|command| !command.access.read_only())
     });
     let mut found = Vec::new();
     if opaque {

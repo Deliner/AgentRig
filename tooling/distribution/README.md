@@ -22,13 +22,13 @@ because its architecture analysis develops independently of the pinned runtime.
 The installed runtime retains gate orchestration and snapshot isolation.
 
 Every branch that changes Project promotes its runtime before `just feature-merge`: once its head passes the commit
-gate, put that full hash in stable.txt, run `just bootstrap` in the same command and commit the pin. Retained
-installation directories allow an explicit pin rollback. This development pin is separate from a consumer's versioned
-configuration.
+gate, run `just bootstrap HEAD` and commit the pin. Given a revision, bootstrap installs it first and writes its full
+hash to stable.txt only after the installation succeeded, so agent hooks, which run the pinned launcher, never meet an
+uninstalled pin. Without a revision it installs the pinned one. Retained installation directories allow an explicit
+pin rollback such as `just bootstrap OLD`. This development pin is separate from a consumer's versioned configuration.
 
-If agent hooks use the pinned launcher, changing the pin to an uninstalled revision also prevents those hooks from
-running. In that case run `just bootstrap` from an ordinary terminal; the agent's PreToolUse hook can otherwise reject
-bootstrap itself before the recipe starts.
+If stable.txt is edited by hand to an uninstalled revision, agent hooks stop running. In that case run `just bootstrap`
+from an ordinary terminal; the agent's PreToolUse hook can otherwise reject bootstrap itself before the recipe starts.
 
 The CI workflow runs on Ubuntu 24.04 and macOS. It installs the Rust of `rust-toolchain.toml`, Just 1.58.0, uv 0.10.10
 and cargo-about 0.9.2, prepares bubblewrap on Linux and flock on macOS, bootstraps the pinned runtime and runs

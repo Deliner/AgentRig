@@ -49,6 +49,11 @@ lint:
   doc: Project/README.md#lint
   argv: [tooling/worker/build, lint]
   accepts_args: true
+bootstrap:
+  purpose: Install a development runtime revision and then pin it; without a revision install the pinned one
+  doc: tooling/distribution/README.md
+  argv: [bash, tooling/distribution/bootstrap.sh]
+  accepts_args: true
 release:
   purpose: Build and assemble portable release artifacts
   doc: tooling/distribution/RELEASE.md

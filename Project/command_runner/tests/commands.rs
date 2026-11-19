@@ -1,5 +1,5 @@
 use super::{command, configured, jobs};
-use crate::shared::testing::{Run, git, invoke, run, runtime};
+use crate::shared::testing::{Run, invoke, run, runtime};
 use serde_json::json;
 use std::{
     fs,
@@ -19,7 +19,7 @@ const REFUSALS: [(&[&str], &str); 5] = [
     (
         &["read", "--", "sh", "-c", "ls"],
         "read does not run sh; configured programs: cat, diff, find, git, grep, head, ls, rg, sed, stat, tail, \
-wc. Project commands: just list. Temporary code: just scratch -- TEXT",
+wc. Project commands: just list",
     ),
     (
         &["write", "--", "python3", "-c", "pass"],
@@ -212,43 +212,4 @@ fn configured_views_compact_command_output() {
         (code, lines),
         (Some(3), vec!["FAILED case".to_owned(), "done 3".to_owned()])
     );
-}
-
-#[test]
-fn scratch_runs_temporary_code_in_its_task_area() {
-    let (_temp, root) = initialized();
-    git(&root, &["symbolic-ref", "HEAD", "refs/heads/feature/probe"]);
-    let text = "echo found > \"$AGENTRIG_SCRATCH/results/out\" && pwd";
-    let result = invoke(&root, &["scratch", "--", text]);
-    assert_eq!(result.code, Some(0), "{}", result.output());
-    assert_eq!(result.stdout.trim(), root.to_str().unwrap());
-    let area = root.join(".cache/runtime/scratch/feature/probe");
-    assert_eq!(
-        fs::read_to_string(area.join("results/out")).unwrap(),
-        "found\n"
-    );
-    assert_eq!(invoke(&root, &["scratch", "--", "exit 7"]).code, Some(7));
-    let rows = jobs(&root);
-    let record = rows
-        .iter()
-        .find(|row| row["argv"] == json!(["sh", "-c", text]))
-        .unwrap();
-    let identity = (&record["command"], &record["branch"], &record["lifetime"]);
-    assert_eq!(
-        identity,
-        (&json!("scratch"), &json!("feature/probe"), &json!("task"))
-    );
-}
-
-// DECISION: D182
-#[test]
-fn scratch_code_compiles_with_the_rig_flag_list() {
-    let (_temp, root) = initialized();
-    git(&root, &["symbolic-ref", "HEAD", "refs/heads/feature/probe"]);
-    let module = root.join(".agentrig/rust.yaml");
-    fs::write(module, "rustflags: [--cfg, rig_flag]\n").unwrap();
-    let text = "printf %s \"$CARGO_ENCODED_RUSTFLAGS\"";
-    let result = invoke(&root, &["scratch", "--", text]);
-    assert_eq!(result.code, Some(0), "{}", result.output());
-    assert_eq!(result.stdout, "--cfg\u{1f}rig_flag");
 }

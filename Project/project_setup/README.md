@@ -38,7 +38,6 @@ Every command accepts `--root PATH`, by default the current directory.
 | `runtime-add` | Install the launcher and this executable as this platform's runtime; converts a single binary. |
 | `config-check` / `doctor` | Check configuration and affected maps; diagnose runtime, tools, rustc, sandbox, hooks. |
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
-| `scratch -- TEXT` | Run temporary shell code as a branch task job; `$AGENTRIG_SCRATCH` is its task area. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate lint settings, list rules. |
 | `lint-baseline` | Record or lower the accepted error counts of ratchet mode. |
@@ -77,8 +76,8 @@ Unknown fields are errors naming their module; paths cannot escape the root; see
 ## Delivery and memory
 
 `feature-start` needs the base and no pending merge or rebase. `feature-merge` commits the reset State, rebases a
-divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff`, deletes its run logs and
-scratch files but `results/`. Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`, and
+divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff` and deletes its run logs.
+Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`, and
 `guard-commit`, refusing the empty State template on a feature unless only State changes. Post-commit resets State.
 With `remote`, merge pushes the base, and merge and post-commit push the feature with `--force-with-lease`.
 

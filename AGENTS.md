@@ -32,9 +32,9 @@ Runtime paths, Git base/prefix, commands, checks, tools, hook routes, oracles an
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
 Invoke shell operations through the Just recipes grouped under just/ (`just --list`; `just list` shows the catalog).
-Use `just read -- PROGRAM ...` for sandboxed inspection and `just write -- PROGRAM ...` for shell mutations with the
-programs configured in .agentrig/commands.yaml, `just run NAME -- ...` for catalog commands and `just scratch -- TEXT`
-for temporary code in the branch task area. Each recipe is a thin adapter directly preceded by a What/Why comment.
+Use `just read -- PROGRAM ...` for sandboxed inspection, `just write -- PROGRAM ...` for shell mutations with the
+programs configured in .agentrig/commands.yaml and `just run NAME -- ...` for catalog commands. Each recipe is a thin
+adapter directly preceded by a What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
 change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises and
@@ -72,8 +72,9 @@ gate and Git logic belongs to the Rust runtime; adapters only forward calls.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
 select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish
-every branch that changes Project by writing its gate-accepted head to stable.txt and bootstrapping it in one command,
-then commit the pin before `just feature-merge` (D051). See tooling/distribution/README.md for clean-clone setup.
+every branch that changes Project with `just bootstrap HEAD` at its gate-accepted head, which installs that revision
+and then writes it to stable.txt; commit the pin before `just feature-merge` (D051). See tooling/distribution/README.md
+for clean-clone setup.
 
 Use `just config-check`, `just lint-config-check` and `just lint-rules` for configuration, lint settings and actual rule
 capabilities. Apply the reported repair skill; preserve policy intent, never weakening thresholds or selectors to pass.

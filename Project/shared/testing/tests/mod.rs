@@ -13,10 +13,9 @@ use tempfile::TempDir;
 
 mod launchers;
 
-const FOREIGN: [&str; 9] = [
+const FOREIGN: [&str; 8] = [
     "WORKER_OWNER",
     "WORKER_PARENT_RUN",
-    "AGENTRIG_SCRATCH",
     "CODEX_THREAD_ID",
     "CODEX_SESSION_ID",
     "CLAUDECODE",

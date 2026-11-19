@@ -144,12 +144,10 @@ pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>
             let extra = forwarded(&argv[2..]);
             anyhow::ensure!(extra.len() == 1, "feature-start NAME");
         }
-        "scratch" => {
-            anyhow::ensure!(!forwarded(&argv[2..]).is_empty(), "scratch -- TEXT");
-        }
-        "lint" | "lint-config-check" | "lint-rule" | "lint-explain" | "lint-edges"
-        | "lint-tree" | "lint-structure" | "jobs" | "job-status" | "job-logs" | "job-stop"
-        | "job-start" | "job-cleanup" => {}
+        // DECISION: D197
+        "lint" | "lint-config-check" | "lint-baseline" | "lint-rule" | "lint-explain"
+        | "lint-edges" | "lint-tree" | "lint-structure" | "jobs" | "job-status" | "job-logs"
+        | "job-stop" | "job-start" | "job-cleanup" => {}
         name => {
             command_runner::argv(context, name, forwarded(&argv[2..]))?;
         }

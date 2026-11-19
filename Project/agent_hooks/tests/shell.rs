@@ -1,7 +1,8 @@
 // DECISION: D005
 use super::{hook, project, reason};
+use crate::shared::testing::{configure, repository};
 use serde_json::{Value, json};
-use std::path::Path;
+use std::{fs, path::Path};
 
 const BYPASSES: [&str; 7] = [
     "git status",
@@ -47,10 +48,33 @@ fn shell_guard_rejects_bypass() {
 #[test]
 fn shell_guard_refuses_unreadable_check_entry() {
     let (_temp, root) = project();
-    let output = denied(&root, r#"just scratch -- "git commit -q -m $'it\'s'""#);
+    let output = denied(&root, r#"just write -- git commit -q -m "it's""#);
     let reason = reason(&output);
-    for text in ["git commit", "missing closing quote"] {
+    for text in ["\"it's\"", "missing closing quote"] {
         assert!(reason.contains(text), "{reason}");
+    }
+}
+
+// DECISION: D197
+#[test]
+fn shell_guard_runs_required_steps_and_refuses_scratch() {
+    let (_temp, root) = project();
+    let scratch = denied(&root, "just scratch -- ls");
+    assert!(reason(&scratch).contains("scratch"), "{scratch}");
+    let rig = fs::read_to_string(repository().join(".agentrig/commands.yaml")).unwrap();
+    let catalog: serde_yaml_ng::Value = serde_yaml_ng::from_str(&rig).unwrap();
+    let mut entry = serde_yaml_ng::Mapping::new();
+    entry.insert("bootstrap".into(), catalog["bootstrap"].clone());
+    let commands = serde_yaml_ng::to_string(&entry).unwrap();
+    configure(&root, "commands", &commands);
+    let required = [
+        "just lint-baseline",
+        "just bootstrap",
+        "just bootstrap HEAD",
+    ];
+    for command in required {
+        let output = hook(&root, "Bash", json!({"command": command}));
+        assert!(!output.to_string().contains("deny"), "{command}: {output}");
     }
 }
 

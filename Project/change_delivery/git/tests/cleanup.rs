@@ -1,8 +1,7 @@
-use super::{commit, installed, merge, start};
+use super::{commit, installed, start};
 use crate::shared::testing::{Run, configure, hermetic, invoke, run, runtime, worker};
 use serde_json::{Value, json};
 use std::{
-    fs,
     io::{BufRead, BufReader},
     mem::DropGuard,
     path::Path,
@@ -109,7 +108,12 @@ fn merge_cleans_only_owned_task_runs() {
 fn merge_inside_a_run_lists_only_other_live_runs() {
     let (_temp, root) = installed();
     start(&root, "inside");
-    configure(&root, "commands", BACKGROUND);
+    let merge = format!(
+        "{BACKGROUND}merge:\n  purpose: Merge inside a run\n  argv: ['{}', feature-merge, --root, '{}']\n",
+        worker().display(),
+        root.display()
+    );
+    configure(&root, "commands", &merge);
     commit(&root, "work.txt", "feature");
     let mut waiting = hermetic(worker());
     waiting
@@ -131,12 +135,7 @@ fn merge_inside_a_run_lists_only_other_live_runs() {
         .iter()
         .find(|row| row["command"] == "wait");
     let identifier = row.unwrap()["run_id"].clone();
-    let text = format!(
-        "{} feature-merge --root {}",
-        worker().display(),
-        root.display()
-    );
-    let merged = owned(&root, "merge-owner", &["scratch", "--", &text]);
+    let merged = owned(&root, "merge-owner", &["run", "merge"]);
     assert_eq!(merged.code, Some(0), "{}", merged.output());
     let (_, cleanup) = merged.stdout.split_once("post-merge cleanup: ").unwrap();
     let report: Value = serde_json::from_str(cleanup.lines().next().unwrap()).unwrap();
@@ -145,34 +144,4 @@ fn merge_inside_a_run_lists_only_other_live_runs() {
     assert_eq!(report["retained"], retained);
     assert_eq!(report["stopped"], json!([]));
     assert_eq!(report["errors"], json!([]));
-}
-
-#[test]
-fn merge_keeps_scratch_results_and_removes_temporary_runs() {
-    let (_temp, root) = installed();
-    start(&root, "probe");
-    let text =
-        r#"echo kept > "$AGENTRIG_SCRATCH/results/out" && echo draft > "$AGENTRIG_SCRATCH/draft""#;
-    let scratch = invoke(&root, &["scratch", "--", text]);
-    assert_eq!(scratch.code, Some(0), "{}", scratch.output());
-    commit(&root, "work.txt", "feature");
-    merge(&root);
-    let area = root.join(".cache/runtime/scratch/task/probe");
-    let names: Vec<_> = fs::read_dir(&area)
-        .unwrap()
-        .map(|entry| entry.unwrap().file_name())
-        .collect();
-    assert_eq!(names, ["results"]);
-    assert_eq!(
-        fs::read_to_string(area.join("results/out")).unwrap(),
-        "kept\n"
-    );
-    let rows = json(&invoke(&root, &["jobs"]));
-    let commands: Vec<_> = rows
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|row| &row["command"])
-        .collect();
-    assert!(!commands.contains(&&json!("scratch")), "{commands:?}");
 }
