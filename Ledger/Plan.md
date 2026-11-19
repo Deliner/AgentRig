@@ -15,7 +15,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
 | [P147](Plan/147.md) | paused | - | [B148](Backlog/148.md): one-agent-text — AGENTS.md и CLAUDE.md с одним текстом | Codex и Claude Code получают одни и те же правила, и разъехаться они не могут. |
-| [P151](Plan/151.md) | active | - | [B152](Backlog/152.md): hook-every-tool — хук проверяет каждый вызов инструмента | Нет инструмента или сбоя, при котором действие агента проходит мимо проверок рига. |
 | [P152](Plan/152.md) | pending | - | [B153](Backlog/153.md): hook-shell-parse — хук понимает команду так же, как оболочка и just | Хук разрешает ровно ту команду, которая потом выполнится. |
 | [P153](Plan/153.md) | pending | - | [B154](Backlog/154.md): program-arguments — аргументы разрешённых программ не запускают другой код | Разрешённая программа делает только своё дело и не запускает чужой код. |
 | [P154](Plan/154.md) | pending | - | [B155](Backlog/155.md): write-sandbox — программы `just read` и `just write` не выходят за пределы проекта | Команда агента ничего не меняет вне проекта и не запускает процессы мимо песочницы. |
