@@ -2,24 +2,26 @@
 
 ## Focus
 
-Not recorded.
+P159 (B161): a lint error for an array literal with calls among its elements indexed by a non-literal.
 
 ## Workspace
 
-Not recorded.
+- Branch: feature/array-index-literal
+- Revision: 96db9407ed62bb1f34a57c059d4482b00c27d82e
 
 ## Progress
 
-Not recorded.
+- P159 is active; P158 is merged into master.
 
 ## Verification
 
-Not recorded.
+- `just check --only memory` after activation.
 
 ## Blockers
 
-Not recorded.
+None.
 
 ## Next action
 
-Not recorded.
+Commit the activation, then add the inert kind with its detector, tests and decision, pin it, and enable it in
+lint.yaml with its repair skill.
