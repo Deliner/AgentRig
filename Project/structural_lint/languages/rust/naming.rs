@@ -21,6 +21,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     match node.kind() {
         "macro_invocation" => positional_format(node, source, output),
         "struct_expression" => crossed_field(node, source, output),
+        "call_expression" => parallel_index(node, source, output),
         _ => {}
     }
 }
@@ -120,4 +121,136 @@ fn field<'a>(initializer: Node<'_>, source: Code<'a>) -> Option<&'a str> {
         _ => None,
     };
     name.map(|name| text(name, source))
+}
+// DECISION: D211
+fn parallel_index(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+    let Some(searched) = searched(call, source) else {
+        return;
+    };
+    let mut indices = Vec::new();
+    let mut top = call;
+    while let Some(next) = top.parent().and_then(chained) {
+        let mut cursor = next.walk();
+        let closures: Vec<Node<'_>> = next
+            .child_by_field_name("arguments")
+            .map(|arguments| arguments.named_children(&mut cursor).collect())
+            .unwrap_or_default();
+        for closure in closures {
+            let body: Vec<Node<'_>> = closure.child_by_field_name("body").into_iter().collect();
+            let parameters = closure.child_by_field_name("parameters");
+            parameters.inspect(|parameters| track(*parameters, &body, source, &mut indices));
+        }
+        top = next;
+    }
+    indices.push(top);
+    bound(top, source, &mut indices);
+    let reads = indices
+        .into_iter()
+        .filter_map(|index| indexed(index, source))
+        .filter(|collection| {
+            let allowed = text(*collection, source) == searched
+                || in_test_context(*collection, source)
+                || justified(*collection, source);
+            !allowed
+        });
+    output.extend(reads.map(|collection| Measurement {
+        kind: Kind::Reference(Reference::ParallelIndex),
+        line: collection.start_position().row + 1,
+        symbol: "position".into(),
+        actual: 1,
+    }));
+}
+fn searched<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
+    let iterator = receiver(call, source, &["position"], 1)?;
+    let collection = receiver(iterator, source, &["iter", "iter_mut", "into_iter"], 0)?;
+    Some(text(collection, source))
+}
+fn receiver<'t>(
+    call: Node<'t>,
+    source: Code<'_>,
+    methods: &[&str],
+    arity: usize,
+) -> Option<Node<'t>> {
+    let function = call.child_by_field_name("function").filter(|function| {
+        call.kind() == "call_expression" && function.kind() == "field_expression"
+    })?;
+    let named = function
+        .child_by_field_name("field")
+        .is_some_and(|field| methods.contains(&text(field, source)));
+    let counted = call
+        .child_by_field_name("arguments")
+        .is_some_and(|arguments| arguments.named_child_count() == arity);
+    let matching = named && counted;
+    matching
+        .then(|| function.child_by_field_name("value"))
+        .flatten()
+}
+fn chained(parent: Node<'_>) -> Option<Node<'_>> {
+    match parent.kind() {
+        "try_expression" => Some(parent),
+        "field_expression" => parent
+            .parent()
+            .filter(|call| call.kind() == "call_expression"),
+        _ => None,
+    }
+}
+fn bound<'t>(top: Node<'t>, source: Code<'_>, indices: &mut Vec<Node<'t>>) {
+    let Some(binding) = top.parent() else {
+        return;
+    };
+    let scope: Vec<Node<'t>> = match binding.kind() {
+        "let_declaration" => {
+            std::iter::successors(binding.next_named_sibling(), Node::next_named_sibling).collect()
+        }
+        "let_condition" => std::iter::successors(binding.parent(), Node::parent)
+            .find(|owner| owner.kind() != "let_chain")
+            .and_then(|owner| owner.child_by_field_name("consequence"))
+            .into_iter()
+            .collect(),
+        _ => Vec::new(),
+    };
+    let pattern = binding.child_by_field_name("pattern");
+    pattern.inspect(|pattern| track(*pattern, &scope, source, indices));
+}
+fn track<'t>(pattern: Node<'_>, scope: &[Node<'t>], source: Code<'_>, indices: &mut Vec<Node<'t>>) {
+    let mut names = BTreeSet::new();
+    named(pattern, source, &mut names);
+    for node in scope {
+        used(*node, &names, source, indices);
+    }
+}
+fn named<'a>(pattern: Node<'_>, source: Code<'a>, names: &mut BTreeSet<&'a str>) {
+    let typed = pattern
+        .parent()
+        .and_then(|parent| parent.child_by_field_name("type"))
+        .is_some_and(|annotation| annotation == pattern);
+    let binding = pattern.kind() == "identifier" && !typed;
+    if binding {
+        names.insert(text(pattern, source));
+    }
+    let mut cursor = pattern.walk();
+    for child in pattern.named_children(&mut cursor) {
+        named(child, source, names);
+    }
+}
+fn used<'t>(node: Node<'t>, names: &BTreeSet<&str>, source: Code<'_>, indices: &mut Vec<Node<'t>>) {
+    let named = node.kind() == "identifier" && names.contains(text(node, source));
+    if named {
+        indices.push(node);
+    }
+    let mut cursor = node.walk();
+    for child in node.named_children(&mut cursor) {
+        used(child, names, source, indices);
+    }
+}
+fn indexed<'t>(index: Node<'t>, source: Code<'_>) -> Option<Node<'t>> {
+    let parent = index.parent()?;
+    match parent.kind() {
+        "index_expression" => {
+            let position = parent.named_child(1).is_some_and(|child| child == index);
+            position.then(|| parent.named_child(0)).flatten()
+        }
+        "arguments" => receiver(parent.parent()?, source, &["get", "get_mut"], 1),
+        _ => None,
+    }
 }

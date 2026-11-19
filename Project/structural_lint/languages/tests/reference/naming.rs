@@ -64,3 +64,45 @@ fn rust_flags_a_struct_literal_field_set_from_another_field_name() {
         [(2, "x:y".to_string()), (3, "height:width".to_string())]
     );
 }
+
+// DECISION: D211
+#[test]
+fn rust_flags_an_index_found_in_one_collection_and_read_from_another() {
+    let source = "fn start(layout: &Layout, point: Pos, groups: &[Group], layouts: &mut [Shape], name: &str) {
+    let role = [layout.movement, layout.jump, layout.look].iter().position(|rect| rect.contains(point));
+    if let Some(role) = role {
+        let slot = [MOVEMENT, JUMP, LOOK][role];
+    }
+    let chosen = groups.iter().position(|group| group.name == name).and_then(|index| layouts.get(index));
+    let direct = layouts[groups.iter().position(|group| group.name == name).unwrap()];
+    let Some(found) = groups.iter().position(|group| group.name == name) else { return };
+    let same = groups[found];
+    let other = layouts.get_mut(found);
+    if let Some(at) = groups.into_iter().position(|group| group.ready) {
+        let shape = layouts[at];
+    }
+    let skipped = groups.iter().skip(1).position(|group| group.ready).map(|index| layouts[index]);
+    let custom = frame.position(name).and_then(|index| layouts.get(index));
+    let removed = groups.iter().position(|group| group.ready).map(|index| layouts.swap(index, 0));
+    // DECISION: D001
+    let justified = layouts[groups.iter().position(|group| group.name == name).unwrap()];
+}
+#[cfg(test)]
+mod tests {
+    fn check(groups: &[Group], layouts: &[Shape]) {
+        let index = groups.iter().position(|group| group.ready).unwrap();
+        let shape = &layouts[index];
+    }
+}
+";
+    assert_eq!(
+        measured(source, Reference::ParallelIndex),
+        [
+            (4, "position".to_string()),
+            (6, "position".to_string()),
+            (7, "position".to_string()),
+            (10, "position".to_string()),
+            (12, "position".to_string()),
+        ]
+    );
+}

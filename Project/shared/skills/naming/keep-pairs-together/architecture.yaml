@@ -1,0 +1,5 @@
+purpose: "Keep values paired by position in two collections together in one record, or justify the parallel collections with a reference"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace an index found in one collection and read from another with one record per pair"
+directories: {}

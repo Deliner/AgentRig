@@ -4,7 +4,7 @@ use crate::structural_lint::rule_set::capabilities;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, env, fs, path::Path};
 
-const TEST_CODE_EXCLUDED: [&str; 48] = [
+const TEST_CODE_EXCLUDED: [&str; 49] = [
     "panic-path",
     "debug-assertion",
     "wildcard-import",
@@ -53,6 +53,7 @@ const TEST_CODE_EXCLUDED: [&str; 48] = [
     "variant-list",
     "dotted-extension",
     "max-fallback",
+    "parallel-index",
 ];
 const EXAMPLES: [&str; 5] = [
     "nonblank-lines",
