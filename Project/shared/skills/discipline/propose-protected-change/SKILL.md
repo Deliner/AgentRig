@@ -1,6 +1,6 @@
 ---
 name: propose-protected-change
-description: Propose a change of a protected enforcement file, such as a hook, a launcher, a recipe, a configuration module or the pin, for the user's approval, since agents never change these files themselves.
+description: Propose a change of a protected enforcement file, such as a hook, a launcher, a recipe, a configuration module or the pin, or a new lint exception for the user's approval, since agents never change these files themselves and never lift a rule unseen.
 ---
 
 # Let the user approve a change of enforcement
@@ -51,3 +51,15 @@ gate accepts a lint baseline written by `just lint-baseline` without approval
 only when it raises no count and adds no pair; recording new errors needs the
 user's approval. When the configuration is invalid in a protected file, ask
 the user to correct it.
+
+## Lint exceptions
+
+An exception `DECISION: DNNN RULE` above a line lifts a lint rule, so the gate
+refuses a commit that adds one the user has not approved. It is new when its
+file, decision, rule or the text of the line beneath it differs from every
+exception of the last commit; a deletion needs no approval. Show the user the
+refused list, each entry naming file:line, decision, rule and the line it
+lifts, and ask them to type `! just approve`. The approve command records the
+new exceptions of the working tree with any protected change and prints them;
+stage and commit them as they are, since a later edit of an exception or its
+line needs a new approval.

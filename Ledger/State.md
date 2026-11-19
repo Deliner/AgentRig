@@ -2,23 +2,23 @@
 
 ## Focus
 
-P167 (B174), VAC 2: the exception `DECISION: DNNN RULE` is parsed and its decision lists it (AC2, D219).
+P167 (B174), VAC 3: a new lint exception commits only after the user's approval (AC4, D220).
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: d92f5243073ceea579078d88be423f1a345006ac
+Revision: 3c53fdde383f18cc48efaf5998a6ad5ce3b029c0
 
 ## Progress
 
-- `source_parsers::exceptions` reads named exceptions from Rust, Python and shell comments and YAML and TOML lines.
-- `reference()` accepts the named form, so it counts as a reference; `INVARIANT:` with a rule is no reference.
-- The memory check refuses an unlisted exception and a listed `[exception RULE](FILE)` that the file lacks.
-- Lint still lifts any rule under any marker; strict lifting comes in a later VAC.
+- `change_delivery/git/exceptions.rs` keys an exception by file, decision, rule and the line beneath it.
+- The feature commit guard refuses staged exceptions beyond `HEAD` and the approved ones and lists each.
+- `approve` records and prints the new exceptions of the working tree; the record holds files and exceptions.
+- `propose-protected-change` describes the approval of exceptions.
 
 ## Verification
 
-- `just run test -- project_memory:: structural_lint::languages::tests::rust_accepts`: 44 passed.
+- `just run test -- change_delivery:: project_setup:: agent_hooks::`: 146 passed, with the new approval gate test.
 - `just candidate check --only memory`: PASS. `just lint --json`: no findings.
 
 ## Blockers
@@ -27,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 2, then VAC 3: the gate refuses a new exception until the user approves it (AC4).
+Commit VAC 3, run `just propose-pin HEAD` and ask the user to type `! just approve`, then commit the pin.

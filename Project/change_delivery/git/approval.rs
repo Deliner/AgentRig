@@ -1,4 +1,5 @@
 // DECISION: D213
+use super::exceptions::{self, Added, Contents, Key};
 use crate::project_config::{Context, protection::Protection};
 use crate::shared::atomic_files::{atomic_json, overlay::Overlay};
 use crate::shared::console;
@@ -10,6 +11,18 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 const RECORD: &str = "approved";
+
+// DECISION: D220
+#[derive(Default, Deserialize, Serialize)]
+#[serde(default)]
+struct Record {
+    files: BTreeMap<String, Content>,
+    exceptions: Vec<Key>,
+}
+pub struct Approved {
+    files: Vec<String>,
+    exceptions: Vec<String>,
+}
 
 #[derive(Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "kebab-case")]
@@ -58,19 +71,32 @@ pub fn approve(context: &Context) -> Result<i32> {
     };
     let approved = record(&reloaded, &repository)?;
     applied.commit()?;
-    let none = approved.is_empty();
-    if none {
-        console::stdout("no change of protected files to approve");
-    } else {
-        console::stdout(format!(
-            "approved; stage and commit: {}",
-            approved.join(", ")
-        ));
-    }
+    approved.report();
     Ok(0)
 }
 
-pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Vec<String>> {
+impl Approved {
+    fn report(&self) {
+        let Self { files, exceptions } = self;
+        let none = files.is_empty() && exceptions.is_empty();
+        if none {
+            console::stdout("no change of protected files and no new lint exception to approve");
+        }
+        let changed = !files.is_empty();
+        if changed {
+            console::stdout(format!("approved; stage and commit: {}", files.join(", ")));
+        }
+        let excepted = !exceptions.is_empty();
+        if excepted {
+            console::stdout(format!(
+                "approved new lint exceptions; stage and commit:\n{}",
+                exceptions.join("\n")
+            ));
+        }
+    }
+}
+
+pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved> {
     let status = repository.run(&[
         "status",
         "--porcelain=v1",
@@ -78,50 +104,77 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Vec<Stri
         "--untracked-files=all",
         "--no-renames",
     ])?;
-    let changed = String::from_utf8(status)?;
-    let protected: Vec<String> = changed
+    let changed: Vec<String> = String::from_utf8(status)?
         .split('\0')
         .filter_map(|entry| entry.get(3..))
-        .filter(|path| context.protection.touched(Path::new(path)))
         .map(str::to_owned)
         .collect();
-    let stageable = repository.stageable(&protected)?;
-    let approved: BTreeMap<&str, Content> = protected
-        .iter()
-        .map(|path| (path.as_str(), Content::of(&stageable, path)))
+    let stageable = repository.stageable(&changed)?;
+    let committed = committed(repository)?;
+    let contents = Contents {
+        current: &stageable,
+        committed: &committed,
+    };
+    let added = exceptions::added(repository, &changed, contents)?;
+    let files: Vec<String> = changed
+        .into_iter()
+        .filter(|path| context.protection.touched(Path::new(path)))
         .collect();
-    atomic_json::save(&record_path(context)?, &approved)?;
-    Ok(protected)
+    let record = Record {
+        files: files
+            .iter()
+            .map(|path| (path.clone(), Content::of(&stageable, path)))
+            .collect(),
+        exceptions: added.iter().map(|found| found.key.clone()).collect(),
+    };
+    atomic_json::save(&record_path(context)?, &record)?;
+    Ok(Approved {
+        files,
+        exceptions: added.iter().map(Added::describe).collect(),
+    })
+}
+
+fn committed(repository: &Repository<'_>) -> Result<BTreeMap<String, Entry>> {
+    match repository.head()? {
+        Some(head) => repository.tree(&head),
+        None => Ok(BTreeMap::new()),
+    }
 }
 
 pub(super) fn guard(context: &Context, repository: &Repository<'_>) -> Result<i32> {
     let staged = repository.staged_changes()?;
+    let index = repository.index()?;
+    let committed = committed(repository)?;
+    let contents = Contents {
+        current: &index,
+        committed: &committed,
+    };
+    let added = exceptions::added(repository, &staged, contents)?;
     let protected: Vec<&String> = staged
         .iter()
         .filter(|path| context.protection.touched(Path::new(path)))
         .collect();
-    let unchanged = protected.is_empty();
+    let unchanged = protected.is_empty() && added.is_empty();
     if unchanged {
         return Ok(0);
     }
+    let record: Record = atomic_json::load(&record_path(context)?)?.unwrap_or_default();
     let review = Review {
         repository,
-        index: repository.index()?,
-        committed: repository.tree("HEAD")?,
-        approved: atomic_json::load(&record_path(context)?)?.unwrap_or_default(),
+        index,
+        committed,
+        approved: record.files,
     };
-    let mut refused = Vec::new();
-    for path in protected {
-        let unapproved = !review.accepted(&context.protection, path)?;
-        if unapproved {
-            refused.push(path.as_str());
-        }
-    }
-    let accepted = refused.is_empty();
+    let refused = review.refused(&context.protection, protected)?;
+    let exceptions: Vec<String> = exceptions::unapproved(added, &record.exceptions)
+        .iter()
+        .map(Added::describe)
+        .collect();
+    let accepted = refused.is_empty() && exceptions.is_empty();
     if accepted {
         return Ok(0);
     }
-    refuse(context, &refused);
+    refuse(context, &refused, &exceptions);
     Ok(1)
 }
 
@@ -132,6 +185,16 @@ struct Review<'a, 'r> {
     approved: BTreeMap<String, Content>,
 }
 impl Review<'_, '_> {
+    fn refused<'p>(&self, protection: &Protection, paths: Vec<&'p String>) -> Result<Vec<&'p str>> {
+        let mut refused = Vec::new();
+        for path in paths {
+            let unapproved = !self.accepted(protection, path)?;
+            if unapproved {
+                refused.push(path.as_str());
+            }
+        }
+        Ok(refused)
+    }
     fn accepted(&self, protection: &Protection, path: &str) -> Result<bool> {
         let file = Path::new(path);
         let approved = self.approved.get(path) == Some(&Content::of(&self.index, path));
@@ -155,11 +218,27 @@ impl Review<'_, '_> {
     }
 }
 
-fn refuse(context: &Context, refused: &[&str]) {
+fn refuse(context: &Context, refused: &[&str], exceptions: &[String]) {
     let skill = context.protection_skill();
+    let mut reasons = Vec::new();
+    let files = !refused.is_empty();
+    if files {
+        reasons.push(format!(
+            "the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts",
+            refused.join(", ")
+        ));
+    }
+    // DECISION: D220
+    let excepted = !exceptions.is_empty();
+    if excepted {
+        reasons.push(format!(
+            "the user has not approved these new lint exceptions, each shown as file:line, decision, rule and the line it lifts:\n{}\n",
+            exceptions.join("\n")
+        ));
+    }
     console::stderr(format!(
-        "AgentRig refused this commit: the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts. ACTION: Apply {skill}.",
-        refused.join(", ")
+        "AgentRig refused this commit: {}. ACTION: Apply {skill}.",
+        reasons.join("; ")
     ));
 }
 

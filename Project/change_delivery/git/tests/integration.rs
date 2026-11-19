@@ -1,10 +1,8 @@
 // DECISION: D010
 // DECISION: D012
-use super::{STATE, approve_commands, commit, installed, merge, read, start};
+use super::{DECISION, STATE, approve_commands, commit, installed, merge, read, start};
 use crate::shared::testing::{describe_state, git, git_run, invoke, run, runtime};
 use std::{fs, path::Path};
-
-const DECISION: &str = "# D001\n\n## Context\n\nText.\n\n## Chosen\n\nText.\n\n## Rejected\n\nText.\n\n## Rationale\n\nText.\n\n## Consequences\n\nText.\n";
 
 const MUTATING_COMMAND: &str = r#"probe:
   purpose: Mutate a gate input on request

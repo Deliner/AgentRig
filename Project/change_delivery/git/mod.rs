@@ -2,6 +2,7 @@
 // DECISION: D019
 // DECISION: D035
 pub mod approval;
+mod exceptions;
 mod integration;
 pub mod pin;
 mod push;
