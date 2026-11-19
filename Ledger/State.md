@@ -2,23 +2,21 @@
 
 ## Focus
 
-P166 (B173), final VAC: archive the completed P166 and B173, then move the runtime pin through the user's approval.
+P166 (B173), pin VAC: commit the runtime pin that the user approved under D218.
 
 ## Workspace
 
 Branch: feature/pin-approval
-Revision: 8389ae8dbb658955f74efd006a61e03929d5abab
+Revision: ed7d844333b9cfa237f4512fd48b3fc18e7bba6b
 
 ## Progress
 
-- VAC 3 committed at 8389ae8; its push failed on a network error and the next commit retries it.
-- Archive/Plan/166.md records the delivery and AC1–AC4 evidence; B173 moved to Archive/Backlog; the live rows are
-  gone; D218 links the archived card and delivery.
+- `just propose-pin HEAD` prepared ed7d844 and listed the changed sources; the user ran `just approve`, which installed
+  ed7d844 and then wrote it to stable.txt.
 
 ## Verification
 
-- `just candidate check --only memory` passes after the rotation.
-- AC4: no text outside Ledger tells an agent to run `bootstrap HEAD`.
+- stable.txt reads ed7d844333b9cfa237f4512fd48b3fc18e7bba6b, the approved and installed revision.
 
 ## Blockers
 
@@ -26,5 +24,4 @@ None.
 
 ## Next action
 
-Commit the archive, run `just propose-pin HEAD`, ask the user for `! just approve`, commit the pin, then
-`just feature-merge` and start P167 on a new branch.
+Commit the pin, run `just feature-merge`, then start P167 on a new branch from master.
