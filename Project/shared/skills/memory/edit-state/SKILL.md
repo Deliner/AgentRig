@@ -23,6 +23,13 @@ interruptions, blockers and handoffs; stop when the recovery picture is accurate
 
 ## Repository binding
 
+State describes only the current VAC, and each feature commit carries the State
+of its VAC. After a commit the post-commit hook resets State to the empty
+template; the commit guard refuses that template unless State is the only
+change, so describe the next VAC before committing it. feature-merge commits the
+reset State before merging. Keep State within 100 nonblank lines of at most 120
+characters; lint reports a longer or wider State with this skill.
+
 Use Focus, Workspace, Progress, Verification, Blockers and Next action in order.
 Read current Plan and Git before editing. Record the task, VAC, observed branch
 and revision, checks, blockers and next action. Branch: name and Revision: hash
