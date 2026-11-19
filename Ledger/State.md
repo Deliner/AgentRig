@@ -2,31 +2,28 @@
 
 ## Focus
 
-P165 (B168), enable VAC: pin the inert kind 71f3068 and enable `parallel-index` with the skill
-`keep-pairs-together` in the rig, the catalog and init.
+P165 (B168), final VAC: pin the revision that enables `parallel-index` and archive P165 with its Backlog card B168.
 
 ## Workspace
 
 - Branch: feature/parallel-index
-- Revision: 71f30685ac02228ea8fd125e49ab619009e231e6
+- Revision: 0d9d4817ac70f11bc0d8d8a10125b59c2990fc7d
 
 ## Progress
 
-- `just bootstrap HEAD` installed 71f3068 and wrote it to stable.txt.
-- The rule is in `.agentrig/lint.yaml` with the tests exclude; registry, capabilities, skills.rs, the skill in
-  `naming/keep-pairs-together` with its link, the category inventory and `TEST_CODE_EXCLUDED` follow.
-- The D211 index row links the skill and the repository rules.
+- `just bootstrap HEAD` installed 0d9d481 and wrote it to stable.txt.
+- P165 moved to Archive/Plan with its Delivery and the AC1 verdict; B168 moved to Archive/Backlog; the D211 card
+  and delivery links point to the archive.
 
 ## Verification
 
-- `just config-check`, `just lint-config-check`, `just lint` and `just check --only memory` pass; the rig has no
-  site.
-- `just run test -- structural_lint::tests` passes, 103 tests; `just run test -- project_setup` passes, 57 tests.
+- `just check --only memory` passes after the rotation.
+- The gate of 0d9d481 passed the whole suite, 566 tests.
 
 ## Blockers
 
-None.
+None for P165. P147, P156 and P157 stay paused until the user answers their open questions.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then archive P165 and B168 with the pin and run `just feature-merge`.
+Commit this VAC, then run `just feature-merge` and report the batch.

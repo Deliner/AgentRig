@@ -157,3 +157,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P162](Plan/162.md) | complete | - | [B164](Backlog/164.md): outer-flag-filter — флаг проверяется до вызова ([D208](../Decisions/208.md)) | Работа, результат которой выбросит флаг, не выполняется. |
 | [P163](Plan/163.md) | complete | - | [B165](Backlog/165.md): max-fallback — запасной `MAX` перед арифметикой ([D209](../Decisions/209.md)) | Запасное значение-граница не переполняется и не теряет смысл в следующей арифметике. |
 | [P164](Plan/164.md) | complete | - | [B166](Backlog/166.md): bit-count-subtraction — вычитание счётчиков битов ([D210](../Decisions/210.md)) | Вычитание счётчиков не паникует на данных, которые должны дать обычную ошибку. |
+| [P165](Plan/165.md) | complete | - | [B168](Backlog/168.md): parallel-index — индекс из одного массива не читает другой ([D211](../Decisions/211.md)) | Связанные значения меняются в одном месте и не расходятся по позициям. |
