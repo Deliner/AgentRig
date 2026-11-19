@@ -40,6 +40,7 @@ pub enum Configured {
     FeatureStart,
     FeatureMerge,
     FeaturePush,
+    StateReset,
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
@@ -66,6 +67,7 @@ const NAMES: &[(&str, Command)] = &[
         Command::Configured(Configured::FeatureMerge),
     ),
     ("feature-push", Command::Configured(Configured::FeaturePush)),
+    ("state-reset", Command::Configured(Configured::StateReset)),
     ("scratch", Command::Runner(Runner::Scratch)),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
@@ -126,8 +128,7 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
     if unexpected {
         bail!("guard-commit takes no arguments");
     }
-    let context = Context::load(root)?;
-    git::guard_commit(root, &context.config.git)
+    git::guard_commit(&Context::load(root)?)
 }
 
 fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
@@ -140,7 +141,8 @@ fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
         | Configured::ConfigCheck
         | Configured::Commands
         | Configured::FeatureMerge
-        | Configured::FeaturePush => (!args.is_empty()).then(|| {
+        | Configured::FeaturePush
+        | Configured::StateReset => (!args.is_empty()).then(|| {
             format!(
                 "{name} takes no arguments",
                 name = Command::Configured(command).name()

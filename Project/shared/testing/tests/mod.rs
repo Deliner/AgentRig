@@ -182,10 +182,10 @@ pub fn git(root: &Path, args: &[&str]) -> String {
     result.stdout.trim().to_owned()
 }
 
-pub fn commit(root: &Path, name: &str, text: &str) {
-    fs::write(root.join(name), text).unwrap();
-    git(root, &["add", "."]);
-    git(root, &["commit", "-qm", name]);
+pub fn describe_state(root: &Path, vac: &str) {
+    let state = root.join("Ledger/State.md");
+    let template = fs::read_to_string(&state).unwrap();
+    fs::write(&state, template.replacen("Not recorded.", vac, 1)).unwrap();
 }
 
 pub fn configure(root: &Path, module: &str, addition: &str) {

@@ -1,5 +1,5 @@
-use super::{installed, merge, start};
-use crate::shared::testing::{Run, commit, configure, hermetic, invoke, run, runtime, worker};
+use super::{commit, installed, merge, start};
+use crate::shared::testing::{Run, configure, hermetic, invoke, run, runtime, worker};
 use serde_json::{Value, json};
 use std::{
     fs,

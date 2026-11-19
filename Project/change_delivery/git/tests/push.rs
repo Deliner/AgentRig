@@ -1,6 +1,6 @@
 // DECISION: D179
-use super::{installed, merge, start};
-use crate::shared::testing::{Run, commit, configure, git, git_run, invoke};
+use super::{STATE, commit, installed, merge, start};
+use crate::shared::testing::{Run, configure, describe_state, git, git_run, invoke};
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
@@ -27,7 +27,8 @@ fn tip(repository: &Path, branch: &str) -> String {
 
 fn committed(root: &Path, name: &str) -> Run {
     fs::write(root.join(name), name).unwrap();
-    git(root, &["add", name]);
+    describe_state(root, "A test VAC.");
+    git(root, &["add", name, STATE]);
     git_run(root, &["commit", "-qm", name])
 }
 

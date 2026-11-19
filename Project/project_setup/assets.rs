@@ -1,4 +1,4 @@
-use crate::project_memory::format::{Catalog, STATE_SECTIONS};
+use crate::project_memory::format::{Catalog, state_template};
 use std::collections::BTreeMap;
 
 pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
@@ -21,15 +21,7 @@ pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
             format!("# {name}\n\n| {columns} |\n| {separator} |\n"),
         );
     }
-    files.insert(
-        "State",
-        "# State\n\n".to_owned()
-            + &STATE_SECTIONS
-                .iter()
-                .map(|heading| format!("## {heading}\n\nNot recorded.\n"))
-                .collect::<Vec<_>>()
-                .join("\n"),
-    );
+    files.insert("State", state_template());
     Ok(files)
 }
 

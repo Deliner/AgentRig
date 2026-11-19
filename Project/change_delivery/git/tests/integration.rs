@@ -1,7 +1,7 @@
 // DECISION: D010
 // DECISION: D012
-use super::{installed, merge, read, start};
-use crate::shared::testing::{commit, configure, git, git_run, invoke, run, runtime};
+use super::{STATE, commit, installed, merge, read, start};
+use crate::shared::testing::{configure, git, git_run, invoke, run, runtime};
 use std::{fs, path::Path};
 
 const MUTATING_COMMAND: &str = r#"probe:
@@ -16,6 +16,7 @@ fn diverged(root: &Path) -> String {
     commit(root, "side.txt", "side");
     git(root, &["switch", "task/product"]);
     commit(root, "main.txt", "main");
+    git(root, &["restore", "--staged", "--worktree", STATE]);
     git(
         root,
         &["merge", "--no-ff", "--no-edit", "task/product-side"],
@@ -79,7 +80,7 @@ fn conflicting_rebase_can_be_aborted_without_losing_the_feature() {
     assert_eq!(git(&root, &["rev-parse", "trunk"]), base);
     assert_ne!(git(&root, &["ls-files", "--unmerged"]), "");
     git(&root, &["rebase", "--abort"]);
-    assert_eq!(git(&root, &["rev-parse", "HEAD"]), product);
+    assert_eq!(git(&root, &["rev-parse", "HEAD^"]), product);
     assert_eq!(read(&root, "shared.txt"), "product\n");
     assert_eq!(git(&root, &["status", "--porcelain"]), "");
 }
@@ -143,7 +144,7 @@ fn integration_rejects_mutated_gate_inputs() {
         git(&root, &["branch", "--show-current"]),
         "task/mutating-check"
     );
-    assert_eq!(git(&root, &["rev-parse", "HEAD"]), feature);
+    assert_eq!(git(&root, &["rev-parse", "HEAD^"]), feature);
     assert_eq!(git(&root, &["rev-parse", "trunk"]), base);
     assert_eq!(read(&root, "product.txt"), "changed\n");
 }
@@ -171,7 +172,7 @@ fn refused_switch_to_base_keeps_the_feature_tree() {
         refused.stderr
     );
     assert_eq!(git(&root, &["branch", "--show-current"]), "task/product");
-    assert_eq!(git(&root, &["rev-parse", "HEAD"]), feature);
+    assert_eq!(git(&root, &["rev-parse", "HEAD^"]), feature);
     assert_eq!(git(&root, &["status", "--porcelain"]), "");
     assert_eq!(read(&root, hook), generated);
 }

@@ -14,6 +14,24 @@ pub const STATE_SECTIONS: &[&str] = &[
     "Blockers",
     "Next action",
 ];
+// DECISION: D191
+pub fn state_template() -> String {
+    let sections: Vec<String> = STATE_SECTIONS
+        .iter()
+        .map(|heading| format!("## {heading}\n\nNot recorded.\n"))
+        .collect();
+    format!("# State\n\n{}", sections.join("\n"))
+}
+// DECISION: D191
+pub fn reset_state(path: &Path) -> Result<()> {
+    fs::write(path, state_template())?;
+    Ok(())
+}
+// DECISION: D191
+pub fn state_holds_notes(path: &Path, committed: &[u8]) -> Result<bool> {
+    let working = fs::read(path)?;
+    Ok(working != state_template().as_bytes() && working != committed)
+}
 #[derive(Clone, Copy)]
 pub enum Catalog {
     Plan,

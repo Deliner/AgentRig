@@ -1,8 +1,9 @@
 // DECISION: D003
 // DECISION: D011
 // DECISION: D014
-use super::{installed, read, start};
-use crate::shared::testing::{git, hermetic, run, runtime};
+use super::{STATE, installed, read, start};
+use crate::project_memory::format::state_template;
+use crate::shared::testing::{describe_state, git, git_run, hermetic, run, runtime};
 use std::fs;
 
 // INVARIANT: I006
@@ -12,7 +13,8 @@ fn staged_commit_preserves_unstaged_work() {
     start(&root, "atomic");
     let before = git(&root, &["rev-parse", "HEAD"]);
     fs::write(root.join("product.txt"), "staged").unwrap();
-    git(&root, &["add", "product.txt"]);
+    describe_state(&root, "A test VAC.");
+    git(&root, &["add", "product.txt", STATE]);
     fs::write(root.join("product.txt"), "later unstaged work").unwrap();
     fs::write(root.join("unrelated.txt"), "user work").unwrap();
     let mut blocked = hermetic("git");
@@ -29,6 +31,33 @@ fn staged_commit_preserves_unstaged_work() {
     let committed = git(&root, &["ls-tree", "--name-only", "HEAD"]);
     assert!(!committed.lines().any(|name| name == "unrelated.txt"));
     assert_eq!(read(&root, "unrelated.txt"), "user work");
+}
+
+// DECISION: D191
+#[test]
+fn feature_commits_carry_a_described_state() {
+    let (_temp, root) = installed();
+    start(&root, "described");
+    fs::write(root.join("product.txt"), "product").unwrap();
+    git(&root, &["add", "product.txt"]);
+    let empty = git_run(&root, &["commit", "-qm", "empty State"]);
+    assert_eq!(empty.code, Some(1), "{}", empty.output());
+    let skill = root.join(".agentrig/skills/edit-state/SKILL.md");
+    let named = empty.stderr.contains(skill.to_str().unwrap());
+    assert!(named, "{}", empty.stderr);
+    describe_state(&root, "A test VAC.");
+    git(&root, &["add", STATE]);
+    git(&root, &["commit", "-qm", "described"]);
+    fs::write(root.join(STATE), state_template()).unwrap();
+    git(&root, &["add", STATE]);
+    git(&root, &["commit", "-qm", "reset only"]);
+    fs::write(root.join("later.txt"), "later").unwrap();
+    git(&root, &["add", "later.txt"]);
+    git(&root, &["rm", "-q", "--cached", STATE]);
+    let removed = git_run(&root, &["commit", "-qm", "removed State"]);
+    assert_eq!(removed.code, Some(1), "{}", removed.output());
+    let failed = removed.stderr.contains("git failed") && removed.stderr.contains(STATE);
+    assert!(failed, "{}", removed.stderr);
 }
 
 // INVARIANT: I021
