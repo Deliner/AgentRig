@@ -2,9 +2,12 @@
   kind: command
   skill: .agentrig/skills/repair/SKILL.md
   command: build
-- id: lint
+- id: candidate-lint
   kind: command
   command: lint
+  skill: .agentrig/skills/repair/SKILL.md
+- id: lint
+  kind: lint
   skill: .agentrig/skills/repair/SKILL.md
 - id: memory
   kind: memory

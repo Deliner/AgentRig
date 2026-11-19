@@ -35,4 +35,8 @@ routes:
 - include: ['Project/agent_hooks/**', 'Project/change_delivery/**']
   skill: .agentrig/skills/fail-closed-enforcement/SKILL.md
   events: [edit]
-protected: [tooling/worker, tooling/distribution/bootstrap.sh, .cache/development]
+protected:
+- tooling/worker
+- tooling/distribution/bootstrap.sh
+- .cache/development
+- Project/project_setup/initialization/tests/rig_differences.yaml

@@ -2,21 +2,22 @@
 
 ## Focus
 
-P157 (B158): pin the revision with D214 to D217 so the installed runtime enforces them on the rig (D051).
+P157 (B158): apply D217 to the rig: native `lint` beside `candidate-lint`, and a protected rig difference list.
 
 ## Workspace
 
 Branch: feature/gate-base-rules
-Revision: f36bfba94bdc3d69183ab0a293b81d5457601b2d
+Revision: e05e14d3ac4a4a97cf564c5423a36824c4816b47
 
 ## Progress
 
-VAC 1 to VAC 4 committed (D214, D215, D216, D217). `just bootstrap HEAD` installed `f36bfba` and wrote it to
-`tooling/distribution/stable.txt`.
+VAC 1 to VAC 4 and the pin committed. The user approved with `just approve` the proposals of `checks.yaml`,
+`hooks.yaml` and `rig_differences.yaml`; the distribution guide now says repository lint runs twice.
 
 ## Verification
 
-`just bootstrap HEAD` built and installed the revision and printed `agentrig 0.3.0`.
+`just config-check` passes, `just check --only lint` passes with the installed runtime, and `just run test --
+project_setup::initialization::tests::rig` passes the rig difference test.
 
 ## Blockers
 
@@ -24,4 +25,5 @@ None.
 
 ## Next action
 
-Commit the pin, then propose `checks.yaml`, `hooks.yaml` and the rig difference list for `! just approve`.
+Commit the approved files, archive P157 and B158, run `just bootstrap HEAD` and commit the pin, then `just
+feature-merge`.
