@@ -4,6 +4,7 @@ files:
   delivery.rs: Install, check, guard and integrate independent Python and Rust projects through their installed launchers
   runtime.rs: Run the runtime of the reported platform, refuse without one and add one with runtime-add
   doctor.rs: Diagnose installed hooks, client registration, tools and runtime compatibility
+  recipes.rs: Verify generated recipes run on the project of their justfile whatever root the agent's words name
   defaults.rs: Verify installed Rust and Python lint limits block delivery and accept boundaries, and shipped rule scopes, the rig's flag list and Cargo configurations included
   coverage.rs: Report affected-map sources and tests left without selected tests through config-check
   toolchain.rs: Verify Rust init and doctor require the rig's Rust version from the project's rustc and init writes the rig's Rust capability section, while Python ones do neither

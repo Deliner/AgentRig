@@ -2,14 +2,21 @@
 use crate::change_delivery::gate;
 use crate::command_runner;
 use crate::project_config::Context;
+use crate::project_setup;
 use crate::shared::paths::resolve;
 use crate::shared::shared_options::forwarded;
-use anyhow::{Result, bail};
+use anyhow::{Result, bail, ensure};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
 // DECISION: D196
 const PATH_PROGRAMS: [&str; 6] = ["mkdir", "cp", "mv", "rm", "touch", "chmod"];
+// DECISION: D201
+const QUOTED_SUBSTITUTIONS: [&[char]; 3] = [&['\u{60}'], &['$', '('], &['$', '{', '(']];
+const LISTING: project_setup::Recipe = project_setup::Recipe {
+    command: "--list",
+    forwards: false,
+};
 
 enum Role {
     StartEscape,
@@ -18,21 +25,11 @@ enum Role {
     Control,
     Plain,
 }
-#[derive(Clone, Copy)]
-struct Lookahead {
-    current: char,
-    next: Option<char>,
-}
-impl Lookahead {
-    fn substitution(self) -> bool {
-        self.current == '$' && self.next == Some('(')
-    }
-}
-fn role(quote: Option<char>, lookahead: Lookahead) -> Role {
-    let ch = lookahead.current;
+// DECISION: D201
+fn role(quote: Option<char>, ch: char) -> Role {
     let escape_start = ch == '\\' && quote != Some('\'');
     let quote_start = ch == '\'' || ch == '"';
-    let shell_control = ";|&<>\n\u{60}".contains(ch) || lookahead.substitution();
+    let shell_control = ";|&<>(\n\u{60}".contains(ch);
     if escape_start {
         Role::StartEscape
     } else if let Some(q) = quote {
@@ -55,16 +52,15 @@ fn outer_control(command: &str) -> bool {
             escaped = false;
             continue;
         }
-        let lookahead = Lookahead {
-            current: ch,
-            next: chars.get(index + 1).copied(),
-        };
-        match role(quote, lookahead) {
+        match role(quote, ch) {
             Role::StartEscape => escaped = true,
             Role::InQuote(q) => {
                 let quote_end = ch == q;
-                let opens_substitution = ch == '\u{60}' || lookahead.substitution();
-                let quoted_substitution = q == '"' && opens_substitution;
+                let rest = &chars[index..];
+                let substitutes = QUOTED_SUBSTITUTIONS
+                    .iter()
+                    .any(|opening| rest.starts_with(opening));
+                let quoted_substitution = q == '"' && substitutes;
                 if quote_end {
                     quote = None;
                 } else if quoted_substitution {
@@ -86,26 +82,27 @@ pub fn command(event: &Value) -> Option<&str> {
 pub fn words(command: &str) -> Result<Vec<String>> {
     let has_outer_control = outer_control(command);
     if has_outer_control {
-        bail!("Agent shell commands must be one top-level just invocation.");
+        bail!(
+            "Agent shell commands must be one top-level just invocation; quote any character the shell would read as control, substitution or a glob qualifier."
+        );
     }
     Ok(shell_words::split(command)?)
 }
+// DECISION: D201
 pub fn arguments(command: Option<&str>) -> Result<Vec<String>> {
     let command =
         command.ok_or_else(|| anyhow::anyhow!("one top-level just invocation is required"))?;
     let argv = words(command)?;
-    let not_just = argv
-        .first()
-        .and_then(|arg| Path::new(arg).file_name())
-        .is_none_or(|name| name != "just");
-    if not_just {
-        bail!("Direct shell commands are disabled; use a recipe from just --list.");
-    }
+    let named_just = argv.first().is_some_and(|program| program == "just");
+    ensure!(
+        named_just,
+        "Direct shell commands are disabled; run a recipe from just --list by the name just, not by a path."
+    );
     Ok(argv)
 }
 
 // DECISION: D047
-pub fn enters_check(argv: &[String]) -> Result<bool> {
+fn enters_check(argv: &[String]) -> Result<bool> {
     let recipe = argv.get(1).is_some_and(|arg| arg == "check");
     let mut words = Vec::new();
     for word in argv {
@@ -122,58 +119,108 @@ pub fn enters_check(argv: &[String]) -> Result<bool> {
     Ok(recipe || commit)
 }
 
-pub fn hook_commands(context: &Context, argv: Vec<String>) -> Result<Vec<String>> {
-    match argv.get(1).map(String::as_str).unwrap_or("list") {
-        "run" => {
-            let name = argv
-                .get(2)
-                .ok_or_else(|| anyhow::anyhow!("just run requires a catalog command"))?;
-            command_runner::argv(context, name, forwarded(&argv[3..]))?;
+pub struct Inspection {
+    pub catalog: Option<String>,
+    pub check: bool,
+    pub written: Option<Vec<PathBuf>>,
+}
+enum Call<'a> {
+    Catalog {
+        name: &'a str,
+        args: &'a [String],
+    },
+    Runtime {
+        command: &'static str,
+        args: &'a [String],
+    },
+}
+
+// DECISION: D201
+pub fn inspect(context: &Context, argv: &[String]) -> Result<Inspection> {
+    let catalog = match call(argv)? {
+        Call::Catalog { name, args } => Some((name, command_runner::argv(context, name, args)?)),
+        Call::Runtime { command, args } => {
+            runtime_arguments(command, args)?;
+            None
         }
-        "list" | "--list" | "resume" | "config-check" | "doctor" | "lint-rules" | "report"
-        | "feature-merge" => {
-            anyhow::ensure!(
-                argv.len() <= 2,
-                "one Just recipe is required; this recipe takes no arguments"
-            );
+    };
+    let written = catalog
+        .as_ref()
+        .and_then(|(_, command)| written(&context.root, command));
+    Ok(Inspection {
+        catalog: catalog.map(|(name, _)| name.to_owned()),
+        check: enters_check(argv)?,
+        written,
+    })
+}
+// DECISION: D197
+fn call(argv: &[String]) -> Result<Call<'_>> {
+    let (name, extra) = argv
+        .get(1..)
+        .and_then(|words| words.split_first())
+        .ok_or_else(|| anyhow::anyhow!("name one recipe from just --list"))?;
+    let listing = name == "--list";
+    let recipe = if listing {
+        Some(LISTING)
+    } else {
+        project_setup::recipe(name)
+    };
+    let Some(recipe) = recipe else {
+        return Ok(Call::Catalog {
+            name,
+            args: forwarded(extra),
+        });
+    };
+    ensure!(
+        recipe.forwards || extra.is_empty(),
+        "one Just recipe is required; `just {name}` takes no arguments, and Just would run a further word as another recipe"
+    );
+    recipe_call(recipe.command, extra)
+}
+fn recipe_call<'a>(command: &'static str, extra: &'a [String]) -> Result<Call<'a>> {
+    match command {
+        "run" | "job-start" => {
+            let (name, args) = extra
+                .split_first()
+                .ok_or_else(|| anyhow::anyhow!("just {command} requires a catalog command"))?;
+            Ok(Call::Catalog {
+                name,
+                args: forwarded(args),
+            })
         }
+        _ => match command.strip_prefix("run ") {
+            Some(name) => Ok(Call::Catalog {
+                name,
+                args: forwarded(extra),
+            }),
+            None => Ok(Call::Runtime {
+                command,
+                args: extra,
+            }),
+        },
+    }
+}
+fn runtime_arguments(command: &str, args: &[String]) -> Result<()> {
+    match command {
         "check" => {
-            gate::arguments(forwarded(&argv[2..]))?;
+            gate::arguments(forwarded(args))?;
         }
         "feature-start" => {
-            let extra = forwarded(&argv[2..]);
-            anyhow::ensure!(extra.len() == 1, "feature-start NAME");
+            ensure!(forwarded(args).len() == 1, "feature-start NAME");
         }
-        // DECISION: D197
-        "lint" | "lint-config-check" | "lint-baseline" | "lint-rule" | "lint-explain"
-        | "lint-edges" | "lint-tree" | "lint-structure" | "jobs" | "job-status" | "job-logs"
-        | "job-stop" | "job-start" | "job-cleanup" => {}
-        name => {
-            command_runner::argv(context, name, forwarded(&argv[2..]))?;
-        }
+        _ => {}
     }
-    Ok(argv)
+    Ok(())
 }
 
 // DECISION: D196
-pub fn written(context: &Context, argv: &[String]) -> Result<Option<Vec<PathBuf>>> {
-    let (name, extra) = match argv.get(1).map(String::as_str) {
-        Some("run") => (argv.get(2), argv.get(3..)),
-        _ => (argv.get(1), argv.get(2..)),
-    };
-    let catalog = name.filter(|name| context.config.commands.contains_key(name.as_str()));
-    let Some(name) = catalog else {
-        return Ok(None);
-    };
-    let command = command_runner::argv(context, name, forwarded(extra.unwrap_or_default()))?;
-    let Some((program, words)) = command.split_first() else {
-        return Ok(None);
-    };
+fn written(root: &Path, command: &[String]) -> Option<Vec<PathBuf>> {
+    let (program, words) = command.split_first()?;
     let path_program = PATH_PROGRAMS.contains(&program.as_str());
     if path_program {
-        Ok(operands(words).and_then(|operands| rooted(&context.root, &operands)))
+        operands(words).and_then(|operands| rooted(root, &operands))
     } else {
-        Ok(None)
+        None
     }
 }
 fn operands(words: &[String]) -> Option<Vec<String>> {

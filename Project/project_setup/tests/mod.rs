@@ -8,6 +8,7 @@ mod coverage;
 mod defaults;
 mod delivery;
 mod doctor;
+mod recipes;
 mod runtime;
 mod rustflags;
 mod toolchain;

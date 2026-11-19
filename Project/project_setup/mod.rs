@@ -17,6 +17,7 @@ use crate::shared::calling_agent::Agent;
 use anyhow::{Result, ensure};
 pub use coverage::config_check;
 pub use doctor::run as doctor;
+pub use recipes::{Recipe, recipe};
 pub use runtime::add as runtime_add;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};

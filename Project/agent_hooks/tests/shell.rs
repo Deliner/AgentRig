@@ -29,6 +29,30 @@ const LISTINGS: [&str; 9] = [
     "just run write -- touch ok",
 ];
 
+// DECISION: D201
+const CODE_BEFORE_JUST: [&str; 6] = [
+    "just read -- cat =(touch x)",
+    "just read -- ls *(e:'touch x':)",
+    "just read -- cat >(touch x)",
+    r#"just read -- cat "${(e):-\$(touch x)}""#,
+    "just read -- ls (touch x)",
+    "just read -- cat $((1))",
+];
+const QUOTED_TEXT: [&str; 4] = [
+    "just read -- cat '=(touch x)'",
+    r#"just read -- cat "=(touch x)""#,
+    "just read -- ls '*(e:cmd:)'",
+    r#"just read -- cat "\${(e)x}""#,
+];
+const UNRESOLVED_RECIPES: [&str; 6] = [
+    "./x/just lint",
+    "/usr/local/bin/just lint",
+    "just",
+    "just jobs bootstrap",
+    "just lint-rules bootstrap",
+    "just --list bootstrap",
+];
+
 fn denied(root: &Path, command: &str) -> Value {
     let output = hook(root, "Bash", json!({"command": command}));
     let decision = &output["hookSpecificOutput"]["permissionDecision"];
@@ -97,4 +121,40 @@ fn shell_catalog_and_recipe_listing() {
         let output = hook(&root, "Bash", json!({"command": command}));
         assert!(!output.to_string().contains("deny"), "{command}: {output}");
     }
+}
+
+// DECISION: D201
+#[test]
+fn shell_guard_refuses_code_the_shell_runs_before_just_and_passes_it_quoted() {
+    let (_temp, root) = project();
+    for command in CODE_BEFORE_JUST {
+        denied(&root, command);
+    }
+    for command in QUOTED_TEXT {
+        let output = hook(&root, "Bash", json!({"command": command}));
+        assert!(!output.to_string().contains("deny"), "{command}: {output}");
+    }
+}
+
+#[test]
+fn shell_guard_refuses_a_recipe_just_would_not_run_as_written() {
+    let (_temp, root) = project();
+    for command in UNRESOLVED_RECIPES {
+        denied(&root, command);
+    }
+    let second_recipe = denied(&root, "just jobs bootstrap");
+    let named = reason(&second_recipe).contains("takes no arguments");
+    assert!(named, "{second_recipe}");
+}
+
+#[test]
+fn background_jobs_get_the_checks_of_the_command_they_start() {
+    let (_temp, root) = project();
+    let wrapper = denied(&root, "just read -- python3 tool.py");
+    let started = denied(&root, "just job-start read -- python3 tool.py");
+    assert_eq!(reason(&started), reason(&wrapper));
+    let removal = json!({"command": "just job-start write -- rm Ledger/Plan/001.md"});
+    let routed = hook(&root, "Bash", removal).to_string();
+    let named = "edit-plan/SKILL.md for shell write of Ledger/Plan/001.md.";
+    assert!(routed.contains(named), "{routed}");
 }
