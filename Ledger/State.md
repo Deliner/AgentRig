@@ -2,38 +2,22 @@
 
 ## Focus
 
-P158 (B159): agent texts agree with each other and with the rig's commands. This VAC delivers AC1 and AC2.
+P158 (B159), final VAC: pin the gate-accepted head and archive P158 and B159.
 
 ## Workspace
 
 - Branch: feature/agent-texts
-- Revision: 4de4a6bd6a5e712bfd286c0e421a24974a9a04eb
+- Revision: ac1eaacc3f474cae63cb84c3eda790da58722198
 
 ## Progress
 
-- AC1 text fixes:
-  - F4: repair and edit-plan name `just config-check`, `just lint-rules`, `just check --only memory` and the user's
-    terminal `doctor`.
-  - F5: RERUN runs through `just check` or the failed recipe; develop-tools reruns `just check --only tools`.
-  - F6: edit-backlog uses the user's language, a draft form matching Context, Proposal and Expected benefit, and
-    "index and card".
-  - F7: the Decisions.md precedence paragraph becomes one rule; its pairs move into succession notes.
-  - F8: testing-discipline Enforcement names its rules.
-  - F9: clarify-structure commits each round as one VAC.
-  - AGENTS.md: complete hook routes, one skill location and the runtime path.
-  - Distribution README: the unmatched-path wording agrees with the gate README.
-  - execute-plan-feature: `just write`.
-  - Consumer example: Just recipes for Git, one gate, the State step and `just check --only memory`.
-  - testing-discipline: `// DECISION: DNNN`.
-  - Test purpose: filtered by test name for Rust.
-  - Deferral by the user only, recorded in the agreed card.
-- AC2: `agent_hooks::tests::named_commands` checks every `just` command in AGENTS.md, README and SKILL texts through
-  the hook, with the rig catalog and after init, and is mapped in .agentrig/checks.yaml.
+- VAC 1 `ac1eaac` delivered AC1 and AC2; its commit gate passed with 553 tests.
+- `just bootstrap HEAD` installed `ac1eaac` and wrote it to tooling/distribution/stable.txt.
+- P158 and B159 moved to Archive with per-item AC1 places and AC2 evidence in Archive/Plan/158.md.
 
 ## Verification
 
-- The focused tests pass. With a planted `just doctor` the rig test fails, which shows it is falsifiable.
-- `just lint`, rustfmt and Clippy pass.
+- `just check --only memory` after rotation.
 
 ## Blockers
 
@@ -41,5 +25,4 @@ None.
 
 ## Next action
 
-Run `just check --only memory`, commit this VAC, then `just bootstrap HEAD`, commit the pin, archive P158 and B159,
-and run `just feature-merge`.
+Commit this VAC, run `just feature-merge`, then start P159 (B161) from master.
