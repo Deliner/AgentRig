@@ -1,6 +1,7 @@
 // DECISION: D034
 use super::jobs::{Capture, Job};
 use crate::project_config::Access;
+use crate::shared::fs_with_context::canonicalize as canonical;
 use anyhow::{Context, Result, ensure};
 use std::{
     io::ErrorKind,
@@ -14,6 +15,15 @@ pub struct Sandboxing<'a> {
     pub capture: Capture,
     pub cargo_target: Option<&'a Path>,
     pub rustflags: &'a [String],
+}
+// DECISION: D204
+pub const CATALOG_ROOT: &str = "WORKER_CATALOG_ROOT";
+// DECISION: D204
+pub fn catalog_run(root: &Path) -> Result<bool> {
+    let Some(marked) = std::env::var_os(CATALOG_ROOT) else {
+        return Ok(false);
+    };
+    Ok(Path::new(&marked) == canonical(root)?)
 }
 // DECISION: D203
 enum Confinement {
@@ -73,6 +83,8 @@ fn launch(
     job: Option<&mut Job>,
 ) -> Result<Output> {
     command.current_dir(root);
+    // DECISION: D204
+    command.env(CATALOG_ROOT, canonical(root)?);
     compile_with(&mut command, options.rustflags);
     // DECISION: D160
     if let Some(target) = options.cargo_target {
@@ -132,7 +144,6 @@ fn sandbox(
     scratch: &Path,
     confinement: &Confinement,
 ) -> Result<Command> {
-    let canonical = crate::shared::fs_with_context::canonicalize;
     let scratch = canonical(scratch)?;
     let subpath = |path: &Path| format!(" (subpath {})", quoted(&path.to_string_lossy()));
     let writable = match confinement {

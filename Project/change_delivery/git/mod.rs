@@ -7,6 +7,7 @@ mod state;
 #[cfg(test)]
 mod tests;
 use super::gate;
+use crate::command_runner::sandbox::{CATALOG_ROOT, catalog_run};
 use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::vcs::{Revisions, git_context as git};
@@ -75,8 +76,11 @@ fn checked(context: &Context) -> Result<i32> {
 }
 
 fn execute_vcs(repository: &crate::shared::vcs::Repository<'_>, args: &[&str]) -> Result<i32> {
+    let mut command = repository.command(args);
+    // DECISION: D204
+    command.env_remove(CATALOG_ROOT);
     let output = crate::command_runner::jobs::process::execute(
-        &mut repository.command(args),
+        &mut command,
         crate::command_runner::jobs::Capture::Stream,
         None,
     )?;
@@ -146,23 +150,30 @@ pub fn guard_reference_with(
     if no_validation_needed {
         return Ok(0);
     }
+    let catalog = catalog_run(root)?;
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
     for line in input.lines() {
         let fields: Vec<_> = line.split_whitespace().collect();
-        let malformed = fields.len() != 3;
-        if malformed {
+        let [old, new, reference] = fields.as_slice() else {
+            return Ok(1);
+        };
+        // DECISION: D204
+        let base_changed = catalog && *reference == format!("refs/heads/{}", settings.base);
+        if base_changed {
+            console::stderr(format!(
+                "{} changes only through feature-merge",
+                settings.base
+            ));
             return Ok(1);
         }
-        if let [old, new, reference] = fields.as_slice() {
-            let deletion = new.chars().all(|ch| ch == '0')
-                && reference.starts_with(&format!("refs/heads/{}", settings.prefix));
-            if deletion {
-                let merged = Deletion { old, reference }.merged(root, &settings.base)?;
-                if merged {
-                    console::stderr("merged feature branches must be retained");
-                    return Ok(1);
-                }
+        let deletion = new.chars().all(|ch| ch == '0')
+            && reference.starts_with(&format!("refs/heads/{}", settings.prefix));
+        if deletion {
+            let merged = Deletion { old, reference }.merged(root, &settings.base)?;
+            if merged {
+                console::stderr("merged feature branches must be retained");
+                return Ok(1);
             }
         }
     }

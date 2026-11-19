@@ -1,10 +1,19 @@
 // DECISION: D003
 // DECISION: D011
 // DECISION: D014
-use super::{STATE, installed, read, start};
+use super::{STATE, commit, installed, read, start};
 use crate::project_memory::format::state_template;
-use crate::shared::testing::{describe_state, git, git_run, hermetic, run, runtime};
-use std::fs;
+use crate::shared::testing::{describe_state, git, git_run, hermetic, invoke, run, runtime};
+use std::{fs, path::Path};
+
+// DECISION: D204
+const FROM_FEATURE: [&str; 4] = [
+    "branch -f trunk HEAD",
+    "checkout -B trunk",
+    "switch -C trunk",
+    "branch -D trunk",
+];
+const FROM_BASE: [&str; 2] = ["rebase task/moved", "cherry-pick task/moved"];
 
 // INVARIANT: I006
 #[test]
@@ -82,4 +91,39 @@ fn reference_guard_rejects_deletion_when_the_tip_cannot_be_resolved() {
     let missing = delete("missing");
     assert_eq!(missing.code, Some(2), "{}", missing.output());
     assert!(!missing.stderr.contains("retained"), "{}", missing.stderr);
+}
+
+fn refused(root: &Path, words: &str, base: &str) {
+    let args: Vec<_> = ["run", "write", "--", "git"]
+        .into_iter()
+        .chain(words.split(' '))
+        .collect();
+    let attempt = invoke(root, &args);
+    assert_ne!(attempt.code, Some(0), "{words}: {}", attempt.output());
+    let named = attempt.stderr.contains("trunk changes only through");
+    assert!(named, "{words}: {}", attempt.output());
+    assert_eq!(git(root, &["rev-parse", "trunk"]), base, "{words}");
+}
+
+// DECISION: D204
+#[test]
+fn write_commands_cannot_change_the_base() {
+    let (_temp, root) = installed();
+    let base = git(&root, &["rev-parse", "trunk"]);
+    start(&root, "moved");
+    commit(&root, "feature.txt", "feature");
+    for words in FROM_FEATURE {
+        refused(&root, words, &base);
+    }
+    for words in FROM_BASE {
+        git(&root, &["switch", "-qf", "trunk"]);
+        refused(&root, words, &base);
+        let (operation, _) = words.split_once(' ').unwrap();
+        git_run(&root, &[operation, "--abort"]);
+    }
+    git(&root, &["switch", "-qf", "trunk"]);
+    fs::write(root.join(".git/MERGE_HEAD"), "").unwrap();
+    fs::write(root.join("merged.txt"), "merged").unwrap();
+    git(&root, &["add", "merged.txt"]);
+    refused(&root, "commit -qm merged", &base);
 }
