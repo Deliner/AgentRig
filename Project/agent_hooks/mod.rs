@@ -230,7 +230,6 @@ fn respond(
             if let Err(error) = session.save() {
                 console::stderr(format!("complexity reminder: {error}"));
                 answer.discipline = None;
-                answer.tracked = false;
                 answer.notes.push(state_failure(configured, &error));
             }
             answer
@@ -241,7 +240,6 @@ fn respond(
                 discipline: None,
                 found,
                 notes: vec![state_failure(configured, &error)],
-                tracked: false,
             }
         }
     };
@@ -262,7 +260,6 @@ fn remind(event: &Value, configured: &Context, state: &mut Value, reminding: Rem
         discipline: None,
         found: Vec::new(),
         notes: Vec::new(),
-        tracked: true,
     };
     match due {
         Ok(due) => {
@@ -283,7 +280,7 @@ fn state_directory(configured: &Context) -> Result<PathBuf> {
 }
 fn state_failure(configured: &Context, error: &anyhow::Error) -> String {
     format!(
-        "Hook session state unavailable: {error}. Check the state storage at {} and the hook transcript_path; repair the unavailable input and retry. Until then requirements repeat without stopping actions; ordinary file editing remains available.",
+        "Hook session state unavailable: {error}. Ask the user to repair the state storage at {} or the hook transcript_path. Until then a call that needs a required skill stops every time, because its delivery cannot be recorded; calls without one proceed.",
         configured
             .root
             .join(&configured.config.paths.runtime)

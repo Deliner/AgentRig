@@ -2,26 +2,23 @@
 
 ## Focus
 
-P156 (B157, D213) VAC2: the user's `just approve` applies a proposal of enforcement files and records the approved
-content; the commit gate refuses unapproved protected content and a pin that does not move forward (AC1, AC2).
+P156 (B157, D213) VAC3: unavailable or corrupt hook route state stops a call that needs a required skill, like an
+unapplied requirement, instead of turning it into guidance (AC3).
 
 ## Workspace
 
 Branch: feature/enforcement-files
-Revision: 26b6b72081a9be1562964e1529abed2b136cf73f
+Revision: f699fc2b0b203aac402567a1478d49dfbd1233eb
 
 ## Progress
 
-- `approve` command, recipe and agent-hook refusal; `change_delivery/git/approval.rs` applies the proposal through
-  `shared/atomic_files/overlay.rs`, restores it when the configuration fails to load and records the content
-  `git add` would stage, computed in a temporary index (`Repository::stageable`), so the user's index stays as it was.
-- The feature-branch commit guard checks approvals before State; a committed pin moves only to a descendant.
-- `init` records its protected files; `bootstrap.sh` refuses a revision that does not descend from the pin.
-- Delivery tests that change the catalog on a branch approve it first, as the user would.
+- The hook answer no longer carries a tracked flag: a required route blocks whether or not its delivery can be saved.
+- The state failure note tells the agent to ask the user to repair the storage and that such calls stop every time.
+- Corrupt state already reads as empty, so its requirements stop again; the new test covers both failures.
 
 ## Verification
 
-- `just run test -- change_delivery agent_hooks shared`: 117 passed; project_setup, cli_dispatch and atomic tests pass.
+- `just run test -- agent_hooks`: 45 passed, including the new route state test.
 - clippy, rustfmt and lint pass.
 
 ## Blockers
@@ -30,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC2, then VAC3: unavailable or corrupt route state blocks a call like an unapplied required skill (AC3).
+Commit VAC3; then pin the installed runtime, propose `hooks.protected` and `git.pin` for the user's `just approve`.

@@ -221,3 +221,33 @@ fn vac_check_entry_reminds_state_once_per_context() {
     );
     assert_eq!(write, Value::Null);
 }
+
+// DECISION: D213
+#[test]
+fn corrupt_or_unavailable_route_state_stops_like_an_unapplied_requirement() {
+    let (_temp, root) = project();
+    let source = "Project/agent_hooks/mod.rs";
+    let decision = |path: &str| answer(&edit(&root, path)).0.to_owned();
+    assert_eq!(decision(source), "deny");
+    assert_eq!(edit(&root, source), Value::Null);
+    let reminders = root.join(".cache/runtime/reminders");
+    for entry in fs::read_dir(&reminders).unwrap() {
+        let path = entry.unwrap().path();
+        let state = path
+            .extension()
+            .is_some_and(|extension| extension == "json");
+        if state {
+            fs::write(&path, "corrupt").unwrap();
+        }
+    }
+    assert_eq!(decision(source), "deny");
+    fs::rename(&reminders, root.join(".cache/moved")).unwrap();
+    fs::write(&reminders, "occupied").unwrap();
+    for _ in 0..2 {
+        let stopped = edit(&root, source);
+        let (decision, message) = answer(&stopped);
+        assert_eq!(decision, "deny", "{message}");
+        assert!(message.contains("state unavailable"), "{message}");
+    }
+    assert_eq!(decision("notes.txt"), "allow");
+}

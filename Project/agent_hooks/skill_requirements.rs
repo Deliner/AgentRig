@@ -91,7 +91,6 @@ pub struct Answer {
     pub discipline: Option<String>,
     pub found: Vec<Occurrence>,
     pub notes: Vec<String>,
-    pub tracked: bool,
 }
 impl Answer {
     pub fn output(mut self, configured: &Context, tool: &str) -> Option<Value> {
@@ -104,7 +103,8 @@ impl Answer {
             routes[left.route].skill == routes[right.route].skill
         };
         for group in self.found.chunk_by(same_skill) {
-            let required = self.tracked && group.iter().any(|item| routes[item.route].block);
+            // DECISION: D213
+            let required = group.iter().any(|item| routes[item.route].block);
             blocking |= required;
             let enforcement = if required {
                 Enforcement::Required
