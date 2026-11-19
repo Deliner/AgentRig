@@ -2,25 +2,23 @@
 
 ## Focus
 
-P149 (B150): remove `just scratch`; the pin and the lint baseline run without it (D197).
+P149 (B150): VAC 2 pins `ceb4065` (D051, D197) and archives P149 and B150.
 
 ## Workspace
 
 Branch: feature/no-scratch
-Revision: 252ceabb15b8c87a726eb2556fae533ecb13bbb8
+Revision: ceb4065fbfbe2d97097a383a348761c9e014a001
 
 ## Progress
 
-VAC 1 removes the scratch command, recipe, hook branch, task area and merge cleanup from the runtime, rig and `init`
-template; the hook passes `just lint-baseline` and the rig's catalog `bootstrap`; `bootstrap REVISION` installs that
-revision and only then writes stable.txt. Docs, D102/D182 links and D197 updated.
+VAC 1 `ceb4065` removed scratch and made `just bootstrap REVISION` install before pinning. VAC 2 ran
+`just bootstrap HEAD`, which installed `ceb4065` and wrote stable.txt, and moves P149 and B150 to Archive with
+delivery evidence.
 
 ## Verification
 
-`just run test -- agent_hooks`: 26 passed, including `shell_guard_runs_required_steps_and_refuses_scratch`.
-`just run test -- command_runner change_delivery::git::tests::cleanup shared::testing project_setup::initialization`:
-61 passed, including `bootstrap_pins_a_revision_only_after_installing_it` and the rig comparison. `just lint` clean;
-`just --list` names no scratch.
+Gate of `ceb4065`: 532 tests passed. `just bootstrap HEAD` passed the hook and pinned without user help. The init
+output of `ceb4065` names no scratch; the hook answered `just scratch -- ls` with "unknown command scratch".
 
 ## Blockers
 
@@ -28,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then pin with `just bootstrap HEAD`, archive P149 and B150 and run `just feature-merge`.
+Commit VAC 2, run `just feature-merge`, then start P150 (B151).
