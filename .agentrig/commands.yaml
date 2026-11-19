@@ -13,7 +13,8 @@ read:
     tail: {}
     wc: {}
     grep: {}
-    rg: {deny: [--pre]}
+    # DECISION: D202
+    rg: {deny: [--pre, --hostname-bin]}
     sed: {}
     diff: {}
     stat: {}
@@ -168,7 +169,8 @@ test:
   - --locked
   - --lib
   - --
-  accepts_args: true
+  # DECISION: D202
+  accepts_args: operands
   output:
     success: {matching: ["test result:"]}
     failure: {matching: [FAILED, panicked, "error", "test result:"]}

@@ -18,7 +18,14 @@ const DETAIL: &str =
 const SOURCE: &str = "Project";
 const MEMORY: &str = "Ledger";
 
+struct Foreign {
+    file: &'static str,
+    code: &'static str,
+    arguments: [&'static str; 2],
+}
+
 struct Layout {
+    foreign: Foreign,
     language: &'static str,
     base: &'static str,
     prefix: &'static str,
@@ -31,6 +38,11 @@ struct Layout {
 }
 
 const PYTHON: Layout = Layout {
+    foreign: Foreign {
+        file: "foreign.py",
+        code: "open('{marker}', 'w').close()\n",
+        arguments: ["-p", "foreign"],
+    },
     language: "python",
     base: "trunk",
     prefix: "topic/",
@@ -43,6 +55,11 @@ const PYTHON: Layout = Layout {
 };
 
 const RUST: Layout = Layout {
+    foreign: Foreign {
+        file: "foreign.toml",
+        code: "[target.'cfg(all())']\nrunner = ['sh', '-c', 'touch {marker}']\n",
+        arguments: ["--config", "foreign.toml"],
+    },
     language: "rust",
     base: "release",
     prefix: "change/",
@@ -257,6 +274,25 @@ fn integrate(root: &Path, layout: &Layout) {
     assert_eq!(repeated.code, Some(2), "{}", repeated.output());
 }
 
+// DECISION: D202
+fn test_words_only_name_tests(root: &Path, layout: &Layout) {
+    let Foreign {
+        file,
+        code,
+        arguments: [flag, value],
+    } = layout.foreign;
+    let marker = root.join("marker");
+    let code = code.replace("{marker}", marker.to_str().unwrap());
+    fs::write(root.join(file), code).unwrap();
+    let foreign = consumer("just", root, &["run", "test", "--", flag, value]);
+    assert_ne!(foreign.code, Some(0), "{}", foreign.output());
+    assert!(!marker.exists(), "{}", foreign.output());
+    let filtered = consumer("just", root, &["run", "test", "--", layout.target]);
+    assert_eq!(filtered.code, Some(0), "{}", filtered.output());
+    let report = filtered.output();
+    assert!(report.contains("1 passed"), "{report}");
+}
+
 fn deliver(layout: &Layout) {
     let (_temp, root) = install(layout);
     ready(&root);
@@ -264,6 +300,7 @@ fn deliver(layout: &Layout) {
     unsupported_extension_is_rejected(&root, layout);
     hooks(&root);
     integrate(&root, layout);
+    test_words_only_name_tests(&root, layout);
 }
 
 #[test]

@@ -7,7 +7,7 @@ mod summary;
 #[cfg(test)]
 mod tests;
 pub mod tool_registry;
-use crate::project_config::{Context, Program};
+use crate::project_config::{Arguments, Context, Program};
 use crate::shared::console;
 use anyhow::{Context as _, Result, bail, ensure};
 use std::{collections::BTreeMap, path::PathBuf, process::Output};
@@ -18,14 +18,26 @@ pub fn argv(context: &Context, name: &str, extra: &[String]) -> Result<Vec<Strin
         .commands
         .get(name)
         .with_context(|| format!("unknown command {name}"))?;
-    ensure!(
-        extra.is_empty() || command.accepts_args,
-        "command {name} does not accept arguments"
-    );
+    accepted(name, command.accepts_args, extra)?;
     let argv: Vec<_> = command.argv.iter().chain(extra).cloned().collect();
     ensure!(!argv.is_empty(), "command {name} needs argv");
     permitted(name, &command.programs, &argv)?;
     Ok(argv)
+}
+// DECISION: D202
+fn accepted(name: &str, arguments: Arguments, extra: &[String]) -> Result<()> {
+    match arguments {
+        Arguments::None => ensure!(extra.is_empty(), "command {name} does not accept arguments"),
+        Arguments::Operands => {
+            if let Some(option) = extra.iter().find(|word| word.starts_with('-')) {
+                bail!(
+                    "command {name} takes only names and paths; its program would read {option} as its own option"
+                );
+            }
+        }
+        Arguments::Any => {}
+    }
+    Ok(())
 }
 fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) -> Result<()> {
     let unrestricted = programs.is_empty();
@@ -48,12 +60,9 @@ fn permitted(name: &str, programs: &BTreeMap<String, Program>, argv: &[String]) 
         argv[0],
         program.subcommands.join(", ")
     );
-    let denied = argv[1..].iter().find(|arg| {
-        program
-            .deny
-            .iter()
-            .any(|form| arg.starts_with(form.as_str()))
-    });
+    let denied = argv[1..]
+        .iter()
+        .find(|arg| program.deny.iter().any(|flag| flag.denies(arg)));
     if let Some(arg) = denied {
         bail!("{name} does not run {} with {arg}", argv[0]);
     }

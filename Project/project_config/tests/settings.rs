@@ -8,7 +8,14 @@ use tempfile::TempDir;
 
 const READ: &str =
     "read:\n  argv: []\n  accepts_args: true\n  programs: {cat: {}, sh: {}}\n  read_only: true\n";
-const INVALID: [(&str, &str, &str); 12] = [
+const INVALID: [(&str, &str, &str); 15] = [
+    (
+        "commands.yaml",
+        "accepts_args: true",
+        "accepts_args: options",
+    ),
+    ("commands.yaml", "sh: {}", "sh: {deny: [exec]}"),
+    ("commands.yaml", "sh: {}", "sh: {deny: [--exec=x]}"),
     ("project.yaml", VERSION, "9.0.0"),
     ("project.yaml", "version: 1", "version: 7"),
     ("project.yaml", "memory: notes", "memory: ../outside"),

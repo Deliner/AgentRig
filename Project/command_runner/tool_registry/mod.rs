@@ -64,7 +64,7 @@ pub fn list(context: &Context) -> Result<()> {
 }
 fn parameters(command: &Command) -> String {
     let programs: Vec<_> = command.programs.keys().cloned().collect();
-    match (programs.is_empty(), command.accepts_args) {
+    match (programs.is_empty(), command.accepts_args.accepted()) {
         (false, _) => format!(" -- PROGRAM ARGS; programs: {}", programs.join(", ")),
         (true, true) => " -- ARGS".into(),
         (true, false) => String::new(),
