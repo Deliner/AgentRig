@@ -32,7 +32,7 @@ dead_code = \"allow\"
 missing_docs = { level = \"allow\", priority = 1 }
 unsafe_code = \"deny\"
 [lints.clippy]
-# DECISION: D001 because
+# DECISION: D001 because it must
 pedantic = \"allow\"
 all = { level = \"warn\", priority = -1 }
 [workspace.lints.rust]

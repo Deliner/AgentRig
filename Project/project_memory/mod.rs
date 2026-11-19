@@ -6,6 +6,7 @@
 // DECISION: D008
 // DECISION: D002
 pub(crate) mod check_evidence;
+mod exceptions;
 pub(super) mod format;
 mod history;
 mod invariant_history;
@@ -39,6 +40,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     backlog(context, &memory)?;
     decisions(context, &memory)?;
     references(context, &memory)?;
+    exceptions::check(context, &memory)?;
     invariants(context, &memory)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)

@@ -5,7 +5,7 @@ use anyhow::{Context, Result};
 use std::path::Path;
 use tree_sitter::{Language, Parser, Tree};
 
-pub use decision_markers::reference;
+pub use decision_markers::{Exception, exceptions, reference};
 pub use secrets::secret;
 
 pub fn parse(path: &Path, source: &str) -> Result<Option<Tree>> {

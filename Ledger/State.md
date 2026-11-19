@@ -2,26 +2,29 @@
 
 ## Focus
 
-P167 (B174) named-exceptions, VAC 1: P167 становится активным, Delivery записывает замер 38 снятых находок.
+P167 (B174), VAC 2: the exception `DECISION: DNNN RULE` is parsed and its decision lists it (AC2, D219).
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: b57bab2250a276fe73d4e8303417ad94f388ab69
+Revision: d92f5243073ceea579078d88be423f1a345006ac
 
 ## Progress
 
-- Plan.md: P167 active; Plan/167.md: Delivery с веткой, замером, именем правила и порядком VAC.
-- Код не менялся.
+- `source_parsers::exceptions` reads named exceptions from Rust, Python and shell comments and YAML and TOML lines.
+- `reference()` accepts the named form, so it counts as a reference; `INVARIANT:` with a rule is no reference.
+- The memory check refuses an unlisted exception and a listed `[exception RULE](FILE)` that the file lacks.
+- Lint still lifts any rule under any marker; strict lifting comes in a later VAC.
 
 ## Verification
 
-- Замер: временно отключённое снятие метками дало 38 находок 8 правил; правка отменена.
+- `just run test -- project_memory:: structural_lint::languages::tests::rust_accepts`: 44 passed.
+- `just candidate check --only memory`: PASS. `just lint --json`: no findings.
 
 ## Blockers
 
-Нет.
+None.
 
 ## Next action
 
-Закоммитить VAC 1, затем разбор исключения `// DECISION: DNNN rule-id` и проверка списков в решениях.
+Commit VAC 2, then VAC 3: the gate refuses a new exception until the user approves it (AC4).

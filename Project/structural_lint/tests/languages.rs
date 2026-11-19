@@ -139,7 +139,7 @@ fn comment_references_through_cli() {
         let (_temp, root) = consumer(&configured("comment-reference", LEVEL));
         let reference = format!("{lead} DECISION: D001");
         let plain = format!("{lead} plain");
-        let explained = format!("{reference} because");
+        let explained = format!("{reference} because it must");
         let lines = [
             reference.as_str(),
             plain.as_str(),

@@ -35,8 +35,9 @@ fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
     lines
 }
 
+// DECISION: D219
 #[test]
-fn rust_accepts_only_exact_decision_and_invariant_references() {
+fn rust_accepts_only_exact_references_and_decision_exceptions() {
     let source = "// DECISION: D001
 // INVARIANT: I002
 // plain
@@ -48,13 +49,15 @@ fn rust_accepts_only_exact_decision_and_invariant_references() {
 // DECISION: D01
 // NOTE: D001
 // SAFETY: the caller checks bounds
+// DECISION: D001 panic-path
+// INVARIANT: I002 panic-path
 fn run() { let text = \"// not a comment\"; } // trailing
 ";
     let lines: Vec<_> = comment_lines("source.rs", source)
         .into_iter()
         .map(|(line, _)| line)
         .collect();
-    assert_eq!(lines, [3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    assert_eq!(lines, [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 14]);
 }
 
 #[test]
