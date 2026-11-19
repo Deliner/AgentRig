@@ -2,24 +2,23 @@
 
 ## Focus
 
-P161 (B163): silent-error also reports `.ok().flatten()` and a `.join()` without arguments directly followed by
-`.ok()`, `.unwrap_or_default()`, `.unwrap_or(..)` or `.unwrap_or_else(..)`. This VAC extends the existing kind.
+P161 (B163), final VAC: pin the extended revision and archive P161 with its Backlog card B163.
 
 ## Workspace
 
 - Branch: feature/erased-error
-- Revision: 0a4f6b4113cd2497502d08d380306032cfefa8e4
+- Revision: bbea011fd05dc4def25d258e9481f0e7130faef4
 
 ## Progress
 
-- The Rust detector reports both forms; its chain classification moved into `drops_error` to stay within 40 lines.
-- Descriptor metric and violation, skill `handle-error` and decision D207 describe the forms.
-- The rig's module walk keeps its two `.ok().flatten()` chains with a `DECISION: D144` reference each.
+- `just bootstrap HEAD` installed bbea011 and wrote it to stable.txt.
+- P161 moved to Archive/Plan with its Delivery and AC1–AC2 verdicts; B163 moved to Archive/Backlog; the D207 card and
+  delivery links point to the archive.
 
 ## Verification
 
-- `just run test -- silent_error`: 11 passed, two new tests on the review's forms and their boundaries.
-- `just lint` with the candidate passes; `just run rustfmt`, `just run clippy`, `just check --only memory` pass.
+- `just check --only memory` passes after the rotation.
+- The gate of bbea011 passed with 499 tests.
 
 ## Blockers
 
@@ -27,4 +26,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then archive P161 and B163 with the pin and run `just feature-merge`.
+Commit this VAC, then run `just feature-merge` and continue with P162 (B164).
