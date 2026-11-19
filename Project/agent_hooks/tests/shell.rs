@@ -54,10 +54,14 @@ const UNRESOLVED_RECIPES: [&str; 6] = [
 ];
 
 // DECISION: D202
-const DENIED_SPELLINGS: [&str; 9] = [
+// DECISION: D204
+const DENIED_SPELLINGS: [&str; 12] = [
     "just write -- git rebase --exe=id main",
     "just write -- git rebase --exec id main",
     "just write -- git rebase -qxid main",
+    "just write -- git commit --no-verify -qm x",
+    "just write -- git commit --no-ver -qm x",
+    "just write -- git commit -qnm x",
     "just read -- git grep --open-files-in-pa=cat x",
     "just read -- git grep -iOcat x",
     "just read -- rg --pr cat x",
@@ -65,8 +69,9 @@ const DENIED_SPELLINGS: [&str; 9] = [
     "just read -- rg --hostname-bin=sh x",
     "just read -- find . -okdir id +",
 ];
-const NEIGHBOR_FLAGS: [&str; 4] = [
+const NEIGHBOR_FLAGS: [&str; 5] = [
     "just write -- git rebase --empty=drop main",
+    "just write -- git rebase --no-ff main",
     "just read -- git grep --or x",
     "just read -- rg --pretty --pre-glob '*.gz' x",
     "just read -- find . -name x",

@@ -258,6 +258,7 @@ fn write_runs_git_and_its_hooks_outside_the_sandbox() {
     let (_temp, root) = initialized();
     git(&root, &["config", "user.name", "Test"]);
     git(&root, &["config", "user.email", "test@example.invalid"]);
+    git(&root, &["checkout", "-qb", "probe"]);
     let outside = tempfile::tempdir().unwrap();
     let hooked = outside.path().join("hooked");
     let hook = format!("#!/bin/sh\ntouch '{}'\n", hooked.display());

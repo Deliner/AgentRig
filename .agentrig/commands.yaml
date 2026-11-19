@@ -28,7 +28,8 @@ write:
   programs:
     git:
       subcommands: [add, commit, rm, mv, restore, switch, checkout, stash, cherry-pick, rebase, branch]
-      deny: [--exec, -x]
+      # DECISION: D204
+      deny: [--exec, -x, --no-verify, -n]
       access: unconfined
     mkdir: {}
     cp: {}

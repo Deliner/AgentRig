@@ -214,7 +214,8 @@ const WRITE: Programs = &[
             "rebase",
             "branch",
         ],
-        &["--exec", "-x"],
+        // DECISION: D204
+        &["--exec", "-x", "--no-verify", "-n"],
     ),
     ("mkdir", &[], &[]),
     ("cp", &[], &[]),
