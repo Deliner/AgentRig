@@ -30,7 +30,8 @@ the target untouched. It shows the configuration and files, rechecks collisions,
 
 ## Commands
 
-Every command accepts `--root PATH`, by default the current directory.
+Every command accepts `--root PATH`, by default the current directory; the first one given counts. Recipes pass
+`--root .` before the agent's words, so the project is always the one of the justfile.
 
 | Command | Result |
 | --- | --- |

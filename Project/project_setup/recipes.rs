@@ -1,9 +1,9 @@
 use crate::project_config::Config;
 
-type Recipe = (&'static str, &'static str, bool);
+type Entry = (&'static str, &'static str, bool);
 // DECISION: D039
 // DECISION: D189
-const RECIPES: [(&str, &[Recipe]); 5] = [
+const RECIPES: [(&str, &[Entry]); 5] = [
     (
         "commands",
         &[
@@ -56,10 +56,23 @@ const RECIPES: [(&str, &[Recipe]); 5] = [
         ],
     ),
 ];
+pub struct Recipe {
+    pub command: &'static str,
+    pub forwards: bool,
+}
+// DECISION: D201
+pub fn recipe(name: &str) -> Option<Recipe> {
+    RECIPES
+        .iter()
+        .flat_map(|(_, recipes)| recipes.iter())
+        .find(|(recipe, ..)| *recipe == name)
+        .map(|&(_, command, forwards)| Recipe { command, forwards })
+}
 pub(super) struct Justfile {
     pub path: String,
     pub source: String,
 }
+// DECISION: D201
 pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
     let mut root = "set positional-arguments := true\n\n".to_owned();
     let path = config.paths.service_path("bin/agentrig");
@@ -72,7 +85,7 @@ pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
             .iter()
             .map(|&(name, command, args)| {
                 format!(
-                    "# What: invoke {command}; Why: use the installed native runtime.\n{name}{parameters}:\n    @{binary} {command}{forwarded}\n",
+                    "# What: invoke {command}; Why: use the installed native runtime.\n{name}{parameters}:\n    @{binary} {command} --root .{forwarded}\n",
                     parameters = if args { " *args" } else { "" },
                     forwarded = if args { " \"$@\"" } else { "" }
                 )

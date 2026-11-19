@@ -142,21 +142,14 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     Ok(Some(context(Event::SessionStart, &message)))
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
-    let validated = shell_guard::arguments(shell_guard::command(event))
-        .and_then(|args| shell_guard::hook_commands(configured, args))
-        .and_then(|args| shell_guard::enters_check(&args).map(|check| (args, check)))
-        .and_then(|(args, check)| {
-            shell_guard::written(configured, &args).map(|written| (args, check, written))
-        });
-    let (argv, check, written) = match validated {
-        Ok(validated) => validated,
+    // DECISION: D201
+    let inspected = shell_guard::arguments(shell_guard::command(event))
+        .and_then(|argv| shell_guard::inspect(configured, &argv));
+    let shell = match inspected {
+        Ok(shell) => shell,
         Err(error) => return Ok(Some(deny(&error.to_string()))),
     };
-    let catalog = match argv.get(1).map(String::as_str) {
-        Some("run") => argv.get(2),
-        _ => argv.get(1),
-    };
-    let opaque = catalog.is_some_and(|name| {
+    let opaque = shell.catalog.as_deref().is_some_and(|name| {
         configured
             .config
             .commands
@@ -166,12 +159,12 @@ fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     let mut found = Vec::new();
     if opaque {
         // DECISION: D196
-        found.extend(match written {
+        found.extend(match shell.written {
             Some(paths) => skill_requirements::writes(configured, &paths),
             None => skill_requirements::events(configured, RouteEvent::Shell, "opaque shell write"),
         });
     }
-    if check {
+    if shell.check {
         found.extend(skill_requirements::events(
             configured,
             RouteEvent::Check,
