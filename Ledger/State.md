@@ -2,29 +2,23 @@
 
 ## Focus
 
-P163 (B165): enable `max-fallback` with its skill `saturate-or-handle`. This VAC also pins 16353f6, the revision
-carrying the inert kind.
+P163 (B165), final VAC: pin the enabled revision and archive P163 with its Backlog card B165.
 
 ## Workspace
 
 - Branch: feature/max-fallback
-- Revision: 16353f6d52691376238759c918c5f91c2d1ecb7f
+- Revision: 84afb65439c0b777cb64ab4500b103b5748038be
 
 ## Progress
 
-- `just bootstrap HEAD` installed 16353f6 and wrote it to stable.txt.
-- `lint.yaml`, the Rust handler, the catalog and init's skill list carry the kind; the rig rule skips test files as
-  init's does; the skill lives under control-flow beside `subtract-checked`.
-- The rig has no site to repair: its only `unwrap_or(i32::MAX)` stands under unary minus.
+- `just bootstrap HEAD` installed 84afb65 and wrote it to stable.txt.
+- P163 moved to Archive/Plan with its Delivery and the AC1 verdict; B165 moved to Archive/Backlog; the D209 card
+  and delivery links point to the archive.
 
 ## Verification
 
-- `just lint` with the candidate passes with the kind enabled; `just run test -- project_setup` passes, 57 tests,
-  after the rig rule gained init's test-file exclude; `just run rustfmt`, `just run clippy`,
-  `just lint-config-check` and `just check --only memory` pass.
-- The first commit gate failed `rule_examples_ship_excludes_only_where_decided`: the kind was missing from the
-  test's list of kinds that skip test code. With it added, `just run test -- structural_lint::tests::discovery`
-  passes.
+- `just check --only memory` passes after the rotation.
+- The gate of 84afb65 passed with 564 tests.
 
 ## Blockers
 
@@ -32,4 +26,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then archive P163 and B165 with the pin and run `just feature-merge`.
+Commit this VAC, then run `just feature-merge` and continue with P164 (B166).
