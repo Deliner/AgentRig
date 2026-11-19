@@ -86,17 +86,18 @@ fn example(kind: Kind, paths: &Paths) -> Value {
     rule
 }
 
+// DECISION: D195
 fn cataloged(kind: Kind) -> bool {
     match kind {
         Kind::Structure(
             Structure::DirectoryArchitecture
             | Structure::LineWidth
             | Structure::ForbiddenFile
-            | Structure::ProgramLanguage
-            | Structure::SameText,
+            | Structure::ProgramLanguage,
         ) => false,
         Kind::Structure(
             Structure::NonblankLines
+            | Structure::SameText
             | Structure::DirectoryEntries
             | Structure::DumpName
             | Structure::FunctionLines

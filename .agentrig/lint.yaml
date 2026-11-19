@@ -97,6 +97,16 @@ rules:
   level: error
   warning_skill: .agentrig/skills/condense-markdown/SKILL.md
   error_skill: .agentrig/skills/condense-markdown/SKILL.md
+# DECISION: D195
+- id: same-text
+  kind: same-text
+  target: file
+  include:
+  - AGENTS.md
+  - CLAUDE.md
+  level: error
+  warning_skill: .agentrig/skills/condense-markdown/SKILL.md
+  error_skill: .agentrig/skills/condense-markdown/SKILL.md
 # DECISION: D198
 - id: program-language
   kind: program-language

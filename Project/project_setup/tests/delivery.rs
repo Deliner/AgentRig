@@ -293,6 +293,19 @@ fn test_words_only_name_tests(root: &Path, layout: &Layout) {
     assert!(report.contains("1 passed"), "{report}");
 }
 
+// DECISION: D195
+fn differing_rules_are_refused(root: &Path, layout: &Layout) {
+    let agents = fs::read_to_string(root.join("AGENTS.md")).unwrap();
+    fs::write(root.join("CLAUDE.md"), agents + "Only for Claude Code.\n").unwrap();
+    describe_state(root, "Give Claude Code its own rule.");
+    git(root, &["add", "."]);
+    let refused = consumer("git", root, &["commit", "-qm", "diverge the rules"]);
+    assert_eq!(refused.code, Some(1), "{}", refused.output());
+    let skill = root.join(layout.skills).join("condense-markdown/SKILL.md");
+    let named = refused.output().contains(skill.to_str().unwrap());
+    assert!(named, "{}", refused.output());
+}
+
 fn deliver(layout: &Layout) {
     let (_temp, root) = install(layout);
     ready(&root);
@@ -301,6 +314,7 @@ fn deliver(layout: &Layout) {
     hooks(&root);
     integrate(&root, layout);
     test_words_only_name_tests(&root, layout);
+    differing_rules_are_refused(&root, layout);
 }
 
 #[test]

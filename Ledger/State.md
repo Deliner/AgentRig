@@ -2,27 +2,26 @@
 
 ## Focus
 
-P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC2 delivers AC1 and the user's root choice: `init` writes a
-root `CLAUDE.md` copying `AGENTS.md`, the rig keeps the same pair, and the recipe groups move to `.agentrig/just/`
-under D212, superseding D039's root `just/`.
+P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC3 pins `70bdfad` and enables `same-text` for AC2: the
+`init` catalog and the rig's lint.yaml select `AGENTS.md` and `CLAUDE.md`, so a commit where they differ fails.
 
 ## Workspace
 
 Branch: feature/one-agent-text
-Revision: c5bba5328baebb47c1c6deaf5a7db43f4e6e00ae
+Revision: 70bdfaddd4561500601e79f4690a6d0ee842d607
 
 ## Progress
 
-- Done in this VAC: root `CLAUDE.md` and no `.claude/CLAUDE.md` in `init` and the rig; recipe groups generated and
-  kept in `.agentrig/just/`; the rig comparison, layout test and changed-path map follow; D212 with its index row;
-  recipe links in the decision index point into `.agentrig/just/`; `example` in describe.rs split after the rebase.
-- Plan: P147 active again with the rebase and the user's answer in Delivery; the answer for P156 and P157 is noted.
-- Not yet: the D051 pin, `same-text` in the `init` catalog and the rig's lint.yaml with a gate test (AC2), AC3.
+- Done in this VAC: stable.txt pins `70bdfad`; `same-text` is cataloged for `init` and enabled in the rig; the
+  delivery test commits a differing `CLAUDE.md` in both consumer layouts and expects a refusal naming the absolute
+  condense-markdown path; D195 links the new owners; Plan/147 Delivery records VAC2 and VAC3.
+- Not yet: the AC3 `AGENTS.md` template.
 
 ## Verification
 
-- `just run test -- project_setup`: 58 passed, including the pair test and the rig comparison.
-- `just lint`, `just run clippy`, `just run rustfmt` and `just check --only memory` pass.
+- `just run test -- project_setup`: 58 passed, including both delivery layouts with the refused commit.
+- `just run test -- structural_lint::tests`: 104 passed.
+- `just lint`, `just lint-config-check` and `just run rustfmt` pass.
 
 ## Blockers
 
@@ -30,4 +29,4 @@ None.
 
 ## Next action
 
-Commit this VAC through the gate, then pin it with `just bootstrap HEAD` and enable `same-text` for AC2.
+Commit this VAC through the gate, then write the AC3 template.
