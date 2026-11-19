@@ -4,6 +4,7 @@ use crate::project_config::Context as ProjectContext;
 use crate::shared::vcs::{Repository, Revisions, Settings};
 use anyhow::{Context, Result, ensure};
 
+// DECISION: D194
 pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) -> Result<String> {
     ensure!(
         !name.is_empty() && !name.starts_with('-'),
@@ -15,10 +16,6 @@ pub(super) fn start(repository: &Repository, settings: &Settings, name: &str) ->
         observed.branch == settings.base,
         "start from {}",
         settings.base
-    );
-    ensure!(
-        observed.status.is_empty(),
-        "working tree must be clean; preserve or commit pending changes before switching branches"
     );
     ensure!(
         observed.operation.is_none(),

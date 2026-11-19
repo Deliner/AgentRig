@@ -1,4 +1,4 @@
-use super::{commit, installed, read};
+use super::{commit, installed, read, start};
 use crate::shared::testing::{git, invoke};
 use std::fs;
 
@@ -22,30 +22,36 @@ fn feature_start_preserves_the_parent_and_rejects_an_existing_branch() {
     assert_eq!(read(&root, "shared.txt"), "initial\n");
 }
 
+// DECISION: D194
 #[test]
-fn feature_start_rejects_pending_changes_and_invalid_names() {
-    let cases = [
-        (Some("shared.txt"), "product"),
-        (Some("pending.txt"), "product"),
-        (None, "bad:name"),
-    ];
-    for (pending, name) in cases {
-        let (_temp, root) = installed();
-        let base = git(&root, &["rev-parse", "HEAD"]);
-        if let Some(file) = pending {
-            fs::write(root.join(file), "pending\n").unwrap();
-        }
-        let refused = invoke(&root, &["feature-start", name]);
-        assert_eq!(
-            refused.code,
-            Some(2),
-            "{pending:?} {name}: {}",
-            refused.output()
-        );
-        assert_eq!(git(&root, &["rev-parse", "HEAD"]), base);
-        assert_eq!(git(&root, &["branch", "--show-current"]), "trunk");
-        if let Some(file) = pending {
-            assert_eq!(read(&root, file), "pending\n");
-        }
-    }
+fn feature_start_carries_pending_changes_to_the_new_branch() {
+    let (_temp, root) = installed();
+    let base = git(&root, &["rev-parse", "HEAD"]);
+    fs::write(root.join("shared.txt"), "pending\n").unwrap();
+    fs::write(root.join("pending.txt"), "pending\n").unwrap();
+    let started = invoke(&root, &["feature-start", "product"]);
+    assert_eq!(started.code, Some(0), "{}", started.output());
+    assert_eq!(git(&root, &["branch", "--show-current"]), "task/product");
+    assert_eq!(git(&root, &["rev-parse", "HEAD"]), base);
+    assert_eq!(read(&root, "shared.txt"), "pending\n");
+    assert_eq!(read(&root, "pending.txt"), "pending\n");
+}
+
+#[test]
+fn feature_start_rejects_a_pending_merge_and_an_invalid_name() {
+    let (_temp, root) = installed();
+    start(&root, "product");
+    commit(&root, "shared.txt", "feature\n");
+    git(&root, &["switch", "trunk"]);
+    let base = git(&root, &["rev-parse", "HEAD"]);
+    git(&root, &["merge", "--no-ff", "--no-commit", "task/product"]);
+    let merging = invoke(&root, &["feature-start", "other"]);
+    assert_eq!(merging.code, Some(2), "{}", merging.output());
+    let named = merging.stderr.contains("pending VCS operation");
+    assert!(named, "{}", merging.stderr);
+    git(&root, &["merge", "--abort"]);
+    let invalid = invoke(&root, &["feature-start", "bad:name"]);
+    assert_eq!(invalid.code, Some(2), "{}", invalid.output());
+    assert_eq!(git(&root, &["rev-parse", "HEAD"]), base);
+    assert_eq!(git(&root, &["branch", "--show-current"]), "trunk");
 }

@@ -119,8 +119,6 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     copy(&examples.join(language).join(SOURCE), &root.join(SOURCE));
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "base"]);
-    let bootstrap = format!("{}bootstrap", layout.prefix);
-    git(&root, &["switch", "-c", &bootstrap]);
     let (skills, base, prefix) = (layout.skills, layout.base, layout.prefix);
     let initialized = invoke(
         &root,
@@ -137,6 +135,10 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
         ],
     );
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    // DECISION: D194
+    just(&root, &["feature-start", "bootstrap"]);
+    let bootstrap = format!("{prefix}bootstrap");
+    assert_eq!(git(&root, &["branch", "--show-current"]), bootstrap);
     let copied = fs::read(installed_runtime(&root)).unwrap();
     assert!(copied == fs::read(worker()).unwrap());
     bind(&root, layout);
