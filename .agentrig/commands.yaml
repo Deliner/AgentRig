@@ -164,7 +164,7 @@ clippy:
   - -D
   - clippy::maybe_infinite_iter
 test:
-  purpose: Run the project tests, optionally filtered by test path
+  purpose: Run the project tests, optionally filtered by test name
   argv:
   - cargo
   - test

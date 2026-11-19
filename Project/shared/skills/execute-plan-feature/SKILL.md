@@ -42,18 +42,18 @@ If later work is required for current acceptance, the current feature remains in
 
 ## Pause and hand off
 
-The steps below apply to a temporary prerequisite handoff within selected current work. If execution is deferred to a later task, use edit-backlog to preserve requirements, progress, blocker, retained branch and resumption condition, then remove the Plan row/detail and reconcile dependencies. Preserve unfinished work; interruption alone is not deferral.
+The steps below pause the item in Plan on a blocker within selected current work. Only the user defers execution to a later task; then use edit-backlog to record requirements, progress, blocker, retained branch and resumption condition in the agreed card, which keeps its contract and needs no new agreement, then remove the Plan row/detail and reconcile dependencies. Preserve unfinished work; interruption alone is not deferral.
 
 1. Inspect the current diff. Finish and verify the current VAC if it remains useful, or discard only its own uncommitted changes. Do not reset the branch's verified commits, delete its branch, or discard unrelated work.
 2. In a separate plan-only VAC, set the current feature to paused, record the concrete blocker, retained branch and condition for resumption in Delivery, and add the necessary prerequisite before it. Activate the prerequisite if its own dependencies are complete and delivery is authorized; otherwise leave zero active features. Commit only the relevant Plan index and detail changes and note that commit's hash.
-3. With a clean working tree, return to the configured base branch using `just run write -- git switch <base>`, create the prerequisite branch with `just feature-start <name>`, and carry over the plan-only commit with `just run write -- git cherry-pick <plan-commit>`. Inspect the carried diff; it must contain no unfinished product code. Resolve any Plan conflict against current configured base branch without dropping newer entries or completion states.
+3. With a clean working tree, return to the configured base branch using `just write -- git switch <base>`, create the prerequisite branch with `just feature-start <name>`, and carry over the plan-only commit with `just write -- git cherry-pick <plan-commit>`. Inspect the carried diff; it must contain no unfinished product code. Resolve any Plan conflict against current configured base branch without dropping newer entries or completion states.
 4. Deliver the prerequisite there. If the blocker instead requires external input and no prerequisite can proceed, stop with the retained branch and resume condition recorded; do not create speculative features.
 
 The prerequisite branch carries the updated Plan to the configured base branch through its normal integration. Never merge the paused feature merely to publish a plan change. Existing unrelated work that prevents a clean switch must be preserved separately or left in its current checkout.
 
 ## Resume
 
-After the prerequisite is accepted and integrated, switch to the paused feature's retained branch from a clean working tree. Reconcile it with current configured base branch using `just run write -- git rebase --rebase-merges <base>`. Resolve conflicts using the latest delivered Plan as the baseline: preserve newly completed prerequisites and later instructions rather than restoring stale active states.
+After the prerequisite is accepted and integrated, switch to the paused feature's retained branch from a clean working tree. Reconcile it with current configured base branch using `just write -- git rebase --rebase-merges <base>`. Resolve conflicts using the latest delivered Plan as the baseline: preserve newly completed prerequisites and later instructions rather than restoring stale active states.
 
 Reassess retained VACs against the new prerequisite and current acceptance. Dependencies must be complete and no other feature active before setting this feature active. Update its Delivery context and verify affected behavior before committing the resumption VAC. Reuse valid work and revise obsolete work; do not assume old verification proves the rebased result.
 

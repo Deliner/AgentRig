@@ -36,5 +36,5 @@ The `tools` check runs before merge, not on VAC commits. It reports tools
 outside their locations or unregistered, commands without `purpose`, missing
 argument or documentation paths, entries matching no tool, and removal records
 that are incomplete, collide with active names, still exist, lack the revision
-or are still referenced outside memory. Repair the cause, then rerun the
-reported command; reading this skill does not replace the repair.
+or are still referenced outside memory. Repair the cause, then rerun the check
+with `just check --only tools`; reading this skill does not replace the repair.

@@ -47,10 +47,10 @@ affected by the whole branch; retain the branch. Never commit directly to the ba
 ## Memory and skills
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
-edit-* skill. Their canonical bodies live in Project/shared/skills; agents reach them via .agentrig/skills. Do not
-create another instruction copy. Hook routes give memory-skill guidance, stop the first code edit in each directory
-until refactor-large-directory and its contracts are applied, and stop the first VAC commit in a context for edit-state
-(D047). Opaque shell writes require applying the relevant skill yourself.
+edit-* skill. Skills keep one copy in Project/shared/skills, which Codex reads via .agents/skills and Claude Code via
+.claude/skills. Hook routes give memory-skill and fail-closed-enforcement guidance and stop the first edit in each
+Project or tooling directory for refactor-large-directory, the first decision edit for norm-or-choice (D186) and the
+first VAC check or commit in a context for edit-state (D047). For opaque shell writes, apply the skill yourself.
 
 Use edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user
 agreement. New product outcomes pass through Backlog, which has no priority, to Plan, which holds only selected work.
@@ -66,9 +66,9 @@ DNNN comment. Invariants bind a marked Rust/Python test to its exact configured 
 
 ## Runtime changes
 
-Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. Use
-tooling/worker/run for the installed development runtime; it never builds candidate sources. All command, hook, memory,
-gate and Git logic belongs to the Rust runtime; adapters only forward calls.
+Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. The
+recipes reach the installed development runtime through tooling/worker/run, which never builds candidate sources. All
+command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters only forward calls.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
 select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Without asking, finish

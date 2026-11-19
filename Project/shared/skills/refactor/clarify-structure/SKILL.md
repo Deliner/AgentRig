@@ -39,7 +39,7 @@ lines stand apart from the name lines and do not count in the total.
 3. For each line, read the directory's description and code, make the edit its kind names below, then rerun the
    command. Keep the edit when the directory's score fell by at least 20 points and the total did not rise. Otherwise
    undo it at once.
-4. After the round, `just check` must pass. Repair paths, never descriptions.
+4. After the round, commit its kept edits as one VAC; the commit's gate must pass. Repair paths, never descriptions.
 5. Repeat from step 2. Stop this loop after a round that kept fewer than half of the edits it tried, or when no
    untried directory name line scores 50 or more. Then go to loop 2.
 
@@ -57,7 +57,7 @@ lines stand apart from the name lines and do not count in the total.
    alone, they form no group: leave the directory as it is.
 4. Rerun the command. Keep the edit when the directory's `group` score fell and every new subdirectory holds at least
    two parts. Otherwise undo it at once. Name lines may change in this loop; they do not decide it.
-5. After the round, `just check` must pass. Repair paths, never descriptions.
+5. After the round, commit its kept edits as one VAC; the commit's gate must pass. Repair paths, never descriptions.
 6. Repeat from step 2 until no untried `group` line remains. Then stop: do not return to loop 1, and the name lines of
    new group directories need no edit.
 
@@ -110,5 +110,5 @@ File lines are secondary. Act on them only inside a directory you are already ed
   `Cargo.lock`, `architecture.yaml`, `README.md`, `SKILL.md`, `.gitignore` and `clippy.toml` keep their names, and so
   do the Cargo layout directories `src`, `tests`, `examples` and `benches`. No name is longer than the longest existing
   one of its kind: Rust directory, Rust file stem or other name. No `utils`, `helpers`, `misc` or `common`.
-- The project's lint limits, such as the number of entries in a directory, hold through `just check`. A changed
+- The project's lint limits, such as the number of entries in a directory, hold at each round's commit. A changed
   directory never keeps only its contract and `mod.rs`.

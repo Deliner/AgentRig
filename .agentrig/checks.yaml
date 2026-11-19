@@ -30,6 +30,8 @@
     targets: ['::']
   - include: ['AGENTS.md']
     targets: ['project_setup::tests::toolchain::']
+  - include: ['AGENTS.md', 'README.md', '**/README.md', 'Project/shared/skills/**']
+    targets: ['agent_hooks::tests::named_commands::']
   - include: ['justfile', 'just/**', '.codex/**', '.claude/**']
     targets: ['project_setup::initialization::tests::rig::']
   - include: ['Project/structural_lint/**', 'Project/shared/testing/**']

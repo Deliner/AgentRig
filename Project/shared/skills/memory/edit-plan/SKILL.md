@@ -31,9 +31,10 @@ current acceptance cannot be deferred merely to claim completion.
 
 ## Defer or complete without losing meaning
 
-If execution is explicitly deferred, preserve requirements, progress, blocker,
-branch and resumption condition in Backlog before removing the current entry
-and reconciling dependencies. Interruption alone is not deferral.
+Only the user defers execution. Then preserve requirements, progress, blocker,
+branch and resumption condition in Backlog through edit-backlog before removing
+the current entry and reconciling dependencies. A blocker alone pauses the item
+in Plan through execute-plan-feature; interruption alone is not deferral.
 
 Archive completed outcomes automatically in the final VAC without another
 confirmation, together with their source Backlog cards. Preserve identity, acceptance and actual delivery evidence before
@@ -62,6 +63,6 @@ Do not restore archived entries merely to reference them or reuse their IDs;
 allocate identities across Plan, Archive and Backlog references.
 
 Update relative links, provenance and current application links; run
-memory-check after rotation. Use edit-backlog for out-of-scope
+`just check --only memory` after rotation. Use edit-backlog for out-of-scope
 ideas, save only agreed drafts and resume authorized work. Use
 execute-plan-feature for verification and integration.

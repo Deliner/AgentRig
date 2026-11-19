@@ -1,4 +1,5 @@
 mod memory;
+mod named_commands;
 mod reminders;
 mod shell;
 mod skill_requirements;
