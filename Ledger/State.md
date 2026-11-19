@@ -2,21 +2,21 @@
 
 ## Focus
 
-P157 (B158) gate-base-rules: final VAC archives the Plan card P157 and the Backlog card B158.
+P157 (B158) gate-base-rules: pin the gate-accepted head before the branch merges (D051).
 
 ## Workspace
 
 Branch: feature/gate-base-rules
-Revision: 8b2819b7877ef1a82573ec2a112fb5407cfa6836
+Revision: 9552716445fdeec790ca086a07fb0e4489c59409
 
 ## Progress
 
-VAC 1-4 committed (D214-D217), pin e05e14d, approved checks, hooks and difference list in 8b2819b.
-This VAC moves P157 and B158 to Archive with delivery evidence and points D214-D217 at the archived cards.
+VAC 1-4 (D214-D217), the approved configuration and the archive of P157 and B158 are committed. `just bootstrap
+HEAD` installed 9552716 and wrote it to `tooling/distribution/stable.txt`.
 
 ## Verification
 
-`just candidate check --only memory`: PASS [memory] after the rotation.
+The archive commit 9552716 passed the gate with `PASS [candidate-lint]`, `PASS [lint]` and `PASS [memory]`.
 
 ## Blockers
 
@@ -24,4 +24,4 @@ None.
 
 ## Next action
 
-Commit the archive, run `just bootstrap HEAD` and commit the pin, then `just feature-merge`.
+Commit the pin, then run `just feature-merge`.
