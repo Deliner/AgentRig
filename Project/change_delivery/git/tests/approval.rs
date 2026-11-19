@@ -1,6 +1,6 @@
 // DECISION: D213
-use super::{commit, installed, read, start};
-use crate::shared::testing::{Run, configure, describe_state, git, git_run, invoke};
+use super::{committed, installed, read, start};
+use crate::shared::testing::{configure, git, invoke};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -8,12 +8,6 @@ const CATALOG: &str = ".agentrig/commands.yaml";
 const PROPOSAL: &str = ".cache/runtime/proposal";
 const RECORD: &str = ".cache/runtime/approved";
 const ADDED: &str = "extra:\n  purpose: Run an approved addition\n  argv: [sh, -c, 'true']\n";
-
-fn committed(root: &Path, message: &str) -> Run {
-    describe_state(root, "A test VAC.");
-    git(root, &["add", "."]);
-    git_run(root, &["commit", "-qm", message])
-}
 
 #[test]
 fn a_change_of_enforcement_commits_only_with_the_content_the_user_approved() {
@@ -181,33 +175,4 @@ fn a_lint_baseline_commits_without_approval_only_when_it_accepts_no_new_error() 
     recorded(&root, "README.md: 1");
     let lowered = committed(&root, "lowered");
     assert_eq!(lowered.code, Some(0), "{}", lowered.output());
-}
-
-#[test]
-fn a_staged_pin_commits_only_when_it_descends_from_the_committed_one() {
-    let (_temp, root) = installed();
-    let first = git(&root, &["rev-parse", "HEAD"]);
-    configure(&root, "git", "pin: stable.txt\n");
-    fs::write(root.join("stable.txt"), format!("{first}\n")).unwrap();
-    git(&root, &["add", "."]);
-    git(
-        &root,
-        &["-c", "core.hooksPath=/dev/null", "commit", "-qm", "pin"],
-    );
-    start(&root, "pin");
-    commit(&root, "product.txt", "product");
-    let product = git(&root, &["rev-parse", "HEAD"]);
-    let pinned = |revision: &str| {
-        fs::write(root.join("stable.txt"), format!("{revision}\n")).unwrap();
-        committed(&root, "pin")
-    };
-    let forward = pinned(&product);
-    assert_eq!(forward.code, Some(0), "{}", forward.output());
-    let backward = pinned(&first);
-    assert_eq!(backward.code, Some(1), "{}", backward.output());
-    assert!(
-        backward.stderr.contains("stable.txt"),
-        "{}",
-        backward.stderr
-    );
 }

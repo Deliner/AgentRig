@@ -41,6 +41,7 @@ pub enum Configured {
     FeaturePush,
     StateReset,
     Approve,
+    ProposePin,
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
@@ -70,6 +71,8 @@ const NAMES: &[(&str, Command)] = &[
     ("state-reset", Command::Configured(Configured::StateReset)),
     // DECISION: D213
     ("approve", Command::Configured(Configured::Approve)),
+    // DECISION: D218
+    ("propose-pin", Command::Configured(Configured::ProposePin)),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
     ("jobs", Command::Runner(Runner::Jobs(jobs::Command::List))),
@@ -150,6 +153,7 @@ fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
             )
         }),
         Configured::FeatureStart => (args.len() != 1).then(|| "feature-start NAME".to_owned()),
+        Configured::ProposePin => (args.len() != 1).then(|| "propose-pin REVISION".to_owned()),
         Configured::GuardReference | Configured::Run => None,
     };
     if let Some(usage) = usage {

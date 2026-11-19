@@ -69,3 +69,15 @@ fn check_naming_an_unknown_command_is_rejected() {
     let named = error.contains("checks.tests: unknown command unknown");
     assert!(named, "{error}");
 }
+
+// DECISION: D218
+#[test]
+fn an_installer_naming_an_unknown_command_is_rejected() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    project(&root, FAIL, GATE);
+    let git = "base: main\nprefix: feature/\ninstall: unknown\n";
+    fs::write(root.join(".agentrig/git.yaml"), git).unwrap();
+    let error = format!("{:#}", Context::load(&root).err().unwrap());
+    assert!(error.contains("git.install"), "{error}");
+}

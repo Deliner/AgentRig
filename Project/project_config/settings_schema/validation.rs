@@ -24,6 +24,14 @@ impl Config {
         self.git.validate().with_context(|| module("git"))?;
         self.validate_commands(root)
             .with_context(|| module("commands"))?;
+        // DECISION: D218
+        let installer = self.git.install.as_ref();
+        let known = installer.is_none_or(|name| self.commands.contains_key(name));
+        ensure!(
+            known,
+            "{}: git.install must name a catalog command",
+            module("git")
+        );
         self.validate_checks(root)
             .with_context(|| module("checks"))?;
         self.hooks.validate(root).with_context(|| module("hooks"))?;

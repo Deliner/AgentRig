@@ -141,7 +141,10 @@ enum Call<'a> {
 // DECISION: D201
 pub fn inspect(context: &Context, argv: &[String]) -> Result<Inspection> {
     let catalog = match call(argv)? {
-        Call::Catalog { name, args } => Some((name, command_runner::argv(context, name, args)?)),
+        Call::Catalog { name, args } => {
+            installing(context, name, args)?;
+            Some((name, command_runner::argv(context, name, args)?))
+        }
         Call::Runtime { command, args } => {
             runtime_arguments(command, args)?;
             None
@@ -165,6 +168,18 @@ pub fn inspect(context: &Context, argv: &[String]) -> Result<Inspection> {
         written,
         named,
     })
+}
+// DECISION: D218
+fn installing(context: &Context, name: &str, args: &[String]) -> Result<()> {
+    let installer = context.config.git.install.as_deref() == Some(name);
+    let revision = installer && !args.is_empty();
+    if revision {
+        let skill = context.protection_skill();
+        bail!(
+            "AgentRig refused this call: only the user's approval installs a runtime revision other than the pinned one, so an agent never runs `{name}` with arguments. ACTION: Apply {skill}: prepare the pin with the propose-pin command and ask the user to type `! just approve`."
+        );
+    }
+    Ok(())
 }
 // DECISION: D213
 fn named(root: &Path, command: &[String]) -> Result<Vec<PathBuf>> {

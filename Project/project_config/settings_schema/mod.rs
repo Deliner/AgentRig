@@ -88,6 +88,10 @@ impl Paths {
     pub fn service_path(&self, path: &str) -> String {
         format!("{}/{path}", self.service)
     }
+    // DECISION: D218
+    pub fn source_matcher(&self) -> Result<globset::GlobSet> {
+        crate::shared::paths::glob_patterns::globs(&self.sources)
+    }
 }
 fn service() -> String {
     ".agentrig".into()

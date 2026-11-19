@@ -159,6 +159,7 @@ fn git(options: &Options<'_>) -> Git {
         prefix: options["prefix"].clone(),
         remote: None,
         pin: None,
+        install: None,
     }
 }
 

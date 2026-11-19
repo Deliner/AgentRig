@@ -36,6 +36,17 @@ impl Overlay<'_> {
         }
         Ok(applied)
     }
+    // DECISION: D218
+    pub fn propose(&self, relative: &Path, content: &[u8]) -> Result<()> {
+        let path = self.mirror.join(relative);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
+        }
+        Ok(fs::write(path, content)?)
+    }
+    pub fn proposed(&self, relative: &Path) -> Result<Option<Vec<u8>>> {
+        Ok(present(fs::read(self.mirror.join(relative)))?)
+    }
 }
 
 impl Applied {

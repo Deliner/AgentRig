@@ -6,5 +6,6 @@ files:
   push.rs: Push the merged base and feature or a committed feature branch to the configured remote
   state.rs: Reject a feature commit with the empty State template, reset State after commits and commit it before merge
   approval.rs: Apply a proposal of protected enforcement files at the user's approval, record the approved content, and refuse a feature commit of unapproved content or a backward pin
+  pin.rs: Prepare a forward pin as a proposal with the source files it changes, and install a proposed pin before the user's approval writes it
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios
