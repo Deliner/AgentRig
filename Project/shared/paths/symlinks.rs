@@ -26,7 +26,19 @@ fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
             let target = fs::read_link(&result)?;
             result.pop();
             result = resolve_limited(&result.join(target), depth + 1)?;
+        } else {
+            stored_name(&mut result);
         }
     }
     Ok(result)
+}
+// DECISION: D199
+fn stored_name(path: &mut PathBuf) {
+    let canonical = fs::canonicalize(&*path);
+    let stored = canonical
+        .ok()
+        .and_then(|found| found.file_name().map(|name| name.to_os_string()));
+    if let Some(name) = stored {
+        path.set_file_name(name);
+    }
 }

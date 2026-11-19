@@ -4,7 +4,8 @@
 use super::{initialized, pre_tool, project, respond};
 use crate::shared::testing::{run, runtime, snapshot};
 use serde_json::{Value, json};
-use std::{fs, os::unix::fs::symlink, path::Path};
+use std::os::unix::fs::{MetadataExt, symlink};
+use std::{fs, path::Path};
 
 const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
     ("Edit", r#"{"file_path": "Ledger/Plan.md"}"#, &["edit-plan"]),
@@ -156,6 +157,22 @@ fn archived_plan_edits_are_guided_without_writing() {
         guidance(&root, &output, &["edit-plan"]);
     }
     assert_eq!(snapshot(&archive), before);
+}
+
+// DECISION: D199
+#[test]
+fn ledger_edit_guidance_follows_the_file_the_file_system_finds() {
+    let (_temp, root) = initialized(&["--skills", "guides"]);
+    let state = fs::metadata(root.join("Ledger/State.md")).unwrap();
+    let spellings = ["ledger/State.md", "LEDGER/state.MD"];
+    for (index, written) in spellings.into_iter().enumerate() {
+        let found = fs::metadata(root.join(written));
+        let same_file = found.is_ok_and(|found| found.ino() == state.ino());
+        let event = pre_tool(&root, "Write", json!({"file_path": written}));
+        let output = in_session(&root, event, &format!("case-{index}"));
+        let expected: &[&str] = if same_file { &["edit-state"] } else { &[] };
+        guidance(&root, &output, expected);
+    }
 }
 
 #[test]
