@@ -1,3 +1,4 @@
+use super::calls;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -29,9 +30,4 @@ fn listed(indexed: Node<'_>) -> Option<Node<'_>> {
     let whole = index.kind() == "range_expression" && index.named_child_count() == 0;
     let selected = index.kind() != "integer_literal" && !whole;
     (elements && selected).then_some(array)
-}
-fn calls(node: Node<'_>) -> bool {
-    let mut cursor = node.walk();
-    let found = node.kind() == "call_expression";
-    found || node.named_children(&mut cursor).any(calls)
 }

@@ -1,5 +1,6 @@
 mod dotted_extension;
 mod epsilon_tolerance;
+mod flag_filter;
 mod indexed_array;
 mod superseded_form;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
@@ -11,6 +12,7 @@ use tree_sitter::Node;
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     superseded_form::inspect(node, source, output);
     indexed_array::inspect(node, source, output);
+    flag_filter::inspect(node, source, output);
     let Some((reference, symbol)) = form(node, source) else {
         return;
     };
@@ -49,4 +51,9 @@ fn sole_argument(call: Node<'_>) -> Option<Node<'_>> {
     let first = values.next()?;
     let single = values.next().is_none();
     single.then_some(first)
+}
+fn calls(node: Node<'_>) -> bool {
+    let mut cursor = node.walk();
+    let found = node.kind() == "call_expression";
+    found || node.named_children(&mut cursor).any(calls)
 }
