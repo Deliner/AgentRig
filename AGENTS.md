@@ -31,10 +31,10 @@ Runtime paths, Git base/prefix, commands, checks, tools, hook routes, oracles an
 **Per the user's explicit instruction, agents may edit files directly with editing tools such as `apply_patch`, `Edit`
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
-Invoke shell operations through the Just recipes grouped under just/ (`just --list`; `just list` shows the catalog).
-Use `just read -- PROGRAM ...` for sandboxed inspection, `just write -- PROGRAM ...` for shell mutations with the
-programs configured in .agentrig/commands.yaml and `just run NAME -- ...` for catalog commands. Each recipe is a thin
-adapter directly preceded by a What/Why comment.
+Invoke shell operations through the Just recipes grouped under .agentrig/just/ (`just --list`; `just list` shows
+the catalog). Use `just read -- PROGRAM ...` for sandboxed inspection, `just write -- PROGRAM ...` for shell mutations
+with the programs configured in .agentrig/commands.yaml and `just run NAME -- ...` for catalog commands. Each recipe is
+a thin adapter directly preceded by a What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
 change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises and

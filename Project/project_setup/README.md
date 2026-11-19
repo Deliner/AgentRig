@@ -17,9 +17,9 @@ their own toolchain. Init prepends missing AgentRig thresholds to the file Clipp
 `clippy.toml` upward from the manifest directory, or a new root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills and lint settings; the configuration
-modules always stay in `.agentrig`, and runtime data goes to `.cache/runtime`, which Git ignores. The root `justfile`
-imports the recipes under `just/`, which forward to the launcher. Init registers Codex in `.codex/` and Claude Code in
-`.claude/`, each running `hook --agent NAME` to name skills through its directory.
+modules and the recipes in `just/` always stay in `.agentrig`, and runtime data goes to `.cache/runtime`, which Git
+ignores. The root `justfile` imports these recipes, which forward to the launcher. Init registers Codex in `.codex/` and
+Claude Code in `.claude/`, each running `hook --agent NAME` to name skills through its directory.
 
 `bin/agentrig` runs the committed runtime `bin/PLATFORM/agentrig` for `uname -sm`, such as `macos-arm64` or
 `linux-x86_64`. Without one, hooks and recipes name the platform and `agentrig runtime-add`, to run in the project root

@@ -2,32 +2,32 @@
 
 ## Focus
 
-P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC1 adds the `same-text` lint kind, D195 and the
-condense-markdown step that repairs it; the kind is not yet in the `init` catalog or the rig's lint.yaml, because the
-installed runtime rejects unknown kinds until the D051 pin.
+P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC2 delivers AC1 and the user's root choice: `init` writes a
+root `CLAUDE.md` copying `AGENTS.md`, the rig keeps the same pair, and the recipe groups move to `.agentrig/just/`
+under D212, superseding D039's root `just/`.
 
 ## Workspace
 
 Branch: feature/one-agent-text
-Revision: 51f55f7c90886177844aedabd534269a556f6b09
+Revision: c5bba5328baebb47c1c6deaf5a7db43f4e6e00ae
 
 ## Progress
 
-- Done in this VAC: `Structure::SameText` with its descriptor, measurement, capability entry and example selecting
-  `AGENTS.md` and `CLAUDE.md`; condense-markdown step 6; D195 and its index row.
-- Kept out of this VAC: AC1, the root `CLAUDE.md` copy written by `init` and kept by the rig. With it the rig root has
-  16 entries against the directory-size limit 15; the user chooses how to resolve it.
+- Done in this VAC: root `CLAUDE.md` and no `.claude/CLAUDE.md` in `init` and the rig; recipe groups generated and
+  kept in `.agentrig/just/`; the rig comparison, layout test and changed-path map follow; D212 with its index row;
+  recipe links in the decision index point into `.agentrig/just/`; `example` in describe.rs split after the rebase.
+- Plan: P147 active again with the rebase and the user's answer in Delivery; the answer for P156 and P157 is noted.
+- Not yet: the D051 pin, `same-text` in the `init` catalog and the rig's lint.yaml with a gate test (AC2), AC3.
 
 ## Verification
 
-- `just run test -- structural_lint`: 312 passed, including the new same-text test.
-- `just run test -- project_setup`: 55 passed with the AC1 change present in the working tree.
-- The commit gate verifies the staged tree without AC1.
+- `just run test -- project_setup`: 58 passed, including the pair test and the rig comparison.
+- `just lint`, `just run clippy`, `just run rustfmt` and `just check --only memory` pass.
 
 ## Blockers
 
-AC1 waits for the user's choice on the rig root entry count.
+None.
 
 ## Next action
 
-Commit this VAC through the gate, then pause P147 in a plan-only VAC and continue with P148.
+Commit this VAC through the gate, then pin it with `just bootstrap HEAD` and enable `same-text` for AC2.

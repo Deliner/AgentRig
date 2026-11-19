@@ -9,7 +9,7 @@ use std::{
 };
 use tempfile::TempDir;
 
-const COMPARED: [&str; 5] = [".agentrig", "justfile", "just", ".codex", ".claude"];
+const COMPARED: [&str; 4] = [".agentrig", "justfile", ".codex", ".claude"];
 const LISTED: &str = include_str!("rig_differences.yaml");
 const PERSONAL_SETTINGS: &str = "settings.local.json";
 

@@ -76,6 +76,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     if language_rule {
         value["extensions"] = json!(extensions(kind));
     }
+    example_settings(kind, &mut value);
+    value
+}
+fn example_settings(kind: Kind, value: &mut Value) {
     match kind {
         Kind::Structure(Structure::DirectoryArchitecture) => {
             value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
@@ -100,5 +104,4 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         | Kind::Ownership(_)
         | Kind::Reference(_) => {}
     }
-    value
 }

@@ -25,10 +25,10 @@
   - [.agentrig, checks.yaml, build]
   - [.agentrig, checks.yaml, lint, kind]
   - [.agentrig, checks.yaml, lint, command]
-  - [just, lint.just, '@.agentrig/bin/agentrig run lint --root . -- "$@"']
-  - [just, lint.just, '@.agentrig/bin/agentrig lint --root . "$@"']
-  - [justfile, "import 'just/development.just'"]
-  - [just, development.just]
+  - [.agentrig, just, lint.just, '@.agentrig/bin/agentrig run lint --root . -- "$@"']
+  - [.agentrig, just, lint.just, '@.agentrig/bin/agentrig lint --root . "$@"']
+  - [justfile, "import '.agentrig/just/development.just'"]
+  - [.agentrig, just, development.just]
 - reason: The rig checks its Python test fixtures and the spelling of the whole repository with tools pinned in tooling.
   at:
   - [.agentrig, commands.yaml, ruff-format]
