@@ -63,3 +63,15 @@ pub(super) const OUTERFLAGFILTER: Descriptor = Descriptor {
         violation: "a filter that ignores its value keeps or drops the whole result by a flag known before the call, so the call runs even when the flag throws its result away; check the flag first with if, or with flag.then(..) before the call, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D209
+pub(super) const MAXFALLBACK: Descriptor = Descriptor {
+    default_id: "max-fallback",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust binary + or * whose left or right operand is a .unwrap_or(..) method call whose sole argument is MAX or a path ending in ::MAX, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "saturate-or-handle",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a MAX fallback stands for a value that is missing or does not fit, and adding to it or multiplying it overflows, panicking in debug builds and wrapping in release, or yields a number that no longer means the bound; handle the missing value before the arithmetic, compute with saturating_add or saturating_mul, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
