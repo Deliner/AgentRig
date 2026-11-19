@@ -28,6 +28,26 @@ fn parent_traversal_follows_link_targets_and_absolute_links_replace_the_prefix()
     );
 }
 
+// DECISION: D199
+#[test]
+fn existing_names_take_the_spelling_of_the_file_system() {
+    let root = tempfile::tempdir().unwrap();
+    let base = root.path().canonicalize().unwrap();
+    fs::create_dir_all(root.path().join("Ledger")).unwrap();
+    fs::write(root.path().join("Ledger/State.md"), "").unwrap();
+    let written = root.path().join("ledger/STATE.md");
+    let same_file = fs::metadata(&written).is_ok();
+    let expected = if same_file {
+        base.join("Ledger/State.md")
+    } else {
+        base.join("ledger/STATE.md")
+    };
+    assert_eq!(resolve(&written).unwrap(), expected);
+    let new = root.path().join("ledger/new.md");
+    let parent = if same_file { "Ledger" } else { "ledger" };
+    assert_eq!(resolve(&new).unwrap(), base.join(parent).join("new.md"));
+}
+
 #[test]
 fn dangling_links_resolve_but_recursive_links_fail() {
     let root = tempfile::tempdir().unwrap();

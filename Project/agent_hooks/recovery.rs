@@ -1,5 +1,6 @@
 // DECISION: D045
 // DECISION: D046
+use super::tools::{self, Tool};
 use super::{Event, context, deny, input::text, paths, shell_guard, target};
 use crate::project_config;
 use crate::shared::{calling_agent::Agent, diagnostics};
@@ -7,6 +8,7 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 
 // DECISION: D188
+// DECISION: D200
 pub(super) fn respond(
     root: &Path,
     agent: Agent,
@@ -19,9 +21,9 @@ pub(super) fn respond(
         .clone()
         .unwrap_or_else(|| diagnostics::UNNAMED_SKILL.to_owned());
     let message = message(error, &sources, &shown);
-    match (text(event, "hook_event_name"), text(event, "tool_name")) {
+    match (text(event, "hook_event_name"), tools::classify(event)) {
         ("SessionStart", _) => Some(context(Event::SessionStart, &message)),
-        ("PreToolUse", "Bash" | "Shell" | "exec_command") => {
+        ("PreToolUse", Tool::Shell) => {
             let command = shell_guard::command(event);
             let argv = shell_guard::arguments(command).unwrap_or_default();
             let check = matches!(argv.as_slice(), [_, recipe] if recipe == "config-check");
@@ -34,10 +36,11 @@ pub(super) fn respond(
             };
             (!check && !read).then(|| deny(&message))
         }
-        ("PreToolUse", "apply_patch" | "Edit" | "Write") => {
+        ("PreToolUse", Tool::Edit) => {
             let configuration = within(root, event, &paths(event), &sources);
             (!configuration).then(|| deny(&message))
         }
+        ("PreToolUse", Tool::Refused) => Some(deny(&tools::refusal(event))),
         _ => None,
     }
 }

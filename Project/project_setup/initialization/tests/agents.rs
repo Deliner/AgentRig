@@ -3,6 +3,7 @@ use crate::project_setup::initialization::init;
 use crate::shared::calling_agent::Agent;
 use crate::shared::testing::{hermetic, invoke, run, runtime, snapshot};
 use serde_json::{Value, json};
+use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::Path};
 
 const CLIENT_FILES: [&str; 4] = [
@@ -41,11 +42,13 @@ fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
     assert!(!root.join(".mcp.json").exists());
     for agent in Agent::ALL {
         let settings = registration(&root, agent);
-        let handler = &settings["hooks"]["PreToolUse"][0]["hooks"][0];
+        let every_tool = &settings["hooks"]["PreToolUse"][0];
+        assert_eq!(every_tool["matcher"], "*", "{agent:?}");
+        let handler = &every_tool["hooks"][0];
         assert_eq!(handler["timeout"], 30, "{agent:?}");
-        let flag = format!("--agent {}", agent.name());
+        let flag = format!("--agent {} ", agent.name());
         assert!(
-            handler["command"].as_str().unwrap().ends_with(&flag),
+            handler["command"].as_str().unwrap().contains(&flag),
             "{handler}"
         );
         let shell = json!({"hook_event_name": "PreToolUse", "tool_name": "Bash",
@@ -61,6 +64,35 @@ fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
             guided.contains(skill.to_str().unwrap()),
             "{agent:?}: {guided}"
         );
+    }
+}
+
+// DECISION: D200
+#[test]
+fn a_hook_that_cannot_start_blocks_the_call_with_its_reason() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let initialized = invoke(&root, &["init"]);
+    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let launcher = root.join(".agentrig/bin/agentrig");
+    fs::set_permissions(&launcher, fs::Permissions::from_mode(0o644)).unwrap();
+    blocked(&root, "not executable");
+    fs::remove_file(&launcher).unwrap();
+    blocked(&root, "missing");
+}
+
+fn blocked(root: &Path, breakage: &str) {
+    let event = json!({"hook_event_name": "PreToolUse", "tool_name": "Read",
+        "tool_input": {"file_path": "README.md"}, "cwd": root});
+    for agent in Agent::ALL {
+        let settings = registration(root, agent);
+        let handler = &settings["hooks"]["PreToolUse"][0]["hooks"][0];
+        let mut hook = hermetic("sh");
+        hook.args(["-c", handler["command"].as_str().unwrap()]);
+        let result = run(hook.current_dir(root), &event.to_string());
+        assert_eq!(result.code, Some(2), "{breakage} {agent:?}");
+        let reason = result.stderr.contains("AgentRig hook could not run");
+        assert!(reason, "{breakage} {agent:?}: {}", result.output());
     }
 }
 

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent codex",
+            "command": "root=$(git rev-parse --show-toplevel) && \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent codex || { echo 'AgentRig hook could not run; repair its launcher and runtime' >&2; exit 2; }",
             "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }
@@ -15,11 +15,11 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash|Shell|exec_command|apply_patch|Edit|Write",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
-            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent codex",
+            "command": "root=$(git rev-parse --show-toplevel) && \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent codex || { echo 'AgentRig hook could not run; repair its launcher and runtime' >&2; exit 2; }",
             "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }
