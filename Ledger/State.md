@@ -2,24 +2,23 @@
 
 ## Focus
 
-P146 (B147), VAC 1: `feature-start` on the base carries uncommitted changes to the new branch (D194).
+P146 (B147), VAC 2: pin `803586f` per D051 and archive P146 and B147.
 
 ## Workspace
 
 Branch: feature/start-after-init
-Revision: f7d197153f50876bc4afcbb0bae1f9a0bfaa965b
+Revision: 803586faadafe39c606ef97619f8fbbf0d2e99ac
 
 ## Progress
 
-- `start` no longer refuses a dirty tree; base, pending operation, name and existing-branch refusals remain.
-- Tests: carrying changes, a pending merge and an invalid name refused; the delivery test runs `init` on the base and
-  then `just feature-start bootstrap`.
-- D194 supersedes D190's `git switch -c` consequence; setup README and example walkthrough updated.
+- VAC 1 `803586f`: `feature-start` on the base carries uncommitted changes to the new branch (D194).
+- `tooling/distribution/stable.txt` holds `803586f`, bootstrapped; P146 and B147 moved to Archive with Delivery and
+  the AC table; D194 links point to the archive.
 
 ## Verification
 
-- `just run test -- change_delivery::git::tests::start`: 3 passed.
-- `just run test -- project_setup::tests::delivery`: 2 passed.
+- VAC 1 gate: 505 tests passed, all checks passed.
+- `just bootstrap` installed `803586f`, exit 0.
 
 ## Blockers
 
@@ -27,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1 through the gate, then pin the head, archive P146 and B147 and run `just feature-merge`.
+Commit VAC 2 through the gate, run `just feature-merge`, then start P147 (B148).
