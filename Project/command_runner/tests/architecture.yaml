@@ -3,6 +3,6 @@ files:
   mod.rs: Configured consumer project, worker processes, job records and readiness polling
   foreground.rs: Foreground job identity, signals, bounded drain, recovery, nesting, captured logs and listing
   background.rs: Background job ownership, forced stop, nested cleanup, per-branch cleanup and the rig's compiler flags
-  commands.rs: Command catalog streams, read isolation, program refusals, and output views
+  commands.rs: Command catalog streams, read and write confinement, program refusals, and output views
   compiler_flags.rs: Gated cargo commands compile with the rig's current flag list, and environment and Cargo configuration flags never silence the gate
 directories: {}

@@ -237,6 +237,7 @@ fn programs(table: Programs) -> Result<BTreeMap<String, Program>> {
             let program = Program {
                 subcommands: strings(subcommands),
                 deny,
+                access: None,
             };
             Ok(((*name).into(), program))
         })
@@ -254,11 +255,15 @@ fn commands(options: &Options<'_>, rust: &Layout) -> Result<BTreeMap<String, Com
         Access::ReadOnly,
         READ,
     )?;
-    let write = base(
+    let mut write = base(
         "Change files and Git state with configured programs",
-        Access::Writable,
+        Access::Project,
         WRITE,
     )?;
+    // DECISION: D203
+    if let Some(git) = write.programs.get_mut("git") {
+        git.access = Some(Access::Unconfined);
+    }
     Ok([("read", read), ("write", write)]
         .into_iter()
         .chain(language_commands(options, rust))
@@ -274,7 +279,7 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
         ..command(
             "Run the project tests, optionally filtered by test path",
             test_command(options, rust),
-            Access::Writable,
+            Access::Unconfined,
         )
     };
     let mut commands = vec![("test", test)];
@@ -282,7 +287,7 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
     if rust_project {
         let check = |purpose, argv| Command {
             accepts_args: Arguments::None,
-            ..command(purpose, argv, Access::Writable)
+            ..command(purpose, argv, Access::Unconfined)
         };
         // DECISION: D189
         let format = ["cargo", "fmt", "--manifest-path", &rust.manifest, "--check"];

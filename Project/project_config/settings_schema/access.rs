@@ -1,31 +1,42 @@
-use serde::{Deserialize, Deserializer, Serializer};
+use serde::{Deserialize, Deserializer, Serialize};
 
 // DECISION: D062
 // DECISION: D154
-#[derive(Clone, Copy, Default, PartialEq, Eq)]
+// DECISION: D203
+#[derive(Clone, Copy, Default, PartialEq, Eq, Deserialize, Serialize)]
+#[serde(rename_all = "kebab-case")]
 pub enum Access {
     ReadOnly,
+    Project,
     #[default]
-    Writable,
+    Unconfined,
 }
 impl Access {
     pub fn read_only(self) -> bool {
         match self {
             Self::ReadOnly => true,
-            Self::Writable => false,
+            Self::Project | Self::Unconfined => false,
+        }
+    }
+    pub fn sandboxed(self) -> bool {
+        match self {
+            Self::ReadOnly | Self::Project => true,
+            Self::Unconfined => false,
         }
     }
 }
 
-pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Access, D::Error> {
-    let read_only = bool::deserialize(deserializer)?;
-    Ok(if read_only {
-        Access::ReadOnly
-    } else {
-        Access::Writable
-    })
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum Written {
+    Named(Access),
+    ReadOnly(bool),
 }
-
-pub fn serialize<S: Serializer>(access: &Access, serializer: S) -> Result<S::Ok, S::Error> {
-    serializer.serialize_bool(access.read_only())
+pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Access, D::Error> {
+    let access = match Written::deserialize(deserializer)? {
+        Written::Named(access) => access,
+        Written::ReadOnly(true) => Access::ReadOnly,
+        Written::ReadOnly(false) => Access::Unconfined,
+    };
+    Ok(access)
 }

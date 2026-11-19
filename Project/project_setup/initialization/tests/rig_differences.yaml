@@ -86,3 +86,9 @@
   - [.agentrig, lint.yaml, rules, architecture, architecture, rust_roots,
      Project/shared/testing/examples/rust/Project/lib.rs]
   - [.agentrig, lint.yaml, rules, architecture, architecture, disallowed]
+- reason: >-
+    Until the rig installs the runtime that reads access, its write command keeps the boolean form, which cannot say
+    project or give git its own access.
+  at:
+  - [.agentrig, commands.yaml, write, access]
+  - [.agentrig, commands.yaml, write, programs, git, access]
