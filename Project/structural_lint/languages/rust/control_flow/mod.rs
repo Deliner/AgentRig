@@ -1,6 +1,7 @@
 mod hidden_exit;
 mod length_subtraction;
 mod range_chain;
+mod repeated_classification;
 mod stale_check;
 mod unlabeled_exit;
 mod variant_equality;
@@ -20,7 +21,10 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         "call_expression" => stale_check::inspect(node, source, output),
         "array_expression" => variant_list::inspect(node, source, output),
         "if_expression" => range_chain::chain(node, source, output),
-        "match_expression" => range_chain::guards(node, source, output),
+        "match_expression" => {
+            range_chain::guards(node, source, output);
+            repeated_classification::inspect(node, source, output);
+        }
         _ => {}
     }
 }

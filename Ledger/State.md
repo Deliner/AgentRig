@@ -3,24 +3,24 @@
 ## Focus
 
 P160 (B162): a lint error for a match classifying three or more enum variants into true and false that repeats a
-classification written earlier in the project. This VAC makes room in the decision index for the decisions of the
-remaining batch.
+classification written earlier in the project. This VAC adds the inert kind with its detector, tests and D206.
 
 ## Workspace
 
 - Branch: feature/repeated-classification
-- Revision: befdf97a093f559242440d493fd1bcd63f22b32b
+- Revision: 4c2e5d3af4dc3e708cc3590641946ace74a3a7cc
 
 ## Progress
 
-- P160 is active.
-- The succession notes D138 to D197 below the decision table are reflowed onto single lines; no word changes, so the
-  index drops from 500 to 469 nonblank lines.
+- The `repeated-classification` kind exists in the control-flow family with its descriptor; the Rust analysis
+  measures each qualifying match with its canonical classification as the symbol.
+- It is not yet in the Rust handler, the catalog or lint.yaml, and evaluation does not yet compare across files.
+- D206 records the choice, including the identity of a variant by the last enum segment and its name.
 
 ## Verification
 
-- `git diff --word-diff` with a non-space word pattern shows no added or removed word.
-- `just check --only memory`.
+- `just run test -- repeated_classification`: 2 passed.
+- `just run rustfmt`, `just run clippy`, `just lint` and `just check --only memory` pass.
 
 ## Blockers
 
@@ -28,5 +28,5 @@ None.
 
 ## Next action
 
-Commit the reflow, then add the inert kind with its detector, tests and decision D206, pin it, then enable it with
-the cross-file report and its repair skill.
+Commit this VAC, run `just bootstrap HEAD`, then enable the kind with the cross-file report in evaluation, a lint
+test on two files, the skill `classify-in-the-enum` and the rule in lint.yaml, committing the pin with it.
