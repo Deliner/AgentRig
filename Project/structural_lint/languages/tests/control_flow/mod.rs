@@ -117,3 +117,29 @@ mod tests {
         ]
     );
 }
+
+// DECISION: D210
+#[test]
+fn rust_flags_subtraction_from_a_bit_count_or_a_count_passed_alone_through_a_call() {
+    let source = "fn uniform(changed: u64, dense: u64, items: &[u8]) -> usize {
+    let mixed = crate::numeric::widen_u32_to_usize(changed.count_ones()) - plain;
+    let empty = dense.count_zeros() - 1;
+    let wrapped = usize::from(items.len()) - 1;
+    let pair = combine(changed.count_ones(), dense.count_ones()) - 1;
+    let after = 1 - widen(dense.count_ones());
+    let nested = widen(widen(items.len())) - 1;
+    let sum = widen(changed.count_ones()) + 1;
+    // DECISION: D001
+    let justified = widen(changed.count_ones()) - 1;
+    mixed
+}
+";
+    assert_eq!(
+        measured(source, ControlFlow::LengthSubtraction),
+        [
+            (2, "count_ones".to_string()),
+            (3, "count_zeros".to_string()),
+            (4, "len".to_string()),
+        ]
+    );
+}

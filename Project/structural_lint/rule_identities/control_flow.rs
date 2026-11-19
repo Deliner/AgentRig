@@ -140,15 +140,16 @@ const UNLABELEDEXIT: Descriptor = Descriptor {
     },
 };
 // DECISION: D155
+// DECISION: D210
 const LENGTHSUBTRACTION: Descriptor = Descriptor {
     default_id: "length-subtraction",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust binary subtraction whose left operand is a .len() or .count() call without arguments, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    metric: "every Rust binary subtraction whose left operand is a .len(), .count(), .count_ones() or .count_zeros() call without arguments, or a call whose only argument is such a call, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "subtract-checked",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "subtracting from a length underflows when the collection is shorter, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the length",
+        violation: "subtracting from a length or a bit count underflows when the count is smaller, panicking in debug builds and wrapping to a huge index in release; use checked_sub or saturating_sub and handle the short case, or put a DECISION: or INVARIANT: reference on the line directly above it naming the check that guarantees the count",
     },
 };
 // DECISION: D171
