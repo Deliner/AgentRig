@@ -20,9 +20,9 @@ pub(super) fn inspect(function: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
     let visible = function
         .children(&mut cursor)
         .any(|child| child.kind() == "visibility_modifier");
-    let Some(returned) = function
-        .child_by_field_name("return_type")
-        .filter(|_| visible)
+    let Some(returned) = visible
+        .then(|| function.child_by_field_name("return_type"))
+        .flatten()
     else {
         return;
     };

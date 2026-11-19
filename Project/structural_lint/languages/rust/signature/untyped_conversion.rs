@@ -22,9 +22,9 @@ pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Meas
     let plain = binding
         .child_by_field_name("pattern")
         .is_some_and(|pattern| pattern.kind() == "identifier");
-    let value = binding
-        .child_by_field_name("value")
-        .filter(|_| plain && !typed);
+    let value = (plain && !typed)
+        .then(|| binding.child_by_field_name("value"))
+        .flatten();
     let Some(call) = value.map(unwrapped) else {
         return;
     };
@@ -105,7 +105,9 @@ fn unwrapped(node: Node<'_>) -> Node<'_> {
 }
 fn conversion<'a>(call: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let invoked = call.kind() == "call_expression";
-    let function = call.child_by_field_name("function").filter(|_| invoked)?;
+    let function = invoked
+        .then(|| call.child_by_field_name("function"))
+        .flatten()?;
     let empty = call.child_by_field_name("arguments")?.named_child_count() == 0;
     match function.kind() {
         "field_expression" => {

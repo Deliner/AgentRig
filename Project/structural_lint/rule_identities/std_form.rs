@@ -51,3 +51,15 @@ pub(super) const INDEXEDARRAYLITERAL: Descriptor = Descriptor {
         violation: "indexing an array literal evaluates every element and keeps only the one the index selects, so the calls of the others run for nothing; select with match or if so that only the chosen element is computed, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D208
+pub(super) const OUTERFLAGFILTER: Descriptor = Descriptor {
+    default_id: "outer-flag-filter",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust .filter(..) method call whose receiver contains a call and whose sole argument is a closure with the single parameter _ and a body without a call, test code included, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "check-the-flag-first",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a filter that ignores its value keeps or drops the whole result by a flag known before the call, so the call runs even when the flag throws its result away; check the flag first with if, or with flag.then(..) before the call, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};

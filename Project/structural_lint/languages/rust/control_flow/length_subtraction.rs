@@ -9,9 +9,9 @@ pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
     let subtraction = binary
         .child_by_field_name("operator")
         .is_some_and(|operator| text(operator, source) == "-");
-    let Some(method) = binary
-        .child_by_field_name("left")
-        .filter(|_| subtraction)
+    let Some(method) = subtraction
+        .then(|| binary.child_by_field_name("left"))
+        .flatten()
         .and_then(|left| length(left, source))
     else {
         return;

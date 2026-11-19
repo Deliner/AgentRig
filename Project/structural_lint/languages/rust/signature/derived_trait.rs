@@ -145,9 +145,9 @@ fn plain_fields(body: Node<'_>, source: Code<'_>) -> BTreeSet<String> {
             "attribute_item" => routed |= routes_field(child, source),
             "visibility_modifier" | "line_comment" | "block_comment" => {}
             kind => {
-                let named = child
-                    .child_by_field_name("name")
-                    .filter(|_| kind == "field_declaration");
+                let named = (kind == "field_declaration")
+                    .then(|| child.child_by_field_name("name"))
+                    .flatten();
                 let field = named.map_or_else(
                     || position.to_string(),
                     |name| text(name, source).to_owned(),
@@ -176,7 +176,7 @@ fn visible_fields(body: Node<'_>, source: Code<'_>) -> BTreeSet<String> {
                 let public = child
                     .named_children(&mut parts)
                     .any(|part| part.kind() == "visibility_modifier");
-                let name = child.child_by_field_name("name").filter(|_| public);
+                let name = public.then(|| child.child_by_field_name("name")).flatten();
                 visible.extend(name.map(|name| text(name, source).to_owned()));
             }
             _ => {

@@ -86,6 +86,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/classify-in-the-enum/SKILL.md"),
     ),
     (
+        "check-the-flag-first",
+        include_str!("../shared/skills/control-flow/check-the-flag-first/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),

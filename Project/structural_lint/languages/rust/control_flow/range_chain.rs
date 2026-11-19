@@ -69,7 +69,9 @@ fn bounded(condition: Node<'_>, source: Code<'_>) -> Option<String> {
         && condition
             .child_by_field_name("operator")
             .is_some_and(|operator| matches!(text(operator, source), "<" | "<=" | ">" | ">="));
-    let left = condition.child_by_field_name("left").filter(|_| ordering)?;
+    let left = ordering
+        .then(|| condition.child_by_field_name("left"))
+        .flatten()?;
     let right = condition.child_by_field_name("right")?;
     let subject = match (literal(left, source), literal(right, source)) {
         (true, false) => right,

@@ -27,7 +27,10 @@ const CLIPPY_LOOKS_THROUGH: &[&str] = &[
 // DECISION: D156
 pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let generic = item.child_by_field_name("type_parameters").is_some();
-    let Some(aliased) = item.child_by_field_name("type").filter(|_| !generic) else {
+    let Some(aliased) = (!generic)
+        .then(|| item.child_by_field_name("type"))
+        .flatten()
+    else {
         return;
     };
     let primitive = match aliased.kind() {
@@ -63,8 +66,9 @@ pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
 }
 fn option_argument<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let optional = type_name(node, source) == Some("Option");
-    node.child_by_field_name("type_arguments")
-        .filter(|_| optional)
+    optional
+        .then(|| node.child_by_field_name("type_arguments"))
+        .flatten()
         .and_then(single_argument)
 }
 fn option_argument_of_parent<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {

@@ -325,7 +325,10 @@ fn spawned(value: Node<'_>, source: Code<'_>) -> bool {
         };
         let unwrapped =
             matches!(name, "unwrap" | "expect") && function.kind() == "field_expression";
-        let Some(receiver) = function.child_by_field_name("value").filter(|_| unwrapped) else {
+        let Some(receiver) = unwrapped
+            .then(|| function.child_by_field_name("value"))
+            .flatten()
+        else {
             return name == "spawn";
         };
         current = receiver;

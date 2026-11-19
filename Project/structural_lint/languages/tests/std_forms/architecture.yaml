@@ -5,4 +5,5 @@ files:
   epsilon_tolerance.rs: Rust f32 or f64 EPSILON compared directly, alone, in parentheses or negated, with scaled, unequal, named, other-constant, justified and test-only tolerances skipped, from native analysis
   dotted_extension.rs: Rust extension literals written with their dot, with plain, empty, variable, other-method, justified and test-only extensions skipped, from native analysis
   indexed_array.rs: Rust array literals with calls indexed by a computed value or partial range in product and test code, with literal indexes, repeat forms, call-free elements, the whole range and justified lines skipped, from native analysis
+  flag_filter.rs: Rust filters by a known flag on a value computed by a call in product and test code, with uncomputed receivers, closures that use the value or call, function arguments, flags checked first and justified lines skipped, from native analysis
 directories: {}

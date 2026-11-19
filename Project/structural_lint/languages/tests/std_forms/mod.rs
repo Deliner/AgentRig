@@ -1,5 +1,6 @@
 mod dotted_extension;
 mod epsilon_tolerance;
+mod flag_filter;
 mod indexed_array;
 mod superseded_form;
 use crate::structural_lint::languages::analyze;

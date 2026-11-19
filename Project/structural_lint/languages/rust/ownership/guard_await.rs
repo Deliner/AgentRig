@@ -61,7 +61,7 @@ fn held_across_await(binding: Node<'_>, name: &str, source: Code<'_>) -> bool {
     let scoped = binding
         .parent()
         .is_some_and(|block| block.kind() == "block");
-    let mut next = binding.next_named_sibling().filter(|_| scoped);
+    let mut next = scoped.then(|| binding.next_named_sibling()).flatten();
     while let Some(statement) = next {
         let released = dropped(statement, name, source);
         if released {

@@ -111,6 +111,7 @@ pub const ALL: &[Kind] = &[
     Kind::ControlFlow(ControlFlow::VariantList),
     Kind::Reference(Reference::DottedExtension),
     Kind::Reference(Reference::IndexedArrayLiteral),
+    Kind::Reference(Reference::OuterFlagFilter),
     Kind::ControlFlow(ControlFlow::RepeatedClassification),
     Kind::Reference(Reference::FixedTestPort),
     Kind::Reference(Reference::CargoRustflags),
