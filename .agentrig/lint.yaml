@@ -729,6 +729,20 @@ rules:
   level: error
   warning_skill: .agentrig/skills/align-field-names/SKILL.md
   error_skill: .agentrig/skills/align-field-names/SKILL.md
+# DECISION: D211
+- id: parallel-index
+  kind: parallel-index
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  - '**/tests.rs'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/keep-pairs-together/SKILL.md
+  error_skill: .agentrig/skills/keep-pairs-together/SKILL.md
 # DECISION: D166
 - id: positional-flag
   kind: positional-flag

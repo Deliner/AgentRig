@@ -73,6 +73,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::ControlFlow(ControlFlow::RangeChain),
             Kind::Reference(Reference::PositionalFormat),
             Kind::Reference(Reference::CrossedField),
+            Kind::Reference(Reference::ParallelIndex),
             Kind::Signature(Signature::PositionalFlag),
             Kind::Ownership(Ownership::ExposedGuard),
             Kind::Reference(Reference::UntargetedPanic),

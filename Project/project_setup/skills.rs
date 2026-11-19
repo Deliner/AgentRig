@@ -300,6 +300,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/naming/align-field-names/SKILL.md"),
     ),
     (
+        "keep-pairs-together",
+        include_str!("../shared/skills/naming/keep-pairs-together/SKILL.md"),
+    ),
+    (
         "wrap-the-primitive",
         include_str!("../shared/skills/signature/wrap-the-primitive/SKILL.md"),
     ),
