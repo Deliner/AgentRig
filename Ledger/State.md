@@ -2,28 +2,30 @@
 
 ## Focus
 
-P148 (B149) branch start: carry the plan-only commit `99b07ef` that pauses P147, so master learns of the pause through
-this branch's integration.
+P148 (B149) AC1: a catalog write running mkdir, cp, mv, rm, touch or chmod names only the hook routes its operand paths
+reach; Git and `just scratch` stay opaque (D196).
 
 ## Workspace
 
 Branch: feature/write-hints
-Revision: 51f55f7c90886177844aedabd534269a556f6b09
+Revision: 504ee0a3e80ed7373a489737e37930633fa722d2
 
 ## Progress
 
-- P147 is paused on `feature/one-agent-text` with the stash `P147 AC1`; Plan/147.md records the blocker and the
-  resumption condition.
-- P148 has no product change yet.
+- `shell_guard::written` reads the operands of a path program as root-relative paths; an option with `=` or `/` or an
+  unresolvable operand leaves the command opaque.
+- `skill_requirements::writes` names shell routes whose pattern's literal directory prefix overlaps an operand.
+- `shell_event` uses the paths when present and the opaque list otherwise; D196 records the choice and narrows D047.
 
 ## Verification
 
-- The commit gate checks memory links and the Plan format.
+- `just run test -- agent_hooks`: 25 passed, including `path_program_writes_name_only_the_routes_their_paths_reach`.
+- `just lint`: passed.
 
 ## Blockers
 
-None for P148. P147 waits for the user's choice on the rig root entry count.
+None. P147 stays paused on the user's choice of the rig root repair.
 
 ## Next action
 
-Deliver P148 AC1: route `just write` paths of mkdir, cp, mv, rm, touch and chmod to the skills of matching hook routes.
+Commit this VAC, pin the gate-accepted head (D051), archive P148 and B149, then `just feature-merge` and start P149.

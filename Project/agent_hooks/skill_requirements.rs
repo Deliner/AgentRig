@@ -20,18 +20,45 @@ pub fn edits(configured: &Context, paths: &[PathBuf]) -> Result<Vec<Occurrence>>
             .iter()
             .filter(|path| listens && include.is_match(path))
         {
-            let area = path
-                .parent()
-                .filter(|parent| !parent.as_os_str().is_empty())
-                .unwrap_or(Path::new("."));
-            found.push(Occurrence {
-                route,
-                area: area.display().to_string(),
-                reason: format!("edit of {}", path.display()),
-            });
+            found.push(occurrence(route, path, "edit"));
         }
     }
     Ok(found)
+}
+// DECISION: D196
+pub fn writes(configured: &Context, paths: &[PathBuf]) -> Vec<Occurrence> {
+    let mut found = Vec::new();
+    for (route, settings) in configured.config.hooks.routes.iter().enumerate() {
+        let listens = settings.events.contains(&RouteEvent::Shell);
+        for path in paths
+            .iter()
+            .filter(|path| listens && overlaps(&settings.include, path))
+        {
+            found.push(occurrence(route, path, "shell write"));
+        }
+    }
+    found
+}
+fn overlaps(include: &[String], path: &Path) -> bool {
+    include.iter().any(|pattern| {
+        let literal: PathBuf = Path::new(pattern)
+            .components()
+            .take_while(|part| !part.as_os_str().to_string_lossy().contains(GLOB_SYNTAX))
+            .collect();
+        path.starts_with(&literal) || literal.starts_with(path)
+    })
+}
+const GLOB_SYNTAX: [char; 6] = ['*', '?', '[', ']', '{', '\\'];
+fn occurrence(route: usize, path: &Path, action: &str) -> Occurrence {
+    let area = path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or(Path::new("."));
+    Occurrence {
+        route,
+        area: area.display().to_string(),
+        reason: format!("{action} of {}", path.display()),
+    }
 }
 pub fn events(configured: &Context, event: RouteEvent, reason: &str) -> Vec<Occurrence> {
     let routes = configured.config.hooks.routes.iter().enumerate();
