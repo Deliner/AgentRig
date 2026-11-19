@@ -2,27 +2,21 @@
 
 ## Focus
 
-P145 по B146: команды для чтения работают в песочнице без записи. VAC 1: механизм D193, тесты, решение и описание.
+P145 по B146: команды для чтения работают в песочнице без записи. VAC 2: пин и перенос P145 и B146 в архив.
 
 ## Workspace
 
 Branch: `feature/read-only-sandbox`, от master `de8cb13`.
-Revision: `de8cb13bc21084a4fc40bb7a1625d4ce10772af1`
+Revision: `2732ea18a9f4d424546d7dab1c4f88c461cca6bb`
 
 ## Progress
 
-- VAC 1, этот коммит: если каталог журнала создать нельзя, команда для чтения пробует временный файл в своём рабочем
-  каталоге и при отказе по правам или по файловой системе только для чтения идёт без песочницы рига и журнала (D193).
-  Иначе прежняя ошибка. Тесты `read_commands_run_inside_an_environment_that_refuses_writes` и
-  `read_commands_without_a_run_log_in_a_writable_directory_are_refused`, описание в `Project/README.md`.
+- VAC 2, этот коммит: `stable.txt` указывает на принятую гейтом голову `2732ea1`, `just bootstrap` её установил.
+  P145 и B146 перенесены в архив с итогом по AC1 и границам, ссылки D193 ведут в архив.
 
 ## Verification
 
-- `just run test -- command_runner::tests::commands::` прошёл, 8 тестов; без исправления первый тест падает с ошибкой
-  каталога журнала.
-- `just lint` и `just check --only memory` проходят.
-- Codex 0.170 с `-s read-only` и `gpt-6.1-sol` в пустом проекте после `init` кандидатом: `just read`, `just lint`,
-  `just config-check` и `just resume` вернули 0 с выводом, `just write` вернул 127 и файл не создал.
+Гейт коммита VAC 1 прошёл, 202 теста; `just bootstrap` установил рантайм `2732ea1`.
 
 ## Blockers
 
@@ -30,4 +24,4 @@ Revision: `de8cb13bc21084a4fc40bb7a1625d4ce10772af1`
 
 ## Next action
 
-Коммит VAC 1 через гейт. Затем пин по D051, перенос P145 и B146 в архив и `just feature-merge`.
+`just feature-merge`, затем P146 по B147 на новой ветке.
