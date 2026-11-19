@@ -18,8 +18,8 @@ git config user.name "Example Developer"
 git config user.email "example@example.invalid"
 git add .
 git commit -m "Initial example"
-git switch -c topic/bootstrap
 "$WORKER_BINARY" init --language python --skills guides --base trunk --prefix topic/
+just feature-start bootstrap
 ```
 
 ## Rust
@@ -32,8 +32,8 @@ git config user.name "Example Developer"
 git config user.email "example@example.invalid"
 git add .
 git commit -m "Initial example"
-git switch -c change/bootstrap
 "$WORKER_BINARY" init --language rust --skills policies --base release --prefix change/
+just feature-start bootstrap
 ```
 
 Generated defaults enforce named conditions, function length, parameter limits and decision/invariant-only comments as

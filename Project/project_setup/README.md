@@ -76,9 +76,9 @@ Unknown fields are errors naming their module; paths cannot escape the root; see
 
 ## Delivery and memory
 
-`feature-start` needs the base, a clean tree and no pending merge or rebase. `feature-merge` commits the reset State,
-rebases a divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff`, deletes its run
-logs and scratch files but `results/`. Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`, and
+`feature-start` needs the base and no pending merge or rebase. `feature-merge` commits the reset State, rebases a
+divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff`, deletes its run logs and
+scratch files but `results/`. Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`, and
 `guard-commit`, refusing the empty State template on a feature unless only State changes. Post-commit resets State.
 With `remote`, merge pushes the base, and merge and post-commit push the feature with `--force-with-lease`.
 
