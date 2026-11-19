@@ -86,6 +86,7 @@ fn example(kind: Kind, paths: &Paths) -> Value {
     rule
 }
 
+// DECISION: D195
 fn cataloged(kind: Kind) -> bool {
     match kind {
         Kind::Structure(
@@ -96,6 +97,7 @@ fn cataloged(kind: Kind) -> bool {
         ) => false,
         Kind::Structure(
             Structure::NonblankLines
+            | Structure::SameText
             | Structure::DirectoryEntries
             | Structure::DumpName
             | Structure::FunctionLines

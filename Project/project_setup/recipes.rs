@@ -79,7 +79,8 @@ pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
     let binary = shell_words::quote(&path);
     let mut files = Vec::new();
     for (group, recipes) in RECIPES {
-        let file = format!("just/{group}.just");
+        // DECISION: D212
+        let file = format!(".agentrig/just/{group}.just");
         root.push_str(&format!("import '{file}'\n"));
         let source: Vec<String> = recipes
             .iter()

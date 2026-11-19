@@ -76,6 +76,10 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
     if language_rule {
         value["extensions"] = json!(extensions(kind));
     }
+    example_settings(kind, &mut value);
+    value
+}
+fn example_settings(kind: Kind, value: &mut Value) {
     match kind {
         Kind::Structure(Structure::DirectoryArchitecture) => {
             value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
@@ -90,11 +94,14 @@ pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
         Kind::Reference(Reference::CargoRustflags) => {
             value["include"] = json!(["**/.cargo/config.toml"]);
         }
+        // DECISION: D195
+        Kind::Structure(Structure::SameText) => {
+            value["include"] = json!(["AGENTS.md", "CLAUDE.md"])
+        }
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)
         | Kind::Ownership(_)
         | Kind::Reference(_) => {}
     }
-    value
 }

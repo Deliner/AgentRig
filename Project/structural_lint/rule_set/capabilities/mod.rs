@@ -123,4 +123,5 @@ pub const ALL: &[Kind] = &[
     Kind::Reference(Reference::Comment),
     Kind::Structure(Structure::DirectoryArchitecture),
     Kind::Structure(Structure::TestPlacement),
+    Kind::Structure(Structure::SameText),
 ];

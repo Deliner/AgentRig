@@ -17,6 +17,7 @@ pub enum Structure {
     EmbeddedText,
     DirectoryArchitecture,
     TestPlacement,
+    SameText,
 }
 impl Structure {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -31,6 +32,7 @@ impl Structure {
             Self::EmbeddedText => &EMBEDDEDTEXT,
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
             Self::TestPlacement => &TESTPLACEMENT,
+            Self::SameText => &SAMETEXT,
         }
     }
 }
@@ -148,5 +150,17 @@ const TESTPLACEMENT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a test-only module file outside tests.rs and tests/ is measured as production code by every other rule; move it into a tests/ directory, keeping its module name through #[path], or into the tests.rs of the module it tests",
+    },
+};
+// DECISION: D195
+const SAMETEXT: Descriptor = Descriptor {
+    default_id: "same-text",
+    exclude: &[],
+    target: "file",
+    metric: "every selected file whose bytes differ from the first selected file in path order",
+    skill: "condense-markdown",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "the files this rule selects must carry one text; merge the intended edits into one text and write it to each of them",
     },
 };

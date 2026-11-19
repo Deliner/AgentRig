@@ -222,7 +222,8 @@ fn init_offers_a_lint_baseline_for_errors_in_existing_files() {
     for text in offered {
         assert!(result.stdout.contains(text), "{}", result.stdout);
     }
-    let recipes = fs::read_to_string(root.join("just/lint.just")).unwrap();
+    // DECISION: D212
+    let recipes = fs::read_to_string(root.join(".agentrig/just/lint.just")).unwrap();
     assert!(recipes.contains("lint-baseline *args:"), "{recipes}");
     let codes = ["lint", "lint-baseline", "lint"].map(|command| invoke(&root, &[command]).code);
     assert_eq!(codes, [Some(1), Some(0), Some(0)]);
@@ -364,8 +365,8 @@ fn custom_service(language: &str) {
     assert_eq!(result.code, Some(0), "{}", result.output());
     let entries = fs::read_dir(root.join(".agentrig")).unwrap();
     let names = entries.map(|entry| entry.unwrap().file_name().into_string().unwrap());
-    let expected = MODULES.map(str::to_owned);
-    assert_eq!(names.collect::<BTreeSet<_>>(), BTreeSet::from(expected));
+    let expected = MODULES.into_iter().chain(["just"]).map(str::to_owned);
+    assert_eq!(names.collect::<BTreeSet<_>>(), expected.collect());
     assert!(!root.join(".worker").exists());
     adapters(&root, &root.join(SERVICE));
 }

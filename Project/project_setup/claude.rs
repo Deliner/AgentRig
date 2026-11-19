@@ -3,11 +3,16 @@ use crate::project_config::Context;
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use serde_json::Value;
 
 pub(super) fn bundle(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
-    files.insert(".claude/CLAUDE.md".into(), b"@../AGENTS.md\n".to_vec());
+    // DECISION: D195
+    let instructions = files
+        .get("AGENTS.md")
+        .context("CLAUDE.md copies AGENTS.md, which the bundle lacks")?
+        .clone();
+    files.insert("CLAUDE.md".into(), instructions);
     files.insert(
         ".claude/settings.json".into(),
         adapters::registration(config, root_command, Agent::ClaudeCode)?,

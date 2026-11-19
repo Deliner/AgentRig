@@ -1,6 +1,6 @@
 ---
 name: condense-markdown
-description: Bring README and AGENTS.md within their size and width limits, and remove Markdown from places that forbid it, by keeping only what the reader needs.
+description: Bring README and AGENTS.md within their size and width limits, give files that share one text, such as AGENTS.md and CLAUDE.md, that text again, and remove Markdown from places that forbid it, by keeping only what the reader needs.
 ---
 
 # If it does not fit, something in it is superfluous
@@ -21,6 +21,10 @@ to raise the limit, split the file, rename it or move the text elsewhere unread.
 4. Wrap prose within the width; shorten wide tables and link text rather than
    breaking their syntax.
 5. For a forbidden file, apply the same steps to its content, then delete it.
+6. For a same-text finding, the selected files carry one text, such as AGENTS.md
+   for Codex and CLAUDE.md for Claude Code. Compare them, keep the intended
+   edits of each in one version and write it to every selected file; do not
+   delete a copy or narrow the rule.
 
 Stop when the file is within its limits and every remaining line serves its
 reader. Rerun the reported lint check. Apply complexity-discipline.

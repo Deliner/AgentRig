@@ -5,7 +5,7 @@ purpose: "Provide canonical agent guidance for delivery, architectural repair an
 files: {}
 directories:
   complexity-discipline: "Keep implementation and workflow complexity within current requirements"
-  condense-markdown: "Keep README and AGENTS.md within limits and other Markdown out of Project"
+  condense-markdown: "Keep README and AGENTS.md within limits, copies of one text identical and other Markdown out of Project"
   control-flow: "Repair function control-flow complexity and hazards: deep nesting, branch overload, long or mixed boolean expressions, unlabeled exits of nested loops, exits hidden in a macro body, subtractions from a length, comparisons with one enum variant, chains of integer bounds, a path check before acting on the path and a hand-written list of every variant of an enum"
   develop-tools: "Develop, repair and remove registered project tools without duplicating capabilities"
   execute-plan-feature: "Deliver planned features through verified atomic changes and integration"

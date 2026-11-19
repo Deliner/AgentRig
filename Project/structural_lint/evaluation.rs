@@ -168,6 +168,9 @@ fn structural_measurements(
             vec![(None, inventory.file_entries(selected.path, FILENAME))]
         }
         rule_identities::Kind::Structure(Structure::DumpName) => dump_name(selected.path),
+        rule_identities::Kind::Structure(Structure::SameText) => {
+            same_text(root, rule, selected.path, inventory)?
+        }
         rule_identities::Kind::Structure(
             Structure::FunctionLines
             | Structure::ProgramLanguage
@@ -196,6 +199,18 @@ fn line_widths(source: &str) -> Vec<(Option<usize>, usize)> {
         .enumerate()
         .map(|(index, line)| (Some(index + 1), line.chars().count()))
         .collect()
+}
+// DECISION: D195
+fn same_text(
+    root: &Path,
+    rule: &lint_config::Rule,
+    path: &Path,
+    inventory: &file_discovery::Inventory,
+) -> Result<Vec<(Option<usize>, usize)>> {
+    let selected = lint_targets::select(rule, inventory)?;
+    let first = selected.first().map_or(path, |first| first.path);
+    let differs = fs::read(root.join(first))? != fs::read(root.join(path))?;
+    Ok(if differs { vec![(None, 1)] } else { Vec::new() })
 }
 fn dump_name(path: &Path) -> Vec<(Option<usize>, usize)> {
     let name = path.file_name().and_then(|name| name.to_str());

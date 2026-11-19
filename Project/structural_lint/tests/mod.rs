@@ -114,6 +114,25 @@ fn program_language_reports_programs_outside_the_allowed_languages() {
     );
 }
 
+// DECISION: D195
+#[test]
+fn same_text_reports_each_selected_file_that_differs_from_the_first() {
+    let rule = "id: same, kind: same-text, target: file, include: [AGENTS.md, CLAUDE.md], \
+        level: error";
+    let nested = ("docs/CLAUDE.md", "other\n");
+    let same = [("AGENTS.md", "rules\n"), ("CLAUDE.md", "rules\n"), nested];
+    assert_eq!(findings(&same, rule), []);
+    let differing = [
+        ("AGENTS.md", "rules\n"),
+        ("CLAUDE.md", "rules\nmore\n"),
+        nested,
+    ];
+    assert_eq!(
+        findings(&differing, rule),
+        [("CLAUDE.md".into(), None, Some(1))]
+    );
+}
+
 #[test]
 fn forbidden_file_reports_every_selected_file() {
     let files = [

@@ -1,7 +1,7 @@
 // DECISION: D188
 use crate::project_setup::initialization::init;
 use crate::shared::calling_agent::Agent;
-use crate::shared::testing::{hermetic, invoke, run, runtime, snapshot};
+use crate::shared::testing::{hermetic, invoke, repository, run, runtime, snapshot};
 use serde_json::{Value, json};
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::Path};
@@ -10,7 +10,7 @@ const CLIENT_FILES: [&str; 4] = [
     ".codex/config.toml",
     ".codex/hooks.json",
     ".claude/settings.json",
-    ".claude/CLAUDE.md",
+    "CLAUDE.md",
 ];
 
 fn registration(root: &Path, agent: Agent) -> Value {
@@ -30,15 +30,28 @@ fn hook(root: &Path, handler: &Value, event: &Value) -> Value {
     serde_json::from_str(&result.stdout).unwrap()
 }
 
+// DECISION: D195
+#[test]
+fn init_and_the_rig_give_both_agents_one_rules_text() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let initialized = invoke(&root, &["init"]);
+    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    for project in [root.as_path(), repository()] {
+        let text = |name: &str| fs::read_to_string(project.join(name)).unwrap();
+        let shown = project.display();
+        assert_eq!(text("CLAUDE.md"), text("AGENTS.md"), "{shown}");
+        let imported = project.join(".claude/CLAUDE.md").exists();
+        assert!(!imported, "{shown}");
+    }
+}
+
 #[test]
 fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     let initialized = invoke(&root, &["init"]);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
-    let note = fs::read_to_string(root.join(".claude/CLAUDE.md")).unwrap();
-    assert_eq!(note, "@../AGENTS.md\n");
-    assert!(!root.join("CLAUDE.md").exists());
     assert!(!root.join(".mcp.json").exists());
     for agent in Agent::ALL {
         let settings = registration(&root, agent);

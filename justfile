@@ -1,8 +1,8 @@
 set positional-arguments := true
 
-import 'just/development.just'
-import 'just/commands.just'
-import 'just/checks.just'
-import 'just/delivery.just'
-import 'just/lint.just'
-import 'just/jobs.just'
+import '.agentrig/just/development.just'
+import '.agentrig/just/commands.just'
+import '.agentrig/just/checks.just'
+import '.agentrig/just/delivery.just'
+import '.agentrig/just/lint.just'
+import '.agentrig/just/jobs.just'
