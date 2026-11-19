@@ -2,20 +2,24 @@
 
 ## Focus
 
-P165 (B168), activation: mark P165 active before the inert `parallel-index` kind.
+P165 (B168), inert VAC: the `parallel-index` detector, its test, the `Reference::ParallelIndex` descriptor and D211,
+not yet enabled in the rig, the catalog or init (D051).
 
 ## Workspace
 
 - Branch: feature/parallel-index
-- Revision: 98588d057eab2779a9119b14d222fcff415873af
+- Revision: dafabea1d5b77aa598a3f4e822c0011d5f829065
 
 ## Progress
 
-- P164 merged into master; P165 is the last selected card that is not paused.
+- `rust/naming.rs` reports an index from `.position(..)` on `.iter()`, `.iter_mut()` or `.into_iter()` that reads
+  a collection with other text, directly, through `let`, `let .. else`, `if let` or a closure parameter.
+- A test in `tests/reference/naming.rs` covers the review's touch zones and the skipped forms.
 
 ## Verification
 
-- Plan status only; the commit gate checks memory.
+- `just run test -- reference::naming` passes, 3 tests; `just run rustfmt`, `just run clippy`, `just lint` and
+  `just check --only memory` pass. A reading of the rig's `.position(` sites finds no site.
 
 ## Blockers
 
@@ -23,4 +27,4 @@ None.
 
 ## Next action
 
-Add the inert `parallel-index` detector, its test, descriptor and D211, then pin and enable it.
+Commit this VAC, run `just bootstrap HEAD`, then enable the kind with the skill `keep-pairs-together`.

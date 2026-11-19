@@ -24,6 +24,7 @@ pub enum Reference {
     BlockingInAsync,
     PositionalFormat,
     CrossedField,
+    ParallelIndex,
     UntargetedPanic,
     TestSubstitution,
     InterpolatedShell,
@@ -57,6 +58,7 @@ impl Reference {
             Self::BlockingInAsync => &BLOCKINGINASYNC,
             Self::PositionalFormat => &POSITIONALFORMAT,
             Self::CrossedField => &CROSSEDFIELD,
+            Self::ParallelIndex => &PARALLELINDEX,
             Self::UntargetedPanic => &UNTARGETEDPANIC,
             Self::TestSubstitution => &TESTSUBSTITUTION,
             Self::InterpolatedShell => &INTERPOLATEDSHELL,
@@ -94,6 +96,18 @@ const CROSSEDFIELD: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "a field set from a variable named after a sibling field is a swap in shorthand clothing; rename the variables so each field takes its own name, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
+// DECISION: D211
+const PARALLELINDEX: Descriptor = Descriptor {
+    default_id: "parallel-index",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every Rust index expression and .get(..) or .get_mut(..) call whose index is a .position(..) call on .iter(), .iter_mut() or .into_iter() of a collection with other text, taken directly, through ? and method calls on it, or through a name bound from it by let, let else, if let or a closure parameter of such a method call, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "keep-pairs-together",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a position found in one collection and read from another pairs their values only by order, so a change to one list shifts the other's values onto the wrong items; keep each pair in one record, a list of structs holding both values, and find the record itself, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
 // DECISION: D065
