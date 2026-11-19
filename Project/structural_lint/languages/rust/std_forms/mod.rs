@@ -1,5 +1,6 @@
 mod dotted_extension;
 mod epsilon_tolerance;
+mod indexed_array;
 mod superseded_form;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
@@ -9,6 +10,7 @@ use tree_sitter::Node;
 
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     superseded_form::inspect(node, source, output);
+    indexed_array::inspect(node, source, output);
     let Some((reference, symbol)) = form(node, source) else {
         return;
     };

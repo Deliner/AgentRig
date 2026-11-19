@@ -39,3 +39,15 @@ pub(super) const DOTTEDEXTENSION: Descriptor = Descriptor {
         violation: "with_extension and set_extension add the dot themselves, so an extension written with a leading dot yields a name with two dots; write the extension without the dot, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D205
+pub(super) const INDEXEDARRAYLITERAL: Descriptor = Descriptor {
+    default_id: "indexed-array-literal",
+    exclude: &[],
+    target: "file",
+    metric: "every Rust array literal that lists its elements, at least one of which contains a call, indexed by an expression other than an integer literal or the full range .., test code included, without a DECISION: or INVARIANT: reference comment on the line directly above it",
+    skill: "branch-on-the-index",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "indexing an array literal evaluates every element and keeps only the one the index selects, so the calls of the others run for nothing; select with match or if so that only the chosen element is computed, or put a DECISION: or INVARIANT: reference on the line directly above it",
+    },
+};
