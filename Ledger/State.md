@@ -2,25 +2,22 @@
 
 ## Focus
 
-P159 (B161), VAC 2: enable `indexed-array-literal` with its skill branch-on-the-index, with the mid-branch pin.
+P159 (B161), final VAC: pin the gate-accepted head and archive P159 and B161.
 
 ## Workspace
 
 - Branch: feature/array-index-literal
-- Revision: 6badc8e376d2e93f84e4a13c2fe183bc7da951cf
+- Revision: 6a4803b79a76a0f057e795aaa806115051039347
 
 ## Progress
 
-- VAC 1 `6badc8e` added the inert kind, detector, tests and D205; its gate passed with 490 tests.
-- `just bootstrap HEAD` installed `6badc8e` and wrote it to stable.txt.
-- This VAC adds the kind to the Rust handler and the catalog, which init ships, the skill with its link and init
-  registry entry, and the rig's lint.yaml rule.
+- VAC 1 `6badc8e` and VAC 2 `6a4803b` delivered AC1; the second gate passed with 555 tests.
+- `just bootstrap HEAD` installed `6a4803b` and wrote it to tooling/distribution/stable.txt.
+- P159 and B161 moved to Archive with the AC1 evidence in Archive/Plan/159.md; D205 links follow them.
 
 ## Verification
 
-- `just lint` passes with the rule enabled, so the rig has no finding.
-- `just lint-config-check` on the installed runtime accepts the rule.
-- `just run test -- project_setup::`: 57 passed; `just run test -- structural_lint::`: 314 passed.
+- `just check --only memory` after rotation.
 
 ## Blockers
 
@@ -28,4 +25,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, archive P159 and B161 with the pin, and run `just feature-merge`.
+Commit this VAC, run `just feature-merge`, then start P160 (B162) from master.
