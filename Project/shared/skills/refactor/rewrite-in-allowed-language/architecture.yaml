@@ -1,0 +1,5 @@
+purpose: "Rewrite a program in a language the project does not allow in one of its allowed languages"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move a program's behavior into an allowed language and delete the original"
+directories: {}

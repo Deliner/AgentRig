@@ -14,7 +14,27 @@ const SCHEMA: [(&str, &str); 6] = [
     ),
     ("version: 1", "version: ["),
 ];
-const MISPLACED: [(&str, &str, &str); 5] = [
+const MISPLACED: [(&str, &str, &str); 9] = [
+    (
+        "named-if-condition",
+        "allowed_languages: [rust]",
+        "allowed_languages require program-language",
+    ),
+    (
+        "program-language",
+        "",
+        "program-language needs allowed_languages",
+    ),
+    (
+        "program-language",
+        "allowed_languages: []",
+        "allowed_languages is empty",
+    ),
+    (
+        "program-language",
+        "allowed_languages: [rust, cobol]",
+        "unknown language cobol",
+    ),
     (
         "named-if-condition",
         r#"junctions: "single""#,
@@ -87,6 +107,7 @@ fn config_check_reports_schema_errors() {
 }
 
 // DECISION: D156
+// DECISION: D198
 #[test]
 fn config_check_rejects_misplaced_rule_settings() {
     for (kind, settings, expected) in MISPLACED {

@@ -32,6 +32,19 @@ pub fn support(kind: Kind) -> String {
         .collect::<Vec<_>>()
         .join(" and ")
 }
+// DECISION: D198
+pub fn validate_program_languages(rule: &str, names: &[String]) -> Result<()> {
+    let known = languages::program::names();
+    let empty = names.is_empty();
+    if empty {
+        bail!("{rule}: allowed_languages is empty");
+    }
+    if let Some(name) = names.iter().find(|name| !known.contains(&name.as_str())) {
+        let known = known.join(", ");
+        bail!("{rule}: unknown language {name}; known: {known}");
+    }
+    Ok(())
+}
 pub fn validate_includes(kind: Kind, patterns: &[String]) -> Result<()> {
     let structural = !syntax(kind) || kind.descriptor().target == "directory";
     if structural {

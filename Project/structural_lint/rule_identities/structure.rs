@@ -10,6 +10,7 @@ pub enum Structure {
     NonblankLines,
     LineWidth,
     ForbiddenFile,
+    ProgramLanguage,
     DirectoryEntries,
     DumpName,
     FunctionLines,
@@ -23,6 +24,7 @@ impl Structure {
             Self::NonblankLines => &NONBLANKLINES,
             Self::LineWidth => &LINEWIDTH,
             Self::ForbiddenFile => &FORBIDDENFILE,
+            Self::ProgramLanguage => &PROGRAMLANGUAGE,
             Self::DirectoryEntries => &DIRECTORYENTRIES,
             Self::DumpName => &DUMPNAME,
             Self::FunctionLines => &FUNCTIONLINES,
@@ -64,6 +66,18 @@ const FORBIDDENFILE: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "file is not allowed here; move needed content to its owner and delete the file",
+    },
+};
+// DECISION: D198
+const PROGRAMLANGUAGE: Descriptor = Descriptor {
+    default_id: "program-language",
+    exclude: &[],
+    target: "file",
+    metric: "a file whose extension, or for a file without one the interpreter of its #! line, names a known program language outside allowed_languages",
+    skill: "rewrite-in-allowed-language",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a program in a language the project does not allow escapes its language rules; rewrite it in an allowed language",
     },
 };
 const DIRECTORYENTRIES: Descriptor = Descriptor {

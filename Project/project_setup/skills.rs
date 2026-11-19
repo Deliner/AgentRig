@@ -121,6 +121,11 @@ const SKILLS: &[(&str, &str)] = &[
         "remove-secret",
         include_str!("../shared/skills/remove-secret/SKILL.md"),
     ),
+    // DECISION: D198
+    (
+        "rewrite-in-allowed-language",
+        include_str!("../shared/skills/refactor/rewrite-in-allowed-language/SKILL.md"),
+    ),
     ("repair", include_str!("../shared/skills/repair/SKILL.md")),
     (
         "replace-comment",

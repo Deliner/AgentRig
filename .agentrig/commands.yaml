@@ -32,6 +32,8 @@ write:
     rm: {}
     touch: {}
     chmod: {}
+    # DECISION: D198
+    ln: {}
 build:
   purpose: Build the candidate runtime from Project and print its version
   doc: Project/README.md#build
