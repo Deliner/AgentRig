@@ -130,6 +130,16 @@ impl<'a> Repository<'a> {
             .filter(|value| value.bytes().any(|byte| byte != b'0')))
     }
 
+    pub fn fork(&self, settings: &Settings, tip: &str) -> Result<Option<String>> {
+        let revisions = Revisions {
+            from: &settings.base,
+            to: tip,
+        };
+        git::fork(self.root, revisions)?
+            .map(validate_revision)
+            .transpose()
+    }
+
     pub fn parents(&self, revision: &str) -> Result<Vec<String>> {
         git::parents(self.root, revision)?
             .into_iter()

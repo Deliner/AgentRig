@@ -2,25 +2,24 @@
 
 ## Focus
 
-P157 (B158), VAC1: AC1 and AC3. The protected set holds check settings, the lint configuration and its baseline;
-without approval a staged baseline commits only when it adds no pair and raises no count (D214).
+P157 (B158), VAC 2: refuse decision and invariant changes relative to the fork from the base (AC4, AC5), D215.
 
 ## Workspace
 
 Branch: feature/gate-base-rules
-Revision: c2052f200e6273f2394bc4e7d11cdf50af8ca33a
+Revision: 4c861c1f62b137dd9b507aabbe7289354a70ec4e
 
 ## Progress
 
-- Protection covers `checks.yaml`, `tools.yaml`, `rust.yaml`, `paths.lint` and its baseline; the commit guard admits a
-  lowered or removed baseline without approval through the new leaf `structural_lint/baseline_file`.
-- Hook, delivery, approval and init offer tests follow the wider set; D214 row, detail and precedence note written.
-- Remaining ACs: AC4 and AC5 history against the fork point, AC2 marker links, AC6 installed lint in the rig gate.
+VAC 1 committed (D214, AC1 and AC3). VAC 2: `Repository::fork` finds the merge-base with the configured base branch;
+`history::check` also compares decisions with the fork; `invariant_history` compares each invariant's statement,
+detail, oracle and marked test text with the fork and accepts a change only when a new decision names its ID.
 
 ## Verification
 
-- `just run test`: 582 passed before the baseline split; after it the baseline, approval and init layout tests pass.
-- `just run clippy`, `just run rustfmt` and `just lint` pass.
+`just run clippy`, `just run rustfmt`, `just lint` and `just candidate check --only memory` pass. `just run test --
+project_memory change_delivery shared::vcs` passes 88 tests, including the two-commit merge test and the invariant
+test with and without a new decision.
 
 ## Blockers
 
@@ -28,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC1 through the hook, then start VAC2: compare decisions and invariants with the fork point from the base.
+Commit VAC 2, then VAC 3: AC2 decision markers only in files their decision links (D216).

@@ -210,13 +210,13 @@ pub enum RouteEvent {
 fn changes() -> Vec<RouteEvent> {
     vec![RouteEvent::Edit, RouteEvent::Shell]
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
 pub enum Runner {
     Pytest,
     Cargo,
 }
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct Oracle {
     pub check: String,

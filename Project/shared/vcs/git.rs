@@ -56,6 +56,32 @@ pub(super) fn ancestor(root: &Path, revisions: Revisions<'_>) -> Result<bool> {
     Ok(status.success())
 }
 
+// DECISION: D215
+pub(super) fn fork(root: &Path, revisions: Revisions<'_>) -> Result<Option<String>> {
+    let Revisions {
+        from: base,
+        to: tip,
+    } = revisions;
+    let branch = format!("refs/heads/{base}");
+    let known = command(root, &["rev-parse", "--verify", "--quiet", &branch]).output()?;
+    let absent = known.status.code() == Some(1);
+    if absent {
+        return Ok(None);
+    }
+    ensure!(known.status.success(), "cannot read the base branch {base}");
+    let output = command(root, &["merge-base", &branch, tip]).output()?;
+    let unrelated = output.status.code() == Some(1);
+    if unrelated {
+        return Ok(None);
+    }
+    ensure!(
+        output.status.success(),
+        "cannot find where {tip} forks from {base}: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    Ok(Some(String::from_utf8(output.stdout)?.trim().into()))
+}
+
 pub(super) fn head(root: &Path) -> Result<Option<String>> {
     let output = command(root, &["rev-parse", "--verify", "--quiet", "HEAD"]).output()?;
     let unborn = output.status.code() == Some(1);

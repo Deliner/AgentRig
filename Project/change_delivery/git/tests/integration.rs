@@ -1,8 +1,10 @@
 // DECISION: D010
 // DECISION: D012
 use super::{STATE, approve_commands, commit, installed, merge, read, start};
-use crate::shared::testing::{git, git_run, invoke, run, runtime};
+use crate::shared::testing::{describe_state, git, git_run, invoke, run, runtime};
 use std::{fs, path::Path};
+
+const DECISION: &str = "# D001\n\n## Context\n\nText.\n\n## Chosen\n\nText.\n\n## Rejected\n\nText.\n\n## Rationale\n\nText.\n\n## Consequences\n\nText.\n";
 
 const MUTATING_COMMAND: &str = r#"probe:
   purpose: Mutate a gate input on request
@@ -175,4 +177,44 @@ fn refused_switch_to_base_keeps_the_feature_tree() {
     assert_eq!(git(&root, &["rev-parse", "HEAD^"]), feature);
     assert_eq!(git(&root, &["status", "--porcelain"]), "");
     assert_eq!(read(&root, hook), generated);
+}
+
+// DECISION: D215
+#[test]
+fn a_decision_changed_earlier_on_the_branch_is_refused_at_merge_and_at_the_next_commit() {
+    let (_temp, root) = installed();
+    let unhooked = ["-c", "core.hooksPath=/dev/null"];
+    let row = "| [D001](Decisions/001.md) | Choice | [settings](../.agentrig/git.yaml) |\n";
+    let index = read(&root, "Ledger/Decisions.md") + row;
+    fs::write(root.join("Ledger/Decisions.md"), index).unwrap();
+    fs::create_dir_all(root.join("Ledger/Decisions")).unwrap();
+    fs::write(root.join("Ledger/Decisions/001.md"), DECISION).unwrap();
+    git(&root, &["add", "."]);
+    git(
+        &root,
+        &[&unhooked[..], &["commit", "-qm", "record"]].concat(),
+    );
+    start(&root, "change");
+    let changed = DECISION.replace("Chosen\n\nText.", "Chosen\n\nChanged.");
+    fs::write(root.join("Ledger/Decisions/001.md"), changed).unwrap();
+    describe_state(&root, "A test VAC.");
+    git(&root, &["add", "."]);
+    git(
+        &root,
+        &[&unhooked[..], &["commit", "-qm", "change"]].concat(),
+    );
+    let detail = "committed decision detail cannot change";
+    let merged = invoke(&root, &["feature-merge"]);
+    assert_eq!(merged.code, Some(1), "{}", merged.output());
+    assert!(merged.output().contains(detail), "{}", merged.output());
+    fs::write(root.join("other.txt"), "other\n").unwrap();
+    describe_state(&root, "A test VAC.");
+    git(&root, &["add", "."]);
+    let committed = git_run(&root, &["commit", "-qm", "other"]);
+    assert_ne!(committed.code, Some(0), "{}", committed.output());
+    assert!(
+        committed.output().contains(detail),
+        "{}",
+        committed.output()
+    );
 }

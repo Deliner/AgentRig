@@ -8,6 +8,7 @@
 pub(crate) mod check_evidence;
 pub(super) mod format;
 mod history;
+mod invariant_history;
 mod oracles;
 mod resume;
 mod source;
