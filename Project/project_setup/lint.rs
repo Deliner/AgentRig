@@ -29,7 +29,7 @@ const MEMORY_REGISTRIES: [&str; 6] = [
     "Archive/Backlog",
 ];
 
-pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
+pub fn template(settings: &super::Config, rust: &Layout, language: &str) -> Result<String> {
     let paths = &settings.paths;
     let mut rules: Vec<Value> = capabilities::ALL
         .iter()
@@ -37,6 +37,7 @@ pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
         .map(|kind| example(*kind, paths))
         .collect();
     rules.push(architecture(&paths.skills, rust));
+    rules.push(program_language(paths, language));
     rules.extend(markdown(paths));
     let skipped = [".git", CACHE, "**/__pycache__", "**/.venv", "**/target"];
     let exclude: Vec<String> = skipped
@@ -106,6 +107,16 @@ fn cataloged(kind: Kind) -> bool {
         | Kind::Ownership(_)
         | Kind::Reference(_) => true,
     }
+}
+
+// DECISION: D198
+fn program_language(paths: &Paths, language: &str) -> Value {
+    let kind = Kind::Structure(Structure::ProgramLanguage);
+    let mut rule = capabilities::example(kind, &paths.skills, &["**".into()]);
+    rule["allowed_languages"] = json!([language]);
+    let adapters = [paths.service_path("hooks/**"), paths.service_path("bin/**")];
+    rule["exclude"] = json!(adapters);
+    rule
 }
 
 // DECISION: D192

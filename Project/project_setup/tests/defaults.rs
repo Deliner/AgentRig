@@ -231,6 +231,48 @@ fn shipped_rules_check_lowering_flags_of_the_clippy_command() {
     assert!(after[0].ends_with("justify-allow/SKILL.md"), "{after:?}");
 }
 
+// DECISION: D198
+#[test]
+fn shipped_program_language_allows_only_the_init_language() {
+    for language in ["python", "rust"] {
+        let (_temp, root) = initialized(language);
+        let config: Value = strict_yaml::read(&root.join(".agentrig/lint.yaml")).unwrap();
+        let rules = config["rules"].as_array().unwrap();
+        let rule = rules.iter().find(|rule| rule["id"] == "program-language");
+        let allowed = &rule.unwrap()["allowed_languages"];
+        assert_eq!(allowed, &Value::from(vec![language]), "{rule:?}");
+        let checked = invoke(&root, &["config-check"]);
+        assert_eq!(checked.code, Some(0), "{}", checked.output());
+    }
+    let (_temp, root) = initialized("rust");
+    write(&root, "tool/x.js", "console.log(1);\n");
+    write(&root, "tool/build", "#!/usr/bin/env python3\nprint(1)\n");
+    let (code, found) = lint(&root);
+    assert_eq!(code, Some(1), "{found:?}");
+    let skill = root.join(".agentrig/skills/rewrite-in-allowed-language/SKILL.md");
+    assert!(skill.is_file(), "{}", skill.display());
+    for (path, language) in [("tool/x.js", "javascript"), ("tool/build", "python")] {
+        let reported =
+            |item: &&Value| text(item, "rule") == "program-language" && text(item, "path") == path;
+        let finding = found.iter().find(reported);
+        let finding = finding.unwrap_or_else(|| panic!("{path}: {found:?}"));
+        let message = text(finding, "message");
+        let named = message.contains(language) && message.contains("allowed languages: rust;");
+        assert!(named, "{message}");
+        let repair = Path::new(text(finding, "skill")) == skill;
+        let outcome = (text(finding, "level"), repair);
+        assert_eq!(outcome, ("error", true), "{finding:?}");
+    }
+    let check = invoke(&root, &["check"]);
+    assert_eq!(check.code, Some(1), "{}", check.output());
+    assert!(check.stderr.contains("ERROR [lint]"), "{}", check.output());
+    fs::remove_file(root.join("tool/x.js")).unwrap();
+    fs::remove_file(root.join("tool/build")).unwrap();
+    fs::remove_dir(root.join("tool")).unwrap();
+    let accepted = invoke(&root, &["lint"]);
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+}
+
 #[test]
 fn shipped_file_size_skips_package_manager_lock_files() {
     let (_temp, root) = initialized("rust");
