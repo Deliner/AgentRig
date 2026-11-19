@@ -38,7 +38,9 @@ fn form(node: Node<'_>, source: Code<'_>) -> Option<(Reference, &'static str)> {
 }
 fn method<'t, 's>(call: Node<'t>, source: Code<'s>) -> Option<(&'s str, Node<'t>)> {
     let invoked = call.kind() == "call_expression";
-    let function = call.child_by_field_name("function").filter(|_| invoked)?;
+    let function = invoked
+        .then(|| call.child_by_field_name("function"))
+        .flatten()?;
     let field = function.child_by_field_name("field")?;
     Some((text(field, source), function.child_by_field_name("value")?))
 }

@@ -80,7 +80,10 @@ impl Owner<'_> {
             .child_by_field_name("name")
             .filter(|name| name.kind() == "type_identifier")
             .is_some_and(|name| self.constructs(text(name, self.source)));
-        let Some(list) = expression.child_by_field_name("body").filter(|_| built) else {
+        let Some(list) = built
+            .then(|| expression.child_by_field_name("body"))
+            .flatten()
+        else {
             return Vec::new();
         };
         let mut cursor = list.walk();
@@ -104,7 +107,10 @@ impl Owner<'_> {
             .child_by_field_name("function")
             .filter(|function| function.kind() == "identifier")
             .is_some_and(|function| self.constructs(text(function, self.source)));
-        let Some(arguments) = call.child_by_field_name("arguments").filter(|_| built) else {
+        let Some(arguments) = built
+            .then(|| call.child_by_field_name("arguments"))
+            .flatten()
+        else {
             return Vec::new();
         };
         let mut cursor = arguments.walk();

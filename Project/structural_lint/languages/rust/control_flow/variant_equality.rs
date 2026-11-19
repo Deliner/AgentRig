@@ -26,10 +26,13 @@ pub(super) fn matched(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<M
         .child_by_field_name("macro")
         .is_some_and(|path| last_segment(path, source) == "matches");
     let mut cursor = invocation.walk();
-    let Some(tree) = invocation
-        .named_children(&mut cursor)
-        .find(|child| child.kind() == "token_tree")
-        .filter(|_| named)
+    let Some(tree) = named
+        .then(|| {
+            invocation
+                .named_children(&mut cursor)
+                .find(|child| child.kind() == "token_tree")
+        })
+        .flatten()
     else {
         return;
     };

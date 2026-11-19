@@ -910,6 +910,17 @@ rules:
   level: error
   warning_skill: .agentrig/skills/branch-on-the-index/SKILL.md
   error_skill: .agentrig/skills/branch-on-the-index/SKILL.md
+# DECISION: D208
+- id: outer-flag-filter
+  kind: outer-flag-filter
+  target: file
+  include:
+  - '**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/check-the-flag-first/SKILL.md
+  error_skill: .agentrig/skills/check-the-flag-first/SKILL.md
 # DECISION: D206
 - id: repeated-classification
   kind: repeated-classification

@@ -60,7 +60,7 @@ fn repeated(rule: &lint_config::Rule, output: &mut Vec<Diagnostic>, start: usize
     let mut first = HashMap::new();
     for mut item in output.split_off(start) {
         let measured = item.rule == rule.id;
-        let Some(classification) = item.symbol.clone().filter(|_| measured) else {
+        let Some(classification) = measured.then(|| item.symbol.clone()).flatten() else {
             output.push(item);
             continue;
         };

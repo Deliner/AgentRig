@@ -67,9 +67,9 @@ fn ok_path(argument: Node<'_>, source: Code<'_>) -> bool {
 }
 fn ok_receiver<'a>(argument: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let closure = argument.kind() == "closure_expression";
-    let parameters = argument
-        .child_by_field_name("parameters")
-        .filter(|_| closure)?;
+    let parameters = closure
+        .then(|| argument.child_by_field_name("parameters"))
+        .flatten()?;
     let body = argument
         .child_by_field_name("body")
         .filter(|_| parameters.named_child_count() == 1)?;
@@ -82,7 +82,7 @@ fn ok_receiver<'a>(argument: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let ok = function
         .child_by_field_name("field")
         .is_some_and(|field| text(field, source) == "ok");
-    function.child_by_field_name("value").filter(|_| ok)
+    ok.then(|| function.child_by_field_name("value")).flatten()
 }
 fn values(arguments: Node<'_>) -> Vec<Node<'_>> {
     let mut cursor = arguments.walk();
@@ -265,7 +265,7 @@ pub(super) fn exit_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Me
         && node
             .child_by_field_name("return_type")
             .is_some_and(|annotation| bool_result(annotation, source));
-    let Some(body) = node.child_by_field_name("body").filter(|_| verdict) else {
+    let Some(body) = verdict.then(|| node.child_by_field_name("body")).flatten() else {
         return;
     };
     let coded = descendants(body)
@@ -350,9 +350,9 @@ impl<'a> VerdictBody<'a> {
         let field = receiver
             .child_by_field_name("field")
             .is_some_and(|field| text(field, self.source) == "status");
-        receiver
-            .child_by_field_name("value")
-            .filter(|_| field)
+        field
+            .then(|| receiver.child_by_field_name("value"))
+            .flatten()
             .map(|value| self.binding(value).unwrap_or(value))
             .is_some_and(|value| launched(value, "output", self.source))
     }
@@ -374,9 +374,9 @@ fn ok_argument<'a>(call: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
     let constructor = call
         .child_by_field_name("function")
         .is_some_and(|function| function.kind() == "identifier" && text(function, source) == "Ok");
-    let arguments = call
-        .child_by_field_name("arguments")
-        .filter(|_| constructor)?;
+    let arguments = constructor
+        .then(|| call.child_by_field_name("arguments"))
+        .flatten()?;
     let mut cursor = arguments.walk();
     let values: Vec<_> = arguments
         .named_children(&mut cursor)
@@ -392,11 +392,15 @@ fn method_receiver<'a>(call: Node<'a>, method: &str, source: Code<'_>) -> Option
         && call
             .child_by_field_name("arguments")
             .is_some_and(|arguments| arguments.named_child_count() == 0);
-    let function = call.child_by_field_name("function").filter(|_| bare)?;
+    let function = bare
+        .then(|| call.child_by_field_name("function"))
+        .flatten()?;
     let named = function
         .child_by_field_name("field")
         .is_some_and(|field| text(field, source) == method);
-    function.child_by_field_name("value").filter(|_| named)
+    named
+        .then(|| function.child_by_field_name("value"))
+        .flatten()
 }
 fn launched(node: Node<'_>, method: &str, source: Code<'_>) -> bool {
     let propagated = node.kind() == "try_expression";

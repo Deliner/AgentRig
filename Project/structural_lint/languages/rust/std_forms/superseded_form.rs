@@ -29,7 +29,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
 fn trimmed(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
     let (name, stripped) = method(call, source)?;
     let fallback = name == "unwrap_or";
-    let argument = sole_argument(call).filter(|_| fallback)?;
+    let argument = fallback.then(|| sole_argument(call)).flatten()?;
     let (strip, receiver) = method(stripped, source)?;
     let form = match strip {
         "strip_prefix" => "strip_prefix(p).unwrap_or(x) -> trim_prefix(p)",
@@ -37,9 +37,9 @@ fn trimmed(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
         _ => return None,
     };
     let borrowed = argument.kind() == "reference_expression";
-    let operand = argument
-        .child_by_field_name("value")
-        .filter(|_| borrowed)
+    let operand = borrowed
+        .then(|| argument.child_by_field_name("value"))
+        .flatten()
         .unwrap_or(argument);
     let same = text(operand, source) == text(receiver, source);
     same.then_some(form)
@@ -68,9 +68,9 @@ fn filled(call: Node<'_>, source: Code<'_>) -> Option<&'static str> {
             .child_by_field_name("type")
             .is_some_and(|name| text(name, source).rsplit("::").next() == Some("Vec"));
     let into_vector = collected == Some("collect") && vector;
-    let mapped = access
-        .child_by_field_name("value")
-        .filter(|_| into_vector)?;
+    let mapped = into_vector
+        .then(|| access.child_by_field_name("value"))
+        .flatten()?;
     let (name, range) = method(mapped, source)?;
     let indexed = name == "map" && sole_argument(mapped).is_some() && from_zero(range, source);
     indexed.then_some("(0..n).map(f).collect() -> Vec::from_fn(n, f)")

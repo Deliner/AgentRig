@@ -63,7 +63,7 @@ fn checked<'tree, 'text>(call: Node<'tree>, source: Code<'text>) -> Option<Check
     let empty = call.child_by_field_name("arguments")?.named_child_count() == 0;
     let receiver = stripped(access.child_by_field_name("value")?, source);
     let checking = empty && CHECKS.contains(&name);
-    let scope = enclosing_function(call).filter(|_| checking)?;
+    let scope = checking.then(|| enclosing_function(call)).flatten()?;
     Some(Check {
         call,
         scope,
@@ -242,7 +242,9 @@ fn wrapped<'a>(node: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
                 .filter(|function| function.kind() == "field_expression")?;
             let empty = node.child_by_field_name("arguments")?.named_child_count() == 0;
             let viewed = empty && text(access.child_by_field_name("field")?, source) == "as_path";
-            access.child_by_field_name("value").filter(|_| viewed)
+            viewed
+                .then(|| access.child_by_field_name("value"))
+                .flatten()
         }
         _ => None,
     }

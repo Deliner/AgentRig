@@ -134,7 +134,7 @@ fn qualified_name(name: Node<'_>, source: &str) -> String {
             node.kind(),
             "mod_item" | "class_definition" | "function_definition" | "function_item"
         );
-        if let Some(name) = node.child_by_field_name("name").filter(|_| scope) {
+        if let Some(name) = scope.then(|| node.child_by_field_name("name")).flatten() {
             parts.extend(source.get(name.byte_range()));
         }
         parent = node.parent();

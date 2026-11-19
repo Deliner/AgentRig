@@ -64,9 +64,9 @@ fn shadowed(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
 // DECISION: D136
 pub(super) fn imported(source: &Source<'_>, item: Node<'_>, name: &str) -> Option<String> {
     let declaration = item.kind() == "use_declaration";
-    let argument = item
-        .child_by_field_name("argument")
-        .filter(|_| declaration)?;
+    let argument = declaration
+        .then(|| item.child_by_field_name("argument"))
+        .flatten()?;
     super::use_leaves(source, argument, "")
         .into_iter()
         .find_map(|leaf| {
