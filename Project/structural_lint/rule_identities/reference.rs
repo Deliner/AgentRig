@@ -32,6 +32,7 @@ pub enum Reference {
     DottedExtension,
     IndexedArrayLiteral,
     OuterFlagFilter,
+    MaxFallback,
     FixedTestPort,
     CargoRustflags,
     #[serde(rename = "comment-reference")]
@@ -64,6 +65,7 @@ impl Reference {
             Self::DottedExtension => &std_form::DOTTEDEXTENSION,
             Self::IndexedArrayLiteral => &std_form::INDEXEDARRAYLITERAL,
             Self::OuterFlagFilter => &std_form::OUTERFLAGFILTER,
+            Self::MaxFallback => &std_form::MAXFALLBACK,
             Self::FixedTestPort => &FIXEDTESTPORT,
             Self::CargoRustflags => &CARGORUSTFLAGS,
             Self::Comment => &COMMENTREFERENCE,

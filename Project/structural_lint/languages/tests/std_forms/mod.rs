@@ -2,6 +2,7 @@ mod dotted_extension;
 mod epsilon_tolerance;
 mod flag_filter;
 mod indexed_array;
+mod max_fallback;
 mod superseded_form;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::kind::Kind;

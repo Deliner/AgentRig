@@ -2,6 +2,7 @@ mod dotted_extension;
 mod epsilon_tolerance;
 mod flag_filter;
 mod indexed_array;
+mod max_fallback;
 mod superseded_form;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
@@ -30,7 +31,10 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
 fn form(node: Node<'_>, source: Code<'_>) -> Option<(Reference, &'static str)> {
     match node.kind() {
         "binary_expression" => epsilon_tolerance::inspect(node, source)
-            .map(|symbol| (Reference::EpsilonTolerance, symbol)),
+            .map(|symbol| (Reference::EpsilonTolerance, symbol))
+            .or_else(|| {
+                max_fallback::inspect(node, source).map(|symbol| (Reference::MaxFallback, symbol))
+            }),
         "call_expression" => dotted_extension::inspect(node, source)
             .map(|symbol| (Reference::DottedExtension, symbol)),
         _ => None,
