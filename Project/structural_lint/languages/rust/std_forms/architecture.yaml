@@ -5,3 +5,4 @@ files:
   superseded_form.rs: Rust forms the rig's toolchain replaces directly, a strip_prefix or strip_suffix falling back to its receiver, an Infallible type and a Vec collected from a map over 0..n, lacking a reference on the line above
   epsilon_tolerance.rs: Rust comparison whose operand is f32::EPSILON or f64::EPSILON, an absolute tolerance that does not scale with the compared values
   dotted_extension.rs: Rust with_extension or set_extension given a string literal that starts with a dot, which doubles the dot
+  indexed_array.rs: Rust array literal with a call among its elements indexed by a computed value, which evaluates every element to keep one, in product and test code, lacking a reference on the line above

@@ -78,6 +78,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/control-flow/derive-the-variants/SKILL.md"),
     ),
     (
+        "branch-on-the-index",
+        include_str!("../shared/skills/control-flow/branch-on-the-index/SKILL.md"),
+    ),
+    (
         "reduce-parameters",
         include_str!("../shared/skills/signature/reduce-parameters/SKILL.md"),
     ),

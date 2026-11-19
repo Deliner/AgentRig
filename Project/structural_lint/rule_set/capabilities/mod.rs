@@ -110,6 +110,7 @@ pub const ALL: &[Kind] = &[
     Kind::Signature(Signature::TraitPathCall),
     Kind::ControlFlow(ControlFlow::VariantList),
     Kind::Reference(Reference::DottedExtension),
+    Kind::Reference(Reference::IndexedArrayLiteral),
     Kind::Reference(Reference::FixedTestPort),
     Kind::Reference(Reference::CargoRustflags),
     Kind::ControlFlow(ControlFlow::BooleanExpression),

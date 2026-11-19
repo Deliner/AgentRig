@@ -30,6 +30,7 @@ pub enum Reference {
     SupersededForm,
     EpsilonTolerance,
     DottedExtension,
+    IndexedArrayLiteral,
     FixedTestPort,
     CargoRustflags,
     #[serde(rename = "comment-reference")]
@@ -60,6 +61,7 @@ impl Reference {
             Self::SupersededForm => &std_form::SUPERSEDEDFORM,
             Self::EpsilonTolerance => &std_form::EPSILONTOLERANCE,
             Self::DottedExtension => &std_form::DOTTEDEXTENSION,
+            Self::IndexedArrayLiteral => &std_form::INDEXEDARRAYLITERAL,
             Self::FixedTestPort => &FIXEDTESTPORT,
             Self::CargoRustflags => &CARGORUSTFLAGS,
             Self::Comment => &COMMENTREFERENCE,
