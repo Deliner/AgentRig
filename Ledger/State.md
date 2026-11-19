@@ -15,7 +15,7 @@ B107 о сверке имён узлов с грамматикой сохран�
 ## Workspace
 
 Branch: `feature/dogfood-setup`, от master `502a35e`.
-Revision: `98f7ca85768721ff2dd59b7510e7051101693244`
+Revision: `85abb4febf8f0df89a0f22d9ecca70797431bd25`
 
 Установленный рантайм `05f345a` в `stable.txt`. macOS: cargo, кандидат, коммиты и `feature-merge` через
 `just scratch -- 'export PATH=/Users/admin/.cargo/bin:$PATH && …'`. Ветки прежних поставок сохранены и отправлены в
@@ -27,17 +27,20 @@ Revision: `98f7ca85768721ff2dd59b7510e7051101693244`
 - VAC 1 `1f219c5`: карточка B145 с комментариями пользователя, строка и карточка P143, State.
 - VAC 2 `2e496c0`, AC4: ссылки агентов на `.agentrig/skills` в `init` и в риге, решение D188.
 - VAC 3 `98f7ca8`, AC5 для хука: `hook --agent` из регистрации, `init` ставит обе регистрации без `--frontend`, путь
-  к навыку идёт через каталог агента; модуль агентов в `Project/shared/calling_agent`. Регистрации рига тоже передают
-  `--agent`; установленный рантайм `05f345a` этот флаг пока игнорирует.
-- VAC 4, этот коммит, AC5 для lint, гейта и doctor: агент из `CODEX_THREAD_ID` или `CLAUDECODE`, все сообщения с
-  навыком дают абсолютный путь через каталог агента. Вывод находок lint перенесён в
-  `Project/structural_lint/reporting/findings.rs`, `config_check` — в `Project/project_setup/coverage.rs`.
+  к навыку идёт через каталог агента; модуль агентов в `Project/shared/calling_agent`.
+- VAC 4 `85abb4f`, AC5 для lint, гейта и doctor: агент из `CODEX_THREAD_ID` или `CLAUDECODE`, все сообщения с навыком
+  дают абсолютный путь через каталог агента.
+- VAC 5, этот коммит, AC1–AC3: `init` повторяет настройку рига, риг вызывает `.agentrig/bin/agentrig` поверх
+  `tooling/worker/run`, оставшиеся отличия с причинами в
+  `Project/project_setup/initialization/tests/rig_differences.yaml`; решение D189, инвариант I023. Генерация рецептов
+  Just вынесена в `Project/project_setup/recipes.rs`, пример Rust-проекта держит `lib.rs` и `Cargo.lock` в корне
+  `Project`.
 
 ## Verification
 
-`cargo test` всего пакета: 523 прошли; `cargo fmt` чист; `tooling/worker/run lint` по всему репозиторию без находок.
-Тест lint после `init` получает `.agents/skills/...` при `CODEX_THREAD_ID`, `.claude/skills/...` при `CLAUDECODE` и
-`.agentrig/skills/...` без переменной, все пути абсолютные.
+`cargo test` всего пакета: 524 прошли; `cargo fmt` чист; `just lint` кандидатом без находок; `just config-check`
+валиден. Тест сравнения запускает `init` для Rust-проекта с `origin` и манифестом рига и находит только перечисленные
+отличия, каждое ещё действует и имеет причину.
 
 Проба 2026-11-19: Codex в пробном репозитории с `--dangerously-bypass-hook-trust` вызвал хуки SessionStart и
 PreToolUse; их вход не называет агента, переменных Codex у хука нет; команды Codex получают `CODEX_THREAD_ID`, команды
@@ -49,5 +52,6 @@ Claude Code получают `CLAUDECODE=1`.
 
 ## Next action
 
-VAC 5: AC1–AC3, `init` равен настройке рига, список оставшихся отличий с причинами и тест сравнения; затем проба
-пустого проекта с Codex и Claude Code и пин D051. Свободные ID: D189+, I023+, P144+, B146+.
+Проба AC5: пустой проект после `init` кандидатом, Codex и Claude Code видят абсолютные пути к навыкам через свои
+каталоги, первый коммит проходит. Затем пин D051, архив P143 и B145, `feature-merge`. Свободные ID: D190+, I024+,
+P144+, B146+.

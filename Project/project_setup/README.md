@@ -8,18 +8,18 @@ builds both executables with `cargo build --release --locked --manifest-path Pro
 ## Installation
 
 `agentrig init --root CONSUMER` copies its executable and bundled assets, pins the package version in the configuration,
-rejects collisions before writing, creates a Git repository on the base branch when none exists and registers the Git
-hooks through `core.hooksPath`. Sources go in `Project`, memory in `Ledger`. Options: `--language python|rust`,
-`--skills`, `--service`, `--base` and `--prefix`. There is no update or rollback: a changed release is installed into
-a fresh project. Rust projects need a `rustc` of at least the rig's Rust, else init refuses before writing, and get a
-`clippy` command and check running the development gate's Clippy profile on their own toolchain. Init prepends missing
-AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or `clippy.toml` upward from the manifest
+rejects collisions before writing, creates a Git repository on the base branch when none exists, registers the Git
+hooks through `core.hooksPath` and sets `remote: origin` when that remote exists. Sources go in `Project`, memory in
+`Ledger`. Options: `--language python|rust`, `--skills`, `--service`, `--base` and `--prefix`. There is no update or
+rollback. Rust projects need a `rustc` of at least the rig's Rust, else init refuses before writing, and get `rustfmt`,
+`clippy` and `rust-test` checks, Clippy running the development gate's profile on their own toolchain. Init prepends
+missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or `clippy.toml` upward from the manifest
 directory, or a new root `clippy.toml`; a different value there is a collision.
 
-`paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills, lint settings, reminders and runtime data;
-the configuration modules always stay in `.agentrig`. The root `justfile` imports the recipes under `just/`, which
-forward to the launcher. Init registers Codex in `.codex/hooks.json` and `.codex/config.toml`, Claude Code in
-`.claude/settings.json` and `.claude/CLAUDE.md`; each runs `hook --agent NAME` to name skills through its directory.
+`paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills and lint settings; the configuration
+modules always stay in `.agentrig`, and runtime data goes to `.cache/runtime`, which Git ignores. The root `justfile`
+imports the recipes under `just/`, which forward to the launcher. Init registers Codex in `.codex/` and Claude Code in
+`.claude/`, each running `hook --agent NAME` to name skills through its directory.
 
 `bin/agentrig` runs the committed runtime `bin/PLATFORM/agentrig` for `uname -sm`, such as `macos-arm64` or
 `linux-x86_64`. Without one, hooks and recipes name the platform and `agentrig runtime-add`, to run in the project root

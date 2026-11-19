@@ -30,6 +30,8 @@
     targets: ['::']
   - include: ['AGENTS.md']
     targets: ['project_setup::tests::toolchain::']
+  - include: ['justfile', 'just/**', '.codex/**', '.claude/**']
+    targets: ['project_setup::initialization::tests::rig::']
   - include: ['Project/structural_lint/**', 'Project/shared/testing/**']
     targets: ['structural_lint::', 'cli_dispatch::', 'command_runner::', 'project_config::', 'project_memory::', 'project_setup::', 'agent_hooks::']
   - include: ['Project/cli_dispatch/**', 'Project/command_runner/**', 'Project/change_delivery/**', 'Project/project_config/**', 'Project/project_memory/**', 'Project/project_setup/**', 'Project/shared/testing/**']

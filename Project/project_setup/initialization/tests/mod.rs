@@ -1,5 +1,6 @@
 mod agents;
 mod layout;
+mod rig;
 mod wizard;
 
 use super::init;

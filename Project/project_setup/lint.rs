@@ -1,57 +1,96 @@
 // DECISION: D021
 // DECISION: D036
 use super::rust::cargo::Layout;
+use super::template::{CACHE, SOURCE};
 use crate::project_config::Paths;
-use crate::structural_lint::rule_identities;
 use crate::structural_lint::rule_identities::{
-    contract_settings::RUST_SEED, reference::Reference, structure::Structure,
+    Kind, contract_settings::RUST_SEED, structure::Structure,
 };
 use crate::structural_lint::rule_set::capabilities;
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
 
+// DECISION: D189
+const FILE_EXTENSIONS: [&str; 15] = [
+    ".py", ".sh", ".rs", ".go", ".c", ".h", ".cpp", ".cs", ".java", ".json", ".md", ".toml",
+    ".txt", ".yaml", ".yml",
+];
+// DECISION: D029
+// DECISION: D030
+// DECISION: D048
+// DECISION: D056
+const MEMORY_REGISTRIES: [&str; 6] = [
+    "Decisions",
+    "Invariants",
+    "Plan",
+    "Backlog",
+    "Archive/Plan",
+    "Archive/Backlog",
+];
+
 pub fn template(settings: &super::Config, rust: &Layout) -> Result<String> {
-    let skills = &settings.paths.skills;
-    let sources = &settings.paths.sources;
+    let paths = &settings.paths;
     let mut rules: Vec<Value> = capabilities::ALL
         .iter()
         .filter(|kind| cataloged(**kind))
-        .map(|kind| example(*kind, skills, sources))
+        .map(|kind| example(*kind, paths))
         .collect();
-    rules.push(architecture(skills, sources, rust));
-    rules.extend(markdown(&settings.paths));
+    rules.push(architecture(&paths.skills, rust));
+    rules.extend(markdown(paths));
+    let skipped = [".git", CACHE, "**/__pycache__", "**/.venv", "**/target"];
+    let exclude: Vec<String> = skipped
+        .into_iter()
+        .chain([paths.skills.as_str()])
+        .flat_map(|path| [path.to_owned(), format!("{path}/**")])
+        .collect();
     let config = json!({
         "version": 1,
-        "config_skill": format!("{skills}/repair/SKILL.md"),
-        "exclude": [".git/**", settings.paths.service_path("bin/**"), format!("{}/**", settings.paths.runtime), "**/target/**", "**/__pycache__/**", "**/.pytest_cache/**"],
+        "config_skill": format!("{}/repair/SKILL.md", paths.skills),
+        "exclude": exclude,
         "rules": rules,
     });
     crate::shared::strict_yaml::encode(&config)
 }
 
-fn example(kind: rule_identities::Kind, skills: &str, sources: &[String]) -> Value {
-    let mut rule = capabilities::example(kind, skills, sources);
-    // DECISION: D182
-    // DECISION: D184
-    let flags = matches!(
-        kind,
-        rule_identities::Kind::Reference(Reference::AllowJustification)
-    );
-    if flags {
-        let modules = ["rust", "commands"].map(crate::project_config::module);
-        let include: Vec<String> = sources.iter().cloned().chain(modules).collect();
-        rule["include"] = json!(include);
+fn tree() -> Value {
+    json!([SOURCE, format!("{SOURCE}/**")])
+}
+
+// DECISION: D182
+// DECISION: D184
+fn example(kind: Kind, paths: &Paths) -> Value {
+    let mut rule = capabilities::example(kind, &paths.skills, &["**".into()]);
+    match kind {
+        // DECISION: D116
+        // DECISION: D172
+        Kind::Structure(Structure::NonblankLines) => {
+            let owned = [paths.lint.clone(), format!("{}/Assets/**", paths.memory)];
+            let defaults = rule["exclude"].as_array().cloned().unwrap_or_default();
+            let exclude: Vec<Value> = owned.map(Value::from).into_iter().chain(defaults).collect();
+            rule["exclude"] = json!(exclude);
+            rule["extensions"] = json!(FILE_EXTENSIONS);
+        }
+        Kind::Structure(Structure::DirectoryEntries) => {
+            let registries = MEMORY_REGISTRIES.map(|name| format!("{}/{name}", paths.memory));
+            rule["exclude"] = json!(registries);
+        }
+        Kind::Structure(Structure::DumpName) => rule["include"] = tree(),
+        Kind::Structure(_)
+        | Kind::ControlFlow(_)
+        | Kind::Signature(_)
+        | Kind::Ownership(_)
+        | Kind::Reference(_) => {}
     }
     rule
 }
 
-fn cataloged(kind: rule_identities::Kind) -> bool {
+fn cataloged(kind: Kind) -> bool {
     match kind {
-        rule_identities::Kind::Structure(
+        Kind::Structure(
             Structure::DirectoryArchitecture | Structure::LineWidth | Structure::ForbiddenFile,
         ) => false,
-        rule_identities::Kind::Structure(
+        Kind::Structure(
             Structure::NonblankLines
             | Structure::DirectoryEntries
             | Structure::DumpName
@@ -59,10 +98,10 @@ fn cataloged(kind: rule_identities::Kind) -> bool {
             | Structure::EmbeddedText
             | Structure::TestPlacement,
         )
-        | rule_identities::Kind::ControlFlow(_)
-        | rule_identities::Kind::Signature(_)
-        | rule_identities::Kind::Ownership(_)
-        | rule_identities::Kind::Reference(_) => true,
+        | Kind::ControlFlow(_)
+        | Kind::Signature(_)
+        | Kind::Ownership(_)
+        | Kind::Reference(_) => true,
     }
 }
 
@@ -84,14 +123,13 @@ fn markdown(paths: &Paths) -> Vec<Value> {
     ]
 }
 
-fn architecture(skills: &str, sources: &[String], rust: &Layout) -> Value {
-    let mut rule = capabilities::example(
-        rule_identities::Kind::Structure(Structure::DirectoryArchitecture),
-        skills,
-        sources,
-    );
+fn architecture(skills: &str, rust: &Layout) -> Value {
+    let kind = Kind::Structure(Structure::DirectoryArchitecture);
+    let mut rule = capabilities::example(kind, skills, &[]);
+    rule["include"] = tree();
     rule["extensions"] = json!([".rs", ".py", ".pyi"]);
     rule["architecture"]["rust_roots"] = json!(rust.roots);
+    rule["architecture"]["feature_root"] = json!(SOURCE);
     let crates = !rust.crates.is_empty();
     if crates {
         rule["architecture"]["rust_crates"] = json!(rust.crates);

@@ -153,7 +153,8 @@ fn capabilities(lines: &[&str]) {
     ];
     let heading = "read: Inspect files and Git history with configured programs";
     assert_eq!(following(lines, heading, 2), read);
-    let test = following(lines, "test: Run the project tests", 2);
+    let tests = "test: Run the project tests, optionally filtered by test path";
+    let test = following(lines, tests, 2);
     assert_eq!(test[1], "  runs python3 -m pytest Project");
     assert!(
         lines

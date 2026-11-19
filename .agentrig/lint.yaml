@@ -21,6 +21,8 @@ exclude:
 - '**/.venv/**'
 - '**/target'
 - '**/target/**'
+- .agentrig/skills
+- .agentrig/skills/**
 # DECISION: D112
 - Project/shared/source_parsers/tree-sitter-rust
 - Project/shared/source_parsers/tree-sitter-rust/**
@@ -51,6 +53,9 @@ rules:
   - .agentrig/lint.yaml
   # DECISION: D172 -- a Plan card asset is a stored artifact read as one file.
   - Ledger/Assets/**
+  - '**/Cargo.lock'
+  - '**/package-lock.json'
+  - '**/uv.lock'
   warning: 300
   error: 500
   warning_skill: .agentrig/skills/refactor-large-file/SKILL.md
@@ -258,9 +263,9 @@ rules:
   include:
   - '**'
   extensions:
+  - .rs
   - .py
   - .pyi
-  - .rs
   level: error
   warning_skill: .agentrig/skills/handle-error/SKILL.md
   error_skill: .agentrig/skills/handle-error/SKILL.md
@@ -1044,7 +1049,7 @@ rules:
     rust_crates:
       agentrig: Project/lib.rs
     rust_roots:
-    - Project/shared/testing/examples/rust/Project/src/lib.rs
+    - Project/shared/testing/examples/rust/Project/lib.rs
     - Project/lib.rs
     - Project/cli_dispatch/main.rs
     - Project/cli_dispatch/standalone_lint.rs

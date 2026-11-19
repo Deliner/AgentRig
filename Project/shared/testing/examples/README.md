@@ -69,11 +69,11 @@ I001:
   target: Project/test_sample.py::test_doubles
 ```
 
-For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/src/lib.rs)` and:
+For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/lib.rs)` and:
 
 ```yaml
 I001:
-  check: tests
+  check: rust-test
   runner: cargo
   target: tests::doubles
 ```

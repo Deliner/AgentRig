@@ -41,12 +41,12 @@ fn session() -> (TempDir, PathBuf) {
     for (name, before, after) in [
         (
             "project",
-            "runtime: .agentrig/runtime",
+            "runtime: .cache/runtime",
             "runtime: .scratch/state",
         ),
         (
             "hooks",
-            "reminder: .agentrig/reminder.json",
+            "reminder: guides/complexity-discipline/context-reminder.json",
             "reminder: .scratch/reminder.json",
         ),
     ] {
@@ -213,7 +213,11 @@ fn reminder_storage_failure_is_visible_and_recovers() {
 fn partial_and_truncated_transcripts_recover() {
     let (_temp, root) = initialized(&[]);
     let settings = r#"{"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300}"#;
-    fs::write(root.join(".agentrig/reminder.json"), settings).unwrap();
+    fs::write(
+        root.join(".agentrig/skills/complexity-discipline/context-reminder.json"),
+        settings,
+    )
+    .unwrap();
     let transcript = root.join("transcript.jsonl");
     fs::write(&transcript, "").unwrap();
     let common = json!({"session_id": "partial", "transcript_path": transcript});
@@ -225,7 +229,7 @@ fn partial_and_truncated_transcripts_recover() {
         "tool_input": {"path": "Ledger/State.md"}});
     let event = merged(&common, fields);
     let denied = || respond(&root, &event).to_string().contains("deny");
-    let reminders = root.join(".agentrig/runtime/reminders");
+    let reminders = root.join(".cache/runtime/reminders");
     let record = usage(100, Agent::Codex).to_string();
     fs::write(&transcript, record.strip_suffix("}}").unwrap()).unwrap();
     assert!(!denied());

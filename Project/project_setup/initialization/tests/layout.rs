@@ -150,7 +150,7 @@ fn adapters(root: &Path, service: &Path) {
     );
     assert_ne!(blocked.code, Some(0));
     assert!(blocked.stderr.contains("feature"), "{}", blocked.stderr);
-    assert!(service.join("runtime/reminders").is_dir());
+    assert!(root.join(".cache/runtime/reminders").is_dir());
 }
 
 // DECISION: D040

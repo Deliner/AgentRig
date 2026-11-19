@@ -87,7 +87,7 @@ fn each_agent_is_sent_to_the_skill_through_its_own_directory() {
 fn patched(files: &[&str]) -> String {
     let (_temp, root) = project();
     fs::write(
-        root.join(".agentrig/reminder.json"),
+        root.join(".agentrig/skills/complexity-discipline/context-reminder.json"),
         r#"{"attention_interval_tokens": 100, "full_refresh_interval_tokens": 300}"#,
     )
     .unwrap();

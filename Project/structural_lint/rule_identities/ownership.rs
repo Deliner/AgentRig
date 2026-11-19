@@ -130,9 +130,10 @@ const GLOBALSTATE: Descriptor = Descriptor {
     },
 };
 // DECISION: D102
+// DECISION: D189
 const RECURSIVEDELETION: Descriptor = Descriptor {
     default_id: "recursive-deletion",
-    exclude: &[],
+    exclude: TEST_CODE,
     target: "file",
     metric: "every Rust call whose function path ends in remove_dir_all, whose bare function name is remove_dir_all or whose method is remove_dir_all, from any source such as std::fs, tokio::fs, a local wrapper or a method, in source and in macro bodies, outside test code, without a DECISION: or INVARIANT: reference comment on the line directly above it",
     skill: "contain-the-deletion",

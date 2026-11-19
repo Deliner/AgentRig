@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/tooling/worker/run hook --root \"$root\" --agent claude-code",
+            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent claude-code",
             "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/tooling/worker/run hook --root \"$root\" --agent claude-code",
+            "command": "root=$(git rev-parse --show-toplevel) && exec \"$root\"/.agentrig/bin/agentrig hook --root \"$root\" --agent claude-code",
             "timeout": 30,
             "statusMessage": "Loading worker context and edit guidance"
           }

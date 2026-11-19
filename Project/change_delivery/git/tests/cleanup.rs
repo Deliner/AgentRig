@@ -157,7 +157,7 @@ fn merge_keeps_scratch_results_and_removes_temporary_runs() {
     assert_eq!(scratch.code, Some(0), "{}", scratch.output());
     commit(&root, "work.txt", "feature");
     merge(&root);
-    let area = root.join(".agentrig/runtime/scratch/task/probe");
+    let area = root.join(".cache/runtime/scratch/task/probe");
     let names: Vec<_> = fs::read_dir(&area)
         .unwrap()
         .map(|entry| entry.unwrap().file_name())

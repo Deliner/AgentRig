@@ -5,6 +5,7 @@ mod coverage;
 mod doctor;
 pub(super) mod initialization;
 mod lint;
+mod recipes;
 mod runtime;
 mod rust;
 mod skills;
@@ -97,12 +98,10 @@ fn add_policy(files: &mut Files, config: &Config, rust: &rust::cargo::Layout) ->
 }
 fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     let generated = adapters::generated(config)?;
-    files.insert(
-        config.paths.service_path(".gitignore"),
-        b"runtime/\n".to_vec(),
-    );
+    // DECISION: D189
+    files.insert(format!("{}/.gitignore", template::CACHE), b"*\n".to_vec());
     files.extend(runtime::files(config)?);
-    for justfile in template::justfiles(config) {
+    for justfile in recipes::justfiles(config) {
         files.insert(justfile.path, justfile.source.into_bytes());
     }
     client_files(files, config, &generated.root_command)?;

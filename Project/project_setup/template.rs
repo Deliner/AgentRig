@@ -10,8 +10,11 @@ use std::{collections::BTreeMap, path::Path};
 pub(super) type Options<'a> = BTreeMap<&'a str, String>;
 // DECISION: D040
 // DECISION: D187
-const SOURCE: &str = "Project";
+pub(super) const SOURCE: &str = "Project";
 const MEMORY: &str = "Ledger";
+// DECISION: D189
+pub(super) const CACHE: &str = ".cache";
+const ORIGIN: &str = "origin";
 pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
@@ -75,7 +78,11 @@ pub(super) struct Scaffold {
 pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let python = options["language"] == "python";
     let (rust, clippy, rustflags) = if python {
-        (Layout::fallback(SOURCE), None, Vec::new())
+        let rust = Layout {
+            roots: Vec::new(),
+            ..Layout::fallback(SOURCE)
+        };
+        (rust, None, Vec::new())
     } else {
         // DECISION: D174
         let toolchain = Requirement::inspect(root)?;
@@ -87,16 +94,28 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
         let clippy = clippy::settings(root, &rust)?;
         (rust, Some(clippy), flags::build_rustflags(root)?)
     };
+    let mut config = config(options, &rust, rustflags);
+    config.git.remote = remote(root)?;
     Ok(Scaffold {
-        config: config(options, &rust, rustflags),
+        config,
         rust,
         clippy,
     })
+}
+// DECISION: D189
+fn remote(root: &Path) -> Result<Option<String>> {
+    let Some(repository) = crate::shared::vcs::Repository::discover(root)? else {
+        return Ok(None);
+    };
+    let remotes = String::from_utf8(repository.run(&["remote"])?)?;
+    let origin = remotes.lines().any(|name| name == ORIGIN);
+    Ok(origin.then(|| ORIGIN.to_owned()))
 }
 fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Config {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
+    let discipline = format!("{skill_root}/complexity-discipline");
     Config {
         version: 1,
         capabilities: project_config::Capabilities::default(),
@@ -108,15 +127,15 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Confi
             memory: MEMORY.into(),
             skills: skill_root.into(),
             lint: format!("{service}/lint.yaml"),
-            runtime: format!("{service}/runtime"),
+            runtime: format!("{CACHE}/runtime"),
         },
         git: git(options),
         commands: commands(options, rust),
         checks: checks(options, skill_root),
         hooks: Hooks {
             routes: routes(options),
-            reminder: Some(format!("{service}/reminder.json")),
-            discipline_skill: Some(format!("{skill_root}/complexity-discipline/SKILL.md")),
+            reminder: Some(format!("{discipline}/context-reminder.json")),
+            discipline_skill: Some(format!("{discipline}/SKILL.md")),
         },
         oracles: BTreeMap::new(),
         tools: tools(service),
@@ -249,7 +268,7 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
     let test = Command {
         output: Some(test_views(options)),
         ..command(
-            "Run the project tests",
+            "Run the project tests, optionally filtered by test path",
             test_command(options, rust),
             Access::Writable,
         )
@@ -257,12 +276,23 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
     let mut commands = vec![("test", test)];
     let rust_project = options["language"] == "rust";
     if rust_project {
-        let clippy = command(
-            "Check Rust code with Clippy, denying warnings and the AgentRig profile",
-            clippy::argv(rust),
-            Access::Writable,
-        );
-        commands.push(("clippy", clippy));
+        let check = |purpose, argv| Command {
+            accepts_args: false,
+            ..command(purpose, argv, Access::Writable)
+        };
+        // DECISION: D189
+        let format = ["cargo", "fmt", "--manifest-path", &rust.manifest, "--check"];
+        commands.push((
+            "rustfmt",
+            check("Check Rust formatting", format.map(String::from).into()),
+        ));
+        commands.push((
+            "clippy",
+            check(
+                "Check Rust code with Clippy, denying warnings and the AgentRig profile",
+                clippy::argv(rust),
+            ),
+        ));
     }
     commands
 }
@@ -381,12 +411,16 @@ fn checks(options: &Options<'_>, skill_root: &str) -> Vec<Check> {
     let mut checks = vec![
         check("lint", CheckKind::Lint, skill("repair")),
         check("memory", CheckKind::Memory, skill("repair")),
-        run("tests", "test"),
         check("tools", CheckKind::Tools, skill("develop-tools")),
     ];
     let rust_project = options["language"] == "rust";
+    // DECISION: D189
     if rust_project {
+        checks.push(run("rustfmt", "rustfmt"));
         checks.push(run("clippy", "clippy"));
+        checks.push(run("rust-test", "test"));
+    } else {
+        checks.push(run("tests", "test"));
     }
     checks
 }
@@ -400,89 +434,4 @@ fn check(id: &str, kind: CheckKind, skill: String) -> Check {
         warning: false,
         affected: Vec::new(),
     }
-}
-type Recipe = (&'static str, &'static str, bool);
-// DECISION: D039
-const RECIPES: [(&str, &[Recipe]); 5] = [
-    (
-        "commands",
-        &[
-            ("list", "commands", false),
-            ("run", "run", true),
-            ("scratch", "scratch", true),
-        ],
-    ),
-    (
-        "checks",
-        &[
-            ("check", "check", true),
-            ("config-check", "config-check", false),
-        ],
-    ),
-    (
-        "delivery",
-        &[
-            ("resume", "resume", false),
-            ("report", "report", false),
-            ("feature-start", "feature-start", true),
-            ("feature-merge", "feature-merge", false),
-        ],
-    ),
-    (
-        "lint",
-        &[
-            ("lint", "lint", true),
-            ("lint-config-check", "lint-config-check", true),
-            ("lint-baseline", "lint-baseline", true),
-            ("lint-rule", "lint-rule", true),
-            ("lint-explain", "lint-explain", true),
-            ("lint-edges", "lint-edges", true),
-            ("lint-tree", "lint-tree", true),
-            ("lint-structure", "lint-structure", true),
-        ],
-    ),
-    (
-        "jobs",
-        &[
-            ("jobs", "jobs", false),
-            ("job-status", "job-status", true),
-            ("job-logs", "job-logs", true),
-            ("job-start", "job-start", true),
-            ("job-stop", "job-stop", true),
-            ("job-cleanup", "job-cleanup", true),
-        ],
-    ),
-];
-pub(super) struct Justfile {
-    pub path: String,
-    pub source: String,
-}
-pub(super) fn justfiles(config: &Config) -> Vec<Justfile> {
-    let mut root = "set positional-arguments := true\n\n".to_owned();
-    let path = format!("./{}", config.paths.service_path("bin/agentrig"));
-    let binary = shell_words::quote(&path);
-    let mut files = Vec::new();
-    for (group, recipes) in RECIPES {
-        let file = format!("just/{group}.just");
-        root.push_str(&format!("import '{file}'\n"));
-        let source: Vec<String> = recipes
-            .iter()
-            .map(|&(name, command, args)| {
-                format!(
-                    "# What: invoke {command}; Why: use the installed native runtime.\n{name}{parameters}:\n    @{binary} {command} --root .{forwarded}\n",
-                    parameters = if args { " *args" } else { "" },
-                    forwarded = if args { " \"$@\"" } else { "" }
-                )
-            })
-            .collect();
-        files.push(Justfile {
-            path: file,
-            source: source.join("\n"),
-        });
-    }
-    files.push(Justfile {
-        path: "justfile".into(),
-        source: root,
-    });
-    files
 }

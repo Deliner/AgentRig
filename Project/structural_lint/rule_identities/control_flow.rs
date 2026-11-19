@@ -77,8 +77,9 @@ const RANGECHAIN: Descriptor = Descriptor {
         violation: "a chain of comparisons hides a gap between bounds and a branch made unreachable by order; match on range patterns so the compiler checks coverage, or put a DECISION: or INVARIANT: reference on the line directly above it",
     },
 };
+// DECISION: D189
 const NAMEDIFCONDITION: Descriptor = Descriptor {
-    default_id: "named-if",
+    default_id: "named-if-condition",
     exclude: &[],
     target: "file",
     metric: "one named value per boolean if condition; Rust if-let bindings excluded; named field paths accepted",

@@ -23,6 +23,7 @@ struct Layout {
     prefix: &'static str,
     skills: &'static str,
     runner: &'static str,
+    check: &'static str,
     target: &'static str,
     test: &'static str,
     function: &'static str,
@@ -34,6 +35,7 @@ const PYTHON: Layout = Layout {
     prefix: "topic/",
     skills: "guides",
     runner: "pytest",
+    check: "tests",
     target: "Project/test_sample.py::test_doubles",
     test: "test_sample.py",
     function: "test_doubles",
@@ -45,8 +47,9 @@ const RUST: Layout = Layout {
     prefix: "change/",
     skills: "policies",
     runner: "cargo",
+    check: "rust-test",
     target: "tests::doubles",
-    test: "src/lib.rs",
+    test: "lib.rs",
     function: "doubles",
 };
 
@@ -88,8 +91,8 @@ fn copy(from: &Path, to: &Path) {
 
 fn bind(root: &Path, layout: &Layout) {
     let oracle = format!(
-        "I001: {{check: tests, runner: {}, target: '{}'}}\n",
-        layout.runner, layout.target
+        "I001: {{check: {}, runner: {}, target: '{}'}}\n",
+        layout.check, layout.runner, layout.target
     );
     configure(root, "oracles", &oracle);
     let memory = root.join(MEMORY);
@@ -110,11 +113,13 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     git(&root, &["config", "user.name", "Test"]);
     git(&root, &["config", "user.email", "test@example.invalid"]);
     fs::write(root.join(".gitignore"), IGNORED).unwrap();
+    let language = layout.language;
+    let examples = repository().join("Project/shared/testing/examples");
+    copy(&examples.join(language).join(SOURCE), &root.join(SOURCE));
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "base"]);
     let bootstrap = format!("{}bootstrap", layout.prefix);
     git(&root, &["switch", "-c", &bootstrap]);
-    let language = layout.language;
     let (skills, base, prefix) = (layout.skills, layout.base, layout.prefix);
     let initialized = invoke(
         &root,
@@ -133,8 +138,6 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
     let copied = fs::read(installed_runtime(&root)).unwrap();
     assert!(copied == fs::read(worker()).unwrap());
-    let examples = repository().join("Project/shared/testing/examples");
-    copy(&examples.join(language).join(SOURCE), &root.join(SOURCE));
     bind(&root, layout);
     (temp, root)
 }
@@ -171,7 +174,7 @@ fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
     let config = root.join(".agentrig/lint.yaml");
     let before = fs::read_to_string(&config).unwrap();
     let script = root.join(SOURCE).join("tool.sh");
-    fs::write(script, "if true; then echo example; fi\n").unwrap();
+    fs::write(&script, "if true; then echo example; fi\n").unwrap();
     let skill = format!("{}/refactor-long-function/SKILL.md", layout.skills);
     let rule = format!(
         "\n- id: unsupported\n  kind: function-lines\n  target: file\n  include: [\"{SOURCE}/**\"]\n  extensions: [\".sh\"]\n  warning: 40\n  warning_skill: \"{skill}\"\n  error_skill: \"{skill}\"\n"
@@ -185,6 +188,7 @@ fn unsupported_extension_is_rejected(root: &Path, layout: &Layout) {
     fs::write(&config, before + &supported).unwrap();
     let accepted = agentrig(root, &["config-check"], "");
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+    fs::remove_file(script).unwrap();
 }
 
 fn hook(root: &Path, tool: &str, input: Value) -> String {

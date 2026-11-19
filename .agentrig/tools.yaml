@@ -1,7 +1,9 @@
 locations:
-- tooling/**
+- .agentrig/bin/**
 - .agentrig/hooks/*
+- tooling/**
 entries:
+- .agentrig/bin/**
 - .agentrig/hooks/*
 - tooling/worker/run
 - tooling/distribution/bootstrap.sh

@@ -177,7 +177,7 @@ fn nested_cwd_and_symlinks() {
 #[test]
 fn storage_failure_keeps_recovery_context() {
     let (_temp, root) = project();
-    let storage = root.join(".agentrig/runtime");
+    let storage = root.join(".cache/runtime");
     fs::remove_dir(&storage).unwrap();
     fs::write(&storage, "occupied").unwrap();
     let session = r#"{"hook_event_name": "SessionStart"}"#;

@@ -1,0 +1,3 @@
+#!/bin/sh
+# DECISION: D189
+exec "${0%/*}/../../tooling/worker/run" "$@"

@@ -64,7 +64,7 @@ rustfmt:
   - Project/Cargo.toml
   - --check
 clippy:
-  purpose: Check Rust code with Clippy, denying warnings
+  purpose: Check Rust code with Clippy, denying warnings and the AgentRig profile
   argv:
   - cargo
   - clippy
@@ -152,7 +152,7 @@ clippy:
   - -D
   - clippy::maybe_infinite_iter
 test:
-  purpose: Run Rust library tests, optionally filtered by test path
+  purpose: Run the project tests, optionally filtered by test path
   argv:
   - cargo
   - test

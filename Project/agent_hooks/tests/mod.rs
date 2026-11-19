@@ -149,11 +149,19 @@ fn diagnostics_distinguish_missing_corrupt_unknown_and_invalid_configuration() {
 #[test]
 fn referenced_lint_and_reminder_files_are_repairable() {
     let (_temp, root) = project();
-    let reminder = root.join(".agentrig/reminder.json");
+    let reminder = root.join(".agentrig/skills/complexity-discipline/context-reminder.json");
     fs::write(&reminder, "{").unwrap();
     let denied = edit(&root, "Project/main.py");
     assert!(denied.contains("hooks.reminder JSON"), "{denied}");
-    assert!(denied.contains(".agentrig/lint.yaml, .agentrig/reminder.json"));
-    assert_eq!(edit(&root, ".agentrig/reminder.json"), "");
+    assert!(denied.contains(
+        ".agentrig/lint.yaml, .agentrig/skills/complexity-discipline/context-reminder.json"
+    ));
+    assert_eq!(
+        edit(
+            &root,
+            ".agentrig/skills/complexity-discipline/context-reminder.json"
+        ),
+        ""
+    );
     assert_eq!(edit(&root, ".agentrig/hooks/pre-commit"), denied);
 }

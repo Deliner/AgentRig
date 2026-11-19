@@ -89,8 +89,9 @@ const DUMPNAME: Descriptor = Descriptor {
         violation: "a directory named for a generic dumping ground hides mixed responsibilities; name it for what it owns or distribute its contents to cohesive owners; shared is for genuine cross-feature leaves",
     },
 };
+// DECISION: D189
 const FUNCTIONLINES: Descriptor = Descriptor {
-    default_id: "function-size",
+    default_id: "function-lines",
     exclude: &[],
     target: "file",
     metric: "nonblank lines from signature through body, including comments; declarations without body excluded",

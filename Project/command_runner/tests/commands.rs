@@ -159,7 +159,7 @@ fn scratch_runs_temporary_code_in_its_task_area() {
     let result = invoke(&root, &["scratch", "--", text]);
     assert_eq!(result.code, Some(0), "{}", result.output());
     assert_eq!(result.stdout.trim(), root.to_str().unwrap());
-    let area = root.join(".agentrig/runtime/scratch/feature/probe");
+    let area = root.join(".cache/runtime/scratch/feature/probe");
     assert_eq!(
         fs::read_to_string(area.join("results/out")).unwrap(),
         "found\n"

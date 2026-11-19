@@ -46,8 +46,9 @@ impl Signature {
         }
     }
 }
+// DECISION: D189
 const PARAMETERCOUNT: Descriptor = Descriptor {
-    default_id: "parameters",
+    default_id: "parameter-count",
     exclude: &[],
     target: "file",
     metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one",
