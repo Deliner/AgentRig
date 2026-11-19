@@ -2,25 +2,23 @@
 
 ## Focus
 
-P162 (B164): enable `outer-flag-filter` with its skill `check-the-flag-first` and rewrite the rig's own sites so the
-flag is checked before the call. This VAC also pins ab3ccb3, the revision carrying the inert kind.
+P162 (B164), final VAC: pin the enabled revision and archive P162 with its Backlog card B164.
 
 ## Workspace
 
 - Branch: feature/outer-flag-filter
-- Revision: ab3ccb391036724d16abe2276368fda7d1269e7f
+- Revision: 7494f03b05ac55ab6b6edd65fed1dacc81be9cf7
 
 ## Progress
 
-- `just bootstrap HEAD` installed ab3ccb3 and wrote it to stable.txt.
-- `lint.yaml`, the Rust handler, the catalog and init's skill list carry the kind; the skill lives under control-flow.
-- The 30 rig sites became `flag.then(|| call).flatten()`; the let chain first tried in `project_memory/source.rs`
-  failed named-if-condition, so the skill names no let chain.
+- `just bootstrap HEAD` installed 7494f03 and wrote it to stable.txt.
+- P162 moved to Archive/Plan with its Delivery, the AC1 verdict and the decided unknown; B164 moved to
+  Archive/Backlog; the D208 card and delivery links point to the archive.
 
 ## Verification
 
-- `just lint` with the candidate passes with the kind enabled; `just run rustfmt`, `just run clippy`,
-  `just lint-config-check` and `just check --only memory` pass.
+- `just check --only memory` passes after the rotation.
+- The gate of 7494f03 passed with 562 tests.
 
 ## Blockers
 
@@ -28,4 +26,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run `just bootstrap HEAD`, then archive P162 and B164 with the pin and run `just feature-merge`.
+Commit this VAC, then run `just feature-merge` and continue with P163 (B165).

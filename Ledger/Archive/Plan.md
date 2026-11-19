@@ -154,3 +154,4 @@ The agent rotates completed rows and cards here through edit-plan during complet
 | [P159](Plan/159.md) | complete | - | [B161](Backlog/161.md): array-index-literal — индекс в литерал массива ([D205](../Decisions/205.md)) | Код не вычисляет значения, которые сразу выбрасывает. |
 | [P160](Plan/160.md) | complete | - | [B162](Backlog/162.md): repeated-classification — одна классификация enum в нескольких местах ([D206](../Decisions/206.md)) | Одна проверка над enum живёт в одном месте. |
 | [P161](Plan/161.md) | complete | - | [B163](Backlog/163.md): erased-error — `.ok().flatten()` и запасное значение у `join()` ([D207](../Decisions/207.md)) | Ошибка разбора или паника потока не превращается молча в значение по умолчанию. |
+| [P162](Plan/162.md) | complete | - | [B164](Backlog/164.md): outer-flag-filter — флаг проверяется до вызова ([D208](../Decisions/208.md)) | Работа, результат которой выбросит флаг, не выполняется. |
