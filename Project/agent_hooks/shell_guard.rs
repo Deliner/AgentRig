@@ -250,6 +250,10 @@ fn runtime_arguments(command: &str, args: &[String]) -> Result<()> {
         "feature-start" => {
             ensure!(forwarded(args).len() == 1, "feature-start NAME");
         }
+        // DECISION: D213
+        "approve" => bail!(
+            "AgentRig refused this call: `just approve` is the user's confirmation of a proposed change of enforcement files, so an agent never runs it; ask the user to type `! just approve` in Claude Code or to run it in a terminal."
+        ),
         _ => {}
     }
     Ok(())

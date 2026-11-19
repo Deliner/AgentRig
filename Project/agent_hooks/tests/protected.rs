@@ -72,6 +72,13 @@ fn git_stages_enforcement_but_neither_restores_nor_removes_it() {
 }
 
 #[test]
+fn only_the_user_approves() {
+    let (_temp, root) = project();
+    let refused = shell(&root, "just approve");
+    assert!(refused.contains("`! just approve`"), "{refused}");
+}
+
+#[test]
 fn a_proposal_and_ordinary_files_stay_editable() {
     let (_temp, root) = project();
     for path in [

@@ -212,6 +212,10 @@ impl<'a> Repository<'a> {
         git::index(self.root)
     }
 
+    pub fn stageable(&self, paths: &[String]) -> Result<BTreeMap<String, Entry>> {
+        git::stageable(self.root, paths)
+    }
+
     pub fn export_index(&self) -> Result<tempfile::TempDir> {
         git::export_index(self.root)
     }

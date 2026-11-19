@@ -23,6 +23,7 @@ pub fn configuration() -> Vec<String> {
 
 pub struct Protection {
     paths: Vec<PathBuf>,
+    pin: Option<PathBuf>,
 }
 impl Protection {
     pub(super) fn of(root: &Path, config: &Config) -> Result<Self> {
@@ -38,10 +39,17 @@ impl Protection {
         for value in &config.hooks.protected {
             paths.push(inside(root, value).context("hooks.protected")?);
         }
-        if let Some(pin) = &config.git.pin {
-            paths.push(inside(root, pin).context("git.pin")?);
-        }
-        Ok(Self { paths })
+        let pin = config
+            .git
+            .pin
+            .as_deref()
+            .map(|pin| inside(root, pin).context("git.pin"))
+            .transpose()?;
+        paths.extend(pin.clone());
+        Ok(Self { paths, pin })
+    }
+    pub fn pin(&self) -> Option<&Path> {
+        self.pin.as_deref()
     }
     pub fn touched(&self, path: &Path) -> bool {
         self.paths

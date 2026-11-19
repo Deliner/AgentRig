@@ -121,7 +121,12 @@ pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result
     }
     crate::shared::vcs::initialize(root, &config.git.base)?;
     fs::create_dir_all(project_config::relative(root, &config.paths.runtime)?)?;
-    crate::shared::vcs::Repository::new(root).register_hooks(&config.paths.service_path("hooks"))
+    let repository = crate::shared::vcs::Repository::new(root);
+    repository.register_hooks(&config.paths.service_path("hooks"))?;
+    // DECISION: D213
+    let context = project_config::Context::load(root)?;
+    crate::change_delivery::git::approval::record(&context, &repository)?;
+    Ok(())
 }
 fn executable(path: &str) -> bool {
     Path::new(path)

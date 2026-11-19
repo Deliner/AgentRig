@@ -1,6 +1,7 @@
 pub mod atomic_json;
 mod bounded_read;
 mod fingerprint;
+pub mod overlay;
 #[cfg(test)]
 mod tests;
 

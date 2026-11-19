@@ -160,27 +160,35 @@ fn bootstrap_pins_a_revision_only_after_installing_it() {
     let script = distribution.join("bootstrap.sh");
     let source = repository().join("tooling/distribution/bootstrap.sh");
     fs::copy(source, &script).unwrap();
-    let pin = distribution.join("stable.txt");
-    fs::write(&pin, format!("{REVISION}\n")).unwrap();
     git(&root, &["init", "-q"]);
     git(&root, &["config", "user.name", "Test"]);
     git(&root, &["config", "user.email", "test@example.invalid"]);
+    git(&root, &["commit", "-q", "--allow-empty", "-m", "base"]);
+    let base = git(&root, &["rev-parse", "HEAD"]);
+    let pin = distribution.join("stable.txt");
+    fs::write(&pin, format!("{base}\n")).unwrap();
     git(&root, &["commit", "-q", "--allow-empty", "-m", "head"]);
     let head = git(&root, &["rev-parse", "HEAD"]);
-    let bootstrap = || {
+    let bootstrap = |revision: &str| {
         let mut command = hermetic("bash");
-        run(command.arg(&script).arg("HEAD").current_dir(&root), "")
+        run(command.arg(&script).arg(revision).current_dir(&root), "")
     };
-    let unbuildable = bootstrap();
+    let unbuildable = bootstrap("HEAD");
     assert_ne!(unbuildable.code, Some(0), "{}", unbuildable.output());
-    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{REVISION}\n"));
+    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{base}\n"));
     let installed = root.join(".cache/development").join(&head);
     let binary = installed.join(".agentrig/bin/agentrig");
     fs::create_dir_all(binary.parent().unwrap()).unwrap();
     fs::write(&binary, "#!/bin/sh\necho installed\n").unwrap();
     fs::set_permissions(&binary, fs::Permissions::from_mode(0o755)).unwrap();
-    let pinned = bootstrap();
+    let pinned = bootstrap("HEAD");
     assert_eq!(pinned.code, Some(0), "{}", pinned.output());
+    assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{head}\n"));
+    // DECISION: D213
+    let backward = bootstrap(&base);
+    assert_eq!(backward.code, Some(2), "{}", backward.output());
+    let refused = backward.stderr.contains("does not descend");
+    assert!(refused, "{}", backward.stderr);
     assert_eq!(fs::read_to_string(&pin).unwrap(), format!("{head}\n"));
 }
 

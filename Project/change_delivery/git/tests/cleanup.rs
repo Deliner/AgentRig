@@ -1,5 +1,5 @@
-use super::{commit, installed, start};
-use crate::shared::testing::{Run, configure, hermetic, invoke, run, runtime, worker};
+use super::{approve_commands, commit, installed, start};
+use crate::shared::testing::{Run, hermetic, invoke, run, runtime, worker};
 use serde_json::{Value, json};
 use std::{
     io::{BufRead, BufReader},
@@ -79,7 +79,7 @@ fn kill(mut child: Child) {
 fn merge_cleans_only_owned_task_runs() {
     let (_temp, root) = installed();
     start(&root, "jobs");
-    configure(&root, "commands", BACKGROUND);
+    approve_commands(&root, BACKGROUND);
     commit(&root, "work.txt", "feature");
     let started = Jobs {
         root: &root,
@@ -113,7 +113,7 @@ fn merge_inside_a_run_lists_only_other_live_runs() {
         worker().display(),
         root.display()
     );
-    configure(&root, "commands", &merge);
+    approve_commands(&root, &merge);
     commit(&root, "work.txt", "feature");
     let mut waiting = hermetic(worker());
     waiting
