@@ -6,6 +6,12 @@
   at:
   - [.agentrig, bin]
   - [.agentrig, commands.yaml, bootstrap]
+- reason: >-
+    The rig protects its development launcher, installer and installed runtimes and names its pin, which the installer
+    moves only forward; init has no such launcher or installer to protect.
+  at:
+  - [.agentrig, hooks.yaml, protected]
+  - [.agentrig, git.yaml, pin]
 - reason: The rig keeps its skill sources in Project/shared/skills and links .agentrig/skills to them; init copies them.
   at:
   - [.agentrig, skills]

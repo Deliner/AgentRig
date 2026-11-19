@@ -2,22 +2,24 @@
 
 ## Focus
 
-P156 (B157, D213): pin the runtime that enforces protected files, approval and forward-only pins (D051).
+P156 (B157, D213): the rig protects its launcher, installer and installed runtimes and names its pin, through the
+user's approval of `hooks.protected` and `git.pin`.
 
 ## Workspace
 
 Branch: feature/enforcement-files
-Revision: a3e80b5c1072cefeac2427b962e4b5ef2a1ac4d7
+Revision: d61536ec5f52b27c5743c58f1352377311c837b6
 
 ## Progress
 
-- VAC1-VAC3 are committed: protected edits and writes are refused, `just approve` records approved content, the gate
-  refuses unapproved protected content and backward pins, and unavailable route state stops required routes.
-- `just bootstrap HEAD` installed the VAC3 head and wrote it to `tooling/distribution/stable.txt`.
+- The user ran `just approve`: `.agentrig/hooks.yaml` gains
+  `protected: [tooling/worker, tooling/distribution/bootstrap.sh, .cache/development]` and `.agentrig/git.yaml`
+  gains `pin: tooling/distribution/stable.txt`; the approval record holds both.
+- `Project/project_setup/initialization/tests/rig_differences.yaml` lists both as rig differences.
 
 ## Verification
 
-- The VAC3 commit gate passed with 151 affected tests; bootstrap installed and ran the runtime.
+- `just approve` reloaded the configuration and approved exactly these two modules.
 
 ## Blockers
 
@@ -25,5 +27,4 @@ None.
 
 ## Next action
 
-Propose `hooks.protected` and `git.pin` with their rig differences, ask the user to run `! just approve`, commit the
-approved files, pin again and archive P156 and B157.
+Commit the approved modules, pin again at the gate-accepted head, archive P156 and B157, run feature-merge.
