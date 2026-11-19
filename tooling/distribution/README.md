@@ -23,11 +23,14 @@ rule that judges it, and the `candidate-lint` command check lints with the candi
 independently of the pinned runtime. The installed runtime retains gate orchestration and snapshot isolation.
 
 Every branch that changes Project promotes its runtime before `just feature-merge`: once its head passes the commit
-gate, run `just bootstrap HEAD` and commit the pin. Given a revision, bootstrap installs it first and writes its full
-hash to stable.txt only after the installation succeeded, so agent hooks, which run the pinned launcher, never meet an
-uninstalled pin. Without a revision it installs the pinned one. The pin only moves forward: bootstrap refuses a
-revision that does not descend from the pinned one, and the commit gate refuses such a staged pin, so a rollback is a
-new commit that reverts the change. This development pin is separate from a consumer's versioned configuration.
+gate, run `just propose-pin HEAD`. It prepares the pin as a proposal and lists the source files changed since the
+pinned revision. The user then types `! just approve` in Claude Code or runs it without `!` in a terminal: it runs
+the bootstrap installer with that revision and writes its full hash to stable.txt only after the installation
+succeeded, so agent hooks, which run the pinned launcher, never meet an uninstalled pin. Commit the pin. Given a
+revision, bootstrap only installs it, and the agent hook refuses that call; without a revision it installs the pinned
+one. The pin only moves forward: the proposal and the approval refuse a revision that does not descend from the
+committed pin, and the commit gate refuses an unapproved or backward pin, so a rollback is a new commit that reverts
+the change. This development pin is separate from a consumer's versioned configuration.
 
 If stable.txt is edited by hand to an uninstalled revision, agent hooks stop running. In that case run `just bootstrap`
 from an ordinary terminal; the agent's PreToolUse hook can otherwise reject bootstrap itself before the recipe starts.

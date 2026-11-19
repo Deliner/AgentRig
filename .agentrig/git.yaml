@@ -3,3 +3,5 @@ prefix: feature/
 # DECISION: D179
 remote: origin
 pin: tooling/distribution/stable.txt
+# DECISION: D218
+install: bootstrap

@@ -3,7 +3,7 @@
 # DECISION: D041
 # DECISION: D173
 # DECISION: D197
-# DECISION: D213
+# DECISION: D218
 set -euo pipefail
 root="$(cd "$(dirname "$0")/../.." && pwd)"
 pin="$root/tooling/distribution/stable.txt"
@@ -14,8 +14,6 @@ else
     read -r revision < "$pin"
 fi
 [[ "$revision" =~ ^[0-9a-f]{40}$ ]] || { echo 'Invalid stable revision' >&2; exit 2; }
-read -r pinned < "$pin"
-git -C "$root" merge-base --is-ancestor "$pinned" "$revision" || { echo "Revision $revision does not descend from the pinned $pinned" >&2; exit 2; }
 hooks="$(git -C "$root" config --get core.hooksPath || true)"
 [[ -z "$hooks" || "$hooks" == .agentrig/hooks ]] || { echo "Existing core.hooksPath=$hooks; reconcile it before bootstrap" >&2; exit 2; }
 cache="$root/.cache/development"
@@ -34,4 +32,3 @@ if [[ ! -d "$installed" ]]; then
 fi
 "$installed/.agentrig/bin/agentrig" --version
 git -C "$root" config core.hooksPath .agentrig/hooks
-printf '%s\n' "$revision" > "$pin"
