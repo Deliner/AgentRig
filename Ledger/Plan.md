@@ -14,7 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P147](Plan/147.md) | pending | - | [B148](Backlog/148.md): one-agent-text — AGENTS.md и CLAUDE.md с одним текстом | Codex и Claude Code получают одни и те же правила, и разъехаться они не могут. |
+| [P147](Plan/147.md) | paused | - | [B148](Backlog/148.md): one-agent-text — AGENTS.md и CLAUDE.md с одним текстом | Codex и Claude Code получают одни и те же правила, и разъехаться они не могут. |
 | [P148](Plan/148.md) | pending | - | [B149](Backlog/149.md): write-hints — подсказки хука для `just write` только по делу | Подсказка хука появляется, только когда команда касается файлов её навыка. |
 | [P149](Plan/149.md) | pending | - | [B150](Backlog/150.md): no-scratch — убрать `just scratch` | Агент запускает только то, что разрешают списки `just read`, `just write` и каталог. |
 | [P150](Plan/150.md) | pending | - | [B151](Backlog/151.md): allowed-languages — разрешённые языки программирования | В проекте под ригом код пишется только на выбранных языках и проходит языковые правила lint. |
