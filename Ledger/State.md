@@ -2,26 +2,26 @@
 
 ## Focus
 
-P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC3 pins `70bdfad` and enables `same-text` for AC2: the
-`init` catalog and the rig's lint.yaml select `AGENTS.md` and `CLAUDE.md`, so a commit where they differ fails.
+P147 (B148): AGENTS.md and CLAUDE.md carry one text. VAC4 brings the `init` AGENTS.md template to AC3: the one-text
+line, a State section and a Commands section with the general rules taken from a production consumer.
 
 ## Workspace
 
 Branch: feature/one-agent-text
-Revision: 70bdfaddd4561500601e79f4690a6d0ee842d607
+Revision: ec1ea2bf142938e07a98f2058627fdcb1072d757
 
 ## Progress
 
-- Done in this VAC: stable.txt pins `70bdfad`; `same-text` is cataloged for `init` and enabled in the rig; the
-  delivery test commits a differing `CLAUDE.md` in both consumer layouts and expects a refusal naming the absolute
-  condense-markdown path; D195 links the new owners; Plan/147 Delivery records VAC2 and VAC3.
-- Not yet: the AC3 `AGENTS.md` template.
+- Done in this VAC: `assets::instructions` opens with the one-text line, moves the State lifecycle into a State
+  section with the state-size limits, and adds Commands: `just --list`, a catalog command before a second run,
+  `just check --staged` and running only the needed checks. The Rust 1.100 section already comes from D175.
+  D195 links the template; Plan/147 Delivery records VAC3 and VAC4.
+- Not yet: the D051 pin of this head, the archive VAC and `just feature-merge`.
 
 ## Verification
 
-- `just run test -- project_setup`: 58 passed, including both delivery layouts with the refused commit.
-- `just run test -- structural_lint::tests`: 104 passed.
-- `just lint`, `just lint-config-check` and `just run rustfmt` pass.
+- `just run test -- project_setup`: 58 passed; the delivery test lints the initialized Python and Rust projects.
+- `just lint` and `just run rustfmt` pass.
 
 ## Blockers
 
@@ -29,4 +29,4 @@ None.
 
 ## Next action
 
-Commit this VAC through the gate, then write the AC3 template.
+Commit this VAC through the gate, run `just bootstrap HEAD`, then archive P147 and B148 with the pin.
