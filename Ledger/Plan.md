@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P144](Plan/144.md) | active | - | [B142](Backlog/142.md): state-current-vac — State описывает текущую VAC | State всегда описывает текущую VAC и остаётся коротким, а каждый коммит несёт State своей VAC. |
 | [P145](Plan/145.md) | pending | - | [B146](Backlog/146.md): read-only-sandbox — команды для чтения работают в песочнице без записи | Агент в песочнице без записи читает файлы, навыки и проверки через команды рига. |
 | [P146](Plan/146.md) | pending | - | [B147](Backlog/147.md): start-after-init — `just feature-start` сразу после `init` | Первая ветка после `init` создаётся той же командой, что и все следующие. |
 | [P147](Plan/147.md) | pending | - | [B148](Backlog/148.md): one-agent-text — AGENTS.md и CLAUDE.md с одним текстом | Codex и Claude Code получают одни и те же правила, и разъехаться они не могут. |
