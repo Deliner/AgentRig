@@ -40,7 +40,7 @@ pub(super) fn macro_items(node: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
     };
     let root = parsed.root_node();
     let body = Body {
-        source: Code::new(&fragment),
+        source: Code::new(source.path(), &fragment),
         base: tree.start_position().row,
     };
     let mut cursor = root.walk();

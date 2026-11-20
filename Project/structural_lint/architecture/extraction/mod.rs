@@ -18,7 +18,7 @@ pub fn extract(path: &Path, text: &str) -> Result<References> {
         .context("unsupported dependency language")?;
     let mut source = Source {
         path,
-        text: languages::Code::new(text),
+        text: languages::Code::new(path, text),
         output: References::default(),
     };
     let malformed = tree.root_node().has_error();

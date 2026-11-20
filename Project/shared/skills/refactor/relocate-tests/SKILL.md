@@ -16,19 +16,18 @@ without moving again.
    their `super::`, `crate::` or import paths, the private items they reach,
    and every test filter, runner setting or affected-test target that names
    them.
-2. Move a Rust `tests.rs` to `tests/mod.rs` beside it with `git mv`. The
-   declaration `#[cfg(test)] mod tests;` stays as it is, so the module path,
-   the test names and `super::` paths stay valid.
+2. Move a Rust `tests.rs` to `tests/mod.rs` beside it with `git mv`. A
+   declaration `#[cfg(test)] mod tests;` in the directory entry, `mod.rs`,
+   `lib.rs` or `main.rs`, stays as it is, so the module path, the test names
+   and `super::` paths stay valid.
 3. Move a Rust test-only module file with another name, such as
-   `mesh_tests.rs`, into the `tests/` directory beside the declaring file and
-   keep its module name with `#[path]`, relative to the declaring file's
-   directory:
-
-   ```rust
-   #[cfg(test)]
-   #[path = "tests/mesh.rs"]
-   mod mesh_tests;
-   ```
+   `mesh_tests.rs`, into the `tests/` directory of its directory as a file
+   named after the behavior it verifies, such as `tests/mesh.rs`, and declare
+   it from `tests/mod.rs`, which the entry declares as
+   `#[cfg(test)] mod tests;`. Test code may be declared only there:
+   `test-in-code-file` reports a test declaration in any other file. When the
+   tests reach private items of the file that declared them, apply
+   move-test-code-out.
 
 4. Move a Python `test_*.py` or `*_test.py` file into the `tests/` directory of
    the package it tests, and update its imports and every runner setting that

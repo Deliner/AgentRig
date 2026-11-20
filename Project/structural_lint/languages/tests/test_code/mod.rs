@@ -1,4 +1,5 @@
 mod shared_resource;
+mod test_in_code_file;
 mod test_placement;
 mod test_substitution;
 mod untargeted_panic;

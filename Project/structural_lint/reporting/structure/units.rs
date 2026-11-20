@@ -1,9 +1,8 @@
 use super::corpus::{Corpus, Counts};
 use super::words::stems;
+use crate::structural_lint::languages::ENTRY_FILES;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-
-const ENTRY_FILES: [&str; 3] = ["mod.rs", "lib.rs", "main.rs"];
 
 pub struct Vector {
     weights: BTreeMap<String, f64>,

@@ -1,6 +1,7 @@
 use crate::shared::source_parsers::Exception;
 use crate::structural_lint::rule_identities::kind::Kind;
 use std::collections::BTreeSet;
+use std::path::Path;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -22,11 +23,15 @@ pub struct Analysis {
 }
 #[derive(Clone, Copy)]
 pub struct Code<'a> {
+    path: &'a Path,
     text: &'a str,
 }
 impl<'a> Code<'a> {
-    pub fn new(text: &'a str) -> Self {
-        Self { text }
+    pub fn new(path: &'a Path, text: &'a str) -> Self {
+        Self { path, text }
+    }
+    pub fn path(self) -> &'a Path {
+        self.path
     }
     pub fn as_str(self) -> &'a str {
         self.text

@@ -1,0 +1,5 @@
+purpose: "Move Rust test code out of a code file into the tests/ directory of its directory, so tests call only what the file opens"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to move test code reported by test-in-code-file and test through the open surface"
+directories: {}
