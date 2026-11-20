@@ -2,23 +2,22 @@
 
 ## Focus
 
-P169 (B177, D224) phase 2: enable `test-in-code-file` in the rig and deliver it through `init` (AC4).
+P169 (B177, D224): archive the delivered outcome before the final pin and merge.
 
 ## Workspace
 
 Branch: feature/test-code-out
-Revision: f9b5528729c977c0ff88a32d64ea7c126e161ce5
+Revision: dd0e05fb59da7849738e10ff70993af6a863cc39
 
 ## Progress
 
-- VAC 1, VAC 2 and the mid pin committed; the user approved lint.yaml with the rule after `test-placement`.
-- Phase 2: `init` catalogs `TestInCodeFile`, so Rust projects receive the same rule the rig runs.
-- Remaining: archive P169 and B177, final pin, merge.
+- VAC 1, VAC 2, mid pin and phase 2 committed; AC1–AC4 met with evidence in Archive/Plan/169.md.
+- Archive: P169 card and row moved to Archive/Plan, B177 card and row to Archive/Backlog, D224 links updated.
+- Remaining: final pin at the archive head, merge; then P170 (B175) on a new branch.
 
 ## Verification
 
-- `just run test -- project_setup`: 58 passed, including I023 that compares the rig setup with `init` output.
-- `just lint`: clean with the rule enabled.
+- Phase 2 gate at dd0e05f: 597 tests passed, lint and memory passed.
 
 ## Blockers
 
@@ -26,4 +25,4 @@ None.
 
 ## Next action
 
-Commit phase 2 with the approved lint.yaml, then archive P169 and B177.
+Commit the archive, run `just propose-pin HEAD` and ask the user to type `! just approve`.
