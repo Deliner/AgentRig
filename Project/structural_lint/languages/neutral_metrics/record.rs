@@ -27,7 +27,7 @@ impl<'a> Code<'a> {
         self.text
     }
 }
-// DECISION: D127
+// DECISION: D127 allow-justification
 #[expect(clippy::string_slice)]
 pub fn text<'a>(node: Node<'_>, source: Code<'a>) -> &'a str {
     &source.text[node.byte_range()]

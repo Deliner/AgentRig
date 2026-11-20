@@ -8,6 +8,7 @@ use std::{
     path::Path,
     process::{Command, Output},
 };
+use tempfile::TempDir;
 
 #[derive(Clone, Copy)]
 pub struct Sandboxing<'a> {
@@ -43,8 +44,8 @@ pub fn tracked(
     ensure!(!argv.is_empty(), "command requires an executable");
     let scratch = tempfile::tempdir()?;
     let command = match options.access {
-        Access::ReadOnly => sandbox(root, argv, scratch.path(), &Confinement::Reading)?,
-        Access::Project => sandbox(root, argv, scratch.path(), &Confinement::Writing)?,
+        Access::ReadOnly => sandbox(root, argv, &scratch, &Confinement::Reading)?,
+        Access::Project => sandbox(root, argv, &scratch, &Confinement::Writing)?,
         Access::Unconfined => direct(argv)?,
     };
     launch(command, root, options, job)
@@ -61,7 +62,7 @@ fn refuses_writes(directory: &Path) -> Result<bool> {
     let Err(error) = tempfile::tempfile_in(directory) else {
         return Ok(false);
     };
-    // DECISION: D193
+    // DECISION: D156 variant-equality
     let refused = matches!(
         error.kind(),
         ErrorKind::PermissionDenied | ErrorKind::ReadOnlyFilesystem
@@ -95,7 +96,7 @@ fn launch(
 pub fn available() -> bool {
     let probe = tempfile::tempdir().and_then(|scratch| {
         let reading = &Confinement::Reading;
-        sandbox(Path::new("/"), &["true".into()], scratch.path(), reading)
+        sandbox(Path::new("/"), &["true".into()], &scratch, reading)
             .map_err(std::io::Error::other)?
             .output()
     });
@@ -107,7 +108,7 @@ pub fn available() -> bool {
 fn sandbox(
     root: &Path,
     argv: &[String],
-    _scratch: &Path,
+    _scratch: &TempDir,
     confinement: &Confinement,
 ) -> Result<Command> {
     let mut command = Command::new("bwrap");
@@ -141,10 +142,10 @@ fn sandbox(
 fn sandbox(
     root: &Path,
     argv: &[String],
-    scratch: &Path,
+    scratch: &TempDir,
     confinement: &Confinement,
 ) -> Result<Command> {
-    let scratch = canonical(scratch)?;
+    let scratch = canonical(scratch.path())?;
     let subpath = |path: &Path| format!(" (subpath {})", quoted(&path.to_string_lossy()));
     let writable = match confinement {
         Confinement::Reading => subpath(&scratch),

@@ -1,4 +1,4 @@
-// DECISION: D109
+// DECISION: D109 allow-justification
 #![expect(clippy::print_stdout, clippy::print_stderr)]
 use std::{
     fmt::Display,

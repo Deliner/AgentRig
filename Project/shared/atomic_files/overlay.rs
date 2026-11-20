@@ -64,7 +64,7 @@ impl Applied {
     pub fn commit(self) -> Result<()> {
         let applied = !self.originals.is_empty();
         if applied {
-            // DECISION: D213
+            // DECISION: D213 recursive-deletion
             fs::remove_dir_all(&self.mirror)?;
         }
         Ok(())

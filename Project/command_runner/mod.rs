@@ -1,5 +1,5 @@
 // DECISION: D005
-// DECISION: D107
+// DECISION: D107 allow-justification
 #[expect(unsafe_code)]
 pub mod jobs;
 pub(crate) mod sandbox;

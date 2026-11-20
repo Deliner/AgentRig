@@ -113,7 +113,7 @@ fn placed(recorded: &Path, export: TempDir) -> Result<TempDir> {
     let from = export.path();
     let to = tree.path();
     fs::rename(fs::Move { from, to })?;
-    // DECISION: D161
+    // DECISION: D161 disabled-raii
     let _moved = export.keep();
     Ok(tree)
 }

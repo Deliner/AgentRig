@@ -46,7 +46,7 @@ pub(super) fn validate_path(name: &str) -> Result<()> {
     let plain_segments = name.split('/').all(|part| !matches!(part, "" | "." | ".."));
     let normal_components = Path::new(name)
         .components()
-        // DECISION: D156
+        // DECISION: D156 variant-equality
         .all(|part| matches!(part, Component::Normal(value) if value != ".git"));
     let normal = present && plain_segments && normal_components;
     ensure!(normal, "unsafe VCS export path: {name}");
