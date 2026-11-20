@@ -64,14 +64,14 @@ The commit runs the staged gate; `feature-merge` checks the integration candidat
 The initial commit precedes hook installation, so bootstrap never bypasses an installed guard.
 
 The source marker can be linked from the generated invariant index. For Python, add `[I001](Invariants/001.md)`, a
-predicate, and `[test_doubles](../Project/test_sample.py)` as one index row; create `Ledger/Invariants/001.md` with
-nonempty `Predicate` and `Oracle` sections. Write `.agentrig/oracles.yaml`:
+predicate, and `[test_doubles](../Project/tests/test_sample.py)` as one index row; create `Ledger/Invariants/001.md`
+with nonempty `Predicate` and `Oracle` sections. Write `.agentrig/oracles.yaml`:
 
 ```yaml
 I001:
   check: tests
   runner: pytest
-  target: Project/test_sample.py::test_doubles
+  target: Project/tests/test_sample.py::test_doubles
 ```
 
 For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/lib.rs)` and:

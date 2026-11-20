@@ -41,9 +41,9 @@ directly above that line lifts the finding; a bare `DECISION:` or `INVARIANT:`
 reference lifts nothing. A single `super::` and a `crate::` path are not
 findings. Test code is out of
 scope: an item inside a `#[cfg(test)]` module or a `#[test]` function of the
-same file, and every file under the shipped rule's exclude, `**/tests/**` and
-`**/tests.rs`. A test module kept in a file with another name is measured,
-because its `#[cfg(test)]` sits in the parent file. Rerun the reported lint
+same file, and every file under the shipped rule's exclude, `**/tests/**`. A
+test module kept in a file outside a `tests/` directory is measured, because
+its `#[cfg(test)]` sits in the parent file. Rerun the reported lint
 check and relevant behavior checks. Do not weaken the rule or its selectors
 merely to pass. Apply complexity-discipline; stop when every reach names its
 owner, or an approved exception lifts the finding.

@@ -4,5 +4,5 @@ files:
   mod.rs: Dispatch attributes, module declarations and calls to the test-code detectors
   false_pass.rs: Rust should_panic attributes that let a test pass on any panic, and cfg attributes that exclude an item from every test build
   shared_resource.rs: Rust test code binding a TcpListener or UdpSocket to a fixed nonzero port, which parallel tests and runs share
-  test_placement.rs: Rust file module declared under cfg(test) or inside a test-only module whose file is neither tests.rs nor under a tests directory
+  test_placement.rs: Rust file module declared under cfg(test) or inside a test-only module whose file is not under a tests directory
 directories: {}

@@ -157,7 +157,7 @@ fn rule_examples_ship_excludes_only_where_decided() {
     let shipped: BTreeMap<_, _> = excluding
         .filter_map(|rule| Some((rule["id"].as_str()?, rule.get("exclude")?.clone())))
         .collect();
-    let tests = json!(["**/tests/**", "**/tests.rs"]);
+    let tests = json!(["**/tests/**"]);
     let mut expected = BTreeMap::from(TEST_CODE_EXCLUDED.map(|id| (id, tests.clone())));
     let locks = json!(["**/Cargo.lock", "**/package-lock.json", "**/uv.lock"]);
     expected.insert("file-size", locks);

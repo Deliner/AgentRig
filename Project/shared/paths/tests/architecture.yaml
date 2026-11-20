@@ -1,0 +1,4 @@
+purpose: Verify symbolic-link resolution and path normalization with a not-yet-created tail
+files:
+  mod.rs: Missing tails, link-relative parent traversal, absolute links and cycles
+directories: {}

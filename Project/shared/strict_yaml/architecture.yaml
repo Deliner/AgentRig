@@ -3,5 +3,5 @@ type: flat
 dependents: 9
 files:
   mod.rs: Strict YAML decoding with duplicate, anchor and type checks and canonical encoding
-  tests.rs: Strict decoding failures and round-trip encoding behavior
-directories: {}
+directories:
+  tests: Strict decoding failures and round-trip encoding behavior

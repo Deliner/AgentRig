@@ -6,5 +6,5 @@ files:
   bounded_read.rs: Shared regular-file reading with caller limits
   fingerprint.rs: SHA-256 content fingerprints
   overlay.rs: Copy a mirror directory's files over a root, then remove the mirror or restore every replaced file
-  tests.rs: Bounded reads, fingerprints and JSON replacement, loading and failure behavior
-directories: {}
+directories:
+  tests: Bounded reads, fingerprints and JSON replacement, loading and failure behavior

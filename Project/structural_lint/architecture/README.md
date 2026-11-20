@@ -46,7 +46,7 @@ A contract has `purpose`, one nonempty line, and `files` and `directories`, whic
 except the contract by literal name with a nonempty responsibility; stale entries, wrong kinds and unknown fields are
 errors. Optional: `type` (see Feature types); `zone: pure`, barring its own Rust files from `std::env`, `std::fs`,
 `std::process`, wall clock, entropy, network, threads and console; `dependents`, the most other directories using
-its files (default 6), ignoring `tests/`, `tests.rs` and `#[cfg(test)]`/`#[test]` items. Contracts stay in the project.
+its files (default 6), ignoring `tests/` and `#[cfg(test)]`/`#[test]` items. Contracts stay in the project.
 
 ## Feature types
 

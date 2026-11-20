@@ -1,0 +1,4 @@
+purpose: Verify filesystem errors that name the action and the path
+files:
+  mod.rs: Error wording, kinds and wrapper behavior through temporary directories
+directories: {}

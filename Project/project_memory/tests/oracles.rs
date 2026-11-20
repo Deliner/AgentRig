@@ -31,8 +31,8 @@ const PYTEST: Runner = Runner {
     language: "python",
     runner: "pytest",
     check: "tests",
-    target: "Project/test_sample.py::test_doubles",
-    file: "Project/test_sample.py",
+    target: "Project/tests/test_sample.py::test_doubles",
+    file: "Project/tests/test_sample.py",
     function: "test_doubles",
     marker: "# INVARIANT: I001",
     valid: "# INVARIANT: I001\ndef test_doubles():\n    pass\n",
@@ -51,7 +51,7 @@ const CARGO: Runner = Runner {
     runner: "cargo",
     check: "rust-test",
     target: "feature::tests::doubles",
-    file: "Project/src/feature/tests.rs",
+    file: "Project/src/feature/tests/mod.rs",
     function: "doubles",
     marker: "// INVARIANT: I001",
     valid: "// INVARIANT: I001\n#[test]\nfn doubles() {}\n",
@@ -166,7 +166,7 @@ fn an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it() {
     fs::write(&detail, DETAIL.replace("Doubles correctly.", "Doubles.")).unwrap();
     rejected(&root, changed);
     fs::write(&detail, DETAIL).unwrap();
-    bind(&root, &PYTEST, "Project/test_sample.py::test_other");
+    bind(&root, &PYTEST, "Project/tests/test_sample.py::test_other");
     rejected(&root, changed);
     bind(&root, &PYTEST, PYTEST.target);
     write(

@@ -5,6 +5,8 @@ pub mod program;
 mod python;
 mod registry;
 mod rust;
+// DECISION: D223
+mod test_files;
 #[cfg(test)]
 mod tests;
 pub use neutral_metrics::{Analysis, Code, Measurement, text};
@@ -30,6 +32,7 @@ pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
     let tree = source_parsers::parse(path, source)?.context("unsupported source language")?;
     let mut analysis = Analysis {
         exceptions: source_parsers::tree_exceptions(tree.root_node(), source),
+        measurements: test_files::misplaced(path, handler.test_file),
         ..Analysis::default()
     };
     let valid = !tree.root_node().has_error();

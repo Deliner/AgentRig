@@ -1,0 +1,4 @@
+purpose: Verify Rust module and alias resolution against compiled consumers
+files:
+  mod.rs: Module and alias resolution, incomplete forms and compiled consumer comparisons
+directories: {}

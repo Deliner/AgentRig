@@ -1,5 +1,5 @@
-purpose: "Move a Rust test-only module file into a tests/ directory or a tests.rs file while its tests keep seeing the same code"
+purpose: "Move Rust or Python test code into the tests/ directory of the code it tests while its tests keep seeing the same code"
 type: flat
 files:
-  SKILL.md: "Canonical agent instructions to relocate a test-only module file reported by test-placement"
+  SKILL.md: "Canonical agent instructions to relocate a test file or test-only module file reported by test-placement"
 directories: {}

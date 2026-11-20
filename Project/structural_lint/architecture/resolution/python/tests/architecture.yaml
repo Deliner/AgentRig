@@ -1,0 +1,4 @@
+purpose: Verify Python import resolution against packages, namespace packages and real Python imports
+files:
+  mod.rs: Package loading, incomplete resolution and comparisons with real Python imports
+directories: {}

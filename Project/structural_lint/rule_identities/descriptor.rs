@@ -11,7 +11,8 @@ pub struct Descriptor {
     // DECISION: D222
     pub accepts_exception: bool,
 }
-pub(crate) const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
+// DECISION: D223
+pub(crate) const TEST_CODE: &[&str] = &["**/tests/**"];
 impl Kind {
     pub fn descriptor(self) -> &'static Descriptor {
         match self {

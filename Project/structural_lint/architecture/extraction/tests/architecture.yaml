@@ -1,0 +1,4 @@
+purpose: Verify dependency reference extraction across supported source languages
+files:
+  mod.rs: Cross-language extraction behavior and source location tests
+directories: {}

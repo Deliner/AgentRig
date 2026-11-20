@@ -1,0 +1,4 @@
+purpose: Verify bounded reads, fingerprints, atomic JSON and overlays through the shared file artifact API
+files:
+  mod.rs: Bounded reads, fingerprints and JSON replacement, loading and failure behavior
+directories: {}

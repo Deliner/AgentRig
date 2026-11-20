@@ -8,6 +8,6 @@ directories:
   refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"
   refactor-large-file: "Decompose oversized source files by cohesive responsibility"
   refactor-long-function: "Simplify oversized functions while preserving observable behavior"
-  relocate-tests: "Move a Rust test-only module file into a tests/ directory or a tests.rs file while its tests keep seeing the same code"
+  relocate-tests: "Move Rust or Python test code into the tests/ directory of the code it tests while its tests keep seeing the same code"
   rewrite-in-allowed-language: "Rewrite a program in a language the project does not allow in one of its allowed languages and delete the original"
   use-the-current-form: "Replace a Rust form the project's toolchain supersedes with its direct standard form, or justify keeping it with an exception"
