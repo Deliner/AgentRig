@@ -23,8 +23,6 @@ fn reach_findings(path: &str, source: &str) -> Vec<String> {
 #[test]
 fn rust_flags_paths_reaching_two_module_levels_up_outside_tests() {
     let source = "use super::super::analyze;
-// DECISION: D001
-use super::super::justified;
 use super::item;
 use crate::root::item;
 use super::super::{
@@ -47,12 +45,6 @@ mod tests {
 ";
     assert_eq!(
         reach_findings("source.rs", source),
-        [
-            "1:analyze",
-            "6:super::super",
-            "10:Kind",
-            "11:make",
-            "14:Vec"
-        ]
+        ["1:analyze", "4:super::super", "8:Kind", "9:make", "12:Vec"]
     );
 }

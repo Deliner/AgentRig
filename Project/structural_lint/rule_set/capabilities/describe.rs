@@ -17,6 +17,12 @@ pub fn describe(kind: Kind) -> Value {
         "metric": descriptor.metric, "skill": descriptor.skill,
         "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agentrig/skills", &["src/**".into()]),
         "languages": "any UTF-8 text", "extensions": "configurable"});
+    // DECISION: D222
+    value["exception"] = json!(if descriptor.accepts_exception {
+        "the comment DECISION: DNNN RULE, naming this rule's id, on the line directly above a finding lifts it"
+    } else {
+        "none"
+    });
     let directory = descriptor.target == "directory";
     if directory {
         value["languages"] = json!("any");

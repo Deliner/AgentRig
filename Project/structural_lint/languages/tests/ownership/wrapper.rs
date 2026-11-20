@@ -37,7 +37,7 @@ impl TryFrom<u32> for Limit {
 }
 
 #[test]
-fn rust_skips_private_fields_unchecked_constructors_and_justified_structs() {
+fn rust_skips_private_fields_and_unchecked_constructors() {
     let source = "pub struct Port {
     number: u16,
 }
@@ -52,16 +52,6 @@ pub struct Point {
 impl Point {
     pub fn new(x: i32) -> Self {
         Self { x }
-    }
-}
-// DECISION: D001
-#[repr(C)]
-pub struct Header {
-    pub size: u32,
-}
-impl Header {
-    pub fn new(size: u32) -> Option<Self> {
-        (size > 0).then_some(Self { size })
     }
 }
 ";
@@ -95,14 +85,6 @@ impl Deref for External {
         &0
     }
 }
-struct Bytes(Vec<u8>);
-// DECISION: D001
-impl Deref for Bytes {
-    type Target = [u8];
-    fn deref(&self) -> &[u8] {
-        &self.0
-    }
-}
 ";
     assert_eq!(
         measured(source, &[], Ownership::WrapperDeref),
@@ -131,10 +113,6 @@ impl From<usize> for Span {
 }
 impl From<Uuid> for Id {
     fn from(value: Uuid) -> Self { Self(value.as_u64()) }
-}
-// DECISION: D001
-impl From<u32> for Id {
-    fn from(value: u32) -> Self { Self(value.into()) }
 }
 ";
     assert_eq!(

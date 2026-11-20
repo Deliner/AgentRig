@@ -37,7 +37,7 @@ mod tests {
 }
 
 #[test]
-fn rust_skips_guarded_bound_wildcard_short_one_sided_valued_and_justified_matches() {
+fn rust_skips_guarded_bound_wildcard_short_one_sided_and_valued_matches() {
     let source = "fn check(mode: Mode, input: Option<Mode>, ready: bool) -> bool {
     let guarded = match mode {
         Mode::Fast if ready => true,
@@ -63,12 +63,7 @@ fn rust_skips_guarded_bound_wildcard_short_one_sided_valued_and_justified_matche
         Mode::Fast => { true }
         Mode::Slow | Mode::Idle | Mode::Off => false,
     };
-    // DECISION: D001
-    let justified = match mode {
-        Mode::Fast => true,
-        Mode::Slow | Mode::Idle | Mode::Off => false,
-    };
-    guarded && bound && wildcard && short && one_sided && valued && justified
+    guarded && bound && wildcard && short && one_sided && valued
 }
 ";
     assert!(measured(source, ControlFlow::RepeatedClassification).is_empty());

@@ -1,5 +1,6 @@
 use super::architecture::contract_check;
 use super::languages::{self, program};
+use super::lifting;
 use super::rule_identities::{self, Kind};
 use super::rule_set::{capabilities, lint_config};
 use super::targeting::{file_discovery, lint_targets};
@@ -9,6 +10,7 @@ use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::rule_identities::contract_settings::FILENAME;
 use crate::structural_lint::rule_identities::control_flow::{ControlFlow, MIXED_JUNCTIONS};
 use crate::structural_lint::rule_identities::ownership::Pair;
+use crate::structural_lint::rule_identities::reference::Reference;
 use crate::structural_lint::rule_identities::structure::Structure;
 use anyhow::{Context, Result};
 use std::collections::{HashMap, hash_map::Entry};
@@ -33,8 +35,10 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         pairs,
         ..Evaluation::default()
     };
+    let mut comment_rules = Vec::new();
     for rule in &config.rules {
         match rule.kind {
+            Kind::Reference(Reference::Comment) => comment_rules.push(rule),
             Kind::Structure(Structure::DirectoryArchitecture) => evaluation
                 .output
                 .extend(contract_check::run(root, rule, &inventory)?),
@@ -52,6 +56,11 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
             | Kind::Ownership(_)
             | Kind::Reference(_) => scalar_findings(root, rule, &inventory, &mut evaluation)?,
         }
+    }
+    for rule in comment_rules {
+        scalar_findings(root, rule, &inventory, &mut evaluation)?;
+        let unused = lifting::unused(rule, &inventory, &evaluation.analyses)?;
+        evaluation.output.extend(unused);
     }
     Ok(evaluation.output)
 }
@@ -125,12 +134,14 @@ fn scalar_findings(
         let syntax_rule = capabilities::syntax(rule.kind);
         if syntax_rule {
             let path = selected.path;
-            let uncached = !analyses.contains_key(path);
-            if uncached {
-                let source = fs::read_to_string(root.join(path))?;
-                analyses.insert(path.to_owned(), languages::analyze(path, &source, pairs)?);
-            }
-            syntax_findings(rule, &selected, &analyses[path], output)?;
+            let analysis = match analyses.entry(path.to_owned()) {
+                Entry::Occupied(place) => place.into_mut(),
+                Entry::Vacant(place) => {
+                    let source = fs::read_to_string(root.join(path))?;
+                    place.insert(languages::analyze(path, &source, pairs)?)
+                }
+            };
+            syntax_findings(rule, &selected, analysis, output)?;
         } else {
             for (line, actual) in structural_measurements(root, rule, &selected, inventory)? {
                 if let Some(mut item) = finding(rule, &selected, actual)? {
@@ -220,7 +231,7 @@ fn dump_name(path: &Path) -> Vec<(Option<usize>, usize)> {
 fn syntax_findings(
     rule: &lint_config::Rule,
     selected: &lint_targets::Selected<'_>,
-    analysis: &languages::Analysis,
+    analysis: &mut languages::Analysis,
     output: &mut Vec<Diagnostic>,
 ) -> Result<()> {
     if let Some(line) = analysis.parse_error {
@@ -232,11 +243,7 @@ fn syntax_findings(
         }
         return Ok(());
     }
-    for measured in analysis
-        .measurements
-        .iter()
-        .filter(|item| item.kind == rule.kind)
-    {
+    for measured in lifting::unlifted(rule, analysis) {
         if let Some(mut diagnostic) = finding(rule, selected, measured.actual)? {
             diagnostic.line = Some(measured.line);
             diagnostic.symbol = Some(measured.symbol.clone());
@@ -316,7 +323,9 @@ fn finding(
 fn rule_message(rule: &lint_config::Rule, limit: Option<usize>, actual: usize) -> Result<String> {
     Ok(match (limit, &rule.kind.descriptor().parameters) {
         (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
-        (None, rule_identities::Parameters::Level { violation, .. }) => (*violation).into(),
+        (None, rule_identities::Parameters::Level { violation, .. }) => {
+            lifting::message(rule, violation)
+        }
         (None, rule_identities::Parameters::Thresholds { .. }) => {
             anyhow::bail!("threshold rule reported no limit")
         }

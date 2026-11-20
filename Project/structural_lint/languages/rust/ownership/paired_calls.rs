@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
@@ -22,9 +22,7 @@ pub(super) fn inspect(
             .iter()
             .filter(|pair| escapes(*statement, rest, pair, source))
             .collect();
-        let allowed = unguarded.is_empty()
-            || in_test_context(*statement, source)
-            || justified(*statement, source);
+        let allowed = unguarded.is_empty() || in_test_context(*statement, source);
         if allowed {
             continue;
         }

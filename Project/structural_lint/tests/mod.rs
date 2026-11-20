@@ -10,6 +10,7 @@ mod diagnostics;
 mod discovery;
 mod explain;
 mod languages;
+mod lifting;
 mod portable;
 mod structure;
 mod tree;

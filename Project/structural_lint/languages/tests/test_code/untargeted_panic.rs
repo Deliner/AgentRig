@@ -25,7 +25,7 @@ async fn rejects_async() {
 }
 
 #[test]
-fn rust_skips_should_panic_with_an_expected_message_or_a_reference() {
+fn rust_skips_should_panic_with_an_expected_message() {
     let source = "#[test]
 #[should_panic(expected = \"Empty\")]
 fn names_the_message() {
@@ -35,12 +35,6 @@ fn names_the_message() {
 #[should_panic = \"Empty\"]
 fn names_it_by_value() {
     parse(\"\").unwrap();
-}
-#[test]
-// DECISION: D001
-#[should_panic]
-fn borrows_twice() {
-    cell.borrow_mut();
 }
 ";
     assert!(measured(source, Reference::UntargetedPanic).is_empty());

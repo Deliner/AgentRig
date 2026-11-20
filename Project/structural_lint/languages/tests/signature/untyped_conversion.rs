@@ -36,7 +36,7 @@ fn rust_flags_untyped_lets_over_a_generic_conversion() {
 }
 
 #[test]
-fn rust_skips_typed_turbofish_argument_pattern_justified_and_test_lets() {
+fn rust_skips_typed_turbofish_argument_pattern_and_test_lets() {
     let source = "fn run(text: &str, items: &[u32]) -> Result<(), Error> {
     let port: u16 = text.parse()?;
     let total = items.iter().sum::<u32>();
@@ -45,8 +45,6 @@ fn rust_skips_typed_turbofish_argument_pattern_justified_and_test_lets() {
     let (left, right) = pair.into();
     let config = Config::default();
     let error = Error::from(cause);
-    // DECISION: D001
-    let wide = small.into();
     Ok(())
 }
 #[cfg(test)]
@@ -136,7 +134,7 @@ fn rust_flags_conversion_trait_paths_whose_target_type_the_statement_does_not_na
 }
 
 #[test]
-fn rust_skips_typed_owned_turbofish_other_owner_foreign_justified_and_test_trait_paths() {
+fn rust_skips_typed_owned_turbofish_other_owner_foreign_and_test_trait_paths() {
     let source = "fn convert(bytes: Vec<u8>, text: &str) -> Result<u64, Error> {
     let wide: u64 = From::from(1u8) + u64::from(2u8);
     let owned = From::from(text);
@@ -144,8 +142,6 @@ fn rust_skips_typed_owned_turbofish_other_owner_foreign_justified_and_test_trait
     let typed = From::<u8>::from(1);
     let other = Wrapper::from(1);
     let foreign = mine::convert::From::from(1);
-    // DECISION: D001
-    take(Into::into(bytes));
     Ok(wide)
 }
 #[cfg(test)]

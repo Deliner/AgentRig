@@ -29,7 +29,7 @@ impl Grid {
 }
 
 #[test]
-fn rust_skips_distinct_types_receivers_trait_impls_justified_and_test_functions() {
+fn rust_skips_distinct_types_receivers_trait_impls_and_test_functions() {
     let source = "fn open(path: &Path, mode: Mode) {}
 impl Grid {
     fn merge(&self, other: &Self) {}
@@ -39,8 +39,6 @@ impl Add for Meters {
         left
     }
 }
-// DECISION: D001
-fn span(start: usize, end: usize) {}
 #[cfg(test)]
 mod tests {
     fn check(left: u32, right: u32) {}
@@ -61,8 +59,6 @@ enum Shape {
 fn bounds() -> (usize, usize) {
     (0, 1)
 }
-// DECISION: D001
-struct Pair(u8, u8);
 ";
     assert_eq!(
         measured(source, POSITIONS),
@@ -83,8 +79,6 @@ enum Command {
     Wrapped(Option<bool>, u32),
 }
 struct Plain(String, u32);
-// DECISION: D001
-struct Justified(u8, bool);
 #[cfg(test)]
 mod tests {
     struct Probe(u8, bool);

@@ -39,8 +39,6 @@ fn rust_treats_asserts_compiled_only_with_debug_assertions_as_debug_assertions()
     }
     #[cfg(all(debug_assertions, unix))]
     {
-        // DECISION: D001
-        assert!(ready);
         assert!(ready);
     }
     #[cfg(not(debug_assertions))]
@@ -62,7 +60,7 @@ mod tests {
     }
 }
 ";
-    assert_eq!(lines(DEBUG_ASSERTION, source), [3, 5, 13, 24]);
+    assert_eq!(lines(DEBUG_ASSERTION, source), [3, 5, 11, 22]);
     assert_eq!(lines(PANIC_PATH, source), Vec::<usize>::new());
 }
 
@@ -73,8 +71,6 @@ fn rust_flags_unwrap_err_expect_err_and_resume_unwind_as_panic_paths() {
     outcome.expect_err(\"must fail\");
     std::panic::resume_unwind(payload);
     resume_unwind(payload);
-    // DECISION: D001
-    panic::resume_unwind(payload);
     log(format!(\"{}\", outcome.unwrap_err()));
     let kept = outcome.unwrap_or_else(|error| error);
     self.resume_unwind(payload);
@@ -92,19 +88,17 @@ mod tests {
         (3, "expect_err"),
         (4, "resume_unwind"),
         (5, "resume_unwind"),
-        (8, "unwrap_err"),
+        (6, "unwrap_err"),
     ]
     .map(|(line, symbol)| (line, symbol.to_string()));
     assert_eq!(found, expected);
 }
 
 #[test]
-fn rust_flags_unjustified_panic_catches_outside_tests() {
+fn rust_flags_panic_catches_outside_tests() {
     let source = "fn run() {
     let caught = std::panic::catch_unwind(|| work());
     let wrapped = panic::catch_unwind(AssertUnwindSafe(|| work()));
-    // DECISION: D001
-    let justified = catch_unwind(std::panic::AssertUnwindSafe(|| work()));
     let future = task.catch_unwind();
     let plain = std::panic::set_hook(hook);
     let named = UnwindSafe::check(value);
@@ -121,7 +115,7 @@ mod tests {
         (2, "catch_unwind"),
         (3, "AssertUnwindSafe"),
         (3, "catch_unwind"),
-        (6, "catch_unwind"),
+        (4, "catch_unwind"),
     ]
     .map(|(line, symbol)| (line, symbol.to_string()));
     assert_eq!(found, expected);
@@ -143,25 +137,18 @@ fn rust_flags_panic_paths_beside_primitive_named_macros_and_lifetimes_first_afte
 
 // DECISION: D147
 #[test]
-fn rust_referenced_clippy_allow_on_an_enclosing_item_covers_its_panics() {
-    let source = "// DECISION: D001
-#[allow(clippy::expect_used)]
+fn rust_clippy_allow_on_an_enclosing_item_covers_its_panics() {
+    let source = "#[allow(clippy::expect_used)]
 fn covered() {
     value.expect(\"a\");
     other.expect_err(\"b\");
     println!(\"{}\", value.expect(\"c\"));
     value.unwrap();
 }
-// DECISION: D001
 #[allow(clippy::unwrap_used)]
 fn other_lint() {
     value.expect(\"d\");
 }
-#[allow(clippy::expect_used)]
-fn unreferenced() {
-    value.expect(\"e\");
-}
-// INVARIANT: I001
 #[expect(clippy::panic, clippy::unreachable)]
 mod checked {
     impl Thing {
@@ -173,17 +160,15 @@ mod checked {
     }
 }
 ";
-    assert_eq!(lines(PANIC_PATH, source), [7, 12, 16, 25]);
+    assert_eq!(lines(PANIC_PATH, source), [6, 10, 18]);
 }
 
 // DECISION: D148
 #[test]
-fn rust_flags_unjustified_panics_inside_macro_rules_bodies() {
+fn rust_flags_panics_inside_macro_rules_bodies() {
     let source = "macro_rules! read {
     ($values:expr, $($field:ident),+) => {
         let first = $values.next().unwrap();
-        // DECISION: D001
-        let second = $values.next().expect(\"b\");
         $( let $field = load(stringify!($field)).unwrap_err(); )+
         writeln!(text, \"{}\", 1).unwrap();
         std::panic::resume_unwind(payload);
@@ -199,11 +184,11 @@ fn rust_flags_unjustified_panics_inside_macro_rules_bodies() {
     let found = findings(PANIC_PATH, source);
     let expected = [
         (3, "unwrap"),
-        (6, "unwrap_err"),
-        (7, "unwrap"),
-        (8, "resume_unwind"),
-        (9, "panic"),
-        (10, "todo"),
+        (4, "unwrap_err"),
+        (5, "unwrap"),
+        (6, "resume_unwind"),
+        (7, "panic"),
+        (8, "todo"),
     ]
     .map(|(line, symbol)| (line, symbol.to_string()));
     assert_eq!(found, expected);
@@ -211,9 +196,8 @@ fn rust_flags_unjustified_panics_inside_macro_rules_bodies() {
 
 // DECISION: D148
 #[test]
-fn rust_skips_macro_rules_bodies_in_test_code_or_under_a_referenced_clippy_allow() {
-    let source = "// DECISION: D001
-#[allow(clippy::unwrap_used)]
+fn rust_skips_macro_rules_bodies_in_test_code_or_under_a_clippy_allow() {
+    let source = "#[allow(clippy::unwrap_used)]
 macro_rules! allowed {
     () => { value.unwrap() };
 }
@@ -234,5 +218,5 @@ fn run() {
     call!(value.unwrap());
 }
 ";
-    assert_eq!(lines(PANIC_PATH, source), [17, 20]);
+    assert_eq!(lines(PANIC_PATH, source), [16, 19]);
 }

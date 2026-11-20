@@ -67,7 +67,7 @@ fn unguarded(path: &Path) -> Result<Vec<u8>> {
 }
 
 #[test]
-fn rust_skips_unpropagated_independent_other_path_justified_and_test_checks() {
+fn rust_skips_unpropagated_independent_other_path_and_test_checks() {
     let source = "fn skip(other: &Path, dir: PathBuf, log: PathBuf) -> Result<()> {
     if other.exists() {
         let _ = fs::remove_file(other);
@@ -78,10 +78,6 @@ fn rust_skips_unpropagated_independent_other_path_justified_and_test_checks() {
     fs::remove_dir_all(&dir)?;
     if log.exists() {
         fs::read(&dir)?;
-    }
-    // DECISION: D001
-    if log.exists() {
-        fs::read(&log)?;
     }
     Ok(())
 }

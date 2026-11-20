@@ -1,5 +1,5 @@
 use super::Analysis;
-use super::neutral_metrics::{Measurement, justified_line};
+use super::neutral_metrics::Measurement;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use yaml_rust2::parser::{Event, Parser};
@@ -51,7 +51,7 @@ pub(super) fn analyze(source: &str) -> Analysis {
     analysis.measurements = sequences
         .into_iter()
         .flat_map(checked_items)
-        .filter(|(line, flag)| lowering(flag) && !justified_line(line - 1, source))
+        .filter(|(_, flag)| lowering(flag))
         .map(|(line, symbol)| Measurement {
             kind: Kind::Reference(Reference::AllowJustification),
             line,

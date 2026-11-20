@@ -46,7 +46,7 @@ enum Conditional {
 }
 
 #[test]
-fn rust_skips_pinned_single_unordered_justified_and_test_enums() {
+fn rust_skips_pinned_single_unordered_and_test_enums() {
     let source = "#[derive(PartialEq, Eq, PartialOrd, Ord)]
 enum Pinned {
     Low = 0,
@@ -58,12 +58,6 @@ enum Single {
 }
 #[derive(Clone, PartialEq)]
 enum Unordered {
-    First,
-    Second,
-}
-// DECISION: D001
-#[derive(PartialEq, PartialOrd)]
-enum Justified {
     First,
     Second,
 }

@@ -25,7 +25,7 @@ fn rust_flags_a_max_fallback_added_to_or_multiplied_on_either_side() {
 
 // DECISION: D209
 #[test]
-fn rust_skips_saturating_subtracted_compared_other_lazy_justified_and_test_fallbacks() {
+fn rust_skips_saturating_subtracted_compared_other_lazy_and_test_fallbacks() {
     let source = "fn bounded(limit: Option<u32>) -> u32 {
     let saturated = limit.unwrap_or(u32::MAX).saturating_add(1);
     let below = 10 - limit.unwrap_or(u32::MAX);
@@ -34,8 +34,6 @@ fn rust_skips_saturating_subtracted_compared_other_lazy_justified_and_test_fallb
     let other = limit.unwrap_or(LIMIT) * 2;
     let lazy = limit.unwrap_or_else(|| u32::MAX) + 1;
     let alone = limit.unwrap_or(u32::MAX);
-    // DECISION: D001
-    let justified = limit.unwrap_or(u32::MAX) + 1;
     saturated
 }
 #[cfg(test)]

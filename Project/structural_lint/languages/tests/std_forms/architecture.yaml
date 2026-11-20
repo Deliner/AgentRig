@@ -1,10 +1,10 @@
 purpose: Verify Rust measurements of operators and standard library calls whose behavior differs from what the form appears to state, from native analysis
 files:
   mod.rs: Declare the standard-form measurement test modules and filter one reference kind from native analysis
-  superseded_form.rs: Rust strip fallbacks to the receiver, Infallible types and Vec collections of a map over 0..n named with their current form in product and test code, with current forms, other fallbacks, ranges and targets and justified lines skipped, from native analysis
-  epsilon_tolerance.rs: Rust f32 or f64 EPSILON compared directly, alone, in parentheses or negated, with scaled, unequal, named, other-constant, justified and test-only tolerances skipped, from native analysis
-  max_fallback.rs: Rust MAX fallbacks of unwrap_or added to or multiplied on either side, with saturating, subtracted, compared, other-bound, lazy, bare, justified and test-only fallbacks skipped, from native analysis
-  dotted_extension.rs: Rust extension literals written with their dot, with plain, empty, variable, other-method, justified and test-only extensions skipped, from native analysis
-  indexed_array.rs: Rust array literals with calls indexed by a computed value or partial range in product and test code, with literal indexes, repeat forms, call-free elements, the whole range and justified lines skipped, from native analysis
-  flag_filter.rs: Rust filters by a known flag on a value computed by a call in product and test code, with uncomputed receivers, closures that use the value or call, function arguments, flags checked first and justified lines skipped, from native analysis
+  superseded_form.rs: Rust strip fallbacks to the receiver, Infallible types and Vec collections of a map over 0..n named with their current form in product and test code, with current forms, other fallbacks, ranges and targets skipped, from native analysis
+  epsilon_tolerance.rs: Rust f32 or f64 EPSILON compared directly, alone, in parentheses or negated, with scaled, unequal, named, other-constant and test-only tolerances skipped, from native analysis
+  max_fallback.rs: Rust MAX fallbacks of unwrap_or added to or multiplied on either side, with saturating, subtracted, compared, other-bound, lazy, bare and test-only fallbacks skipped, from native analysis
+  dotted_extension.rs: Rust extension literals written with their dot, with plain, empty, variable, other-method and test-only extensions skipped, from native analysis
+  indexed_array.rs: Rust array literals with calls indexed by a computed value or partial range in product and test code, with literal indexes, repeat forms, call-free elements and the whole range skipped, from native analysis
+  flag_filter.rs: Rust filters by a known flag on a value computed by a call in product and test code, with uncomputed receivers, closures that use the value or call, function arguments and flags checked first skipped, from native analysis
 directories: {}

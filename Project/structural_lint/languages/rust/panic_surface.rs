@@ -1,6 +1,6 @@
 use super::exemptions::{in_test_context, last_segment};
 use super::suppression;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
@@ -72,9 +72,8 @@ fn panic_token<'a>(window: &[Node<'a>], source: Code<'a>) -> Option<(Node<'a>, &
     (unwrapping || unwinding).then_some((second, name))
 }
 fn report_panic(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source)
-        || in_test_context(node, source)
-        || suppression::clippy_allowed(node, source, symbol);
+    let allowed =
+        in_test_context(node, source) || suppression::clippy_allowed(node, source, symbol);
     if allowed {
         return;
     }
@@ -93,7 +92,7 @@ pub(super) fn catch(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
     let Some(symbol) = catch_site(function, source) else {
         return;
     };
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

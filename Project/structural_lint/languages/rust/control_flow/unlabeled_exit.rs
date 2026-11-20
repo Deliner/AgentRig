@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -15,7 +15,7 @@ pub(super) fn inspect(exit: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         .any(|child| child.kind() == "label");
     let nested =
         !labeled && enclosing_loop(exit).is_some_and(|inner| enclosing_loop(inner).is_some());
-    let exempt = !nested || justified(exit, source) || in_test_context(exit, source);
+    let exempt = !nested || in_test_context(exit, source);
     if exempt {
         return;
     }

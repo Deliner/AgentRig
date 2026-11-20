@@ -24,14 +24,12 @@ mod tests {
 }
 
 #[test]
-fn rust_skips_literal_index_repeat_constant_whole_range_and_justified_arrays() {
+fn rust_skips_literal_index_repeat_constant_and_whole_range_arrays() {
     let source = "fn chosen(name: &str, rest: &[&str], i: usize) -> u32 {
     let literal = [first(), second()][0];
     let repeated = [make(); 4][i];
     let constant = [u32::MIN, u32::MAX][i];
     let whole = [&[name.trim(), \"x\"][..], rest].concat();
-    // DECISION: D001
-    let justified = [first(), second()][i];
     literal
 }
 ";

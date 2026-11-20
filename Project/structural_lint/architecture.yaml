@@ -3,6 +3,7 @@ files:
   mod.rs: Lint location and configuration loading, output modes and the analysis of configuration or sources into findings
   evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings, reporting a classification only where it repeats an earlier one
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
+  lifting.rs: Lift a finding under an exception naming its rule and report each exception that lifts none
 directories:
   baseline_file: Read and compare the lint baseline file without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers

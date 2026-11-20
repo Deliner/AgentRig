@@ -18,10 +18,6 @@ fn rust_flags_trait_default_methods_whose_body_ignores_self() {
     }
     fn hook(&self) {}
     fn run(&self);
-    // DECISION: D001
-    fn priority(&self) -> u8 {
-        0
-    }
 }
 #[cfg(test)]
 mod tests {

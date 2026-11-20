@@ -57,9 +57,7 @@ async fn exempt(state: &tokio::sync::Mutex<u8>, std: &Mutex<u8>, file: &mut File
     let guard = state.lock().await;
     let value = std.lock().unwrap().clone();
     let count = file.read(&mut buffer)?;
-    // DECISION: D001
-    let held = std.lock().unwrap();
-    send(*guard + value + count + *held).await;
+    send(*guard + value + count).await;
 }
 async fn deferred(std: &Mutex<u8>) {
     let spawned = std.lock().unwrap();
@@ -130,8 +128,6 @@ async fn offload(runtime: &Runtime) {
     fn helper() {
         std::thread::sleep(PAUSE);
     }
-    // DECISION: D001
-    std::thread::sleep(PAUSE);
 }
 fn serve(runtime: &Runtime) {
     runtime.block_on(listen());

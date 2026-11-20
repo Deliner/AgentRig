@@ -32,7 +32,7 @@ fn rust_flags_an_opening_call_whose_closing_call_follows_an_early_exit() {
 }
 
 #[test]
-fn rust_skips_closure_exits_other_receivers_unconfigured_pairs_and_justified_calls() {
+fn rust_skips_closure_exits_other_receivers_and_unconfigured_pairs() {
     let source = "fn closure(db: &mut Db) -> Result<()> {
     db.begin();
     run(|| -> Result<()> { write()?; Ok(()) });
@@ -55,13 +55,6 @@ fn closed(db: &mut Db) -> Result<()> {
     db.begin();
     db.commit();
     write()?;
-    Ok(())
-}
-fn justified(db: &mut Db) -> Result<()> {
-    // DECISION: D001
-    db.begin();
-    write()?;
-    db.commit();
     Ok(())
 }
 ";

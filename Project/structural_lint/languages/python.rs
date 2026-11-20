@@ -1,6 +1,6 @@
 use super::neutral_metrics::{
     Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
-    comment, condition, credential, function, justified, mixed_junction, nesting, text,
+    comment, condition, credential, function, mixed_junction, nesting, text,
 };
 use crate::structural_lint::languages::neutral_metrics::Code;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -50,9 +50,9 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, _pairs: &[Pair], analysis: &mut
         "comment" => comment(node, source, output),
         "string" => credential(node, source, output),
         "expression_statement" => statement(node, output),
-        "except_clause" => silent_except(node, source, output),
+        "except_clause" => silent_except(node, output),
         "decorator" => disabled_test(node, source, output),
-        "import_from_statement" => wildcard_import(node, source, output),
+        "import_from_statement" => wildcard_import(node, output),
         "boolean_operator" => boolean_expression(node, output),
         "if_statement" | "elif_clause" => {
             let Some(test) = node.child_by_field_name("condition") else {
@@ -101,8 +101,7 @@ fn disabled_test(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>
     let disabled = callee
         .map(|callee| text(callee, source))
         .is_some_and(|path| matches!(path, "pytest.mark.skip" | "pytest.mark.skipif"));
-    let unjustified = disabled && !justified(node, source);
-    if unjustified {
+    if disabled {
         output.push(Measurement {
             kind: Kind::Reference(Reference::DisabledTest),
             line: node.start_position().row + 1,
@@ -112,13 +111,12 @@ fn disabled_test(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>
     }
 }
 // DECISION: D085
-fn wildcard_import(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+fn wildcard_import(node: Node<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let glob = node
         .named_children(&mut cursor)
         .any(|child| child.kind() == "wildcard_import");
-    let unjustified = glob && !justified(node, source);
-    if unjustified {
+    if glob {
         output.push(Measurement {
             kind: Kind::Reference(Reference::WildcardImport),
             line: node.start_position().row + 1,
@@ -127,7 +125,7 @@ fn wildcard_import(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measuremen
         });
     }
 }
-fn silent_except(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+fn silent_except(node: Node<'_>, output: &mut Vec<Measurement>) {
     let mut cursor = node.walk();
     let Some(body) = node
         .named_children(&mut cursor)
@@ -143,8 +141,7 @@ fn silent_except(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>
         return;
     };
     let silent = first.kind() == "pass_statement" && statements.next().is_none();
-    let swallowed = silent && !justified(first, source);
-    if swallowed {
+    if silent {
         output.push(Measurement {
             kind: Kind::Reference(Reference::SilentError),
             line: node.start_position().row + 1,

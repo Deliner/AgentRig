@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::last_segment;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -13,10 +13,6 @@ pub(super) fn inspect(expression: Node<'_>, source: Code<'_>, output: &mut Vec<M
     let Some(symbol) = classification(expression, source) else {
         return;
     };
-    let allowed = justified(expression, source);
-    if allowed {
-        return;
-    }
     output.push(Measurement {
         kind: Kind::ControlFlow(ControlFlow::RepeatedClassification),
         line: expression.start_position().row + 1,

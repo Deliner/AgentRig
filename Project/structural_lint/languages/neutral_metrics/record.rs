@@ -1,4 +1,6 @@
+use crate::shared::source_parsers::Exception;
 use crate::structural_lint::rule_identities::kind::Kind;
+use std::collections::BTreeSet;
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -14,6 +16,9 @@ pub struct Analysis {
     // DECISION: D156
     pub mixed_junctions: Vec<usize>,
     pub parse_error: Option<usize>,
+    // DECISION: D222
+    pub exceptions: Vec<Exception>,
+    pub lifted: BTreeSet<usize>,
 }
 #[derive(Clone, Copy)]
 pub struct Code<'a> {

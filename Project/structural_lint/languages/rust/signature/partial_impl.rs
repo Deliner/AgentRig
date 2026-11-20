@@ -1,7 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, justified_item, type_name,
-};
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
@@ -26,9 +24,7 @@ pub(super) fn inspect(implementation: Node<'_>, source: Code<'_>, output: &mut V
     let accessed = nodes.iter().any(|node| self_field(*node));
     let complete = nodes.iter().any(|node| exhaustive(*node, owner, source));
     let covered = !accessed || complete;
-    let allowed = covered
-        || in_test_context(implementation, source)
-        || justified_item(implementation, source);
+    let allowed = covered || in_test_context(implementation, source);
     if allowed {
         return;
     }

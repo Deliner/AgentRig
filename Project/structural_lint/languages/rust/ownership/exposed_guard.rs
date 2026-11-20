@@ -1,7 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, justified_item, type_name,
-};
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
 use tree_sitter::Node;
@@ -30,7 +28,7 @@ pub(super) fn inspect(function: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
         node.kind() == "generic_type"
             && type_name(node, source).is_some_and(|name| GUARDS.contains(&name))
     });
-    let allowed = !guarded || in_test_context(function, source) || justified_item(function, source);
+    let allowed = !guarded || in_test_context(function, source);
     if allowed {
         return;
     }

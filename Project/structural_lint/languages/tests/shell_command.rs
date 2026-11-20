@@ -58,12 +58,8 @@ fn rust_skips_literal_and_constant_commands_other_flags_programs_and_order() {
 }
 
 #[test]
-fn rust_skips_a_justified_shell_command_and_test_code() {
-    let source = r#"fn run(path: &str) {
-    // DECISION: D001
-    Command::new("sh").arg("-c").arg(path).status();
-}
-#[cfg(test)]
+fn rust_skips_shell_commands_in_test_code() {
+    let source = r#"#[cfg(test)]
 mod tests {
     fn run(path: &str) {
         Command::new("sh").arg("-c").arg(path).status();

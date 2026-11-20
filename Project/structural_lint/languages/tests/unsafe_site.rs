@@ -18,47 +18,35 @@ fn unsafe_findings(path: &str, source: &str) -> Vec<usize> {
 }
 
 #[test]
-fn rust_flags_unsafe_without_a_reference_on_the_line_above() {
+fn rust_flags_unsafe_blocks_and_functions() {
     let source = "fn plain() {
     let value = 1;
 }
 fn uses_unsafe() {
     let first = unsafe { work() };
-    // DECISION: D001
-    let second = unsafe { work() };
-    // INVARIANT: I002
-    let third = unsafe { work() };
 }
 unsafe fn bare() {}
-// DECISION: D001
-unsafe fn marked() {}
 ";
-    assert_eq!(unsafe_findings("source.rs", source), [5, 11]);
+    assert_eq!(unsafe_findings("source.rs", source), [5, 7]);
 }
 
 // DECISION: D103
 #[test]
 fn rust_flags_unsafe_impl_trait_and_static_mut_through_attributes() {
     let source = "unsafe impl Send for Handle {}
-// DECISION: D001
-unsafe impl Sync for Handle {}
 pub unsafe trait Raw {}
-// INVARIANT: I002
 #[cfg(unix)]
 unsafe trait Marked {}
 static mut COUNTER: u32 = 0;
-// DECISION: D001
-static mut JUSTIFIED: u32 = 0;
 static PLAIN: u32 = 0;
 impl Send for Safe {}
 #[inline]
 unsafe fn attributed() {}
-// DECISION: D001
 #[inline]
 #[must_use]
 unsafe fn stacked() -> u8 { 0 }
 ";
-    assert_eq!(unsafe_findings("source.rs", source), [1, 4, 8, 14]);
+    assert_eq!(unsafe_findings("source.rs", source), [1, 2, 4, 5, 9, 12]);
 }
 
 // DECISION: D103
@@ -67,17 +55,14 @@ fn rust_flags_unsafe_inside_macro_bodies() {
     let source = "macro_rules! raw {
     ($name:ident, $body:block) => {
         unsafe fn $name() { $body }
-        // DECISION: D001
-        unsafe fn justified() {}
         $( unsafe { $body } )*
     };
 }
 lazy_static! { static ref LOCK: usize = unsafe { init() }; }
 fn call() { assert!(unsafe { ready() }); }
-// DECISION: D001
 const SAFE: usize = 1;
 ";
-    assert_eq!(unsafe_findings("source.rs", source), [3, 6, 9, 10]);
+    assert_eq!(unsafe_findings("source.rs", source), [3, 4, 7, 8]);
 }
 
 // DECISION: D103

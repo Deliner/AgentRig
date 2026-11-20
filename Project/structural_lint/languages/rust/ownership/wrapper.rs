@@ -1,7 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, justified_item, type_name,
-};
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
 use std::collections::BTreeMap;
@@ -47,8 +45,7 @@ pub(super) fn inspect(root: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         let Some(kind) = file.classify(implementation) else {
             continue;
         };
-        let allowed =
-            in_test_context(implementation, source) || justified_item(implementation, source);
+        let allowed = in_test_context(implementation, source);
         if allowed {
             continue;
         }

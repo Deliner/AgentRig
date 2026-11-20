@@ -1,6 +1,6 @@
 use super::exemptions::async_code::in_async_context;
 use super::exemptions::{in_test_context, last_segment};
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
@@ -13,8 +13,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     let Some(symbol) = blocking(function, source) else {
         return;
     };
-    let allowed = justified(node, source) || in_test_context(node, source);
-    let reported = !allowed && in_async_context(node);
+    let reported = !in_test_context(node, source) && in_async_context(node);
     if reported {
         output.push(Measurement {
             kind: Kind::Reference(Reference::BlockingInAsync),

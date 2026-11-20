@@ -38,7 +38,7 @@ mod real {
 }
 
 #[test]
-fn rust_skips_cfg_attr_partial_other_flag_statement_field_justified_and_test_items() {
+fn rust_skips_cfg_attr_partial_other_flag_statement_field_and_test_items() {
     let source = "#![cfg_attr(not(test), no_std)]
 #[cfg(any(not(test), feature = \"real\"))]
 fn either() {}
@@ -54,9 +54,6 @@ struct Config {
     #[cfg(not(test))]
     path: String,
 }
-// DECISION: D001
-#[cfg(not(test))]
-fn justified() {}
 #[cfg(test)]
 mod tests {
     #[cfg(not(test))]

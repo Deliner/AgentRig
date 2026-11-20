@@ -27,8 +27,6 @@ fn rust_flags_format_strings_with_two_or_more_unnamed_placeholders() {
     let single = format!(\"{}\", name);
     let escaped = format!(\"{{}} {}\", name);
     let mixed = format!(\"{name} has {}\", size);
-    // DECISION: D001
-    let justified = format!(\"{} {}\", name, size);
     let text = concat!(\"{}\", \"{}\");
 }
 #[cfg(test)]
@@ -55,8 +53,6 @@ fn rust_flags_a_struct_literal_field_set_from_another_field_name() {
     let size = Size { width, height: width };
     let own = Point { x: x, y };
     let plain = Point { x: other, y: y + 1 };
-    // DECISION: D001
-    let justified = Point { x: y, y: x };
 }
 ";
     assert_eq!(
@@ -84,8 +80,6 @@ fn rust_flags_an_index_found_in_one_collection_and_read_from_another() {
     let skipped = groups.iter().skip(1).position(|group| group.ready).map(|index| layouts[index]);
     let custom = frame.position(name).and_then(|index| layouts.get(index));
     let removed = groups.iter().position(|group| group.ready).map(|index| layouts.swap(index, 0));
-    // DECISION: D001
-    let justified = layouts[groups.iter().position(|group| group.name == name).unwrap()];
 }
 #[cfg(test)]
 mod tests {

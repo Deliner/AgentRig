@@ -14,7 +14,7 @@ mod test_code;
 mod unsafe_site;
 use crate::structural_lint::languages::neutral_metrics::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
-    comment, condition, credential, function, justified, mixed_junction, nesting, reparse, text,
+    comment, condition, credential, function, mixed_junction, nesting, reparse, text,
 };
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Pair;
@@ -148,7 +148,7 @@ fn assertion_macro(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measuremen
     }
 }
 fn report_assertion(node: Node<'_>, source: Code<'_>, symbol: &str, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }
@@ -179,7 +179,7 @@ fn eager_fallback(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
     if safe {
         return;
     }
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }
@@ -259,7 +259,7 @@ fn discarded_result(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
     let Some(symbol) = symbol else {
         return;
     };
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }
@@ -395,7 +395,7 @@ fn scan_fragment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>
 }
 // DECISION: D085
 fn wildcard_use(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

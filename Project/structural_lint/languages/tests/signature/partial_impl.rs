@@ -40,7 +40,7 @@ impl PartialEq for Point {
 }
 
 #[test]
-fn rust_skips_impls_naming_every_field_other_traits_justified_and_test_impls() {
+fn rust_skips_impls_naming_every_field_other_traits_and_test_impls() {
     let source = "impl PartialEq for User {
     fn eq(&self, other: &Self) -> bool {
         let Self { id, name } = self;
@@ -60,12 +60,6 @@ impl Ord for Rank {
 impl Display for User {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
         write!(formatter, \"{}\", self.name)
-    }
-}
-// DECISION: D001
-impl PartialEq for Rank {
-    fn eq(&self, other: &Self) -> bool {
-        self.score == other.score
     }
 }
 #[cfg(test)]

@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, descendants, justified, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -12,7 +10,7 @@ pub(super) fn inspect(array: Node<'_>, source: Code<'_>, output: &mut Vec<Measur
     let Some(owner) = listed_enum(array, source) else {
         return;
     };
-    let allowed = justified(array, source) || in_test_context(array, source);
+    let allowed = in_test_context(array, source);
     if allowed {
         return;
     }

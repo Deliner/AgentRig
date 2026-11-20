@@ -1,4 +1,3 @@
-use super::exemptions::justified_item;
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -8,7 +7,7 @@ use tree_sitter::Node;
 // DECISION: D103
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     if let Some(symbol) = site(node) {
-        report(node, symbol, source, output);
+        report(node, symbol, output);
     }
     let tree = matches!(node.kind(), "token_tree" | "token_repetition");
     let plain = !tree;
@@ -20,7 +19,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         .children(&mut cursor)
         .filter(|child| child.kind() == "unsafe" && !attribute_opener(*child, source))
     {
-        report(token, "unsafe", source, output);
+        report(token, "unsafe", output);
     }
 }
 fn attribute_opener(token: Node<'_>, source: Code<'_>) -> bool {
@@ -57,11 +56,7 @@ fn keyword(node: Node<'_>, kind: &str) -> bool {
     let mut cursor = node.walk();
     node.children(&mut cursor).any(|child| child.kind() == kind)
 }
-fn report(node: Node<'_>, symbol: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let allowed = justified_item(node, source);
-    if allowed {
-        return;
-    }
+fn report(node: Node<'_>, symbol: &str, output: &mut Vec<Measurement>) {
     output.push(Measurement {
         kind: Kind::Reference(Reference::UnsafeJustification),
         line: node.start_position().row + 1,

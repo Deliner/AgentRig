@@ -3,7 +3,7 @@ mod cfg_flags;
 mod debug_code;
 mod test_code;
 
-use crate::structural_lint::languages::neutral_metrics::{Code, descendants, justified_line, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, descendants, text};
 pub(super) use cfg_flags::cfg_excludes;
 pub(super) use debug_code::in_debug_only_context;
 pub(crate) use test_code::in_test_context;
@@ -32,17 +32,6 @@ pub(super) fn attributed(
         sibling = node.prev_named_sibling();
     }
     false
-}
-pub(super) fn justified_item(item: Node<'_>, source: Code<'_>) -> bool {
-    let mut anchor = item;
-    while let Some(previous) = anchor.prev_sibling() {
-        let other = previous.kind() != "attribute_item";
-        if other {
-            break;
-        }
-        anchor = previous;
-    }
-    justified_line(anchor.start_position().row, source.as_str())
 }
 pub(super) fn trait_impl_member(item: Node<'_>) -> bool {
     item.parent()

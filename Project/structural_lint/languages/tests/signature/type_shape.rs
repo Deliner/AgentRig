@@ -15,8 +15,6 @@ type Pair<T> = (T, T);
 type Wide<T> = u64;
 type Store = HashMap<String, u64>;
 type Text = std::string::String;
-// DECISION: D001
-type Seconds = u32;
 ";
     assert_eq!(
         measured(source, ALIAS),
@@ -39,8 +37,6 @@ fn rust_flags_an_option_over_a_bool_wherever_it_stands_and_leaves_a_nested_optio
 fn choose(flag: std::option::Option<bool>) -> Option<Vec<bool>> {
     None
 }
-// DECISION: D001
-type Tristate = Option<bool>;
 ";
     assert_eq!(
         measured(source, OPTION),
@@ -125,8 +121,6 @@ pub mod inline {
     }
 }
 pub type Deep = Option<Option<Option<u32>>>;
-// DECISION: D001
-pub type Justified = Option<Option<u32>>;
 "#;
 
 // DECISION: D163

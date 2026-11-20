@@ -8,6 +8,8 @@ pub struct Descriptor {
     pub metric: &'static str,
     pub skill: &'static str,
     pub parameters: Parameters,
+    // DECISION: D222
+    pub accepts_exception: bool,
 }
 pub(crate) const TEST_CODE: &[&str] = &["**/tests/**", "**/tests.rs"];
 impl Kind {

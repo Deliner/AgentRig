@@ -57,7 +57,7 @@ macro_rules! bail_if_none {
 }
 
 #[test]
-fn rust_skips_own_loops_deferred_bodies_unparsed_justified_and_test_transcribers() {
+fn rust_skips_own_loops_deferred_bodies_unparsed_and_test_transcribers() {
     let source = "macro_rules! each {
     ($($item:expr),*) => {
         $(
@@ -76,12 +76,6 @@ macro_rules! deferred {
 }
 macro_rules! broken {
     ($x:expr) => { => return $x };
-}
-macro_rules! give_up {
-    ($error:expr) => {
-        // DECISION: D001
-        return Err($error.into())
-    };
 }
 #[cfg(test)]
 mod tests {

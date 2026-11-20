@@ -56,15 +56,13 @@ fn rust_flags_unlabeled_exits_of_a_loop_nested_in_another_loop_of_the_same_funct
 }
 
 #[test]
-fn rust_skips_labeled_single_level_closure_bounded_justified_and_test_exits() {
+fn rust_skips_labeled_single_level_closure_bounded_and_test_exits() {
     let source = "fn scan(rows: &[Vec<u8>]) {
     for row in rows {
         'cells: for cell in row {
             for other in row {
                 continue 'cells;
             }
-            // DECISION: D001
-            break;
         }
         row.iter().for_each(|cell| loop {
             break;
@@ -97,8 +95,6 @@ fn rust_flags_subtraction_from_a_length_or_count_call() {
     let checked = items.len().saturating_sub(1);
     let matches = text.count(pattern) - 1;
     let plain = len - 1;
-    // DECISION: D001
-    let justified = items.len() - 1;
     index
 }
 #[cfg(test)]
@@ -129,8 +125,6 @@ fn rust_flags_subtraction_from_a_bit_count_or_a_count_passed_alone_through_a_cal
     let after = 1 - widen(dense.count_ones());
     let nested = widen(widen(items.len())) - 1;
     let sum = widen(changed.count_ones()) + 1;
-    // DECISION: D001
-    let justified = widen(changed.count_ones()) - 1;
     mixed
 }
 ";

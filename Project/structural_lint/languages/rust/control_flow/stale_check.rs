@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, descendants, justified, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -44,7 +42,7 @@ pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         return;
     };
     let racing = normal(guard.absent, source) && acted(&check, &guard, source);
-    let allowed = !racing || justified(call, source) || in_test_context(call, source);
+    let allowed = !racing || in_test_context(call, source);
     if allowed {
         return;
     }

@@ -29,7 +29,7 @@ pub fn exceptions(path: &Path, source: &str) -> Result<Vec<Exception>> {
         .map(|tree| tree_exceptions(tree.root_node(), source))
         .unwrap_or_default())
 }
-fn tree_exceptions(root: Node<'_>, source: &str) -> Vec<Exception> {
+pub fn tree_exceptions(root: Node<'_>, source: &str) -> Vec<Exception> {
     let mut found = Vec::new();
     let mut pending = vec![root];
     while let Some(node) = pending.pop() {
@@ -44,7 +44,7 @@ fn tree_exceptions(root: Node<'_>, source: &str) -> Vec<Exception> {
     found.sort_by_key(|exception| exception.line);
     found
 }
-fn line_exceptions(source: &str) -> Vec<Exception> {
+pub fn line_exceptions(source: &str) -> Vec<Exception> {
     source
         .lines()
         .enumerate()

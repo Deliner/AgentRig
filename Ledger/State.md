@@ -2,32 +2,28 @@
 
 ## Focus
 
-P167 (B174) VAC 4: the rig's lint exceptions name their rule and are listed in their decisions (D219, D220).
+P167 (B174) VAC 5: lint lifts only the rule an exception names on the line below and reports one that lifts nothing.
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: 1d92698418a40829a2347711c01690e28285cfd7
+Revision: 57fb11af2784a7e25b9a659abebea082b567af9f
 
 ## Progress
 
-- VAC 1 to 3 and the pin of 5f87bcb are committed.
-- 34 markers that lift a finding became `DECISION: DNNN RULE` exceptions, each listed as `[exception RULE](FILE)`.
-- The old `kept comparison` and `kept job directory` links of D156 and D092 became exception links.
-- The comparison in `command_runner/sandbox.rs` now cites D156, which allows it, instead of D193.
-- D221 records the deprecated `mach_timebase_info` binding that D066 cited without covering it.
-- Accidental lifts of `same-type-parameters` are removed in code: `sandbox` takes the scratch `TempDir`,
-  `same_text` takes the selected target and `lowered` takes the baseline by value.
+- `structural_lint/lifting.rs` lifts a finding only under `DECISION: DNNN RULE` naming its rule on the line above.
+- The comment rule reports every exception that lifted nothing in a file that parsed (AC3).
+- Detectors no longer read markers; language tests are detection-only; `tests/lifting.rs` covers AC1 and AC3.
+- D222 records the choice and supersedes the marker lift of D065, D096, D103 and D147.
 
 ## Verification
 
-- With marker lifts disabled for the check only, lint reports the 34 named sites and no `same-type-parameters`.
-- `just candidate check --only memory` passes on the exception links.
+- `just run test`: 593 passed. `just lint --json`: no findings. Clippy, rustfmt and the memory check pass.
 
 ## Blockers
 
-The commit guard refuses the 34 new exceptions until the user approves them with their own `just approve`.
+None.
 
 ## Next action
 
-Commit VAC 4 after the approval, then VAC 5: lint lifts only the named rule and reports an exception without a finding.
+VAC 6: rewrite the repair skills for the exception form (AC5), then archive P167 and propose the pin.

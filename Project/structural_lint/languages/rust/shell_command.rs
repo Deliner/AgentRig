@@ -1,5 +1,5 @@
 use super::exemptions::{in_test_context, last_segment};
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
@@ -30,7 +30,7 @@ pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     if other {
         return;
     }
-    let allowed = justified(call, source) || in_test_context(call, source);
+    let allowed = in_test_context(call, source);
     if allowed {
         return;
     }

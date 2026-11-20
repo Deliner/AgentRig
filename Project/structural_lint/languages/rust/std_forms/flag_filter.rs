@@ -1,5 +1,5 @@
 use super::{calls, method, sole_argument};
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
@@ -9,16 +9,14 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     let computed =
         method(node, source).is_some_and(|(name, receiver)| name == "filter" && calls(receiver));
     let flagged = computed && sole_argument(node).is_some_and(ignores_the_value);
-    let allowed = !flagged || justified(node, source);
-    if allowed {
-        return;
+    if flagged {
+        output.push(Measurement {
+            kind: Kind::Reference(Reference::OuterFlagFilter),
+            line: node.start_position().row + 1,
+            symbol: "filter".into(),
+            actual: 1,
+        });
     }
-    output.push(Measurement {
-        kind: Kind::Reference(Reference::OuterFlagFilter),
-        line: node.start_position().row + 1,
-        symbol: "filter".into(),
-        actual: 1,
-    });
 }
 fn ignores_the_value(argument: Node<'_>) -> bool {
     let closure = argument.kind() == "closure_expression";
