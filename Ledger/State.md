@@ -2,31 +2,31 @@
 
 ## Focus
 
-P173 по B180, VAC 4: пин рантайма с согласием, рецепты согласия, отказ хука агенту на `just consent` и тексты.
+P173 по B180, финальный VAC: пин d725979 по согласию, тест AC1 с поднятым порогом, архив P173 и B180.
 
 ## Workspace
 
 Branch: feature/standing-consent
-Revision: aa8fd41f49763055fb4f193205341a89a1aa7cdd
+Revision: d725979186f6c6293affe96b2106d288089fd2ce
 
 Ветка идёт от последнего коммита P170 и сливает P170 вместе с P173.
 
 ## Progress
 
-- Пользователь подтвердил: пин на aa8fd41, три рецепта согласия в delivery.just, описания `propose-pin` в
-  commands.yaml и development.just, карта тестов checks.yaml с `lint_files/**` и `format.rs`.
-- Вместе с ними: три рецепта в шаблоне `project_setup/recipes.rs` для I023, отказ хука на `consent` в
-  `agent_hooks/shell_guard.rs`, защита `.cache/runtime/consent` в тесте хука, тексты AGENTS.md и CLAUDE.md, README
-  дистрибуции и навыка propose-protected-change, ссылки D226.
+- Пользователь дал согласие на P173, P171 и P172; `just propose-pin HEAD` сам поставил пин d725979 после гейта ветки.
+- Тест `a_lint_configuration_commits_without_approval_only_when_it_adds_rules` проверяет и поднятый порог, и текст
+  отказа `has not approved`, как называет AC1.
+- P173 и B180 в архиве с Delivery; ссылки D226 ведут в архив.
 
 ## Verification
 
-- `just test agent_hooks::tests:: project_setup::tests::`: 74 passed до подтверждения.
+- `just propose-pin HEAD`: гейт ветки, 605 тестов; `just consented-pins` показал d725979 с 6 файлами.
+- `just test change_delivery::git::tests::approval::a_lint_configuration`: 1 passed. `just check --only memory`: PASS.
 
 ## Blockers
 
-Нет. `! just consent` пользователь набирает отдельно; без него следующий пин снова попросит подтверждения.
+Нет.
 
 ## Next action
 
-После коммита: архив P173 и B180, финальный пин под согласием, `just feature-merge`.
+Пин этого коммита по согласию, коммит пина, `just feature-merge`; затем P171 и P172 одной веткой от master.

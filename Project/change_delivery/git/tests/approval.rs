@@ -190,19 +190,21 @@ fn a_lint_configuration_commits_without_approval_only_when_it_adds_rules() {
     });
     let accepted = committed(&root, "added");
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
-    let weakenings: [fn(&mut Vec<Value>); 2] = [
+    let weakenings: [fn(&mut Vec<Value>); 3] = [
         |all| all.retain(|rule| rule["id"] != "file-size"),
         |all| all[0]["enabled"] = json!(false),
+        |all| {
+            let size = all.iter_mut().find(|rule| rule["id"] == "file-size");
+            size.unwrap()["error"] = json!(100_000);
+        },
     ];
     for weaken in weakenings {
         rules(&root, weaken);
         let refused = committed(&root, "weakened");
         assert_eq!(refused.code, Some(1), "{}", refused.output());
-        assert!(
-            refused.stderr.contains(".agentrig/lint.yaml"),
-            "{}",
-            refused.stderr
-        );
+        for named in [".agentrig/lint.yaml", "has not approved"] {
+            assert!(refused.stderr.contains(named), "{}", refused.stderr);
+        }
         git(&root, &["reset", "-q", "--hard"]);
     }
 }
