@@ -61,7 +61,8 @@ fn directories<'i>(rule: &Rule, inventory: &'i Inventory) -> Result<BTreeSet<&'i
 }
 
 fn findings(rule: &Rule, issues: Vec<Issue>) -> Result<Vec<Diagnostic>> {
-    issues
+    let distinct: BTreeSet<Issue> = issues.into_iter().collect();
+    distinct
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
         .collect()

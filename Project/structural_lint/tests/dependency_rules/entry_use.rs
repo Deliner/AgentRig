@@ -8,12 +8,12 @@ const RUST_JOBS: [(&str, &str); 9] = [
     ("src/lib.rs", "pub mod jobs;\npub mod other;\n"),
     (
         "src/jobs/mod.rs",
-        "mod cleanup;\nmod guard;\nmod job;\nmod queue;\n#[cfg(test)]\nmod tests;\npub use job::Job;\n",
+        "mod cleanup;\nmod guard;\nmod job;\nmod queue;\n#[cfg(test)]\nmod tests;\npub use job::Job;\npub fn limit() -> usize { 1 }\n",
     ),
     ("src/jobs/job.rs", "pub struct Job;\n"),
     (
         "src/jobs/cleanup.rs",
-        "use super::Job;\npub fn clean(_: Job) {}\n",
+        "use super::{Job, limit};\npub fn clean(_: Job) -> usize { limit() }\n",
     ),
     (
         "src/jobs/queue.rs",
@@ -29,9 +29,12 @@ const RUST_JOBS: [(&str, &str); 9] = [
 ];
 
 const PYTHON_JOBS: [(&str, &str); 8] = [
-    ("src/jobs/__init__.py", "from jobs.job import Job\n"),
+    (
+        "src/jobs/__init__.py",
+        "from jobs.job import Job\n\n\ndef limit():\n    return 1\n",
+    ),
     ("src/jobs/job.py", "class Job:\n    pass\n"),
-    ("src/jobs/cleanup.py", "from jobs import Job\n"),
+    ("src/jobs/cleanup.py", "from jobs import Job, limit\n"),
     ("src/jobs/queue.py", "from jobs.job import Job\n"),
     ("src/jobs/guard/__init__.py", ""),
     ("src/jobs/guard/x.py", "from jobs import Job\n"),

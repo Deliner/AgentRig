@@ -49,7 +49,7 @@ impl Relation {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Issue {
     pub path: PathBuf,
     pub line: Option<usize>,
