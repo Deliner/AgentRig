@@ -23,8 +23,11 @@ future finishes, which can deadlock when that future waits for the outer one.
    `spawn_blocking` or a dedicated thread and await its handle.
 4. Keep the blocking call only when blocking that thread is the intent, such
    as a debug action that hangs an executor on purpose or test-support code on
-   its own runtime. Record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the call.
+   its own runtime. Record the reasoning as a decision with edit-decisions and
+   put its exception `// DECISION: DNNN RULE`, RULE being the rule ID the
+   finding names, alone on the line directly above the call. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 The check reads syntax only: a type's own `block_on` method that does not
@@ -38,9 +41,10 @@ turbofish function or method named `block_on`, when its nearest enclosing
 scope boundary is an `async fn` or an `async` block. A closure, async closures
 included, or a plain `fn` between the call and that boundary ends the async
 context, so `spawn_blocking(|| thread::sleep(..))` is not flagged. Test code
-and a call with a `DECISION:` or `INVARIANT:` reference on the line directly
-above are out of scope. Rerun the reported lint check and relevant behavior
-checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the async code awaits instead of blocking,
-the blocking work runs off the executor, or the block is justified by an owned
-reference.
+is out of scope. An exception naming this rule, `blocking-in-async` by default,
+on the line directly above the call lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. Rerun the reported lint check and
+relevant behavior checks. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when the async code awaits instead of
+blocking, the blocking work runs off the executor, or an approved exception
+lifts the finding.

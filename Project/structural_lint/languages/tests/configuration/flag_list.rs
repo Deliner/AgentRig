@@ -15,8 +15,6 @@ fn yaml_flags_lint_silencing_rustflags_items_without_a_reference_above() {
 - --cap-lints=warn
 - --cap-lints
 - allow
-# DECISION: D001
-- -Aclippy::pedantic
 - --cfg
 - -D
 - warnings
@@ -35,21 +33,18 @@ nested:
             "6:--allow",
             "7:--cap-lints=warn",
             "8:--cap-lints",
-            "17:--cap-lints"
+            "15:--cap-lints"
         ]
     );
 }
 
 // DECISION: D183
 #[test]
-fn yaml_flags_force_warn_rustflags_items_without_a_reference_above() {
+fn yaml_flags_force_warn_rustflags_items() {
     let source = "rustflags:
 - --force-warn
 - clippy::panic
 - --force-warn=unused_variables
-# DECISION: D001
-- --force-warn
-- clippy::unwrap_used
 - -W
 - dead_code
 - --warn=unused_imports
@@ -126,9 +121,6 @@ fn yaml_reads_only_compiler_arguments_of_a_cargo_command() {
   - clippy
   - -A
   - --
-  # DECISION: D001
-  - --force-warn
-  - clippy::unwrap_used
   - -W
   - clippy::print_stdout
 rustc:
@@ -146,7 +138,7 @@ test:
             ".agentrig/commands.yaml",
             source
         ),
-        ["13:--allow"]
+        ["10:--allow"]
     );
 }
 

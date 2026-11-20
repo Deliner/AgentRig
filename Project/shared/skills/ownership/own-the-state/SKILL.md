@@ -21,9 +21,12 @@ writer has to be found by search and a behavior change needs all of them.
    counter and is not a finding; a `OnceLock` or `LazyLock` holding an
    immutable value has no writers and is not a finding either.
 4. If the global is genuinely intended — a process-wide registry with no
-   possible owner, or an interned table — record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the item, or
-   above the macro for an item on the macro's first line.
+   possible owner, or an interned table — record the reasoning as a decision
+   with edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE
+   being the rule ID the finding names, alone on the line directly above the
+   item, below its attributes, or above the macro for an item on the macro's
+   first line. List it in the decision as `[exception RULE](FILE)`; the user
+   approves a new exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -32,8 +35,11 @@ The measurement flags every Rust `static` item outside test code, excluding
 `static mut`, whose type — following `type` aliases declared at the top level of
 the same file up to three levels — contains a lock, or a `pub` static whose type
 contains any cell, including items declared inside `lazy_static!` or
-`thread_local!`, without a `DECISION:` or `INVARIANT:` reference on the line
-directly above it. Test code is out of scope. Rerun the reported lint check and
-relevant behavior checks. Do not weaken the rule or its selectors merely to pass.
-Apply complexity-discipline; stop when the state has an owner, or the global is
-justified by an owned reference.
+`thread_local!`. Test code is out of scope. An exception naming this rule,
+`global-state` by default, on the line directly above the static lifts the
+finding; for a static inside `lazy_static!` or `thread_local!` that is the line
+above its own line, or above the macro when it stands on the macro's first
+line. A bare `DECISION:` or `INVARIANT:` reference lifts nothing. Rerun the
+reported lint check and relevant behavior checks. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when the state has
+an owner, or an approved exception lifts the finding.

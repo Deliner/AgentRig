@@ -18,8 +18,11 @@ and skip the check entirely.
    method that repeats the check, or construct a new value through the
    constructor.
 4. When the field must stay visible, such as a `#[repr(C)]` layout that foreign
-   code reads, record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the struct or its attributes.
+   code reads, record the reasoning as a decision with edit-decisions and put
+   its exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the struct, below its attributes.
+   List it in the decision as `[exception RULE](FILE)`; the user approves a new
+   exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -28,8 +31,9 @@ The measurement reports every Rust struct whose checking constructor stores a
 checked parameter in a field with a visibility modifier, once per struct. A
 checking constructor is a fn without `self` in the struct's inherent impl, an
 `impl TryFrom` or an `impl FromStr`, returning a `Result` or `Option` of `Self`,
-that refuses on a parameter. Test code and a struct with a `DECISION:` or
-`INVARIANT:` reference on the line directly above it or its attributes are out
-of scope. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when every checked field is private or the visible
-field is justified by an owned reference.
+that refuses on a parameter. Test code is out of scope. An exception naming
+this rule, `open-checked-field` by default, on the line directly above the
+struct, below its attributes, lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. Do not weaken the rule or its selectors
+merely to pass. Apply complexity-discipline; stop when every checked field is
+private or an approved exception lifts the finding.

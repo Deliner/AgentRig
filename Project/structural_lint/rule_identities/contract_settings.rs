@@ -99,7 +99,7 @@ impl Settings {
         {
             let relative = path
                 .components()
-                // DECISION: D156
+                // DECISION: D156 variant-equality
                 .all(|part| matches!(part, Component::Normal(_) | Component::CurDir));
             ensure!(
                 relative,

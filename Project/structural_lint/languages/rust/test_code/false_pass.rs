@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, descendants, justified, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{
     attribute_path, cfg_excludes, in_test_context, last_segment,
 };
@@ -35,8 +33,7 @@ fn untargeted_panic(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
         .child_by_field_name("arguments")
         .is_some_and(|arguments| names_expected(arguments, source));
     let targeted = valued || expected;
-    let allowed = targeted || justified(node, source);
-    if allowed {
+    if targeted {
         return;
     }
     report(node, Reference::UntargetedPanic, "should_panic", output);
@@ -55,7 +52,7 @@ fn test_substitution(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurem
     if other {
         return;
     }
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

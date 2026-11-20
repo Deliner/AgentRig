@@ -1,4 +1,4 @@
-purpose: "Make a manual comparison, hash or copy name every field of its type, or justify the partial reading with a reference"
+purpose: "Make a manual comparison, hash or copy name every field of its type, or justify the partial reading with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to destructure Self without .. in a manual PartialEq, Hash, PartialOrd, Ord or Clone"

@@ -19,17 +19,21 @@ by mistake, or the exchange is intended and reads exactly like that mistake.
    `let Size { width: old_width, height: old_height } = size;` followed by
    `Size { width: old_height, height: old_width }`, so that the literal states
    the exchange.
-4. When renaming would obscure a well-known form, record the reasoning as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   literal.
+4. When renaming would obscure a well-known form, record the reasoning as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the reported field. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust struct literal field initialized by a plain
 identifier that is not the field's own name but names another field of the same
-literal, once per literal. Test code and a literal with a `DECISION:` or
-`INVARIANT:` reference on the line directly above it are out of scope. Do not
-weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when each field takes its own name, the variables state the exchange, or
-it is justified by an owned reference.
+literal, once per literal, at the first such field. Test code is out of scope.
+An exception naming this rule, `crossed-field` by default, on the line directly
+above the reported field lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when each field takes its own name, the
+variables state the exchange, or an approved exception lifts the finding.

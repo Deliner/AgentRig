@@ -1,4 +1,4 @@
-purpose: "Handle the missing value before adding to or multiplying a MAX fallback, or saturate explicitly, or justify the unreachable fallback with a reference"
+purpose: "Handle the missing value before adding to or multiplying a MAX fallback, or saturate explicitly, or justify the unreachable fallback with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to keep a MAX fallback a bound in the arithmetic that follows it"

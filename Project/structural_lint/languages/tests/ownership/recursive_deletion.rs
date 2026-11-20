@@ -23,8 +23,6 @@ fn rust_flags_remove_dir_all_calls_from_any_source_outside_tests() {
     std::fs::remove_dir_all(root.join(name))?;
     fs::remove_dir_all(root)?;
     remove_dir_all(root)?;
-    // DECISION: D001
-    fs::remove_dir_all(root.join(name))?;
     self.store.remove_dir_all(root)?;
     fs::remove_file(root.join(name))?;
     fs::remove_dir(root.join(name))?;
@@ -37,5 +35,5 @@ mod tests {
     fn helper(root: &Path) { std::fs::remove_dir_all(root).unwrap(); }
 }
 ";
-    assert_eq!(deletion_findings("source.rs", source), [2, 3, 4, 7, 10, 11]);
+    assert_eq!(deletion_findings("source.rs", source), [2, 3, 4, 5, 8, 9]);
 }

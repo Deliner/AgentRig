@@ -24,9 +24,12 @@ set, and moving the call into a closure changes which function it leaves.
    part of its name split at underscores is `bail`, `ensure`, `require`,
    `return`, `try`, `break`, `continue`, `exit`, `throw`, `fail` or
    `propagate`, as in `bail_if_none!`.
-5. Otherwise record why the hidden exit is intended as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the `return`,
-   `?`, `break` or `continue`.
+5. Otherwise record why the hidden exit is intended as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the line
+   of the `return`, `?`, `break` or `continue`. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -36,10 +39,12 @@ loop of the same body in a Rust `macro_rules!` transcriber that parses as a
 function body once each `$` and the delimiters, separator and operator of each
 `$(..)` repetition become spaces. Closures, nested `fn` items and `async`
 blocks of that body do not count. A macro whose name has one of the exit words
-of step 4 as an underscore-separated part is skipped. Test code and an exit
-with a `DECISION:` or `INVARIANT:` reference on the line directly above it are
-not measured. A `continue` inside a `$body:block` fragment is written by the
-caller and is not seen. Rerun the reported lint check and relevant behavior
-checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the exit is written at the call site, the
-macro is named after its exit, or the exit is justified by an owned reference.
+of step 4 as an underscore-separated part is skipped. Test code is not
+measured. An exception naming this rule, `hidden-exit` by default, on the line
+directly above the exit lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. A `continue` inside a `$body:block` fragment is
+written by the caller and is not seen. Rerun the reported lint check and
+relevant behavior checks. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when the exit is written at the call
+site, the macro is named after its exit, or an approved exception lifts the
+finding.

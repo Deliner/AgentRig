@@ -20,9 +20,12 @@ code shows it.
 4. When the steps between can be ordered differently, move the early exits
    before the opening call or after the closing call.
 5. When leaving the pair open on the exit is the intended contract, such as a
-   receiver whose own `Drop` already closes, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the opening
-   statement.
+   receiver whose own `Drop` already closes, record the reasoning as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the opening statement. List it in the decision
+   as `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -31,8 +34,9 @@ The rule's `pairs` setting lists the open and close method names of the
 project. The measurement reports every Rust block statement calling the open
 method of a configured pair on a receiver, followed in the same block by the
 close method on the token-equal receiver with a `?`, `return`, `break` or
-`continue` between them outside closures. Test code and a statement with a
-`DECISION:` or `INVARIANT:` reference on the line directly above it are out of
-scope. Do not weaken the rule, its pairs or its selectors merely to pass. Apply
-complexity-discipline; stop when the pair closes on every path or the exit is
-justified by an owned reference.
+`continue` between them outside closures. Test code is out of scope. An
+exception naming this rule, `paired-calls` by default, on the line directly
+above the opening statement lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. Do not weaken the rule, its pairs or its
+selectors merely to pass. Apply complexity-discipline; stop when the pair
+closes on every path or an approved exception lifts the finding.

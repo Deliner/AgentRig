@@ -1,7 +1,7 @@
 use super::checked_constructor::{Owner, owned};
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{
-    attributed, derives, in_test_context, justified_item, last_segment, listed, type_name,
+    attributed, derives, in_test_context, last_segment, listed, type_name,
 };
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
@@ -125,7 +125,7 @@ pub(super) fn open_checked_field(root: Node<'_>, source: Code<'_>, output: &mut 
     }
 }
 fn exposed(definition: Node<'_>, implementations: &[Node<'_>], source: Code<'_>) -> Option<String> {
-    let skipped = in_test_context(definition, source) || justified_item(definition, source);
+    let skipped = in_test_context(definition, source);
     (!skipped).then_some(())?;
     let owner = Owner {
         name: text(definition.child_by_field_name("name")?, source),

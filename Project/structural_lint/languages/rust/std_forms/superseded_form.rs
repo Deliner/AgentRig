@@ -1,5 +1,5 @@
 use super::{method, sole_argument};
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use std::iter::successors;
@@ -15,10 +15,6 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     let Some(form) = form else {
         return;
     };
-    let allowed = justified(node, source);
-    if allowed {
-        return;
-    }
     output.push(Measurement {
         kind: Kind::Reference(Reference::SupersededForm),
         line: node.start_position().row + 1,

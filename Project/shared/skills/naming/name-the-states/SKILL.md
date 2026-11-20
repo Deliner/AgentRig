@@ -20,8 +20,11 @@ merges two of the states.
    arm or a named method, so that it is visible.
 4. When a data type mirrors an external format, such as a JSON field that may be
    missing or null, deserialize into the enum where the format allows it;
-   otherwise record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the type.
+   otherwise record the reasoning as a decision with edit-decisions and put
+   its exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the reported line. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -34,8 +37,9 @@ associated type of a trait impl, and a member of an extern block. The
 parameters, return type and `const` type of a trait impl member are left to the
 trait declaration or the impl header, where that type is chosen. Clippy reports
 the nested form in other signatures, fields, `const` and `static`; the repair is
-the same. Test
-code and a type with a `DECISION:` or `INVARIANT:` reference on the line
-directly above it are out of scope. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when every state has a name
-or the type is justified by an owned reference.
+the same. Test code is out of scope. An exception naming this rule,
+`ambiguous-option` by default, on the line directly above the reported line
+lifts the finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing.
+Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when every state has a name or an approved
+exception lifts the finding.

@@ -18,7 +18,7 @@ impl Error {
         self.source.kind()
     }
     pub fn missing(&self) -> bool {
-        // DECISION: D156
+        // DECISION: D156 variant-equality
         self.source.kind() == io::ErrorKind::NotFound
     }
 }
@@ -45,7 +45,7 @@ pub fn present<T>(result: Result<T>) -> Result<Option<T>> {
         Ok(value) => Ok(Some(value)),
         Err(error) => {
             let kind = error.kind();
-            // DECISION: D156
+            // DECISION: D156 variant-equality
             let absent = matches!(kind, io::ErrorKind::NotFound | io::ErrorKind::NotADirectory);
             if absent { Ok(None) } else { Err(error) }
         }

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
@@ -16,7 +16,7 @@ pub(super) fn record_signature(node: Node<'_>, source: Code<'_>, output: &mut Ve
     if plain {
         return;
     }
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

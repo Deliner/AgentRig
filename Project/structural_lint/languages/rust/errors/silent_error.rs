@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, descendants, justified, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -29,7 +27,7 @@ pub(super) fn collapsed_chain(node: Node<'_>, source: Code<'_>, output: &mut Vec
     };
     let name = text(field, source);
     let dropped = drops_error(name, &values(arguments), receiver, source);
-    let allowed = !dropped || justified(node, source) || in_test_context(node, source);
+    let allowed = !dropped || in_test_context(node, source);
     if allowed {
         return;
     }
@@ -179,7 +177,7 @@ fn report_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
     let Some(function) = verdict_function(node, source) else {
         return;
     };
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }
@@ -277,7 +275,7 @@ pub(super) fn exit_verdict(node: Node<'_>, source: Code<'_>, output: &mut Vec<Me
     let answers = VerdictBody { body, source };
     for exit in returned(body) {
         let answered = answers.success_answer(exit);
-        let allowed = justified(exit, source) || in_test_context(exit, source);
+        let allowed = in_test_context(exit, source);
         let flagged = answered && !allowed;
         if flagged {
             output.push(Measurement {

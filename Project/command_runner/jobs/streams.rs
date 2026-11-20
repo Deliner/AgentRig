@@ -136,12 +136,12 @@ fn wait_readable(fd: RawFd, exited: &AtomicBool) -> Result<bool> {
             events: libc::POLLIN,
             revents: 0,
         };
-        // DECISION: D095
+        // DECISION: D095 unsafe-justification
         let count = unsafe { libc::poll(&mut descriptor, 1, 200) };
         let failed = count < 0;
         if failed {
             let error = std::io::Error::last_os_error();
-            // DECISION: D156
+            // DECISION: D156 variant-equality
             let interrupted = error.kind() == std::io::ErrorKind::Interrupted;
             if interrupted {
                 continue;

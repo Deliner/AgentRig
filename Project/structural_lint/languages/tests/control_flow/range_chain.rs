@@ -28,7 +28,7 @@ fn rust_flags_if_chains_and_match_guards_splitting_one_value_by_literal_bounds()
 }
 
 #[test]
-fn rust_skips_single_bounds_mixed_subjects_named_limits_justified_and_test_chains() {
+fn rust_skips_single_bounds_mixed_subjects_named_limits_and_test_chains() {
     let source = "fn grade(score: i32, other: i32, size: usize) -> i32 {
     if score < 50 {
         return 1;
@@ -51,9 +51,7 @@ fn rust_skips_single_bounds_mixed_subjects_named_limits_justified_and_test_chain
         n if n <= 10 => 1,
         m if m > 100 => 2,
         _ => 3,
-    };
-    // DECISION: D001
-    if score < 50 { 1 } else if score < 80 { 2 } else { 3 }
+    }
 }
 #[cfg(test)]
 mod tests {

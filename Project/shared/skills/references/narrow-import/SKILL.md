@@ -16,22 +16,25 @@ another module's surface is then unbounded and invisible.
    explicitly (`use path::{A, B}`, `from module import a, b`). The import line
    then states the exact surface the file depends on.
 2. If the module is a deliberate prelude or re-export facade meant to be
-   glob-imported, record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the import.
+   glob-imported, record the reasoning as a decision with edit-decisions and
+   put its exception, `// DECISION: DNNN RULE` in Rust or
+   `# DECISION: DNNN RULE` in Python, RULE being the rule ID the finding names,
+   alone on the line directly above the import. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 3. If the glob was a shortcut and the names are few, the explicit list is both
    shorter to read and stable under upstream change.
 4. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the import
-keeps it, attesting the glob is deliberate; without one it is a finding. Test
-code is out of scope.
+An exception naming this rule, `wildcard-import` by default, on the line
+directly above the import keeps it, attesting the glob is deliberate; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. Test code is out of scope.
 
 ## Rule binding
 
 The measurement flags every Rust `use path::*` glob outside test code, and every
-Python `from module import *`, without a `DECISION:` or `INVARIANT:` reference on
-the line directly above it. Narrowing to an explicit import list, or recording an
-owned reference, clears it. Rerun the reported lint check and relevant behavior
-checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the import names its surface explicitly or the
-glob is justified by an owned reference.
+Python `from module import *`. Narrowing to an explicit import list, or an
+approved exception, clears it. Rerun the reported lint check and relevant
+behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the import names its surface explicitly or an
+approved exception lifts the finding.

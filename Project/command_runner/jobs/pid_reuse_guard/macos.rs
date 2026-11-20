@@ -8,7 +8,7 @@ pub fn boot() -> Result<String> {
         tv_usec: 0,
     };
     let mut size = size_of::<libc::timeval>();
-    // DECISION: D066
+    // DECISION: D066 unsafe-justification
     let status = unsafe {
         libc::sysctlbyname(
             c"kern.boottime".as_ptr(),
@@ -49,7 +49,7 @@ fn info<T>(pid: u32, flavor: c_int) -> Result<T> {
     // DECISION: D113
     let mut value = MaybeUninit::<T>::zeroed();
     let size = c_int::try_from(size_of::<T>())?;
-    // DECISION: D066
+    // DECISION: D066 unsafe-justification
     let written = unsafe {
         libc::proc_pidinfo(
             c_int::try_from(pid)?,
@@ -64,14 +64,14 @@ fn info<T>(pid: u32, flavor: c_int) -> Result<T> {
         "cannot inspect process {pid}: {}",
         std::io::Error::last_os_error()
     );
-    // DECISION: D066
+    // DECISION: D066 unsafe-justification
     Ok(unsafe { value.assume_init() })
 }
-// DECISION: D066
+// DECISION: D221 allow-justification
 #[expect(deprecated)]
 fn nanoseconds(ticks: u64) -> u64 {
     let mut timebase = libc::mach_timebase_info { numer: 0, denom: 0 };
-    // DECISION: D066
+    // DECISION: D066 unsafe-justification
     let known = unsafe { libc::mach_timebase_info(&mut timebase) } == 0 && timebase.denom != 0;
     if known {
         return ticks * u64::from(timebase.numer) / u64::from(timebase.denom);

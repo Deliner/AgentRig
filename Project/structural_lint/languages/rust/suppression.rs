@@ -1,5 +1,5 @@
 use super::exemptions::attributed;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
@@ -17,15 +17,12 @@ pub(super) fn attribute(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
         "ignore" => Kind::Reference(Reference::DisabledTest),
         _ => Kind::Reference(Reference::AllowJustification),
     };
-    let unjustified = !justified(node, source);
-    if unjustified {
-        output.push(Measurement {
-            kind,
-            line: node.start_position().row + 1,
-            symbol: name.into(),
-            actual: 1,
-        });
-    }
+    output.push(Measurement {
+        kind,
+        line: node.start_position().row + 1,
+        symbol: name.into(),
+        actual: 1,
+    });
 }
 // DECISION: D147
 pub(super) fn clippy_allowed(node: Node<'_>, source: Code<'_>, symbol: &str) -> bool {
@@ -67,7 +64,7 @@ fn allows(item: Node<'_>, source: Code<'_>, lint: &str) -> bool {
         .trim_end_matches(')')
         .split(',')
         .any(|name| name.trim() == lint);
-    suppressing && listed && justified(item, source)
+    suppressing && listed
 }
 fn suppression<'a>(node: Node<'_>, source: Code<'a>) -> Option<&'a str> {
     let attribute = node

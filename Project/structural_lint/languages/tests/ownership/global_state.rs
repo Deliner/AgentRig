@@ -20,11 +20,9 @@ fn global_findings(path: &str, source: &str) -> Vec<String> {
 }
 
 #[test]
-fn rust_flags_static_locks_and_public_cells_without_a_reference_on_the_line_above() {
+fn rust_flags_static_locks_and_public_cells() {
     let source = "use std::sync::Mutex;
 static REGISTRY: Mutex<Vec<u8>> = Mutex::new(Vec::new());
-// DECISION: D001
-static JUSTIFIED: Mutex<u8> = Mutex::new(0);
 pub static COUNTER: AtomicUsize = AtomicUsize::new(0);
 static PRIVATE: AtomicUsize = AtomicUsize::new(0);
 static LAZY: LazyLock<RwLock<u8>> = LazyLock::new(|| RwLock::new(0));
@@ -47,10 +45,10 @@ mod tests {
         global_findings("source.rs", source),
         [
             "2:REGISTRY",
-            "5:COUNTER",
-            "7:LAZY",
-            "10:SHARED",
-            "13:ALIASED"
+            "3:COUNTER",
+            "5:LAZY",
+            "8:SHARED",
+            "11:ALIASED"
         ]
     );
 }
@@ -59,8 +57,6 @@ mod tests {
 fn rust_flags_items_declared_inside_lazy_static_and_thread_local() {
     let source = "lazy_static! {
     static ref CACHE: Mutex<u8> = Mutex::new(0);
-    // DECISION: D001
-    static ref OK: Mutex<u8> = Mutex::new(0);
     static ref PLAIN: String = String::new();
     pub static ref PUBLIC: AtomicBool = AtomicBool::new(false);
 }
@@ -68,7 +64,6 @@ thread_local! {
     static LOCAL: RefCell<u8> = RefCell::new(0);
     pub static SHARED: RefCell<u8> = RefCell::new(0);
 }
-// DECISION: D001
 thread_local!(pub static ONE: Cell<u8> = Cell::new(0));
 thread_local!(pub static TWO: Cell<u8> = Cell::new(0));
 macro_rules! make {
@@ -85,6 +80,6 @@ fn probe() {
 ";
     assert_eq!(
         global_findings("source.rs", source),
-        ["2:CACHE", "6:PUBLIC", "10:SHARED", "14:TWO"]
+        ["2:CACHE", "4:PUBLIC", "8:SHARED", "10:ONE", "11:TWO"]
     );
 }

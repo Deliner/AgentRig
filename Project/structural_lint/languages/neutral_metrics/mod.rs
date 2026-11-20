@@ -29,16 +29,6 @@ pub fn reparse(path: &Path, fragment: &str) -> Option<Tree> {
     let intact = !parsed.root_node().has_error();
     intact.then_some(parsed)
 }
-pub fn justified(node: Node<'_>, source: Code<'_>) -> bool {
-    justified_line(node.start_position().row, source.as_str())
-}
-pub fn justified_line(row: usize, source: &str) -> bool {
-    row > 0
-        && source
-            .lines()
-            .nth(row - 1)
-            .is_some_and(|line| crate::shared::source_parsers::reference(line.trim()).is_some())
-}
 // DECISION: D037
 pub fn comment(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let forbidden = crate::shared::source_parsers::reference(text(node, source)).is_none();

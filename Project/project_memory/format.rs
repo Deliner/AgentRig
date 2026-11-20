@@ -113,6 +113,20 @@ pub fn link(cell: &str) -> Result<Link> {
         path: path.into(),
     })
 }
+// DECISION: D219
+pub fn exception_links(cell: &str) -> Vec<Link> {
+    cell.split("[exception ")
+        .skip(1)
+        .filter_map(|tail| {
+            let (name, rest) = tail.split_once("](")?;
+            let (path, _) = rest.split_once(')')?;
+            Some(Link {
+                name: name.into(),
+                path: path.into(),
+            })
+        })
+        .collect()
+}
 pub fn links(cell: &str) -> Vec<String> {
     let mut remaining = cell;
     let mut output = Vec::new();

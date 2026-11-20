@@ -123,7 +123,7 @@ pub(super) fn selected_path(value: &str) -> Result<PathBuf> {
     );
     let path = path
         .components()
-        // DECISION: D156
+        // DECISION: D156 variant-equality
         .filter(|part| !matches!(part, Component::CurDir))
         .collect::<std::path::PathBuf>();
     Ok(match path.as_os_str().is_empty() {

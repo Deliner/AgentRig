@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, justified, reparse, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, reparse, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -53,14 +51,9 @@ pub(super) fn inspect(rule: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     else {
         return;
     };
-    let code = Code::new(&fragment);
     let mut exits = Vec::new();
     collect(block, &LOOP_EXITS, &mut exits);
     for (exit, symbol) in exits {
-        let allowed = justified(exit, code);
-        if allowed {
-            continue;
-        }
         output.push(Measurement {
             kind: Kind::ControlFlow(ControlFlow::HiddenExit),
             line: transcriber.start_position().row + exit.start_position().row + 1,

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{
     in_test_context, last_segment, type_name,
 };
@@ -31,8 +31,7 @@ pub(super) fn inspect(binding: Node<'_>, source: Code<'_>, output: &mut Vec<Meas
     let Some(symbol) = conversion(call, source) else {
         return;
     };
-    let allowed =
-        justified(binding, source) || in_test_context(binding, source) || declared(call, source);
+    let allowed = in_test_context(binding, source) || declared(call, source);
     if allowed {
         return;
     }
@@ -48,7 +47,7 @@ pub(super) fn trait_path(path: Node<'_>, source: Code<'_>, output: &mut Vec<Meas
     let Some(symbol) = trait_call(path, source) else {
         return;
     };
-    let allowed = bound(path, &symbol) || justified(path, source) || in_test_context(path, source);
+    let allowed = bound(path, &symbol) || in_test_context(path, source);
     if allowed {
         return;
     }

@@ -20,19 +20,22 @@ confusing second one. Recoverable failures belong in `Result`.
    callback, a thread pool or task runner that isolates one job, or a plugin
    host. Discard or rebuild every value the panic could have left inconsistent,
    and wrap with `AssertUnwindSafe` only values that stay consistent or are
-   dropped. Record that reasoning as an owned `DECISION:`/`INVARIANT:` reference
-   on the line directly above the call.
+   dropped. Record that reasoning as a decision with edit-decisions and put its
+   exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the call. List it in the decision
+   as `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the call
-keeps it, attesting the boundary is deliberate; without one it is a finding.
+An exception naming this rule, `unwind-justification` by default, on the line
+directly above the call keeps it, attesting the boundary is deliberate; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing.
 
 ## Rule binding
 
 The measurement flags every Rust call whose function path or bare name ends in
 `catch_unwind` or `AssertUnwindSafe`, and every `.catch_unwind()` method call,
-outside test code without a `DECISION:` or `INVARIANT:` reference on the line
-directly above it. `UnwindSafe` bounds and types are not flagged. Test code is
+outside test code. `UnwindSafe` bounds and types are not flagged. Test code is
 out of scope. Rerun the reported lint check and relevant behavior checks. Do not
 weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when the panic propagates or the catch is justified by an owned reference.
+stop when the panic propagates or an approved exception lifts the finding.

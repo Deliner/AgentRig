@@ -22,18 +22,22 @@ stay within one `EPSILON` of each other after a computation.
    compare with that value or with the call that states it, such as
    `v.fract() == 0.0`.
 4. When `EPSILON` is the intended bound, such as an algorithm specified in
-   units of the machine epsilon around 1.0, record why as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the comparison.
+   units of the machine epsilon around 1.0, record why as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the
+   comparison. List it in the decision as `[exception RULE](FILE)`; the user
+   approves a new exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement flags every Rust path ending in `f32::EPSILON` or
 `f64::EPSILON`, alone, in parentheses or under unary minus, that is a direct
-operand of `<`, `<=`, `>`, `>=` or `==`, outside test code, without a
-`DECISION:`/`INVARIANT:` reference on the line directly above the comparison.
-A tolerance computed from `EPSILON`, such as `EPSILON * scale`, a named
-constant and a comparison with `!=` are not flagged. Do not weaken the rule or
-its selectors merely to pass. Apply complexity-discipline; stop when the
-comparison uses a tolerance the computation justifies or an owned reference
-justifies `EPSILON`.
+operand of `<`, `<=`, `>`, `>=` or `==`, outside test code. An exception naming
+this rule, `epsilon-tolerance` by default, on the line directly above the
+comparison lifts the finding; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. A tolerance computed from `EPSILON`, such as `EPSILON * scale`,
+a named constant and a comparison with `!=` are not flagged. Do not weaken the
+rule or its selectors merely to pass. Apply complexity-discipline; stop when
+the comparison uses a tolerance the computation justifies or an approved
+exception lifts the finding.

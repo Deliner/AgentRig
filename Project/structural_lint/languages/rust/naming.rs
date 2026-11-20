@@ -1,5 +1,5 @@
 use super::exemptions::{in_test_context, last_segment};
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use std::collections::BTreeSet;
@@ -46,8 +46,7 @@ fn positional_format(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<Me
         .named_children(&mut tokens)
         .find(|token| matches!(token.kind(), "string_literal" | "raw_string_literal"));
     let positional = template.map_or(0, |template| positional(text(template, source)));
-    let allowed =
-        positional < 2 || in_test_context(invocation, source) || justified(invocation, source);
+    let allowed = positional < 2 || in_test_context(invocation, source);
     if allowed {
         return;
     }
@@ -98,7 +97,7 @@ fn crossed_field(literal: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
     let Some(crossed) = crossed else {
         return;
     };
-    let allowed = in_test_context(literal, source) || justified(literal, source);
+    let allowed = in_test_context(literal, source);
     if allowed {
         return;
     }
@@ -148,9 +147,8 @@ fn parallel_index(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
         .into_iter()
         .filter_map(|index| indexed(index, source))
         .filter(|collection| {
-            let allowed = text(*collection, source) == searched
-                || in_test_context(*collection, source)
-                || justified(*collection, source);
+            let allowed =
+                text(*collection, source) == searched || in_test_context(*collection, source);
             !allowed
         });
     output.extend(reads.map(|collection| Measurement {

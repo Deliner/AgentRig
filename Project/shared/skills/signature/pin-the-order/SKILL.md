@@ -21,19 +21,23 @@ and comparisons with stored or transmitted values stop matching.
    `fn rank(&self) -> u8` whose `match` lists every variant, so a new variant
    does not compile until its rank is chosen.
 4. When any stable order serves, such as a map key that needs some total
-   order, record that as an owned `DECISION:`/`INVARIANT:` reference on the
-   line directly above the enum or its attributes.
+   order, record that as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the enum, below its attributes. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement flags every Rust enum of two or more variants that derives
 `PartialOrd` or `Ord`, directly or inside `cfg_attr`, when a variant lacks an
-explicit discriminant, outside test code, without a `DECISION:` or
-`INVARIANT:` reference on the line directly above the enum or its attributes.
-A variant with fields takes a discriminant only under a primitive `repr`, so
-such an enum is usually resolved by step 3 or 4. Rerun the reported lint check
-and relevant behavior checks. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when every variant carries its
-discriminant, the order goes through a named rank, or the order is justified by
-an owned reference.
+explicit discriminant, outside test code. An exception naming this rule,
+`implicit-order` by default, on the line directly above the enum, below its
+attributes, lifts the finding; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. A variant with fields takes a discriminant only under a
+primitive `repr`, so such an enum is usually resolved by step 3 or 4. Rerun the
+reported lint check and relevant behavior checks. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when every variant
+carries its discriminant, the order goes through a named rank, or an approved
+exception lifts the finding.

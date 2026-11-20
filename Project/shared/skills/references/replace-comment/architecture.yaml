@@ -1,4 +1,4 @@
-purpose: "Replace non-reference source comments with owned knowledge or clearer code"
+purpose: "Replace source comments other than exact references and exceptions with owned knowledge or clearer code, and repair an exception that lifts nothing"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to move comment knowledge to its owner or delete it"

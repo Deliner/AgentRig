@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
@@ -72,7 +72,7 @@ fn inferred(call: Node<'_>) -> bool {
     false
 }
 fn report(node: Node<'_>, lock: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

@@ -19,19 +19,22 @@ and change state for a value that is thrown away.
    that outcome in its own arm, such as a returned error.
 3. When the index is a `bool` or a condition converted to a number, branch on
    that condition with `if` instead.
-4. When every element must run for its side effects, record the reasoning as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   indexed literal.
+4. When every element must run for its side effects, record the reasoning as a
+   decision with edit-decisions and put its exception `// DECISION: DNNN RULE`,
+   RULE being the rule ID the finding names, alone on the line directly above
+   the reported line. List it in the decision as `[exception RULE](FILE)`; the
+   user approves a new exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust array literal that lists its elements, at
 least one of which contains a call or method call, indexed by an expression
-other than an integer literal or the full range `..`, in product and test code,
-without a `DECISION:` or `INVARIANT:` reference on the line directly above it.
-A repeat literal `[x; n]` and calls inside macro arguments are out of scope.
-Types are not resolved, so a cheap call counts like an expensive one. Do not
-weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when only the chosen element is computed or an owned reference justifies
-computing them all.
+other than an integer literal or the full range `..`, in product and test code.
+An exception naming this rule, `indexed-array-literal` by default, on the line
+directly above the reported line lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. A repeat literal `[x; n]` and calls
+inside macro arguments are out of scope. Types are not resolved, so a cheap
+call counts like an expensive one. Do not weaken the rule or its selectors
+merely to pass. Apply complexity-discipline; stop when only the chosen element
+is computed or an approved exception lifts the finding.

@@ -1,22 +1,20 @@
 use super::calls;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified};
+use crate::structural_lint::languages::neutral_metrics::Measurement;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use tree_sitter::Node;
 
 // DECISION: D205
-pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(node: Node<'_>, output: &mut Vec<Measurement>) {
     let flagged = node.kind() == "index_expression" && listed(node).is_some_and(calls);
-    let allowed = !flagged || justified(node, source);
-    if allowed {
-        return;
+    if flagged {
+        output.push(Measurement {
+            kind: Kind::Reference(Reference::IndexedArrayLiteral),
+            line: node.start_position().row + 1,
+            symbol: "[..][index]".into(),
+            actual: 1,
+        });
     }
-    output.push(Measurement {
-        kind: Kind::Reference(Reference::IndexedArrayLiteral),
-        line: node.start_position().row + 1,
-        symbol: "[..][index]".into(),
-        actual: 1,
-    });
 }
 fn listed(indexed: Node<'_>) -> Option<Node<'_>> {
     let mut cursor = indexed.walk();

@@ -27,8 +27,11 @@ it stands.
 4. When the value goes straight into its use, move the conversion into the
    field or argument expression, where the use itself fixes the type.
 5. When the later use is meant to choose the type, as in generic code that
-   forwards it, record that as an owned `DECISION:`/`INVARIANT:` reference on
-   the line directly above the `let` or the trait path call.
+   forwards it, record that as a decision with edit-decisions and put its
+   exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the reported line. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -40,21 +43,23 @@ or turbofish, a `Default::default()` call or a `From::from(..)` call. An
 `.into()` on a plain parameter name of the nearest `fn` is skipped when the
 parameter's type is an `impl` with an `Into` bound or a generic parameter of
 that `fn`, or of the nearest `impl` or trait, bounded by `Into` in its list or
-`where` clause: the bound already names the target. Test code and a `let` with
-a `DECISION:` or `INVARIANT:` reference on the line directly above it are not
-measured. Types are not resolved, so a method of the same name that fixes its
+`where` clause: the bound already names the target. Test code is not measured,
+and an exception naming `untyped-conversion`, the default ID, lifts the
+finding. Types are not resolved, so a method of the same name that fixes its
 own return type also counts.
 
 The trait path call measurement flags every Rust call or path value
 `From::from`, `Into::into`, `TryFrom::try_from`, `TryInto::try_into` or
 `FromStr::from_str` whose trait is a single segment or follows `std::convert`,
 `core::convert`, `std::str` or `core::str`, without type arguments, outside test
-code and without a `DECISION:` or `INVARIANT:` reference on the line directly
-above it. A call inside the value of a `let` with a type is skipped, and a
-`From::from` call that, through `?`, is the whole value of a `let` of a plain
-name without a type is reported by the measurement above instead.
+code; an exception naming `trait-path-call`, the default ID, lifts the finding.
+A call inside the value of a `let` with a type is skipped, and a `From::from`
+call that, through `?`, is the whole value of a `let` of a plain name without a
+type is reported by the measurement above instead.
 
-Rerun the reported lint check and relevant behavior checks. Do not weaken the
-rule or its selectors merely to pass. Apply
+An exception lifts a finding only from the line directly above the reported
+line, and only the rule it names; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. Rerun the reported lint check and relevant behavior checks. Do
+not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the target type is written or fixed by its
-use, or the inferred type is justified by an owned reference.
+use, or an approved exception lifts the finding.

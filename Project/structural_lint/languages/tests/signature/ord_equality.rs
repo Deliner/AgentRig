@@ -150,19 +150,8 @@ impl PartialOrd for Digit {
 }
 
 #[test]
-fn rust_accepts_justified_and_unresolvable_comparisons() {
+fn rust_accepts_unresolvable_comparisons() {
     let source = "#[derive(PartialEq)]
-struct Entry {
-    name: String,
-    cache: u64,
-}
-// DECISION: D001
-impl Ord for Entry {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.name.cmp(&other.name)
-    }
-}
-#[derive(PartialEq)]
 struct Remote {
     id: u32,
     label: String,

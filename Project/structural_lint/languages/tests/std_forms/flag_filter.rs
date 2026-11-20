@@ -28,7 +28,7 @@ mod tests {
 
 // DECISION: D208
 #[test]
-fn rust_skips_uncomputed_receivers_used_values_computed_flags_and_justified_filters() {
+fn rust_skips_uncomputed_receivers_used_values_and_computed_flags() {
     let source = "fn keep(&self, flag: bool, field: Option<u32>) -> Option<u32> {
     let plain = field.filter(|_| flag);
     let owned = self.cached.filter(|_| flag);
@@ -37,8 +37,6 @@ fn rust_skips_uncomputed_receivers_used_values_computed_flags_and_justified_filt
     let checked = lookup().filter(|_| ready(state));
     let function = lookup().filter(positive);
     let first = flag.then(|| lookup()).flatten();
-    // DECISION: D001
-    let justified = lookup().filter(|_| flag);
     plain
 }
 ";

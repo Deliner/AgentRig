@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -46,7 +46,7 @@ pub(super) fn matched(invocation: Node<'_>, source: Code<'_>, output: &mut Vec<M
     }
 }
 fn report(node: Node<'_>, symbol: &str, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let allowed = in_test_context(node, source) || justified(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

@@ -24,22 +24,26 @@ the path, and a reader has to climb the tree to learn whose item it is. A single
    re-export it there (`pub(super) use` or `pub use` in the parent) and reach it
    through a single `super::Item`.
 3. If the reach is genuinely intended — a macro-generated module tree, or a
-   file whose position is the contract — record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the
-   declaration or statement.
+   file whose position is the contract — record the reasoning as a decision
+   with edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE
+   being the rule ID the finding names, alone on the line directly above the
+   path's line. List it in the decision as `[exception RULE](FILE)`; the user
+   approves a new exception through propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement flags every Rust path whose segments contain the pair
 `super::super`, in a `use` declaration, an expression, a type or a `pub(in ..)`
-visibility, outside test code, without a `DECISION:` or `INVARIANT:` reference
-on the line directly above it; each path yields one finding at its line. A
-single `super::` and a `crate::` path are not findings. Test code is out of
+visibility, outside test code; each path yields one finding at its line. An
+exception naming this rule, `super-super-reach` by default, on the line
+directly above that line lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. A single `super::` and a `crate::` path are not
+findings. Test code is out of
 scope: an item inside a `#[cfg(test)]` module or a `#[test]` function of the
 same file, and every file under the shipped rule's exclude, `**/tests/**` and
 `**/tests.rs`. A test module kept in a file with another name is measured,
 because its `#[cfg(test)]` sits in the parent file. Rerun the reported lint
 check and relevant behavior checks. Do not weaken the rule or its selectors
 merely to pass. Apply complexity-discipline; stop when every reach names its
-owner, or the reach is justified by an owned reference.
+owner, or an approved exception lifts the finding.

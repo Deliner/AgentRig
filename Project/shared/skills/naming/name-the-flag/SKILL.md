@@ -19,9 +19,12 @@ pattern that reads it the other way compiles unnoticed.
    `.0`/`.1` access to the field name. Where code tested the flag, match the
    enum so that each state is handled by its name.
 4. When the position is fixed by an external format, such as a tuple variant
-   whose order is a serialized message layout, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the type or
-   variant, or its attributes.
+   whose order is a serialized message layout, record the reasoning as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the type or variant, below its attributes. List
+   it in the decision as `[exception RULE](FILE)`; the user approves a new
+   exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -31,8 +34,10 @@ or more fields, one of which has exactly the type `bool`. `Option<bool>` in a
 position stays with `ambiguous-option` and `name-the-states`; `&bool` is not
 counted. A struct with a single field, such as `struct Verbose(bool)`, names the
 flag by its type and is out of scope. Two `bool` positions are also reported by
-`same-type-positions`; one repair satisfies both. Test code and a type or
-variant with a `DECISION:` or `INVARIANT:` reference on the line directly above
-it or its attributes are out of scope. Do not weaken the rule or its selectors
+`same-type-positions`; one repair satisfies both, while an exception lifts
+only the rule it names. Test code is out of scope. An exception naming this
+rule, `positional-flag` by default, on the line directly above the type or
+variant, below its attributes, lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. Do not weaken the rule or its selectors
 merely to pass. Apply complexity-discipline; stop when every flag is a named
-field of an enum type, or its position is justified by an owned reference.
+field of an enum type, or an approved exception lifts the finding.

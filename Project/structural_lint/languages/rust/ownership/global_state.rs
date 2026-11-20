@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, justified, reparse, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, reparse, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::Ownership;
@@ -13,7 +11,7 @@ const CELLS: &[&str] = &["RefCell", "Cell", "UnsafeCell"];
 const ALIAS_DEPTH: usize = 3;
 
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let exempt = justified(node, source) || in_test_context(node, source);
+    let exempt = in_test_context(node, source);
     if exempt {
         return;
     }
@@ -44,7 +42,6 @@ pub(super) fn macro_items(node: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
     let body = Body {
         source: Code::new(&fragment),
         base: tree.start_position().row,
-        above: justified(node, source),
     };
     let mut cursor = root.walk();
     for item in root
@@ -81,16 +78,9 @@ fn items_source(tree: Node<'_>, source: Code<'_>) -> Option<String> {
 struct Body<'a> {
     source: Code<'a>,
     base: usize,
-    above: bool,
 }
 impl Body<'_> {
     fn report(&self, item: Node<'_>, output: &mut Vec<Measurement>) {
-        let first_row = item.start_position().row == 0;
-        let referenced_before = first_row && self.above;
-        let exempt = justified(item, self.source) || referenced_before;
-        if exempt {
-            return;
-        }
         let Some(mut measurement) = measure(item, self.source) else {
             return;
         };

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{
     in_test_context, last_segment, zero_literal,
 };
@@ -9,7 +9,7 @@ use tree_sitter::Node;
 // DECISION: D181
 pub(super) fn inspect(call: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let product = !in_test_context(call, source);
-    let skipped = product || justified(call, source) || !fixed_bind(call, source);
+    let skipped = product || !fixed_bind(call, source);
     if skipped {
         return;
     }

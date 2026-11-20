@@ -1,6 +1,7 @@
 purpose: Validate project memory contracts, record check evidence and report recovery context
 files:
   mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks
+  exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
   history.rs: Preserve committed decisions and locate current or legacy historical memory
   invariant_history.rs: Refuse an invariant change since the fork from the base unless a new decision names it

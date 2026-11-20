@@ -1,5 +1,5 @@
 use super::Analysis;
-use super::neutral_metrics::{Measurement, justified_line};
+use super::neutral_metrics::Measurement;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
 use toml::Spanned;
@@ -68,10 +68,6 @@ fn report(
         return;
     }
     let line = row(source, name.span().start);
-    let justified = justified_line(line, source);
-    if justified {
-        return;
-    }
     output.push(Measurement {
         kind: Kind::Reference(Reference::AllowJustification),
         line: line + 1,

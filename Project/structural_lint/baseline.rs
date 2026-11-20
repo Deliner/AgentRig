@@ -82,7 +82,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
     let current = current(lint)?;
     let path = location(lint.config);
     let findings = match load(&path)? {
-        Some(baseline) => lowered(&limit(lint, baseline)?, &current),
+        Some(baseline) => lowered(limit(lint, baseline)?, &current),
         None => current.clone(),
     };
     let exceeding = pairs(&current)
@@ -121,17 +121,13 @@ fn limit(lint: Location<'_>, working: Counts) -> Result<Counts> {
 }
 
 // DECISION: D123
-fn lowered(baseline: &Counts, current: &Counts) -> Counts {
-    let mut findings = Counts::new();
-    for pair in pairs(baseline) {
-        let count = pair.key.allowed(current).min(pair.count);
-        let kept = count > 0;
-        if kept {
-            findings
-                .entry(pair.key.rule.to_owned())
-                .or_default()
-                .insert(pair.key.path.to_owned(), count);
+fn lowered(mut baseline: Counts, current: &Counts) -> Counts {
+    for (rule, paths) in &mut baseline {
+        for (path, count) in paths.iter_mut() {
+            *count = Key { rule, path }.allowed(current).min(*count);
         }
+        paths.retain(|_, count| *count > 0);
     }
-    findings
+    baseline.retain(|_, paths| !paths.is_empty());
+    baseline
 }

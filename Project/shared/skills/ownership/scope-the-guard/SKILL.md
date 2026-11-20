@@ -23,9 +23,12 @@ long as it holds the value. Two calls in one expression, such as
    clones it out inside the closure.
 4. When handing out the guard is the type's purpose, such as a lock wrapper
    whose API is its `lock()` method, or the returned type only shares the name
-   and holds no lock or cell borrow, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the function
-   or its attributes.
+   and holds no lock or cell borrow, record the reasoning as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the
+   function, below its attributes. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -36,8 +39,9 @@ depth, a generic type whose last name is `MutexGuard`, `RwLockReadGuard`,
 `RwLockWriteGuard`, `Ref` or `RefMut`, from any path. The check reads syntax
 only, so another library's type named `Ref` is reported as well. A function
 without a visibility modifier, including a trait method and its
-implementations, is out of scope, as are test code and a function with a
-`DECISION:` or `INVARIANT:` reference on the line directly above it or its
-attributes. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when no visible function hands out a guard, or
-handing it out is justified by an owned reference.
+implementations, is out of scope, as is test code. An exception naming this
+rule, `exposed-guard` by default, on the line directly above the function,
+below its attributes, lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when no visible function hands out a
+guard, or an approved exception lifts the finding.

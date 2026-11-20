@@ -58,7 +58,7 @@ mod tests {
 }
 
 #[test]
-fn rust_accepts_current_forms_other_fallbacks_ranges_targets_and_justified_lines() {
+fn rust_accepts_current_forms_other_fallbacks_ranges_and_targets() {
     let source = "fn current(path: &Path, root: &Path, file: &str, text: &str) -> Result<(), !> {
     let bare = file.trim_prefix(\"./\");
     let relative = path.trim_prefix(root);
@@ -70,8 +70,6 @@ fn rust_accepts_current_forms_other_fallbacks_ranges_targets_and_justified_lines
     let unique = (0..4).map(|index| index % 2).collect::<HashSet<_>>();
     let inferred = (0..4).map(|index| index * 2).collect();
     let narrow = (0u32..4).map(|index| index * 2).collect::<Vec<_>>();
-    // DECISION: D177
-    let kept = text.strip_suffix(\"/\").unwrap_or(text);
     Ok(())
 }
 ";
@@ -110,7 +108,7 @@ fn wide() {
 }
 
 #[test]
-fn rust_accepts_returned_collects_into_other_types_branches_inner_closures_and_justified_lines() {
+fn rust_accepts_returned_collects_into_other_types_branches_and_inner_closures() {
     let source = "fn labels(count: usize) -> Vec<String> {
     Vec::from_fn(count, label)
 }
@@ -133,10 +131,6 @@ fn outer() -> Vec<usize> {
     };
     let untyped = |count: usize| (0..count).map(|index| index).collect();
     Vec::new()
-}
-fn kept(count: usize) -> Vec<u32> {
-    // DECISION: D178
-    (0..count).map(|index| index as u32).collect()
 }
 ";
     assert_eq!(superseded(source), []);

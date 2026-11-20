@@ -55,8 +55,8 @@ function without `self` in the struct's own `impl`, `impl TryFrom` or
 `impl FromStr`, returning a `Result` or `Option` of `Self`, that refuses on a
 parameter tested directly or through a local bound by `let` from it and stores it in a named or positional field without serde
 `deserialize_with` or `with`. Serde `try_from` or `from` on the struct, a manual
-`impl Deserialize` for it and test code leave no finding, and no reference
-justifies one. A constructor in another file, a check inside a helper function
+`impl Deserialize` for it and test code leave no finding, and no exception or
+reference lifts one. A constructor in another file, a check inside a helper function
 and enums stay unseen. Do not weaken the rule or its selectors, or hide the
 check merely to pass. Apply complexity-discipline; stop when deserialization
 goes through the same check as construction.

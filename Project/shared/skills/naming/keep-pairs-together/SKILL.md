@@ -17,8 +17,12 @@ item in one list silently gives the other list's values to the wrong items.
 3. Search the record itself, with `find` or `iter().find(..)`, and read the
    second value from the found record instead of indexing the other collection.
 4. When the collections must stay separate, such as buffers handed to an
-   external API that expects parallel arrays, record that requirement as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the read.
+   external API that expects parallel arrays, record that requirement as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the reported read. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -31,7 +35,8 @@ after `?` and method calls on it, through a name bound from it by `let`,
 `let .. else` or `if let`, and through a parameter of a closure passed to a
 method called on it. A rebinding to another name, a project's own `position`
 method and an iterator adapted by `skip`, `zip` or similar are not followed.
-Test code and a read with a `DECISION:` or `INVARIANT:` reference on the line
-directly above it are out of scope. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when each pair lives in one
-record or the parallel collections are justified by an owned reference.
+Test code is out of scope. An exception naming this rule, `parallel-index` by
+default, on the line directly above the reported read lifts the finding; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. Do not weaken the rule or
+its selectors merely to pass. Apply complexity-discipline; stop when each pair
+lives in one record or an approved exception lifts the finding.

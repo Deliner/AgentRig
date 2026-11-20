@@ -19,7 +19,7 @@ mod tests {
 }
 
 #[test]
-fn rust_skips_port_zero_named_hostless_computed_connected_justified_and_product_sockets() {
+fn rust_skips_port_zero_named_hostless_computed_connected_and_product_sockets() {
     let source = "#[cfg(test)]
 mod tests {
     #[test]
@@ -30,8 +30,6 @@ mod tests {
         let host = TcpListener::bind(\"localhost\").unwrap();
         let computed = TcpListener::bind((\"127.0.0.1\", port)).unwrap();
         let client = TcpStream::connect(\"127.0.0.1:8080\").unwrap();
-        // DECISION: D001
-        TcpListener::bind(\"127.0.0.1:8080\").unwrap();
     }
 }
 fn product() {

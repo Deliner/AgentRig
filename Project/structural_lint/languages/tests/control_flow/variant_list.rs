@@ -30,7 +30,7 @@ fn each() {
 }
 
 #[test]
-fn rust_skips_partial_reordered_short_foreign_mixed_repeated_justified_and_test_lists() {
+fn rust_skips_partial_reordered_short_foreign_mixed_repeated_and_test_lists() {
     let source = "enum Mode {
     Fast,
     Slow,
@@ -47,8 +47,6 @@ const BOTH: [Pair; 2] = [Pair::Left, Pair::Right];
 const FOREIGN: [Other; 3] = [Other::A, Other::B, Other::C];
 const MIXED: [Mode; 4] = [Mode::Fast, Mode::Slow, Mode::Idle, Pair::Left];
 const REPEATED: [Mode; 3] = [Mode::Fast; 3];
-// DECISION: D001
-const JUSTIFIED: [Mode; 4] = [Mode::Fast, Mode::Slow, Mode::Idle, Mode::Off];
 #[cfg(test)]
 mod tests {
     const ALL: [Mode; 4] = [Mode::Fast, Mode::Slow, Mode::Idle, Mode::Off];

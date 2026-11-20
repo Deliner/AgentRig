@@ -21,14 +21,15 @@ editor, so the gate and those builds silently compile different code.
    when every target the project builds needs it. Otherwise stop and report the
    conflict: the rig's list has no per-target form.
 4. A flag that lowers lint levels, such as `-A`, `--allow`, `--cap-lints` or
-   `--force-warn`, needs a `DECISION:` or `INVARIANT:` reference on the line
-   directly above its item in the list; apply justify-allow to it.
+   `--force-warn`, needs an approved exception `# DECISION: DNNN RULE`, RULE
+   being the `allow-justification` rule ID, on the line directly above its item
+   in the list; apply justify-allow to it.
 5. Rerun the reported lint check and the affected build and test checks.
 
 ## Rule binding
 
 The measurement flags every `rustflags` key in any table of a TOML file that
-the rule selects, by default `**/.cargo/config.toml`. No comment justifies the
-key: the rig applies only its own list. Do not weaken the rule or its selectors
+the rule selects, by default `**/.cargo/config.toml`. The rule accepts no
+exception, and no comment justifies the key: the rig applies only its own list. Do not weaken the rule or its selectors
 merely to pass. Apply complexity-discipline; stop when the flags live in the
 rig's list and no selected file has the key.

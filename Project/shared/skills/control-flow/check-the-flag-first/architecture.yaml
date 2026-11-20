@@ -1,4 +1,4 @@
-purpose: "Check a flag before the call whose result a filter ignoring its value would keep or drop, or justify running the call regardless with a reference"
+purpose: "Check a flag before the call whose result a filter ignoring its value would keep or drop, or justify running the call regardless with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to run a call only when the flag keeps its result"

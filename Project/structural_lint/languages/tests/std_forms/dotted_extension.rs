@@ -15,14 +15,12 @@ fn rust_flags_an_extension_literal_written_with_its_dot() {
 }
 
 #[test]
-fn rust_skips_plain_empty_variable_other_method_justified_and_test_extensions() {
+fn rust_skips_plain_empty_variable_other_method_and_test_extensions() {
     let source = "fn renamed(path: &Path, extension: &str) -> PathBuf {
     let plain = path.with_extension(\"json\");
     let empty = path.with_extension(\"\");
     let named = path.with_extension(extension);
     let other = path.with_file_name(\".hidden\");
-    // DECISION: D001
-    let justified = path.with_extension(\".json\");
     plain
 }
 #[cfg(test)]

@@ -23,8 +23,11 @@ reviewer recognizes it at once.
      `let v: Vec<_>` or returned from a function or closure that returns
      `Vec`, by `Vec::from_fn(n, f)`, whose `f` takes each index as `usize`.
 2. When the old form must stay, such as indices of another integer type than
-   `usize`, record why as an owned `DECISION:`/`INVARIANT:` reference on the
-   line directly above it.
+   `usize`, record why as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone on
+   the line directly above the reported line. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 3. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -36,10 +39,12 @@ last segment of a path, and every `.collect()` of a `.map(f)` over a
 parenthesized `0..n` or `0usize..n` whose turbofish or `let` type is `Vec` or
 that is the last expression of the body of, or the value of a `return` in, the
 nearest function or closure whose return type is `Vec`, test code included,
-outside macro arguments, without a `DECISION:`/`INVARIANT:` reference on the
-line directly above it. Types are not resolved, so a method of the same name on
-another type counts. A fallback other than the receiver, an inclusive range,
-another start, an inferred or other collection and a collect in a branch, an
-argument or a field are not flagged. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the current form replaces the old one or an
-owned reference justifies keeping it.
+outside macro arguments. An exception naming this rule, `superseded-form` by
+default, on the line directly above the reported line lifts the finding; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. Types are not resolved, so
+a method of the same name on another type counts. A fallback other than the
+receiver, an inclusive range, another start, an inferred or other collection
+and a collect in a branch, an argument or a field are not flagged. Do not
+weaken the rule or its selectors merely to pass. Apply complexity-discipline;
+stop when the current form replaces the old one or an approved exception lifts
+the finding.

@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
@@ -17,7 +17,7 @@ pub(super) fn inspect(binary: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
     else {
         return;
     };
-    let allowed = justified(binary, source) || in_test_context(binary, source);
+    let allowed = in_test_context(binary, source);
     if allowed {
         return;
     }

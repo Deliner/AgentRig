@@ -18,9 +18,9 @@ impl<'a> Rust<'a> {
         let mut pending: Vec<_> = planted.then(|| Pending::root(root)).into_iter().collect();
         while let Some(next) = pending.pop() {
             for reference in &sources[&next.file].items {
-                // DECISION: D144
+                // DECISION: D144 silent-error
                 let declared = tree.declare(&next.base, reference).ok().flatten();
-                // DECISION: D144
+                // DECISION: D144 silent-error
                 let included = tree
                     .include(&next.file, &next.base, reference)
                     .ok()

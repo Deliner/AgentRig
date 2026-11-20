@@ -18,8 +18,11 @@ talks to a stranger that holds the port.
    address as a parameter or configuration value so the test can pass the
    assigned one.
 4. When an external program the test cannot configure needs that fixed port,
-   record why as an owned `DECISION:`/`INVARIANT:` reference on the line
-   directly above the bind.
+   record why as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the bind. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected tests.
 
 ## Rule binding
@@ -27,9 +30,10 @@ talks to a stranger that holds the port.
 The measurement flags every Rust call in test code of a path ending in
 `TcpListener::bind` or `UdpSocket::bind` whose argument is a string literal
 with a nonzero port after its last colon or a tuple whose second element is a
-nonzero integer literal, without a `DECISION:`/`INVARIANT:` reference on the
-line directly above it. An address held in a constant or variable, a port
-computed at run time and binds in product code are not flagged. Do not weaken
-the rule or its selectors merely to pass. Apply complexity-discipline; stop
-when the test binds a port the system assigns or an owned reference justifies
-the fixed port.
+nonzero integer literal. An exception naming this rule, `fixed-test-port` by
+default, on the line directly above the bind lifts the finding; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. An address held in a
+constant or variable, a port computed at run time and binds in product code are
+not flagged. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the test binds a port the system assigns or an
+approved exception lifts the finding.

@@ -40,7 +40,7 @@ pub fn global() -> parking_lot::MutexGuard<'static, State> {
 }
 
 #[test]
-fn rust_skips_private_trait_justified_test_and_other_named_returns() {
+fn rust_skips_private_trait_test_and_other_named_returns() {
     let source = "impl Store {
     fn state(&self) -> MutexGuard<'_, State> {
         self.inner.lock().unwrap()
@@ -53,10 +53,6 @@ fn rust_skips_private_trait_justified_test_and_other_named_returns() {
     }
     pub fn with_state<R>(&self, f: impl FnOnce(&mut State) -> R) -> R {
         f(&mut self.state())
-    }
-    // DECISION: D001
-    pub fn lock(&self) -> MutexGuard<'_, State> {
-        self.state()
     }
 }
 pub trait Lock {

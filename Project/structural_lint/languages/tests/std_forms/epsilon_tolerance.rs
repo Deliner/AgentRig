@@ -23,15 +23,13 @@ fn rust_flags_float_epsilon_compared_directly_alone_in_parentheses_or_negated() 
 }
 
 #[test]
-fn rust_skips_scaled_unequal_named_other_constant_justified_and_test_tolerances() {
+fn rust_skips_scaled_unequal_named_other_constant_and_test_tolerances() {
     let source = "fn scaled(a: f64, b: f64, tolerance: f64) -> bool {
     let relative = (a - b).abs() < f64::EPSILON * a.abs();
     let unequal = a != f64::EPSILON;
     let named = (a - b).abs() < tolerance;
     let other = a < f64::MAX;
     let single = a < EPSILON;
-    // DECISION: D001
-    let justified = a < f64::EPSILON;
     relative
 }
 #[cfg(test)]

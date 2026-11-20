@@ -1,5 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
-use crate::structural_lint::languages::rust::exemptions::{in_test_context, justified_item};
+use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
@@ -25,8 +25,7 @@ pub(super) fn inspect(definition: Node<'_>, source: Code<'_>, output: &mut Vec<M
             .into_iter()
             .any(|node| node.kind() == "self");
         let trivial = empty || receiving;
-        let allowed =
-            trivial || in_test_context(function, source) || justified_item(function, source);
+        let allowed = trivial || in_test_context(function, source);
         if allowed {
             continue;
         }

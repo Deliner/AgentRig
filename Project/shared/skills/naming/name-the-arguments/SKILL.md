@@ -20,18 +20,22 @@ that swaps them compiles and runs with the wrong meaning.
 4. When one parameter is the value the operation acts on, make the fn a method
    of that value's type, so that one same-type input remains.
 5. When the operation is commutative, such as `max(a, b)`, or a foreign side such
-   as JNI or an ABI fixes the signature, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the fn or its
-   attributes.
+   as JNI or an ABI fixes the signature, record the reasoning as a decision
+   with edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE
+   being the rule ID the finding names, alone on the line directly above the
+   fn, below its attributes. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust fn item or fn signature with two
 non-receiver parameters of token-equal type, once per fn. A fn inside an
-`impl Trait for Type` is skipped because the trait owns its signature. Test code
-and a fn with a `DECISION:` or `INVARIANT:` reference on the line directly above
-it or its attributes are out of scope. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when a swapped call no longer
-compiles, each value is named at the call, or the signature is justified by an
-owned reference.
+`impl Trait for Type` is skipped because the trait owns its signature. Test
+code is out of scope. An exception naming this rule, `same-type-parameters` by
+default, on the line directly above the fn, below its attributes, lifts the
+finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Do not
+weaken the rule or its selectors merely to pass. Apply complexity-discipline;
+stop when a swapped call no longer compiles, each value is named at the call,
+or an approved exception lifts the finding.

@@ -4,7 +4,7 @@ mod flag_filter;
 mod indexed_array;
 mod max_fallback;
 mod superseded_form;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::reference::Reference;
@@ -12,12 +12,12 @@ use tree_sitter::Node;
 
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     superseded_form::inspect(node, source, output);
-    indexed_array::inspect(node, source, output);
+    indexed_array::inspect(node, output);
     flag_filter::inspect(node, source, output);
     let Some((reference, symbol)) = form(node, source) else {
         return;
     };
-    let allowed = justified(node, source) || in_test_context(node, source);
+    let allowed = in_test_context(node, source);
     if allowed {
         return;
     }

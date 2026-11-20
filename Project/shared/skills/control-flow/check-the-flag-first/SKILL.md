@@ -11,9 +11,11 @@ the save batch is cloned and thrown away. A filter whose closure ignores its
 value is a branch on a flag written after the work it guards.
 
 1. Establish whether the call must run even when the flag is false, for a side
-   effect the rest of the code relies on. If so, record that reasoning as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   filter and stop.
+   effect the rest of the code relies on. If so, record that reasoning as a
+   decision with edit-decisions, put its exception `// DECISION: DNNN RULE`,
+   RULE being the rule ID the finding names, alone on the line directly above
+   the reported line, list it in the decision as `[exception RULE](FILE)` and
+   stop; the user approves a new exception through propose-protected-change.
 2. In a statement, branch on the flag first: return early when the flag is
    false, or put `if idle` around the `if let`.
 3. In an expression yielding an `Option`, put the flag before the call:
@@ -29,10 +31,12 @@ value is a branch on a flag written after the work it guards.
 
 The measurement reports every Rust `.filter(..)` method call whose receiver
 contains a call and whose sole argument is a closure with the single parameter
-`_` and a body without a call, in product and test code, without a `DECISION:`
-or `INVARIANT:` reference on the line directly above it. Types are not
-resolved, so an `Option`, a `Result` turned into one and an iterator are
-reported alike, and a cheap accessor such as `as_ref` or `get` counts like an
-expensive call. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the call runs only when the flag keeps its
-result or an owned reference justifies running it regardless.
+`_` and a body without a call, in product and test code. An exception naming
+this rule, `outer-flag-filter` by default, on the line directly above the
+reported line lifts the finding; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. Types are not resolved, so an `Option`, a `Result` turned into
+one and an iterator are reported alike, and a cheap accessor such as `as_ref`
+or `get` counts like an expensive call. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when the call runs
+only when the flag keeps its result or an approved exception lifts the
+finding.

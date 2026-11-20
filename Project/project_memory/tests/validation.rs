@@ -82,6 +82,29 @@ fn a_decision_marker_counts_only_in_a_file_its_decision_links() {
     accepts(&root);
 }
 
+// DECISION: D219
+#[test]
+fn a_decision_lists_each_exception_and_each_listed_exception_exists() {
+    let (_temp, root) = consumer();
+    record(&root, "src/lib.rs");
+    let source = root.join("src/lib.rs");
+    let excepted =
+        "fn read() -> u8 {\n    // DECISION: D001 panic-path\n    \"1\".parse().unwrap()\n}\n";
+    fs::write(&source, excepted).unwrap();
+    let unlisted = "remove the exception: D001 panic-path in src/lib.rs";
+    rejects(&root, &["memory-check"], unlisted);
+    let listed = "[exception panic-path](../src/lib.rs)";
+    edit(
+        &root.join("notes/Decisions.md"),
+        "[code](../src/lib.rs)",
+        listed,
+    );
+    accepts(&root);
+    fs::write(&source, "// DECISION: D001\nfn read() -> u8 {\n    1\n}\n").unwrap();
+    let absent = "restore the exception: D001 panic-path in src/lib.rs";
+    rejects(&root, &["memory-check"], absent);
+}
+
 // INVARIANT: I003
 #[test]
 fn committed_decisions_checked_against_staged_memory() {

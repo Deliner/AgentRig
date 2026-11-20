@@ -1,7 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
-use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, justified_item, trait_impl_member,
-};
+use crate::structural_lint::languages::rust::exemptions::{in_test_context, trait_impl_member};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
 use std::collections::BTreeSet;
@@ -53,7 +51,7 @@ pub(super) fn positions(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
     }
 }
 fn report(item: Node<'_>, source: Code<'_>, kind: Signature, output: &mut Vec<Measurement>) {
-    let allowed = in_test_context(item, source) || justified_item(item, source);
+    let allowed = in_test_context(item, source);
     if allowed {
         return;
     }

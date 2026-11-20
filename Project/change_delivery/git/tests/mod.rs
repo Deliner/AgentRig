@@ -12,6 +12,7 @@ use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
 const STATE: &str = "Ledger/State.md";
+const DECISION: &str = "# D001\n\n## Context\n\nText.\n\n## Chosen\n\nText.\n\n## Rejected\n\nText.\n\n## Rationale\n\nText.\n\n## Consequences\n\nText.\n";
 
 const PROBE_COMMAND: &str = r#"probe:
   purpose: Block delivery on request

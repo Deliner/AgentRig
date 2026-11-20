@@ -23,7 +23,7 @@ fn rust_flags_equality_with_a_variant_path_and_matches_naming_a_variant() {
 }
 
 #[test]
-fn rust_skips_constants_calls_literal_patterns_justified_and_test_comparisons() {
+fn rust_skips_constants_calls_literal_patterns_and_test_comparisons() {
     let source = "fn pick(value: i32, name: &str, mode: Option<Mode>) -> bool {
     let limit = value == i32::MAX;
     let constant = value == Self::DEFAULT_SIZE;
@@ -32,8 +32,6 @@ fn rust_skips_constants_calls_literal_patterns_justified_and_test_comparisons() 
     let text = matches!(name, \"a\" | \"b\");
     let range = matches!(value, 1..=3);
     let bound = matches!(mode, Some(m) if m.ready());
-    // DECISION: D001
-    let justified = mode == Mode::Fast;
     limit
 }
 #[cfg(test)]

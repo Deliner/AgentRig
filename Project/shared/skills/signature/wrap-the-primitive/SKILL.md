@@ -19,15 +19,19 @@ tell them apart. The alias suggests a check it does not perform.
 4. When the alias adds no meaning beyond the primitive, remove it and use the
    primitive directly.
 5. When the alias must stay, such as a C type mirrored for FFI, record the
-   reasoning as an owned `DECISION:`/`INVARIANT:` reference on the line directly
-   above the alias.
+   reasoning as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone on
+   the line directly above the alias, below its attributes. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust type alias without generics whose type is a
-numeric primitive, `char` or `String`. Test code and an alias with a
-`DECISION:` or `INVARIANT:` reference on the line directly above it are out of
-scope. Do not weaken the rule or its selectors merely to pass. Apply
+numeric primitive, `char` or `String`. Test code is out of scope. An exception
+naming this rule, `primitive-alias` by default, on the line directly above the
+alias lifts the finding; a bare `DECISION:` or `INVARIANT:` reference lifts
+nothing. Do not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when the alias is a type of its own, removed, or
-justified by an owned reference.
+lifted by an approved exception.

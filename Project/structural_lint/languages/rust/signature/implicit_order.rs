@@ -1,7 +1,5 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
-use crate::structural_lint::languages::rust::exemptions::{
-    derives, in_test_context, justified_item,
-};
+use crate::structural_lint::languages::rust::exemptions::{derives, in_test_context};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
 use tree_sitter::Node;
@@ -21,8 +19,7 @@ pub(super) fn inspect(definition: Node<'_>, source: Code<'_>, output: &mut Vec<M
             .iter()
             .any(|variant| variant.child_by_field_name("value").is_none());
     let ordered = implicit && derives(definition, source, &["PartialOrd", "Ord"]);
-    let exempt =
-        !ordered || in_test_context(definition, source) || justified_item(definition, source);
+    let exempt = !ordered || in_test_context(definition, source);
     if exempt {
         return;
     }

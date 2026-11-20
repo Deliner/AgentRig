@@ -46,6 +46,7 @@ const NONBLANKLINES: Descriptor = Descriptor {
         warning: Some(300),
         error: 500,
     },
+    accepts_exception: false,
 };
 // DECISION: D036
 const LINEWIDTH: Descriptor = Descriptor {
@@ -58,6 +59,7 @@ const LINEWIDTH: Descriptor = Descriptor {
         warning: None,
         error: 120,
     },
+    accepts_exception: false,
 };
 const FORBIDDENFILE: Descriptor = Descriptor {
     default_id: "forbidden-file",
@@ -69,6 +71,7 @@ const FORBIDDENFILE: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "file is not allowed here; move needed content to its owner and delete the file",
     },
+    accepts_exception: false,
 };
 // DECISION: D198
 const PROGRAMLANGUAGE: Descriptor = Descriptor {
@@ -81,6 +84,7 @@ const PROGRAMLANGUAGE: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "a program in a language the project does not allow escapes its language rules; rewrite it in an allowed language",
     },
+    accepts_exception: false,
 };
 const DIRECTORYENTRIES: Descriptor = Descriptor {
     default_id: "directory-size",
@@ -92,6 +96,7 @@ const DIRECTORYENTRIES: Descriptor = Descriptor {
         warning: Some(10),
         error: 15,
     },
+    accepts_exception: false,
 };
 // DECISION: D072
 const DUMPNAME: Descriptor = Descriptor {
@@ -104,6 +109,7 @@ const DUMPNAME: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "a directory named for a generic dumping ground hides mixed responsibilities; name it for what it owns or distribute its contents to cohesive owners; shared is for genuine cross-feature leaves",
     },
+    accepts_exception: false,
 };
 // DECISION: D189
 const FUNCTIONLINES: Descriptor = Descriptor {
@@ -116,6 +122,7 @@ const FUNCTIONLINES: Descriptor = Descriptor {
         warning: None,
         error: 40,
     },
+    accepts_exception: false,
 };
 // DECISION: D122
 const EMBEDDEDTEXT: Descriptor = Descriptor {
@@ -128,6 +135,7 @@ const EMBEDDEDTEXT: Descriptor = Descriptor {
         warning: None,
         error: 20,
     },
+    accepts_exception: false,
 };
 const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     default_id: "architecture",
@@ -139,6 +147,7 @@ const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "architecture contract is violated",
     },
+    accepts_exception: false,
 };
 // DECISION: D145
 const TESTPLACEMENT: Descriptor = Descriptor {
@@ -151,6 +160,7 @@ const TESTPLACEMENT: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "a test-only module file outside tests.rs and tests/ is measured as production code by every other rule; move it into a tests/ directory, keeping its module name through #[path], or into the tests.rs of the module it tests",
     },
+    accepts_exception: false,
 };
 // DECISION: D195
 const SAMETEXT: Descriptor = Descriptor {
@@ -163,4 +173,5 @@ const SAMETEXT: Descriptor = Descriptor {
         default: Severity::Error,
         violation: "the files this rule selects must carry one text; merge the intended edits into one text and write it to each of them",
     },
+    accepts_exception: false,
 };

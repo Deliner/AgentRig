@@ -1,6 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{
-    Code, Measurement, descendants, justified, text,
-};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, plain_name, type_name};
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
@@ -34,7 +32,7 @@ pub(super) fn inspect<'a>(root: Node<'a>, source: Code<'a>, output: &mut Vec<Mea
             implementations: &implementations,
             source,
         };
-        let allowed = justified(ordering.node, source) || in_test_context(ordering.node, source);
+        let allowed = in_test_context(ordering.node, source);
         let symbol = if allowed {
             None
         } else {

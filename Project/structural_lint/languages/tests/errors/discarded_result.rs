@@ -21,8 +21,6 @@ fn discarded_findings(path: &str, source: &str) -> Vec<usize> {
 fn rust_flags_discarded_result_statements_outside_tests() {
     let source = "fn run() {
     thing.ok();
-    // DECISION: D001
-    other.ok();
     let kept = thing.ok();
     saved = thing.ok();
     thing.ok()?;
@@ -43,8 +41,6 @@ mod tests {
 fn rust_flags_propagated_status_and_output_statements_that_drop_the_outcome() {
     let source = "fn run() -> io::Result<()> {
     Command::new(\"git\").status()?;
-    // DECISION: D001
-    Command::new(\"git\").output()?;
     command(root, args)
         .args([\"-c\"])
         .output()?;
@@ -63,7 +59,7 @@ mod tests {
     }
 }
 ";
-    assert_eq!(discarded_findings("source.rs", source), [2, 5]);
+    assert_eq!(discarded_findings("source.rs", source), [2, 3]);
 }
 
 // DECISION: D114
@@ -75,8 +71,6 @@ fn rust_flags_discarded_option_combinator_and_err_statements() {
     value.map_or(0, |item| send(item));
     value.map_or_else(|| 0, |item| send(item));
     outcome.err();
-    // DECISION: D001
-    value.map(|item| store(item));
     let kept = value.map(|item| store(item));
     saved = value.and_then(|item| load(item));
     check(value.map(|item| store(item)));
@@ -104,8 +98,6 @@ fn rust_flags_dropped_spawn_handles_of_threads_tasks_and_children() {
     let _ = Command::new(\"git\").spawn()?;
     Command::new(\"git\").spawn().unwrap();
     builder.spawn(task).expect(\"spawn\");
-    // DECISION: D001
-    thread::spawn(move || detached());
     let handle = thread::spawn(move || work());
     let _guard = thread::spawn(move || work());
     handles.push(thread::spawn(move || work()));

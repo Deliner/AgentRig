@@ -1,6 +1,6 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, justified, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, justified_item, trait_impl_member, type_name,
+    in_test_context, trait_impl_member, type_name,
 };
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::signature::Signature;
@@ -38,7 +38,7 @@ pub(super) fn alias(item: Node<'_>, source: Code<'_>, output: &mut Vec<Measureme
         "type_identifier" => text(aliased, source) == "String",
         _ => false,
     };
-    let allowed = !primitive || in_test_context(item, source) || justified_item(item, source);
+    let allowed = !primitive || in_test_context(item, source);
     if allowed {
         return;
     }
@@ -58,7 +58,7 @@ pub(super) fn option(generic: Node<'_>, source: Code<'_>, output: &mut Vec<Measu
         && !reported_elsewhere
         && option_argument_of_parent(generic, source).is_none();
     let reported = flag || nested;
-    let allowed = !reported || in_test_context(generic, source) || justified(generic, source);
+    let allowed = !reported || in_test_context(generic, source);
     if allowed {
         return;
     }

@@ -18,16 +18,20 @@ without noticing the method, and the shared constant is wrong for it.
 3. When the answer is a constant per type, an associated const without a default
    such as `const PRIORITY: u8;` states that more directly than a method.
 4. When the default must stay, such as a trait published to other crates whose
-   implementors a new required method would break, record the reasoning as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   method.
+   implementors a new required method would break, record the reasoning as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the method, below its attributes. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust trait fn with a nonempty default body that
-does not mention `self`. An empty body is out of scope, as are test code and a
-method with a `DECISION:` or `INVARIANT:` reference on the line directly above
-it. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when each implementor writes the method or the
-default is justified by an owned reference.
+does not mention `self`. An empty body is out of scope, as is test code. An
+exception naming this rule, `constant-default` by default, on the line directly
+above the method lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when each implementor writes the method
+or an approved exception lifts the finding.

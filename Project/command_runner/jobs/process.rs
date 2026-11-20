@@ -51,7 +51,7 @@ pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -
 // DECISION: D095
 fn restore_default_signals() {
     for signal in [SIGINT, SIGTERM, SIGHUP] {
-        // DECISION: D113
+        // DECISION: D113 unsafe-justification
         unsafe {
             libc::signal(signal, libc::SIG_DFL);
         }
@@ -96,7 +96,7 @@ fn forward_signals(
 ) -> std::thread::JoinHandle<()> {
     std::thread::spawn(move || {
         for signal in signals.forever() {
-            // DECISION: D113
+            // DECISION: D113 unsafe-justification
             unsafe {
                 libc::kill(grouping.target(pid), signal);
             }
@@ -112,13 +112,13 @@ fn attach(
     let pid = i32::try_from(child.id())?;
     let attached = job.map(|job| job.attach(child.id(), grouping)).transpose();
     if let Err(error) = attached {
-        // DECISION: D113
+        // DECISION: D113 unsafe-justification
         unsafe {
             libc::kill(grouping.target(pid), SIGTERM);
         }
-        // DECISION: D091
+        // DECISION: D091 discarded-result
         child.kill().ok();
-        // DECISION: D091
+        // DECISION: D091 discarded-result
         child.wait().ok();
         return Err(error);
     }

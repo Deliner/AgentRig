@@ -1,5 +1,5 @@
 // DECISION: D213
-use super::{committed, installed, read, start};
+use super::{DECISION, committed, installed, read, start};
 use crate::shared::testing::{configure, git, invoke};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
@@ -36,6 +36,42 @@ fn a_change_of_enforcement_commits_only_with_the_content_the_user_approved() {
     let unreadable = committed(&root, "unreadable approval");
     assert_ne!(unreadable.code, Some(0), "{}", unreadable.output());
     assert!(unreadable.stderr.contains(RECORD), "{}", unreadable.stderr);
+}
+
+// DECISION: D220
+#[test]
+fn a_new_lint_exception_commits_only_after_the_user_approves_its_line() {
+    let (_temp, root) = installed();
+    start(&root, "exception");
+    let row = "| [D001](Decisions/001.md) | Choice | [exception panic-path](../probe.yaml) |\n";
+    let index = read(&root, "Ledger/Decisions.md");
+    fs::write(root.join("Ledger/Decisions.md"), format!("{index}{row}")).unwrap();
+    fs::create_dir_all(root.join("Ledger/Decisions")).unwrap();
+    fs::write(root.join("Ledger/Decisions/001.md"), DECISION).unwrap();
+    let probe = root.join("probe.yaml");
+    fs::write(&probe, "# DECISION: D001 panic-path\nkey: value\n").unwrap();
+    let shown = "probe.yaml:1 D001 panic-path above key: value";
+    let unapproved = committed(&root, "unapproved");
+    assert_eq!(unapproved.code, Some(1), "{}", unapproved.output());
+    assert!(unapproved.stderr.contains(shown), "{}", unapproved.stderr);
+    let approved = invoke(&root, &["approve"]);
+    assert_eq!(approved.code, Some(0), "{}", approved.output());
+    assert!(approved.stdout.contains(shown), "{}", approved.stdout);
+    let accepted = committed(&root, "approved");
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+    fs::write(&probe, "# DECISION: D001 panic-path\nkey: changed\n").unwrap();
+    let edited = committed(&root, "edited");
+    assert_eq!(edited.code, Some(1), "{}", edited.output());
+    assert!(
+        edited.stderr.contains("above key: changed"),
+        "{}",
+        edited.stderr
+    );
+    fs::write(&probe, "key: changed\n").unwrap();
+    let unlisted = read(&root, "Ledger/Decisions.md").replace("exception panic-path", "file");
+    fs::write(root.join("Ledger/Decisions.md"), unlisted).unwrap();
+    let removed = committed(&root, "removed");
+    assert_eq!(removed.code, Some(0), "{}", removed.output());
 }
 
 #[test]

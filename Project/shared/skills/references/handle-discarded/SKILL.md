@@ -34,12 +34,16 @@ its panic or error is never observed, and a child process is never waited for.
 3. For a deliberate best-effort call whose failure is genuinely ignorable (a
    cleanup on an already-failing path, a command whose exit status carries no
    meaning here, a background task deliberately detached for the process
-   lifetime), record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the statement.
+   lifetime), record the reasoning as a decision with edit-decisions and put
+   its exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the statement. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the statement
-keeps it; without one it is a finding. Test code is out of scope.
+An exception naming this rule, `discarded-result` by default, on the line
+directly above the statement keeps it; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Test code is out of scope.
 
 ## Rule binding
 
@@ -48,8 +52,7 @@ is `.ok()`, `.err()`, `.map(…)`, `.and_then(…)`, `.map_or(…)` or
 `.map_or_else(…)`, every bare statement `….status()?` or `….output()?` whose
 call has no arguments, and every bare statement or `let _ =` binding whose
 value, through `?`, `.unwrap()` and `.expect(…)`, is a call whose path or method
-ends in `spawn`, outside test code, without a `DECISION:`/`INVARIANT:` reference
-on the line directly above it. A named `let`-binding such as `let handle =` or
+ends in `spawn`, outside test code. A named `let`-binding such as `let handle =` or
 `let _guard =`, an assignment, a returned tail expression, `expr.ok()?`, a
 `….status()?.success()` or `spawn(…).join()` chain and an argument position
 keep or propagate the outcome and are not flagged here; a `.success()` returned
@@ -58,5 +61,5 @@ finding instead. The receiver type is not resolved, so a closure without effects
 is flagged too, and any method named `spawn` counts as a spawn; binding or
 removing the statement resolves it. Rerun the reported lint check and relevant
 behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the Result is handled or justified by an owned
-reference.
+complexity-discipline; stop when the Result is handled or an approved exception
+lifts the finding.

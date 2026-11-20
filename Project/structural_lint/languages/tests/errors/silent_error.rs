@@ -21,16 +21,11 @@ fn silent_findings(path: &str, source: &str) -> Vec<String> {
 
 // DECISION: D069
 #[test]
-fn python_flags_except_pass_without_a_justifying_reference() {
+fn python_flags_except_pass() {
     let source = "def guarded():
     try:
         work()
     except ValueError:
-        pass
-    try:
-        work()
-    except KeyError:
-        # DECISION: D001
         pass
     try:
         work()
@@ -47,7 +42,7 @@ fn python_flags_except_pass_without_a_justifying_reference() {
 ";
     assert_eq!(
         silent_findings("source.py", source),
-        ["4:except", "22:except"]
+        ["4:except", "17:except"]
     );
 }
 
@@ -62,8 +57,6 @@ fn list(root: &Path) -> Result<Vec<PathBuf>> {
     let bounded: Vec<_> = fs::read_dir(root)?
         .map_while(Result::ok)
         .collect();
-    // DECISION: D001
-    let justified: Vec<_> = fs::read_dir(root)?.flatten().collect();
     for entry in fs::read_dir(root)? {
         let entry = entry?;
     }
@@ -120,7 +113,7 @@ fn rust_flags_filter_map_and_flat_map_that_keep_only_the_ok_values_of_any_chain(
 
 // DECISION: D165
 #[test]
-fn rust_leaves_lines_spellings_to_clippy_and_keeps_options_errors_justified_and_test_chains() {
+fn rust_leaves_lines_spellings_to_clippy_and_keeps_options_errors_and_test_chains() {
     let source = "fn read(reader: impl BufRead, items: &[&str]) -> Vec<String> {
     let lines: Vec<String> = reader.lines().filter_map(Result::ok).collect();
     let closure: Vec<String> = reader.lines().flat_map(|line| line.ok()).collect();
@@ -129,8 +122,6 @@ fn rust_leaves_lines_spellings_to_clippy_and_keeps_options_errors_justified_and_
     let chained: Vec<u32> = items.iter().filter_map(|item| item.parse().ok().map(double)).collect();
     let flattened: Vec<u32> = items.iter().map(|item| item.parse()).flatten().collect();
     let bounded: Vec<u32> = items.iter().map(|item| item.parse()).map_while(Result::ok).collect();
-    // DECISION: D001
-    let justified: Vec<u32> = items.iter().filter_map(|item| item.parse().ok()).collect();
     lines
 }
 #[cfg(test)]
@@ -176,7 +167,7 @@ fn rust_flags_ok_flatten_and_join_fallbacks_that_erase_the_error() {
 
 // DECISION: D207
 #[test]
-fn rust_keeps_raised_argued_plain_justified_and_test_join_and_ok_chains() {
+fn rust_keeps_raised_argued_plain_and_test_join_and_ok_chains() {
     let source = "fn keep(worker: Handle, cache: Cache, value: Option<Option<u32>>) -> Result<()> {
     let joined = worker.join().unwrap();
     let expected = worker.join().expect(\"the worker finishes\");
@@ -184,8 +175,6 @@ fn rust_keeps_raised_argued_plain_justified_and_test_join_and_ok_chains() {
     let keyed = cache.join(key).unwrap_or_default();
     let nested = value.flatten();
     let parsed = text.parse::<u32>().ok().map(double);
-    // DECISION: D001
-    let justified = integer(&field).ok().flatten();
     Ok(())
 }
 #[cfg(test)]
@@ -214,11 +203,7 @@ fn io_verdict(root: &Path) -> io::Result<bool> {
     if let Err(_) = probe(root) {
         return Ok(false);
     }
-    match probe(root) {
-        // DECISION: D001
-        Err(_) => Ok(false),
-        Ok(()) => Ok(true),
-    }
+    Ok(true)
 }
 ";
     assert_eq!(
@@ -289,7 +274,7 @@ fn guarded(root: &Path) -> Result<()> {
 
 // DECISION: D126
 #[test]
-fn rust_keeps_unlaunched_argued_deferred_justified_and_test_success_checks() {
+fn rust_keeps_unlaunched_argued_deferred_and_test_success_checks() {
     let source = "fn unlaunched(flag: &Flag) -> Result<bool> {
     Ok(flag.success())
 }
@@ -299,10 +284,6 @@ fn argued(root: &Path) -> Result<bool> {
 fn deferred(root: &Path) -> Result<bool> {
     let check = || -> Result<bool> { Ok(git(root).status()?.success()) };
     check()
-}
-fn justified(root: &Path) -> Result<bool> {
-    // DECISION: D001
-    Ok(git(root).status()?.success())
 }
 #[test]
 fn probe() -> Result<bool> {

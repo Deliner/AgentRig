@@ -20,20 +20,24 @@ each copy, and the copies can drift apart.
    trait instead.
 3. Replace every copy, the first one included, with a call to that method.
 4. When a copy must answer on its own on purpose, such as a test oracle for the
-   method, record the reasoning as an owned `DECISION:`/`INVARIANT:` reference
-   on the line directly above the match.
+   method, record the reasoning as a decision with edit-decisions and put its
+   exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the match. List it in the decision
+   as `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement takes every Rust `match` whose arms are unguarded and map paths
 `E::V`, alone or in an or-pattern, to the literals `true` and `false`, both
-present, naming three or more paths, in product and test code, without a
-`DECISION:` or `INVARIANT:` reference on the line directly above it. It reports
-such a match when an earlier one among the files the rule selects, in path and
-line order, has the same set of variant and result pairs, and names that first
-match. A variant is the last segment of `E` with `V`, so `crate::m::E::V` and an
-imported `E::V` are one variant, while `Self::V` compares as `Self`. Do not
-weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when one method holds the classification or an owned reference justifies
-the copy.
+present, naming three or more paths, in product and test code. It reports such
+a match when an earlier one among the files the rule selects, in path and line
+order, has the same set of variant and result pairs, and names that first
+match. An exception naming this rule, `repeated-classification` by default, on
+the line directly above the reported match lifts the finding; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. A variant is the last
+segment of `E` with `V`, so `crate::m::E::V` and an imported `E::V` are one
+variant, while `Self::V` compares as `Self`. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when one method
+holds the classification or an approved exception lifts the finding.

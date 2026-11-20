@@ -33,8 +33,6 @@ fn run() {
     let shared = Arc::new(RwLock::new(()));
     let typed: Mutex<()> = Mutex::new(());
     let value = Mutex::new(0);
-    // DECISION: D001
-    let justified = Mutex::new(());
     let text = \"Mutex<()>\";
     take(Mutex::new(()));
 }
