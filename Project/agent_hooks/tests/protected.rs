@@ -6,11 +6,10 @@ use serde_json::{Value, json};
 use std::path::Path;
 
 const REFUSAL: &str = "protected enforcement files";
-const ENFORCEMENT: [&str; 14] = [
+const ENFORCEMENT: [&str; 13] = [
     ".agentrig/bin/agentrig",
     ".agentrig/commands.yaml",
     ".agentrig/checks.yaml",
-    ".agentrig/lint.yaml",
     ".agentrig/lint-baseline.yaml",
     ".agentrig/hooks/pre-commit",
     ".git/config",
@@ -82,11 +81,13 @@ fn only_the_user_approves() {
     assert!(refused.contains("`! just approve`"), "{refused}");
 }
 
+// DECISION: D226
 #[test]
-fn a_proposal_and_ordinary_files_stay_editable() {
+fn a_proposal_the_lint_configuration_and_ordinary_files_stay_editable() {
     let (_temp, root) = project();
     for path in [
         ".cache/runtime/proposal/.agentrig/commands.yaml",
+        ".agentrig/lint.yaml",
         ".agentrig/oracles.yaml",
         "README.md",
     ] {

@@ -5,7 +5,7 @@ files:
   baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
   lifting.rs: Lift a finding under an exception naming its rule and report each exception that lifts none
 directories:
-  baseline_file: Read and compare the lint baseline file without evaluating lint
+  lint_files: Read and compare the lint configuration and baseline files without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
   languages: Parse source syntax and measure language-specific scalar rules

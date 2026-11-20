@@ -1,9 +1,9 @@
 pub mod architecture;
 pub mod baseline;
-pub mod baseline_file;
 mod evaluation;
 pub mod languages;
 mod lifting;
+pub mod lint_files;
 pub mod reporting;
 pub mod rule_identities;
 // DECISION: D007

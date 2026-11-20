@@ -168,6 +168,45 @@ fn a_change_of_check_settings_commits_only_with_the_users_approval() {
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
 }
 
+fn rules(root: &Path, edit: impl FnOnce(&mut Vec<Value>)) {
+    edited(root, "lint", |lint| {
+        edit(lint["rules"].as_array_mut().unwrap())
+    });
+}
+
+// DECISION: D226
+#[test]
+fn a_lint_configuration_commits_without_approval_only_when_it_adds_rules() {
+    let (_temp, root) = installed();
+    start(&root, "rules");
+    rules(&root, |all| {
+        let mut added = all
+            .iter()
+            .find(|rule| rule["id"] == "file-size")
+            .unwrap()
+            .clone();
+        added["id"] = json!("added-file-size");
+        all.insert(1, added);
+    });
+    let accepted = committed(&root, "added");
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+    let weakenings: [fn(&mut Vec<Value>); 2] = [
+        |all| all.retain(|rule| rule["id"] != "file-size"),
+        |all| all[0]["enabled"] = json!(false),
+    ];
+    for weaken in weakenings {
+        rules(&root, weaken);
+        let refused = committed(&root, "weakened");
+        assert_eq!(refused.code, Some(1), "{}", refused.output());
+        assert!(
+            refused.stderr.contains(".agentrig/lint.yaml"),
+            "{}",
+            refused.stderr
+        );
+        git(&root, &["reset", "-q", "--hard"]);
+    }
+}
+
 const BASELINE: &str = ".agentrig/lint-baseline.yaml";
 
 fn wide(root: &Path, lines: usize) {

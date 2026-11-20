@@ -1,5 +1,8 @@
+mod rules;
+
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
+pub use rules::only_adds_rules;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -80,7 +83,7 @@ pub(super) fn ceiling(
 }
 
 // DECISION: D214
-pub fn admits(repository: &Repository<'_>, relative: &Path) -> Result<bool> {
+pub fn only_lowers_counts(repository: &Repository<'_>, relative: &Path) -> Result<bool> {
     let source = String::from_utf8(repository.read("", relative)?)?;
     let staged: Counts = crate::shared::strict_yaml::decode(&source)
         .with_context(|| format!("staged lint baseline {}", relative.display()))?;

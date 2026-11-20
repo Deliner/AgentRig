@@ -191,7 +191,7 @@ fn edit_event(root: &Path, event: &Value, configured: &Context) -> Result<Option
 fn protected(configured: &Context, paths: &[PathBuf]) -> Option<Value> {
     let mut touched: Vec<String> = paths
         .iter()
-        .filter(|path| configured.protection.touched(path))
+        .filter(|path| configured.protection.closed_to_agents(path))
         .map(|path| shown(path))
         .collect();
     touched.dedup();

@@ -16,7 +16,7 @@ staged change of them that the user has not approved. They are:
 - the configuration modules `.agentrig/project.yaml`, `git.yaml`,
   `commands.yaml`, `checks.yaml`, `hooks.yaml`, `tools.yaml` and `rust.yaml`,
   the lint configuration `paths.lint` and its baseline, so a new catalog
-  command, `just write` program, check setting or lint rule is a proposal too;
+  command, `just write` program or check setting is a proposal too;
 - `.git`, the route state `reminders/` and the approval record `approved` in
   the runtime directory;
 - every path listed in `hooks.protected` and the pin named by `git.pin`.
@@ -51,6 +51,11 @@ gate accepts a lint baseline written by `just lint-baseline` without approval
 only when it raises no count and adds no pair; recording new errors needs the
 user's approval. When the configuration is invalid in a protected file, ask
 the user to correct it.
+
+Edit the lint configuration itself to add a rule: the gate accepts it without
+approval while every committed rule stays unchanged and in order and the other
+settings stay equal. Removing, disabling or changing a rule, a threshold or an
+exclusion is a proposal.
 
 ## Lint exceptions
 
