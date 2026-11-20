@@ -8,7 +8,7 @@ use std::{
     path::{Component, PathBuf},
 };
 
-pub const FILENAME: &str = "architecture.yaml";
+pub const CONTRACT_FILENAME: &str = "architecture.yaml";
 
 #[derive(Default, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]

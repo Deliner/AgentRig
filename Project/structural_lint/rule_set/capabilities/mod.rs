@@ -1,19 +1,16 @@
 mod describe;
 mod language_support;
 
-pub use crate::structural_lint::rule_identities::kind::Kind;
-pub use crate::structural_lint::rule_identities::{Descriptor, Parameters};
+pub use crate::structural_lint::rule_identities::{Descriptor, Kind, Parameters};
 pub use describe::{catalog, describe, example};
 pub use language_support::{
     support, supports_path, syntax, validate_extensions, validate_includes,
     validate_program_languages,
 };
 
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::ownership::Ownership;
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::signature::Signature;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{
+    ControlFlow, Ownership, Reference, Signature, Structure,
+};
 use serde::{Deserialize, Deserializer, de};
 use serde_json::Value;
 

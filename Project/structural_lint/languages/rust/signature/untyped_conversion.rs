@@ -2,8 +2,7 @@ use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text
 use crate::structural_lint::languages::rust::exemptions::{
     in_test_context, last_segment, type_name,
 };
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::{Kind, Signature};
 use tree_sitter::Node;
 
 const CONVERSIONS: [&str; 6] = ["parse", "into", "try_into", "sum", "product", "collect"];

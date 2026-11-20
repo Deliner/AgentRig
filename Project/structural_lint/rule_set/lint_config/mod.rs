@@ -3,9 +3,7 @@ mod repair_guidance;
 use super::capabilities;
 pub use crate::shared::diagnostics::Level;
 use crate::shared::{diagnostics::validate_skill, paths::globs};
-use crate::structural_lint::rule_identities::control_flow::{ControlFlow, Junctions};
-use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{ControlFlow, Junctions, Ownership, Pair, Structure};
 use anyhow::{Result, bail};
 use serde::{Deserialize, Serialize};
 use std::{
@@ -47,7 +45,7 @@ pub struct Rule {
     #[serde(default)]
     pub overrides: Vec<Override>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub architecture: Option<crate::structural_lint::rule_identities::contract_settings::Settings>,
+    pub architecture: Option<crate::structural_lint::rule_identities::Settings>,
     // DECISION: D156
     #[serde(default, skip_serializing_if = "Junctions::mixed")]
     pub junctions: Junctions,

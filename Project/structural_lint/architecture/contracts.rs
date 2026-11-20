@@ -1,6 +1,6 @@
 use super::policy::{Declaration, Rooted, Zone};
 use super::{Dependency, EnvironmentUse, Issue};
-use crate::structural_lint::rule_identities::contract_settings::FILENAME;
+use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -93,7 +93,7 @@ impl Contracts {
                     })
                     .collect();
                 issues.push(Issue {
-                    path: directory.join(FILENAME),
+                    path: directory.join(CONTRACT_FILENAME),
                     line: None,
                     message: format!(
                         "directory is depended on by {count} other directories (budget {budget}): {listed}; reduce incoming coupling or raise the declared dependents budget",
@@ -127,7 +127,7 @@ impl Contracts {
                         .insert(directory.clone(), declaration);
                 }
                 Err(error) => issues.push(Issue {
-                    path: directory.join(FILENAME),
+                    path: directory.join(CONTRACT_FILENAME),
                     line: None,
                     message: format!("invalid or missing directory contract: {error:#}"),
                 }),

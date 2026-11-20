@@ -14,7 +14,7 @@ pub use registry::{HANDLERS, handler};
 pub(crate) use rust::{ENTRY_FILES, in_test_context};
 
 use crate::shared::source_parsers;
-use crate::structural_lint::rule_identities::ownership::Pair;
+use crate::structural_lint::rule_identities::Pair;
 use anyhow::{Context, Result};
 use std::path::Path;
 

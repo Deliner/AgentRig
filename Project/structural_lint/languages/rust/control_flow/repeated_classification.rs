@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::last_segment;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::{ControlFlow, Kind};
 use std::collections::{BTreeMap, BTreeSet};
 use tree_sitter::Node;
 

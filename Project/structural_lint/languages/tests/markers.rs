@@ -1,7 +1,5 @@
 use super::super::analyze;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Ownership;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Ownership, Reference};
 use std::path::Path;
 
 // DECISION: D074

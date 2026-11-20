@@ -3,9 +3,7 @@
 use super::rust::cargo::Layout;
 use super::template::{CACHE, SOURCE};
 use crate::project_config::Paths;
-use crate::structural_lint::rule_identities::{
-    Kind, contract_settings::RUST_SEED, structure::Structure,
-};
+use crate::structural_lint::rule_identities::{Kind, RUST_SEED, Structure};
 use crate::structural_lint::rule_set::capabilities;
 use anyhow::Result;
 use serde_json::{Value, json};

@@ -3,9 +3,7 @@ use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, desc
 use crate::structural_lint::languages::rust::exemptions::{
     attributed, derives, in_test_context, last_segment, listed, type_name,
 };
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Ownership;
-use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::{Kind, Ownership, Signature};
 use std::collections::BTreeSet;
 use tree_sitter::Node;
 

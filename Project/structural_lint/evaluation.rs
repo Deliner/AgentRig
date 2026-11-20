@@ -7,11 +7,9 @@ use super::targeting::{file_discovery, lint_targets};
 use crate::shared::diagnostics::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
-use crate::structural_lint::rule_identities::contract_settings::FILENAME;
-use crate::structural_lint::rule_identities::control_flow::{ControlFlow, MIXED_JUNCTIONS};
-use crate::structural_lint::rule_identities::ownership::Pair;
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{
+    CONTRACT_FILENAME, ControlFlow, MIXED_JUNCTIONS, Pair, Reference, Structure,
+};
 use anyhow::{Context, Result};
 use std::collections::{HashMap, hash_map::Entry};
 use std::io::{BufRead, BufReader, Read};
@@ -227,7 +225,10 @@ fn structural_measurements(
             .unwrap_or_default(),
         Structure::ForbiddenFile => vec![(None, 1)],
         Structure::DirectoryEntries => {
-            vec![(None, inventory.file_entries(selected.path, FILENAME))]
+            vec![(
+                None,
+                inventory.file_entries(selected.path, CONTRACT_FILENAME),
+            )]
         }
         Structure::DumpName => dump_name(selected.path),
         Structure::SameText => same_text(root, rule, selected, inventory)?,

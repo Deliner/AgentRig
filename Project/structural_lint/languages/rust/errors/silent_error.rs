@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
 
 const ERROR_ARMS: &[&str] = &["Err(_)", "Err(..)"];

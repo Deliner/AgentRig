@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::ControlFlow;
 
 const MODE: &str = "Mode::Idle | Mode::Off | Mode::Slow => false, Mode::Fast => true";
 const DEVICE: &str = "Device::Discrete => false, Device::Cpu | Device::Other => true";

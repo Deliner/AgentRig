@@ -5,7 +5,7 @@ use crate::structural_lint::architecture::{
     extraction::{self, Reference, References, Target},
     resolution::{Resolved, python::Python, rust::Rust},
 };
-use crate::structural_lint::rule_identities::descriptor::TEST_CODE;
+use crate::structural_lint::rule_identities::TEST_CODE;
 use anyhow::{Result, ensure};
 use globset::GlobSet;
 use std::{

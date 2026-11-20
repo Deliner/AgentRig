@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::{Kind, Ownership};
 use std::collections::BTreeMap;
 use tree_sitter::Node;
 

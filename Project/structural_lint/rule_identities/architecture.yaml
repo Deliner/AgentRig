@@ -2,7 +2,7 @@ purpose: Define rule identities, metrics, parameters and architecture settings i
 type: flat
 dependents: 16
 files:
-  mod.rs: Declare the definition modules and export the rule identity and descriptor types
+  mod.rs: Declare the definition modules privately and export the rule identities, descriptors and settings
   kind.rs: Stable rule identity as a wrapper over the family enums, its serialized names and dispatch to the family descriptors
   descriptor.rs: The rule descriptor shape and the shared test-code exclusion
   structure.rs: File, line, directory and architecture rule identities with their metrics, defaults and repair skills

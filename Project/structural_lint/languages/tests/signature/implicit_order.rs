@@ -1,6 +1,5 @@
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::{Kind, Signature};
 use std::path::Path;
 
 // DECISION: D155

@@ -12,7 +12,7 @@ mod tests;
 
 use std::path::PathBuf;
 
-pub use super::rule_identities::contract_settings::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
+pub use super::rule_identities::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use contracts::{Contracts, Loaded};
 pub use graph::Neighbours;
 pub use policy::Rooted;

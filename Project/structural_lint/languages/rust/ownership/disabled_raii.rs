@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::{Kind, Ownership};
 use tree_sitter::Node;
 // DECISION: D092
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {

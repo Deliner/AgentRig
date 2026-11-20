@@ -1,5 +1,5 @@
 use crate::shared::source_parsers::Exception;
-use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::Kind;
 use std::collections::BTreeSet;
 use std::path::Path;
 use tree_sitter::Node;

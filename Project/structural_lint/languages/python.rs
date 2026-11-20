@@ -3,9 +3,7 @@ use super::neutral_metrics::{
     comment, condition, credential, function, mixed_junction, nesting, text,
 };
 use crate::structural_lint::languages::neutral_metrics::Code;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Pair;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Pair, Reference};
 use tree_sitter::Node;
 
 // DECISION: D017

@@ -16,10 +16,7 @@ use crate::structural_lint::languages::neutral_metrics::{
     Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
     comment, condition, credential, function, mixed_junction, nesting, reparse, text,
 };
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Pair;
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Pair, Reference, Structure};
 use exemptions::in_debug_only_context;
 pub(crate) use exemptions::{ENTRY_FILES, in_test_context};
 use tree_sitter::Node;

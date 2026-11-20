@@ -1,7 +1,7 @@
 // DECISION: D044
 use super::policy::{Declaration, Kind};
 use super::{Dependency, Issue};
-use crate::structural_lint::rule_identities::contract_settings::FILENAME;
+use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{
     collections::BTreeMap,
@@ -114,7 +114,7 @@ impl Features<'_> {
 
     fn contract(&mut self, directory: &Path, message: String) {
         self.issues.push(Issue {
-            path: directory.join(FILENAME),
+            path: directory.join(CONTRACT_FILENAME),
             line: None,
             message,
         });

@@ -14,7 +14,7 @@ mod tests;
 
 pub use crate::shared::diagnostics::Diagnostic;
 use crate::shared::paths::globs;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::Structure;
 use anyhow::Result;
 use rule_set::lint_config;
 use std::path::Path;

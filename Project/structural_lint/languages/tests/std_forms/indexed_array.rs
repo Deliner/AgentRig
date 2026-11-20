@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::Reference;
 
 #[test]
 fn rust_flags_an_array_literal_with_calls_indexed_by_a_computed_value() {

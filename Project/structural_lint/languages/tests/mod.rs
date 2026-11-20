@@ -1,10 +1,6 @@
 // DECISION: D037
 use super::analyze;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::signature::Signature;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{ControlFlow, Kind, Reference, Signature, Structure};
 use std::path::Path;
 
 mod async_code;

@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, reparse, text};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::{Kind, Ownership};
 use std::path::Path;
 use tree_sitter::Node;
 

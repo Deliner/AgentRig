@@ -2,10 +2,7 @@ mod conditions;
 mod nesting;
 mod record;
 
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::signature::Signature;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Reference, Signature, Structure};
 pub use conditions::{boolean_expression, condition, mixed_junction};
 pub use nesting::{Branch, Nest, branching, nesting};
 pub use record::{Analysis, Code, Measurement, text};

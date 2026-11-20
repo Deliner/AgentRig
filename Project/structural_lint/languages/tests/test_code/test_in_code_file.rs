@@ -1,6 +1,5 @@
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Structure};
 use std::path::Path;
 
 fn test_code_in(path: &str, source: &str) -> Vec<String> {

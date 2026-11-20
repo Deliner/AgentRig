@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, type_name};
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::{ControlFlow, Kind};
 use std::iter::successors;
 use tree_sitter::Node;
 

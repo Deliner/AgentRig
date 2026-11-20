@@ -1,6 +1,5 @@
 use super::neutral_metrics::Measurement;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Structure};
 use std::path::Path;
 
 // DECISION: D223

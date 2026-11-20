@@ -2,7 +2,7 @@
 // DECISION: D043
 // DECISION: D044
 use crate::shared::fs_with_context as fs;
-use crate::structural_lint::rule_identities::contract_settings::FILENAME;
+use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
@@ -165,7 +165,7 @@ impl Rooted<'_> {
             directory == Path::new(".") || relative(directory),
             "invalid directory path"
         );
-        let path = self.absolute().join(FILENAME);
+        let path = self.absolute().join(CONTRACT_FILENAME);
         ensure!(
             fs::symlink_metadata(&path)?.is_file(),
             "contract must be a regular file"

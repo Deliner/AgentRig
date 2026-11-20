@@ -1,6 +1,6 @@
 use super::manifest::findings;
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::Reference;
 use std::path::Path;
 
 // DECISION: D182

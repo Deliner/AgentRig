@@ -1,11 +1,9 @@
 use super::language_support::{extensions, syntax};
 use super::{ALL, Kind};
 use crate::structural_lint::languages::{self, program};
-use crate::structural_lint::rule_identities::contract_settings;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::ownership::{self, Ownership};
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{
+    ControlFlow, Ownership, Reference, Settings, Structure, default_pairs,
+};
 use serde_json::{Value, json};
 
 pub fn catalog() -> Value {
@@ -46,7 +44,7 @@ pub fn describe(kind: Kind) -> Value {
 fn describe_settings(kind: Kind, value: &mut Value) {
     match kind {
         Kind::Structure(Structure::DirectoryArchitecture) => {
-            value["architecture"] = contract_settings::Settings::describe();
+            value["architecture"] = Settings::describe();
         }
         Kind::Ownership(Ownership::PairedCalls) => {
             value["pairs"] = json!(
@@ -98,7 +96,7 @@ fn example_settings(kind: Kind, value: &mut Value) {
             value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
         }
         // DECISION: D156
-        Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
+        Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = default_pairs(),
         // DECISION: D156
         Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
         // DECISION: D198

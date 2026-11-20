@@ -1,7 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::kind::Kind;
+use crate::structural_lint::rule_identities::{ControlFlow, Kind};
 use tree_sitter::Node;
 
 // DECISION: D156

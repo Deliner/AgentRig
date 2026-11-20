@@ -3,7 +3,7 @@ use super::{
     policy::{Declaration, Rooted},
 };
 use crate::shared::fs_with_context as fs;
-use crate::structural_lint::rule_identities::contract_settings::FILENAME;
+use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{collections::BTreeMap, path::Path};
 
@@ -39,7 +39,7 @@ pub(super) fn check(
     messages
         .into_iter()
         .map(|message| Issue {
-            path: directory.join(FILENAME),
+            path: directory.join(CONTRACT_FILENAME),
             line: None,
             message,
         })
@@ -49,7 +49,7 @@ pub(super) fn check(
 fn missing(directory: &Path, declaration: &Declaration, inventory: &Inventory) -> Vec<String> {
     let mut messages = Vec::new();
     let names = inventory.directories.get(directory).into_iter().flatten();
-    for name in names.filter(|name| name.as_str() != FILENAME) {
+    for name in names.filter(|name| name.as_str() != CONTRACT_FILENAME) {
         let path = directory.join(name);
         let path = path.trim_prefix(".");
         let child_directory = inventory.directories.contains_key(path);
