@@ -3,7 +3,7 @@ use crate::change_delivery::gate;
 use crate::command_runner;
 use crate::project_config::Context;
 use crate::project_setup;
-use crate::shared::paths::{glob_patterns::literal, resolve};
+use crate::shared::paths::{literal, resolve};
 use crate::shared::shared_options::forwarded;
 use anyhow::{Result, bail, ensure};
 use serde_json::Value;

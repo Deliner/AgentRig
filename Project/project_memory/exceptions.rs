@@ -2,7 +2,7 @@
 use super::format::{Catalog, exception_links, table, target};
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, ensure};
 use std::collections::BTreeSet;

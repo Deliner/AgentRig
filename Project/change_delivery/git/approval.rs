@@ -1,7 +1,7 @@
 // DECISION: D213
 use super::exceptions::{self, Added, Contents, Key};
 use crate::project_config::{Context, protection::Protection};
-use crate::shared::atomic_files::{atomic_json, overlay::Overlay};
+use crate::shared::atomic_files::{Overlay, load_json, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};
 use crate::structural_lint::lint_files;
@@ -121,7 +121,7 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
             .collect(),
         exceptions: added.iter().map(|found| found.key.clone()).collect(),
     };
-    atomic_json::save(&record_path(context)?, &record)?;
+    save_json(&record_path(context)?, &record)?;
     Ok(Approved {
         files,
         exceptions: added.iter().map(Added::describe).collect(),
@@ -133,10 +133,10 @@ pub(super) fn admit(context: &Context, repository: &Repository<'_>, path: &Path)
     let name = path.to_string_lossy().into_owned();
     let stageable = repository.stageable(std::slice::from_ref(&name))?;
     let location = record_path(context)?;
-    let mut record: Record = atomic_json::load(&location)?.unwrap_or_default();
+    let mut record: Record = load_json(&location)?.unwrap_or_default();
     let content = Content::of(&stageable, &name);
     record.files.insert(name, content);
-    atomic_json::save(&location, &record)
+    save_json(&location, &record)
 }
 
 fn committed(repository: &Repository<'_>) -> Result<BTreeMap<String, Entry>> {
@@ -163,7 +163,7 @@ pub(super) fn guard(context: &Context, repository: &Repository<'_>) -> Result<i3
     if unchanged {
         return Ok(0);
     }
-    let record: Record = atomic_json::load(&record_path(context)?)?.unwrap_or_default();
+    let record: Record = load_json(&record_path(context)?)?.unwrap_or_default();
     let review = Review {
         repository,
         index,

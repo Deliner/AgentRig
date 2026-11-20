@@ -90,7 +90,7 @@ impl Paths {
     }
     // DECISION: D218
     pub fn source_matcher(&self) -> Result<globset::GlobSet> {
-        crate::shared::paths::glob_patterns::globs(&self.sources)
+        crate::shared::paths::globs(&self.sources)
     }
 }
 fn service() -> String {

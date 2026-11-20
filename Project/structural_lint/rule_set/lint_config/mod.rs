@@ -1,8 +1,8 @@
 mod repair_guidance;
 
 use super::capabilities;
-pub use crate::shared::diagnostics::actionable_findings::Level;
-use crate::shared::{diagnostics::skill_refs, paths::glob_patterns::globs};
+pub use crate::shared::diagnostics::Level;
+use crate::shared::{diagnostics::validate_skill, paths::globs};
 use crate::structural_lint::rule_identities::control_flow::{ControlFlow, Junctions};
 use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
 use crate::structural_lint::rule_identities::structure::Structure;
@@ -91,7 +91,7 @@ impl Config {
         if unsupported_version {
             bail!("unsupported config version {}", self.version);
         }
-        skill_refs::reference(resources, &self.config_skill)?;
+        validate_skill(resources, &self.config_skill)?;
         globs(&self.exclude)?;
         let missing_rules = self.rules.is_empty();
         if missing_rules {
@@ -162,8 +162,8 @@ impl Rule {
         capabilities::validate_extensions(self.kind, &self.extensions)?;
         capabilities::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
-        skill_refs::reference(root, &self.warning_skill)?;
-        skill_refs::reference(root, &self.error_skill)?;
+        validate_skill(root, &self.warning_skill)?;
+        validate_skill(root, &self.error_skill)?;
         for entry in &self.overrides {
             self.validate_override(entry)?;
         }

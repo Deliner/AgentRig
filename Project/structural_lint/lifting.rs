@@ -1,7 +1,7 @@
 use super::languages::{Analysis, Measurement};
 use super::rule_set::lint_config::Rule;
 use super::targeting::{file_discovery::Inventory, lint_targets};
-use crate::shared::diagnostics::actionable_findings::Diagnostic;
+use crate::shared::diagnostics::Diagnostic;
 use anyhow::{Context, Result};
 use std::collections::HashMap;
 use std::path::PathBuf;

@@ -12,8 +12,8 @@ pub mod targeting;
 #[cfg(test)]
 mod tests;
 
-pub use crate::shared::diagnostics::actionable_findings::Diagnostic;
-use crate::shared::paths::glob_patterns::globs;
+pub use crate::shared::diagnostics::Diagnostic;
+use crate::shared::paths::globs;
 use crate::structural_lint::rule_identities::structure::Structure;
 use anyhow::Result;
 use rule_set::lint_config;

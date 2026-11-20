@@ -1,5 +1,5 @@
 use crate::shared::console;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::Location;
 use crate::structural_lint::architecture::{Rooted, contract_check};
 use crate::structural_lint::rule_identities::{Kind, structure::Structure};
@@ -21,7 +21,7 @@ pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let path = path.as_path();
     let root = location.root;
     let config = location.load()?;
-    let excluded = crate::shared::paths::glob_patterns::globs(&config.exclude)?;
+    let excluded = globs(&config.exclude)?;
     let inventory = file_discovery::collect(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
     let exclusion = if globally_excluded {

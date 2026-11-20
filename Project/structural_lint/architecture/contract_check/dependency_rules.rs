@@ -1,5 +1,5 @@
 use super::diagnostic::diagnostic;
-use crate::shared::diagnostics::actionable_findings::Diagnostic;
+use crate::shared::diagnostics::Diagnostic;
 use crate::structural_lint::architecture::{
     Dependency, Issue, entries::Boundaries, entries::own_uses, graph,
 };

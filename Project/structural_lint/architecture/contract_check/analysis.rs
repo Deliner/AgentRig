@@ -1,5 +1,5 @@
 use crate::shared::fs_with_context as fs;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::architecture::{
     self as architecture, Dependency, EnvironmentUse, Issue, Relation, Rooted, Settings,
     extraction::{self, Reference, References, Target},

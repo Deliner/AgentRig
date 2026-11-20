@@ -2,7 +2,7 @@ use crate::shared::fs_with_context as fs;
 use anyhow::{Result, bail};
 use std::path::Path;
 
-pub fn reference(root: &Path, value: &str) -> Result<()> {
+pub fn validate_skill(root: &Path, value: &str) -> Result<()> {
     let absolute = Path::new(value).is_absolute();
     if absolute {
         bail!("skill paths must be relative to the repository: {value}");

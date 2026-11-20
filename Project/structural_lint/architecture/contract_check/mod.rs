@@ -7,8 +7,8 @@ mod scope;
 use super::{
     Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, extraction::References,
 };
-use crate::shared::diagnostics::actionable_findings::Diagnostic;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::diagnostics::Diagnostic;
+use crate::shared::paths::globs;
 use crate::structural_lint::{
     rule_set::lint_config::Rule,
     targeting::file_discovery::{self, Inventory},

@@ -1,7 +1,7 @@
 use super::{Finding, Findings, removal_records};
 use crate::project_config::{Check, Context, module};
-use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level, print_diagnostics};
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
+use crate::shared::paths::globs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use std::path::Path;

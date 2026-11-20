@@ -12,7 +12,7 @@ use affected_checks::Scope;
 // DECISION: D005
 // DECISION: D004
 use crate::project_config::{self, Check, CheckKind, Context};
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, ensure};
 use check::{CheckRun, Outcome};

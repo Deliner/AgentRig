@@ -1,7 +1,7 @@
 // DECISION: D218
 use crate::command_runner;
 use crate::project_config::Context;
-use crate::shared::atomic_files::overlay::Overlay;
+use crate::shared::atomic_files::Overlay;
 use crate::shared::console;
 use crate::shared::vcs::{Repository, Revisions};
 use anyhow::{Context as _, Result, ensure};

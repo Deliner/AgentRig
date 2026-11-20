@@ -1,7 +1,7 @@
 use super::Location;
 use super::lint_files::{Counts, Key, ceiling, committed, location, pairs};
 use crate::shared::console;
-use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level};
+use crate::shared::diagnostics::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};

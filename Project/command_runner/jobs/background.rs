@@ -46,7 +46,7 @@ impl Job {
                 return Err(error.into());
             }
         };
-        crate::shared::atomic_files::atomic_json::save(
+        crate::shared::atomic_files::save_json(
             &self.directory.join("launcher.json"),
             &Identity::read(child.id()).ok(),
         )?;

@@ -21,7 +21,7 @@ pub use resume::run as resume;
 use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Context as _, Result, ensure};
 use format::{Catalog, Row, sections, table, target};

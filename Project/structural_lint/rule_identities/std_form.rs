@@ -1,6 +1,6 @@
 use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
-use crate::shared::diagnostics::actionable_findings::Level as Severity;
+use crate::shared::diagnostics::Level as Severity;
 
 // DECISION: D177
 // DECISION: D178

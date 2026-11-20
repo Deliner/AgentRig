@@ -1,15 +1,18 @@
 // DECISION: D022
-pub mod actionable_findings;
+mod actionable_findings;
 mod guidance;
 mod rerun_command;
-pub mod skill_refs;
+mod skill_refs;
 
 use crate::shared::calling_agent::Agent;
 use guidance::{configured, repair};
 use rerun_command::{Invocation, executable, invocation};
 
+pub(crate) use actionable_findings::print_diagnostics;
+pub use actionable_findings::{Diagnostic, Level};
 pub use guidance::{Guidance, UNNAMED_SKILL, caller, config_skill};
 pub use rerun_command::rerun;
+pub use skill_refs::validate_skill;
 
 // DECISION: D188
 pub fn failure(error: &anyhow::Error) -> String {

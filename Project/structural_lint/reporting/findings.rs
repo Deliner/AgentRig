@@ -1,6 +1,6 @@
 use crate::shared::calling_agent::Caller;
 use crate::shared::console;
-use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level, print_diagnostics};
+use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs_with_context as fs;
 use crate::structural_lint::{Format, Location, Mode, analyze};
 use anyhow::Result;
