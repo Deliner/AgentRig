@@ -1,0 +1,4 @@
+purpose: Verify strict YAML decoding and canonical encoding
+files:
+  mod.rs: Strict decoding failures and round-trip encoding behavior
+directories: {}

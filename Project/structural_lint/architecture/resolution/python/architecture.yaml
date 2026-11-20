@@ -3,5 +3,5 @@ files:
   mod.rs: Import roots, module name validation and dispatch between external and local modules
   relative_imports.rs: Absolute module names for relative imports within the source package
   namespace_packages.rs: Regular and namespace package precedence, module loading and member resolution
-  tests.rs: Package loading, incomplete resolution and comparisons with real Python imports
-directories: {}
+directories:
+  tests: Package loading, incomplete resolution and comparisons with real Python imports

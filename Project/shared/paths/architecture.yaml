@@ -5,5 +5,5 @@ files:
   mod.rs: Declarations of the symbolic-link resolution and glob pattern parts
   glob_patterns.rs: Repository-relative glob patterns compiled for selection
   symlinks.rs: Component resolution with bounded symbolic-link traversal
-  tests.rs: Missing tails, link-relative parent traversal, absolute links and cycles
-directories: {}
+directories:
+  tests: Missing tails, link-relative parent traversal, absolute links and cycles

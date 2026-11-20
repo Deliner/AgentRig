@@ -1,0 +1,4 @@
+purpose: Verify shared command-line option extraction and forwarded arguments
+files:
+  mod.rs: Option order, duplicates, separator handling and missing-value behavior
+directories: {}

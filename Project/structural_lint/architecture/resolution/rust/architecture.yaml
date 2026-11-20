@@ -4,5 +4,5 @@ files:
   module_tree.rs: Declared module tree construction and module file selection
   use_aliases.rs: Scoped path lookup, aliases, imported bindings and external names
   macro_origins.rs: Known macro and derive origins and embedded resource dependencies
-  tests.rs: Module and alias resolution, incomplete forms and compiled consumer comparisons
-directories: {}
+directories:
+  tests: Module and alias resolution, incomplete forms and compiled consumer comparisons

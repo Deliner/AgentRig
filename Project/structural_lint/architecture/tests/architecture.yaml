@@ -1,0 +1,4 @@
+purpose: Verify directory contracts, feature types and measured cycles
+files:
+  mod.rs: Contract validation, feature types and measured cycle behavior
+directories: {}
