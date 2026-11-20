@@ -2,24 +2,21 @@
 
 ## Focus
 
-P167 (B174), VAC 3: a new lint exception commits only after the user's approval (AC4, D220).
+P167 (B174): pin the revision that parses named exceptions and approves new ones in the gate (D218, D220).
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: 3c53fdde383f18cc48efaf5998a6ad5ce3b029c0
+Revision: 5f87bcbbcc3db9a9ae45557a27a5178b03b21e91
 
 ## Progress
 
-- `change_delivery/git/exceptions.rs` keys an exception by file, decision, rule and the line beneath it.
-- The feature commit guard refuses staged exceptions beyond `HEAD` and the approved ones and lists each.
-- `approve` records and prints the new exceptions of the working tree; the record holds files and exceptions.
-- `propose-protected-change` describes the approval of exceptions.
+- VAC 1 to 3 are committed: Plan and measurement, the exception form with decision lists (D219), the approval (D220).
+- The user approved the pin 5f87bcb with `just approve`; it is installed and written to stable.txt.
 
 ## Verification
 
-- `just run test -- change_delivery:: project_setup:: agent_hooks::`: 146 passed, with the new approval gate test.
-- `just candidate check --only memory`: PASS. `just lint --json`: no findings.
+- `just propose-pin HEAD` listed 19 changed source files; the user's approval installed and pinned the revision.
 
 ## Blockers
 
@@ -27,4 +24,4 @@ None.
 
 ## Next action
 
-Commit VAC 3, run `just propose-pin HEAD` and ask the user to type `! just approve`, then commit the pin.
+Commit the pin, then VAC 4: name the rig's exceptions, list them in decisions, fix accidental lifts in code.
