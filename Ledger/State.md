@@ -2,21 +2,21 @@
 
 ## Focus
 
-P170 (B175, D225): pin the runtime that knows the rule kind `file-cycle` before lint.yaml names it.
+P170 (B175, D225) phase 2: the rig and `init` enable the rule `file-cycle` on every directory.
 
 ## Workspace
 
 Branch: feature/file-cycle
-Revision: eedc6f1ddcd84783f0e03678642efa6731a1b79d
+Revision: 9724b1e518b83579cac507e7c19a18269257ca0b
 
 ## Progress
 
-- Phase 1 and the repair of every file cycle of the rig are committed.
-- The user approved the pin of eedc6f1; `just approve` installed it and wrote `tooling/distribution/stable.txt`.
+- The user approved `.agentrig/lint.yaml` with the rule `file-cycle` and the skill `break-file-cycle`.
+- `Project/project_setup/lint.rs` catalogs `file-cycle`, so `init` writes the same rule.
 
 ## Verification
 
-- The gate accepted eedc6f1; the scratch probe with `file-cycle` over the whole rig reports no finding.
+- `just run test -- project_setup::` passes 58 tests, I023 included; `just lint` and `just run rustfmt` pass.
 
 ## Blockers
 
@@ -24,4 +24,4 @@ None.
 
 ## Next action
 
-Commit the pin, then propose lint.yaml with the `file-cycle` rule and ask the user to approve it.
+Commit, archive P170 and B175, move the D225 links to Archive, propose the final pin, then `just feature-merge`.

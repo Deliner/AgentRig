@@ -93,8 +93,7 @@ fn cataloged(kind: Kind) -> bool {
             Structure::DirectoryArchitecture
             | Structure::LineWidth
             | Structure::ForbiddenFile
-            | Structure::ProgramLanguage
-            | Structure::FileCycle,
+            | Structure::ProgramLanguage,
         ) => false,
         Kind::Structure(
             Structure::NonblankLines
@@ -104,7 +103,8 @@ fn cataloged(kind: Kind) -> bool {
             | Structure::FunctionLines
             | Structure::EmbeddedText
             | Structure::TestPlacement
-            | Structure::TestInCodeFile,
+            | Structure::TestInCodeFile
+            | Structure::FileCycle,
         )
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

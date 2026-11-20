@@ -1061,6 +1061,14 @@ rules:
   level: error
   warning_skill: .agentrig/skills/move-test-code-out/SKILL.md
   error_skill: .agentrig/skills/move-test-code-out/SKILL.md
+- id: file-cycle
+  kind: file-cycle
+  target: directory
+  include:
+  - '**'
+  level: error
+  warning_skill: .agentrig/skills/break-file-cycle/SKILL.md
+  error_skill: .agentrig/skills/break-file-cycle/SKILL.md
 # DECISION: D102
 - id: recursive-deletion
   kind: recursive-deletion
