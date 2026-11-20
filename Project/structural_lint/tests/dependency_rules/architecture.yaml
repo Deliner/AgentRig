@@ -1,0 +1,8 @@
+purpose: Verify the rules that read the dependencies a directory-architecture rule measures, in Rust and Python projects
+files:
+  mod.rs: Declaration of the dependency rule tests and their fixture
+  measured.rs: A consumer project whose given files and directory contracts one dependency rule measures
+  file_cycle.rs: Cycles among the files of one directory, the entry left out and the needed architecture rule
+  entry_use.rs: Own code using its directory entry or one above, test code and Python initializers left out
+  entry_bypass.rs: Uses past the entry of another directory, test code included, groups and entryless directories
+directories: {}

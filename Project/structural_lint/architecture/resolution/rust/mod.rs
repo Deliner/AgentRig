@@ -128,6 +128,7 @@ impl<'a> Rust<'a> {
                     .context("module declaration was not resolved")?;
                 Ok(Resolved {
                     files: BTreeSet::from([module.file.clone()]),
+                    initializers: BTreeSet::new(),
                     external: None,
                 })
             }

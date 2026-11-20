@@ -61,7 +61,9 @@ fn describe_settings(kind: Kind, value: &mut Value) {
             value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program::names()});
         }
         // DECISION: D225
-        Kind::Structure(Structure::FileCycle) => {
+        // DECISION: D227
+        // DECISION: D228
+        Kind::Structure(Structure::FileCycle | Structure::EntryUse | Structure::EntryBypass) => {
             let architecture = describe(Kind::Structure(Structure::DirectoryArchitecture));
             value["languages"] = architecture["languages"].clone();
         }

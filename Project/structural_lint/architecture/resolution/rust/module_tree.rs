@@ -171,6 +171,7 @@ impl Rust<'_> {
         );
         Ok(Resolved {
             files: BTreeSet::from([target]),
+            initializers: BTreeSet::new(),
             external: None,
         })
     }

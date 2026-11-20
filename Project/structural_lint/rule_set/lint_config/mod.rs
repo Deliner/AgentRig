@@ -106,18 +106,28 @@ impl Config {
             rule.validate(resources)?;
         }
         single_pairs(&self.rules)?;
-        measured_cycles(&self.rules)
+        measured_dependencies(&self.rules)
     }
 }
 // DECISION: D225
-fn measured_cycles(rules: &[Rule]) -> Result<()> {
+// DECISION: D227
+// DECISION: D228
+fn measured_dependencies(rules: &[Rule]) -> Result<()> {
     let enabled = |kind: Structure| {
         let kind = capabilities::Kind::Structure(kind);
         rules.iter().any(|rule| rule.enabled && rule.kind == kind)
     };
-    let unmeasured = enabled(Structure::FileCycle) && !enabled(Structure::DirectoryArchitecture);
-    if unmeasured {
-        bail!("file-cycle reads the dependencies of a directory-architecture rule; enable one");
+    let measured = enabled(Structure::DirectoryArchitecture);
+    for kind in [
+        Structure::FileCycle,
+        Structure::EntryUse,
+        Structure::EntryBypass,
+    ] {
+        let unmeasured = enabled(kind) && !measured;
+        if unmeasured {
+            let kind = capabilities::Kind::Structure(kind);
+            bail!("{kind} reads the dependencies of a directory-architecture rule; enable one");
+        }
     }
     Ok(())
 }

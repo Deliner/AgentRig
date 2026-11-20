@@ -1,8 +1,8 @@
 // DECISION: D225
-use super::architecture::{Consumer, FRONTMATTER, Language};
-use std::{collections::BTreeSet, path::Path};
+use super::measured::measured;
+use crate::structural_lint::tests::architecture::{Consumer, Language};
 
-const SKILL: &str = ".agents/skills/break-file-cycle/SKILL.md";
+const RULE: &str = "file-cycle";
 const LANGUAGES: [Language; 2] = [Language::Rust, Language::Python];
 
 fn extension(language: Language) -> &'static str {
@@ -10,33 +10,6 @@ fn extension(language: Language) -> &'static str {
         Language::Rust => "rs",
         Language::Python => "py",
     }
-}
-
-fn project(language: Language, files: &[(String, String)]) -> Consumer {
-    let consumer = Consumer::empty(language);
-    consumer.write(SKILL, FRONTMATTER);
-    let rule = format!(
-        "rules:
-  - id: file-cycle
-    kind: file-cycle
-    target: directory
-    include: [src, 'src/**']
-    level: error
-    warning_skill: {SKILL}
-    error_skill: {SKILL}
-"
-    );
-    consumer.configure("rules:\n", &rule);
-    let mut directories = BTreeSet::new();
-    for (path, text) in files {
-        consumer.write(path, text);
-        let parents = Path::new(path).ancestors().skip(1);
-        directories.extend(parents.filter(|parent| parent.starts_with("src")));
-    }
-    for directory in directories {
-        consumer.contract(directory.to_str().unwrap());
-    }
-    consumer
 }
 
 fn uses(language: Language, chain: &[(&str, &str)]) -> Consumer {
@@ -58,7 +31,7 @@ fn uses(language: Language, chain: &[(&str, &str)]) -> Consumer {
         };
         files.push((format!("src/a/{file}.{}", extension(language)), text));
     }
-    project(language, &files)
+    measured(language, RULE, &files)
 }
 
 fn found(consumer: &Consumer) -> Vec<String> {
@@ -115,11 +88,10 @@ fn the_directory_entry_and_module_declarations_take_no_part_in_a_cycle() {
         ),
     ];
     for (language, files) in [(Language::Rust, &rust[..]), (Language::Python, &python[..])] {
-        let files: Vec<_> = files
-            .iter()
-            .map(|(path, text)| ((*path).to_owned(), (*text).to_owned()))
-            .collect();
-        assert_eq!(found(&project(language, &files)), Vec::<String>::new());
+        assert_eq!(
+            found(&measured(language, RULE, files)),
+            Vec::<String>::new()
+        );
     }
 }
 

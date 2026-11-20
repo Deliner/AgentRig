@@ -126,4 +126,6 @@ pub const ALL: &[Kind] = &[
     Kind::Structure(Structure::SameText),
     Kind::Structure(Structure::TestInCodeFile),
     Kind::Structure(Structure::FileCycle),
+    Kind::Structure(Structure::EntryUse),
+    Kind::Structure(Structure::EntryBypass),
 ];

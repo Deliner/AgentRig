@@ -18,6 +18,7 @@ impl Rust<'_> {
             Located::Module(module) | Located::Item(module) => self.module_result(&module),
             Located::External(path) => Ok(Resolved {
                 files: BTreeSet::new(),
+                initializers: BTreeSet::new(),
                 external: Some(path),
             }),
         }
@@ -205,6 +206,7 @@ impl Rust<'_> {
             .context("Rust module is unresolved")?;
         Ok(Resolved {
             files: BTreeSet::from([module.file.clone()]),
+            initializers: BTreeSet::new(),
             external: None,
         })
     }

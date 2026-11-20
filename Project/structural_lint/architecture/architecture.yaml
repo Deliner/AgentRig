@@ -7,6 +7,7 @@ files:
   features.rs: Feature classification, required type parts and inward part dependencies
   inventory.rs: Exact file and child-directory responsibility coverage checks
   graph.rs: Cycles, per-file fan-out, dependents and directory edges over measured dependencies
+  entries.rs: Uses of a directory entry by the directory's own code and uses that pass a directory's entry, with declared groups
   README.md: Rule configuration, contract format, feature types and source analysis limits
 directories:
   contract_check: Combine configured scope, extraction, resolution and actionable findings

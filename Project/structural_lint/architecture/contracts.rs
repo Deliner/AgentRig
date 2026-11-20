@@ -106,6 +106,13 @@ impl Contracts {
         issues
     }
 
+    // DECISION: D228
+    pub fn groups(&self) -> BTreeSet<PathBuf> {
+        let declarations = self.declarations.iter();
+        let groups = declarations.filter(|(_, declaration)| declaration.group());
+        groups.map(|(directory, _)| directory.clone()).collect()
+    }
+
     pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> Loaded {
         let mut contracts = Self {
             declarations: BTreeMap::new(),

@@ -63,6 +63,7 @@ impl<'a> Python<'a> {
         if external_only {
             return Ok(Resolved {
                 files: BTreeSet::new(),
+                initializers: BTreeSet::new(),
                 external: Some(absolute),
             });
         }

@@ -25,8 +25,19 @@ struct Evaluation<'a> {
     pairs: &'a [Pair],
     comment_rules: Vec<&'a lint_config::Rule>,
     // DECISION: D225
-    cycle_rules: Vec<&'a lint_config::Rule>,
+    // DECISION: D227
+    // DECISION: D228
+    dependency_rules: Vec<DependencyRule<'a>>,
     edges: contract_check::Edges,
+}
+type DependencyCheck = fn(
+    &lint_config::Rule,
+    &contract_check::Edges,
+    &file_discovery::Inventory,
+) -> Result<Vec<Diagnostic>>;
+struct DependencyRule<'a> {
+    rule: &'a lint_config::Rule,
+    check: DependencyCheck,
 }
 pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
@@ -54,7 +65,11 @@ impl<'a> Evaluation<'a> {
     ) -> Result<()> {
         match rule.kind {
             Kind::Reference(Reference::Comment) => self.comment_rules.push(rule),
-            Kind::Structure(Structure::FileCycle) => self.cycle_rules.push(rule),
+            Kind::Structure(Structure::FileCycle) => self.defer(rule, contract_check::file_cycles),
+            Kind::Structure(Structure::EntryUse) => self.defer(rule, contract_check::entry_uses),
+            Kind::Structure(Structure::EntryBypass) => {
+                self.defer(rule, contract_check::entry_bypasses);
+            }
             Kind::Structure(Structure::DirectoryArchitecture) => {
                 let checked = contract_check::run(root, rule, inventory)?;
                 self.output.extend(checked.findings);
@@ -76,15 +91,18 @@ impl<'a> Evaluation<'a> {
         }
         Ok(())
     }
+    fn defer(&mut self, rule: &'a lint_config::Rule, check: DependencyCheck) {
+        self.dependency_rules.push(DependencyRule { rule, check });
+    }
     // DECISION: D225
     fn measure_deferred(
         &mut self,
         root: &Path,
         inventory: &file_discovery::Inventory,
     ) -> Result<()> {
-        for rule in std::mem::take(&mut self.cycle_rules) {
-            let cycles = contract_check::file_cycles(rule, &self.edges, inventory)?;
-            self.output.extend(cycles);
+        for DependencyRule { rule, check } in std::mem::take(&mut self.dependency_rules) {
+            let found = check(rule, &self.edges, inventory)?;
+            self.output.extend(found);
         }
         for rule in std::mem::take(&mut self.comment_rules) {
             scalar_findings(root, rule, inventory, self)?;
@@ -196,36 +214,32 @@ fn structural_measurements(
     inventory: &file_discovery::Inventory,
 ) -> Result<Vec<(Option<usize>, usize)>> {
     let file = root.join(selected.path);
-    Ok(match rule.kind {
-        rule_identities::Kind::Structure(Structure::NonblankLines) => text(&file)?
+    let unmeasured = || anyhow::anyhow!("rule kind {} has no structural metric", rule.kind);
+    let Kind::Structure(structure) = rule.kind else {
+        return Err(unmeasured());
+    };
+    Ok(match structure {
+        Structure::NonblankLines => text(&file)?
             .map(|source| nonblank_lines(&source))
             .unwrap_or_default(),
-        rule_identities::Kind::Structure(Structure::LineWidth) => text(&file)?
+        Structure::LineWidth => text(&file)?
             .map(|source| line_widths(&source))
             .unwrap_or_default(),
-        rule_identities::Kind::Structure(Structure::ForbiddenFile) => vec![(None, 1)],
-        rule_identities::Kind::Structure(Structure::DirectoryEntries) => {
+        Structure::ForbiddenFile => vec![(None, 1)],
+        Structure::DirectoryEntries => {
             vec![(None, inventory.file_entries(selected.path, FILENAME))]
         }
-        rule_identities::Kind::Structure(Structure::DumpName) => dump_name(selected.path),
-        rule_identities::Kind::Structure(Structure::SameText) => {
-            same_text(root, rule, selected, inventory)?
-        }
-        rule_identities::Kind::Structure(
-            Structure::FunctionLines
-            | Structure::ProgramLanguage
-            | Structure::EmbeddedText
-            | Structure::DirectoryArchitecture
-            | Structure::TestPlacement
-            | Structure::TestInCodeFile
-            | Structure::FileCycle,
-        )
-        | rule_identities::Kind::ControlFlow(_)
-        | rule_identities::Kind::Signature(_)
-        | rule_identities::Kind::Ownership(_)
-        | rule_identities::Kind::Reference(_) => {
-            anyhow::bail!("rule kind {} has no structural metric", rule.kind)
-        }
+        Structure::DumpName => dump_name(selected.path),
+        Structure::SameText => same_text(root, rule, selected, inventory)?,
+        Structure::FunctionLines
+        | Structure::ProgramLanguage
+        | Structure::EmbeddedText
+        | Structure::DirectoryArchitecture
+        | Structure::TestPlacement
+        | Structure::TestInCodeFile
+        | Structure::FileCycle
+        | Structure::EntryUse
+        | Structure::EntryBypass => return Err(unmeasured()),
     })
 }
 fn text(file: &Path) -> Result<Option<String>> {

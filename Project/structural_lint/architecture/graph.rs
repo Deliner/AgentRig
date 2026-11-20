@@ -40,7 +40,7 @@ pub(super) fn file_cycles(dependencies: &[Dependency], selected: &BTreeSet<&Path
 }
 
 // DECISION: D225
-fn entry(file: &Path) -> bool {
+pub(super) fn entry(file: &Path) -> bool {
     let name = file.file_name().and_then(|name| name.to_str());
     let rust = name.is_some_and(|name| ENTRY_FILES.contains(&name));
     rust || file.file_stem().is_some_and(|stem| stem == "__init__")

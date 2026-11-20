@@ -1,0 +1,5 @@
+purpose: "Let code use another directory only through its entry, and move a test of a directory's inside into its tests/ directory"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to repair a use reported by entry-bypass in working code and tests, and to declare a group"
+directories: {}

@@ -1,4 +1,6 @@
 mod analysis;
+mod dependency_rules;
+mod diagnostic;
 mod disallowed;
 mod scope;
 
@@ -10,9 +12,10 @@ use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::{
     rule_set::lint_config::Rule,
     targeting::file_discovery::{self, Inventory},
-    targeting::lint_targets,
 };
 use anyhow::Result;
+pub use dependency_rules::{Edges, entry_bypasses, entry_uses, file_cycles};
+use diagnostic::diagnostic;
 use scope::Scope;
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -86,16 +89,6 @@ pub struct Checked {
     pub edges: Edges,
 }
 
-// DECISION: D225
-#[derive(Default)]
-pub struct Edges(Vec<super::Dependency>);
-
-impl Edges {
-    pub fn append(&mut self, mut more: Edges) {
-        self.0.append(&mut more.0);
-    }
-}
-
 pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
     let Some(Measured {
         root,
@@ -126,18 +119,8 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
         .collect::<Result<_>>()?;
-    let edges = Edges(analyzed.edges);
+    let edges = Edges::new(analyzed.edges, contracts.groups());
     Ok(Checked { findings, edges })
-}
-
-// DECISION: D225
-pub fn file_cycles(rule: &Rule, edges: &Edges, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
-    let selected = lint_targets::select(rule, inventory)?;
-    let directories: BTreeSet<&Path> = selected.iter().map(|target| target.path).collect();
-    super::graph::file_cycles(&edges.0, &directories)
-        .into_iter()
-        .map(|issue| diagnostic(rule, issue))
-        .collect()
 }
 
 struct Analysis {
@@ -241,22 +224,4 @@ fn common_root(directories: &BTreeSet<PathBuf>) -> PathBuf {
     });
     let top = common.as_os_str().is_empty();
     if top { PathBuf::from(".") } else { common }
-}
-
-fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
-    let level = rule
-        .level
-        .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?;
-    Ok(Diagnostic {
-        rule: rule.id.clone(),
-        path: issue.path.to_string_lossy().into_owned(),
-        level,
-        actual: None,
-        limit: None,
-        skill: rule.skill(level),
-        message: issue.message,
-        line: issue.line,
-        symbol: None,
-        rerun: String::new(),
-    })
 }

@@ -60,6 +60,9 @@ pub(super) struct Declaration {
     // DECISION: D079
     #[serde(default)]
     dependents: Option<usize>,
+    // DECISION: D228
+    #[serde(default)]
+    group: bool,
 }
 // DECISION: D129
 impl Declaration {
@@ -77,6 +80,10 @@ impl Declaration {
     }
     pub(super) fn dependents(&self) -> usize {
         self.dependents.unwrap_or(DEFAULT_DEPENDENTS)
+    }
+    // DECISION: D228
+    pub(super) fn group(&self) -> bool {
+        self.group
     }
 }
 

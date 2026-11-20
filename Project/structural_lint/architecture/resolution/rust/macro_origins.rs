@@ -31,6 +31,7 @@ impl Rust<'_> {
         ensure!(known, "Rust derive expansion is not analyzed: {origin}");
         Ok(Resolved {
             files: BTreeSet::new(),
+            initializers: BTreeSet::new(),
             external: Some(origin),
         })
     }
@@ -46,6 +47,7 @@ impl Rust<'_> {
         if let Some(file) = self.local_macro(&scope, &call.path) {
             return Ok(Resolved {
                 files: BTreeSet::from([file.to_path_buf()]),
+                initializers: BTreeSet::new(),
                 external: None,
             });
         }
@@ -68,6 +70,7 @@ impl Rust<'_> {
         };
         Ok(Resolved {
             files,
+            initializers: BTreeSet::new(),
             external: Some(origin),
         })
     }

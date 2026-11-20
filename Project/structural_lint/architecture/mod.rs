@@ -1,5 +1,6 @@
 pub mod contract_check;
 mod contracts;
+mod entries;
 pub mod extraction;
 mod features;
 mod graph;
@@ -29,12 +30,21 @@ pub struct Dependency {
 pub enum Relation {
     Declaration,
     Use,
+    // DECISION: D227
+    Initialization,
 }
 impl Relation {
     pub fn declares(self) -> bool {
         match self {
             Self::Declaration => true,
-            Self::Use => false,
+            Self::Use | Self::Initialization => false,
+        }
+    }
+    // DECISION: D227
+    pub fn uses(self) -> bool {
+        match self {
+            Self::Use => true,
+            Self::Declaration | Self::Initialization => false,
         }
     }
 }

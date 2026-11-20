@@ -20,6 +20,8 @@ pub enum Structure {
     SameText,
     TestInCodeFile,
     FileCycle,
+    EntryUse,
+    EntryBypass,
 }
 impl Structure {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -37,6 +39,8 @@ impl Structure {
             Self::SameText => &SAMETEXT,
             Self::TestInCodeFile => &TESTINCODEFILE,
             Self::FileCycle => &FILECYCLE,
+            Self::EntryUse => &ENTRYUSE,
+            Self::EntryBypass => &ENTRYBYPASS,
         }
     }
 }
@@ -190,6 +194,32 @@ const FILECYCLE: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "files of one directory that use each other in a cycle cannot be read, changed or tested one at a time; break the cycle",
+    },
+    accepts_exception: false,
+};
+// DECISION: D227
+const ENTRYUSE: Descriptor = Descriptor {
+    default_id: "entry-use",
+    exclude: &[],
+    target: "directory",
+    metric: "every use, outside test code, of the entry mod.rs, lib.rs, main.rs or __init__.py of the using file's directory or a directory above, in the dependencies an enabled directory-architecture rule resolves; a reexport in the entry counts as its use, while module declarations and the packages a Python import initializes on its way do not",
+    skill: "move-out-of-entry",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "a directory entry is its table of contents, so its own code uses the file that owns an item; move an item the entry defines into a file named by its meaning",
+    },
+    accepts_exception: false,
+};
+// DECISION: D228
+const ENTRYBYPASS: Descriptor = Descriptor {
+    default_id: "entry-bypass",
+    exclude: &[],
+    target: "directory",
+    metric: "every use, test code included, of a Rust or Python source inside a directory that does not contain the using file, unless the source is the entry mod.rs, lib.rs, main.rs or __init__.py of the topmost such directory; a directory declared group: true has no boundary of its own, so its files are open and each of its subdirectories has its own",
+    skill: "go-through-entry",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "another directory is used only through its entry, so its inside can be rebuilt without editing consumers or their tests",
     },
     accepts_exception: false,
 };

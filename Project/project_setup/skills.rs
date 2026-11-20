@@ -130,6 +130,14 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/refactor/break-file-cycle/SKILL.md"),
     ),
     (
+        "move-out-of-entry",
+        include_str!("../shared/skills/refactor/move-out-of-entry/SKILL.md"),
+    ),
+    (
+        "go-through-entry",
+        include_str!("../shared/skills/refactor/go-through-entry/SKILL.md"),
+    ),
+    (
         "use-the-current-form",
         include_str!("../shared/skills/refactor/use-the-current-form/SKILL.md"),
     ),
