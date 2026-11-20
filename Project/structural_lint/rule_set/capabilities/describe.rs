@@ -60,6 +60,11 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         Kind::Structure(Structure::ProgramLanguage) => {
             value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program::names()});
         }
+        // DECISION: D225
+        Kind::Structure(Structure::FileCycle) => {
+            let architecture = describe(Kind::Structure(Structure::DirectoryArchitecture));
+            value["languages"] = architecture["languages"].clone();
+        }
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

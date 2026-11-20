@@ -19,6 +19,7 @@ pub enum Structure {
     TestPlacement,
     SameText,
     TestInCodeFile,
+    FileCycle,
 }
 impl Structure {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -35,6 +36,7 @@ impl Structure {
             Self::TestPlacement => &TESTPLACEMENT,
             Self::SameText => &SAMETEXT,
             Self::TestInCodeFile => &TESTINCODEFILE,
+            Self::FileCycle => &FILECYCLE,
         }
     }
 }
@@ -175,6 +177,19 @@ const TESTINCODEFILE: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "test code in a code file reaches the file's private items; move it into the tests/ directory of this directory, declare it in the entry mod.rs, lib.rs or main.rs and test only what the file opens to its directory",
+    },
+    accepts_exception: false,
+};
+// DECISION: D225
+const FILECYCLE: Descriptor = Descriptor {
+    default_id: "file-cycle",
+    exclude: &[],
+    target: "directory",
+    metric: "every cycle of uses among the files of one selected directory in the dependencies an enabled directory-architecture rule resolves, test code included, at its closing use; module declarations and the entry mod.rs, lib.rs, main.rs or __init__.py take no part",
+    skill: "break-file-cycle",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "files of one directory that use each other in a cycle cannot be read, changed or tested one at a time; break the cycle",
     },
     accepts_exception: false,
 };

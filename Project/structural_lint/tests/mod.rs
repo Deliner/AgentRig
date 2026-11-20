@@ -9,6 +9,7 @@ mod consumer;
 mod diagnostics;
 mod discovery;
 mod explain;
+mod file_cycle;
 mod languages;
 mod lifting;
 mod portable;

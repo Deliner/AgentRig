@@ -1,0 +1,5 @@
+purpose: "Break a cycle of uses among the files of one directory by moving a shared item to its owner or joining files of one responsibility"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to break a cycle reported by file-cycle without merging files or hiding a link behind a re-export"
+directories: {}
