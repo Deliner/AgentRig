@@ -18,13 +18,17 @@ deleted tree or what keeps the argument inside it.
    `starts_with` check against the canonical root), so a wrong argument fails
    instead of deleting.
 3. For a deletion that already is the bounded owner's own cleanup, or a
-   deliberate one-off, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the call.
+   deliberate one-off, record the reasoning as a decision with edit-decisions
+   and put its exception `// DECISION: DNNN RULE`, RULE being the rule ID the
+   finding names, alone on the line directly above the call. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the call
-keeps it, attesting the deletion has an owner and a boundary; without one it
-is a finding. Test code is out of scope.
+An exception naming this rule, `recursive-deletion` by default, on the line
+directly above the call keeps it, attesting the deletion has an owner and a
+boundary; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Test code
+is out of scope.
 
 ## Rule binding
 
@@ -32,9 +36,8 @@ The measurement flags every Rust `call_expression` outside test code whose
 callee name is `remove_dir_all` — the last segment of a path such as
 `std::fs::remove_dir_all` or `tokio::fs::remove_dir_all`, a bare imported or
 local `remove_dir_all`, or a method `.remove_dir_all(..)` — in source and inside
-macro bodies, without a `DECISION:`/`INVARIANT:` reference on the line directly
-above it. `remove_file` and `remove_dir` are not flagged. Rerun the reported
-lint check and relevant behavior checks. Do not weaken the rule or its
+macro bodies. `remove_file` and `remove_dir` are not flagged. Rerun the
+reported lint check and relevant behavior checks. Do not weaken the rule or its
 selectors merely to pass. Apply complexity-discipline; stop when every
-recursive deletion is the bounded owner's call or justified by an owned
-reference.
+recursive deletion is the bounded owner's call or an approved exception lifts
+the finding.

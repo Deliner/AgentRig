@@ -30,8 +30,11 @@ or runs something else, on the first value that carries such a character.
 3. Keep the substitution only when the string is meant to be shell code, such
    as a task, hook or alias command that the user or configuration writes, or
    when every substituted value is a number or is quoted for that shell by a
-   quoting function. Record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the `Command::new` call.
+   quoting function. Record the reasoning as a decision with edit-decisions and
+   put its exception `// DECISION: DNNN RULE`, RULE being the rule ID the
+   finding names, alone on the line directly above the `Command::new` call.
+   List it in the decision as `[exception RULE](FILE)`; the user approves a new
+   exception through propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -43,8 +46,9 @@ when the `.arg` and `.args([..])` calls chained on it put `-c`, `/c`,
 `-Command` or a lowercase short-flag cluster ending in `c`, such as `-lc`,
 directly before an argument that is neither a string literal nor an uppercase
 constant name. A command built in steps through a variable, a chain inside a
-macro argument, test code and a call with a `DECISION:` or `INVARIANT:`
-reference on the line directly above are out of scope. Do not weaken the rule
-or its selectors merely to pass. Apply complexity-discipline; stop when every
-value reaches the program apart from the command string or the shell code is
-justified by an owned reference.
+macro argument and test code are out of scope. An exception naming this rule,
+`interpolated-shell` by default, on the line directly above the `Command::new`
+call lifts the finding; a bare `DECISION:` or `INVARIANT:` reference lifts
+nothing. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when every value reaches the program apart from the
+command string or an approved exception lifts the finding.

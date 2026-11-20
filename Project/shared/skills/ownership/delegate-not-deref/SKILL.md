@@ -20,15 +20,19 @@ anything.
 4. When callers need read access to the whole inner value, add a named method
    such as `fn as_slice(&self) -> &[u32]`, so that the escape is visible.
 5. When the type is a smart pointer or a guard whose purpose is to stand for the
-   pointee, record the reasoning as an owned `DECISION:`/`INVARIANT:` reference
-   on the line directly above the impl.
+   pointee, record the reasoning as a decision with edit-decisions and put its
+   exception `// DECISION: DNNN RULE`, RULE being the rule ID the finding
+   names, alone on the line directly above the impl, below its attributes. List
+   it in the decision as `[exception RULE](FILE)`; the user approves a new
+   exception through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust impl of `Deref` or `DerefMut` for a struct of
 the same file whose `Target` is not a type parameter of that struct. Test code
-and an impl with a `DECISION:` or `INVARIANT:` reference on the line directly
-above it are out of scope. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when callers use delegating methods or
-the deref is justified by an owned reference.
+is out of scope. An exception naming this rule, `wrapper-deref` by default, on
+the line directly above the impl lifts the finding; a bare `DECISION:` or
+`INVARIANT:` reference lifts nothing. Do not weaken the rule or its selectors
+merely to pass. Apply complexity-discipline; stop when callers use delegating
+methods or an approved exception lifts the finding.

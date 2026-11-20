@@ -42,7 +42,7 @@ directly or as a `derive` inside `cfg_attr`, whose name is exactly
 `access_token`, `refresh_token`, `client_secret`, `jwt` or `cvv` and whose type
 is `String` under any path, `&str`, `Vec<u8>` or an `Option` of one of them.
 Any other field type, a manual `Debug`, tuple structs, enum variants and test
-code are out of scope, and no reference justifies a finding. Rerun the
+code are out of scope, and no exception or reference lifts a finding. Rerun the
 reported lint check and relevant behavior checks. Do not weaken the rule or
 its selectors, or rename a real secret, merely to pass. Apply
 complexity-discipline; stop when the secret no longer reaches a derived

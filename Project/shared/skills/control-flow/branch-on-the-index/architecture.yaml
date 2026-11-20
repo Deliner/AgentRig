@@ -1,4 +1,4 @@
-purpose: "Select one value with match or if on the index instead of indexing an array literal whose elements call, or justify computing every element with a reference"
+purpose: "Select one value with match or if on the index instead of indexing an array literal whose elements call, or justify computing every element with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to compute only the element an index selects"

@@ -1,4 +1,4 @@
-purpose: "Make a subtraction from a length or a bit count checked or saturating, rearrange it away, or justify the guaranteed count with a reference"
+purpose: "Make a subtraction from a length or a bit count checked or saturating, rearrange it away, or justify the guaranteed count with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to keep a subtraction from a Rust len(), count(), count_ones() or count_zeros() from underflowing"

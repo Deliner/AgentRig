@@ -17,26 +17,27 @@ no visible cleanup, so a later reader cannot tell who releases it.
    it — return the guard, store it in a struct whose `Drop` frees it, or hand it
    to code that closes it — instead of forgetting or leaking it.
 3. If the leak is genuinely intended — a deliberately persisted path, or a value
-   whose lifetime is the whole process — record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the call.
+   whose lifetime is the whole process — record the reasoning as a decision
+   with edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE
+   being the rule ID the finding names, alone on the line directly above the
+   call. List it in the decision as `[exception RULE](FILE)`; the user approves
+   a new exception through propose-protected-change.
 4. Rerun the reported lint check and the affected behavior checks.
 
 The method forms are recognized by name alone, without checking the receiver:
 every `.keep()` or `.into_path()` call is flagged, also on a type that owns no
 cleanup, such as a directory-walk entry's `into_path`. When the receiver
-releases nothing on drop, nothing leaks; the reference on the line directly
+releases nothing on drop, nothing leaks; the exception on the line directly
 above the call records that.
-
-A `DECISION:` or `INVARIANT:` reference on the line directly above the call keeps
-it, attesting the leak is intended; without one it is a finding.
 
 ## Rule binding
 
 The measurement flags every Rust `.keep()` or `.into_path()` method call,
 matched by name without checking the receiver's type, and every `mem::forget`,
-`ManuallyDrop::new` or `Box::leak` path call outside test code without a
-`DECISION:` or `INVARIANT:` reference on the line directly above it. Test code
-is out of scope. Rerun the reported lint check and relevant
-behavior checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the value drops under an owner, or the leak is
-justified by an owned reference.
+`ManuallyDrop::new` or `Box::leak` path call outside test code. Test code is
+out of scope. An exception naming this rule, `disabled-raii` by default, on
+the line directly above the call lifts the finding, attesting the leak is
+intended; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Rerun the
+reported lint check and relevant behavior checks. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when the value
+drops under an owner, or an approved exception lifts the finding.

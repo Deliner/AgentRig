@@ -2,23 +2,22 @@
 
 ## Focus
 
-P167 (B174) VAC 5: lint lifts only the rule an exception names on the line below and reports one that lifts nothing.
+P167 (B174) VAC 6: the repair skills describe the exception `DECISION: DNNN RULE` and no bare marker lift (AC5).
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: 57fb11af2784a7e25b9a659abebea082b567af9f
+Revision: afc174d3c02318611ee9f87d6cc0acd450991059
 
 ## Progress
 
-- `structural_lint/lifting.rs` lifts a finding only under `DECISION: DNNN RULE` naming its rule on the line above.
-- The comment rule reports every exception that lifted nothing in a file that parsed (AC3).
-- Detectors no longer read markers; language tests are detection-only; `tests/lifting.rs` covers AC1 and AC3.
-- D222 records the choice and supersedes the marker lift of D065, D096, D103 and D147.
+- The 54 skills of rules that accept an exception place it directly above the reported line and list it in the decision.
+- replace-comment repairs an exception that lifts nothing; handle-panic describes the covering attribute of D147.
+- Skills of rules without exceptions say that no reference lifts their finding; descriptions say "exception".
 
 ## Verification
 
-- `just run test`: 593 passed. `just lint --json`: no findings. Clippy, rustfmt and the memory check pass.
+- `just run test`: 593 passed. `just lint --json`: no findings. No skill offers a bare marker as a lift.
 
 ## Blockers
 
@@ -26,4 +25,4 @@ None.
 
 ## Next action
 
-VAC 6: rewrite the repair skills for the exception form (AC5), then archive P167 and propose the pin.
+Archive P167 and B174, propose the pin at the gate-accepted head and ask the user to approve it.

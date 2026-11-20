@@ -20,8 +20,12 @@ or the copy, so equal values hash apart or a clone loses state.
    every field and has no `..base`.
 5. Keep `Hash` and `Ord` reading the same fields as `PartialEq`; for the order,
    `align-order-with-equality` describes the repair.
-6. When the impl cannot destructure the type, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the impl.
+6. When the impl cannot destructure the type, record the reasoning as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the impl, below its attributes. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 7. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -29,8 +33,9 @@ or the copy, so equal values hash apart or a clone loses state.
 The measurement reports every manual Rust impl of `PartialEq`, `Hash`,
 `PartialOrd`, `Ord` or `Clone` whose method reads a `self` field by access
 without a struct or tuple-struct pattern of the type lacking `..`, and without a
-struct literal of the type lacking a base. Test code and an impl with a
-`DECISION:` or `INVARIANT:` reference on the line directly above it are out of
-scope. Do not weaken the rule or its selectors merely to pass. Apply
+struct literal of the type lacking a base. Test code is out of scope. An
+exception naming this rule, `partial-impl` by default, on the line directly
+above the impl lifts the finding; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. Do not weaken the rule or its selectors merely to pass. Apply
 complexity-discipline; stop when every field is named in the impl, the impl is
-derived, or it is justified by an owned reference.
+derived, or an approved exception lifts the finding.

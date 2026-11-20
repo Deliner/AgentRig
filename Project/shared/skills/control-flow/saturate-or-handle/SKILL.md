@@ -13,8 +13,10 @@ stood for.
 
 1. Establish whether the fallback can be reached. When a check just above or
    the range of the value guarantees that it cannot, record that guarantee as
-   an owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   arithmetic and stop.
+   a decision with edit-decisions, put its exception `// DECISION: DNNN RULE`,
+   RULE being the rule ID the finding names, alone on the line directly above
+   the arithmetic, list it in the decision as `[exception RULE](FILE)` and
+   stop; the user approves a new exception through propose-protected-change.
 2. Decide what a missing or too large value means here: an error, a skipped
    step or the bound itself.
 3. For an error or a skipped step, handle the absence before the arithmetic,
@@ -29,9 +31,11 @@ stood for.
 
 The measurement reports every Rust binary `+` or `*` whose left or right
 operand is a `.unwrap_or(..)` method call whose sole argument is `MAX` or a
-path ending in `::MAX`, outside test code, without a `DECISION:` or
-`INVARIANT:` reference on the line directly above it. Types are not resolved,
-so a float `MAX` counts too; `+=`, `*=`, `unwrap_or_else` and a parenthesized
-operand are not measured. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when the arithmetic handles the missing
-value or saturates, or an owned reference justifies the unreachable fallback.
+path ending in `::MAX`, outside test code. An exception naming this rule,
+`max-fallback` by default, on the line directly above the reported line lifts
+the finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Types
+are not resolved, so a float `MAX` counts too; `+=`, `*=`, `unwrap_or_else` and
+a parenthesized operand are not measured. Do not weaken the rule or its
+selectors merely to pass. Apply complexity-discipline; stop when the arithmetic
+handles the missing value or saturates, or an approved exception lifts the
+finding.

@@ -25,8 +25,11 @@ values sort apart and lookups by an equal key miss.
    orderings cannot drift.
 5. Keep the difference only when the extra field is derived from the compared
    ones, such as a cached hash, or when values with equal compared fields
-   cannot coexist by construction. Record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the impl.
+   cannot coexist by construction. Record the reasoning as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the impl,
+   below its attributes. List it in the decision as `[exception RULE](FILE)`;
+   the user approves a new exception through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -41,9 +44,9 @@ judged when it uses `self` in any other way, calls a method defined elsewhere,
 belongs to a tuple struct, or has no equality visible in the file; an impl of
 a trait with type arguments, such as `PartialOrd<i32>`, is not the same-type
 contract. Equality by an expression such as `self.a % 10` is not told apart
-from a plain field read. Test code and an impl with a `DECISION:` or
-`INVARIANT:` reference on the line directly above are out of scope. Rerun the
-reported lint check and relevant behavior checks. Do not weaken the rule or
-its selectors merely to pass. Apply complexity-discipline; stop when order
-and equality read the same fields or the difference is justified by an owned
-reference.
+from a plain field read. Test code is out of scope. An exception naming this
+rule, `ord-eq-mismatch` by default, on the line directly above the impl lifts
+the finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Rerun
+the reported lint check and relevant behavior checks. Do not weaken the rule or
+its selectors merely to pass. Apply complexity-discipline; stop when order and
+equality read the same fields or an approved exception lifts the finding.

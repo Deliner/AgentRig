@@ -17,14 +17,17 @@ shipped, non-test code the check silently does nothing.
    `assert_ne!` outside the debug-only gate, which holds in every build.
 2. If the check is an expensive internal sanity check not worth its cost in
    release and its failure is already impossible by construction, record the
-   reasoning as an owned `DECISION:`/`INVARIANT:` reference on the line directly
-   above it.
+   reasoning as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone on
+   the line directly above the assertion, below any attribute on it. List it in
+   the decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 3. If the assertion is redundant with the surrounding types or logic, remove it.
 4. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the call
-keeps it, attesting the debug-only check is deliberate; without one it is a
-finding.
+An exception naming this rule, `debug-assertion` by default, on the line
+directly above the assertion keeps it, attesting the debug-only check is
+deliberate; a bare `DECISION:` or `INVARIANT:` reference lifts nothing.
 
 ## Rule binding
 
@@ -32,10 +35,9 @@ The measurement flags every Rust `debug_assert!`, `debug_assert_eq!` and
 `debug_assert_ne!` macro, and every `assert!`, `assert_eq!` and `assert_ne!`
 under a `cfg` attribute that requires `debug_assertions` (directly or inside
 `all`/`any`) on the statement or an enclosing item, or in the then-branch of an
-`if` whose whole condition is `cfg!(debug_assertions)`, outside test code
-without a `DECISION:` or `INVARIANT:` reference on the line directly above it.
+`if` whose whole condition is `cfg!(debug_assertions)`, outside test code.
 An unconditional `assert!` is not flagged, since it holds in every build. Test
 code is out of scope. Rerun the reported lint check and relevant behavior
 checks. Do not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the contract holds in release, is justified by
-an owned reference, or is removed.
+complexity-discipline; stop when the contract holds in release, an approved
+exception lifts the finding, or the assertion is removed.

@@ -32,9 +32,12 @@ action reports the same facts in one step through its `io::Error`.
 3. When the check chooses between two actions, perform the likely one and
    fall back on its error kind, so each action meets the path as it is.
 4. When the path cannot change between the check and the action, such as a
-   directory this process created and alone uses, record that guarantee as an
-   owned `DECISION:`/`INVARIANT:` reference on the line directly above the
-   check.
+   directory this process created and alone uses, record that guarantee as a
+   decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the reported line. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -50,9 +53,11 @@ continues or breaks, must have an `fs` path segment before its name or end in
 `File::open` or `File::create`, take an argument whose text equals the checked
 receiver without `&` and `.as_path()`, and pass its error through `?`, also
 after `.await`, `.context(..)`, `.with_context(..)` or `.map_err(..)`. Test
-code and a check with a `DECISION:` or `INVARIANT:` reference on the line
-directly above it are not measured. Paths are compared as text, so the same
-path rebuilt or held by another variable is not seen. Rerun the reported lint
-check and relevant behavior checks. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when the action's own error
-decides the outcome or the stable path is justified by an owned reference.
+code is not measured. An exception naming this rule, `stale-check` by default,
+on the line directly above the reported line lifts the finding; a bare
+`DECISION:` or `INVARIANT:` reference lifts nothing. Paths are compared as
+text, so the same path rebuilt or held by another variable is not seen. Rerun
+the reported lint check and relevant behavior checks. Do not weaken the rule or
+its selectors merely to pass. Apply complexity-discipline; stop when the
+action's own error decides the outcome or an approved exception lifts the
+finding.

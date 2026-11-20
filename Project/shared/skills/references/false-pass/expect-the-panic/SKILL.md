@@ -20,20 +20,23 @@ is broken or never reached.
    turning it into a panic.
 4. When any panic is the intended outcome and no project message exists, such
    as a panic raised by the standard library or a dependency, record the
-   reasoning as an owned `DECISION:`/`INVARIANT:` reference on the line
-   directly above the attribute.
+   reasoning as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone on
+   the line directly above the `should_panic` attribute. List it in the
+   decision as `[exception RULE](FILE)`; the user approves a new exception
+   through propose-protected-change.
 5. Rerun the reported lint check and the test itself, and confirm it fails when
    the intended panic is removed.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the
-attribute keeps it; without one it is a finding.
+An exception naming this rule, `untargeted-panic` by default, on the line
+directly above the attribute keeps it; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing.
 
 ## Rule binding
 
 The measurement flags every Rust attribute whose path ends in `should_panic`
-with neither a `= "..."` value nor an `expected` argument, without a
-`DECISION:` or `INVARIANT:` reference on the line directly above it. The
-attribute belongs to a test, so test code is in scope. Rerun the reported lint
-check and relevant behavior checks. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when the test names its
-panic, tests the returned error, or is justified by an owned reference.
+with neither a `= "..."` value nor an `expected` argument. The attribute
+belongs to a test, so test code is in scope. Rerun the reported lint check and
+relevant behavior checks. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when the test names its panic, tests
+the returned error, or an approved exception lifts the finding.

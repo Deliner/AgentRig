@@ -37,8 +37,9 @@ this way it survives refactoring and never forces internals to leak.
    is a defect: pass the dependency (clock, filesystem root, command runner)
    through the public surface, so production and tests take the same path. A
    seam at a security, linker or test-runtime boundary is the exception and
-   carries a `// DECISION: DNNN` reference to the decision that names that
-   boundary.
+   carries the decision that names that boundary: as the exception
+   `// DECISION: DNNN RULE` above a line a rule such as `test-substitution`
+   reports, otherwise as a `// DECISION: DNNN` reference.
 
 Stop when each changed behavior is pinned through its public surface at its
 owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
@@ -51,7 +52,7 @@ test-only module file outside `tests.rs` or a tests directory (1),
 `untargeted-panic` a `#[should_panic]` without `expected` (3),
 `fixed-test-port` a test bound to a fixed port (7), `test-substitution` an item
 compiled only outside tests, such as under `cfg(not(test))` (8), and
-`disabled-test` a test disabled without a justifying reference.
+`disabled-test` a test disabled without an approved exception.
 
 The rest are review norms. The level of a test (1) is not decidable: an import
 edge shows that a test depends on code, not whether that code is the behavior

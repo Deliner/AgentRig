@@ -1,4 +1,4 @@
-purpose: "Move a classification of enum variants into true and false repeated in several places into one method of the enum, or justify the copy with a reference"
+purpose: "Move a classification of enum variants into true and false repeated in several places into one method of the enum, or justify the copy with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to keep one answer per question about an enum"

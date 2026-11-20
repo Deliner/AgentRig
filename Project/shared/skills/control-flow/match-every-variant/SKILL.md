@@ -19,19 +19,23 @@ that branch is right for it.
 3. When several sites need the same answer, give the enum one method that holds
    the exhaustive match, such as `fn is_terminal(&self) -> bool`, and call it.
 4. When the enum is foreign and closed by definition, such as
-   `std::path::Component`, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the comparison.
+   `std::path::Component`, record the reasoning as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the
+   comparison. List it in the decision as `[exception RULE](FILE)`; the user
+   approves a new exception through propose-protected-change.
 5. When the enum is foreign and open, such as `io::ErrorKind`, a full match does
    not fit each site: keep the comparison in one owner, such as a function,
-   that carries the reference, and call it from the sites.
+   that carries the exception, and call it from the sites.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust `==` or `!=` with an operand that is a path
 of two or more segments ending in an UpperCamelCase name, and every `matches!`
-whose pattern names such a path. Test code and a comparison with a `DECISION:`
-or `INVARIANT:` reference on the line directly above it are out of scope. Do not
-weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when the site matches every variant or the comparison is justified by an
-owned reference.
+whose pattern names such a path. Test code is out of scope. An exception naming
+this rule, `variant-equality` by default, on the line directly above the
+comparison lifts the finding; a bare `DECISION:` or `INVARIANT:` reference
+lifts nothing. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the site matches every variant or an approved
+exception lifts the finding.

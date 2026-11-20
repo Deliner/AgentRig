@@ -23,8 +23,11 @@ loop, lookup or validation over it silently skips the new variant.
 4. When the enum also has variants with data, let the macro take the unit
    variants as its list and the other variants as they are, such as
    `($($unit:ident),+; $($other:tt)*) => { enum Color { $($unit,)+ $($other)* } ... }`.
-5. When the list is a selection by meaning, record why as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the array.
+5. When the list is a selection by meaning, record why as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the
+   reported line. List it in the decision as `[exception RULE](FILE)`; the
+   user approves a new exception through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -32,10 +35,11 @@ loop, lookup or validation over it silently skips the new variant.
 The measurement flags every Rust array literal, alone or under `&`, of three or
 more paths `E::V`, or `Self::V` inside an impl of `E`, where `E` is an enum
 declared in the same file and the paths name all of its unit variants in
-declaration order, outside test code, without a `DECISION:`/`INVARIANT:`
-reference on the line directly above the array. A partial, reordered or
-repeated list, a list of fewer than three paths and an enum declared in another
-file are not flagged; an enum with data variants is flagged when the list names
-all of its unit variants. Do not weaken the rule or its selectors merely to
-pass. Apply complexity-discipline; stop when the list follows from the enum's
-declaration or an owned reference justifies the selection.
+declaration order, outside test code. An exception naming this rule,
+`variant-list` by default, on the line directly above the reported line lifts
+the finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. A
+partial, reordered or repeated list, a list of fewer than three paths and an
+enum declared in another file are not flagged; an enum with data variants is
+flagged when the list names all of its unit variants. Do not weaken the rule or
+its selectors merely to pass. Apply complexity-discipline; stop when the list
+follows from the enum's declaration or an approved exception lifts the finding.

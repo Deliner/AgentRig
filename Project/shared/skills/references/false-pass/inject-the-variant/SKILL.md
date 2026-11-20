@@ -23,21 +23,24 @@ stays invisible to every test.
 4. A `use`, `extern crate` or `type` without a `cfg(test)` twin runs no code
    of its own: remove the `cfg` when the name is used in every build. When the
    item genuinely cannot exist in a test build, such as code the test harness
-   provides itself, record the reasoning as an owned `DECISION:`/`INVARIANT:`
-   reference on the line directly above the attribute.
+   provides itself, record the reasoning as a decision with edit-decisions and
+   put its exception `// DECISION: DNNN RULE`, RULE being the rule ID the
+   finding names, alone on the line directly above the `cfg` attribute. List it
+   in the decision as `[exception RULE](FILE)`; the user approves a new
+   exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
-A `DECISION:` or `INVARIANT:` reference on the line directly above the
-attribute keeps it; without one it is a finding.
+An exception naming this rule, `test-substitution` by default, on the line
+directly above the attribute keeps it; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing.
 
 ## Rule binding
 
 The measurement flags every Rust `#[cfg(..)]` or `#![cfg(..)]` attribute of an
 item in a file, module, impl or trait body whose predicate is false in every
 build with `test` set, such as `not(test)`, `all(not(test), ..)` or
-`not(any(test, ..))`, outside test code, without a `DECISION:` or `INVARIANT:`
-reference on the line directly above it. `cfg_attr`, `any(not(test), ..)`,
+`not(any(test, ..))`, outside test code. `cfg_attr`, `any(not(test), ..)`,
 statements and fields are out of scope. Rerun the reported lint check and
 relevant behavior checks. Do not weaken the rule or its selectors merely to
 pass. Apply complexity-discipline; stop when the item compiles in test builds
-with its variation injected, or is justified by an owned reference.
+with its variation injected, or an approved exception lifts the finding.

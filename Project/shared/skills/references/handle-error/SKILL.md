@@ -1,6 +1,6 @@
 ---
 name: handle-error
-description: Handle a swallowed error, or record why it is safe to ignore with a reference.
+description: Handle a swallowed error, or record why it is safe to ignore with an exception.
 ---
 
 # Handle the error, or record why it is safe to ignore
@@ -44,16 +44,20 @@ Decide what the handler owes its caller instead of discarding the error.
    the codes the command documents as answers, such as `Some(0 | 1)`, refuse
    every other code with an error, then answer; or call an owner that already
    does, such as the repository's VCS owner.
-3. When the error is genuinely safe to ignore, record why as a decision or bind
-   it to an existing invariant, then put its `DECISION: DNNN` or
-   `INVARIANT: INNN` reference comment on the line directly above the `pass`,
-   the chain, the arm or the return.
+3. When the error is genuinely safe to ignore, record why as a decision with
+   edit-decisions and put its exception, `# DECISION: DNNN RULE` in Python or
+   `// DECISION: DNNN RULE` in Rust, RULE being the rule ID the finding names,
+   alone on the line directly above the `except` line in Python, or above the
+   chain, the arm or the return in Rust. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 4. Keep one reason per handler: distinct swallowing handlers that rely on the
-   same recorded reason each carry that reference on their own line above.
+   same recorded reason each carry that exception on their own line above.
 5. Rerun the reported lint check and the affected behavior checks.
 
-A comment that is not an exact `DECISION: DNNN` or `INVARIANT: INNN` reference
-does not justify the swallow. Do not silence the finding with a bare comment, a
+Only an exact exception `DECISION: DNNN RULE` naming this rule, `silent-error`
+by default, justifies the swallow; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Do not silence the finding with a bare comment, a
 broadened `except`, or by widening the rule.
 
 ## Rule binding
@@ -70,8 +74,8 @@ every Rust `.join()` without arguments directly followed by `.ok()`,
 `Result<bool, …>`, and every `Ok(<status>.success())` such a function returns
 as its tail or with `return` when the status comes from `.status()?`,
 `.output()?.status` or a `let` binding of them and the body reads no `.code()`,
-outside Rust test code, without a DECISION: or INVARIANT: reference comment on
-the line directly above. Rerun the reported lint check and
+outside Rust test code. An exception naming this rule on the line directly
+above the reported line lifts the finding. Rerun the reported lint check and
 relevant behavior checks. Do not weaken the rule or its selectors merely to
 pass. Apply complexity-discipline; stop when the finding is resolved and the
-error is either handled or justified.
+error is either handled or lifted by an approved exception.

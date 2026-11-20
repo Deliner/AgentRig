@@ -8,7 +8,7 @@ description: Remove a leftover Rust dbg! macro and keep the expression it wrappe
 A `dbg!(...)` macro prints its argument and source location to stderr and
 returns the value unchanged. It is a debugging aid left in the source: it writes
 unconditioned diagnostic noise and marks unfinished work. A committed `dbg!` has
-no legitimate use, so no reference justifies keeping it.
+no legitimate use, so no exception or reference justifies keeping it.
 
 1. Read the `dbg!` and the expression it wraps. `dbg!(expr)` evaluates to
    `expr`, so the surrounding code may depend on that value or on the effects
@@ -22,8 +22,8 @@ no legitimate use, so no reference justifies keeping it.
    logging or a test that asserts the value, not another debugging print.
 4. Rerun the reported lint check and the affected behavior checks.
 
-Unlike the reference-justified rules, a `dbg!` cannot be kept with a DECISION:
-or INVARIANT: comment: remove it.
+Unlike the rules that accept an exception, `debug-artifact` accepts none: a
+`dbg!` cannot be kept with a `DECISION:` or `INVARIANT:` comment; remove it.
 
 ## Rule binding
 

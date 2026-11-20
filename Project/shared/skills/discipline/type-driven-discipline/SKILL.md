@@ -59,8 +59,10 @@ value is correct and the type would be ceremony.
   fields.
 - Comparing variants by ordinal (`a as u8 <= b as u8`) is a derived `Ord` with
   the documented order, or a method naming the relation.
-- A `macro_rules!` that hides control flow or generates items carries a
-  `// DECISION:` reference naming why a function or generic does not suffice.
+- A `macro_rules!` that hides control flow or generates items carries the
+  decision naming why a function or generic does not suffice: as the exception
+  `// DECISION: DNNN RULE` above a line a rule such as `hidden-exit` reports,
+  otherwise as a `// DECISION: DNNN` reference.
 - A shim that only forwards is removed unless it isolates a real boundary
   (platform, visibility, trait object).
 

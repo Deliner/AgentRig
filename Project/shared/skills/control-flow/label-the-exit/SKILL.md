@@ -19,8 +19,11 @@ no compile error.
 3. When the inner loop is a separate step, move it into a function or an
    iterator method such as `find`, `any` or `position`, so its exit becomes a
    `return` or a value and the outer loop keeps no nested exit.
-4. When a label would add nothing, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the exit.
+4. When a label would add nothing, record the reasoning as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the exit.
+   List it in the decision as `[exception RULE](FILE)`; the user approves a
+   new exception through propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -28,9 +31,10 @@ no compile error.
 The measurement flags every Rust `break` or `continue` without a label whose
 nearest enclosing `loop`, `while` or `for` lies inside another such loop of the
 same function. A closure, a nested function or an async block ends both
-searches, so a loop around a closure does not count. Test code and an exit with
-a `DECISION:` or `INVARIANT:` reference on the line directly above it are out
-of scope. Rerun the reported lint check and relevant behavior checks. Do not
-weaken the rule or its selectors merely to pass. Apply complexity-discipline;
-stop when the exit names its loop, the inner loop is extracted, or the exit is
-justified by an owned reference.
+searches, so a loop around a closure does not count. Test code is out of scope.
+An exception naming this rule, `unlabeled-exit` by default, on the line
+directly above the exit lifts the finding; a bare `DECISION:` or `INVARIANT:`
+reference lifts nothing. Rerun the reported lint check and relevant behavior
+checks. Do not weaken the rule or its selectors merely to pass. Apply
+complexity-discipline; stop when the exit names its loop, the inner loop is
+extracted, or an approved exception lifts the finding.

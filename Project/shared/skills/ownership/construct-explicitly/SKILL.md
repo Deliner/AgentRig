@@ -19,15 +19,20 @@ passes as an id without a visible step.
 4. When an error conversion relied on `From` for `?`, map the error at that
    call, or convert from a dedicated error type instead of a raw value.
 5. When the conversion must stay, such as a type whose purpose is to accept any
-   raw value at an API boundary, record the reasoning as an owned
-   `DECISION:`/`INVARIANT:` reference on the line directly above the impl.
+   raw value at an API boundary, record the reasoning as a decision with
+   edit-decisions and put its exception `// DECISION: DNNN RULE`, RULE being
+   the rule ID the finding names, alone on the line directly above the impl,
+   below its attributes. List it in the decision as `[exception RULE](FILE)`;
+   the user approves a new exception through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
 
 The measurement reports every Rust impl of `From` with a numeric primitive,
 `bool`, `char`, `String` or `&str` argument for a one-field struct of the same
-file. Test code and an impl with a `DECISION:` or `INVARIANT:` reference on the
-line directly above it are out of scope. Do not weaken the rule or its selectors
-merely to pass. Apply complexity-discipline; stop when every construction is an
-explicit call or the conversion is justified by an owned reference.
+file. Test code is out of scope. An exception naming this rule,
+`primitive-from` by default, on the line directly above the impl lifts the
+finding; a bare `DECISION:` or `INVARIANT:` reference lifts nothing. Do not
+weaken the rule or its selectors merely to pass. Apply complexity-discipline;
+stop when every construction is an explicit call or an approved exception lifts
+the finding.

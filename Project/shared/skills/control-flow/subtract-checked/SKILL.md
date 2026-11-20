@@ -24,8 +24,11 @@ subset of the masks, where a decoder should return its ordinary error.
    `index + n < items.len()` instead of `index < items.len() - n`.
 4. When a check just above guarantees the count, such as an `is_empty()`
    return, a minimum-size assertion or a subset check of the bit masks, record
-   that guarantee as an owned `DECISION:`/`INVARIANT:` reference on the line
-   directly above the subtraction.
+   that guarantee as a decision with edit-decisions and put its exception
+   `// DECISION: DNNN RULE`, RULE being the rule ID the finding names, alone
+   on the line directly above the reported line. List it in the decision as
+   `[exception RULE](FILE)`; the user approves a new exception through
+   propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
 
 ## Rule binding
@@ -33,10 +36,11 @@ subset of the masks, where a decoder should return its ordinary error.
 The measurement flags every Rust binary `-` whose left operand is a call of a
 method named `len`, `count`, `count_ones` or `count_zeros` without arguments,
 or a call whose only argument is such a call, such as a widening function,
-outside test code, without a `DECISION:` or `INVARIANT:` reference on the line
-directly above the expression. The receiver type is not resolved, so a `len` of
-any type counts; `-=`, a count on the right side and a count wrapped twice are
-not measured. Rerun the reported lint check and relevant behavior checks. Do
-not weaken the rule or its selectors merely to pass. Apply
-complexity-discipline; stop when the subtraction is checked, saturating or
-rearranged away, or the count is justified by an owned reference.
+outside test code. An exception naming this rule, `length-subtraction` by
+default, on the line directly above the reported line lifts the finding; a
+bare `DECISION:` or `INVARIANT:` reference lifts nothing. The receiver type is
+not resolved, so a `len` of any type counts; `-=`, a count on the right side
+and a count wrapped twice are not measured. Rerun the reported lint check and
+relevant behavior checks. Do not weaken the rule or its selectors merely to
+pass. Apply complexity-discipline; stop when the subtraction is checked,
+saturating or rearranged away, or an approved exception lifts the finding.
