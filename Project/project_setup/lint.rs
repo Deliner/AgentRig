@@ -102,7 +102,8 @@ fn cataloged(kind: Kind) -> bool {
             | Structure::DumpName
             | Structure::FunctionLines
             | Structure::EmbeddedText
-            | Structure::TestPlacement,
+            | Structure::TestPlacement
+            | Structure::TestInCodeFile,
         )
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

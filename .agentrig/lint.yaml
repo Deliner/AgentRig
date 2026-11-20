@@ -1049,6 +1049,18 @@ rules:
   level: error
   warning_skill: .agentrig/skills/relocate-tests/SKILL.md
   error_skill: .agentrig/skills/relocate-tests/SKILL.md
+- id: test-in-code-file
+  kind: test-in-code-file
+  target: file
+  include:
+  - '**'
+  exclude:
+  - '**/tests/**'
+  extensions:
+  - .rs
+  level: error
+  warning_skill: .agentrig/skills/move-test-code-out/SKILL.md
+  error_skill: .agentrig/skills/move-test-code-out/SKILL.md
 # DECISION: D102
 - id: recursive-deletion
   kind: recursive-deletion

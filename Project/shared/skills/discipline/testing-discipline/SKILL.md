@@ -48,7 +48,8 @@ owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
 
 A principle earns a lint rule once it can be checked statically without false
 positives. The decidable parts are rules: `test-placement` reports Rust and
-Python test code outside a `tests/` directory (1),
+Python test code outside a `tests/` directory (1), `test-in-code-file` Rust test
+code inside a code file, where it reaches the file's private items (2, 4),
 `untargeted-panic` a `#[should_panic]` without `expected` (3),
 `fixed-test-port` a test bound to a fixed port (7), `test-substitution` an item
 compiled only outside tests, such as under `cfg(not(test))` (8), and
@@ -56,8 +57,8 @@ compiled only outside tests, such as under `cfg(not(test))` (8), and
 
 The rest are review norms. The level of a test (1) is not decidable: an import
 edge shows that a test depends on code, not whether that code is the behavior
-under test or an incidental shared type. Public surface and back doors (2, 4)
-need symbol visibility or reverse-reference analysis, which does not exist.
+under test or an incidental shared type. Public surface and back doors beyond
+test code in a code file (2, 4) need symbol visibility or reverse-reference analysis, which does not exist.
 Determinism beyond a fixed port (7) is not syntactic: a call to a clock, RNG or
 the network is not by itself a nondeterminism bug. Seams beyond test-only
 compilation (8) are not either: a parameter or `cfg` branch does not say

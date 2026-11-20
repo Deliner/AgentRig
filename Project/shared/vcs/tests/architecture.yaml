@@ -2,4 +2,5 @@ purpose: Verify Git behavior against real repository consumers
 files:
   mod.rs: Verify repository observation, export, hooks and worktree preservation
   fixture.rs: Build repositories and committed revisions for Git tests
+  context.rs: Verify that a context query follows the inherited Git environment while repository commands ignore it, and that a failed query keeps Git's stderr
 directories: {}

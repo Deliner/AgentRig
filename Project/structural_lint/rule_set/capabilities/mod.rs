@@ -124,4 +124,5 @@ pub const ALL: &[Kind] = &[
     Kind::Structure(Structure::DirectoryArchitecture),
     Kind::Structure(Structure::TestPlacement),
     Kind::Structure(Structure::SameText),
+    Kind::Structure(Structure::TestInCodeFile),
 ];

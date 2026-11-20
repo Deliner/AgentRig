@@ -99,6 +99,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Reference(Reference::Comment),
             Kind::Structure(Structure::DirectoryArchitecture),
             Kind::Structure(Structure::TestPlacement),
+            Kind::Structure(Structure::TestInCodeFile),
         ],
         inspect: Inspect::Tree(rust::inspect),
         test_file: Some(test_files::rust),

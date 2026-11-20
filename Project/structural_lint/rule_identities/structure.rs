@@ -18,6 +18,7 @@ pub enum Structure {
     DirectoryArchitecture,
     TestPlacement,
     SameText,
+    TestInCodeFile,
 }
 impl Structure {
     pub(super) fn descriptor(self) -> &'static Descriptor {
@@ -33,6 +34,7 @@ impl Structure {
             Self::DirectoryArchitecture => &DIRECTORYARCHITECTURE,
             Self::TestPlacement => &TESTPLACEMENT,
             Self::SameText => &SAMETEXT,
+            Self::TestInCodeFile => &TESTINCODEFILE,
         }
     }
 }
@@ -160,6 +162,19 @@ const TESTPLACEMENT: Descriptor = Descriptor {
     parameters: Parameters::Level {
         default: Severity::Error,
         violation: "test code outside a tests/ directory is measured as production code by every other rule; move it into the tests/ directory of the code it tests",
+    },
+    accepts_exception: false,
+};
+// DECISION: D224
+const TESTINCODEFILE: Descriptor = Descriptor {
+    default_id: "test-in-code-file",
+    exclude: TEST_CODE,
+    target: "file",
+    metric: "every outermost Rust item under #[cfg(test)], including all(test, ..), or under #[test] in a file outside a tests directory, at the item's line, except a module declaration without a body in mod.rs, lib.rs or main.rs",
+    skill: "move-test-code-out",
+    parameters: Parameters::Level {
+        default: Severity::Error,
+        violation: "test code in a code file reaches the file's private items; move it into the tests/ directory of this directory, declare it in the entry mod.rs, lib.rs or main.rs and test only what the file opens to its directory",
     },
     accepts_exception: false,
 };

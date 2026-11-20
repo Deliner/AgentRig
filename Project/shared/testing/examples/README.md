@@ -74,7 +74,7 @@ I001:
   target: Project/tests/test_sample.py::test_doubles
 ```
 
-For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/lib.rs)` and:
+For Rust use `Ledger/Invariants/001.md`, `[doubles](../Project/tests/mod.rs)` and:
 
 ```yaml
 I001:

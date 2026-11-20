@@ -11,7 +11,7 @@ mod test_files;
 mod tests;
 pub use neutral_metrics::{Analysis, Code, Measurement, text};
 pub use registry::{HANDLERS, handler};
-pub(crate) use rust::in_test_context;
+pub(crate) use rust::{ENTRY_FILES, in_test_context};
 
 use crate::shared::source_parsers;
 use crate::structural_lint::rule_identities::ownership::Pair;
@@ -36,7 +36,7 @@ pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
         ..Analysis::default()
     };
     let valid = !tree.root_node().has_error();
-    let code = Code::new(source);
+    let code = Code::new(path, source);
     let mut pending = vec![tree.root_node()];
     while let Some(node) = pending.pop() {
         let invalid = node.is_error() || node.is_missing();

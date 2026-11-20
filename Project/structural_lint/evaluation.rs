@@ -187,7 +187,8 @@ fn structural_measurements(
             | Structure::ProgramLanguage
             | Structure::EmbeddedText
             | Structure::DirectoryArchitecture
-            | Structure::TestPlacement,
+            | Structure::TestPlacement
+            | Structure::TestInCodeFile,
         )
         | rule_identities::Kind::ControlFlow(_)
         | rule_identities::Kind::Signature(_)

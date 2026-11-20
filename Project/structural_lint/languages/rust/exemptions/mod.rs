@@ -10,6 +10,9 @@ pub(crate) use test_code::in_test_context;
 pub(super) use test_code::test_marker;
 use tree_sitter::Node;
 
+// DECISION: D224
+pub(crate) const ENTRY_FILES: [&str; 3] = ["mod.rs", "lib.rs", "main.rs"];
+
 pub(super) fn attributed(
     item: Node<'_>,
     source: Code<'_>,

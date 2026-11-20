@@ -61,7 +61,7 @@ impl Corpus {
             return Ok(source);
         };
         self.record(&summary(text), &mut source.about);
-        let code = Code::new(text);
+        let code = Code::new(path, text);
         let mut pending = vec![tree.root_node()];
         while let Some(node) = pending.pop() {
             let elsewhere = names_other_code(node);

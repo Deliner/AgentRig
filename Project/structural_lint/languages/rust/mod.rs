@@ -21,7 +21,7 @@ use crate::structural_lint::rule_identities::ownership::Pair;
 use crate::structural_lint::rule_identities::reference::Reference;
 use crate::structural_lint::rule_identities::structure::Structure;
 use exemptions::in_debug_only_context;
-pub(crate) use exemptions::in_test_context;
+pub(crate) use exemptions::{ENTRY_FILES, in_test_context};
 use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037
@@ -372,7 +372,7 @@ fn fragment_measurements(node: Node<'_>, source: Code<'_>) -> Vec<Measurement> {
     };
     let root = parsed.root_node();
     let mut scoped = Vec::new();
-    scan_fragment(root, Code::new(&fragment), &mut scoped);
+    scan_fragment(root, Code::new(source.path(), &fragment), &mut scoped);
     for measurement in &mut scoped {
         measurement.line += tree.start_position().row;
     }

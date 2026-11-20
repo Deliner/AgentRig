@@ -3,6 +3,8 @@ mod calls;
 mod conditions;
 mod macros;
 pub(super) mod prelude;
+#[cfg(test)]
+mod tests;
 
 use super::references::{Reference, RustImport, RustItem, RustMacro, Source, Target};
 use crate::structural_lint::languages;
