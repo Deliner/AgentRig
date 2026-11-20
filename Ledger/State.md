@@ -2,22 +2,21 @@
 
 ## Focus
 
-P167 (B174) VAC 6: the repair skills describe the exception `DECISION: DNNN RULE` and no bare marker lift (AC5).
+P167 (B174) final VAC: archive P167 and B174 with the delivery evidence of AC1–AC5.
 
 ## Workspace
 
 Branch: feature/named-exceptions
-Revision: afc174d3c02318611ee9f87d6cc0acd450991059
+Revision: 403409117bc06be25b7c6194e24210a365195335
 
 ## Progress
 
-- The 54 skills of rules that accept an exception place it directly above the reported line and list it in the decision.
-- replace-comment repairs an exception that lifts nothing; handle-panic describes the covering attribute of D147.
-- Skills of rules without exceptions say that no reference lifts their finding; descriptions say "exception".
+- P167 and B174 moved to Archive; Archive/Plan/167.md records VAC 1–6 and the verdict of each criterion.
+- D219–D222 link the archived card and delivery.
 
 ## Verification
 
-- `just run test`: 593 passed. `just lint --json`: no findings. No skill offers a bare marker as a lift.
+- `just candidate check --only memory` passes after the rotation.
 
 ## Blockers
 
@@ -25,4 +24,4 @@ None.
 
 ## Next action
 
-Archive P167 and B174, propose the pin at the gate-accepted head and ask the user to approve it.
+Propose the pin at the gate-accepted head and ask the user to approve it, then commit the pin and merge the branch.
