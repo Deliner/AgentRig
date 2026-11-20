@@ -117,6 +117,32 @@ fn warnings_are_shown_only_on_request() {
 }
 
 #[test]
+fn findings_with_one_cause_share_their_action_and_keep_each_location() {
+    let (_temp, root) = consumer(&(CONFIG.to_owned() + OVERRIDES));
+    for (name, lines) in [("a.rs", 8), ("special.rs", 11), ("t.rs", 9)] {
+        write(&root, &format!("src/{name}"), &"line\n".repeat(lines));
+    }
+    let warned = command(&root, "lint", &["--warnings"]).stdout;
+    let groups: Vec<Vec<&str>> = warned
+        .split("WARNING [source] ")
+        .skip(1)
+        .map(|group| group.lines().collect())
+        .collect();
+    let causes: Vec<_> = groups
+        .iter()
+        .map(|lines| lines[0].split(". ACTION: ").next().unwrap())
+        .collect();
+    let shared = "2 locations: one cause, listed below";
+    let single = "1 location: one cause, listed below";
+    assert_eq!(causes, [shared, single], "{warned}");
+    let locations: Vec<_> = groups.iter().map(|lines| &lines[1..]).collect();
+    let a = "  src/a.rs: nonblank-lines measures 8, exceeds 7";
+    let t = "  src/t.rs: nonblank-lines measures 9, exceeds 7";
+    let special = "  src/special.rs: nonblank-lines measures 11, exceeds 10";
+    assert_eq!(locations, [&[a, t][..], &[special]], "{warned}");
+}
+
+#[test]
 fn rerun_reproduces_findings_with_their_flags() {
     let (_temp, root) = consumer(CONFIG);
     levels(&root);

@@ -1,3 +1,4 @@
+mod input;
 mod memory;
 mod named_commands;
 mod protected;

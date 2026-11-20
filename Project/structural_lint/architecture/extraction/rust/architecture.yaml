@@ -6,4 +6,5 @@ files:
   conditions.rs: Recognize test and target-platform cfg predicates analyzed as unconditional code
   macros.rs: Supported macro reference extraction and incomplete expansion findings
   prelude.rs: Prelude and local binding interpretation for extracted Rust paths
-directories: {}
+directories:
+  tests: Verify which Rust cfg predicates the extraction analyzes as unconditional code

@@ -102,39 +102,3 @@ fn format_location(item: &Diagnostic) -> String {
         _ => item.path.clone(),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::{Diagnostic, Level, grouped};
-
-    fn finding(path: &str, actual: usize, limit: usize) -> Diagnostic {
-        Diagnostic {
-            rule: "size".into(),
-            path: path.into(),
-            level: Level::Warning,
-            actual: Some(actual),
-            limit: Some(limit),
-            skill: "skill.md".into(),
-            message: format!("lines measures {actual}, exceeds {limit}"),
-            line: None,
-            symbol: None,
-            rerun: "lint".into(),
-        }
-    }
-
-    #[test]
-    fn findings_with_one_cause_share_their_action_and_keep_each_location() {
-        let items = [
-            finding("a", 12, 10),
-            finding("b", 30, 20),
-            finding("c", 15, 10),
-        ];
-        assert_eq!(
-            grouped(&items),
-            [
-                "WARNING [size] 2 locations: one cause, listed below. ACTION: Consider skill.md. RERUN: lint\n  a: lines measures 12, exceeds 10\n  c: lines measures 15, exceeds 10",
-                "WARNING [size] 1 location: one cause, listed below. ACTION: Consider skill.md. RERUN: lint\n  b: lines measures 30, exceeds 20",
-            ]
-        );
-    }
-}

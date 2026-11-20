@@ -1,0 +1,4 @@
+purpose: Verify which Rust cfg predicates the extraction analyzes as unconditional code
+files:
+  mod.rs: Verify that test, platform and feature predicates are supported and that unknown or malformed ones are not
+directories: {}

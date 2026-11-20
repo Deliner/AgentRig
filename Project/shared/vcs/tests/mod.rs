@@ -1,3 +1,4 @@
+mod context;
 mod fixture;
 use super::{FileKind, Repository, Revisions};
 use fixture::{command, commit, initialize, revisions};

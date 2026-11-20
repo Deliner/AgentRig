@@ -67,7 +67,7 @@ const RUST: Layout = Layout {
     runner: "cargo",
     check: "rust-test",
     target: "tests::doubles",
-    test: "lib.rs",
+    test: "tests/mod.rs",
     function: "doubles",
 };
 
