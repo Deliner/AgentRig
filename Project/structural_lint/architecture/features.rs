@@ -1,49 +1,14 @@
 // DECISION: D044
-use super::{Dependency, Issue, policy::Declaration};
+use super::policy::{Declaration, Kind};
+use super::{Dependency, Issue};
 use crate::structural_lint::rule_identities::contract_settings::FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
-use serde::Deserialize;
 use std::{
     collections::BTreeMap,
     path::{Component, Path, PathBuf},
 };
 
 const TESTS: &str = "tests";
-
-#[derive(Clone, Copy, Deserialize)]
-#[serde(rename_all = "lowercase")]
-pub enum Kind {
-    Flat,
-    Layered,
-    Hexagonal,
-    Onion,
-    Clean,
-    Custom,
-}
-
-impl Kind {
-    fn name(self) -> &'static str {
-        match self {
-            Self::Flat => "flat",
-            Self::Layered => "layered",
-            Self::Hexagonal => "hexagonal",
-            Self::Onion => "onion",
-            Self::Clean => "clean",
-            Self::Custom => "custom",
-        }
-    }
-
-    fn parts(self) -> Option<&'static [&'static str]> {
-        match self {
-            Self::Flat => Some(&[]),
-            Self::Layered => Some(&["presentation", "application", "domain", "infrastructure"]),
-            Self::Hexagonal => Some(&["adapters", "ports", "domain"]),
-            Self::Onion => Some(&["infrastructure", "application", "domain"]),
-            Self::Clean => Some(&["frameworks", "adapters", "use_cases", "entities"]),
-            Self::Custom => None,
-        }
-    }
-}
 
 pub(super) fn check(
     root: Option<&Path>,

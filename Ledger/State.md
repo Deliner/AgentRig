@@ -2,23 +2,27 @@
 
 ## Focus
 
-P170 (B175, D225) phase 1: rule kind `file-cycle`, its detector over architecture edges and skill `break-file-cycle`.
+P170 (B175, D225): break the file cycles of the rig before `file-cycle` is enabled; this VAC fixes 7 of 8 directories.
 
 ## Workspace
 
 Branch: feature/file-cycle
-Revision: dfbc34a6c513b52e8baad63c7ee26e82fc1b58ac
+Revision: 05110a07929d2e3ec5b2e48b20dea7ca20121b2d
 
 ## Progress
 
-- Kind, descriptor, configuration check, evaluation over the architecture edges and rule description done.
-- `init` ships the skill; the rule stays out of `init` (`cataloged` false) until lint.yaml names it.
-- Probe of the rig with the rule: 14 cycles in 8 directories, the longest through 4 files in rule_identities.
+- change_delivery/git: the proposal directory moved to `proposal.rs`.
+- project_memory: reading memory at a revision moved to `revision_memory.rs`.
+- project_setup: the hook registration check moved to `adapters.rs`.
+- project_setup/initialization: the choice of interactive or declarative init moved to the entry.
+- structural_lint/architecture: the contract model with `Kind` stays in `policy.rs`, its checks moved to `contracts.rs`.
+- structural_lint/reporting: the inspection command table moved to `cli.rs`.
+- structural_lint/reporting/structure: the identifier kinds moved to `clusters.rs`.
 
 ## Verification
 
+- The scratch probe with `file-cycle` reports only the 6 cycles of structural_lint/rule_identities.
 - `just lint`, `just run rustfmt` and `just check --only memory` pass.
-- `just run test -- structural_lint` 337 passed; `just run test -- project_setup` 58 passed.
 
 ## Blockers
 
@@ -26,4 +30,4 @@ None.
 
 ## Next action
 
-Commit phase 1, then break the 8 file cycles of the rig, pin, propose lint.yaml and enable the rule in phase 2.
+Commit, then break the cycles through `descriptor.rs` and `kind.rs` in structural_lint/rule_identities.

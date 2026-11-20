@@ -43,16 +43,10 @@ fn record_path(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 
-pub(super) fn mirror(context: &Context) -> Result<PathBuf> {
-    Ok(context
-        .path(&context.config.paths.runtime)?
-        .join("proposal"))
-}
-
 pub fn approve(context: &Context) -> Result<i32> {
     let repository = Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("approve requires a VCS repository"))?;
-    let mirror = mirror(context)?;
+    let mirror = super::proposal::mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,
         root: &context.root,

@@ -156,7 +156,8 @@ fn codex_registration(context: &Context) -> Result<bool> {
     let configured = fs::read(context.root.join(".codex/hooks.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
-    let codex = enabled && hooks_registered(context, configured.as_ref(), Agent::Codex)?;
+    let codex = enabled
+        && super::adapters::hooks_registered(&context.config, configured.as_ref(), Agent::Codex)?;
     console::stdout(format!(
         "Codex registration: {}",
         if codex {
@@ -166,27 +167,4 @@ fn codex_registration(context: &Context) -> Result<bool> {
         }
     ));
     Ok(codex)
-}
-
-pub(super) fn hooks_registered(
-    context: &Context,
-    configured: Option<&serde_json::Value>,
-    agent: Agent,
-) -> Result<bool> {
-    let expected: serde_json::Value = serde_json::from_slice(&super::adapters::registration(
-        &context.config,
-        &super::adapters::generated(&context.config)?.root_command,
-        agent,
-    )?)?;
-    Ok(configured.is_some_and(|value| {
-        expected["hooks"].as_object().is_some_and(|hooks| {
-            hooks.iter().all(|(event, desired)| {
-                value["hooks"][event].as_array().is_some_and(|routes| {
-                    desired
-                        .as_array()
-                        .is_some_and(|items| items.iter().all(|route| routes.contains(route)))
-                })
-            })
-        })
-    }))
 }

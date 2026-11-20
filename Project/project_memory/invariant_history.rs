@@ -1,5 +1,5 @@
 // DECISION: D215
-use super::{format, history, source};
+use super::{format, revision_memory, source};
 use crate::project_config::{Context, Oracle, module};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::{Entry, Repository};
@@ -26,7 +26,7 @@ struct Change<'a> {
 
 pub fn check(context: &Context, repository: &Repository<'_>, fork: &str) -> Result<()> {
     let tree = repository.tree(fork)?;
-    let memory = history::prior_memory(context, repository, fork, &tree)?;
+    let memory = revision_memory::directory(context, repository, fork, &tree)?;
     let mut prior = Prior {
         repository,
         revision: fork,
@@ -97,7 +97,7 @@ impl Prior<'_> {
         if absent {
             return Ok(None);
         }
-        history::committed(self.repository, self.revision, Path::new(path)).map(Some)
+        revision_memory::read(self.repository, self.revision, Path::new(path)).map(Some)
     }
 
     fn table(&self, name: &str, catalog: Catalog) -> Result<Option<Vec<Row>>> {

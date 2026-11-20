@@ -16,7 +16,7 @@ pub fn propose(context: &Context, reference: &str) -> Result<i32> {
         Repository::discover(&context.root)?.context("propose-pin requires a VCS repository")?;
     let revision = repository.resolve(reference)?;
     let pinned = descending(&repository, pin, &revision)?;
-    let mirror = super::approval::mirror(context)?;
+    let mirror = super::proposal::mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,
         root: &context.root,

@@ -1,13 +1,12 @@
 // DECISION: D028
 // DECISION: D043
 // DECISION: D044
-use super::{Dependency, EnvironmentUse, Issue};
 use crate::shared::fs_with_context as fs;
 use crate::structural_lint::rule_identities::contract_settings::FILENAME;
 use anyhow::{Result, ensure};
 use serde::Deserialize;
 use std::{
-    collections::{BTreeMap, BTreeSet},
+    collections::BTreeMap,
     path::{Component, Path, PathBuf},
 };
 
@@ -54,7 +53,7 @@ pub(super) struct Declaration {
     #[serde(default)]
     directories: BTreeMap<String, String>,
     #[serde(default, rename = "type")]
-    kind: Option<super::features::Kind>,
+    kind: Option<Kind>,
     // DECISION: D078
     #[serde(default)]
     zone: Option<Zone>,
@@ -70,141 +69,50 @@ impl Declaration {
     pub(super) fn directories(&self) -> &BTreeMap<String, String> {
         &self.directories
     }
-    pub(super) fn kind(&self) -> Option<super::features::Kind> {
+    pub(super) fn kind(&self) -> Option<Kind> {
         self.kind
     }
-}
-
-pub struct Contracts {
-    declarations: BTreeMap<PathBuf, Declaration>,
-}
-
-// DECISION: D083
-// DECISION: D104
-fn zone_message(path: &str) -> Option<String> {
-    let effect = super::effect(path)?;
-    Some(format!(
-        "zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}"
-    ))
-}
-
-impl Contracts {
-    pub fn check_inventory(
-        &self,
-        root: &Path,
-        inventory: &crate::structural_lint::targeting::file_discovery::Inventory,
-    ) -> Vec<Issue> {
-        let mut issues = Vec::new();
-        for (path, declaration) in &self.declarations {
-            let rooted = Rooted { root, path };
-            issues.extend(super::inventory::check(rooted, declaration, inventory));
-        }
-        issues
+    pub(super) fn zone(&self) -> Option<Zone> {
+        self.zone
     }
-
-    pub fn check_features(
-        &self,
-        root: Option<&Path>,
-        inventory: &crate::structural_lint::targeting::file_discovery::Inventory,
-        edges: &[Dependency],
-    ) -> Vec<Issue> {
-        super::features::check(root, &self.declarations, inventory, edges)
-    }
-
-    // DECISION: D078
-    pub fn check_zones(&self, environment: &BTreeMap<PathBuf, Vec<EnvironmentUse>>) -> Vec<Issue> {
-        let mut issues = Vec::new();
-        for (directory, declaration) in &self.declarations {
-            let foreign_zone = declaration.zone != Some(Zone::Pure);
-            if foreign_zone {
-                continue;
-            }
-            'files: for (file, uses) in environment {
-                let parent = file
-                    .parent()
-                    .filter(|parent| !parent.as_os_str().is_empty())
-                    .unwrap_or_else(|| Path::new("."));
-                let other_directory = parent != directory.as_path();
-                if other_directory {
-                    continue 'files;
-                }
-                issues.extend(uses.iter().filter_map(|use_site| {
-                    let message = zone_message(&use_site.path)?;
-                    Some(Issue {
-                        path: file.clone(),
-                        line: Some(use_site.line),
-                        message,
-                    })
-                }));
-            }
-        }
-        issues
-    }
-
-    // DECISION: D079
-    // DECISION: D142
-    pub fn check_coupling(&self, edges: &[Dependency]) -> Vec<Issue> {
-        let dependents = super::graph::dependents(edges);
-        let mut issues = Vec::new();
-        for (directory, declaration) in &self.declarations {
-            let budget = declaration.dependents.unwrap_or(DEFAULT_DEPENDENTS);
-            let Some(sources) = dependents.get(directory.as_path()) else {
-                continue;
-            };
-            let over_budget = sources.len() > budget;
-            if over_budget {
-                let named: Vec<_> = sources
-                    .iter()
-                    .map(|(source, edge)| {
-                        let source = super::graph::directory_key(source);
-                        format!(
-                            "{source} ({evidence})",
-                            source = source.display(),
-                            evidence = super::graph::evidence(edge)
-                        )
-                    })
-                    .collect();
-                issues.push(Issue {
-                    path: directory.join(FILENAME),
-                    line: None,
-                    message: format!(
-                        "directory is depended on by {count} other directories (budget {budget}): {listed}; reduce incoming coupling or raise the declared dependents budget",
-                        count = sources.len(),
-                        listed = named.join(", ")
-                    ),
-                });
-            }
-        }
-        issues
-    }
-
-    pub fn load(root: &Path, directories: &BTreeSet<PathBuf>) -> Loaded {
-        let mut contracts = Self {
-            declarations: BTreeMap::new(),
-        };
-        let mut issues = Vec::new();
-        for path in directories {
-            let directory = path;
-            match (Rooted { root, path }).declaration() {
-                Ok(declaration) => {
-                    contracts
-                        .declarations
-                        .insert(directory.clone(), declaration);
-                }
-                Err(error) => issues.push(Issue {
-                    path: directory.join(FILENAME),
-                    line: None,
-                    message: format!("invalid or missing directory contract: {error:#}"),
-                }),
-            }
-        }
-        Loaded { contracts, issues }
+    pub(super) fn dependents(&self) -> usize {
+        self.dependents.unwrap_or(DEFAULT_DEPENDENTS)
     }
 }
 
-pub struct Loaded {
-    pub contracts: Contracts,
-    pub issues: Vec<Issue>,
+#[derive(Clone, Copy, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum Kind {
+    Flat,
+    Layered,
+    Hexagonal,
+    Onion,
+    Clean,
+    Custom,
+}
+
+impl Kind {
+    pub(super) fn name(self) -> &'static str {
+        match self {
+            Self::Flat => "flat",
+            Self::Layered => "layered",
+            Self::Hexagonal => "hexagonal",
+            Self::Onion => "onion",
+            Self::Clean => "clean",
+            Self::Custom => "custom",
+        }
+    }
+
+    pub(super) fn parts(self) -> Option<&'static [&'static str]> {
+        match self {
+            Self::Flat => Some(&[]),
+            Self::Layered => Some(&["presentation", "application", "domain", "infrastructure"]),
+            Self::Hexagonal => Some(&["adapters", "ports", "domain"]),
+            Self::Onion => Some(&["infrastructure", "application", "domain"]),
+            Self::Clean => Some(&["frameworks", "adapters", "use_cases", "entities"]),
+            Self::Custom => None,
+        }
+    }
 }
 
 pub struct Description {
@@ -241,7 +149,7 @@ impl Rooted<'_> {
         })
     }
 
-    fn declaration(self) -> Result<Declaration> {
+    pub(super) fn declaration(self) -> Result<Declaration> {
         let Self {
             root,
             path: directory,

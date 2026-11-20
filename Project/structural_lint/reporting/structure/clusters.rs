@@ -1,7 +1,13 @@
-use super::corpus::IDENTIFIERS;
 use crate::structural_lint::languages::{Code, in_test_context, text};
 use std::collections::{BTreeMap, BTreeSet};
 use tree_sitter::Node;
+
+pub(super) const IDENTIFIERS: &[&str] = &[
+    "identifier",
+    "type_identifier",
+    "field_identifier",
+    "shorthand_field_identifier",
+];
 
 const ITEMS: &[&str] = &[
     "function_item",

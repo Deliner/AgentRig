@@ -5,6 +5,7 @@ pub mod approval;
 mod exceptions;
 mod integration;
 pub mod pin;
+mod proposal;
 mod push;
 mod state;
 #[cfg(test)]

@@ -16,19 +16,7 @@ enum Exclusion {
     Scoped,
 }
 
-pub type Inspection = fn(Location<'_>, &[String]) -> Result<i32>;
-
-// DECISION: D143
-pub fn inspection(command: &str) -> Option<Inspection> {
-    match command {
-        "lint-explain" => Some(run),
-        "lint-edges" => Some(edges),
-        "lint-tree" => Some(super::tree::run),
-        _ => None,
-    }
-}
-
-fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
+pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-explain", args)?;
     let path = path.as_path();
     let root = location.root;
@@ -54,7 +42,7 @@ fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
 }
 
 // DECISION: D143
-fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
+pub(super) fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
     let root = location.root;
     let config = location.load()?;

@@ -7,6 +7,7 @@ files:
   state.rs: Reject a feature commit with the empty State template, reset State after commits and commit it before merge
   approval.rs: Apply a proposal of protected enforcement files at the user's approval, record the approved content and new lint exceptions, and refuse a feature commit of unapproved content, an unapproved new exception or a backward pin
   exceptions.rs: Find the lint exceptions a content adds over the committed one, keyed by file, decision, rule and the line beneath
+  proposal.rs: Locate the directory where proposed protected files wait for the user's approval
   pin.rs: Prepare a forward pin as a proposal with the source files it changes, and install a proposed pin before the user's approval writes it
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios

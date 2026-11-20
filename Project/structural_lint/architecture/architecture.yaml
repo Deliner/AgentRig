@@ -2,7 +2,8 @@ purpose: Validate directory contracts, feature types, cycles and file fan-out ov
 type: custom
 files:
   mod.rs: Resolved dependency and issue records with contract-check composition
-  policy.rs: Strict directory contracts with purpose, inventory and feature type
+  policy.rs: Strict directory contracts with purpose, inventory, feature type and its parts, zone and dependents budget
+  contracts.rs: Load the contracts of a scope and check inventory, feature types, zones and incoming coupling against them
   features.rs: Feature classification, required type parts and inward part dependencies
   inventory.rs: Exact file and child-directory responsibility coverage checks
   graph.rs: Cycles, per-file fan-out, dependents and directory edges over measured dependencies

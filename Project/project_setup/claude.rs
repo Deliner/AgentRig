@@ -29,8 +29,8 @@ pub(super) fn registration(context: &Context) -> Result<bool> {
             .get("disableAllHooks")
             .is_none_or(|value| value == false)
     });
-    let registered =
-        enabled && super::doctor::hooks_registered(context, settings.as_ref(), Agent::ClaudeCode)?;
+    let registered = enabled
+        && adapters::hooks_registered(&context.config, settings.as_ref(), Agent::ClaudeCode)?;
     console::stdout(format!(
         "Claude Code registration: {}",
         if registered {
