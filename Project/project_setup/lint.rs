@@ -77,6 +77,8 @@ fn example(kind: Kind, paths: &Paths) -> Value {
             rule["exclude"] = json!(registries);
         }
         Kind::Structure(Structure::DumpName) => rule["include"] = tree(),
+        // DECISION: D223
+        Kind::Structure(Structure::TestPlacement) => rule["extensions"] = json!([".rs"]),
         Kind::Structure(_)
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

@@ -7,6 +7,7 @@ use crate::structural_lint::rule_identities::structure::Structure;
 use tree_sitter::Node;
 
 // DECISION: D145
+// DECISION: D223
 pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let Some(name) = node.child_by_field_name("name") else {
         return;
@@ -25,7 +26,7 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
     let location = declared.map_or(vec![name], |path| path.split('/').collect());
     let placed = ancestors(node, source)
         .chain(location)
-        .any(|part| matches!(part, "tests" | "tests.rs"));
+        .any(|part| part == "tests");
     if placed {
         return;
     }

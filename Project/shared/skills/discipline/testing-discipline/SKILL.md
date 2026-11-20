@@ -47,8 +47,8 @@ owner. Apply complexity-discipline. A no-op or pure prose change needs no test.
 ## Enforcement
 
 A principle earns a lint rule once it can be checked statically without false
-positives. The decidable parts are rules: `test-placement` reports a Rust
-test-only module file outside `tests.rs` or a tests directory (1),
+positives. The decidable parts are rules: `test-placement` reports Rust and
+Python test code outside a `tests/` directory (1),
 `untargeted-panic` a `#[should_panic]` without `expected` (3),
 `fixed-test-port` a test bound to a fixed port (7), `test-substitution` an item
 compiled only outside tests, such as under `cfg(not(test))` (8), and

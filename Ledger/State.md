@@ -2,28 +2,30 @@
 
 ## Focus
 
-P168 (B179): tests live only in a `tests/` directory. Current VAC: move the rig's nine `tests.rs` files to
-`tests/mod.rs` with their own inventories, so no rig test file depends on the `tests.rs` pattern.
+P168 (B179): tests live only in a `tests/` directory. Current VAC: phase 1 of D223, the runtime that reports
+`tests.rs` files and Python `test_*.py` or `*_test.py` files outside `tests/` and accepts Python for `test-placement`.
 
 ## Workspace
 
 Branch: feature/tests-directory
-Revision: ed75e7b95ae5ceb91f6415063a50ebd57a7e813d
+Revision: b112f44643e8b71f3f49006363f930b1066075e9
 
 ## Progress
 
-The nine files moved with Git history; each new `tests/` has an architecture.yaml and its parent lists it as a
-directory. Module paths and test names are unchanged. Decision links to the moved files now point at `tests/mod.rs`.
+D223 is recorded. Each language handler names its test files; analysis reports a misplaced one at line 1; a Rust
+declaration is placed only by a `tests` component. The skill `relocate-tests` and testing-discipline follow D223.
+`init` keeps the Rust extension for the kind until phase 2, so its output still matches the rig (I023).
 
 ## Verification
 
-`just lint` reports no finding; the commit gate runs the affected test groups.
+`just lint` reports no finding; `structural_lint::` tests pass (329) and the I023 test passes.
 
 ## Blockers
 
-None.
+Phase 2 needs the user's approval of the pin at this commit, because the installed runtime rejects `.py` for the
+kind.
 
 ## Next action
 
-Record the decision replacing D145, then extend `test-placement` to `tests.rs` files and Python test files and drop
-`**/tests.rs` from the shipped test-code patterns; then ask for the mid-branch pin.
+Run `just propose-pin HEAD` and ask the user for `! just approve`; then propose `lint.yaml` without `**/tests.rs` and
+with Python extensions for `test-placement`, drop the `init` override and `**/tests.rs` from the test-code patterns.

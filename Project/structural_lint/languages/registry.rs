@@ -1,6 +1,7 @@
 // DECISION: D033
 // DECISION: D098
-use super::{Analysis, Code, flag_list, manifest, python, rust};
+// DECISION: D223
+use super::{Analysis, Code, flag_list, manifest, python, rust, test_files};
 use crate::structural_lint::rule_identities::control_flow::ControlFlow;
 use crate::structural_lint::rule_identities::kind::Kind;
 use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
@@ -20,6 +21,7 @@ pub struct Handler {
     pub extensions: &'static [&'static str],
     pub rules: &'static [Kind],
     pub inspect: Inspect,
+    pub test_file: Option<fn(&str) -> bool>,
 }
 pub const HANDLERS: &[Handler] = &[
     Handler {
@@ -99,6 +101,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Structure(Structure::TestPlacement),
         ],
         inspect: Inspect::Tree(rust::inspect),
+        test_file: Some(test_files::rust),
     },
     Handler {
         name: "python",
@@ -118,8 +121,10 @@ pub const HANDLERS: &[Handler] = &[
             Kind::ControlFlow(ControlFlow::BooleanExpression),
             Kind::Reference(Reference::Comment),
             Kind::Structure(Structure::DirectoryArchitecture),
+            Kind::Structure(Structure::TestPlacement),
         ],
         inspect: Inspect::Tree(python::inspect),
+        test_file: Some(test_files::python),
     },
     Handler {
         name: "toml",
@@ -130,6 +135,7 @@ pub const HANDLERS: &[Handler] = &[
             Kind::Reference(Reference::CargoRustflags),
         ],
         inspect: Inspect::Document(manifest::analyze),
+        test_file: None,
     },
     // DECISION: D182
     Handler {
@@ -138,6 +144,7 @@ pub const HANDLERS: &[Handler] = &[
         extensions: &[".yaml"],
         rules: &[Kind::Reference(Reference::AllowJustification)],
         inspect: Inspect::Document(flag_list::analyze),
+        test_file: None,
     },
 ];
 pub fn handler(path: &Path) -> Option<&'static Handler> {

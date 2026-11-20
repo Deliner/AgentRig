@@ -1,21 +1,28 @@
 ---
 name: relocate-tests
-description: Move a Rust test-only module file declared under #[cfg(test)] into a tests/ directory or a tests.rs file, so its tests see the same code and the rules measure it as test code.
+description: Move Rust or Python test code outside a tests/ directory, a test-only module file, a tests.rs file or a test_*.py or *_test.py file, into the tests/ directory of the code it tests, so its tests see the same code and the rules measure it as test code.
 ---
 
-# Keep test files where test code is expected
+# Keep tests in the tests directory
 
-A test-only module file named after what it tests, such as `mesh_tests.rs`,
-sits among production files. Every rule measures it as production code, so its
-unwraps, long literals and fixtures become findings, and the project ends up
-excluding its own file pattern from many rules. Test code belongs in a
-`tests.rs` file or under a `tests/` directory, which the shipped rules exclude.
+Test code outside a `tests/` directory sits among production files. Every rule
+measures it as production code, so its unwraps, long literals and fixtures
+become findings, and the project ends up excluding its own file patterns from
+many rules. The tests of a directory live in its `tests/` directory, which the
+shipped rules exclude, so they are always in one place and the set grows there
+without moving again.
 
-1. Read the declaration the finding names and what the tests rely on: their
-   `super::` and `crate::` paths, the private items they reach, and every cargo
-   test filter or affected-test target that names the module.
-2. Move the file into a `tests/` directory beside the declaring file and keep
-   the module name with `#[path]`, relative to the declaring file's directory:
+1. Read the file or declaration the finding names and what the tests rely on:
+   their `super::`, `crate::` or import paths, the private items they reach,
+   and every test filter, runner setting or affected-test target that names
+   them.
+2. Move a Rust `tests.rs` to `tests/mod.rs` beside it with `git mv`. The
+   declaration `#[cfg(test)] mod tests;` stays as it is, so the module path,
+   the test names and `super::` paths stay valid.
+3. Move a Rust test-only module file with another name, such as
+   `mesh_tests.rs`, into the `tests/` directory beside the declaring file and
+   keep its module name with `#[path]`, relative to the declaring file's
+   directory:
 
    ```rust
    #[cfg(test)]
@@ -23,28 +30,28 @@ excluding its own file pattern from many rules. Test code belongs in a
    mod mesh_tests;
    ```
 
-   The module keeps its place in the tree, so `super::` paths, private access
-   and test names such as `mesh_tests::` stay valid. Move with `git mv` and
-   describe the new directory and file where the project inventories them,
-   such as `architecture.yaml`.
-3. When the file tests a single module, it may instead become that module's
-   `tests.rs`: declare `#[cfg(test)] mod tests;` in the tested module and move
-   the file to `mesh/tests.rs` for `mesh.rs`, or `world/tests.rs` for
-   `world/mod.rs`. Its module path changes, so update `super::` paths in the
-   tests and every filter or target that names the old module.
-4. Remove the project's exclusions of the old file name pattern from rules; the
-   shipped test exclusions now cover the file.
-5. Build and run the moved tests, then rerun the reported lint check.
+4. Move a Python `test_*.py` or `*_test.py` file into the `tests/` directory of
+   the package it tests, and update its imports and every runner setting that
+   names the old path.
+5. When the tests of one directory grow large, split them by the behavior they
+   verify into files inside `tests/`, declared from `tests/mod.rs` in Rust.
+6. Give each new `tests/` directory the inventory the project keeps, such as an
+   `architecture.yaml` with its purpose and files, and list it among the
+   directories of its parent.
+7. Remove the project's exclusions of the old file patterns from rules; the
+   shipped test exclusion `**/tests/**` covers the moved files. Build and run
+   the moved tests, then rerun the reported lint check.
 
 ## Rule binding
 
-The measurement flags each Rust `mod` declaration without a body that is gated
-by `#[cfg(test)]`, including `all(test, ..)`, or declared inside a test-only
-module, when no enclosing inline module is named `tests` and no component of
-its `#[path]` value, or of its module name without one, is `tests` or
-`tests.rs`. The finding is at
-the declaration line and names the `#[path]` value, else the module name. Files
-under the shipped exclude, `**/tests/**` and `**/tests.rs`, are not measured.
-Other rules measure the declared file as before until it is moved. Do not
-exclude the file or weaken the rule merely to pass. Apply complexity-discipline;
-stop when every test-only file is in test position and its tests pass.
+The measurement flags each Rust file named `tests.rs` and each Python file
+named `test_*.py` or `*_test.py` when no component of its path is `tests`, at
+line 1 naming the file. It also flags each Rust `mod` declaration without a
+body that is gated by `#[cfg(test)]`, including `all(test, ..)`, or declared
+inside a test-only module, when no enclosing inline module is named `tests` and
+no component of its `#[path]` value, or of its module name without one, is
+`tests`; that finding is at the declaration line and names the `#[path]` value,
+else the module name. Files under the shipped exclude `**/tests/**` are not
+measured. Do not exclude the file or weaken the rule merely to pass. Apply
+complexity-discipline; stop when every test file is in a `tests/` directory and
+its tests pass.

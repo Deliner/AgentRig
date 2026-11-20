@@ -150,15 +150,16 @@ const DIRECTORYARCHITECTURE: Descriptor = Descriptor {
     accepts_exception: false,
 };
 // DECISION: D145
+// DECISION: D223
 const TESTPLACEMENT: Descriptor = Descriptor {
     default_id: "test-placement",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust file module declared under #[cfg(test)] or inside a test-only module whose file is neither tests.rs nor under a tests directory, at its declaration line",
+    metric: "every Rust file module declared under #[cfg(test)] or inside a test-only module outside a tests directory, at its declaration line, and every Rust tests.rs file or Python test_*.py or *_test.py file outside a tests directory, at line 1",
     skill: "relocate-tests",
     parameters: Parameters::Level {
         default: Severity::Error,
-        violation: "a test-only module file outside tests.rs and tests/ is measured as production code by every other rule; move it into a tests/ directory, keeping its module name through #[path], or into the tests.rs of the module it tests",
+        violation: "test code outside a tests/ directory is measured as production code by every other rule; move it into the tests/ directory of the code it tests",
     },
     accepts_exception: false,
 };

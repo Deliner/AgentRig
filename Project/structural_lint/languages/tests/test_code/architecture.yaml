@@ -2,7 +2,7 @@ purpose: Verify Rust measurements of test modules outside the test locations, te
 files:
   mod.rs: Declare the test-code measurement test modules and filter one reference kind from native analysis
   shared_resource.rs: Rust tests that bind a fixed port, with port zero, named, hostless, computed, connected and product sockets skipped, from native analysis
-  test_placement.rs: Rust test-only file module measurements, declared by name or path outside or inside tests.rs and tests directories, from native analysis
+  test_placement.rs: Rust test-only file module declarations by name or path and Rust and Python test files, outside or inside tests directories, from native analysis
   test_substitution.rs: Rust items whose cfg excludes every test build, with cfg_attr, partial, other-flag, statement, field and test-only attributes skipped, from native analysis
   untargeted_panic.rs: Rust should_panic attributes without expected, with an expected argument or a = value skipped, from native analysis
 directories: {}
