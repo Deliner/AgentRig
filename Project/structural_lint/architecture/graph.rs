@@ -1,4 +1,5 @@
 use super::{Dependency, Issue, Settings};
+use crate::structural_lint::languages::ENTRY_FILES;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -15,16 +16,34 @@ pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
         }
         add_edge(&mut graph, edge);
     }
-    let mut traversal = Traversal {
-        graph,
-        finished: BTreeSet::new(),
-        active: Vec::new(),
-        issues: Vec::new(),
-    };
-    for start in traversal.graph.keys().cloned().collect::<Vec<_>>() {
-        traversal.visit(&start);
+    Traversal::issues(graph, "directory")
+}
+
+// DECISION: D225
+pub(super) fn file_cycles(dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
+    let mut graph: Adjacency<'_> = BTreeMap::new();
+    for edge in dependencies {
+        let Some(directory) = edge.source.parent() else {
+            continue;
+        };
+        let sibling = edge.target.parent() == Some(directory) && edge.source != edge.target;
+        let between_parts = !entry(&edge.source) && !entry(&edge.target);
+        let used =
+            !edge.relation.declares() && selected.contains(directory_key(directory).as_path());
+        let counted = sibling && between_parts && used;
+        if counted {
+            let targets = graph.entry(edge.source.clone()).or_default();
+            targets.entry(edge.target.clone()).or_insert(edge);
+        }
     }
-    traversal.issues
+    Traversal::issues(graph, "file")
+}
+
+// DECISION: D225
+fn entry(file: &Path) -> bool {
+    let name = file.file_name().and_then(|name| name.to_str());
+    let rust = name.is_some_and(|name| ENTRY_FILES.contains(&name));
+    rust || file.file_stem().is_some_and(|stem| stem == "__init__")
 }
 
 fn add_edge<'a>(graph: &mut Adjacency<'a>, edge: &'a Dependency) {
@@ -180,19 +199,35 @@ pub(super) fn directory_key(path: &Path) -> PathBuf {
 
 struct Traversal<'a> {
     graph: Adjacency<'a>,
+    nodes: &'static str,
     finished: BTreeSet<PathBuf>,
     active: Vec<PathBuf>,
     issues: Vec<Issue>,
 }
 
 impl<'a> Traversal<'a> {
-    fn visit(&mut self, directory: &Path) {
-        let finished = self.finished.contains(directory);
+    fn issues(graph: Adjacency<'a>, nodes: &'static str) -> Vec<Issue> {
+        let starts: Vec<_> = graph.keys().cloned().collect();
+        let mut traversal = Self {
+            graph,
+            nodes,
+            finished: BTreeSet::new(),
+            active: Vec::new(),
+            issues: Vec::new(),
+        };
+        for start in starts {
+            traversal.visit(&start);
+        }
+        traversal.issues
+    }
+
+    fn visit(&mut self, node: &Path) {
+        let finished = self.finished.contains(node);
         if finished {
             return;
         }
-        self.active.push(directory.into());
-        let targets = self.graph.get(directory).cloned().unwrap_or_default();
+        self.active.push(node.into());
+        let targets = self.graph.get(node).cloned().unwrap_or_default();
         for (target, edge) in targets {
             if let Some(index) = self.active.iter().position(|path| path == &target) {
                 self.cycle(index, edge);
@@ -201,7 +236,7 @@ impl<'a> Traversal<'a> {
             }
         }
         self.active.pop();
-        self.finished.insert(directory.into());
+        self.finished.insert(node.into());
     }
 
     // DECISION: D142
@@ -218,7 +253,8 @@ impl<'a> Traversal<'a> {
         self.issues.push(Issue::dependency(
             edge,
             format!(
-                "directory dependency cycle: {cycle}; {evidence}",
+                "{nodes} dependency cycle: {cycle}; {evidence}",
+                nodes = self.nodes,
                 cycle = paths.join(" -> "),
                 evidence = named.join("; ")
             ),

@@ -42,6 +42,9 @@ pub enum Configured {
     StateReset,
     Approve,
     ProposePin,
+    Consent,
+    RevokeConsent,
+    ConsentedPins,
 }
 const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
@@ -73,6 +76,16 @@ const NAMES: &[(&str, Command)] = &[
     ("approve", Command::Configured(Configured::Approve)),
     // DECISION: D218
     ("propose-pin", Command::Configured(Configured::ProposePin)),
+    // DECISION: D226
+    ("consent", Command::Configured(Configured::Consent)),
+    (
+        "revoke-consent",
+        Command::Configured(Configured::RevokeConsent),
+    ),
+    (
+        "consented-pins",
+        Command::Configured(Configured::ConsentedPins),
+    ),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
     ("jobs", Command::Runner(Runner::Jobs(jobs::Command::List))),
@@ -146,7 +159,10 @@ fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {
         | Configured::FeatureMerge
         | Configured::FeaturePush
         | Configured::StateReset
-        | Configured::Approve => (!args.is_empty()).then(|| {
+        | Configured::Approve
+        | Configured::Consent
+        | Configured::RevokeConsent
+        | Configured::ConsentedPins => (!args.is_empty()).then(|| {
             format!(
                 "{name} takes no arguments",
                 name = Command::Configured(command).name()

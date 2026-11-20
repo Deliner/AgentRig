@@ -7,7 +7,7 @@ use crate::shared::vcs::{Repository, Revisions};
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
 
-pub fn propose(context: &Context, reference: &str) -> Result<i32> {
+pub(super) fn propose(context: &Context, reference: &str) -> Result<i32> {
     let pin = context
         .protection
         .pin()
@@ -16,28 +16,17 @@ pub fn propose(context: &Context, reference: &str) -> Result<i32> {
         Repository::discover(&context.root)?.context("propose-pin requires a VCS repository")?;
     let revision = repository.resolve(reference)?;
     let pinned = descending(&repository, pin, &revision)?;
-    let mirror = super::approval::mirror(context)?;
+    let mirror = super::proposal::mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,
         root: &context.root,
     };
     overlay.propose(pin, format!("{revision}\n").as_bytes())?;
-    let sources = context.config.paths.source_matcher()?;
     let revisions = Revisions {
         from: &pinned,
         to: &revision,
     };
-    let changed: Vec<String> = repository
-        .changed_paths(revisions)?
-        .into_iter()
-        .filter(|path| sources.is_match(path))
-        .collect();
-    let unchanged = changed.is_empty();
-    let listed = if unchanged {
-        "none".to_owned()
-    } else {
-        changed.join("\n  ")
-    };
+    let listed = listed(&sources(context, &repository, revisions)?);
     console::stdout(format!(
         "Prepared the pin {revision}.\nSource files changed since the pinned {pinned}:\n  {listed}\nAsk the user to type `! just approve` in Claude Code or to run `just approve` in a terminal: it installs {revision} and only then pins it."
     ));
@@ -51,7 +40,7 @@ pub(super) fn install(
 ) -> Result<()> {
     let pin = context.protection.pin();
     let installer = context.config.git.install.as_deref();
-    let (Some(pin), Some(installer)) = (pin, installer) else {
+    let (Some(pin), Some(_)) = (pin, installer) else {
         return Ok(());
     };
     let Some(proposed) = overlay.proposed(pin)? else {
@@ -65,15 +54,27 @@ pub(super) fn install(
         "the proposed pin {proposed} must be a full commit hash"
     );
     descending(repository, pin, &revision)?;
-    let code = command_runner::run(context, installer, std::slice::from_ref(&revision))?;
+    install_revision(context, &revision)
+}
+
+// DECISION: D226
+pub(super) fn install_revision(context: &Context, revision: &str) -> Result<()> {
+    let Some(installer) = context.config.git.install.as_deref() else {
+        return Ok(());
+    };
+    let code = command_runner::run(context, installer, &[revision.to_owned()])?;
     ensure!(
         code == 0,
-        "installing {revision} failed with exit code {code}; the pin and the proposal are unchanged"
+        "installing {revision} failed with exit code {code}; the pin is unchanged"
     );
     Ok(())
 }
 
-fn descending(repository: &Repository<'_>, pin: &Path, revision: &str) -> Result<String> {
+pub(super) fn descending(
+    repository: &Repository<'_>,
+    pin: &Path,
+    revision: &str,
+) -> Result<String> {
     let committed = String::from_utf8(repository.read("HEAD", pin)?)?;
     let pinned = committed.trim();
     let revisions = Revisions {
@@ -86,4 +87,28 @@ fn descending(repository: &Repository<'_>, pin: &Path, revision: &str) -> Result
         "revision {revision} does not descend from the pinned {pinned}"
     );
     Ok(pinned.to_owned())
+}
+
+// DECISION: D226
+pub(super) fn sources(
+    context: &Context,
+    repository: &Repository<'_>,
+    revisions: Revisions<'_>,
+) -> Result<Vec<String>> {
+    let sources = context.config.paths.source_matcher()?;
+    Ok(repository
+        .changed_paths(revisions)?
+        .into_iter()
+        .filter(|path| sources.is_match(path))
+        .collect())
+}
+
+// DECISION: D226
+pub(super) fn listed(sources: &[String]) -> String {
+    let unchanged = sources.is_empty();
+    if unchanged {
+        "none".to_owned()
+    } else {
+        sources.join("\n  ")
+    }
 }

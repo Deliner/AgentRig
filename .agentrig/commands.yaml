@@ -62,7 +62,7 @@ bootstrap:
   argv: [bash, tooling/distribution/bootstrap.sh]
   accepts_args: true
 propose-pin:
-  purpose: Prepare moving the runtime pin to a revision for the user's approval and list the source files it changes
+  purpose: Pin a gated HEAD under the user's consent, or prepare moving the runtime pin for the user's approval, and list the source files it changes
   doc: tooling/distribution/README.md
   argv: [.agentrig/bin/agentrig, propose-pin]
   accepts_args: true

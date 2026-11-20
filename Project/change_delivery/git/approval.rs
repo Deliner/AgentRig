@@ -4,7 +4,7 @@ use crate::project_config::{Context, protection::Protection};
 use crate::shared::atomic_files::{atomic_json, overlay::Overlay};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};
-use crate::structural_lint::baseline_file;
+use crate::structural_lint::lint_files;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -43,16 +43,10 @@ fn record_path(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 
-pub(super) fn mirror(context: &Context) -> Result<PathBuf> {
-    Ok(context
-        .path(&context.config.paths.runtime)?
-        .join("proposal"))
-}
-
 pub fn approve(context: &Context) -> Result<i32> {
     let repository = Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("approve requires a VCS repository"))?;
-    let mirror = mirror(context)?;
+    let mirror = super::proposal::mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,
         root: &context.root,
@@ -134,6 +128,17 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
     })
 }
 
+// DECISION: D226
+pub(super) fn admit(context: &Context, repository: &Repository<'_>, path: &Path) -> Result<()> {
+    let name = path.to_string_lossy().into_owned();
+    let stageable = repository.stageable(std::slice::from_ref(&name))?;
+    let location = record_path(context)?;
+    let mut record: Record = atomic_json::load(&location)?.unwrap_or_default();
+    let content = Content::of(&stageable, &name);
+    record.files.insert(name, content);
+    atomic_json::save(&location, &record)
+}
+
 fn committed(repository: &Repository<'_>) -> Result<BTreeMap<String, Entry>> {
     match repository.head()? {
         Some(head) => repository.tree(&head),
@@ -208,11 +213,17 @@ impl Review<'_, '_> {
                 Ok(approved)
             };
         }
+        // DECISION: D226
+        let extending = protection.lint() == file && !approved;
+        if extending {
+            let kept = self.committed.contains_key(path) && self.index.contains_key(path);
+            return Ok(kept && lint_files::only_adds_rules(self.repository, file)?);
+        }
         // DECISION: D214
         let lowerable = protection.baseline() == file && !approved;
         if lowerable {
             let removed = !self.index.contains_key(path);
-            return Ok(removed || baseline_file::admits(self.repository, file)?);
+            return Ok(removed || lint_files::only_lowers_counts(self.repository, file)?);
         }
         Ok(approved)
     }
@@ -224,7 +235,7 @@ fn refuse(context: &Context, refused: &[&str], exceptions: &[String]) {
     let files = !refused.is_empty();
     if files {
         reasons.push(format!(
-            "the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts",
+            "the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts and a staged lint configuration may only add rules",
             refused.join(", ")
         ));
     }

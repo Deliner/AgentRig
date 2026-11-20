@@ -126,6 +126,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../shared/skills/refactor/move-test-code-out/SKILL.md"),
     ),
     (
+        "break-file-cycle",
+        include_str!("../shared/skills/refactor/break-file-cycle/SKILL.md"),
+    ),
+    (
         "use-the-current-form",
         include_str!("../shared/skills/refactor/use-the-current-form/SKILL.md"),
     ),

@@ -72,9 +72,9 @@ command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters 
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
 select this candidate, while Git/agent hooks and gate orchestration use the installed revision. Finish every branch
-that changes Project with `just propose-pin HEAD` at its gate-accepted head and ask the user to type `! just approve`,
-which installs that revision and then writes it to stable.txt; commit the pin before `just feature-merge`
-(D051, D218). See tooling/distribution/README.md for clean-clone setup.
+that changes Project with `just propose-pin HEAD` at its gate-accepted head. It pins that revision itself while the
+user's `! just consent` holds, else ask the user to type `! just approve`, which installs it and then pins it; commit
+the pin before `just feature-merge` (D051, D218, D226). See tooling/distribution/README.md for clean-clone setup.
 
 Use `just config-check`, `just lint-config-check` and `just lint-rules` for configuration, lint settings and actual rule
 capabilities. Apply the reported repair skill; preserve policy intent, never weakening thresholds or selectors to pass.

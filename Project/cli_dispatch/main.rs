@@ -103,7 +103,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         None => Ok(root.join("lint.yaml")),
     };
     // DECISION: D143
-    let inspection = structural_lint::reporting::explain::inspection(command);
+    let inspection = structural_lint::reporting::cli::inspection(command);
     // DECISION: D123
     let baseline = command == "lint-baseline";
     anyhow::ensure!(

@@ -105,8 +105,21 @@ impl Config {
             }
             rule.validate(resources)?;
         }
-        single_pairs(&self.rules)
+        single_pairs(&self.rules)?;
+        measured_cycles(&self.rules)
     }
+}
+// DECISION: D225
+fn measured_cycles(rules: &[Rule]) -> Result<()> {
+    let enabled = |kind: Structure| {
+        let kind = capabilities::Kind::Structure(kind);
+        rules.iter().any(|rule| rule.enabled && rule.kind == kind)
+    };
+    let unmeasured = enabled(Structure::FileCycle) && !enabled(Structure::DirectoryArchitecture);
+    if unmeasured {
+        bail!("file-cycle reads the dependencies of a directory-architecture rule; enable one");
+    }
+    Ok(())
 }
 // DECISION: D156
 fn single_pairs(rules: &[Rule]) -> Result<()> {

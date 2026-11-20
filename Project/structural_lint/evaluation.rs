@@ -23,6 +23,10 @@ struct Evaluation<'a> {
     output: Vec<Diagnostic>,
     // DECISION: D156
     pairs: &'a [Pair],
+    comment_rules: Vec<&'a lint_config::Rule>,
+    // DECISION: D225
+    cycle_rules: Vec<&'a lint_config::Rule>,
+    edges: contract_check::Edges,
 }
 pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<Diagnostic>> {
     let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
@@ -35,34 +39,60 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         pairs,
         ..Evaluation::default()
     };
-    let mut comment_rules = Vec::new();
     for rule in &config.rules {
+        evaluation.measure(root, rule, &inventory)?;
+    }
+    evaluation.measure_deferred(root, &inventory)?;
+    Ok(evaluation.output)
+}
+impl<'a> Evaluation<'a> {
+    fn measure(
+        &mut self,
+        root: &Path,
+        rule: &'a lint_config::Rule,
+        inventory: &file_discovery::Inventory,
+    ) -> Result<()> {
         match rule.kind {
-            Kind::Reference(Reference::Comment) => comment_rules.push(rule),
-            Kind::Structure(Structure::DirectoryArchitecture) => evaluation
-                .output
-                .extend(contract_check::run(root, rule, &inventory)?),
-            Kind::Structure(Structure::ProgramLanguage) => evaluation
-                .output
-                .extend(foreign_programs(root, rule, &inventory)?),
+            Kind::Reference(Reference::Comment) => self.comment_rules.push(rule),
+            Kind::Structure(Structure::FileCycle) => self.cycle_rules.push(rule),
+            Kind::Structure(Structure::DirectoryArchitecture) => {
+                let checked = contract_check::run(root, rule, inventory)?;
+                self.output.extend(checked.findings);
+                self.edges.append(checked.edges);
+            }
+            Kind::Structure(Structure::ProgramLanguage) => {
+                self.output.extend(foreign_programs(root, rule, inventory)?);
+            }
             Kind::ControlFlow(ControlFlow::RepeatedClassification) => {
-                let start = evaluation.output.len();
-                scalar_findings(root, rule, &inventory, &mut evaluation)?;
-                repeated(rule, &mut evaluation.output, start);
+                let start = self.output.len();
+                scalar_findings(root, rule, inventory, self)?;
+                repeated(rule, &mut self.output, start);
             }
             Kind::Structure(_)
             | Kind::ControlFlow(_)
             | Kind::Signature(_)
             | Kind::Ownership(_)
-            | Kind::Reference(_) => scalar_findings(root, rule, &inventory, &mut evaluation)?,
+            | Kind::Reference(_) => scalar_findings(root, rule, inventory, self)?,
         }
+        Ok(())
     }
-    for rule in comment_rules {
-        scalar_findings(root, rule, &inventory, &mut evaluation)?;
-        let unused = lifting::unused(rule, &inventory, &evaluation.analyses)?;
-        evaluation.output.extend(unused);
+    // DECISION: D225
+    fn measure_deferred(
+        &mut self,
+        root: &Path,
+        inventory: &file_discovery::Inventory,
+    ) -> Result<()> {
+        for rule in std::mem::take(&mut self.cycle_rules) {
+            let cycles = contract_check::file_cycles(rule, &self.edges, inventory)?;
+            self.output.extend(cycles);
+        }
+        for rule in std::mem::take(&mut self.comment_rules) {
+            scalar_findings(root, rule, inventory, self)?;
+            let unused = lifting::unused(rule, inventory, &self.analyses)?;
+            self.output.extend(unused);
+        }
+        Ok(())
     }
-    Ok(evaluation.output)
 }
 // DECISION: D206
 fn repeated(rule: &lint_config::Rule, output: &mut Vec<Diagnostic>, start: usize) {
@@ -129,6 +159,7 @@ fn scalar_findings(
         analyses,
         output,
         pairs,
+        ..
     } = evaluation;
     for selected in lint_targets::select(rule, inventory)? {
         let syntax_rule = capabilities::syntax(rule.kind);
@@ -164,14 +195,12 @@ fn structural_measurements(
     selected: &lint_targets::Selected<'_>,
     inventory: &file_discovery::Inventory,
 ) -> Result<Vec<(Option<usize>, usize)>> {
-    let text = || -> Result<Option<String>> {
-        Ok(String::from_utf8(fs::read(root.join(selected.path))?).ok())
-    };
+    let file = root.join(selected.path);
     Ok(match rule.kind {
-        rule_identities::Kind::Structure(Structure::NonblankLines) => text()?
+        rule_identities::Kind::Structure(Structure::NonblankLines) => text(&file)?
             .map(|source| nonblank_lines(&source))
             .unwrap_or_default(),
-        rule_identities::Kind::Structure(Structure::LineWidth) => text()?
+        rule_identities::Kind::Structure(Structure::LineWidth) => text(&file)?
             .map(|source| line_widths(&source))
             .unwrap_or_default(),
         rule_identities::Kind::Structure(Structure::ForbiddenFile) => vec![(None, 1)],
@@ -188,7 +217,8 @@ fn structural_measurements(
             | Structure::EmbeddedText
             | Structure::DirectoryArchitecture
             | Structure::TestPlacement
-            | Structure::TestInCodeFile,
+            | Structure::TestInCodeFile
+            | Structure::FileCycle,
         )
         | rule_identities::Kind::ControlFlow(_)
         | rule_identities::Kind::Signature(_)
@@ -197,6 +227,9 @@ fn structural_measurements(
             anyhow::bail!("rule kind {} has no structural metric", rule.kind)
         }
     })
+}
+fn text(file: &Path) -> Result<Option<String>> {
+    Ok(String::from_utf8(fs::read(file)?).ok())
 }
 fn nonblank_lines(source: &str) -> Vec<(Option<usize>, usize)> {
     let count = source

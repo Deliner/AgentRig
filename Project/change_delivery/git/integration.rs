@@ -106,11 +106,11 @@ fn switch_or_restore_head(repository: &Repository, target: &str) -> Result<()> {
     Err(refused)
 }
 
-fn clean(repository: &Repository, pathspecs: &[&str]) -> Result<()> {
+pub(super) fn clean(repository: &Repository, pathspecs: &[&str]) -> Result<()> {
     let status = [&["status", "--porcelain", "--"][..], pathspecs].concat();
     ensure!(
         repository.run(&status)?.is_empty(),
-        "working tree must be clean; preserve or commit pending changes before switching branches"
+        "working tree must be clean; preserve or commit pending changes first"
     );
     Ok(())
 }

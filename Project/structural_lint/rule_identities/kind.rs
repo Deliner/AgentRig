@@ -1,4 +1,5 @@
 use super::control_flow::ControlFlow;
+use super::descriptor::Descriptor;
 use super::ownership::Ownership;
 use super::reference::Reference;
 use super::signature::Signature;
@@ -15,6 +16,17 @@ pub enum Kind {
     Signature(Signature),
     Ownership(Ownership),
     Reference(Reference),
+}
+impl Kind {
+    pub fn descriptor(self) -> &'static Descriptor {
+        match self {
+            Self::Structure(kind) => kind.descriptor(),
+            Self::ControlFlow(kind) => kind.descriptor(),
+            Self::Signature(kind) => kind.descriptor(),
+            Self::Ownership(kind) => kind.descriptor(),
+            Self::Reference(kind) => kind.descriptor(),
+        }
+    }
 }
 impl fmt::Display for Kind {
     // DECISION: D129 allow-justification

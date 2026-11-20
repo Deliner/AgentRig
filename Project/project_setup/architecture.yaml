@@ -1,7 +1,7 @@
 purpose: Initialize agent environments and inspect their readiness
 files:
   mod.rs: Generate the environment bundle and read prepared or installed resource contents
-  adapters.rs: Generate Git and agent hook adapters
+  adapters.rs: Generate Git and agent hook adapters and recognize the agent hook registration in client settings
   assets.rs: Scaffold memory and agent instructions
   skills.rs: Ship the canonical skill bodies under their installed names
   claude.rs: Generate and inspect Claude Code client settings

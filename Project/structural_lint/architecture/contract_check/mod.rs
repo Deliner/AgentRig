@@ -10,6 +10,7 @@ use crate::shared::paths::glob_patterns::globs;
 use crate::structural_lint::{
     rule_set::lint_config::Rule,
     targeting::file_discovery::{self, Inventory},
+    targeting::lint_targets,
 };
 use anyhow::Result;
 use scope::Scope;
@@ -78,7 +79,24 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
     }))
 }
 
-pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
+// DECISION: D225
+#[derive(Default)]
+pub struct Checked {
+    pub findings: Vec<Diagnostic>,
+    pub edges: Edges,
+}
+
+// DECISION: D225
+#[derive(Default)]
+pub struct Edges(Vec<super::Dependency>);
+
+impl Edges {
+    pub fn append(&mut self, mut more: Edges) {
+        self.0.append(&mut more.0);
+    }
+}
+
+pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
     let Some(Measured {
         root,
         scope,
@@ -87,7 +105,7 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
         analyzed,
     }) = measure(root, rule, inventory)?
     else {
-        return Ok(Vec::new());
+        return Ok(Checked::default());
     };
     let loaded: Loaded = Contracts::load(&root, &scope.directories);
     issues.extend(loaded.issues);
@@ -104,7 +122,19 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Vec<Diagno
     issues.extend(contracts.check_zones(&analyzed.environment));
     // DECISION: D079
     issues.extend(contracts.check_coupling(&analyzed.edges));
-    issues
+    let findings = issues
+        .into_iter()
+        .map(|issue| diagnostic(rule, issue))
+        .collect::<Result<_>>()?;
+    let edges = Edges(analyzed.edges);
+    Ok(Checked { findings, edges })
+}
+
+// DECISION: D225
+pub fn file_cycles(rule: &Rule, edges: &Edges, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
+    let selected = lint_targets::select(rule, inventory)?;
+    let directories: BTreeSet<&Path> = selected.iter().map(|target| target.path).collect();
+    super::graph::file_cycles(&edges.0, &directories)
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
         .collect()

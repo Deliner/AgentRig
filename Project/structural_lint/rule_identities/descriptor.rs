@@ -1,4 +1,3 @@
-use super::kind::Kind;
 use super::parameters::Parameters;
 
 pub struct Descriptor {
@@ -13,14 +12,3 @@ pub struct Descriptor {
 }
 // DECISION: D223
 pub(crate) const TEST_CODE: &[&str] = &["**/tests/**"];
-impl Kind {
-    pub fn descriptor(self) -> &'static Descriptor {
-        match self {
-            Self::Structure(kind) => kind.descriptor(),
-            Self::ControlFlow(kind) => kind.descriptor(),
-            Self::Signature(kind) => kind.descriptor(),
-            Self::Ownership(kind) => kind.descriptor(),
-            Self::Reference(kind) => kind.descriptor(),
-        }
-    }
-}

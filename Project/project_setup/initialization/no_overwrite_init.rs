@@ -1,4 +1,3 @@
-use super::wizard;
 use crate::project_config;
 use crate::project_setup::template::{self, Scaffold};
 use crate::project_setup::{Config, Files, bundle, skill_links};
@@ -8,11 +7,7 @@ use crate::structural_lint::Location;
 use anyhow::{Result, ensure};
 use std::{io::Write, path::Path};
 
-pub fn run(root: &Path, args: &[String]) -> Result<i32> {
-    let interactive = args == ["--interactive"];
-    if interactive {
-        return wizard::run(root);
-    }
+pub(super) fn run(root: &Path, args: &[String]) -> Result<i32> {
     let options = template::options(root, args)?;
     let scaffold = template::scaffold(root, &options)?;
     let files = bundle(&scaffold)?;

@@ -10,7 +10,6 @@ const ENFORCEMENT: [&str; 14] = [
     ".agentrig/bin/agentrig",
     ".agentrig/commands.yaml",
     ".agentrig/checks.yaml",
-    ".agentrig/lint.yaml",
     ".agentrig/lint-baseline.yaml",
     ".agentrig/hooks/pre-commit",
     ".git/config",
@@ -21,6 +20,7 @@ const ENFORCEMENT: [&str; 14] = [
     ".codex/config.toml",
     ".cache/runtime/reminders/x",
     ".cache/runtime/approved",
+    ".cache/runtime/consent",
 ];
 
 fn delivered(root: &Path, tool: &str, input: Value) -> String {
@@ -75,18 +75,24 @@ fn git_stages_enforcement_but_neither_restores_nor_removes_it() {
     }
 }
 
+// DECISION: D226
 #[test]
-fn only_the_user_approves() {
+fn only_the_user_approves_or_consents() {
     let (_temp, root) = project();
-    let refused = shell(&root, "just approve");
-    assert!(refused.contains("`! just approve`"), "{refused}");
+    for command in ["approve", "consent"] {
+        let refused = shell(&root, &format!("just {command}"));
+        let asked = format!("`! just {command}`");
+        assert!(refused.contains(&asked), "{refused}");
+    }
 }
 
+// DECISION: D226
 #[test]
-fn a_proposal_and_ordinary_files_stay_editable() {
+fn a_proposal_the_lint_configuration_and_ordinary_files_stay_editable() {
     let (_temp, root) = project();
     for path in [
         ".cache/runtime/proposal/.agentrig/commands.yaml",
+        ".agentrig/lint.yaml",
         ".agentrig/oracles.yaml",
         "README.md",
     ] {

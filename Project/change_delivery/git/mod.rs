@@ -2,9 +2,11 @@
 // DECISION: D019
 // DECISION: D035
 pub mod approval;
+pub mod consent;
 mod exceptions;
 mod integration;
-pub mod pin;
+mod pin;
+mod proposal;
 mod push;
 mod state;
 #[cfg(test)]
@@ -64,6 +66,15 @@ pub fn push(context: &Context) -> Result<i32> {
     let repository = crate::shared::vcs::Repository::discover(&context.root)?
         .ok_or_else(|| anyhow::anyhow!("feature-push requires a VCS repository"))?;
     push::committed(&repository, &context.config.git)
+}
+
+// DECISION: D226
+pub fn propose_pin(context: &Context, reference: &str) -> Result<i32> {
+    let consented = consent::holds(context)?;
+    if consented {
+        return consent::pin(context, reference, || checked(context));
+    }
+    pin::propose(context, reference)
 }
 
 fn checked(context: &Context) -> Result<i32> {

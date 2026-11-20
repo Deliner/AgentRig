@@ -1,5 +1,5 @@
 use super::Texts;
-use super::clusters;
+use super::clusters::{self, IDENTIFIERS};
 use super::words::{split, stem};
 use crate::shared::source_parsers;
 use crate::structural_lint::languages::{Code, in_test_context, text};
@@ -10,12 +10,6 @@ use tree_sitter::Node;
 
 pub type Counts = BTreeMap<String, usize>;
 
-pub(super) const IDENTIFIERS: &[&str] = &[
-    "identifier",
-    "type_identifier",
-    "field_identifier",
-    "shorthand_field_identifier",
-];
 const QUALIFIED: &[&str] = &["scoped_identifier", "scoped_type_identifier"];
 
 pub struct Source {

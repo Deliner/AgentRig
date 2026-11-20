@@ -9,6 +9,18 @@ use crate::structural_lint::{Format, Location, Mode};
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
 
+pub type Inspection = fn(Location<'_>, &[String]) -> Result<i32>;
+
+// DECISION: D143
+pub fn inspection(command: &str) -> Option<Inspection> {
+    match command {
+        "lint-explain" => Some(super::explain::run),
+        "lint-edges" => Some(super::explain::edges),
+        "lint-tree" => Some(super::tree::run),
+        _ => None,
+    }
+}
+
 // DECISION: D049
 pub fn execute(
     location: Location<'_>,
@@ -83,7 +95,7 @@ pub fn standalone(mut args: Vec<String>) -> Result<i32> {
         config: &config,
     };
     // DECISION: D143
-    if let Some(inspect) = super::explain::inspection(&command) {
+    if let Some(inspect) = inspection(&command) {
         return inspect(location, &args);
     }
     // DECISION: D188

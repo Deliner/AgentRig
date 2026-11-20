@@ -1,4 +1,5 @@
 pub mod contract_check;
+mod contracts;
 pub mod extraction;
 mod features;
 mod graph;
@@ -11,8 +12,9 @@ mod tests;
 use std::path::PathBuf;
 
 pub use super::rule_identities::contract_settings::{Disallowed, PYTHON_SEED, RUST_SEED, Settings};
+pub use contracts::{Contracts, Loaded};
 pub use graph::Neighbours;
-pub use policy::{Contracts, Loaded, Rooted};
+pub use policy::Rooted;
 
 #[derive(Clone, Debug)]
 pub struct Dependency {
