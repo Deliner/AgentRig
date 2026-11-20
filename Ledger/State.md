@@ -2,26 +2,29 @@
 
 ## Focus
 
-P170 (B175, D225): archive the delivered card before the final pin and the merge of the branch.
+P173 по B180: задача без остановок на подтверждения. VAC 1 сохраняет согласованную карточку B180 и выбирает P173
+первой, до P171 и P172.
 
 ## Workspace
 
-Branch: feature/file-cycle
-Revision: 480ab3173de28221e70bc853e88a17eebf600555
+Branch: feature/standing-consent
+Revision: 317a5a1dd24c20d72e3a7467f16355c4b603bffc
+
+Ветка идёт от последнего коммита P170 на `feature/file-cycle` и сливает P170 вместе с P173.
 
 ## Progress
 
-- P170 and B175 moved to Archive with Delivery and a verdict for AC1–AC4; the D225 links point to Archive.
-- Phase 2 `480ab31` enabled `file-cycle` in the rig and in `init`.
+- B180 сохранена в показанном виде: Backlog.md и Backlog/180.md.
+- Plan: P173 active первой строкой, P171 и P172 pending; записка о выборе от 2026-11-20.
 
 ## Verification
 
-- `just check --only memory` passes after the rotation.
+Проверка памяти `just check --only memory` перед коммитом.
 
 ## Blockers
 
-None.
+Нет.
 
 ## Next action
 
-Commit, propose the final pin at that head for the user's approval, commit the pin, then `just feature-merge`.
+VAC 2: правка lint.yaml, которая только добавляет правила, проходит коммит без подтверждения (AC1).
