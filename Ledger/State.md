@@ -2,29 +2,30 @@
 
 ## Focus
 
-P168 (B179): tests live only in a `tests/` directory. Current VAC: phase 2 of D223, the test-code patterns become
-`**/tests/**` alone and `test-placement` covers Python in the rig and in `init`.
+P168 (B179, D223): archive the delivered plan item and its card before the final pin and feature-merge.
 
 ## Workspace
 
 Branch: feature/tests-directory
-Revision: 8aa4ba9a7520b955810e389cc4e9666a44cc848c
+Revision: dc491bcccdbf91aadfa4790ac53dc9ec0fedc145
 
 ## Progress
 
-The user approved `lint.yaml` without `**/tests.rs` and with `.py` and `.pyi` for `test-placement`. `TEST_CODE` is
-`**/tests/**`; the `init` override is gone. The Python example test moved to `Project/tests/test_sample.py`; the
-fixtures, README and `anchor-at-crate` follow.
+- VAC 5 archives P168 and B179: index rows and cards move to Ledger/Archive, the Plan card gains Delivery with
+  AC1–AC4 evidence, and the D223 row links to the archived card and delivery.
+- `just propose-pin HEAD` prepared the pin dc491bcccdbf91aadfa4790ac53dc9ec0fedc145 for the user's approval.
 
 ## Verification
 
-`just lint` and `rustfmt` report nothing; `structural_lint::`, oracle, delivery and the I023 tests pass.
+- `just check --only memory`: PASS on this archive change.
+- Candidate lint on a temporary project with only `test-placement` reported exactly `jobs/tests.rs` and
+  `jobs/test_cleanup.py`.
+- The gate passed 594 tests on dc491bc.
 
 ## Blockers
 
-None.
+The pin waits for the user to type `! just approve`.
 
 ## Next action
 
-Run `just propose-pin HEAD` and ask the user for `! just approve`; commit the pin, archive P168 and B179, then run
-`just feature-merge`.
+After the approval commit State and tooling/distribution/stable.txt, then run `just feature-merge` and start P169.
