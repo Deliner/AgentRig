@@ -106,6 +106,7 @@ impl Rust<'_> {
             .context("Rust module scope is unresolved")?;
         let mut query = Query {
             source: &module.file,
+            written: scope.to_vec(),
             visiting: BTreeSet::new(),
         };
         let builtin = standard(path) || derive(path);

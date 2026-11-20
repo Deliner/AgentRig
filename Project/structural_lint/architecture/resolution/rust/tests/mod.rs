@@ -51,7 +51,7 @@ fn an_external_reexport_still_depends_on_its_local_facade() {
 fn declared_module_tree_handles_both_filenames_and_inline_modules() {
     let sources = sources(&[
         ("src/lib.rs", "mod app; mod domain { pub mod api; }"),
-        ("src/app.rs", "mod nested;"),
+        ("src/app.rs", "pub mod nested;"),
         ("src/app/nested/mod.rs", "pub fn run() {}"),
         ("src/domain/api.rs", "pub struct Item;"),
         ("src/unreferenced.rs", ""),
@@ -149,6 +149,30 @@ fn grouped_aliases_reach_submodules_and_item_reexports_preserve_facades() {
         assert_eq!(
             resolver
                 .resolve(Path::new("app.rs"), &path(name))
+                .unwrap()
+                .files,
+            expected(file)
+        );
+    }
+}
+
+#[test]
+fn outside_its_parent_a_private_module_name_means_the_item_reexported_under_it() {
+    let sources = sources(&[
+        ("lib.rs", "mod options; mod app;"),
+        ("options/mod.rs", "mod take; pub use take::take;"),
+        ("options/take.rs", "pub fn take() {}"),
+        ("app.rs", "use crate::options::take;"),
+    ]);
+    let external = BTreeSet::new();
+    let resolver = Rust::new(Path::new("lib.rs"), &sources, &external, &BTreeMap::new()).unwrap();
+    for (source, name, file) in [
+        ("app.rs", "crate::options::take", "options/mod.rs"),
+        ("options/mod.rs", "take::take", "options/take.rs"),
+    ] {
+        assert_eq!(
+            resolver
+                .resolve(Path::new(source), &path(name))
                 .unwrap()
                 .files,
             expected(file)
@@ -352,7 +376,7 @@ fn literal_module_paths_match_compiler_file_and_child_resolution() {
         ("fixtures/nested.rs", "pub fn value() -> i32 { 42 }"),
         (
             "app.rs",
-            "#[allow(dead_code)] #[path = \"fixtures/../other.rs\"] mod other; pub fn value() -> i32 { other::value() }",
+            "#[allow(dead_code)] #[path = \"fixtures/../other.rs\"] pub mod other; pub fn value() -> i32 { other::value() }",
         ),
         (
             "other.rs",

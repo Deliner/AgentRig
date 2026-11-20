@@ -3,23 +3,23 @@
 ## Focus
 
 P171 (B176 entry-use) and P172 (B178 entry-bypass), one branch from master, autonomous under the user's consent
-(D226). VAC 3: the dependency rules report one finding per source line and target, not one per imported item.
+(D226). VAC 4: outside its parent, the name of a private Rust module means the item its parent reexports under it.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 5bc583781096cb8ea9636b4915b2572258882a81
+Revision: f9e4f3cb2f335c4c934903f81407ffcfd9143a81
 
 ## Progress
 
-- VAC 1 and the consented pin of dae94a4 are committed.
-- `findings` in `contract_check/dependency_rules.rs` keeps distinct issues; `Issue` orders by path, line and message.
-- A scratch configuration measured the rig: 225 entry-use and 1434 entry-bypass findings with `shared` as a group;
-  940 of the latter use files of `structural_lint/rule_identities` past its entry.
+- VACs 1 to 3 and the consented pin of dae94a4 are committed.
+- Extraction records whether a `mod` declaration is private; the resolver walks into a private module only from a
+  path written inside its parent, so `mod take; pub use take::take;` resolves to the entry from outside.
+- The scratch measurement fell from 1434 to 1428 entry-bypass findings; entry-use stays at 225.
 
 ## Verification
 
-- `just test dependency_rules::` passed 10; the entry-use fixture now imports two items of the entry on one line.
+- `just test structural_lint::` passed 345; `just run rustfmt` passed.
 
 ## Blockers
 

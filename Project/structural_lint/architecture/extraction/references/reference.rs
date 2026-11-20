@@ -14,6 +14,7 @@ pub enum Target {
     RustModule {
         path: Vec<String>,
         inline: bool,
+        private: bool,
         file: Option<String>,
     },
     // DECISION: D136

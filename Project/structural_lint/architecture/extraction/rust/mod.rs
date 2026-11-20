@@ -344,12 +344,16 @@ fn module(source: &mut Source<'_>, node: Node<'_>) {
         let mut path = scope(source, node);
         path.push(compact(source.text(name)));
         let file = attributes::module_path(source, node);
+        let visible = node
+            .named_child(0)
+            .is_some_and(|first| first.kind() == "visibility_modifier");
         record(
             source,
             node,
             Target::RustModule {
                 path,
                 inline: node.child_by_field_name("body").is_some(),
+                private: !visible,
                 file,
             },
         );

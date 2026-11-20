@@ -67,6 +67,7 @@ impl Rust<'_> {
             Module {
                 file: root.into(),
                 directory: root.parent().context("crate root has no parent")?.into(),
+                private: false,
             },
         );
         self.files.insert(root.into(), Vec::new());
@@ -205,11 +206,23 @@ impl Rust<'_> {
     }
 
     fn module_location(&self, parent: &Module, reference: &Reference) -> Result<Module> {
-        let Target::RustModule { path, inline, file } = &reference.target else {
+        let Target::RustModule {
+            path,
+            inline,
+            private,
+            file,
+        } = &reference.target
+        else {
             bail!("expected Rust module declaration");
         };
         if let Some(value) = file {
-            return self.explicit_module(parent, value);
+            let file = self.explicit_file(parent, value)?;
+            let directory = file.parent().context("module source parent required")?;
+            return Ok(Module {
+                directory: directory.into(),
+                file,
+                private: *private,
+            });
         }
         let name = path.last().context("empty Rust module declaration")?;
         let directory = parent.directory.join(name);
@@ -223,10 +236,14 @@ impl Rust<'_> {
                 )
             })?,
         };
-        Ok(Module { file, directory })
+        Ok(Module {
+            file,
+            directory,
+            private: *private,
+        })
     }
 
-    fn explicit_module(&self, parent: &Module, value: &str) -> Result<Module> {
+    fn explicit_file(&self, parent: &Module, value: &str) -> Result<PathBuf> {
         let file = normalize(
             &parent
                 .file
@@ -239,11 +256,7 @@ impl Rust<'_> {
             "explicit Rust module source is missing: {}",
             file.display()
         );
-        let directory: PathBuf = file
-            .parent()
-            .context("module source parent required")?
-            .into();
-        Ok(Module { file, directory })
+        Ok(file)
     }
 
     fn module_file(&self, directory: &Path) -> Result<PathBuf> {

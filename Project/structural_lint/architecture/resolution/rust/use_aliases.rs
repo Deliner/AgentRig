@@ -12,6 +12,7 @@ impl Rust<'_> {
             .context("Rust module scope is unresolved")?;
         let mut query = Query {
             source: &module.file,
+            written: scope.to_vec(),
             visiting: BTreeSet::new(),
         };
         match self.path(scope, path, &mut query)? {
@@ -30,6 +31,13 @@ impl Rust<'_> {
         path: &str,
         query: &mut Query<'_>,
     ) -> Result<Located> {
+        let outer = std::mem::replace(&mut query.written, scope.to_vec());
+        let located = self.written_path(scope, path, query);
+        query.written = outer;
+        located
+    }
+
+    fn written_path(&self, scope: &[String], path: &str, query: &mut Query<'_>) -> Result<Located> {
         let parts: Vec<_> = path.trim_start_matches("::").split("::").collect();
         ensure!(
             parts.iter().all(|part| !part.is_empty()),
@@ -66,7 +74,11 @@ impl Rust<'_> {
         for (index, part) in parts.iter().enumerate() {
             let mut key = module.clone();
             key.push((*part).into());
-            let child_module = self.modules.contains_key(&key);
+            let inside = query.written.starts_with(&module);
+            let child_module = self
+                .modules
+                .get(&key)
+                .is_some_and(|child| inside || !child.private);
             if child_module {
                 module = key;
                 continue;

@@ -39,18 +39,20 @@ fn rust_use_groups_aliases_wildcards_and_qualified_calls() {
 
 #[test]
 fn rust_inline_scopes_and_module_declarations_retain_resolution_context() {
-    let source = "mod app { mod nested; use super::domain::Api; }";
+    let source = "mod app { pub mod nested; use super::domain::Api; }";
     assert_eq!(
         targets(&parse("src/lib.rs", source)),
         [
             Target::RustModule {
                 path: vec!["app".into()],
                 inline: true,
+                private: true,
                 file: None,
             },
             Target::RustModule {
                 path: vec!["app".into(), "nested".into()],
                 inline: false,
+                private: false,
                 file: None,
             },
             Target::RustPath {

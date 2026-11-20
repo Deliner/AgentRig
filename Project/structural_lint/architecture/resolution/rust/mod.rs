@@ -15,6 +15,7 @@ use std::{
 struct Module {
     file: PathBuf,
     directory: PathBuf,
+    private: bool,
 }
 
 enum Located {
@@ -25,6 +26,7 @@ enum Located {
 
 struct Query<'a> {
     source: &'a Path,
+    written: Vec<String>,
     visiting: BTreeSet<Vec<String>>,
 }
 
