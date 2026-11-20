@@ -268,7 +268,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   error: 20
@@ -370,7 +369,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -384,7 +382,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -398,7 +395,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -412,7 +408,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: warning
@@ -426,7 +421,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: warning
@@ -440,7 +434,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -454,7 +447,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -468,7 +460,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -482,7 +473,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -496,7 +486,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -510,7 +499,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -524,7 +512,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -538,7 +525,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -552,7 +538,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -566,7 +551,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -580,7 +564,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -594,7 +577,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -608,7 +590,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -622,7 +603,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -636,7 +616,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -650,7 +629,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -664,7 +642,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -691,7 +668,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -705,7 +681,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -719,7 +694,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -733,7 +707,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -747,7 +720,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -761,7 +733,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -775,7 +746,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -798,7 +768,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -811,7 +780,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -824,7 +792,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -837,7 +804,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -850,7 +816,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -875,7 +840,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -889,7 +853,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -903,7 +866,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -917,7 +879,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -953,7 +914,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -989,7 +949,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   - .py
@@ -1005,7 +964,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1019,7 +977,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1033,7 +990,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1047,7 +1003,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1061,7 +1016,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1075,7 +1029,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1089,9 +1042,10 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
+  - .py
+  - .pyi
   level: error
   warning_skill: .agentrig/skills/relocate-tests/SKILL.md
   error_skill: .agentrig/skills/relocate-tests/SKILL.md
@@ -1103,7 +1057,6 @@ rules:
   - '**'
   exclude:
   - '**/tests/**'
-  - '**/tests.rs'
   extensions:
   - .rs
   level: error
@@ -1161,9 +1114,9 @@ rules:
     python_root: .
     feature_root: Project
     disallowed:
-    - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
-    - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**', '**/tests.rs']}
-    - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, Project/shared/testing/examples/measure.rs, '**/tests/**', '**/tests.rs']}
+    - {path: std::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**'], methods: [canonicalize, read_dir, metadata, symlink_metadata, read_link, try_exists]}
+    - {path: std::os::unix::fs, reason: filesystem errors must name the action and the path, replacement: crate::shared::fs_with_context, allow: [Project/shared/fs_with_context/**, '**/tests/**']}
+    - {path: std::process::Command, reason: a launched process must have its exit code read by an owner, replacement: crate::shared::vcs::Repository or crate::command_runner, allow: [Project/shared/vcs/**, Project/command_runner/**, Project/shared/testing/examples/measure.rs, '**/tests/**']}
   error_skill: .agentrig/skills/refactor-large-directory/SKILL.md
   extensions:
   - .rs

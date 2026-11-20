@@ -49,8 +49,8 @@ const PYTHON: Layout = Layout {
     skills: "guides",
     runner: "pytest",
     check: "tests",
-    target: "Project/test_sample.py::test_doubles",
-    test: "test_sample.py",
+    target: "Project/tests/test_sample.py::test_doubles",
+    test: "tests/test_sample.py",
     function: "test_doubles",
 };
 

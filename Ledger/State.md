@@ -2,22 +2,23 @@
 
 ## Focus
 
-P168 (B179): tests live only in a `tests/` directory. Current VAC: the mid-branch pin of D223 phase 1, so the
-installed runtime accepts Python for `test-placement`.
+P168 (B179): tests live only in a `tests/` directory. Current VAC: phase 2 of D223, the test-code patterns become
+`**/tests/**` alone and `test-placement` covers Python in the rig and in `init`.
 
 ## Workspace
 
 Branch: feature/tests-directory
-Revision: 87b6f155a9cddc72c36e922c2cf5deb1ddbf99a3
+Revision: 8aa4ba9a7520b955810e389cc4e9666a44cc848c
 
 ## Progress
 
-Phase 1 is committed: handlers name their test files and analysis reports a misplaced one at line 1. The user
-approved the pin of 87b6f155a9cddc72c36e922c2cf5deb1ddbf99a3, which is installed and written to `stable.txt`.
+The user approved `lint.yaml` without `**/tests.rs` and with `.py` and `.pyi` for `test-placement`. `TEST_CODE` is
+`**/tests/**`; the `init` override is gone. The Python example test moved to `Project/tests/test_sample.py`; the
+fixtures, README and `anchor-at-crate` follow.
 
 ## Verification
 
-The pre-commit gate of 87b6f15 passed with 522 tests; `just approve` built and installed that revision.
+`just lint` and `rustfmt` report nothing; `structural_lint::`, oracle, delivery and the I023 tests pass.
 
 ## Blockers
 
@@ -25,5 +26,5 @@ None.
 
 ## Next action
 
-Propose `lint.yaml` without `**/tests.rs` and with Python extensions for `test-placement`, ask for `! just approve`,
-then drop the `init` override and `**/tests.rs` from the test-code patterns.
+Run `just propose-pin HEAD` and ask the user for `! just approve`; commit the pin, archive P168 and B179, then run
+`just feature-merge`.

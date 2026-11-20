@@ -12,7 +12,7 @@ const TEST_ONLY_USERS: [(&str, &str); 8] = [
     ),
     ("src/hub/mod.rs", "pub fn value() -> i32 { 7 }\n"),
     ("src/a/mod.rs", "#[cfg(test)]\nmod tests;\n"),
-    ("src/a/tests.rs", "use crate::hub::value;\n"),
+    ("src/a/tests/mod.rs", "use crate::hub::value;\n"),
     (
         "src/b/mod.rs",
         "#[cfg(test)]\nmod tests {\n    use crate::hub::value;\n}\n",
@@ -137,6 +137,7 @@ fn dependents_budget_counts_only_production_uses() {
     }
     for directory in [
         "src/hub",
+        "src/a/tests",
         "src/a",
         "src/b",
         "src/c/tests",
