@@ -2,37 +2,31 @@
 
 ## Focus
 
-P173 по B180, VAC 3 закрывает в рантайме AC2 и AC3: согласие на задачу и список пинов, поставленных по нему.
+P173 по B180, VAC 4: пин рантайма с согласием, рецепты согласия, отказ хука агенту на `just consent` и тексты.
 
 ## Workspace
 
 Branch: feature/standing-consent
-Revision: 7e3302c318503cd286d1503b92c90c1e4a2643c1
+Revision: aa8fd41f49763055fb4f193205341a89a1aa7cdd
 
 Ветка идёт от последнего коммита P170 и сливает P170 вместе с P173.
 
 ## Progress
 
-- `consent.rs`: `consent` записывает пункты Plan в статусе pending и active в `<runtime>/consent`, `revoke-consent`
-  снимает их, `consented-pins` печатает каждый пин с изменёнными исходниками. Путь `consent` защищён.
-- `propose-pin` при действующем согласии берёт только чистый `HEAD` без учёта State, проверяет потомка пина, гоняет
-  гейт ветки `feature-merge`, ставит ревизию через `git.install`, пишет пин и вносит его в запись одобренного; без
-  согласия готовит предложение для `just approve`, как раньше.
-- Пин пишется через новую `atomic_files::replace`, которой теперь пользуется и `atomic_json::save`: каталог git
-  не добавляет зависимого к fs_with_context с бюджетом 23.
-- Рецептов и отказа хука для `consent` ещё нет: они идут в VAC 4 вместе с пином этой ревизии.
+- Пользователь подтвердил: пин на aa8fd41, три рецепта согласия в delivery.just, описания `propose-pin` в
+  commands.yaml и development.just, карта тестов checks.yaml с `lint_files/**` и `format.rs`.
+- Вместе с ними: три рецепта в шаблоне `project_setup/recipes.rs` для I023, отказ хука на `consent` в
+  `agent_hooks/shell_guard.rs`, защита `.cache/runtime/consent` в тесте хука, тексты AGENTS.md и CLAUDE.md, README
+  дистрибуции и навыка propose-protected-change, ссылки D226.
 
 ## Verification
 
-- `just test change_delivery::git::`: 32 passed, с тремя новыми тестами согласия в `tests/pin.rs`.
-- `just test change_delivery::git::tests::pin shared::atomic_files`: 11 passed после переноса записи пина.
+- `just test agent_hooks::tests:: project_setup::tests::`: 74 passed до подтверждения.
 
 ## Blockers
 
-Нет. Карта тестов в checks.yaml не связывает `Project/structural_lint/lint_files/**` и
-`Project/project_memory/format.rs` с тестами `change_delivery::git::`; правка войдёт в предложение к подтверждению.
+Нет. `! just consent` пользователь набирает отдельно; без него следующий пин снова попросит подтверждения.
 
 ## Next action
 
-`just propose-pin HEAD`, предложения delivery.just с тремя рецептами и checks.yaml, затем `! just approve` от
-пользователя.
+После коммита: архив P173 и B180, финальный пин под согласием, `just feature-merge`.

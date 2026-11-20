@@ -30,6 +30,10 @@ const RECIPES: [(&str, &[Entry]); 5] = [
             ("feature-merge", "feature-merge", false),
             // DECISION: D213
             ("approve", "approve", false),
+            // DECISION: D226
+            ("consent", "consent", false),
+            ("revoke-consent", "revoke-consent", false),
+            ("consented-pins", "consented-pins", false),
         ],
     ),
     (

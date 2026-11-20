@@ -2,7 +2,7 @@
 bootstrap *args:
     @bash tooling/distribution/bootstrap.sh "$@"
 
-# What: prepare moving the runtime pin; Why: only the user's approval moves the runtime that judges commits.
+# What: move the runtime pin; Why: only the user's approval or standing consent moves the runtime that judges commits.
 propose-pin *args:
     @tooling/worker/run run propose-pin -- "$@"
 

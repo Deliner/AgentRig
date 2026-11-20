@@ -269,6 +269,10 @@ fn runtime_arguments(command: &str, args: &[String]) -> Result<()> {
         "approve" => bail!(
             "AgentRig refused this call: `just approve` is the user's confirmation of a proposed change of enforcement files, so an agent never runs it; ask the user to type `! just approve` in Claude Code or to run it in a terminal."
         ),
+        // DECISION: D226
+        "consent" => bail!(
+            "AgentRig refused this call: `just consent` is the user's standing consent to pins while the open Plan items last, so an agent never runs it; ask the user to type `! just consent` in Claude Code or to run it in a terminal."
+        ),
         _ => {}
     }
     Ok(())

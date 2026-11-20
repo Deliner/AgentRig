@@ -17,8 +17,8 @@ staged change of them that the user has not approved. They are:
   `commands.yaml`, `checks.yaml`, `hooks.yaml`, `tools.yaml` and `rust.yaml`,
   the lint configuration `paths.lint` and its baseline, so a new catalog
   command, `just write` program or check setting is a proposal too;
-- `.git`, the route state `reminders/` and the approval record `approved` in
-  the runtime directory;
+- `.git`, the route state `reminders/`, the approval record `approved` and the
+  consent record `consent` in the runtime directory;
 - every path listed in `hooks.protected` and the pin named by `git.pin`.
 
 ## Propose
@@ -44,6 +44,10 @@ changed since the pinned revision; show that list when you ask for approval.
 The approve command first runs the installer named by `git.install` with the
 revision and writes the pin only when the install succeeds; the gate accepts a
 changed pin only with approved content that descends from the committed one.
+While the user's consent holds, which only the user gives by typing
+`! just consent`, the `propose-pin` command takes only a clean `HEAD`, runs the
+branch gate, installs the revision and writes the pin as approved content;
+commit it with State, and the `consented-pins` command lists those pins.
 Never run the installer with a revision: the hook refuses it, and without one
 it installs the pinned revision. A later change that needs an earlier one in
 the installed runtime waits for the user's approval of a pin mid-branch. The
