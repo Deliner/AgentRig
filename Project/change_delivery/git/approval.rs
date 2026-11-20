@@ -128,6 +128,17 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
     })
 }
 
+// DECISION: D226
+pub(super) fn admit(context: &Context, repository: &Repository<'_>, path: &Path) -> Result<()> {
+    let name = path.to_string_lossy().into_owned();
+    let stageable = repository.stageable(std::slice::from_ref(&name))?;
+    let location = record_path(context)?;
+    let mut record: Record = atomic_json::load(&location)?.unwrap_or_default();
+    let content = Content::of(&stageable, &name);
+    record.files.insert(name, content);
+    atomic_json::save(&location, &record)
+}
+
 fn committed(repository: &Repository<'_>) -> Result<BTreeMap<String, Entry>> {
     match repository.head()? {
         Some(head) => repository.tree(&head),

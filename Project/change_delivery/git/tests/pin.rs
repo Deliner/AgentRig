@@ -1,9 +1,13 @@
 // DECISION: D218
-use super::{commit, committed, installed, read, start};
-use crate::shared::testing::{configure, git, invoke};
-use std::{fs, path::Path};
+use super::{PROBE_CHECK, commit, committed, installed, read, start};
+use crate::shared::testing::{configure, git, invoke, run, runtime};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 const PIN: &str = "stable.txt";
+const PLAN: &str = "Ledger/Plan.md";
 const PROPOSED: &str = ".cache/runtime/proposal/stable.txt";
 const INSTALLED: &str = ".git/installed";
 const INSTALLER: &str = r#"setup:
@@ -90,4 +94,112 @@ fn approve_installs_a_proposed_pin_before_writing_it() {
         "{}",
         backward.stderr
     );
+}
+
+fn planned(root: &Path, status: &str) {
+    let plan = format!(
+        "# Plan\n\n| ID | Status | Depends on | Feature | User capability |\n| --- | --- | --- | --- | --- |\n| [P001](Plan/001.md) | {status} | - | Feature | Capability |\n"
+    );
+    fs::write(root.join(PLAN), plan).unwrap();
+    unhooked(root, status);
+}
+
+struct Consented {
+    _temp: tempfile::TempDir,
+    root: PathBuf,
+    first: String,
+}
+
+fn consented_product(settings: &str, status: &str) -> Consented {
+    let (temp, root) = installed();
+    fs::write(root.join(".agentrig/checks.yaml"), PROBE_CHECK).unwrap();
+    configure(&root, "commands", INSTALLER);
+    let first = pinned(&root, settings);
+    planned(&root, status);
+    start(&root, "consent");
+    fs::create_dir_all(root.join("Project")).unwrap();
+    fs::write(root.join("Project/product.txt"), "product").unwrap();
+    unhooked(&root, "product");
+    let given = invoke(&root, &["consent"]);
+    assert_eq!(given.code, Some(0), "{}", given.output());
+    Consented {
+        _temp: temp,
+        root,
+        first,
+    }
+}
+
+// DECISION: D226
+#[test]
+fn under_consent_propose_pin_installs_and_pins_a_gated_head_and_lists_it() {
+    let Consented { _temp, root, .. } =
+        consented_product("pin: stable.txt\ninstall: setup\n", "active");
+    let product = head(&root);
+    fs::write(root.join(".git/allow"), "").unwrap();
+    let pinned = invoke(&root, &["propose-pin", "HEAD"]);
+    assert_eq!(pinned.code, Some(0), "{}", pinned.output());
+    assert_eq!(read(&root, INSTALLED).trim(), product);
+    assert_eq!(read(&root, PIN).trim(), product);
+    assert!(!root.join(PROPOSED).exists());
+    let accepted = committed(&root, "pinned");
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+    let listed = invoke(&root, &["consented-pins"]);
+    assert_eq!(listed.code, Some(0), "{}", listed.output());
+    for named in [product.as_str(), "Project/product.txt"] {
+        assert!(listed.stdout.contains(named), "{}", listed.stdout);
+    }
+}
+
+// DECISION: D226
+#[test]
+fn under_consent_propose_pin_refuses_another_revision_a_dirty_tree_and_a_failed_gate() {
+    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n", "pending");
+    let earlier = invoke(&root, &["propose-pin", &first]);
+    assert_ne!(earlier.code, Some(0), "{}", earlier.output());
+    assert!(earlier.stderr.contains("only HEAD"), "{}", earlier.stderr);
+    fs::write(root.join("Project/product.txt"), "uncommitted").unwrap();
+    let dirty = invoke(&root, &["propose-pin", "HEAD"]);
+    assert_ne!(dirty.code, Some(0), "{}", dirty.output());
+    assert!(
+        dirty.stderr.contains("working tree must be clean"),
+        "{}",
+        dirty.stderr
+    );
+    git(&root, &["checkout", "--", "Project/product.txt"]);
+    let blocked = run(
+        runtime(&root, &["propose-pin", "HEAD"]).env("BLOCK_DELIVERY", "1"),
+        "",
+    );
+    assert_eq!(blocked.code, Some(1), "{}", blocked.output());
+    assert!(
+        blocked.stderr.contains("ERROR [probe]"),
+        "{}",
+        blocked.stderr
+    );
+    assert_eq!(read(&root, PIN).trim(), first);
+}
+
+// DECISION: D226
+#[test]
+fn without_consent_after_its_items_or_once_revoked_propose_pin_prepares_a_proposal() {
+    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n", "active");
+    let proposes = |root: &Path| {
+        let proposed = invoke(root, &["propose-pin", "HEAD"]);
+        assert_eq!(proposed.code, Some(0), "{}", proposed.output());
+        assert!(
+            proposed.stdout.contains("! just approve"),
+            "{}",
+            proposed.stdout
+        );
+        assert_eq!(read(root, PIN).trim(), first);
+    };
+    let revoked = invoke(&root, &["revoke-consent"]);
+    assert_eq!(revoked.code, Some(0), "{}", revoked.output());
+    proposes(&root);
+    let given = invoke(&root, &["consent"]);
+    assert_eq!(given.code, Some(0), "{}", given.output());
+    planned(&root, "complete");
+    proposes(&root);
+    let refused = invoke(&root, &["consent"]);
+    assert_ne!(refused.code, Some(0), "{}", refused.output());
 }

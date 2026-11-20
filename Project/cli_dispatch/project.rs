@@ -28,7 +28,10 @@ pub(super) fn configured_command(
         Configured::FeaturePush => git::push(context),
         Configured::StateReset => git::reset_state(context),
         Configured::Approve => git::approval::approve(context),
-        Configured::ProposePin => git::pin::propose(context, &args[0]),
+        Configured::ProposePin => git::propose_pin(context, &args[0]),
+        Configured::Consent => git::consent::give(context),
+        Configured::RevokeConsent => git::consent::revoke(context),
+        Configured::ConsentedPins => git::consent::list(context),
         Configured::MemoryCheck => project_memory::check(context),
         Configured::Resume => {
             project_memory::resume(context)?;

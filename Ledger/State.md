@@ -2,35 +2,37 @@
 
 ## Focus
 
-P173 по B180, VAC 2 закрывает AC1: правка lint.yaml, которая только добавляет правила, коммитится без подтверждения.
+P173 по B180, VAC 3 закрывает в рантайме AC2 и AC3: согласие на задачу и список пинов, поставленных по нему.
 
 ## Workspace
 
 Branch: feature/standing-consent
-Revision: f7b74972877010f85de372f07b10ef4ac39e249e
+Revision: 7e3302c318503cd286d1503b92c90c1e4a2643c1
 
 Ветка идёт от последнего коммита P170 и сливает P170 вместе с P173.
 
 ## Progress
 
-- Хук агента больше не запрещает правку lint.yaml; `Protection::closed_to_agents` исключает только его.
-- Гейт коммита принимает lint.yaml без подтверждения, когда все прежние правила стоят без изменений и по порядку, а
-  остальные настройки равны: `structural_lint::lint_files::only_adds_rules`. Каталог `baseline_file` переименован
-  в `lint_files`: он уже читал базовую линию через strict_yaml, а в lint_config или в корне проверка превышала
-  бюджеты зависимых strict_yaml, 10 при 9, и structural_lint, 7 при 6.
-- Решение D226 записано на весь выбор B180; навык propose-protected-change говорит, что правило добавляют правкой.
+- `consent.rs`: `consent` записывает пункты Plan в статусе pending и active в `<runtime>/consent`, `revoke-consent`
+  снимает их, `consented-pins` печатает каждый пин с изменёнными исходниками. Путь `consent` защищён.
+- `propose-pin` при действующем согласии берёт только чистый `HEAD` без учёта State, проверяет потомка пина, гоняет
+  гейт ветки `feature-merge`, ставит ревизию через `git.install`, пишет пин и вносит его в запись одобренного; без
+  согласия готовит предложение для `just approve`, как раньше.
+- Пин пишется через новую `atomic_files::replace`, которой теперь пользуется и `atomic_json::save`: каталог git
+  не добавляет зависимого к fs_with_context с бюджетом 23.
+- Рецептов и отказа хука для `consent` ещё нет: они идут в VAC 4 вместе с пином этой ревизии.
 
 ## Verification
 
-- `just test change_delivery::git::tests::approval`: 6 passed, вместе с новым тестом добавленного, удалённого и
-  выключенного правила.
-- `just test agent_hooks::tests::protected`: 6 passed.
+- `just test change_delivery::git::`: 32 passed, с тремя новыми тестами согласия в `tests/pin.rs`.
+- `just test change_delivery::git::tests::pin shared::atomic_files`: 11 passed после переноса записи пина.
 
 ## Blockers
 
-Нет. Карта тестов в checks.yaml не связывает `Project/structural_lint/rule_set/lint_config/**` с тестами
-`change_delivery::git::`; правка карты войдёт в предложение к подтверждению в конце P173.
+Нет. Карта тестов в checks.yaml не связывает `Project/structural_lint/lint_files/**` и
+`Project/project_memory/format.rs` с тестами `change_delivery::git::`; правка войдёт в предложение к подтверждению.
 
 ## Next action
 
-VAC 3: команды `consent`, `revoke-consent`, `consented-pins` в рантайме и `propose-pin` под согласием (AC2, AC3).
+`just propose-pin HEAD`, предложения delivery.just с тремя рецептами и checks.yaml, затем `! just approve` от
+пользователя.

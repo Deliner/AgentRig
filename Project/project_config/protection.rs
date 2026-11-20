@@ -14,7 +14,8 @@ const FIXED: [&str; 6] = [
 // DECISION: D214
 const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "tools", "rust"];
 const SERVICE: [&str; 2] = ["bin", "hooks"];
-const RUNTIME: [&str; 2] = ["reminders", "approved"];
+// DECISION: D226
+const RUNTIME: [&str; 3] = ["reminders", "approved", "consent"];
 
 pub fn configuration() -> Vec<String> {
     std::iter::once(FILE.to_owned())
