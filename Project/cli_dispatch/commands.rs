@@ -5,6 +5,7 @@ use anyhow::{Result, bail};
 pub enum Command {
     Init,
     GuardCommit,
+    GuardReference,
     Check,
     Runner(Runner),
     Configured(Configured),
@@ -18,7 +19,6 @@ pub enum Runner {
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Configured {
     RuntimeAdd,
-    GuardReference,
     Doctor,
     ConfigCheck,
     Commands,
@@ -40,10 +40,7 @@ const NAMES: &[(&str, Command)] = &[
     ("init", Command::Init),
     ("runtime-add", Command::Configured(Configured::RuntimeAdd)),
     ("guard-commit", Command::GuardCommit),
-    (
-        "guard-reference",
-        Command::Configured(Configured::GuardReference),
-    ),
+    ("guard-reference", Command::GuardReference),
     ("check", Command::Check),
     ("doctor", Command::Configured(Configured::Doctor)),
     ("config-check", Command::Configured(Configured::ConfigCheck)),
@@ -128,7 +125,7 @@ pub(super) fn validate_arguments(command: Configured, args: &[String]) -> Result
         }),
         Configured::FeatureStart => (args.len() != 1).then(|| "feature-start NAME".to_owned()),
         Configured::ProposePin => (args.len() != 1).then(|| "propose-pin REVISION".to_owned()),
-        Configured::GuardReference | Configured::Run => None,
+        Configured::Run => None,
     };
     if let Some(usage) = usage {
         bail!(usage);

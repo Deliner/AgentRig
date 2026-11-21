@@ -151,15 +151,15 @@ pub fn guard_commit(context: &Context) -> Result<i32> {
     ));
     Ok(1)
 }
-pub fn guard_reference_with(
-    root: &Path,
-    phase: &str,
-    settings: &crate::shared::vcs::Settings,
-) -> Result<i32> {
+pub fn guard_reference(root: &Path, phase: &str) -> Result<i32> {
     let no_validation_needed = phase != "prepared";
     if no_validation_needed {
         return Ok(0);
     }
+    let context = Context::load(root)?;
+    prepared_references(&context.root, &context.config.git)
+}
+fn prepared_references(root: &Path, settings: &crate::shared::vcs::Settings) -> Result<i32> {
     let catalog = catalog_run(root)?;
     let mut input = String::new();
     io::stdin().read_to_string(&mut input)?;
