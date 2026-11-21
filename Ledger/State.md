@@ -7,12 +7,13 @@ P190 (B197): lint reads and parses the sources selected by syntax rules on sever
 ## Workspace
 
 Branch: feature/parallel-lint
-Revision: 3a92de1066b36eda1305fcd08d511300df3080f1
+Revision: 07ccd4b900d63dd475157e8c4a495bc42f27f5f3
 
 ## Progress
 
-VAC 1 saves B197 and selects it as P190 by the user's standing instruction. The parallel source analysis in
-structural_lint/rule_evaluation is in the working tree, not staged.
+VAC 1 `07ccd4b` saved B197 and selected it as P190. VAC 2 parses the selected sources that are not yet analyzed
+through `in_parallel` in file_measures.rs; evaluation.rs splits the syntax path into `syntax_rule_findings`, which
+keeps the selection order of findings and of the first error.
 
 ## Verification
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the parallel source analysis as VAC 2.
+Commit VAC 2 through the gate, run the full test suite, then archive P190 and B197 in VAC 3 and run feature-merge.

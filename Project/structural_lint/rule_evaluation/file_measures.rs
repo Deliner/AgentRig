@@ -1,9 +1,24 @@
 use crate::shared::fs_with_context as fs;
-use crate::structural_lint::rule_identities::{CONTRACT_FILENAME, Kind, Structure};
+use crate::shared::parallel_map::in_parallel;
+use crate::structural_lint::languages::{self, Analysis};
+use crate::structural_lint::rule_identities::{CONTRACT_FILENAME, Kind, Pair, Structure};
 use crate::structural_lint::rule_set::lint_config;
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::Result;
+use std::collections::HashMap;
 use std::path::Path;
+
+pub(super) fn syntax_analyses<'a>(
+    root: &Path,
+    paths: &[&'a Path],
+    pairs: &[Pair],
+) -> Result<HashMap<&'a Path, Result<Analysis>>> {
+    let analyses = in_parallel(paths, |path| {
+        let source = fs::read_to_string(root.join(path))?;
+        languages::analyze(path, &source, pairs)
+    })?;
+    Ok(paths.iter().copied().zip(analyses).collect())
+}
 
 // DECISION: D072
 const DUMP_NAMES: &[&str] = &["utils", "helpers", "misc", "common"];

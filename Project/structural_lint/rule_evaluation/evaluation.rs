@@ -1,4 +1,4 @@
-use super::file_measures::structural_measurements;
+use super::file_measures::{structural_measurements, syntax_analyses};
 use super::findings::{finding, mixed_junction, syntax_error};
 use super::lifting;
 use crate::shared::diagnostics::Diagnostic;
@@ -170,32 +170,51 @@ fn scalar_findings(
     inventory: &file_discovery::Inventory,
     evaluation: &mut Evaluation<'_>,
 ) -> Result<()> {
+    let targets = lint_targets::select(rule, inventory)?;
+    let syntax_rule = capabilities::syntax(rule.kind);
+    if syntax_rule {
+        return syntax_rule_findings(root, rule, &targets, evaluation);
+    }
+    for selected in &targets {
+        for (line, actual) in structural_measurements(root, rule, selected, inventory)? {
+            if let Some(mut item) = finding(rule, selected, actual)? {
+                item.line = line;
+                evaluation.output.push(item);
+            }
+        }
+    }
+    Ok(())
+}
+fn syntax_rule_findings(
+    root: &Path,
+    rule: &lint_config::Rule,
+    targets: &[lint_targets::Selected<'_>],
+    evaluation: &mut Evaluation<'_>,
+) -> Result<()> {
     let Evaluation {
         analyses,
         output,
         pairs,
         ..
     } = evaluation;
-    for selected in lint_targets::select(rule, inventory)? {
-        let syntax_rule = capabilities::syntax(rule.kind);
-        if syntax_rule {
-            let path = selected.path;
-            let analysis = match analyses.entry(path.to_owned()) {
-                Entry::Occupied(place) => place.into_mut(),
-                Entry::Vacant(place) => {
-                    let source = fs::read_to_string(root.join(path))?;
-                    place.insert(languages::analyze(path, &source, pairs)?)
-                }
-            };
-            syntax_findings(rule, &selected, analysis, output)?;
-        } else {
-            for (line, actual) in structural_measurements(root, rule, &selected, inventory)? {
-                if let Some(mut item) = finding(rule, &selected, actual)? {
-                    item.line = line;
-                    output.push(item);
-                }
+    let unparsed: Vec<&Path> = targets
+        .iter()
+        .map(|selected| selected.path)
+        .filter(|path| !analyses.contains_key(*path))
+        .collect();
+    let mut parsed = syntax_analyses(root, &unparsed, pairs)?;
+    for selected in targets {
+        let path = selected.path;
+        let analysis = match analyses.entry(path.to_owned()) {
+            Entry::Occupied(place) => place.into_mut(),
+            Entry::Vacant(place) => {
+                let result = parsed
+                    .remove(path)
+                    .context("lint analyzes each selected file before measuring it")?;
+                place.insert(result?)
             }
-        }
+        };
+        syntax_findings(rule, selected, analysis, output)?;
     }
     Ok(())
 }
