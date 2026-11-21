@@ -1,6 +1,6 @@
 // DECISION: D016
 use super::consumer::{CONFIG, EXTENSIONS, SKILL, command, consumer, lint, parsed, prepare, write};
-use crate::shared::testing::{git, invoke, replay};
+use crate::shared::testing::{git, initialized, invoke, replay};
 use serde_json::Value;
 use std::{collections::BTreeMap, fs, path::Path};
 
@@ -171,10 +171,7 @@ fn missing_skill_is_named_in_the_finding() {
 
 #[test]
 fn project_mode_reports_a_missing_skill_as_a_json_finding() {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (_temp, root) = initialized();
     let skill = root.join(".agentrig/skills/remove-debug/SKILL.md");
     fs::remove_file(&skill).unwrap();
     let skill = skill.to_str().unwrap();

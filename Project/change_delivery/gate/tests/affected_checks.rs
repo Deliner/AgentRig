@@ -1,6 +1,6 @@
 use super::evidence;
 use crate::project_memory::state_template;
-use crate::shared::testing::{REPAIR, Run, git, invoke, project};
+use crate::shared::testing::{REPAIR, Run, commit_identity, git, invoke, project};
 use serde_json::Value;
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
@@ -52,8 +52,7 @@ fn affected_project() -> (TempDir, PathBuf) {
     fs::create_dir(root.join("notes")).unwrap();
     fs::write(root.join("notes/State.md"), state_template()).unwrap();
     git(&root, &["init", "-q", "-b", "task/selection"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "base"]);
     (temp, root)

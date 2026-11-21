@@ -1,7 +1,10 @@
 use super::installed_runtime;
 use crate::shared::{
     fs_with_context::{Permissions, PermissionsExt},
-    testing::{Run, describe_state, git, hermetic, invoke, launch, run, search_path, worker},
+    testing::{
+        Run, commit_identity, describe_state, git, hermetic, invoke, launch, run, search_path,
+        worker,
+    },
 };
 use std::{
     fs,
@@ -16,8 +19,7 @@ fn initialized() -> (TempDir, PathBuf) {
     let root = temp.path().canonicalize().unwrap().join("project");
     fs::create_dir(&root).unwrap();
     git(&root, &["init", "-q", "-b", "main"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     let result = invoke(&root, &["init"]);
     assert_eq!(result.code, Some(0), "{}", result.output());
     (temp, root)

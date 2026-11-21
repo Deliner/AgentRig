@@ -181,6 +181,19 @@ pub fn git(root: &Path, args: &[&str]) -> String {
     result.stdout.trim().to_owned()
 }
 
+pub fn commit_identity(root: &Path) {
+    git(root, &["config", "user.name", "Test"]);
+    git(root, &["config", "user.email", "test@example.invalid"]);
+}
+
+pub fn initialized() -> (TempDir, PathBuf) {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    let result = invoke(&root, &["init"]);
+    assert_eq!(result.code, Some(0), "{}", result.output());
+    (temp, root)
+}
+
 pub fn describe_state(root: &Path, vac: &str) {
     let state = root.join("Ledger/State.md");
     let template = fs::read_to_string(&state).unwrap();
@@ -263,8 +276,7 @@ pub fn checked_repository() -> (TempDir, PathBuf) {
     fs::write(root.join(".gitignore"), ".runtime/\n").unwrap();
     fs::write(root.join("src/value.py"), "value = 1\n").unwrap();
     git(&root, &["init", "-q", "-b", "trunk"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "baseline"]);
     (temp, root)

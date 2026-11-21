@@ -1,7 +1,7 @@
 // DECISION: D188
 use crate::project_setup::initialization::init;
 use crate::shared::calling_agent::Agent;
-use crate::shared::testing::{hermetic, invoke, repository, run, runtime, snapshot};
+use crate::shared::testing::{hermetic, initialized, repository, run, runtime, snapshot};
 use serde_json::{Value, json};
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::Path};
@@ -33,10 +33,7 @@ fn hook(root: &Path, handler: &Value, event: &Value) -> Value {
 // DECISION: D195
 #[test]
 fn init_and_the_rig_give_both_agents_one_rules_text() {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (_temp, root) = initialized();
     for project in [root.as_path(), repository()] {
         let text = |name: &str| fs::read_to_string(project.join(name)).unwrap();
         let shown = project.display();
@@ -48,10 +45,7 @@ fn init_and_the_rig_give_both_agents_one_rules_text() {
 
 #[test]
 fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (_temp, root) = initialized();
     assert!(!root.join(".mcp.json").exists());
     for agent in Agent::ALL {
         let settings = registration(&root, agent);
@@ -83,10 +77,7 @@ fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
 // DECISION: D200
 #[test]
 fn a_hook_that_cannot_start_blocks_the_call_with_its_reason() {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (_temp, root) = initialized();
     let launcher = root.join(".agentrig/bin/agentrig");
     fs::set_permissions(&launcher, fs::Permissions::from_mode(0o644)).unwrap();
     blocked(&root, "not executable");
@@ -111,10 +102,7 @@ fn blocked(root: &Path, breakage: &str) {
 
 #[test]
 fn lint_names_the_skill_through_the_directory_of_the_agent_its_variable_names() {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (_temp, root) = initialized();
     let wide = format!("# Title\n\n{}\n", "x".repeat(130));
     fs::write(root.join("README.md"), wide).unwrap();
     let agents = Agent::ALL.map(|agent| (Some(agent.variable()), agent.skills()));

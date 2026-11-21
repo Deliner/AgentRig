@@ -1,4 +1,4 @@
-use super::{Run, git, hermetic, invoke, repository, run, search_path};
+use super::{Run, commit_identity, git, hermetic, invoke, repository, run, search_path};
 use std::{
     fs,
     os::unix::fs::PermissionsExt,
@@ -162,8 +162,7 @@ fn bootstrap_installs_a_revision_without_pinning_it() {
     let source = repository().join("tooling/distribution/bootstrap.sh");
     fs::copy(source, &script).unwrap();
     git(&root, &["init", "-q"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["commit", "-q", "--allow-empty", "-m", "base"]);
     let base = git(&root, &["rev-parse", "HEAD"]);
     let pin = distribution.join("stable.txt");

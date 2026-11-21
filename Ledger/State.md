@@ -3,23 +3,24 @@
 ## Focus
 
 P175 delivers B182: each group of copies with the same behavior is replaced by one owner, behavior unchanged.
-VAC 3 gives the children of a list other than comments one owner: neutral_metrics values and sole replace the
-copies in std_forms call_syntax, ownership unit_lock and errors silent_error.
+VAC 4 moves two test fixtures into shared testing: initialized, a temporary project after a successful init, replaces
+eight copies, and commit_identity, the Test author, replaces nine.
 
 ## Workspace
 
 Branch: feature/faster-commit
-Revision: ad99785be882ed8f8246b6f3cd82738a5c9e973c
+Revision: a88ef15d93de0bb1d8bb4941230ea3aa6bf4088f
 
 ## Progress
 
-VAC 1 saved B182 as P175. VAC 2 added Repository::require for eleven refusals and git::finish for the stageable
-index process. The named_children wrappers and the two method-call readers stay: the first wraps the tree-sitter
-call that dozens of sites use directly, the second would need a new Rust-only owner shared by two detector areas.
+VAC 1 saved B182 as P175. VAC 2 added Repository::require and git::finish. VAC 3 added neutral_metrics values and
+sole. Init calls with other arguments or a preceding git init keep their own code; shared/vcs/tests/fixture.rs sets
+the identity through its own command and stays.
 
 ## Verification
 
-The commit gate runs build, Clippy, lint and the affected structural_lint test groups for this VAC.
+just test shared::testing compiled all 614 tests without warnings and passed 4. The commit gate runs the affected
+groups.
 
 ## Blockers
 
@@ -27,5 +28,4 @@ None.
 
 ## Next action
 
-Commit VAC 3, then move the repeated test fixtures, init with exit check, Git identity and write with parents, into
-shared testing.
+Commit VAC 4, then move the write that creates parent directories into shared testing.

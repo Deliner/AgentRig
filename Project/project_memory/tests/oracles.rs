@@ -1,5 +1,7 @@
 // DECISION: D157
-use crate::shared::testing::{Run, configure, git, invoke, python_path, run, runtime};
+use crate::shared::testing::{
+    Run, commit_identity, configure, git, invoke, python_path, run, runtime,
+};
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
@@ -152,8 +154,7 @@ fn invariant_oracle_must_name_a_discovered_test_carrying_its_marker() {
 #[test]
 fn an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it() {
     let (_temp, root) = project(&PYTEST, PYTEST.valid);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["add", "."]);
     git(
         &root,

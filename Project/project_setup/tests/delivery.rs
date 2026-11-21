@@ -1,7 +1,7 @@
 use super::installed_runtime;
 use crate::shared::testing::{
-    Run, configure, describe_state, git, git_run, hermetic, invoke, launch, python_path,
-    repository, run, worker,
+    Run, commit_identity, configure, describe_state, git, git_run, hermetic, invoke, launch,
+    python_path, repository, run, worker,
 };
 use serde_json::{Value, json};
 use std::{
@@ -128,8 +128,7 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     git(&root, &["init", "-q", "-b", layout.base]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     fs::write(root.join(".gitignore"), IGNORED).unwrap();
     let language = layout.language;
     let examples = repository().join("Project/shared/testing/examples");

@@ -1,4 +1,4 @@
-use crate::shared::testing::{configure, git, invoke};
+use crate::shared::testing::{configure, git, initialized, invoke};
 use serde_yaml_ng::{Mapping, Value};
 use std::{
     fs,
@@ -69,10 +69,7 @@ fn append(settings: &mut Mapping, key: &str, item: &str) {
 }
 
 fn consumer() -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let initialized = invoke(&root, &["init"]);
-    assert_eq!(initialized.code, Some(0), "{}", initialized.output());
+    let (temp, root) = initialized();
     fs::create_dir(root.join("tools")).unwrap();
     fs::write(root.join("tools/report.sh"), TOOL).unwrap();
     fs::write(root.join("tools/architecture.yaml"), CONTRACT).unwrap();

@@ -7,7 +7,9 @@ mod push;
 mod start;
 mod state;
 
-use crate::shared::testing::{Run, configure, describe_state, git, git_run, invoke};
+use crate::shared::testing::{
+    Run, commit_identity, configure, describe_state, git, git_run, invoke,
+};
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
 
@@ -28,8 +30,7 @@ fn installed() -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     git(&root, &["init", "-q", "-b", "trunk"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     fs::write(root.join("shared.txt"), "initial\n").unwrap();
     let initialized = invoke(&root, &["init", "--base", "trunk", "--prefix", "task/"]);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
