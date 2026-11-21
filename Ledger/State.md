@@ -3,24 +3,24 @@
 ## Focus
 
 P181 (B188): the maintained file list is built once per memory check and without the directory walk where only
-files are needed. VAC 1 saves card B188 and selects it as P181.
+files are needed. VAC 2 splits a files-only listing out of the inventory and uses it in the memory check, the gate
+file list and the architecture check.
 
 ## Workspace
 
 Branch: feature/file-listing
-Revision: e7ad50ef22c7f0dc8206de119b1f4ecb53275a30
-
-Uncommitted temporary timers in Project/cli_dispatch/main.rs and Project/shared/testing/tests/mod.rs serve the
-before and after measurement; they stay out of every commit and are restored before the code VAC.
+Revision: b7d42609f2fd1fcec774bc998fef1bb3409265bf
 
 ## Progress
 
-Card B188, Backlog row, Plan row P181 and Plan/181.md are written. Baseline on master e7ad50e in a new project:
-memory check median 112 and 120 ms; one listing 31 ms, of it git ls-files 11 ms and the directory walk 18 ms.
+maintained_files now returns only files with one git ls-files; maintained_inventory keeps files and directories
+for lint and its reports. The memory check lists once and passes the list to references and exceptions;
+invariant_ids keeps references within 40 lines. Temporary timers are reverted.
 
 ## Verification
 
-Memory check of the card pending.
+Full suite: 614 passed, as on master e7ad50e. `just lint`: no findings. Memory check median in a new project
+112 and 120 ms before, 68 and 67 ms after. Git processes: memory check 6 to 1, gate list in AgentRig 9 to 1.
 
 ## Blockers
 
@@ -28,5 +28,4 @@ None.
 
 ## Next action
 
-Run `just check --only memory`, commit VAC 1, then split a files-only listing out of maintained_files, use it in the
-memory check once, in the gate file list and in the architecture check.
+Commit VAC 2, then record Delivery, archive P181 and B188 and run `just feature-merge`.

@@ -65,7 +65,6 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
     let root = crate::shared::fs_with_context::canonicalize(root)?;
     let no_exclusions = globs(&[])?;
     let files: BTreeSet<_> = file_discovery::maintained_files(&root, &no_exclusions)?
-        .files
         .into_iter()
         .collect();
     let settings = rule
