@@ -1,6 +1,6 @@
 purpose: Verify environment initialization while preserving existing consumer files
 files:
-  mod.rs: Refuse colliding files, deliver the universal capabilities of this repository and share the consumer, init and flow fixtures
+  mod.rs: Refuse colliding files and Git hook registrations, deliver the universal capabilities of this repository and share the consumer, init and flow fixtures
   wizard.rs: Interactive initialization choices, collision recheck and parity with declarative init
   layout.rs: Installation locations, generated adapters and rejected layout changes
   rust_layout.rs: Rust crate roots, crate names, test command and dependency externals derived from Cargo manifests
