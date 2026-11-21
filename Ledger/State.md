@@ -3,25 +3,22 @@
 ## Focus
 
 P175 delivers B182: each group of copies with the same behavior is replaced by one owner, behavior unchanged.
-VAC 8 gives the read, edit and write of a YAML file in tests one owner, shared testing edit_yaml, used by configure
-and by the edit helpers of the approval, inventory and tool registry tests with their own value types. The file
-snapshot moves from the shared testing entry into snapshot.rs, which keeps the entry under the file size warning.
+The final VAC archives P175 and B182 with the delivery evidence.
 
 ## Workspace
 
 Branch: feature/faster-commit
-Revision: c6308a265365e34d7593490d51ccdc9ec89276fd
+Revision: a89c984dad081b72261f4c61b91969927a8a041f
 
 ## Progress
 
-VAC 1 saved B182 as P175. VAC 2 added Repository::require and git::finish, VAC 3 neutral_metrics values and sole,
-VAC 4 the initialized and commit_identity fixtures, VAC 5 and VAC 7 the shared test write, VAC 6 one init test yaml
-reader.
+VAC 1 to VAC 8 are committed and pushed. Archive/Plan/175.md records each group, owner, copies and lines, the copies
+that stay because their behavior differs, and AC1 to AC3. Plan has no current entry.
 
 ## Verification
 
-just test compiled all 614 tests without warnings; inventory passed 4, tool_registry 3, approval 6 and agent_hooks
-46; just lint printed no findings; shared testing mod.rs has 283 nonblank lines.
+The full just test run passed all 614 tests at a89c984; just check --only memory passed; just lint printed no
+findings after the rotation.
 
 ## Blockers
 
@@ -29,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 8, then archive P175 with its evidence and run feature-merge without a pin.
+Commit the archive, then run feature-merge without a pin; the user pins with ! just approve.
