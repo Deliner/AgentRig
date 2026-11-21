@@ -1,8 +1,20 @@
 use crate::shared::source_parsers::Exception;
-use crate::structural_lint::rule_identities::Kind;
+use crate::structural_lint::rule_identities::{Kind, Pair};
 use std::collections::BTreeSet;
 use std::path::Path;
 use tree_sitter::Node;
+
+// DECISION: D229
+pub trait Project: Sync {
+    fn foreign_crate(&self, name: &str) -> bool;
+}
+// DECISION: D156
+// DECISION: D229
+#[derive(Clone, Copy)]
+pub struct Context<'a> {
+    pub pairs: &'a [Pair],
+    pub project: &'a dyn Project,
+}
 
 // DECISION: D017
 pub struct Measurement {

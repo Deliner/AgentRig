@@ -1,5 +1,5 @@
 use super::manifest::findings;
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::Reference;
 use std::path::Path;
 
@@ -145,6 +145,6 @@ test:
 #[test]
 fn yaml_reports_the_line_of_a_syntax_error() {
     let source = "rustflags: []\nkey: value: other\n";
-    let analysis = analyze(Path::new(".agentrig/rust.yaml"), source, &[]).unwrap();
+    let analysis = analyze(Path::new(".agentrig/rust.yaml"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, Some(2));
 }

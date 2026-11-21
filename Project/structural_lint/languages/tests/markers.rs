@@ -1,10 +1,11 @@
 use super::super::analyze;
+use super::DETACHED;
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 // DECISION: D074
 fn disabled_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -53,7 +54,7 @@ def test_four(value):
 
 // DECISION: D080
 fn allow_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -111,7 +112,7 @@ fn skipped() {}
 
 // DECISION: D081
 fn debug_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -125,7 +126,7 @@ fn debug_findings(path: &str, source: &str) -> Vec<usize> {
 
 // DECISION: D082
 fn panic_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -219,7 +220,7 @@ fn rust_flags_dbg_macro_invocations() {
 
 // DECISION: D084
 fn assertion_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -254,7 +255,7 @@ mod tests {
 
 // DECISION: D085
 fn wildcard_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements

@@ -78,6 +78,35 @@ fn paired_calls_checks_only_the_pairs_its_rule_configures() {
     assert_eq!(found, [("src/save.rs".into(), Some(5), Some(1))]);
 }
 
+// DECISION: D229
+#[test]
+fn parameter_count_leaves_methods_of_traits_from_the_declared_external_crates() {
+    let source = "impl rustls::Verifier for Strict {
+    fn verify(&self, a: u8, b: u8, c: u8, d: u8, e: u8) {}
+}
+impl tokio::Verifier for Strict {
+    fn verify(&self, a: u8, b: u8, c: u8, d: u8, e: u8) {}
+}
+";
+    let root = tempfile::tempdir().unwrap();
+    write(root.path(), "src/verify.rs", source);
+    let config: Config = crate::shared::strict_yaml::decode(
+        "version: 1\nconfig_skill: s\nrules:\n\
+         - {id: architecture, kind: directory-architecture, target: directory, include: [none], \
+         level: error, architecture: {external: {rust: [std, rustls]}}, warning_skill: s, \
+         error_skill: s}\n\
+         - {id: parameters, kind: parameter-count, target: file, include: ['**'], \
+         extensions: [.rs], error: 4, warning_skill: s, error_skill: s}\n",
+    )
+    .unwrap();
+    let found: Vec<_> = evaluate(root.path(), &config)
+        .unwrap()
+        .into_iter()
+        .map(|item| (item.rule, item.line))
+        .collect();
+    assert_eq!(found, [("parameters".to_string(), Some(5))]);
+}
+
 // DECISION: D198
 #[test]
 fn program_language_reports_programs_outside_the_allowed_languages() {

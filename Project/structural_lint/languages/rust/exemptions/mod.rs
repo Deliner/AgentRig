@@ -2,6 +2,7 @@ mod async_code;
 mod attributes;
 mod cfg_flags;
 mod debug_code;
+mod foreign_trait;
 mod path_names;
 mod test_code;
 
@@ -10,6 +11,7 @@ pub(super) use async_code::{in_async_context, scope_boundary};
 pub(super) use attributes::{attribute_path, attributed, derives, listed};
 pub(super) use cfg_flags::cfg_excludes;
 pub(super) use debug_code::in_debug_only_context;
+pub(super) use foreign_trait::{extern_member, foreign_signature};
 pub(super) use path_names::{last_segment, plain_name, type_name};
 pub(crate) use test_code::in_test_context;
 pub(super) use test_code::test_marker;

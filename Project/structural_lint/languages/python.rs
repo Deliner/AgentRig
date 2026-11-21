@@ -1,9 +1,10 @@
 use super::neutral_metrics::{
-    Analysis, Branch, Measurement, Nest, boolean_expression, boolean_parameters, branching,
-    comment, condition, credential, function, mixed_junction, nesting, text,
+    Analysis, Branch, Context, Measurement, Nest, boolean_expression, boolean_parameters,
+    branching, comment, condition, credential, function_lines, mixed_junction, nesting,
+    parameter_count, text,
 };
 use crate::structural_lint::languages::neutral_metrics::Code;
-use crate::structural_lint::rule_identities::{Kind, Pair, Reference};
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
 
 // DECISION: D017
@@ -41,7 +42,7 @@ fn statement(node: Node<'_>, output: &mut Vec<Measurement>) {
         });
     }
 }
-pub fn inspect(node: Node<'_>, source: Code<'_>, _pairs: &[Pair], analysis: &mut Analysis) {
+pub fn inspect(node: Node<'_>, source: Code<'_>, _context: Context<'_>, analysis: &mut Analysis) {
     analysis.mixed_junctions.extend(mixed_junction(node));
     let output = &mut analysis.measurements;
     match node.kind() {
@@ -149,9 +150,10 @@ fn silent_except(node: Node<'_>, output: &mut Vec<Measurement>) {
     }
 }
 fn measure(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
-    let count = parameter_count(node);
+    let count = declared_parameters(node);
     let receiver = method_receiver(node, source) && count > 0;
-    function(node, source, count - usize::from(receiver), output);
+    parameter_count(node, source, count - usize::from(receiver), output);
+    function_lines(node, source, output);
     nesting(node, source, classify, output);
     boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
@@ -186,7 +188,7 @@ fn classify(node: Node<'_>) -> Nest {
     }
 }
 
-fn parameter_count(node: Node<'_>) -> usize {
+fn declared_parameters(node: Node<'_>) -> usize {
     node.child_by_field_name("parameters")
         .map(|parameters| {
             let mut cursor = parameters.walk();

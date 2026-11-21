@@ -1,6 +1,6 @@
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::languages::rust::exemptions::{
-    in_test_context, trait_impl_member, type_name,
+    extern_member, in_test_context, trait_impl_member, type_name,
 };
 use crate::structural_lint::rule_identities::{Kind, Signature};
 use tree_sitter::Node;
@@ -90,11 +90,7 @@ fn clippy_checks(generic: Node<'_>) -> bool {
     false
 }
 fn checked_member(item: Node<'_>) -> bool {
-    let extern_member = item
-        .parent()
-        .and_then(|list| list.parent())
-        .is_some_and(|owner| owner.kind() == "foreign_mod_item");
-    !(trait_impl_member(item) || extern_member)
+    !(trait_impl_member(item) || extern_member(item))
 }
 // DECISION: D164
 fn trait_sets_signature(generic: Node<'_>) -> bool {

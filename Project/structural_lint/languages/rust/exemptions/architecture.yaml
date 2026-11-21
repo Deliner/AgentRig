@@ -1,8 +1,9 @@
-purpose: Classify where a Rust node sits, test-only, debug-only or async code or a directory entry file, for the exemptions and scope of every Rust detector
+purpose: Classify where a Rust node sits, test-only, debug-only or async code, a directory entry file or a signature that code outside the project sets, for the exemptions and scope of every Rust detector
 type: flat
 dependents: 7
 files:
-  mod.rs: Name the directory entry files, decide whether an item is a member of a trait impl and whether a literal is a numeric zero, and offer the attribute, path name and context classifications
+  mod.rs: Name the directory entry files, decide whether an item is a member of a trait impl and whether a literal is a numeric zero, and offer the attribute, path name, foreign signature and context classifications
+  foreign_trait.rs: Decide whether an item is a member of an extern block or of an impl of a trait the file's paths and imports place in an external crate or the standard prelude
   attributes.rs: Walk the attributes above an item, read derive and other attribute lists and decide whether an item with attributes carries a reference above them
   path_names.rs: Name the last segment of a path and the base name of a plain or generic type
   test_code.rs: Decide whether a Rust node sits inside test-only code for rule exemptions and whether an attribute marks a test

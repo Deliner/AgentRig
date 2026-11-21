@@ -47,11 +47,12 @@ impl Signature {
     }
 }
 // DECISION: D189
+// DECISION: D229
 const PARAMETERCOUNT: Descriptor = Descriptor {
     default_id: "parameter-count",
     exclude: &[],
     target: "file",
-    metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one",
+    metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait",
     skill: "reduce-parameters",
     parameters: Parameters::Thresholds {
         warning: None,
@@ -60,11 +61,12 @@ const PARAMETERCOUNT: Descriptor = Descriptor {
     accepts_exception: false,
 };
 // DECISION: D062
+// DECISION: D229
 const BOOLEANPARAMETER: Descriptor = Descriptor {
     default_id: "boolean-parameter",
     exclude: &[],
     target: "file",
-    metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding",
+    metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait",
     skill: "split-boolean-parameter",
     parameters: Parameters::Level {
         default: Severity::Error,
@@ -74,11 +76,12 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
 };
 // DECISION: D088
 // DECISION: D101
+// DECISION: D229
 const TUPLEASRECORD: Descriptor = Descriptor {
     default_id: "tuple-as-record",
     exclude: TEST_CODE,
     target: "file",
-    metric: "every Rust function parameter type or return type that is a tuple, or that nests inside a generic or slice type, at any depth, a tuple of three or more elements with a primitive, String or &str element (closure signatures included for the nested form), outside test code, reported at the function",
+    metric: "every Rust function parameter type or return type that is a tuple, or that nests inside a generic or slice type, at any depth, a tuple of three or more elements with a primitive, String or &str element (closure signatures included for the nested form), outside test code, reported at the function; not measured where code outside the project sets the signature: a function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait",
     skill: "name-the-record",
     parameters: Parameters::Level {
         default: Severity::Error,

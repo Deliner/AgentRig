@@ -1,10 +1,10 @@
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 // DECISION: D098
 pub(super) fn findings(kind: Reference, path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements
@@ -71,6 +71,6 @@ package.probe = { rustflags = [\"-Zshare-generics\"] }
 #[test]
 fn toml_reports_the_line_of_a_syntax_error() {
     let source = "[package]\nname = \"probe\"\nname = \"twice\"\n";
-    let analysis = analyze(Path::new("Cargo.toml"), source, &[]).unwrap();
+    let analysis = analyze(Path::new("Cargo.toml"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, Some(3));
 }

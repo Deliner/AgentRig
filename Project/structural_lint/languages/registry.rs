@@ -1,16 +1,16 @@
 // DECISION: D033
 // DECISION: D098
 // DECISION: D223
-use super::neutral_metrics::{Analysis, Code};
+use super::neutral_metrics::{Analysis, Code, Context};
 use super::{flag_list, manifest, python, rust, test_files};
 use crate::structural_lint::rule_identities::{
-    ControlFlow, Kind, Ownership, Pair, Reference, Signature, Structure,
+    ControlFlow, Kind, Ownership, Reference, Signature, Structure,
 };
 use std::path::Path;
 use tree_sitter::Node;
 
 pub enum Inspect {
-    Tree(fn(Node<'_>, Code<'_>, &[Pair], &mut Analysis)),
+    Tree(fn(Node<'_>, Code<'_>, Context<'_>, &mut Analysis)),
     Document(fn(&str) -> Analysis),
 }
 pub struct Handler {

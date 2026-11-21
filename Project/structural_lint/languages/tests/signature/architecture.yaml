@@ -3,6 +3,7 @@ files:
   mod.rs: Declare the signature measurement test modules and filter native measurements of one kind
   constant_default.rs: Rust trait default methods whose body ignores self, with empty, receiving, required and test-only methods skipped, from native analysis
   derived_trait.rs: Rust derived Debug printing secret-named string and byte fields, and derived Deserialize beside a same-file constructor that refuses a stored parameter, with their exemptions, from native analysis
+  foreign_signature.rs: Rust methods of impls of traits that a declared external crate, the standard prelude or an import from them supplies and functions of extern blocks left without signature measurements, and traits the project declares, glob-imported or unresolved traits judged, with bodies measured, from native analysis
   implicit_order.rs: Rust enums deriving PartialOrd or Ord whose variants order by declaration, directly or inside cfg_attr, and pinned, single-variant, unordered or test-only enums, from native analysis
   ord_equality.rs: Rust manual order and equality reading different fields, and consistent or unresolvable comparisons, from native analysis
   partial_impl.rs: Rust PartialEq, Hash, PartialOrd, Ord and Clone impls reading self fields without naming every field, and exhaustive, other-trait or test-only impls, from native analysis

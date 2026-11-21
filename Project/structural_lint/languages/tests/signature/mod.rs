@@ -1,5 +1,6 @@
 mod constant_default;
 mod derived_trait;
+mod foreign_signature;
 mod implicit_order;
 mod ord_equality;
 mod partial_impl;
@@ -7,12 +8,12 @@ mod same_type;
 mod tuple_as_record;
 mod type_shape;
 mod untyped_conversion;
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::Kind;
 use std::path::Path;
 
 fn measured(source: &str, kind: Kind) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

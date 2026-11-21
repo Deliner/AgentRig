@@ -1,3 +1,4 @@
+use super::DETACHED;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::{Kind, Ownership, Reference};
 use std::path::Path;
@@ -8,7 +9,7 @@ const BLOCKING: Kind = Kind::Reference(Reference::BlockingInAsync);
 // DECISION: D117
 // DECISION: D118
 fn findings(kind: Kind, source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     analysis
         .measurements

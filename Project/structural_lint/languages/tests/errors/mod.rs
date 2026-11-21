@@ -4,13 +4,13 @@ mod error_verdict;
 mod except_pass;
 mod process_success;
 
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 // DECISION: D097
 fn silent_findings(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

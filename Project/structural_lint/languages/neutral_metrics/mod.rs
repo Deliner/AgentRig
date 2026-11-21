@@ -5,7 +5,7 @@ mod record;
 use crate::structural_lint::rule_identities::{Kind, Reference, Signature, Structure};
 pub use conditions::{boolean_expression, condition, mixed_junction};
 pub use nesting::{Branch, Nest, branching, nesting};
-pub use record::{Analysis, Code, Measurement, text};
+pub use record::{Analysis, Code, Context, Measurement, Project, text};
 use std::path::Path;
 use tree_sitter::{Node, Tree};
 
@@ -62,23 +62,31 @@ pub fn credential(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement
         });
     }
 }
-pub fn function(node: Node<'_>, source: Code<'_>, count: usize, output: &mut Vec<Measurement>) {
-    let symbol = node
-        .child_by_field_name("name")
+fn function_name<'a>(node: Node<'_>, source: Code<'a>) -> &'a str {
+    node.child_by_field_name("name")
         .map(|name| text(name, source))
-        .unwrap_or("<anonymous>");
+        .unwrap_or("<anonymous>")
+}
+pub fn parameter_count(
+    node: Node<'_>,
+    source: Code<'_>,
+    count: usize,
+    output: &mut Vec<Measurement>,
+) {
     output.push(Measurement {
         kind: Kind::Signature(Signature::ParameterCount),
         line: node.start_position().row + 1,
-        symbol: symbol.into(),
+        symbol: function_name(node, source).into(),
         actual: count,
     });
+}
+pub fn function_lines(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
     let has_body = node.child_by_field_name("body").is_some();
     if has_body {
         output.push(Measurement {
             kind: Kind::Structure(Structure::FunctionLines),
             line: node.start_position().row + 1,
-            symbol: symbol.into(),
+            symbol: function_name(node, source).into(),
             actual: text(node, source)
                 .lines()
                 .filter(|line| !line.trim().is_empty())
