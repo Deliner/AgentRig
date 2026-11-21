@@ -1,3 +1,4 @@
+use super::scope::Scope;
 use crate::shared::fs_with_context as fs;
 use crate::shared::parallel_map::in_parallel;
 use crate::shared::paths::globs;
@@ -14,7 +15,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, References>> {
+fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, References>> {
     let files: Vec<&PathBuf> = files.iter().collect();
     let parsed = in_parallel(&files, |path| {
         read(Rooted { root, path }).unwrap_or_else(|error| References {
@@ -25,16 +26,45 @@ pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBu
     Ok(files.into_iter().cloned().zip(parsed).collect())
 }
 
-pub fn rust_sources(
-    root: &Path,
-    files: &BTreeSet<PathBuf>,
-) -> Result<BTreeMap<PathBuf, References>> {
-    let rust_files: BTreeSet<PathBuf> = files
-        .iter()
-        .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
-        .cloned()
-        .collect();
-    extract(root, &rust_files)
+pub struct Parsed<'s> {
+    rust: BTreeMap<PathBuf, References>,
+    others: BTreeMap<PathBuf, References>,
+    scope: &'s BTreeSet<PathBuf>,
+}
+
+impl<'s> Parsed<'s> {
+    pub fn new(root: &Path, files: &BTreeSet<PathBuf>, scope: &'s Scope) -> Result<Self> {
+        let rust_files: BTreeSet<&PathBuf> = files
+            .iter()
+            .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
+            .collect();
+        let wanted: BTreeSet<PathBuf> = rust_files
+            .iter()
+            .copied()
+            .chain(&scope.files)
+            .cloned()
+            .collect();
+        let (rust, others) = extract(root, &wanted)?
+            .into_iter()
+            .partition(|(path, _)| rust_files.contains(path));
+        Ok(Self {
+            rust,
+            others,
+            scope: &scope.files,
+        })
+    }
+
+    pub fn rust(&self) -> &BTreeMap<PathBuf, References> {
+        &self.rust
+    }
+
+    pub fn scope(&self) -> BTreeMap<&PathBuf, &References> {
+        let rust = self
+            .rust
+            .iter()
+            .filter(|(path, _)| self.scope.contains(*path));
+        rust.chain(&self.others).collect()
+    }
 }
 
 fn read(located: Rooted<'_>) -> Result<References> {
@@ -218,22 +248,16 @@ impl<'a> Resolvers<'a> {
 
     pub fn dependencies(
         &self,
-        sources: BTreeMap<PathBuf, References>,
+        sources: &BTreeMap<&PathBuf, &References>,
     ) -> Result<BTreeMap<PathBuf, Dependencies>> {
         let files: Vec<_> = sources.iter().collect();
         let resolved = in_parallel(&files, |(path, references)| self.resolved(path, references))?;
-        let paired = sources.into_iter().zip(resolved);
-        let files = paired.map(|((path, references), mut dependencies)| {
-            let mut incomplete = references.issues;
-            incomplete.append(&mut dependencies.incomplete);
-            dependencies.incomplete = incomplete;
-            (path, dependencies)
-        });
-        Ok(files.collect())
+        let paths = files.into_iter().map(|(path, _)| (*path).clone());
+        Ok(paths.zip(resolved).collect())
     }
 
     fn resolved(&self, path: &Path, references: &References) -> Dependencies {
-        let mut gaps = Vec::new();
+        let mut gaps = references.issues.clone();
         let mut violations = Vec::new();
         let mut edges = Vec::new();
         let mut used = Externals::default();

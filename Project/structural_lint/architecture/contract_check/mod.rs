@@ -71,10 +71,9 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
         .architecture
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
-    let rust_sources = analysis::rust_sources(&root, &files)?;
-    let (resolvers, issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
-    let sources = analysis::extract(&root, &scope.files)?;
-    let analyzed = dependencies(&resolvers, sources)?;
+    let parsed = analysis::Parsed::new(&root, &files, &scope)?;
+    let (resolvers, issues) = analysis::Resolvers::new(&root, &files, parsed.rust(), settings)?;
+    let analyzed = dependencies(&resolvers, &parsed.scope())?;
     Ok(Some(Measured {
         root,
         scope,
@@ -133,7 +132,7 @@ struct Analysis {
 }
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
-    sources: BTreeMap<PathBuf, References>,
+    sources: &BTreeMap<&PathBuf, &References>,
 ) -> Result<Analysis> {
     let mut edges = Vec::new();
     let mut issues = Vec::new();
