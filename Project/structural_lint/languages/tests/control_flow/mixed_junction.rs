@@ -1,9 +1,9 @@
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use std::path::Path;
 
 // DECISION: D156
 fn mixed_lines(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     analysis.mixed_junctions
 }

@@ -1,7 +1,21 @@
 // DECISION: D037
-use super::analyze;
-use crate::structural_lint::rule_identities::{Kind, Reference, Signature, Structure};
+use super::{Context, Imported, Project, PythonImport, analyze};
+use crate::structural_lint::rule_identities::{Kind, RUST_SEED, Reference, Signature, Structure};
 use std::path::Path;
+
+struct Detached;
+impl Project for Detached {
+    fn foreign_crate(&self, name: &str) -> bool {
+        RUST_SEED.contains(&name)
+    }
+    fn python_import(&self, _from: &Path, _import: PythonImport<'_>) -> Imported {
+        Imported::Unknown
+    }
+}
+const DETACHED: Context<'static> = Context {
+    pairs: &[],
+    project: &Detached,
+};
 
 mod async_code;
 mod configuration;
@@ -19,7 +33,7 @@ mod test_code;
 mod unsafe_site;
 
 fn comment_lines(path: &str, source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements
@@ -83,7 +97,7 @@ def run():
 }
 
 fn symbol_actuals(kind: Kind, path: &str, source: &str) -> Vec<(String, usize)> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut actuals: Vec<_> = analysis
         .measurements
@@ -97,7 +111,7 @@ fn symbol_actuals(kind: Kind, path: &str, source: &str) -> Vec<(String, usize)> 
 
 // DECISION: D122
 fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, usize)> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut counts: Vec<_> = analysis
         .measurements
@@ -111,7 +125,7 @@ fn line_actuals(kind: Kind, path: &str, source: &str) -> Vec<(usize, usize)> {
 
 // DECISION: D062
 fn boolean_params(path: &str, source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut names: Vec<_> = analysis
         .measurements
@@ -180,7 +194,7 @@ class Config:
 
 // DECISION: D067
 fn secret_findings(path: &str, source: &str) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

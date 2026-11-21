@@ -1,10 +1,10 @@
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::{Kind, Ownership};
 use std::path::Path;
 
 // DECISION: D155
 fn unit_lock_findings(source: &str) -> Vec<String> {
-    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

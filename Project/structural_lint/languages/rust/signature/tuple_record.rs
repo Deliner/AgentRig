@@ -1,11 +1,17 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
-use crate::structural_lint::languages::rust::exemptions::in_test_context;
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, Project, text};
+use crate::structural_lint::languages::rust::exemptions::{foreign_signature, in_test_context};
 use crate::structural_lint::rule_identities::{Kind, Signature};
 use tree_sitter::Node;
 
 // DECISION: D088
 // DECISION: D101
-pub(super) fn record_signature(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+// DECISION: D229
+pub(super) fn record_signature(
+    node: Node<'_>,
+    source: Code<'_>,
+    project: &dyn Project,
+    output: &mut Vec<Measurement>,
+) {
     let named = matches!(node.kind(), "function_item" | "function_signature_item");
     let tuple = annotations(node).any(|annotation| {
         let top = named && annotation.kind() == "tuple_type";
@@ -15,7 +21,7 @@ pub(super) fn record_signature(node: Node<'_>, source: Code<'_>, output: &mut Ve
     if plain {
         return;
     }
-    let allowed = in_test_context(node, source);
+    let allowed = in_test_context(node, source) || foreign_signature(node, source, project);
     if allowed {
         return;
     }

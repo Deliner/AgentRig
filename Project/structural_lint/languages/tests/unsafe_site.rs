@@ -1,10 +1,11 @@
+use super::DETACHED;
 use crate::structural_lint::languages::analyze;
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 // DECISION: D065
 fn unsafe_findings(path: &str, source: &str) -> Vec<usize> {
-    let analysis = analyze(Path::new(path), source, &[]).unwrap();
+    let analysis = analyze(Path::new(path), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut lines: Vec<_> = analysis
         .measurements

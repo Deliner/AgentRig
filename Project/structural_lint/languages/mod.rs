@@ -3,24 +3,28 @@ mod manifest;
 mod neutral_metrics;
 mod program;
 mod python;
+// DECISION: D229
+mod python_override;
 mod registry;
 mod rust;
 // DECISION: D223
 mod test_files;
 #[cfg(test)]
 mod tests;
-pub use neutral_metrics::{Analysis, Code, Measurement, text};
+pub use neutral_metrics::{
+    Analysis, Code, Context, Imported, Measurement, Project, PythonImport, Source, text,
+};
 pub use program::{program_language, program_languages};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::{ENTRY_FILES, in_test_context};
 
 use crate::shared::source_parsers;
-use crate::structural_lint::rule_identities::Pair;
-use anyhow::{Context, Result};
+use anyhow::{Context as _, Result};
 use std::path::Path;
 
 // DECISION: D156
-pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
+// DECISION: D229
+pub fn analyze(path: &Path, source: &str, context: Context<'_>) -> Result<Analysis> {
     let handler = handler(path).context("unsupported source language")?;
     let inspect_node = match &handler.inspect {
         registry::Inspect::Document(analyze) => {
@@ -48,7 +52,7 @@ pub fn analyze(path: &Path, source: &str, pairs: &[Pair]) -> Result<Analysis> {
         }
         let inspect = valid && node.is_named();
         if inspect {
-            inspect_node(node, code, pairs, &mut analysis);
+            inspect_node(node, code, context, &mut analysis);
         }
         let mut cursor = node.walk();
         pending.extend(

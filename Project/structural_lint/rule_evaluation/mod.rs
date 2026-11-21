@@ -3,6 +3,7 @@ mod baseline;
 mod evaluation;
 mod file_measures;
 mod findings;
+mod foreign_code;
 mod lifting;
 mod location;
 #[cfg(test)]

@@ -3,12 +3,12 @@ mod test_in_code_file;
 mod test_placement;
 mod test_substitution;
 mod untargeted_panic;
-use crate::structural_lint::languages::analyze;
+use crate::structural_lint::languages::{analyze, tests::DETACHED};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 fn measured(source: &str, kind: Reference) -> Vec<(usize, String)> {
-    let analysis = analyze(Path::new("source.rs"), source, &[]).unwrap();
+    let analysis = analyze(Path::new("source.rs"), source, DETACHED).unwrap();
     assert_eq!(analysis.parse_error, None);
     let mut found: Vec<_> = analysis
         .measurements

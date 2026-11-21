@@ -8,9 +8,14 @@ mod same_type;
 mod tuple_record;
 mod type_shape;
 mod untyped_conversion;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, Project};
 use tree_sitter::Node;
-pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+pub(super) fn inspect(
+    node: Node<'_>,
+    source: Code<'_>,
+    project: &dyn Project,
+    output: &mut Vec<Measurement>,
+) {
     match node.kind() {
         "source_file" => {
             ord_equality::inspect(node, source, output);
@@ -24,10 +29,10 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         "enum_variant" => same_type::positions(node, source, output),
         "enum_item" => implicit_order::inspect(node, source, output),
         "function_item" | "function_signature_item" => {
-            tuple_record::record_signature(node, source, output);
+            tuple_record::record_signature(node, source, project, output);
             same_type::parameters(node, source, output);
         }
-        "closure_expression" => tuple_record::record_signature(node, source, output),
+        "closure_expression" => tuple_record::record_signature(node, source, project, output),
         "type_item" => type_shape::alias(node, source, output),
         "generic_type" => type_shape::option(node, source, output),
         "impl_item" => partial_impl::inspect(node, source, output),

@@ -13,20 +13,21 @@ mod suppression;
 mod test_code;
 mod unsafe_site;
 use crate::structural_lint::languages::neutral_metrics::{
-    Analysis, Branch, Code, Measurement, Nest, boolean_expression, boolean_parameters, branching,
-    comment, condition, credential, function, mixed_junction, nesting, reparse, text,
+    Analysis, Branch, Code, Context, Measurement, Nest, Project, boolean_expression,
+    boolean_parameters, branching, comment, condition, credential, function_lines, mixed_junction,
+    nesting, parameter_count, reparse, text,
 };
-use crate::structural_lint::rule_identities::{Kind, Pair, Reference, Structure};
-use exemptions::in_debug_only_context;
+use crate::structural_lint::rule_identities::{Kind, Reference, Structure};
 pub(crate) use exemptions::{ENTRY_FILES, in_test_context};
+use exemptions::{foreign_signature, in_debug_only_context};
 use tree_sitter::Node;
 // DECISION: D017
 // DECISION: D037
-pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut Analysis) {
+pub fn inspect(node: Node<'_>, source: Code<'_>, context: Context<'_>, analysis: &mut Analysis) {
     analysis.mixed_junctions.extend(mixed_junction(node));
     let output = &mut analysis.measurements;
-    signature::inspect(node, source, output);
-    ownership::inspect(node, source, pairs, output);
+    signature::inspect(node, source, context.project, output);
+    ownership::inspect(node, source, context.pairs, output);
     control_flow::inspect(node, source, output);
     errors::inspect(node, source, output);
     naming::inspect(node, source, output);
@@ -53,7 +54,7 @@ pub fn inspect(node: Node<'_>, source: Code<'_>, pairs: &[Pair], analysis: &mut 
         "if_expression" => conditional(node, output),
         "binary_expression" | "let_chain" => boolean_expression(node, output),
         "function_item" | "function_signature_item" | "closure_expression" => {
-            declaration(node, source, output);
+            declaration(node, source, context.project, output);
             unsafe_site::inspect(node, source, output);
         }
         _ => {}
@@ -91,7 +92,12 @@ fn conditional(node: Node<'_>, output: &mut Vec<Measurement>) {
     }
     condition(test, output);
 }
-fn declaration(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+fn declaration(
+    node: Node<'_>,
+    source: Code<'_>,
+    project: &dyn Project,
+    output: &mut Vec<Measurement>,
+) {
     let Some(parameters) = node.child_by_field_name("parameters") else {
         return;
     };
@@ -108,9 +114,14 @@ fn declaration(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) 
             !excluded
         })
         .count();
-    function(node, source, count, output);
+    // DECISION: D229
+    let judged = !foreign_signature(node, source, project);
+    if judged {
+        parameter_count(node, source, count, output);
+        boolean_parameters(node, source, flag, output);
+    }
+    function_lines(node, source, output);
     nesting(node, source, classify, output);
-    boolean_parameters(node, source, flag, output);
     branching(node, source, branch, output);
 }
 // DECISION: D081

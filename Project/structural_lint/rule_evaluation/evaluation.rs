@@ -1,25 +1,26 @@
 use super::file_measures::{structural_measurements, syntax_analyses};
 use super::findings::{finding, mixed_junction, syntax_error};
+use super::foreign_code::Declared;
 use super::lifting;
 use crate::shared::diagnostics::Diagnostic;
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
 use crate::structural_lint::architecture;
 use crate::structural_lint::languages::{self, program_language};
-use crate::structural_lint::rule_identities::{ControlFlow, Kind, Pair, Reference, Structure};
+use crate::structural_lint::rule_identities::{ControlFlow, Kind, Reference, Settings, Structure};
 use crate::structural_lint::rule_set::{capabilities, lint_config};
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::{Context, Result};
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::{BTreeSet, HashMap, hash_map::Entry};
 use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
-#[derive(Default)]
 struct Evaluation<'a> {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
     output: Vec<Diagnostic>,
     // DECISION: D156
-    pairs: &'a [Pair],
+    // DECISION: D229
+    context: languages::Context<'a>,
     comment_rules: Vec<&'a lint_config::Rule>,
     // DECISION: D225
     // DECISION: D227
@@ -43,9 +44,32 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         .iter()
         .find_map(|rule| rule.pairs.as_deref())
         .unwrap_or_default();
+    let unset = Settings::default();
+    let settings = config
+        .rules
+        .iter()
+        .find_map(|rule| rule.architecture.as_ref())
+        .unwrap_or(&unset);
+    let files: BTreeSet<PathBuf> = inventory.files.iter().cloned().collect();
+    let project = Declared {
+        settings,
+        root,
+        python: architecture::Python::new(
+            &settings.python_root,
+            &files,
+            &settings.external.python,
+        )?,
+    };
     let mut evaluation = Evaluation {
-        pairs,
-        ..Evaluation::default()
+        analyses: HashMap::new(),
+        output: Vec::new(),
+        context: languages::Context {
+            pairs,
+            project: &project,
+        },
+        comment_rules: Vec::new(),
+        dependency_rules: Vec::new(),
+        edges: architecture::Edges::default(),
     };
     for rule in &config.rules {
         evaluation.measure(root, rule, &inventory)?;
@@ -194,7 +218,7 @@ fn syntax_rule_findings(
     let Evaluation {
         analyses,
         output,
-        pairs,
+        context,
         ..
     } = evaluation;
     let unparsed: Vec<&Path> = targets
@@ -202,7 +226,7 @@ fn syntax_rule_findings(
         .map(|selected| selected.path)
         .filter(|path| !analyses.contains_key(*path))
         .collect();
-    let mut parsed = syntax_analyses(root, &unparsed, pairs)?;
+    let mut parsed = syntax_analyses(root, &unparsed, *context)?;
     for selected in targets {
         let path = selected.path;
         let analysis = match analyses.entry(path.to_owned()) {
