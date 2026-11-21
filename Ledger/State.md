@@ -7,17 +7,17 @@ P185 (B192): the memory history reads the fork revision once and keeps one reade
 ## Workspace
 
 Branch: feature/history-reads
-Revision: fbb479005ad65d213a885aae018499641074742f
+Revision: 1f64a685df6995727bd0c5e78d32f55bb91b6bca
 
 ## Progress
 
-VAC 2: `revision_memory.rs` owns a revision snapshot with its tree, memory directory and cached texts. `history.rs`
-loads one snapshot per checked revision and hands the fork snapshot to `invariant_history.rs`, whose `Prior` no
-longer repeats the reading code. The temporary probe is removed.
+VAC 3 archives P185 and B192 with the history step timings and the acceptance results; AC1–AC3 are met. The Plan
+table is empty again.
 
 ## Verification
 
-`just test` passes 616 tests, as on master `a362a1c`. `just lint` reports nothing. History step median 202 → 157 ms.
+At `1f64a68` `just test` passes 616 tests and `just lint` reports nothing. History step median 202 → 157 ms, memory
+check median 495 → 440 ms.
 
 ## Blockers
 
@@ -25,4 +25,4 @@ None.
 
 ## Next action
 
-Commit VAC 2, then archive P185 and B192 with the timings and acceptance results and run `just feature-merge`.
+Commit VAC 3, then run `just feature-merge` without a pin; the user installs the pin with `! just approve`.

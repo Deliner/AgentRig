@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P185](Plan/185.md) | active | - | [B192](Backlog/192.md): история памяти читает ревизию форка один раз | Проверка памяти в каждом гейте идёт быстрее, а чтение закоммиченной памяти меняется в одном месте. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
