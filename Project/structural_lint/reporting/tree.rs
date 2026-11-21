@@ -2,7 +2,7 @@ use super::explain::selected_path;
 use super::structure::{self, Texts};
 use crate::shared::paths::globs;
 use crate::shared::{console, fs_with_context as fs};
-use crate::structural_lint::Location;
+use crate::structural_lint::rule_evaluation::Location;
 use crate::structural_lint::rule_identities::TEST_CODE;
 use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, bail, ensure};

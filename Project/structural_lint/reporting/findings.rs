@@ -2,11 +2,18 @@ use crate::shared::calling_agent::Caller;
 use crate::shared::console;
 use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs_with_context as fs;
-use crate::structural_lint::{Format, Location, Mode, analyze};
+use crate::structural_lint::rule_evaluation::{Location, Mode, analyze};
 use anyhow::Result;
 use std::path::Path;
 
 const CONFIG_SKILL: &str = "repair (set config_skill in the lint configuration)";
+
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Format {
+    Json,
+    Text,
+}
 
 pub(super) struct Output<'a> {
     pub(super) format: Format,

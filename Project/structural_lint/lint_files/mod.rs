@@ -10,7 +10,7 @@ use std::path::{Path, PathBuf};
 pub(super) type Counts = BTreeMap<String, BTreeMap<String, u64>>;
 
 // DECISION: D123
-pub fn location(config: &Path) -> PathBuf {
+pub fn baseline_path(config: &Path) -> PathBuf {
     let stem = config.file_stem().unwrap_or_default().to_string_lossy();
     config.with_file_name(format!("{stem}-baseline.yaml"))
 }

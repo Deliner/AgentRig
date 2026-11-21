@@ -29,7 +29,7 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
         return Ok(());
     }
     let lint = project_config::relative(root, &config.paths.lint)?;
-    let errors = crate::structural_lint::baseline::errors(Location {
+    let errors = crate::structural_lint::error_count(Location {
         root,
         config: &lint,
     })?;

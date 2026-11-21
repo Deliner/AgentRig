@@ -1,15 +1,14 @@
-use super::architecture;
-use super::languages::{self, program_language};
 use super::lifting;
-use super::rule_identities::{self, Kind};
-use super::rule_set::{capabilities, lint_config};
-use super::targeting::{file_discovery, lint_targets};
 use crate::shared::diagnostics::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
+use crate::structural_lint::architecture;
+use crate::structural_lint::languages::{self, program_language};
 use crate::structural_lint::rule_identities::{
-    CONTRACT_FILENAME, ControlFlow, MIXED_JUNCTIONS, Pair, Reference, Structure,
+    self, CONTRACT_FILENAME, ControlFlow, Kind, MIXED_JUNCTIONS, Pair, Reference, Structure,
 };
+use crate::structural_lint::rule_set::{capabilities, lint_config};
+use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::{Context, Result};
 use std::collections::{HashMap, hash_map::Entry};
 use std::io::{BufRead, BufReader, Read};

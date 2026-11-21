@@ -1,5 +1,6 @@
 // DECISION: D222
-use crate::structural_lint::{evaluation::evaluate, rule_set::lint_config::Config};
+use crate::structural_lint::rule_evaluation::evaluation::evaluate;
+use crate::structural_lint::rule_set::lint_config::Config;
 use std::fs;
 
 const KINDS: [&str; 5] = [

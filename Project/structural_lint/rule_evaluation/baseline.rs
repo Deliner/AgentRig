@@ -1,9 +1,10 @@
-use super::Location;
-use super::lint_files::{Counts, Key, ceiling, committed, location, pairs};
+use super::evaluation::evaluate;
+use super::location::Location;
 use crate::shared::console;
 use crate::shared::diagnostics::{Diagnostic, Level};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;
+use crate::structural_lint::lint_files::{Counts, Key, baseline_path, ceiling, committed, pairs};
 use anyhow::{Context, Result};
 use std::path::Path;
 
@@ -32,7 +33,7 @@ fn counts(diagnostics: &[Diagnostic]) -> Counts {
 
 // DECISION: D123
 pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<()> {
-    let path = location(config);
+    let path = baseline_path(config);
     let Some(baseline) = load(&path)? else {
         return Ok(());
     };
@@ -68,19 +69,19 @@ pub(super) fn ratchet(config: &Path, diagnostics: &mut [Diagnostic]) -> Result<(
 
 fn current(lint: Location<'_>) -> Result<Counts> {
     let config = lint.load()?;
-    Ok(counts(&super::evaluation::evaluate(lint.root, &config)?))
+    Ok(counts(&evaluate(lint.root, &config)?))
 }
 
-pub fn errors(lint: Location<'_>) -> Result<u64> {
+pub fn error_count(lint: Location<'_>) -> Result<u64> {
     Ok(pairs(&current(lint)?).map(|pair| pair.count).sum())
 }
 
 // DECISION: D123
 // DECISION: D139
 // DECISION: D214
-pub fn record(lint: Location<'_>) -> Result<i32> {
+pub fn record_baseline(lint: Location<'_>) -> Result<i32> {
     let current = current(lint)?;
-    let path = location(lint.config);
+    let path = baseline_path(lint.config);
     let findings = match load(&path)? {
         Some(baseline) => lowered(limit(lint, baseline)?, &current),
         None => current.clone(),
@@ -108,7 +109,7 @@ pub fn record(lint: Location<'_>) -> Result<i32> {
 // DECISION: D140
 fn limit(lint: Location<'_>, working: Counts) -> Result<Counts> {
     let root = lint.root;
-    let path = location(lint.config);
+    let path = baseline_path(lint.config);
     let Some(repository) = Repository::discover(root)? else {
         return Ok(working);
     };

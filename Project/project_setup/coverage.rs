@@ -58,7 +58,7 @@ struct Mapped<'a> {
 pub fn config_check(context: &Context) -> Result<i32> {
     let lint = if context.config.capabilities.lint {
         let config = context.path(&context.config.paths.lint)?;
-        crate::structural_lint::reporting::findings::run(
+        crate::structural_lint::run(
             Location {
                 root: &context.root,
                 config: &config,

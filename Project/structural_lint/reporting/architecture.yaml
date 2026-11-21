@@ -1,8 +1,8 @@
 purpose: Parse lint commands and print findings, rule discovery, explanations, measured edges and the tree and structure reports
 files:
-  mod.rs: Declarations of the command, findings, explanation, tree and structure report parts
+  mod.rs: Declarations of the report parts and the commands, output format and findings runs they offer
   cli.rs: Embedded and standalone command arguments, the inspection command table and rule discovery output
-  findings.rs: Run the lint or its configuration check and print findings with each skill as the caller sees it and a rerun command
+  findings.rs: Output formats and runs of the lint or its configuration check that print findings with each skill as the caller sees it and a rerun command
   explain.rs: Explain why a configured rule selects or excludes a target and list measured directory edges
   tree.rs: Print the lint inventory under a directory as a box-drawing tree of names and read the code and contracts of a Rust tree for its structure score
 directories:

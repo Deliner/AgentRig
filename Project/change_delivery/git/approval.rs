@@ -4,7 +4,7 @@ use crate::project_config::{Context, protection::Protection};
 use crate::shared::atomic_files::{Overlay, load_json, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};
-use crate::structural_lint::lint_files;
+use crate::structural_lint;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -217,13 +217,13 @@ impl Review<'_, '_> {
         let extending = protection.lint() == file && !approved;
         if extending {
             let kept = self.committed.contains_key(path) && self.index.contains_key(path);
-            return Ok(kept && lint_files::only_adds_rules(self.repository, file)?);
+            return Ok(kept && structural_lint::only_adds_rules(self.repository, file)?);
         }
         // DECISION: D214
         let lowerable = protection.baseline() == file && !approved;
         if lowerable {
             let removed = !self.index.contains_key(path);
-            return Ok(removed || lint_files::only_lowers_counts(self.repository, file)?);
+            return Ok(removed || structural_lint::only_lowers_counts(self.repository, file)?);
         }
         Ok(approved)
     }

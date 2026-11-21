@@ -1,10 +1,10 @@
-use super::findings::{Output, configuration_error, run_output};
+use super::findings::{Format, Output, configuration_error, run_output};
 use crate::shared::calling_agent::{Agent, Caller};
 use crate::shared::console;
 use crate::shared::shared_options::take_option;
+use crate::structural_lint::rule_evaluation::{Location, Mode};
 use crate::structural_lint::rule_identities::{self, Structure};
 use crate::structural_lint::rule_set::capabilities;
-use crate::structural_lint::{Format, Location, Mode};
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
 

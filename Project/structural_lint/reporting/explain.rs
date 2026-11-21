@@ -1,7 +1,7 @@
 use crate::shared::console;
 use crate::shared::paths::globs;
-use crate::structural_lint::Location;
 use crate::structural_lint::architecture::{self, Rooted};
+use crate::structural_lint::rule_evaluation::Location;
 use crate::structural_lint::rule_identities::{Kind, Structure};
 use crate::structural_lint::rule_set::lint_config;
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
