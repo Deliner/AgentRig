@@ -7,18 +7,17 @@ P190 (B197): lint reads and parses the sources selected by syntax rules on sever
 ## Workspace
 
 Branch: feature/parallel-lint
-Revision: 07ccd4b900d63dd475157e8c4a495bc42f27f5f3
+Revision: 45df567258d3185f4ce5a331933b15f9c4dd0fad
 
 ## Progress
 
-VAC 1 `07ccd4b` saved B197 and selected it as P190. VAC 2 parses the selected sources that are not yet analyzed
-through `in_parallel` in file_measures.rs; evaluation.rs splits the syntax path into `syntax_rule_findings`, which
-keeps the selection order of findings and of the first error.
+VAC 1 `07ccd4b` saved B197; VAC 2 `45df567` parses the selected sources on several threads. VAC 3 archives P190 and
+B197 with the delivery evidence and the acceptance results.
 
 ## Verification
 
-Release candidate on AgentRig, `just candidate lint`, warm runs of the rule evaluation: before on `3a92de1` 2526, 2521,
-2510 and 2522 ms; after 1381, 1508, 1348, 1352, 1359 and 1359 ms. rustfmt, clippy and candidate lint are clean.
+The VAC 2 gate passed 539 affected tests; the full `just test` passed 617 tests at `45df567`, and `just lint` there is
+clean. Rule evaluation medians on AgentRig: 2521.5 ms before, 1370 ms after.
 
 ## Blockers
 
@@ -26,4 +25,4 @@ None.
 
 ## Next action
 
-Commit VAC 2 through the gate, run the full test suite, then archive P190 and B197 in VAC 3 and run feature-merge.
+Commit VAC 3, then run `just feature-merge`; the user sets the pin.
