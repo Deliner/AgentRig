@@ -1,4 +1,4 @@
-use super::Files;
+use super::contents::Files;
 use crate::project_config::{Config, Context};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, Permissions, PermissionsExt};

@@ -1,7 +1,7 @@
 // DECISION: D132
 // DECISION: D154
 use super::write;
-use crate::project_setup::initialization::init;
+use crate::project_setup::init;
 use crate::shared::testing::{repository, snapshot};
 use anyhow::Result;
 use serde_yaml_ng::Value;

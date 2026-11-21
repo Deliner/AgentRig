@@ -157,7 +157,7 @@ fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result
     for path in files.iter().filter(rust) {
         texts.insert(path.clone(), fs::read_to_string(root.join(path))?);
     }
-    let layout = super::rust::manifest_layout(root, &manifest.to_string_lossy())?;
+    let layout = crate::project_setup::rust::manifest_layout(root, &manifest.to_string_lossy())?;
     structural_lint::crate_modules(&texts, &layout.roots)
 }
 

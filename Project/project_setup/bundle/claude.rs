@@ -1,5 +1,6 @@
-use super::{Config, Files, adapters};
-use crate::project_config::Context;
+use super::adapters;
+use super::contents::Files;
+use crate::project_config::{Config, Context};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
@@ -20,7 +21,7 @@ pub(super) fn bundle(files: &mut Files, config: &Config, root_command: &str) -> 
     Ok(())
 }
 
-pub(super) fn registration(context: &Context) -> Result<bool> {
+pub fn registration(context: &Context) -> Result<bool> {
     let settings = fs::read(context.root.join(".claude/settings.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok());

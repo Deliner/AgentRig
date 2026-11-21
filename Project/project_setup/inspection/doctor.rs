@@ -1,6 +1,7 @@
-use super::rust::Requirement;
 use crate::command_runner;
 use crate::project_config::{Access, Context};
+use crate::project_setup::bundle;
+use crate::project_setup::rust::Requirement;
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
@@ -31,7 +32,7 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !sandbox_availability(context);
     failed |= !vcs_registration(context)?;
     failed |= !codex_registration(context)?;
-    failed |= !super::claude::registration(context)?;
+    failed |= !bundle::claude_registration(context)?;
     if failed {
         let rerun = crate::shared::diagnostics::rerun(&context.root, &["doctor".into()]);
         console::stderr(crate::shared::diagnostics::Guidance {
@@ -128,7 +129,7 @@ fn vcs_registration(context: &Context) -> Result<bool> {
     let registered = crate::shared::vcs::Repository::new(&context.root)
         .hooks_registered(&context.config.paths.service_path("hooks"))?;
     let registered = registered
-        && super::adapters::vcs_hooks(&context.config)?
+        && bundle::vcs_hooks(&context.config)?
             .iter()
             .all(|(path, contents)| {
                 available(path, &context.root)
@@ -157,8 +158,8 @@ fn codex_registration(context: &Context) -> Result<bool> {
     let configured = fs::read(context.root.join(".codex/hooks.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
-    let codex = enabled
-        && super::adapters::hooks_registered(&context.config, configured.as_ref(), Agent::Codex)?;
+    let codex =
+        enabled && bundle::hooks_registered(&context.config, configured.as_ref(), Agent::Codex)?;
     console::stdout(format!(
         "Codex registration: {}",
         if codex {

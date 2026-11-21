@@ -1,6 +1,6 @@
 # Flat skill symlinks preserve existing hook and client instruction paths.
 # Their canonical bodies are inventoried under their subgroup; discovery skips symlink aliases.
-# Installed skill names remain flat through project_setup/skills.rs.
+# Installed skill names remain flat through project_setup/bundle/skills.rs.
 purpose: "Provide canonical agent guidance for delivery, architectural repair and project memory"
 files: {}
 directories:

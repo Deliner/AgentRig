@@ -116,7 +116,7 @@ impl Command {
 }
 pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
     match command {
-        Command::Init => project_setup::initialization::init(root, args),
+        Command::Init => project_setup::init(root, args),
         Command::GuardCommit => guard_commit(root, args),
         Command::Check => {
             change_delivery::check_selected(root, change_delivery::check_arguments(args)?)

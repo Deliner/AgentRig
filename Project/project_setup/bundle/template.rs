@@ -1,15 +1,15 @@
-use super::rust::{
-    ClippySettings, Layout, Requirement, build_rustflags, cargo_layout, clippy_argv,
-    clippy_settings,
-};
 use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
     Route, RouteEvent, Rust, Tools, View, Views,
 };
+use crate::project_setup::rust::{
+    ClippySettings, Layout, Requirement, build_rustflags, cargo_layout, clippy_argv,
+    clippy_settings,
+};
 use crate::shared::calling_agent::Agent;
 use anyhow::{Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path};
-pub(super) type Options<'a> = BTreeMap<&'a str, String>;
+pub type Options<'a> = BTreeMap<&'a str, String>;
 // DECISION: D040
 // DECISION: D187
 pub(super) const SOURCE: &str = "Project";
@@ -17,7 +17,7 @@ const MEMORY: &str = "Ledger";
 // DECISION: D189
 pub(super) const CACHE: &str = ".cache";
 const ORIGIN: &str = "origin";
-pub(super) fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
+pub fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
         ("skills", ".agentrig/skills"),
@@ -72,12 +72,12 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
     }
     Ok(())
 }
-pub(super) struct Scaffold {
+pub struct Scaffold {
     pub config: Config,
     pub rust: Layout,
     pub clippy: Option<ClippySettings>,
 }
-pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
+pub fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let python = options["language"] == "python";
     let (rust, clippy, rustflags) = if python {
         let rust = Layout {

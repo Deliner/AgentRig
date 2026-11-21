@@ -1,4 +1,4 @@
-use super::Config;
+use crate::project_config::Config;
 use crate::shared::calling_agent::Agent;
 use anyhow::Result;
 
@@ -45,7 +45,7 @@ pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result
     Ok(serde_json::to_vec_pretty(&value)?)
 }
 
-pub(super) fn hooks_registered(
+pub fn hooks_registered(
     config: &Config,
     configured: Option<&serde_json::Value>,
     agent: Agent,

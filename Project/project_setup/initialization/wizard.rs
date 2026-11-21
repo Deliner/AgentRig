@@ -1,6 +1,6 @@
-use crate::project_config;
-use crate::project_setup::template::{self, Scaffold};
-use crate::project_setup::{self as package, Config, Files};
+use crate::project_config::{self, Config};
+use crate::project_setup::bundle::{self, Files, Scaffold};
+use crate::project_setup::inspection;
 use crate::shared::console;
 use anyhow::{Result, ensure};
 use std::{
@@ -17,7 +17,7 @@ pub fn run(root: &Path) -> Result<i32> {
         return cancelled();
     };
     let config = &scaffold.config;
-    let files = package::bundle(&scaffold)?;
+    let files = bundle::files(&scaffold)?;
     super::no_overwrite_init::prepare(&root, config, &files)?;
     console::stdout(format!(
         "Configuration for {root}:\n{config}\nFiles:\n{files}",
@@ -35,7 +35,7 @@ pub fn run(root: &Path) -> Result<i32> {
         super::no_overwrite_init::install(&root, &scaffold, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
         super::no_overwrite_init::offer_ratchet(&root, config)?;
-        package::doctor(&project_config::Context::load(&root)?)
+        inspection::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()
     }
@@ -46,7 +46,7 @@ fn listing(root: &Path, scaffold: &Scaffold, files: &Files) -> String {
         .clippy
         .iter()
         .map(|settings| settings.path().trim_prefix(root).display().to_string());
-    let links = package::skill_links(&scaffold.config)
+    let links = bundle::skill_links(&scaffold.config)
         .into_iter()
         .map(|(path, target)| format!("{path} -> {}", target.display()));
     let listed: Vec<String> = files.keys().cloned().chain(clippy).chain(links).collect();
@@ -76,7 +76,7 @@ fn selection(root: &Path) -> Result<Option<(PathBuf, Scaffold)>> {
 }
 
 fn project_config(root: &Path) -> Result<Option<Scaffold>> {
-    let mut options = template::options(root, &[])?;
+    let mut options = bundle::options(root, &[])?;
     for (key, label) in [
         ("language", "Language: python/rust"),
         ("service", "Service directory"),
@@ -97,8 +97,8 @@ fn project_config(root: &Path) -> Result<Option<Scaffold>> {
         .iter()
         .flat_map(|(key, value)| [format!("--{key}"), value.clone()])
         .collect();
-    let options = template::options(root, &args)?;
-    Ok(Some(template::scaffold(root, &options)?))
+    let options = bundle::options(root, &args)?;
+    Ok(Some(bundle::scaffold(root, &options)?))
 }
 
 fn select_checks(config: &mut Config, value: &str) -> Result<()> {

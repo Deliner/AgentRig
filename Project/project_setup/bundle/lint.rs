@@ -1,8 +1,8 @@
 // DECISION: D021
 // DECISION: D036
-use super::rust::Layout;
 use super::template::{CACHE, SOURCE};
-use crate::project_config::Paths;
+use crate::project_config::{Config, Paths};
+use crate::project_setup::rust::Layout;
 use crate::structural_lint::{Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -26,7 +26,7 @@ const MEMORY_REGISTRIES: [&str; 6] = [
     "Archive/Backlog",
 ];
 
-pub fn template(settings: &super::Config, rust: &Layout, language: &str) -> Result<String> {
+pub fn template(settings: &Config, rust: &Layout, language: &str) -> Result<String> {
     let paths = &settings.paths;
     let mut rules: Vec<Value> = RULE_KINDS
         .iter()

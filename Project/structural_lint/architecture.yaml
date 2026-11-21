@@ -1,5 +1,5 @@
 purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
-dependents: 9
+dependents: 10
 files:
   mod.rs: Declarations of the lint parts and the location, modes, commands, baseline, lint file checks, rule kinds, maintained files and crate module paths they offer
 directories:
