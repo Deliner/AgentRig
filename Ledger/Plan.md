@@ -14,6 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
+| [P191](Plan/191.md) | active | - | [B198](Backlog/198.md): правило архитектуры разбирает исходники в несколько потоков | Каждый запуск lint и каждый гейт идут быстрее. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
@@ -248,3 +249,6 @@ VAC ветки `feature/shared-applications` от master `9e1b654`. Ветка �
 
 2026-11-21 после P189 по тому же поручению карточка B197 сохранена и выбрана как **P190**. Карточка в Git в первом
 VAC ветки `feature/parallel-lint` от master `3a92de1`. Ветка сливается без пина, пин ставит пользователь.
+
+2026-11-21 после P190 по тому же поручению карточка B198 сохранена и выбрана как **P191**. Карточка в Git в первом
+VAC ветки `feature/parallel-architecture` от master `679083e`. Ветка сливается без пина, пин ставит пользователь.
