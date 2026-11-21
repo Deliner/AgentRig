@@ -26,9 +26,20 @@ pub fn exceptions(path: &Path, source: &str) -> Result<Vec<Exception>> {
     if lines {
         return Ok(line_exceptions(source));
     }
+    let unmarked = !source.lines().any(ends_in_exception);
+    if unmarked {
+        return Ok(Vec::new());
+    }
     Ok(parse(path, source)?
         .map(|tree| tree_exceptions(tree.root_node(), source))
         .unwrap_or_default())
+}
+fn ends_in_exception(line: &str) -> bool {
+    line.match_indices(['/', '#']).any(|(start, _)| {
+        line.get(start..)
+            .and_then(marker)
+            .is_some_and(|marker| marker.rule.is_some())
+    })
 }
 pub fn tree_exceptions(root: Node<'_>, source: &str) -> Vec<Exception> {
     let mut found = Vec::new();

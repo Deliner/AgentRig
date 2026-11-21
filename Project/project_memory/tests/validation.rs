@@ -105,6 +105,21 @@ fn a_decision_lists_each_exception_and_each_listed_exception_exists() {
     rejects(&root, &["memory-check"], absent);
 }
 
+// DECISION: D219
+#[test]
+fn an_exception_counts_in_a_trailing_comment_and_not_in_a_string() {
+    let (_temp, root) = consumer();
+    record(&root, "src/lib.rs");
+    let source = root.join("src/lib.rs");
+    let quoted = "// DECISION: D001\nconst TEXT: &str = \"// DECISION: D001 panic-path\";\n";
+    fs::write(&source, quoted).unwrap();
+    accepts(&root);
+    let trailing = "// DECISION: D001\nfn read() -> u8 {\n    \"1\".parse().unwrap() // DECISION: D001 panic-path\n}\n";
+    fs::write(&source, trailing).unwrap();
+    let unlisted = "remove the exception: D001 panic-path in src/lib.rs";
+    rejects(&root, &["memory-check"], unlisted);
+}
+
 // INVARIANT: I003
 #[test]
 fn committed_decisions_checked_against_staged_memory() {
