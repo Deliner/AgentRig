@@ -12,6 +12,10 @@ pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
     match command {
         Command::Init => project_setup::init(root, args),
         Command::GuardCommit => guard_commit(root, args),
+        Command::GuardReference => {
+            let phase = args.first().map(String::as_str).unwrap_or("");
+            change_delivery::guard_reference(root, phase)
+        }
         Command::Check => {
             change_delivery::check_selected(root, change_delivery::check_arguments(args)?)
         }
@@ -45,10 +49,6 @@ fn configured_command(context: &Context, command: Configured, args: &[String]) -
         Configured::Doctor => project_setup::doctor(context),
         Configured::RuntimeAdd => project_setup::runtime_add(context),
         Configured::ConfigCheck => project_setup::config_check(context),
-        Configured::GuardReference => {
-            let phase = args.first().map(String::as_str).unwrap_or("");
-            change_delivery::guard_reference_with(&context.root, phase, &context.config.git)
-        }
         Configured::FeatureStart => change_delivery::feature_start(context, &args[0]),
         Configured::FeatureMerge => change_delivery::feature_merge(context),
         Configured::FeaturePush => change_delivery::feature_push(context),

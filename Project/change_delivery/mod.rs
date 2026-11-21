@@ -5,7 +5,7 @@ pub use gate::{
     selected as check_selected,
 };
 pub use git::{
-    approve, consented_pins, give_consent, guard_commit, guard_reference_with,
-    merge as feature_merge, propose_pin, push as feature_push, record_approval, reset_state,
-    revoke_consent, start as feature_start,
+    approve, consented_pins, give_consent, guard_commit, guard_reference, merge as feature_merge,
+    propose_pin, push as feature_push, record_approval, reset_state, revoke_consent,
+    start as feature_start,
 };
