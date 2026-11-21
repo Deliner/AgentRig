@@ -13,7 +13,7 @@ use std::{
 
 pub use path_errors::{Error, Result, present};
 pub use std::fs::{File, OpenOptions, Permissions};
-pub use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
+pub use std::os::unix::fs::PermissionsExt;
 
 pub fn read(path: impl AsRef<Path>) -> Result<Vec<u8>> {
     at("read", path.as_ref(), std::fs::read(&path))

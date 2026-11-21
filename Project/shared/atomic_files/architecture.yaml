@@ -1,11 +1,10 @@
 purpose: Read, fingerprint and atomically persist shared file artifacts for execution and verification
 type: flat
 files:
-  mod.rs: Declarations of the bounded read, fingerprint, atomic replacement, atomic JSON and overlay parts
+  mod.rs: Declarations of the fingerprint, atomic replacement, atomic JSON and overlay parts
   replacement.rs: Atomic replacement of a file's content after file synchronization
   atomic_json.rs: JSON serialization through atomic replacement, and loading of a JSON file that may be absent
-  bounded_read.rs: Shared regular-file reading with caller limits
   fingerprint.rs: SHA-256 content fingerprints
   overlay.rs: Copy a mirror directory's files over a root, then remove the mirror or restore every replaced file
 directories:
-  tests: Bounded reads, fingerprints and JSON replacement, loading and failure behavior
+  tests: Fingerprints and JSON replacement, loading and failure behavior

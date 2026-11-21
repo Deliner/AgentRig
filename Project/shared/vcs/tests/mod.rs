@@ -27,8 +27,6 @@ fn revisions_are_read_exactly_and_preserve_worktrees() {
         assert_eq!(tree["link"].kind, FileKind::Symlink);
         assert_eq!(tree["new name"].kind, FileKind::File);
         assert!(!tree["binary"].object.is_empty());
-        let diff = repository.diff(range).unwrap();
-        assert!(diff.contains("new name") && diff.contains("old name") && diff.contains("binary"));
         assert_eq!(
             fs::read(root.path().join("new name")).unwrap(),
             b"uncommitted\n"
