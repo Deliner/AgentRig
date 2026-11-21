@@ -3,25 +3,23 @@
 ## Focus
 
 P174 delivers B181: the gate and tests run faster and the code gets simpler while behavior stays the same.
-VAC 8 reads the forked details and linked tests of all invariants through one Git process in invariant history.
+The final VAC archives P174 and B181 with their delivery evidence.
 
 ## Workspace
 
 Branch: feature/faster-gate
-Revision: 3e00c322a87a52044c13edfddf9fa595fc5f6e92
-VAC 8 stages Project/project_memory/invariant_history.rs. Unstaged temporary timing probes in other files stay out of
-the commit and are removed before the branch ends.
+Revision: a7e3b07bdb7dec50ca27a86789ff7aaaa7718263
+The final VAC stages the moved P174 and B181 cards and the four memory indexes. The timing probes are removed.
 
 ## Progress
 
-VAC 1 to 7 are committed. Invariant history spawned two Git reads per invariant at the fork. VAC 8 reads those
-distinct paths ahead through the existing revision_memory::read_all batch. Paths whose link does not resolve keep the
-single read, so their errors arise at the same point as before.
+VAC 1 to 8 are committed. P174 is complete and rotated into Archive/Plan with its Delivery; B181 moved unchanged to
+Archive/Backlog. Plan has no selected rows.
 
 ## Verification
 
-Warm memory-check on this repository: 1.61 s before, 1.21 s after. just test project_memory: 43 passed, including
-an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it.
+At the branch head: just test passed 614 tests in 74.2 s against 103 s; change_delivery::git 32 in 30.8 s,
+project_setup 58 in 22.5 s and agent_hooks 46 in 12.4 s. just lint reported no findings.
 
 ## Blockers
 
@@ -29,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 8, remove the timing probes, remeasure the full suite and the longest groups, then archive P174 and B181.
+Commit the archive VAC, then run just feature-merge without a pin; the user pins with ! just approve.
