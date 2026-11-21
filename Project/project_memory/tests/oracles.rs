@@ -148,17 +148,33 @@ fn invariant_oracle_must_name_a_discovered_test_carrying_its_marker() {
     }
 }
 
+fn fork(root: &Path) {
+    commit_identity(root);
+    git(root, &["add", "."]);
+    git(
+        root,
+        &["-c", "core.hooksPath=/dev/null", "commit", "-qm", "base"],
+    );
+    git(root, &["switch", "-q", "-c", "feature/change"]);
+}
+
+#[test]
+fn an_edit_outside_the_linked_test_since_the_fork_keeps_the_invariant() {
+    let (_temp, root) = project(&PYTEST, PYTEST.valid);
+    fork(&root);
+    let unchanged = memory_check(&root);
+    assert_eq!(unchanged.code, Some(0), "{}", unchanged.output());
+    let other = format!("{}\ndef test_other():\n    pass\n", PYTEST.valid);
+    write(&root, &PYTEST, &other);
+    let edited = memory_check(&root);
+    assert_eq!(edited.code, Some(0), "{}", edited.output());
+}
+
 // DECISION: D215
 #[test]
 fn an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it() {
     let (_temp, root) = project(&PYTEST, PYTEST.valid);
-    commit_identity(&root);
-    git(&root, &["add", "."]);
-    git(
-        &root,
-        &["-c", "core.hooksPath=/dev/null", "commit", "-qm", "base"],
-    );
-    git(&root, &["switch", "-q", "-c", "feature/change"]);
+    fork(&root);
     let changed =
         "I001: the invariant's predicate, oracle or linked test changed since the fork from main";
     let detail = root.join("Ledger/Invariants/001.md");

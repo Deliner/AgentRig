@@ -1,12 +1,16 @@
 // DECISION: D215
-use super::{format, revision_memory::Snapshot, source};
+use super::{
+    format,
+    revision_memory::Snapshot,
+    source::{self, Sources},
+};
 use crate::project_config::{Context, Oracle, module};
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use format::{Catalog, Row};
 use std::{
     collections::{BTreeMap, HashSet},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 struct Prior<'a> {
@@ -20,7 +24,7 @@ struct Change<'a> {
     row: &'a Row,
 }
 
-pub fn check(context: &Context, mut snapshot: Snapshot<'_>) -> Result<()> {
+pub fn check(context: &Context, mut snapshot: Snapshot<'_>, sources: &mut Sources) -> Result<()> {
     let oracles = match snapshot.text(&module("oracles"))? {
         Some(text) => crate::shared::strict_yaml::decode(&text)?,
         None => BTreeMap::new(),
@@ -33,9 +37,14 @@ pub fn check(context: &Context, mut snapshot: Snapshot<'_>) -> Result<()> {
     let current_memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&current_memory.join("Invariants.md"), Catalog::Invariants)?;
     let introduced = introduced(&mut prior.snapshot, &current_memory)?;
+    let mut linked = Vec::new();
+    for row in &current {
+        linked.extend(linked_test(context, &current_memory, row).ok());
+    }
+    sources.prepare(linked)?;
     for old in &rows {
         let kept = match current.iter().find(|row| row.id == old.id) {
-            Some(row) => unchanged(context, &mut prior, Change { old, row })?,
+            Some(row) => unchanged(context, &mut prior, Change { old, row }, sources)?,
             None => false,
         };
         ensure!(
@@ -64,7 +73,12 @@ fn introduced(prior: &mut Snapshot<'_>, memory: &Path) -> Result<HashSet<String>
         .collect())
 }
 
-fn unchanged(context: &Context, prior: &mut Prior<'_>, change: Change<'_>) -> Result<bool> {
+fn unchanged(
+    context: &Context,
+    prior: &mut Prior<'_>,
+    change: Change<'_>,
+    sources: &mut Sources,
+) -> Result<bool> {
     let Change { old, row } = change;
     let id = &old.id;
     let memory = context.path(&context.config.paths.memory)?;
@@ -73,13 +87,19 @@ fn unchanged(context: &Context, prior: &mut Prior<'_>, change: Change<'_>) -> Re
     let prior_detail = prior.snapshot.text(&located)?;
     let detail = prior_detail == Some(fs::read_to_string(memory.join(&row.detail))?);
     let oracle = prior.oracles.get(id) == context.config.oracles.get(id);
-    let link = format::link(&row.cells[2])?;
-    let linked = format::target(context, &memory, &link.path)?;
-    let current = source::inspect(&linked)?.and_then(|mut source| source.marked.remove(id));
-    let test = prior.marked(old)? == current;
+    let linked = linked_test(context, &memory, row)?;
+    let current = sources
+        .inspect(&linked)?
+        .and_then(|source| source.marked.get(id).cloned());
+    let test = prior.same_test(old, &linked)? || prior.marked(old)? == current;
     Ok([statement, detail, oracle, test]
         .into_iter()
         .all(|same| same))
+}
+
+fn linked_test(context: &Context, memory: &Path, row: &Row) -> Result<PathBuf> {
+    let link = format::link(&row.cells[2])?;
+    format::target(context, memory, &link.path)
 }
 
 impl Prior<'_> {
@@ -91,6 +111,15 @@ impl Prior<'_> {
             paths.extend(link.and_then(|link| self.snapshot.located(&link.path).ok()));
         }
         self.snapshot.read_ahead(&paths)
+    }
+
+    fn same_test(&mut self, old: &Row, current: &Path) -> Result<bool> {
+        let path = self.snapshot.located(&format::link(&old.cells[2])?.path)?;
+        let Some(text) = self.snapshot.text(&path)? else {
+            return Ok(false);
+        };
+        let same_name = Path::new(&path).file_name() == current.file_name();
+        Ok(same_name && fs::read(current).is_ok_and(|bytes| bytes == text.as_bytes()))
     }
 
     fn marked(&mut self, old: &Row) -> Result<Option<Vec<String>>> {

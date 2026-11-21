@@ -1,12 +1,17 @@
 // DECISION: D020
 // DECISION: D215
-use super::{format, invariant_history, revision_memory::Snapshot};
+use super::{format, invariant_history, revision_memory::Snapshot, source::Sources};
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
 
-pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<()> {
+pub fn check(
+    context: &Context,
+    root: &Path,
+    candidate: Option<&str>,
+    sources: &mut Sources,
+) -> Result<()> {
     let Some(repository) = crate::shared::vcs::Repository::discover(root)? else {
         return Ok(());
     };
@@ -36,7 +41,7 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
         }
     }
     match at_fork {
-        Some(prior) => invariant_history::check(context, prior),
+        Some(prior) => invariant_history::check(context, prior, sources),
         None => Ok(()),
     }
 }
