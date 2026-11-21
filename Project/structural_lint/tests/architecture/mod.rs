@@ -1,5 +1,5 @@
 use crate::shared::diagnostics::Diagnostic;
-use crate::shared::testing::{Snapshot, launch, run, snapshot, worker};
+use crate::shared::testing::{Snapshot, launch, run, snapshot, worker, write};
 use crate::structural_lint::rule_evaluation::{Location, Mode, analyze};
 use crate::structural_lint::rule_identities::{Kind, Structure};
 use crate::structural_lint::rule_set::capabilities;
@@ -142,9 +142,7 @@ impl Consumer {
     }
 
     pub fn write(&self, path: &str, text: &str) {
-        let path = self.root.join(path);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, text).unwrap();
+        write(&self.root, path, text);
     }
 
     pub fn source(&self, text: &str) {

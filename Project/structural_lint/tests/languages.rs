@@ -1,5 +1,6 @@
 // DECISION: D017
-use super::consumer::{LANGUAGES, LEVEL, SKILL, command, configured, consumer, lint, write};
+use super::consumer::{LANGUAGES, LEVEL, SKILL, command, configured, consumer, lint};
+use crate::shared::testing::write;
 use serde_json::Value;
 
 const WARNING: &str = r#"level: "warning""#;

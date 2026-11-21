@@ -3,24 +3,26 @@
 ## Focus
 
 P175 delivers B182: each group of copies with the same behavior is replaced by one owner, behavior unchanged.
-VAC 4 moves two test fixtures into shared testing: initialized, a temporary project after a successful init, replaces
-eight copies, and commit_identity, the Test author, replaces nine.
+VAC 5 moves the file write that creates parent directories into shared testing: write replaces the two identical
+helpers of project_setup and structural_lint tests and the inline copies in directories that already use shared
+testing.
 
 ## Workspace
 
 Branch: feature/faster-commit
-Revision: a88ef15d93de0bb1d8bb4941230ea3aa6bf4088f
+Revision: aa7348b75521ecdd6ca4d77f3d4423b51884274d
 
 ## Progress
 
-VAC 1 saved B182 as P175. VAC 2 added Repository::require and git::finish. VAC 3 added neutral_metrics values and
-sole. Init calls with other arguments or a preceding git init keep their own code; shared/vcs/tests/fixture.rs sets
-the identity through its own command and stays.
+VAC 1 saved B182 as P175. VAC 2 added Repository::require and git::finish, VAC 3 neutral_metrics values and sole,
+VAC 4 the initialized and commit_identity fixtures. Copies that reuse the path afterwards stay, and so do those in
+rule_evaluation and resolution tests: moving them would add incoming links to shared testing beyond its budget.
 
 ## Verification
 
-just test shared::testing compiled all 614 tests without warnings and passed 4. The commit gate runs the affected
-groups.
+just test structural_lint::tests::structure compiled all 614 tests without warnings and passed 5; just lint printed
+no findings. The first gate run passed build, lint and memory and stopped at rustfmt layout in agents.rs and
+launchers.rs, now formatted as rustfmt printed.
 
 ## Blockers
 
@@ -28,4 +30,4 @@ None.
 
 ## Next action
 
-Commit VAC 4, then move the write that creates parent directories into shared testing.
+Commit VAC 5, then archive P175 with its evidence and run feature-merge without a pin.

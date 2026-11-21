@@ -1,7 +1,7 @@
 // DECISION: D188
 use crate::project_setup::initialization::init;
 use crate::shared::calling_agent::Agent;
-use crate::shared::testing::{hermetic, initialized, repository, run, runtime, snapshot};
+use crate::shared::testing::{hermetic, initialized, repository, run, runtime, snapshot, write};
 use serde_json::{Value, json};
 use std::os::unix::fs::PermissionsExt;
 use std::{fs, path::Path};
@@ -124,9 +124,7 @@ fn init_collision_with_an_agent_file_preserves_files() {
     for existing in CLIENT_FILES {
         let temp = tempfile::tempdir().unwrap();
         let root = temp.path().canonicalize().unwrap();
-        let path = root.join(existing);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(&path, "{\"model\": \"consumer-model\"}\n").unwrap();
+        write(&root, existing, "{\"model\": \"consumer-model\"}\n");
         let before = snapshot(&root);
         let error = init(&root, &[]).unwrap_err().to_string();
         assert!(error.contains("collision"), "{existing}: {error}");

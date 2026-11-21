@@ -1,6 +1,6 @@
 // DECISION: D016
-use super::consumer::{CONFIG, EXTENSIONS, SKILL, command, consumer, lint, parsed, prepare, write};
-use crate::shared::testing::{git, initialized, invoke, replay};
+use super::consumer::{CONFIG, EXTENSIONS, SKILL, command, consumer, lint, parsed, prepare};
+use crate::shared::testing::{git, initialized, invoke, replay, write};
 use serde_json::Value;
 use std::{collections::BTreeMap, fs, path::Path};
 

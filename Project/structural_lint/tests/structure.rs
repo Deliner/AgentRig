@@ -1,5 +1,4 @@
-use super::consumer::write;
-use crate::shared::testing::{Run, launch, run, worker};
+use crate::shared::testing::{Run, launch, run, worker, write};
 use std::path::Path;
 
 const CROWD: [&str; 12] = [

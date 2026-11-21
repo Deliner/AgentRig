@@ -1,4 +1,4 @@
-use super::{Run, commit_identity, git, hermetic, invoke, repository, run, search_path};
+use super::{Run, commit_identity, git, hermetic, invoke, repository, run, search_path, write};
 use std::{
     fs,
     os::unix::fs::PermissionsExt,
@@ -49,9 +49,11 @@ fn development_tree(temp: &Path) -> PathBuf {
     for name in ["run", "build"] {
         launcher(&root, name);
     }
-    let pin = root.join("tooling/distribution/stable.txt");
-    fs::create_dir_all(pin.parent().unwrap()).unwrap();
-    fs::write(pin, format!("{REVISION}\n")).unwrap();
+    write(
+        &root,
+        "tooling/distribution/stable.txt",
+        &format!("{REVISION}\n"),
+    );
     let toolchain = root.join("rust-toolchain.toml");
     fs::copy(repository().join("rust-toolchain.toml"), toolchain).unwrap();
     fs::create_dir_all(root.join("Project")).unwrap();

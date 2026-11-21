@@ -1,6 +1,6 @@
 use super::architecture::binaries;
-use super::consumer::{CONFIG, REPAIR, SKILL, parsed, prepare, write};
-use crate::shared::testing::{git, hermetic, run, snapshot, worker};
+use super::consumer::{CONFIG, REPAIR, SKILL, parsed, prepare};
+use crate::shared::testing::{git, hermetic, run, snapshot, worker, write};
 use serde_json::Value;
 use std::{
     collections::BTreeSet,

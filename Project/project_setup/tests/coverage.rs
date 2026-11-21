@@ -1,7 +1,6 @@
 // DECISION: D124
 // DECISION: D138
-use super::write;
-use crate::shared::testing::{REPAIR, invoke, project};
+use crate::shared::testing::{REPAIR, invoke, project, write};
 
 type Group = (&'static [&'static str], &'static [&'static str]);
 

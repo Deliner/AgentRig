@@ -181,6 +181,12 @@ pub fn git(root: &Path, args: &[&str]) -> String {
     result.stdout.trim().to_owned()
 }
 
+pub fn write(root: &Path, path: &str, text: &str) {
+    let path = root.join(path);
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    fs::write(path, text).unwrap();
+}
+
 pub fn commit_identity(root: &Path) {
     git(root, &["config", "user.name", "Test"]);
     git(root, &["config", "user.email", "test@example.invalid"]);
@@ -229,9 +235,7 @@ pub fn project(root: &Path, commands: &str, checks: &str) {
         ("lint.yaml", LINT),
     ];
     for (name, text) in files {
-        let path = root.join(name);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, text).unwrap();
+        write(root, name, text);
     }
     fs::create_dir_all(root.join("src")).unwrap();
 }

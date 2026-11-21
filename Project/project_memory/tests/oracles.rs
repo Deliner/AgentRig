@@ -101,9 +101,7 @@ fn bind(root: &Path, runner: &Runner, target: &str) {
 }
 
 fn write(root: &Path, runner: &Runner, tests: &str) {
-    let path = root.join(runner.file);
-    fs::create_dir_all(path.parent().unwrap()).unwrap();
-    fs::write(path, tests).unwrap();
+    crate::shared::testing::write(root, runner.file, tests);
 }
 
 fn memory_check(root: &Path) -> Run {
