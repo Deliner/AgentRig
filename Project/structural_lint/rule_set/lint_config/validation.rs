@@ -99,7 +99,10 @@ impl Rule {
         capabilities::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
         validate_skill(root, &self.warning_skill)?;
-        validate_skill(root, &self.error_skill)?;
+        let distinct_skills = self.error_skill != self.warning_skill;
+        if distinct_skills {
+            validate_skill(root, &self.error_skill)?;
+        }
         for entry in &self.overrides {
             self.validate_override(entry)?;
         }
