@@ -7,20 +7,18 @@ P193 (B200): the architecture rule parses each source once and resolves dependen
 ## Workspace
 
 Branch: feature/faster-rules
-Revision: 686a7af84a7363ca73c7633c4e44267c81121ffc
+Revision: 8fef711f6dcbbaddc981ab7cd2cfb3daf7a2c6d3
 
 ## Progress
 
-VAC 1 saved B200 and selected it as P193; VAC 2 resolves the dependencies of each file on several threads. VAC 3 adds
-`Parsed` in structural_lint/architecture/contract_check/analysis.rs: one parallel parse of every maintained Rust
-source and every scope file, split into the Rust sources the resolvers read and the other scope files; the scope view
-joins both without a second parse. Parse issues are cloned before the resolution gaps of each file, as before, so
-`Issue` derives Clone. The temporary timer is removed.
+VAC 1 to VAC 3 are committed: the card, parallel dependency resolution and the single parse. VAC 4 archives P193 and
+B200: the cards move to Ledger/Archive with Delivery, the timing table and the acceptance results, and their rows
+move from Plan.md and Backlog.md to the archive indexes.
 
 ## Verification
 
-Release candidate on AgentRig, interleaved warm runs of the architecture rule: master analysis 298, 305, 309 and
-314 ms; single parse with parallel resolution 173 to 198 ms. Candidate lint and Clippy are clean.
+On `8fef711`: `just test` passes 617 tests, as on master `ca6d64a`; `just lint` reports no findings. Median of the
+architecture rule on AgentRig 307 ms before and 179.5 ms after.
 
 ## Blockers
 
@@ -28,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 3, then archive P193 and B200 with the timings and run the full test suite and lint before feature-merge.
+Commit VAC 4, then run `just feature-merge`.
