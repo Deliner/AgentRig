@@ -63,8 +63,10 @@ fn references(
     let applications = applications(context, memory)?;
     let invariants = invariant_ids(memory)?;
     let selected = globs(&context.config.paths.sources)?;
+    let chosen = files.iter().filter(|path| selected.is_match(path));
+    sources.prepare(chosen.clone().map(|path| context.root.join(path)))?;
     let mut unlinked = BTreeSet::new();
-    for path in files.iter().filter(|path| selected.is_match(path)) {
+    for path in chosen {
         let file = context.root.join(path);
         let Some(source) = sources.inspect(&file)? else {
             continue;
@@ -276,35 +278,58 @@ fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
 fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
     details(context, memory, &rows, Catalog::Decisions)?;
-    for row in &rows {
-        let links = format::links(&row.cells[2]);
-        ensure!(!links.is_empty(), "{}: application link required", row.id);
-        'links: for link in links {
-            let path = target(context, memory, &link)?;
-            let non_source = path.extension().is_some_and(|ext| {
-                ["md", "toml", "json", "yaml", "yml", "just"]
-                    .iter()
-                    .any(|kind| ext == *kind)
-            }) || path.file_name().is_some_and(|name| name == "justfile");
-            if non_source {
-                continue 'links;
-            }
-            match sources.inspect(&path)? {
-                Some(source) => ensure!(
-                    source.marker(&row.id),
-                    "{}: decision marker absent in {}",
-                    row.id,
-                    path.display()
-                ),
-                None => console::stderr(format!(
-                    "WARNING [{id}]: marker inspection unsupported for {path}",
-                    id = row.id,
-                    path = path.display()
-                )),
-            }
+    let linked: Vec<(&Row, Vec<Result<Option<PathBuf>>>)> = rows
+        .iter()
+        .map(|row| {
+            let links = format::links(&row.cells[2]);
+            let paths = links
+                .iter()
+                .map(|link| marked_source(context, memory, link));
+            (row, paths.collect())
+        })
+        .collect();
+    let mut prepared = Vec::new();
+    for path in linked.iter().flat_map(|(_, paths)| paths) {
+        if let Ok(Some(path)) = path {
+            prepared.push(path.clone());
+        }
+    }
+    sources.prepare(prepared)?;
+    for (row, paths) in linked {
+        markers(row, paths, sources)?;
+    }
+    Ok(())
+}
+fn markers(row: &Row, paths: Vec<Result<Option<PathBuf>>>, sources: &mut Sources) -> Result<()> {
+    ensure!(!paths.is_empty(), "{}: application link required", row.id);
+    for path in paths {
+        let Some(path) = path? else {
+            continue;
+        };
+        match sources.inspect(&path)? {
+            Some(source) => ensure!(
+                source.marker(&row.id),
+                "{}: decision marker absent in {}",
+                row.id,
+                path.display()
+            ),
+            None => console::stderr(format!(
+                "WARNING [{id}]: marker inspection unsupported for {path}",
+                id = row.id,
+                path = path.display()
+            )),
         }
     }
     Ok(())
+}
+fn marked_source(context: &Context, memory: &Path, link: &str) -> Result<Option<PathBuf>> {
+    let path = target(context, memory, link)?;
+    let non_source = path.extension().is_some_and(|ext| {
+        ["md", "toml", "json", "yaml", "yml", "just"]
+            .iter()
+            .any(|kind| ext == *kind)
+    }) || path.file_name().is_some_and(|name| name == "justfile");
+    Ok((!non_source).then_some(path))
 }
 fn invariants(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
