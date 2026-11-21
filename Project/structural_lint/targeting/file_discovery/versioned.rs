@@ -8,25 +8,34 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn maintained_files(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
-    let (files, directory_paths) =
-        if let Some(repository) = crate::shared::vcs::Repository::discover(root)? {
-            let files = repository.working_files()?;
-            let directories = repository.working_directories(&files)?;
-            (files, directories)
-        } else {
-            return unversioned(root, exclude);
-        };
-    let mut files: Vec<PathBuf> = files.into_iter().map(PathBuf::from).collect();
+pub fn maintained_inventory(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
+    let Some(repository) = crate::shared::vcs::Repository::discover(root)? else {
+        return unversioned(root, exclude);
+    };
+    let listed = repository.working_files()?;
+    let directory_paths = repository.working_directories(&listed)?;
+    let files = selected(root, exclude, listed);
+    let mut directories = directories(&files);
+    add_directories(root, exclude, directory_paths, &mut directories);
+    Ok(Inventory { files, directories })
+}
+
+pub fn maintained_files(root: &Path, exclude: &GlobSet) -> Result<Vec<PathBuf>> {
+    match crate::shared::vcs::Repository::discover(root)? {
+        Some(repository) => Ok(selected(root, exclude, repository.working_files()?)),
+        None => Ok(unversioned(root, exclude)?.files),
+    }
+}
+
+fn selected(root: &Path, exclude: &GlobSet, listed: Vec<String>) -> Vec<PathBuf> {
+    let mut files: Vec<PathBuf> = listed.into_iter().map(PathBuf::from).collect();
     files.sort();
     files.dedup();
     files.retain(|path| {
         !exclude.is_match(path)
             && fs::symlink_metadata(root.join(path)).is_ok_and(|meta| meta.is_file())
     });
-    let mut directories = directories(&files);
-    add_directories(root, exclude, directory_paths, &mut directories);
-    Ok(Inventory { files, directories })
+    files
 }
 
 fn add_directories(

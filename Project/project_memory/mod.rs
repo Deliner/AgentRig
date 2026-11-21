@@ -45,22 +45,24 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     backlog(context, &memory)?;
     let mut sources = Sources::default();
     decisions(context, &memory, &mut sources)?;
-    references(context, &memory, &mut sources)?;
-    exceptions::check(context, &memory)?;
+    let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
+    references(context, &memory, &files, &mut sources)?;
+    exceptions::check(context, &memory, &files)?;
     invariants(context, &memory, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }
 // DECISION: D037
 // DECISION: D216
-fn references(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
+fn references(
+    context: &Context,
+    memory: &Path,
+    files: &[PathBuf],
+    sources: &mut Sources,
+) -> Result<()> {
     let applications = applications(context, memory)?;
-    let invariants: HashSet<String> = table(&memory.join("Invariants.md"), Catalog::Invariants)?
-        .into_iter()
-        .map(|row| row.id)
-        .collect();
+    let invariants = invariant_ids(memory)?;
     let selected = globs(&context.config.paths.sources)?;
-    let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?.files;
     let mut unlinked = BTreeSet::new();
     for path in files.iter().filter(|path| selected.is_match(path)) {
         let file = context.root.join(path);
@@ -89,6 +91,12 @@ fn references(context: &Context, memory: &Path, sources: &mut Sources) -> Result
         unlinked.join(", ")
     );
     Ok(())
+}
+fn invariant_ids(memory: &Path) -> Result<HashSet<String>> {
+    Ok(table(&memory.join("Invariants.md"), Catalog::Invariants)?
+        .into_iter()
+        .map(|row| row.id)
+        .collect())
 }
 fn applications(context: &Context, memory: &Path) -> Result<HashMap<String, HashSet<PathBuf>>> {
     let decisions = table(&memory.join("Decisions.md"), Catalog::Decisions)?;

@@ -229,5 +229,5 @@ pub fn files(context: &Context) -> Result<Vec<PathBuf>> {
         context.config.paths.runtime.clone(),
         format!("{}/**", context.config.paths.runtime),
     ];
-    Ok(structural_lint::maintained_files(&context.root, &globs(&excludes)?)?.files)
+    structural_lint::maintained_files(&context.root, &globs(&excludes)?)
 }

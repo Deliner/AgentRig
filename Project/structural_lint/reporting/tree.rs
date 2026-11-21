@@ -17,7 +17,7 @@ pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     };
     let path = selected_path(path)?;
     let config = location.load()?;
-    let inventory = file_discovery::maintained_files(location.root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::maintained_inventory(location.root, &globs(&config.exclude)?)?;
     ensure!(
         inventory.directories.contains_key(&path),
         "lint-tree PATH must name a directory of the lint inventory: {}",
