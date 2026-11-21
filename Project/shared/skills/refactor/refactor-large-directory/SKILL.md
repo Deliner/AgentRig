@@ -97,14 +97,20 @@ contract individually with what belongs in each and describe children in the
 separate directories block; each child has its own architecture.yaml contract.
 Express ownership through these contracts without requiring role-named directories.
 
-Standard module entry filenames do not establish ownership. Inspect their actual
-contents before calling them facades. Keep cohesive implementation there when
-appropriate; do not require empty entries or ban standard names. When a finding
-may describe module wiring rather than an architectural dependency, inspect the
-measured edge and analyzer semantics before moving code.
+A directory entry, `mod.rs`, `lib.rs`, `main.rs` or `__init__.py`, is its table
+of contents: it declares the parts, may wire them and offers the API; it need
+not be empty. Items the directory's own code uses live in files named by their
+meaning, and that code uses those files, not the entry. Other directories use
+the directory only through its entry; a contract with `group: true` declares
+independent parts without a boundary of their own. A reexport in the entry is
+API when other directories rely on the item as the directory's promise; a
+reexport added only so a finding passes, or one that opens every part, is not.
+When a finding may describe module wiring rather than an architectural
+dependency, inspect the measured edge and analyzer semantics before moving code.
 
-Lint enforces the inventory, acyclic measured dependencies, file fan-out and feature types;
-other dependency direction and public surfaces follow from ownership. Depth, extensive sharing,
+Lint enforces the inventory, acyclic measured dependencies among directories and
+among one directory's files, entry use and bypass, file fan-out and feature types;
+the meaning of a public surface follows from ownership. Depth, extensive sharing,
 abstraction and asymmetry prompt analysis; they are not violations by themselves.
 Preserve configured hard size limits. Inventory and measured edges are mechanical
 evidence; the meaning of ownership requires inspecting implementation and consumers.

@@ -21,7 +21,8 @@ implementation, and a change to it can break the code it describes.
    named by its meaning, an existing file that owns the responsibility or a
    new one named for it, and let the directory's own code use that file.
    Keep a reexport in the entry only when the item is the directory's API
-   for other directories.
+   for other directories. Choose the file so that the directory's files do
+   not come to use each other in a cycle, which file-cycle reports.
 4. When a subdirectory that the entry uses needs the item too, place the
    item in a separate sibling part that both use. Leaving it in the entry
    would make the entry and the subdirectory a directory cycle.

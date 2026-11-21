@@ -1,4 +1,4 @@
-purpose: "Replace a super::super path with a crate:: path or a re-export at the parent module, or justify the intended reach with an exception"
+purpose: "Replace a super::super path with a crate:: path to the file that owns the item, or justify the intended reach with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to name an item's owner instead of reaching two module levels up"
