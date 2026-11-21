@@ -1,4 +1,6 @@
-use super::{Check, CheckKind, Command, Config, FILE, Hooks, VERSION, module, name, relative};
+use super::checks::{Check, CheckKind};
+use super::config::{Command, Config, Hooks, VERSION};
+use super::config_files::{FILE, module, relative};
 use crate::shared::{diagnostics::validate_skill, fs_with_context as fs, paths::globs};
 use anyhow::{Context, Result, ensure};
 use std::collections::HashSet;
@@ -257,4 +259,10 @@ fn validate_reminder(root: &Path, path: &str) -> Result<()> {
         "hooks.reminder: require 0 < attention < full"
     );
     Ok(())
+}
+fn name(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }

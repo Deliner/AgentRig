@@ -1,4 +1,4 @@
-use super::{Finding, Findings};
+use super::finding::{Finding, Findings};
 use crate::project_config::{Context, Removed, module};
 use crate::shared::fs_with_context as fs;
 use crate::shared::vcs::Repository;

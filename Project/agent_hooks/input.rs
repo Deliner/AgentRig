@@ -14,6 +14,7 @@ pub fn object(path: &Path) -> Value {
 pub fn text<'a>(value: &'a Value, key: &str) -> &'a str {
     value.get(key).and_then(Value::as_str).unwrap_or("")
 }
+// DECISION: D046
 pub fn paths(event: &Value) -> Vec<String> {
     let payload = &event["tool_input"];
     let mut paths = Vec::new();

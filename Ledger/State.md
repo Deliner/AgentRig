@@ -2,24 +2,26 @@
 
 ## Focus
 
-P171 and P172: entry-use and entry-bypass. VAC 15 moves the command table and dispatch of cli_dispatch and the hook
-answers and edited paths of agent_hooks out of their entries.
+P171: entry-use. VAC 16 moves the job record, tool files, tool check findings, process samples and the settings
+schema out of their entries in command_runner and project_config.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: f8a0b8b8b3009722e9c2fcb6668735ed7f87ccb4
+Revision: 9ef0b542d9ed9a5989ec81a87fbcdfd38d3e7d05
 
 ## Progress
 
-- cli_dispatch/commands.rs holds the command table and argument validation; dispatch.rs, renamed from project.rs,
-  runs every command; mod.rs only declares both, and main.rs uses them by their files.
-- agent_hooks/responses.rs holds Event, context and deny; input.rs gains paths and target; mod.rs offers deny.
-- D213, D218 and D226 link the command table in cli_dispatch/commands.rs.
+- jobs/record.rs holds Grouping and Record, which job.rs and storage.rs both use; job.rs holds Job, owner and now;
+  Capture joins process.rs; mod.rs keeps job observation.
+- pid_reuse_guard/sample.rs holds Resources and Sample; tool_registry gains tool_files.rs and finding.rs.
+- settings_schema gains config.rs, checks.rs and config_files.rs; name joins validation.rs; mod.rs only offers them.
+- D046 now marks and links the patch payload paths in agent_hooks/input.rs; D005 keeps the schema entry.
 
 ## Verification
 
-- Candidate entry lint: entry-use 143 to 117, entry-bypass 0, architecture clean.
+- Candidate entry lint: entry-use 117 to 96, entry-bypass 0, file-cycle 0, architecture clean.
+- The first gate refused a job.rs and storage.rs file cycle; record.rs breaks it.
 - Clippy and rustfmt pass.
 
 ## Blockers
@@ -29,4 +31,4 @@ proposal adding commands.rs and dispatch.rs waits in .cache/runtime/proposal for
 
 ## Next action
 
-Commit VAC 15, then move the items of command_runner/jobs and tool_registry entries into named files.
+Commit VAC 16, then move the items of the shared vcs, diagnostics and source_parsers entries into named files.

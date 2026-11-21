@@ -1,4 +1,4 @@
-use super::{Check, CheckKind};
+use super::checks::{Check, CheckKind};
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
 

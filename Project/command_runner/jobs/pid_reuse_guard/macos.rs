@@ -1,4 +1,4 @@
-use super::{Resources, Sample};
+use super::sample::{Resources, Sample};
 use anyhow::{Result, ensure};
 use std::{ffi::c_int, mem::MaybeUninit};
 

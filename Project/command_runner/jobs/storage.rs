@@ -1,4 +1,4 @@
-use super::Record;
+use super::record::Record;
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::path::{Path, PathBuf};

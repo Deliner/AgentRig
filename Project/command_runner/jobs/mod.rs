@@ -1,206 +1,29 @@
-use crate::project_config::{Access, Context, Lifetime};
 use crate::shared::console;
-use crate::shared::fs_with_context::{self as fs, OpenOptions};
 mod background;
 mod cleanup;
 mod group;
+mod job;
 mod logs;
 mod pid_reuse_guard;
 mod process;
+mod record;
 mod report;
 mod stop;
 mod storage;
 mod streams;
 pub use cleanup::run as clean_jobs;
-pub use process::{execute, exit_code, streamed};
+pub use job::{Job, owner};
+pub use process::{Capture, execute, exit_code, streamed};
 pub use report::print as print_report;
 
 use anyhow::Result;
+use job::now;
 use pid_reuse_guard::Identity;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use record::Record;
+use serde::Serialize;
 use serde_json::{Value, json};
-use std::{
-    path::{Path, PathBuf},
-    time::{SystemTime, UNIX_EPOCH},
-};
+use std::path::Path;
 
-// DECISION: D062
-// DECISION: D154
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Grouping {
-    Own,
-    Inherited,
-}
-impl Grouping {
-    pub fn target(self, pid: i32) -> i32 {
-        match self {
-            Self::Own => -pid,
-            Self::Inherited => pid,
-        }
-    }
-}
-mod process_group {
-    use super::{Deserialize, Deserializer, Grouping, Serializer};
-    pub fn deserialize<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Grouping, D::Error> {
-        let own = bool::deserialize(deserializer)?;
-        Ok(if own {
-            Grouping::Own
-        } else {
-            Grouping::Inherited
-        })
-    }
-    pub fn serialize<S: Serializer>(grouping: &Grouping, serializer: S) -> Result<S::Ok, S::Error> {
-        serializer.serialize_bool(match grouping {
-            Grouping::Own => true,
-            Grouping::Inherited => false,
-        })
-    }
-}
-// DECISION: D062
-#[derive(Clone, Copy)]
-pub enum Capture {
-    Collect,
-    Stream,
-}
-impl Capture {
-    fn collects(self) -> bool {
-        match self {
-            Self::Collect => true,
-            Self::Stream => false,
-        }
-    }
-}
-
-#[derive(Deserialize, Serialize)]
-pub struct Record {
-    pub run_id: String,
-    pub owner: String,
-    pub parent_run: Option<String>,
-    pub project: PathBuf,
-    pub cwd: PathBuf,
-    pub branch: Option<String>,
-    pub command: String,
-    pub argv: Vec<String>,
-    pub started: u64,
-    pub finished: Option<u64>,
-    pub exit_code: Option<i32>,
-    pub error: Option<String>,
-    pub supervisor: Identity,
-    pub child: Option<Identity>,
-    #[serde(
-        rename = "process_group",
-        deserialize_with = "process_group::deserialize",
-        serialize_with = "process_group::serialize"
-    )]
-    pub grouping: Grouping,
-    #[serde(default)]
-    pub duration_seconds: Option<f64>,
-    #[serde(default)]
-    pub group: Option<Identity>,
-    #[serde(default)]
-    pub access: Access,
-    #[serde(default)]
-    pub lifetime: Lifetime,
-    #[serde(default)]
-    pub background: bool,
-}
-pub struct Job {
-    directory: PathBuf,
-    record: Record,
-    started: std::time::Instant,
-}
-impl Job {
-    pub fn create(context: &Context, command: &str, cwd: &Path) -> Result<Self> {
-        let project = &context.root;
-        let directory = storage::create(&context.runtime)?;
-        let run_id = directory
-            .file_name()
-            .ok_or_else(|| anyhow::anyhow!("job directory has no name"))?
-            .to_string_lossy()
-            .into_owned();
-        let owner = owner().unwrap_or_else(|| run_id.clone());
-        let branch = crate::shared::vcs::git_context(project, &["branch", "--show-current"])
-            .ok()
-            .filter(|value| !value.is_empty());
-        let record = Record {
-            run_id,
-            owner,
-            parent_run: std::env::var("WORKER_PARENT_RUN").ok(),
-            project: project.into(),
-            cwd: cwd.into(),
-            branch,
-            command: command.into(),
-            argv: Vec::new(),
-            started: now()?,
-            finished: None,
-            exit_code: None,
-            error: None,
-            supervisor: Identity::read(std::process::id())?,
-            child: None,
-            grouping: Grouping::Inherited,
-            duration_seconds: None,
-            group: None,
-            access: Access::Unconfined,
-            lifetime: Lifetime::Task,
-            background: false,
-        };
-        Self::registered(directory, record)
-    }
-    fn registered(directory: PathBuf, record: Record) -> Result<Self> {
-        let job = Self {
-            directory,
-            record,
-            started: std::time::Instant::now(),
-        };
-        job.save()?;
-        Ok(job)
-    }
-    pub fn prepare(&mut self, argv: &[String], access: Access, lifetime: Lifetime) -> Result<()> {
-        self.record.argv = argv.into();
-        self.record.access = access;
-        self.record.lifetime = lifetime;
-        self.save()
-    }
-    pub fn directory(&self) -> &Path {
-        &self.directory
-    }
-    pub fn attach(&mut self, pid: u32, grouping: Grouping) -> Result<()> {
-        self.record.child = Identity::read(pid).ok();
-        self.record.grouping = grouping;
-        self.save()
-    }
-    pub fn finish(&mut self, code: i32, error: Option<String>) -> Result<()> {
-        self.record.duration_seconds = Some(self.started.elapsed().as_secs_f64());
-        self.record.finished = Some(now()?);
-        self.record.exit_code = Some(code);
-        self.record.error = error;
-        self.save()
-    }
-    fn save(&self) -> Result<()> {
-        storage::save(&self.directory, &self.record)
-    }
-    fn open_logs(&self) -> Result<streams::Logs> {
-        let open = |name: &str| {
-            fs::open_with(
-                OpenOptions::new().create_new(true).write(true),
-                self.directory.join(name),
-            )
-        };
-        Ok(streams::Logs {
-            stdout: open("stdout.log")?,
-            stderr: open("stderr.log")?,
-        })
-    }
-}
-pub fn owner() -> Option<String> {
-    ["WORKER_OWNER", "CODEX_THREAD_ID", "CODEX_SESSION_ID"]
-        .iter()
-        .find_map(|key| {
-            std::env::var(key)
-                .ok()
-                .filter(|value| !value.trim().is_empty())
-        })
-}
 pub fn list(runtime: &Path) -> Result<Vec<Value>> {
     storage::list(runtime)?
         .iter()
@@ -330,7 +153,4 @@ fn grouped(runtime: &Path, record: &Record, mut value: Value) -> Result<Observat
     value["containment"] = json!("process group");
     value["group_observation"] = json!(record.group.as_ref().map(group::observe));
     Ok(Observation { state, value })
-}
-fn now() -> Result<u64> {
-    Ok(SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs())
 }

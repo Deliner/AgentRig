@@ -1,4 +1,6 @@
-use super::{Finding, Findings, removal_records};
+use super::finding::{Finding, Findings};
+use super::removal_records;
+use super::tool_files::tools;
 use crate::project_config::{Check, Context, module};
 use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
 use crate::shared::paths::globs;
@@ -21,7 +23,7 @@ pub fn run(
         Some(revision) => repository.tree(revision)?.into_keys().collect(),
         None => repository.working_files()?,
     };
-    let tools = super::tools(context, &files)?;
+    let tools = tools(context, &files)?;
     let mut findings = Findings::new();
     placement(context, &tools, &mut findings)?;
     catalog(context, &mut findings);
