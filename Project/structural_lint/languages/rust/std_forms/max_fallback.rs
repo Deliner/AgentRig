@@ -1,4 +1,4 @@
-use super::{method, sole_argument};
+use super::call_syntax::{method, sole_argument};
 use crate::structural_lint::languages::neutral_metrics::Code;
 use crate::structural_lint::languages::rust::exemptions::last_segment;
 use tree_sitter::Node;

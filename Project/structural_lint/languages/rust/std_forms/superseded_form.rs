@@ -1,4 +1,4 @@
-use super::{method, sole_argument};
+use super::call_syntax::{method, sole_argument};
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::iter::successors;

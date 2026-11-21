@@ -1,4 +1,4 @@
-use super::attribute_path;
+use super::attributes::attribute_path;
 use crate::structural_lint::languages::neutral_metrics::{Code, text};
 use tree_sitter::Node;
 

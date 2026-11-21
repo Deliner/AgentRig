@@ -1,5 +1,6 @@
+use super::attributes::{attribute_path, attributed};
 use super::cfg_flags::cfg_marker;
-use super::{attribute_path, attributed, last_segment};
+use super::path_names::last_segment;
 use crate::structural_lint::languages::neutral_metrics::Code;
 use tree_sitter::Node;
 

@@ -1,4 +1,4 @@
-use super::Measurement;
+use super::record::Measurement;
 use crate::structural_lint::rule_identities::{ControlFlow, Kind};
 use std::collections::BTreeSet;
 use tree_sitter::Node;

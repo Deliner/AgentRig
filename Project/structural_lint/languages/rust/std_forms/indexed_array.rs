@@ -1,4 +1,4 @@
-use super::calls;
+use super::call_syntax::calls;
 use crate::structural_lint::languages::neutral_metrics::Measurement;
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;

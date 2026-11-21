@@ -1,10 +1,11 @@
+mod call_syntax;
 mod dotted_extension;
 mod epsilon_tolerance;
 mod flag_filter;
 mod indexed_array;
 mod max_fallback;
 mod superseded_form;
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
 use crate::structural_lint::languages::rust::exemptions::in_test_context;
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
@@ -38,27 +39,4 @@ fn form(node: Node<'_>, source: Code<'_>) -> Option<(Reference, &'static str)> {
             .map(|symbol| (Reference::DottedExtension, symbol)),
         _ => None,
     }
-}
-fn method<'t, 's>(call: Node<'t>, source: Code<'s>) -> Option<(&'s str, Node<'t>)> {
-    let invoked = call.kind() == "call_expression";
-    let function = invoked
-        .then(|| call.child_by_field_name("function"))
-        .flatten()?;
-    let field = function.child_by_field_name("field")?;
-    Some((text(field, source), function.child_by_field_name("value")?))
-}
-fn sole_argument(call: Node<'_>) -> Option<Node<'_>> {
-    let arguments = call.child_by_field_name("arguments")?;
-    let mut cursor = arguments.walk();
-    let mut values = arguments
-        .named_children(&mut cursor)
-        .filter(|argument| !argument.is_extra());
-    let first = values.next()?;
-    let single = values.next().is_none();
-    single.then_some(first)
-}
-fn calls(node: Node<'_>) -> bool {
-    let mut cursor = node.walk();
-    let found = node.kind() == "call_expression";
-    found || node.named_children(&mut cursor).any(calls)
 }

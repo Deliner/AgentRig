@@ -1,4 +1,4 @@
-use super::{Code, Measurement, text};
+use super::record::{Code, Measurement, text};
 use crate::structural_lint::rule_identities::{ControlFlow, Kind};
 use tree_sitter::Node;
 

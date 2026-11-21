@@ -1,7 +1,8 @@
 // DECISION: D033
 // DECISION: D098
 // DECISION: D223
-use super::{Analysis, Code, flag_list, manifest, python, rust, test_files};
+use super::neutral_metrics::{Analysis, Code};
+use super::{flag_list, manifest, python, rust, test_files};
 use crate::structural_lint::rule_identities::{
     ControlFlow, Kind, Ownership, Pair, Reference, Signature, Structure,
 };

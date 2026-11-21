@@ -1,5 +1,4 @@
-use super::Analysis;
-use super::neutral_metrics::Measurement;
+use super::neutral_metrics::{Analysis, Measurement};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use toml::Spanned;
 use toml::de::{DeString, DeTable, DeValue};
