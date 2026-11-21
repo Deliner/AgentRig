@@ -3,22 +3,21 @@
 ## Focus
 
 P194 по карточке B201: запись одобрения кладёт в базу объектов Git только файлы, где бывают исключения lint.
-VAC 2: запись одобрения хеширует без записи файлы прочих видов, проверка исключений их не читает.
+VAC 3: P194 и B201 перенесены в архив с замерами и итогами приёмки.
 
 ## Workspace
 
 Branch: feature/hashed-approval
-Revision: 2509a7d5385d964d864537c9d3c9671e2302e0a3
+Revision: 95b78e65b92ba2993696b9444f3566860ba77458
 
 ## Progress
 
-`holds_exceptions` в source_parsers решает по тем же видам, что и поиск исключений. `Staging` в vcs делит пути на
-записываемые и только хешируемые, `exceptions::stageable` делит изменённые пути, `added` читает только такие файлы.
+Карточки перенесены в Archive/Plan/194.md и Archive/Backlog/201.md, строки индексов перенесены, живые строки сняты.
 
 ## Verification
 
-`just candidate lint`, `just run clippy` и rustfmt без находок. Тесты: change_delivery 46, project_setup 59,
-structural_lint::languages 174, все проходят.
+Полный прогон 617 тестов проходит на голове VAC 2, `just lint` без находок. Медиана записи одобрения в `init`
+335,5 → 115 мс, полный прогон в каждой паре быстрее на 14–18,5 с.
 
 ## Blockers
 
@@ -26,4 +25,4 @@ structural_lint::languages 174, все проходят.
 
 ## Next action
 
-Проверить rustfmt и затронутые тесты, закоммитить VAC 2, затем замер до и после и архивация в VAC 3.
+Закоммитить VAC 3 и слить ветку командой `just feature-merge`.
