@@ -1,15 +1,9 @@
 // DECISION: D021
-use crate::project_setup::init;
+use super::{initialized, lint, text};
 use crate::shared::strict_yaml;
 use crate::shared::testing::{invoke, write};
 use serde_json::Value;
-use std::{
-    collections::BTreeSet,
-    fs,
-    path::{Path, PathBuf},
-    thread,
-};
-use tempfile::TempDir;
+use std::{collections::BTreeSet, fs, path::Path, thread};
 
 struct Language {
     name: &'static str,
@@ -69,14 +63,6 @@ const LOCKS: [&str; 3] = ["Cargo.lock", "package-lock.json", "uv.lock"];
 const BETA: &str = "def value():\n    return 7\n";
 const MARKDOWN: [&str; 3] = ["markdown-size", "markdown-width", "markdown-placement"];
 
-fn initialized(language: &str) -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let args = ["--language", language].map(str::to_owned);
-    assert_eq!(init(&root, &args).unwrap(), 0);
-    (temp, root)
-}
-
 fn function(language: &Language, lines: usize) -> String {
     let [head, line, tail] = language.function;
     let body = lines - 1 - tail.lines().count();
@@ -97,17 +83,6 @@ fn cases(language: &Language) -> Vec<(&'static str, String, String)> {
         .map(owned)
         .chain([size])
         .collect()
-}
-
-fn lint(root: &Path) -> (Option<i32>, Vec<Value>) {
-    let result = invoke(root, &["lint", "--json"]);
-    let found = serde_json::from_str(&result.stdout);
-    let found = found.unwrap_or_else(|error| panic!("{error}: {}", result.output()));
-    (result.code, found)
-}
-
-fn text<'a>(item: &'a Value, field: &str) -> &'a str {
-    item[field].as_str().unwrap()
 }
 
 fn flagged(found: &[Value], rule: &str, path: &str) -> bool {
@@ -167,67 +142,6 @@ fn shipped_rules_skip_test_files_only_where_decided() {
         let unsafe_test = flagged(&found, "unsafe-justification", "tests/x.rs");
         assert!(unsafe_test, "{found:?}");
     }
-}
-
-// DECISION: D182
-#[test]
-fn shipped_rules_keep_compiler_flags_in_the_rig_list() {
-    let (_temp, root) = initialized("rust");
-    write(
-        &root,
-        ".agentrig/rust.yaml",
-        "rustflags:\n- --cap-lints\n- allow\n",
-    );
-    let config = "[build]\nrustflags = [\"--cfg\", \"probe\"]\n";
-    write(&root, ".cargo/config.toml", config);
-    let (code, found) = lint(&root);
-    assert_eq!(code, Some(1), "{found:?}");
-    let expected = [
-        (
-            "allow-justification",
-            ".agentrig/rust.yaml",
-            "justify-allow",
-        ),
-        ("cargo-rustflags", ".cargo/config.toml", "move-rustflags"),
-    ];
-    for (rule, path, skill) in expected {
-        let finding = found
-            .iter()
-            .find(|item| text(item, "rule") == rule && text(item, "path") == path);
-        let finding = finding.unwrap_or_else(|| panic!("{rule}: {found:?}"));
-        let repair = text(finding, "skill").ends_with(&format!("{skill}/SKILL.md"));
-        assert_eq!(
-            (text(finding, "level"), repair),
-            ("error", true),
-            "{finding:?}"
-        );
-    }
-}
-
-// DECISION: D184
-#[test]
-fn shipped_rules_check_lowering_flags_of_the_clippy_command() {
-    let (_temp, root) = initialized("rust");
-    let commands = root.join(".agentrig/commands.yaml");
-    let (_, before) = lint(&root);
-    let mut config: Value = strict_yaml::read(&commands).unwrap();
-    let argv = config["clippy"]["argv"].as_array_mut().unwrap();
-    argv.extend(["--cap-lints", "allow"].map(Value::from));
-    fs::write(&commands, strict_yaml::encode(&config).unwrap()).unwrap();
-    let (code, after) = lint(&root);
-    let skills = |found: &[Value]| -> Vec<String> {
-        let reported = |item: &&Value| {
-            text(item, "rule") == "allow-justification"
-                && text(item, "path") == ".agentrig/commands.yaml"
-        };
-        let skill = |item: &Value| text(item, "skill").to_owned();
-        found.iter().filter(reported).map(skill).collect()
-    };
-    assert_eq!(skills(&before), Vec::<String>::new(), "{before:?}");
-    assert_eq!(code, Some(1), "{after:?}");
-    let after = skills(&after);
-    assert_eq!(after.len(), 1, "{after:?}");
-    assert!(after[0].ends_with("justify-allow/SKILL.md"), "{after:?}");
 }
 
 // DECISION: D198
