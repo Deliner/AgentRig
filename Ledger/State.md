@@ -2,26 +2,22 @@
 
 ## Focus
 
-P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 23 aligns the skills
-and the architecture README with the entry rules, per B176 AC5 and B178 AC5.
+P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. This VAC pins the final
+Project head of the branch while both items are still open in Plan, so consent covers the pin.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 2a00c72ade97ae629b05d7f73a5977bfc8a13d06
+Revision: 23aca35b2163dbb41f562d8b2679a8c55bdee655
 
 ## Progress
 
-- refactor-large-directory: the entry is the table of contents, own code uses the owning files, other
-  directories go through the entry, group: true, and a reexport is API only as the directory's promise.
-- anchor-at-crate: the crate path names the owning file, the parent reexport step is replaced by a ban on
-  naming an ancestor entry's item; its descriptions in architecture.yaml follow.
-- architecture README: group: true described, the child using a parent-owned type removed, 70 lines.
-- move-out-of-entry: choose the file so that no file cycle appears.
+- Every Project change of P171 and P172 is committed; the head 23aca35 aligns the skills and the README.
 
 ## Verification
 
-- Installed lint on the worktree passes, README within 70 nonblank lines; project_setup tests 58 pass.
+- propose-pin HEAD under consent: the branch gate passed 614 tests, the runtime 23aca35 is installed and
+  stable.txt written.
 
 ## Blockers
 
@@ -29,4 +25,4 @@ Revision: 2a00c72ade97ae629b05d7f73a5977bfc8a13d06
 
 ## Next action
 
-Commit VAC 23, then verify each AC of B176 and B178, archive P171, P172, B176, B178 and pin under consent.
+Commit the pin, then archive P171, P172, B176 and B178 with their evidence and run feature-merge.
