@@ -1,10 +1,12 @@
 purpose: Extract Rust module and item dependencies with language-specific path normalization
 files:
-  mod.rs: Rust syntax dispatch and normalized path recording with module scope tracking
-  attributes.rs: Dependency-bearing attributes and explicit unsupported attribute findings
+  mod.rs: Rust syntax dispatch with module and item recording
+  attributes.rs: Dependency-bearing attributes, attribute macros and explicit unsupported attribute findings
   calls.rs: Record bare method calls whose error result is propagated directly
   conditions.rs: Recognize test and target-platform cfg predicates analyzed as unconditional code
   macros.rs: Supported macro reference extraction and incomplete expansion findings
+  path_syntax.rs: Read Rust paths, use trees, string literals and module scope from syntax without recording
   prelude.rs: Prelude and local binding interpretation for extracted Rust paths
+  recording.rs: Record normalized Rust path references and module-level imports with their test context
 directories:
   tests: Verify which Rust cfg predicates the extraction analyzes as unconditional code

@@ -1,4 +1,7 @@
-use super::{Source, compact};
+use super::path_syntax::{
+    Prefix, compact, leaf_name, leaf_path, local_function, names_import, path_text, use_leaves,
+};
+use crate::structural_lint::architecture::extraction::references::Source;
 use tree_sitter::Node;
 
 pub fn path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
@@ -62,24 +65,83 @@ fn shadowed(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
 }
 
 // DECISION: D136
-pub(super) fn imported(source: &Source<'_>, item: Node<'_>, name: &str) -> Option<String> {
+fn imported(source: &Source<'_>, item: Node<'_>, name: &str) -> Option<String> {
     let declaration = item.kind() == "use_declaration";
     let argument = declaration
         .then(|| item.child_by_field_name("argument"))
         .flatten()?;
-    super::use_leaves(source, argument, "")
+    use_leaves(source, argument, "")
         .into_iter()
         .find_map(|leaf| {
-            let path = super::leaf_path(source, leaf.node, &leaf.prefix)?;
-            (super::leaf_name(&leaf, &path) == name).then_some(path)
+            let path = leaf_path(source, leaf.node, &leaf.prefix)?;
+            (leaf_name(&leaf, &path) == name).then_some(path)
         })
 }
 
-pub(super) fn names(source: &Source<'_>, item: Node<'_>, name: &str) -> bool {
+fn names(source: &Source<'_>, item: Node<'_>, name: &str) -> bool {
     let imported = item.kind() == "use_declaration";
     if imported {
-        return super::macros::names_import(source, item, name);
+        return names_import(source, item, name);
     }
     item.child_by_field_name("name")
         .is_some_and(|binding| compact(source.text(binding)) == name)
+}
+
+pub(super) fn generic_path(source: &Source<'_>, node: Node<'_>, path: String) -> String {
+    let Some((name, suffix)) = path.split_once("::") else {
+        return path;
+    };
+    let mut parent = node.parent();
+    while let Some(owner) = parent {
+        if let Some(binding) = lexical_binding(source, owner, name) {
+            return match binding {
+                Binding::Path(bound) => Prefix(&bound).join(suffix),
+                Binding::Opaque => path,
+            };
+        }
+        let separate_scope = owner.kind() == "mod_item" || local_function(owner);
+        if separate_scope {
+            break;
+        }
+        parent = owner.parent();
+    }
+    path
+}
+
+// DECISION: D136
+enum Binding {
+    Path(String),
+    Opaque,
+}
+
+fn lexical_binding(source: &Source<'_>, owner: Node<'_>, name: &str) -> Option<Binding> {
+    let block = owner.kind() == "block";
+    let bound = if block {
+        let binding = owner
+            .named_children(&mut owner.walk())
+            .find(|item| names(source, *item, name))?;
+        imported(source, binding, name)
+    } else {
+        let parameters = owner.child_by_field_name("type_parameters")?;
+        let parameter = parameters
+            .named_children(&mut parameters.walk())
+            .find(|item| {
+                item.child_by_field_name("name")
+                    .is_some_and(|binding| source.text(binding) == name)
+            })?;
+        single_bound(source, parameter)
+    };
+    Some(bound.map_or(Binding::Opaque, Binding::Path))
+}
+
+fn single_bound(source: &Source<'_>, parameter: Node<'_>) -> Option<String> {
+    let bounds = parameter.child_by_field_name("bounds")?;
+    let names: Vec<_> = bounds
+        .named_children(&mut bounds.walk())
+        .filter(|node| !node.is_extra() && node.kind() != "lifetime")
+        .collect();
+    let [bound] = names.as_slice() else {
+        return None;
+    };
+    path_text(source, *bound)
 }

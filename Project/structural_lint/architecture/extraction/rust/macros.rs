@@ -1,5 +1,8 @@
-use super::{Source, Target, compact, scope};
-use crate::structural_lint::architecture::extraction::references::{RustItem, RustMacro};
+use super::path_syntax::{compact, module_item, names_import, scope, self_path, string_literal};
+use super::recording;
+use crate::structural_lint::architecture::extraction::references::{
+    RustItem, RustMacro, Source, Target,
+};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
@@ -20,7 +23,7 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
             source.unsupported(node, "block-local macro imports require lexical resolution");
             return;
         }
-        super::record(
+        recording::record(
             source,
             name,
             Target::RustMacro(RustMacro {
@@ -46,7 +49,7 @@ fn item_position(node: Node<'_>) -> bool {
     let statement = node
         .parent()
         .filter(|parent| parent.kind() == "expression_statement");
-    super::module_item(statement.unwrap_or(node))
+    module_item(statement.unwrap_or(node))
 }
 
 // DECISION: D136
@@ -108,20 +111,6 @@ fn lexical_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
             }
         }
         parent = block.parent();
-    }
-    false
-}
-
-pub(super) fn names_import(source: &Source<'_>, node: Node<'_>, name: &str) -> bool {
-    let mut pending = vec![node];
-    while let Some(node) = pending.pop() {
-        let wildcard = node.kind() == "use_wildcard";
-        let named = node.kind() == "identifier" && source.text(node) == name;
-        let matches = wildcard || named;
-        if matches {
-            return true;
-        }
-        pending.extend(node.named_children(&mut node.walk()));
     }
     false
 }
@@ -192,7 +181,7 @@ fn token_path(source: &Source<'_>, nodes: &[Node<'_>], start: usize) -> TokenPat
 fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Option<Node<'_>>) {
     let scope = scope(source, node);
     if let Some(arguments) = arguments {
-        super::record(
+        recording::record(
             source,
             node,
             Target::RustMacro(RustMacro {
@@ -202,11 +191,11 @@ fn record(source: &mut Source<'_>, node: Node<'_>, path: String, arguments: Opti
             }),
         );
     } else {
-        let path = super::self_path(source, node, path);
+        let path = self_path(source, node, path);
         // DECISION: D136
         let resolvable = path.contains("::") && !path.starts_with("Self::");
         if resolvable {
-            super::record(source, node, Target::RustPath { path, scope });
+            recording::record(source, node, Target::RustPath { path, scope });
         }
     }
 }
@@ -219,5 +208,5 @@ fn literal(source: &Source<'_>, tokens: Node<'_>) -> Option<String> {
     let [value] = children.as_slice() else {
         return None;
     };
-    super::string_literal(source, *value)
+    string_literal(source, *value)
 }

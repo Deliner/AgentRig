@@ -2,33 +2,31 @@
 
 ## Focus
 
-P171 entry-use and P172 entry-bypass under the user's consent: VAC 18 moves the items of the resolution rust and
-python entries and of the extraction references entry into named files.
+P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 19 moves the Rust
+extraction entry helpers into path syntax and recording files so the entry keeps dispatch and item recording.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 964b07737e95fb54aec25297e4fc61aa20e33d02
+Revision: 7cbf6c8c83ddd587bfacabe9d3c7dd89d653ac4a
 
 ## Progress
 
-- resolution rust: resolver.rs holds Rust with Module; module_tree.rs holds Pending; use_aliases.rs holds Located
-  and Query.
-- resolution python: resolver.rs holds Python with module_parts; invalid_module_names_are_rejected checks names
-  through Python::new.
-- extraction references: reference.rs also holds References, PropagatedCall, RustItem and RustImport.
-- Decision links moved: D136 tree to the rust resolver.rs, D125 model to reference.rs.
+- VAC 19: extraction/rust gains path_syntax.rs for path text, use trees, literals and scope, and recording.rs for
+  normalized reference recording and module-level imports; prelude.rs takes the generic and local binding lookup;
+  attributes.rs takes attribute macros; names_import leaves macros.rs so prelude no longer depends on macros.
+- D136 extraction link moves to attributes.rs and D146 inline context to recording.rs; architecture.yaml updated.
 
 ## Verification
 
-- clippy, rustfmt and the resolution tests pass: 27 tests. The first gate run failed on function-lines 43 in the
-  Python root test; the name check is now its own test.
-- Candidate measurement with architecture, file-cycle and entry-use: entry-use 80 to 45, file-cycle 0, architecture 0.
+- clippy, rustfmt, extraction tests 13 and architecture tests 107 pass.
+- The first gate failed on function-lines 44 for use_leaves; the use-as clause moved into aliased_leaf.
+- Candidate measurement with entry-use, file-cycle and architecture: entry-use 45 to 21, file-cycle 0, architecture 0.
 
 ## Blockers
 
-The checks.yaml impact-map proposal for cli_dispatch commands.rs and dispatch.rs waits for the user's approval.
+- The checks.yaml impact-map proposal in .cache/runtime/proposal waits for the user approve.
 
 ## Next action
 
-Commit VAC 18, then split the extraction rust entry helpers into path syntax and recording files.
+Commit VAC 19, then move the languages, neutral metrics, exemptions and std forms entry items into owner files.
