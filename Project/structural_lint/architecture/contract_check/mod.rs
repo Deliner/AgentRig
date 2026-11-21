@@ -74,7 +74,7 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
     let rust_sources = analysis::rust_sources(&root, &files)?;
     let (resolvers, issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
     let sources = analysis::extract(&root, &scope.files)?;
-    let analyzed = dependencies(&resolvers, sources);
+    let analyzed = dependencies(&resolvers, sources)?;
     Ok(Some(Measured {
         root,
         scope,
@@ -134,20 +134,20 @@ struct Analysis {
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
     sources: BTreeMap<PathBuf, References>,
-) -> Analysis {
+) -> Result<Analysis> {
     let mut edges = Vec::new();
     let mut issues = Vec::new();
     let mut used = analysis::Externals::default();
     let mut complete = true;
     let mut environment = BTreeMap::new();
-    for (path, references) in sources {
+    for (path, dependencies) in resolvers.dependencies(sources)? {
         let analysis::Dependencies {
             edges: resolved,
             incomplete,
             violations,
             used: references_used,
             environment: references_environment,
-        } = resolvers.dependencies(&path, references);
+        } = dependencies;
         edges.extend(resolved);
         complete &= incomplete.is_empty();
         issues.extend(incomplete);
@@ -160,12 +160,12 @@ fn dependencies(
             environment.insert(path, references_environment);
         }
     }
-    Analysis {
+    Ok(Analysis {
         edges,
         issues,
         used: complete.then_some(used),
         environment,
-    }
+    })
 }
 
 // DECISION: D076

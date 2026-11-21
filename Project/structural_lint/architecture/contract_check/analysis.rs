@@ -216,13 +216,29 @@ impl<'a> Resolvers<'a> {
         Ok(result)
     }
 
-    pub fn dependencies(&self, path: &Path, references: References) -> Dependencies {
-        let mut gaps = references.issues;
+    pub fn dependencies(
+        &self,
+        sources: BTreeMap<PathBuf, References>,
+    ) -> Result<BTreeMap<PathBuf, Dependencies>> {
+        let files: Vec<_> = sources.iter().collect();
+        let resolved = in_parallel(&files, |(path, references)| self.resolved(path, references))?;
+        let paired = sources.into_iter().zip(resolved);
+        let files = paired.map(|((path, references), mut dependencies)| {
+            let mut incomplete = references.issues;
+            incomplete.append(&mut dependencies.incomplete);
+            dependencies.incomplete = incomplete;
+            (path, dependencies)
+        });
+        Ok(files.collect())
+    }
+
+    fn resolved(&self, path: &Path, references: &References) -> Dependencies {
+        let mut gaps = Vec::new();
         let mut violations = Vec::new();
         let mut edges = Vec::new();
         let mut used = Externals::default();
         let mut environment = Vec::new();
-        for reference in references.items {
+        for reference in &references.items {
             match self.resolve(path, &reference.target) {
                 Ok(resolved) => {
                     if let Some(external) = &resolved.external {
@@ -231,7 +247,7 @@ impl<'a> Resolvers<'a> {
                         // DECISION: D105
                         violations.extend(self.disallowed.check(path, reference.line, external));
                     }
-                    edges.extend(self.edges(path, &reference, resolved));
+                    edges.extend(self.edges(path, reference, resolved));
                 }
                 Err(error) => gaps.push(incomplete(path, Some(reference.line), error)),
             }

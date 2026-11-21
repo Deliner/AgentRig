@@ -7,18 +7,19 @@ P193 (B200): the architecture rule parses each source once and resolves dependen
 ## Workspace
 
 Branch: feature/faster-rules
-Revision: ca6d64a55889d457d2a5f6776ca9357fcf7c299a
+Revision: ef4d6cb168b38e8ee1174774add857be2871d58f
 
 ## Progress
 
-VAC 1 saves B200 and selects it as P193 by the user's standing instruction. The parallel dependency resolution in
-structural_lint/architecture/contract_check and a temporary per-rule timer in rule_evaluation are in the working
-tree, not staged.
+VAC 1 saved B200 and selected it as P193. VAC 2 lets `Resolvers::dependencies` in
+structural_lint/architecture/contract_check/analysis.rs resolve the references of each file through the shared
+`in_parallel` and put the parse issues of each file before its resolution gaps, as before. The temporary per-rule
+timer in rule_evaluation stays unstaged.
 
 ## Verification
 
 Release candidate on AgentRig, `just candidate lint`, warm runs of the architecture rule: before on `ca6d64a` 298 and
-305 ms; with parallel dependency resolution 243, 236 and 248 ms.
+305 ms; with parallel dependency resolution 243, 236 and 248 ms. Candidate lint reports only the timer.
 
 ## Blockers
 
@@ -26,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the parallel dependency resolution as VAC 2 without the timer.
+Commit VAC 2, then let the rule parse each Rust source once as VAC 3.
