@@ -1,7 +1,7 @@
 use super::dependency::Dependency;
 use std::path::PathBuf;
 
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Issue {
     pub path: PathBuf,
     pub line: Option<usize>,
