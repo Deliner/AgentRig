@@ -1,4 +1,4 @@
-use super::{Consumer, rust};
+use crate::structural_lint::tests::architecture::{Consumer, rust};
 use std::fs;
 
 const ROOTS: &str = "rust_roots: [src/lib.rs, src/b/mod.rs]";

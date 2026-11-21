@@ -12,20 +12,15 @@ use std::{
 };
 use tempfile::TempDir;
 
-mod attributes;
-mod bindings;
 mod cli;
 mod coupling;
-mod crates;
 mod disallowed;
 mod externals;
 mod incomplete;
 mod inventory;
-mod macros;
-mod resources;
+mod rust_resolution;
 mod settings;
 mod versioned;
-mod wiring;
 
 const SKILL: &str = ".agents/skills/refactor-large-directory/SKILL.md";
 const REPAIR: &str = ".agents/skills/repair/SKILL.md";
