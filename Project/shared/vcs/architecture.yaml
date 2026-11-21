@@ -8,6 +8,7 @@ files:
   export.rs: Export validated repository trees into isolated directories
   git.rs: Execute Git queries over revision pairs and decode repository contents
   hooks.rs: Generate, validate and register Git hook adapters
+  objects.rs: Stream the contents of many committed blobs through one Git process
   observation.rs: Observe branch and revision state
   repository.rs: The repository handle with its initialization, revision queries, paths, renames and diffs
   tree_entry.rs: A tree or index entry with its file kind and Git mode

@@ -45,18 +45,18 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
         return Ok(());
     }
     let rows = committed_table(repository, revision, Path::new(&index))?;
+    let paths: Vec<String> = rows
+        .iter()
+        .map(|old| format!("{prior_memory}/{detail}", detail = old.detail))
+        .collect();
+    let details = revision_memory::read_all(repository, &tree, &paths)?;
     let memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&memory.join("Decisions.md"), format::Catalog::Decisions)?;
-    for old in rows {
+    for (old, detail) in rows.into_iter().zip(details) {
         let row = current
             .iter()
             .find(|row| row.id == old.id)
             .with_context(|| format!("{}: committed decision cannot be removed", old.id))?;
-        let detail = revision_memory::read(
-            repository,
-            revision,
-            Path::new(&format!("{prior_memory}/{detail}", detail = old.detail)),
-        )?;
         preserve(old, row, &detail, &memory)?;
     }
     Ok(())

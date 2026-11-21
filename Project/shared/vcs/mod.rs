@@ -4,6 +4,7 @@ mod directories;
 mod export;
 mod git;
 mod hooks;
+mod objects;
 mod observation;
 mod repository;
 #[cfg(test)]

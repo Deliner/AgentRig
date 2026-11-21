@@ -1,11 +1,12 @@
 use super::repository::Repository;
-use super::tree_entry::FileKind;
+use super::tree_entry::{Entry, FileKind};
 use crate::shared::fs_with_context::{self as fs, Permissions, PermissionsExt};
-use anyhow::{Result, bail, ensure};
+use anyhow::{Context, Result, bail, ensure};
 use std::{
+    collections::BTreeMap,
     ffi::OsStr,
     os::unix::ffi::OsStrExt,
-    path::{Component, Path},
+    path::{Component, Path, PathBuf},
 };
 
 impl Repository<'_> {
@@ -15,13 +16,42 @@ impl Repository<'_> {
     }
 }
 
+struct Exported {
+    path: PathBuf,
+    mode: Option<u32>,
+    object: String,
+}
+
 fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
-    let entries = repository.tree(revision)?;
+    let files = planned(repository.tree(revision)?, directory.path())?;
+    let objects: Vec<&str> = files.iter().map(|file| file.object.as_str()).collect();
+    let mut pending = files.iter();
     let mut links_after_contents = Vec::new();
+    repository.blobs(&objects, |bytes| {
+        let file = pending
+            .next()
+            .context("Git returned an unrequested object")?;
+        match file.mode {
+            Some(mode) => {
+                fs::write(&file.path, bytes)?;
+                fs::set_permissions(&file.path, Permissions::from_mode(mode))?;
+            }
+            None => links_after_contents.push((file.path.clone(), bytes)),
+        }
+        Ok(())
+    })?;
+    for (path, target) in links_after_contents {
+        fs::symlink(OsStr::from_bytes(&target), path)?;
+    }
+    Ok(directory)
+}
+
+fn planned(entries: BTreeMap<String, Entry>, directory: &Path) -> Result<Vec<Exported>> {
+    let mut files = Vec::new();
     for (name, entry) in entries {
         validate_path(&name)?;
-        let file_mode = match entry.kind {
+        let mode = match entry.kind {
             FileKind::Submodule => bail!(
                 "revision export cannot include submodule {name}; export its repository separately"
             ),
@@ -29,24 +59,15 @@ fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::Tem
             FileKind::Executable => Some(0o755),
             FileKind::File => Some(0o644),
         };
-        let path = directory.path().join(&name);
+        let path = directory.join(&name);
         let parent = path
             .parent()
             .ok_or_else(|| anyhow::anyhow!("exported path has no parent"))?;
         fs::create_dir_all(parent)?;
-        let bytes = repository.read(revision, Path::new(&name))?;
-        match file_mode {
-            Some(mode) => {
-                fs::write(&path, bytes)?;
-                fs::set_permissions(path, Permissions::from_mode(mode))?;
-            }
-            None => links_after_contents.push((path, bytes)),
-        }
+        let object = entry.object;
+        files.push(Exported { path, mode, object });
     }
-    for (path, target) in links_after_contents {
-        fs::symlink(OsStr::from_bytes(&target), path)?;
-    }
-    Ok(directory)
+    Ok(files)
 }
 
 pub(super) fn validate_path(name: &str) -> Result<()> {

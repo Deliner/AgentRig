@@ -2,25 +2,26 @@
 
 ## Focus
 
-P174, B181: make the gate faster and the rig code simpler without changing behavior. VAC 2 runs invariant oracle
-discovery once per check command and runner instead of once per invariant.
+P174, B181: make the gate faster and the rig code simpler without changing behavior. VAC 3 reads many committed
+blobs through one `git cat-file --batch` process instead of one Git process per file.
 
 ## Workspace
 
 Branch: feature/faster-gate
-Revision: 2fc5715491532812dcd950b463ac156306d54504
+Revision: 28011d3fe4354211fc72a84ba272bf5d227e8111
 
 ## Progress
 
-VAC 1 saved and selected the card. VAC 2 groups invariant discoveries in project_memory/oracles.rs: one
-`cargo test ... -- --list` or one `pytest --collect-only -q` with every target, then each target must be listed.
-Static oracle checks keep their order per invariant; a failed discovery names every invariant of its group.
+VAC 2 batched invariant oracle discovery. VAC 3 adds `Repository::blobs` in shared/vcs/objects.rs, which asks one
+process for each blob after reading the previous one, so no pipe can fill. The decision history check reads every
+committed decision detail of a revision in one call, and revision export writes each file as it arrives, so its
+memory peak stays one file. Both read objects from the tree they already listed, so contents are the same.
 
 ## Verification
 
-memory-check on this repository took 20.3 s before and 7.8 s after with a warm build; 14.4 s of it were 22 separate
-cargo discoveries. `just test project_memory::tests::oracles` passed 4 tests. `just lint` reported only the temporary
-timing probe, which is removed.
+memory-check on this repository took 7.8 s after VAC 2 and 3.2 s after VAC 3 with a warm build; about 460 Git
+processes read decision details before. `just test shared::vcs` passed 8, `just test project_memory` 43 and
+`just test change_delivery::gate` 14. `just lint`, `just run rustfmt` and `just run clippy` are clean.
 
 ## Blockers
 
@@ -28,5 +29,4 @@ None.
 
 ## Next action
 
-Commit VAC 2, then read committed decision and invariant memory through one `git cat-file --batch` per revision
-instead of one Git process per file; that history step takes 4.3 s of memory-check here.
+Commit VAC 3, then measure the test groups and the gate stages again and remove the next largest avoidable cost.
