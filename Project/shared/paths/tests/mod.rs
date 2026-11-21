@@ -20,6 +20,10 @@ fn parent_traversal_follows_link_targets_and_absolute_links_replace_the_prefix()
         resolve(&root.path().join("relative/../new")).unwrap(),
         base.join("actual/new")
     );
+    assert_eq!(
+        resolve(&root.path().join("relative/../nested")).unwrap(),
+        base.join("actual/nested")
+    );
     let outside = tempfile::tempdir().unwrap();
     symlink(outside.path(), root.path().join("absolute")).unwrap();
     assert_eq!(

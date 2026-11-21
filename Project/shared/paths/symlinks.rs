@@ -2,8 +2,16 @@ use crate::shared::fs_with_context as fs;
 use anyhow::{Result, bail};
 use std::path::{Component, Path, PathBuf};
 
+// DECISION: D199
 pub fn resolve(path: &Path) -> Result<PathBuf> {
-    resolve_limited(path, 0)
+    let relative = !path.is_absolute();
+    if relative {
+        return resolve_limited(path, 0);
+    }
+    match fs::canonicalize(path) {
+        Ok(existing) => Ok(existing),
+        Err(_) => resolve_limited(path, 0),
+    }
 }
 fn resolve_limited(path: &Path, depth: u8) -> Result<PathBuf> {
     let cycle = depth > 32;
