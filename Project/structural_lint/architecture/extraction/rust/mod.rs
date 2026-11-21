@@ -2,12 +2,13 @@ mod attributes;
 mod calls;
 mod conditions;
 mod macros;
-pub(super) mod prelude;
+mod prelude;
 #[cfg(test)]
 mod tests;
 
 use super::references::{Reference, RustImport, RustItem, RustMacro, Source, Target};
 use crate::structural_lint::languages;
+pub(crate) use prelude::origin as prelude_origin;
 use tree_sitter::Node;
 
 fn record(source: &mut Source<'_>, node: Node<'_>, target: Target) {

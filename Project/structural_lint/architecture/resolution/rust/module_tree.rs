@@ -1,10 +1,10 @@
 use super::{Module, Pending, Rust};
 use crate::structural_lint::architecture::extraction::{Reference, References, Target};
-use crate::structural_lint::architecture::resolution::{Resolved, normalize};
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
 };
 
 impl<'a> Rust<'a> {
@@ -276,4 +276,19 @@ impl Rust<'_> {
 fn included_file(source: &Path, file: &str) -> Result<PathBuf> {
     let parent = source.parent().context("included source has no parent")?;
     normalize(&parent.join(file))
+}
+
+pub(super) fn normalize(path: &Path) -> Result<PathBuf> {
+    let mut normalized = PathBuf::new();
+    for part in path.components() {
+        match part {
+            Component::CurDir => {}
+            Component::Normal(name) => normalized.push(name),
+            Component::ParentDir => ensure!(normalized.pop(), "module path escapes project root"),
+            Component::Prefix(_) | Component::RootDir => {
+                bail!("module path must stay project-relative")
+            }
+        }
+    }
+    Ok(normalized)
 }

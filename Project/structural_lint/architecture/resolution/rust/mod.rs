@@ -4,7 +4,7 @@ mod module_tree;
 mod tests;
 mod use_aliases;
 
-use super::Resolved;
+use super::resolved::Resolved;
 use crate::structural_lint::architecture::extraction::{References, Target};
 use anyhow::{Context, Result, bail, ensure};
 use std::{

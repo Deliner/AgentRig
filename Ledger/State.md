@@ -3,20 +3,23 @@
 ## Focus
 
 P171 (B176 entry-use) and P172 (B178 entry-bypass), one branch from master, autonomous under the user's consent
-(D226). VAC 6: `structural_lint/rule_identities` is used only through its entry, which reexports its API.
+(D226). VAC 7: inner structural_lint parts go through their entries or declared groups.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 1dc70eef60610f5f3548bced3d4e16f99725f069
+Revision: e3701e0d9434fd77a2f17aed5d5cc67f990a50a8
 
 ## Progress
 
-- VACs 1 to 5 and the consented pin of dae94a4 are committed.
-- The rule identity parts are private modules; the entry reexports the identities, descriptor, parameters,
-  settings and pairs, and `FILENAME` is `CONTRACT_FILENAME` at the entry; 119 users import from the entry.
-- The scratch measurement fell from 1224 to 277 entry-bypass findings, none of them into `rule_identities`;
-  entry-use stays at 225.
+- VACs 1 to 6 and the consented pin of dae94a4 are committed.
+- `rule_set`, `targeting` and `architecture/resolution` declare `group: true`; the resolution result moved
+  to `resolution/resolved.rs` and the path normalization to the Rust module tree, so the entry only declares.
+- `languages` exports `program_language` and `program_languages`; `exemptions` exports its async checks;
+  `extraction/rust` exports `prelude_origin`; the D227 resolution link follows `resolved.rs`.
+- A parent cannot reexport a child that uses a file of the parent directory: that is a directory cycle, so
+  `architecture` keeps `contract_check` public until its shared records move out of the parent.
+- Scratch measurement: entry-use 225 to 219, entry-bypass 277 to 171, no architecture finding.
 
 ## Verification
 
@@ -28,4 +31,4 @@ None.
 
 ## Next action
 
-Commit this VAC, then declare `rule_set` and `targeting` groups and give the features their entry APIs.
+Commit this VAC, then move the `architecture` records and core files so `contract_check` can go behind the entry.

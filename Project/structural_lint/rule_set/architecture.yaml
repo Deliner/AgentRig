@@ -1,4 +1,5 @@
 purpose: Describe implemented rule capabilities and load and validate strict lint policy
+group: true
 files:
   mod.rs: Declarations of the capability and configuration parts
 directories:

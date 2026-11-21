@@ -3,7 +3,7 @@ use crate::shared::paths::globs;
 use crate::structural_lint::architecture::{
     self as architecture, Dependency, EnvironmentUse, Issue, Relation, Rooted, Settings,
     extraction::{self, Reference, References, Target},
-    resolution::{Resolved, python::Python, rust::Rust},
+    resolution::{python::Python, resolved::Resolved, rust::Rust},
 };
 use crate::structural_lint::rule_identities::TEST_CODE;
 use anyhow::{Result, ensure};

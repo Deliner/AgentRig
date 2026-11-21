@@ -3,7 +3,7 @@ mod relative_imports;
 #[cfg(test)]
 mod tests;
 
-use super::Resolved;
+use super::resolved::Resolved;
 use crate::structural_lint::architecture::extraction::Target;
 use anyhow::{Result, bail, ensure};
 use std::{

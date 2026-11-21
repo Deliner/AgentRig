@@ -8,7 +8,7 @@ use crate::structural_lint::languages;
 use anyhow::{Context, Result};
 use references::Source;
 pub use references::{Reference, References, RustImport, RustItem, RustMacro, Target};
-pub(crate) use rust::prelude::origin as prelude_origin;
+pub(crate) use rust::prelude_origin;
 use std::path::Path;
 use tree_sitter::Node;
 

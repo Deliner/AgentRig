@@ -1,9 +1,10 @@
-pub(super) mod async_code;
+mod async_code;
 mod cfg_flags;
 mod debug_code;
 mod test_code;
 
 use crate::structural_lint::languages::neutral_metrics::{Code, descendants, text};
+pub(super) use async_code::{in_async_context, scope_boundary};
 pub(super) use cfg_flags::cfg_excludes;
 pub(super) use debug_code::in_debug_only_context;
 pub(crate) use test_code::in_test_context;

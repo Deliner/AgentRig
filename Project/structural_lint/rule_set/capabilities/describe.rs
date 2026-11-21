@@ -1,6 +1,6 @@
 use super::language_support::{extensions, syntax};
 use super::{ALL, Kind};
-use crate::structural_lint::languages::{self, program};
+use crate::structural_lint::languages::{self, program_languages};
 use crate::structural_lint::rule_identities::{
     ControlFlow, Ownership, Reference, Settings, Structure, default_pairs,
 };
@@ -56,7 +56,7 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         }
         // DECISION: D198
         Kind::Structure(Structure::ProgramLanguage) => {
-            value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program::names()});
+            value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program_languages()});
         }
         // DECISION: D225
         // DECISION: D227

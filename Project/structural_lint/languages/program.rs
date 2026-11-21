@@ -89,10 +89,10 @@ const LANGUAGES: [Language; 16] = [
         interpreters: &["lua"],
     },
 ];
-pub fn names() -> Vec<&'static str> {
+pub fn program_languages() -> Vec<&'static str> {
     LANGUAGES.iter().map(|language| language.name).collect()
 }
-pub fn of(
+pub fn program_language(
     path: &Path,
     first_line: impl FnOnce() -> Result<Vec<u8>>,
 ) -> Result<Option<&'static str>> {

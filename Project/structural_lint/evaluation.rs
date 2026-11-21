@@ -1,5 +1,5 @@
 use super::architecture::contract_check;
-use super::languages::{self, program};
+use super::languages::{self, program_language};
 use super::lifting;
 use super::rule_identities::{self, Kind};
 use super::rule_set::{capabilities, lint_config};
@@ -143,7 +143,7 @@ fn foreign_programs(
     let mut found = Vec::new();
     for selected in lint_targets::select(rule, inventory)? {
         let path = root.join(selected.path);
-        let Some(name) = program::of(&path, || first_line(&path))? else {
+        let Some(name) = program_language(&path, || first_line(&path))? else {
             continue;
         };
         let foreign = !allowed.iter().any(|allowed_name| allowed_name == name);
