@@ -300,6 +300,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
 fn invariants(context: &Context, memory: &Path) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
     details(context, memory, &rows, Catalog::Invariants)?;
+    let mut discoveries = Vec::new();
     for row in &rows {
         let oracle = format::link(&row.cells[2])?;
         let path = target(context, memory, &oracle.path)?;
@@ -313,7 +314,8 @@ fn invariants(context: &Context, memory: &Path) -> Result<()> {
             oracle.name
         );
         let function = &oracle.name;
-        oracles::validate(context, Invariant { id, function }, &path)?;
+        let invariant = Invariant { id, function };
+        discoveries.push(oracles::validate(context, invariant, &path)?);
     }
-    Ok(())
+    oracles::discover(context, &discoveries)
 }

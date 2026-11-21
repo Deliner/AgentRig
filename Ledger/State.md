@@ -2,30 +2,31 @@
 
 ## Focus
 
-P174 B181: the gate gets faster and the code simpler while behavior stays the same. VAC 1 saves the self-approved
-card B181 under the user's AFK instruction and selects it as P174.
+P174, B181: make the gate faster and the rig code simpler without changing behavior. VAC 2 runs invariant oracle
+discovery once per check command and runner instead of once per invariant.
 
 ## Workspace
 
 Branch: feature/faster-gate
-Revision: a0f7ee8c79b90c0a0be2597ea8eda5ac065a3fa9
+Revision: 2fc5715491532812dcd950b463ac156306d54504
 
 ## Progress
 
-- P171 and P172 are archived and merged into master a0f7ee8; the pin 23aca35 is on master.
-- Baseline on a0f7ee8: rig lint without findings; full run of 614 tests 103 s; groups change_delivery::git 41 s,
-  project_setup 37 s, agent_hooks 26 s, structural_lint 2.8 s.
+VAC 1 saved and selected the card. VAC 2 groups invariant discoveries in project_memory/oracles.rs: one
+`cargo test ... -- --list` or one `pytest --collect-only -q` with every target, then each target must be listed.
+Static oracle checks keep their order per invariant; a failed discovery names every invariant of its group.
 
 ## Verification
 
-- memory check passes with B181 and P174.
+memory-check on this repository took 20.3 s before and 7.8 s after with a warm build; 14.4 s of it were 22 separate
+cargo discoveries. `just test project_memory::tests::oracles` passed 4 tests. `just lint` reported only the temporary
+timing probe, which is removed.
 
 ## Blockers
 
-- The checks.yaml impact-map proposal in .cache/runtime/proposal waits for the user approve.
-- P174 is not under consent: its pin needs the user's `! just approve` after the merge.
+None.
 
 ## Next action
 
-Commit VAC 1, then measure the cost of init, feature-start, a hooked commit and feature-merge in the git delivery
-tests and remove the largest avoidable cost without changing what the tests check.
+Commit VAC 2, then read committed decision and invariant memory through one `git cat-file --batch` per revision
+instead of one Git process per file; that history step takes 4.3 s of memory-check here.
