@@ -1,8 +1,20 @@
-use super::{Located, Query, Rust};
+use super::resolver::Rust;
 use crate::structural_lint::architecture::extraction::prelude_origin;
 use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, path::Path};
+
+pub(super) enum Located {
+    Module(Vec<String>),
+    Item(Vec<String>),
+    External(String),
+}
+
+pub(super) struct Query<'a> {
+    pub(super) source: &'a Path,
+    pub(super) written: Vec<String>,
+    pub(super) visiting: BTreeSet<Vec<String>>,
+}
 
 impl Rust<'_> {
     pub(super) fn path_result(&self, path: &str, scope: &[String]) -> Result<Resolved> {

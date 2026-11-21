@@ -1,4 +1,4 @@
-use super::{Python, module_parts};
+use super::Python;
 use crate::structural_lint::architecture::extraction::{self, Target};
 use anyhow::{Result, ensure};
 use std::{
@@ -216,9 +216,6 @@ fn roots_names_missing_sources_and_stub_only_targets_are_explicit() {
             )
             .is_err()
     );
-    for name in ["", "../api", "a..b", "a/b", "a-b", "a\\b"] {
-        assert!(module_parts(name).is_err(), "{name}");
-    }
     let resolver = Python::new(Path::new("."), &inventory, &external).unwrap();
     assert_eq!(
         resolver
@@ -227,6 +224,18 @@ fn roots_names_missing_sources_and_stub_only_targets_are_explicit() {
             .files,
         files(&["main.py"])
     );
+}
+
+#[test]
+fn invalid_module_names_are_rejected() {
+    let inventory = files(&["main.py"]);
+    for name in ["", "../api", "a..b", "a/b", "a-b", "a\\b"] {
+        let invalid = BTreeSet::from([name.to_owned()]);
+        assert!(
+            Python::new(Path::new("."), &inventory, &invalid).is_err(),
+            "{name}"
+        );
+    }
 }
 
 #[test]

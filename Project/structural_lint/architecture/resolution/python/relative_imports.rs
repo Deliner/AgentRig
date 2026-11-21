@@ -1,4 +1,4 @@
-use super::{Python, module_parts};
+use super::resolver::{Python, module_parts};
 use anyhow::{Context, Result, ensure};
 use std::borrow::Cow;
 use std::path::Path;

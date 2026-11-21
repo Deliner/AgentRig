@@ -1,4 +1,5 @@
-use super::{Python, Resolved, module_parts};
+use super::resolver::{Python, module_parts};
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, ensure};
 use std::{
     collections::BTreeSet,

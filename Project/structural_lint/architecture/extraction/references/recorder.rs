@@ -1,4 +1,4 @@
-use super::{Reference, References, Target};
+use super::reference::{Reference, References, Target};
 use crate::structural_lint::{architecture::contract_rules::Issue, languages};
 use std::path::Path;
 use tree_sitter::Node;

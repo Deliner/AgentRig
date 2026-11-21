@@ -1,4 +1,4 @@
-use super::{Module, Pending, Rust};
+use super::resolver::{Module, Rust};
 use crate::structural_lint::architecture::extraction::{Reference, References, Target};
 use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
@@ -39,6 +39,12 @@ impl<'a> Rust<'a> {
             })
             .collect()
     }
+}
+
+// DECISION: D136
+struct Pending {
+    file: PathBuf,
+    base: Vec<String>,
 }
 
 impl Pending {
