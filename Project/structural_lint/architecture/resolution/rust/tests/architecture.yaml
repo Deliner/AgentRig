@@ -1,4 +1,9 @@
 purpose: Verify Rust module and alias resolution against compiled consumers
 files:
-  mod.rs: Module and alias resolution, incomplete forms and compiled consumer comparisons
+  mod.rs: Declare the resolution test modules and the source, path and expected file fixtures they share
+  module_tree.rs: Declared module trees from file and inline modules, and missing, ambiguous or unsupported module forms
+  aliases.rs: Self, super, grouped aliases and reexports resolved in the actual module scope, without cycles or function locals
+  external.rs: External crate paths that never hide a missing anchored path, and clock constructors by their full std path
+  expansion.rs: Glob imports, generated names, includes and local macros resolved to their owning files
+  compiled.rs: Resolutions compared with the files rustc compiles for a consumer, including literal module paths
 directories: {}
