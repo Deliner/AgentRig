@@ -3,6 +3,7 @@ mod mixed_junction;
 mod range_chain;
 mod repeated_classification;
 mod stale_check;
+mod thresholds;
 mod variant_equality;
 mod variant_list;
 use crate::structural_lint::languages::analyze;

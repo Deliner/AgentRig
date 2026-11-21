@@ -1,7 +1,8 @@
-purpose: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
+purpose: Verify Rust control-flow measurements, and nesting depth, branch budget, boolean expression operands and mixed boolean junctions in Rust and Python, from native analysis
 files:
   mod.rs: Rust unlabeled exits of nested loops and subtractions from a length, count or bit count call, alone or passed alone through a call, from native analysis
   mixed_junction.rs: Rust and Python outermost boolean expressions joining conjunctions with disjunctions directly or inside parentheses, and negated or separate expressions skipped, from native analysis
+  thresholds.rs: Rust and Python nesting depth and branch budget per function and operands of each boolean expression, the control-flow threshold measurements, from native analysis
   hidden_exit.rs: Rust macro_rules! transcribers that return, propagate with ? or leave the caller loop, with exit-named macros, own loops, closures, async blocks, nested functions, unparsed and test-only transcribers skipped, from native analysis
   range_chain.rs: Rust if-else chains and match guards splitting one value by literal bounds, with mixed subjects, named limits and test-only chains skipped, from native analysis
   repeated_classification.rs: Rust matches mapping three or more paths, alone or joined by |, to true and false, measured with their classification whatever the arm order or path prefix, with guarded, bound, wildcard, short, one-sided and block-valued matches skipped, from native analysis
