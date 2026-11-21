@@ -2,24 +2,26 @@
 
 ## Focus
 
-Not recorded.
+P194 по карточке B201: запись одобрения кладёт в базу объектов Git только файлы, где бывают исключения lint.
+VAC 1: карточка B201 сохранена и выбрана как P194.
 
 ## Workspace
 
-Not recorded.
+Branch: feature/hashed-approval
+Revision: 8eddf53ed2b06410db9d8cb33ca7f3f1c796395a
 
 ## Progress
 
-Not recorded.
+Сохранены Backlog/201.md с строкой Backlog.md и Plan/194.md со строкой Plan.md и абзацем выбора.
 
 ## Verification
 
-Not recorded.
+Проверка памяти перед коммитом этого VAC.
 
 ## Blockers
 
-Not recorded.
+Нет.
 
 ## Next action
 
-Not recorded.
+VAC 2: запись одобрения и проверка исключений читают и пишут в Git только файлы, где бывают исключения lint.
