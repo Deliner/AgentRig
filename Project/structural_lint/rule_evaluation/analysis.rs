@@ -32,7 +32,7 @@ pub fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
     location.load().and_then(|config| {
         let config_check = mode.config_check();
         if config_check {
-            let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
+            let inventory = file_discovery::maintained_files(root, &globs(&config.exclude)?)?;
             for rule in &config.rules {
                 lint_targets::select(rule, &inventory)?;
                 let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);

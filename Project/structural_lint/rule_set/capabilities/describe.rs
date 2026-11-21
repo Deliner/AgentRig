@@ -1,19 +1,19 @@
+use super::kinds::RULE_KINDS;
 use super::language_support::{extensions, syntax};
-use super::{ALL, Kind};
 use crate::structural_lint::languages::{self, program_languages};
 use crate::structural_lint::rule_identities::{
-    ControlFlow, Ownership, Reference, Settings, Structure, default_pairs,
+    ControlFlow, Kind, Ownership, Reference, Settings, Structure, default_pairs,
 };
 use serde_json::{Value, json};
 
 pub fn catalog() -> Value {
-    Value::Array(ALL.iter().map(|kind| describe(*kind)).collect())
+    Value::Array(RULE_KINDS.iter().map(|kind| describe(*kind)).collect())
 }
 pub fn describe(kind: Kind) -> Value {
     let descriptor = kind.descriptor();
     let mut value = json!({"kind": kind, "target": descriptor.target,
         "metric": descriptor.metric, "skill": descriptor.skill,
-        "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agentrig/skills", &["src/**".into()]),
+        "parameters": descriptor.parameters.describe(), "defaults": example_rule(kind, ".agentrig/skills", &["src/**".into()]),
         "languages": "any UTF-8 text", "extensions": "configurable"});
     // DECISION: D222
     value["exception"] = json!(if descriptor.accepts_exception {
@@ -72,7 +72,7 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         | Kind::Reference(_) => {}
     }
 }
-pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
+pub fn example_rule(kind: Kind, skills: &str, sources: &[String]) -> Value {
     let descriptor = kind.descriptor();
     let skill = format!("{skills}/{}/SKILL.md", descriptor.skill);
     let mut value = json!({"id": descriptor.default_id, "kind": kind,

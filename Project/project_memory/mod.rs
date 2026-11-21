@@ -22,7 +22,7 @@ use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
-use crate::structural_lint::targeting::file_discovery;
+use crate::structural_lint;
 use anyhow::{Context as _, Result, ensure};
 use format::{Catalog, Row, sections, table, target};
 use source::Invariant;
@@ -55,7 +55,7 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
         .map(|row| row.id)
         .collect();
     let sources = globs(&context.config.paths.sources)?;
-    let files = file_discovery::collect(&context.root, &globs(&[])?)?.files;
+    let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?.files;
     let mut unlinked = BTreeSet::new();
     for path in files.iter().filter(|path| sources.is_match(path)) {
         let file = context.root.join(path);

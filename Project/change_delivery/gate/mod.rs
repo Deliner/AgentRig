@@ -13,7 +13,7 @@ use affected_checks::Scope;
 // DECISION: D004
 use crate::project_config::{self, Check, CheckKind, Context};
 use crate::shared::paths::globs;
-use crate::structural_lint::targeting::file_discovery;
+use crate::structural_lint;
 use anyhow::{Result, ensure};
 use check::{CheckRun, Outcome};
 use std::path::{Path, PathBuf};
@@ -238,5 +238,5 @@ pub fn files(context: &Context) -> Result<Vec<PathBuf>> {
         context.config.paths.runtime.clone(),
         format!("{}/**", context.config.paths.runtime),
     ];
-    Ok(file_discovery::collect(&context.root, &globs(&excludes)?)?.files)
+    Ok(structural_lint::maintained_files(&context.root, &globs(&excludes)?)?.files)
 }

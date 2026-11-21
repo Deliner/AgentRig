@@ -22,7 +22,7 @@ pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let root = location.root;
     let config = location.load()?;
     let excluded = globs(&config.exclude)?;
-    let inventory = file_discovery::collect(root, &excluded)?;
+    let inventory = file_discovery::maintained_files(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
     let exclusion = if globally_excluded {
         Exclusion::Global
@@ -46,7 +46,7 @@ pub(super) fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
     let root = location.root;
     let config = location.load()?;
-    let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::maintained_files(root, &globs(&config.exclude)?)?;
     let mut rows = Vec::new();
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);

@@ -1,4 +1,5 @@
 use super::{Contracts, Dependency, EnvironmentUse, Issue, Loaded, Relation};
+use crate::structural_lint::targeting::file_discovery;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
@@ -31,9 +32,7 @@ fn features(contracts: &[(&str, &str)], root: Option<&str>, edges: &[Dependency]
         write(temp.path(), directory, &format!("purpose: Test\n{extra}"));
     }
     let exclusions = crate::shared::paths::globs(&[]).unwrap();
-    let inventory =
-        crate::structural_lint::targeting::file_discovery::collect(temp.path(), &exclusions)
-            .unwrap();
+    let inventory = file_discovery::maintained_files(temp.path(), &exclusions).unwrap();
     let directories = contracts.iter().map(|(path, _)| path.into()).collect();
     let Loaded {
         contracts: loaded,

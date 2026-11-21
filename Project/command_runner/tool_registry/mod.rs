@@ -6,7 +6,7 @@ use crate::project_config::{Command, Context};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::shared::paths::globs;
-use crate::structural_lint::architecture::Rooted;
+use crate::structural_lint::Rooted;
 use anyhow::Result;
 use std::{io::Read, path::Path};
 

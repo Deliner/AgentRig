@@ -4,8 +4,7 @@ use crate::change_delivery::gate::{AffectedMap, files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs_with_context as fs};
-use crate::structural_lint::architecture::{extraction, resolution::rust::Rust};
-use crate::structural_lint::{Format, Location, Mode};
+use crate::structural_lint::{self, Format, Location, Mode};
 use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Component, Path, PathBuf};
@@ -146,27 +145,20 @@ fn mapped<'a>(
 // DECISION: D144
 fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result<Modules> {
     let manifest = manifest(argv, cwd);
-    let mut modules = Modules::new();
     let absent = !root.join(&manifest).is_file();
     if absent {
-        return Ok(modules);
+        return Ok(Modules::new());
     }
     let directory = manifest.parent().unwrap_or(Path::new(""));
-    let mut sources = BTreeMap::new();
     let rust = |path: &&PathBuf| {
         path.starts_with(directory) && path.extension().is_some_and(|extension| extension == "rs")
     };
+    let mut texts = BTreeMap::new();
     for path in files.iter().filter(rust) {
-        let text = fs::read_to_string(root.join(path))?;
-        sources.insert(path.clone(), extraction::extract(path, &text)?);
+        texts.insert(path.clone(), fs::read_to_string(root.join(path))?);
     }
     let layout = super::rust::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
-    for crate_root in layout.roots {
-        for (file, bases) in Rust::modules(Path::new(&crate_root), &sources) {
-            modules.entry(file).or_default().extend(bases);
-        }
-    }
-    Ok(modules)
+    structural_lint::crate_modules(&texts, &layout.roots)
 }
 
 fn manifest(argv: &[String], cwd: &str) -> PathBuf {

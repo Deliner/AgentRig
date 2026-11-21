@@ -37,7 +37,7 @@ struct DependencyRule<'a> {
     check: DependencyCheck,
 }
 pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<Diagnostic>> {
-    let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::maintained_files(root, &globs(&config.exclude)?)?;
     let pairs = config
         .rules
         .iter()

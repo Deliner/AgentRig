@@ -11,7 +11,6 @@ mod structure;
 
 pub use contract_settings::{CONTRACT_FILENAME, Disallowed, PYTHON_SEED, RUST_SEED, Settings};
 pub use control_flow::{ControlFlow, Junctions, MIXED_JUNCTIONS};
-pub use descriptor::Descriptor;
 pub(crate) use descriptor::TEST_CODE;
 pub use kind::Kind;
 pub use ownership::{Ownership, Pair, default_pairs};

@@ -7,9 +7,7 @@ pub(crate) mod references;
 use crate::structural_lint::languages;
 use anyhow::{Context, Result};
 use references::Source;
-pub use references::{
-    PropagatedCall, Reference, References, RustImport, RustItem, RustMacro, Target,
-};
+pub use references::{PropagatedCall, Reference, References, RustMacro, Target};
 pub(crate) use rust::prelude_origin;
 use std::path::Path;
 use tree_sitter::Node;

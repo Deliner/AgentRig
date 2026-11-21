@@ -3,7 +3,7 @@ use super::format::{Catalog, exception_links, table, target};
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
-use crate::structural_lint::targeting::file_discovery;
+use crate::structural_lint;
 use anyhow::{Result, ensure};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -57,7 +57,7 @@ fn listed(context: &Context, memory: &Path) -> Result<BTreeSet<Entry>> {
 }
 fn carried(context: &Context) -> Result<BTreeSet<Entry>> {
     let mut carried = BTreeSet::new();
-    for path in file_discovery::collect(&context.root, &globs(&[])?)?.files {
+    for path in structural_lint::maintained_files(&context.root, &globs(&[])?)?.files {
         let file = crate::shared::paths::resolve(&context.root.join(path))?;
         let Ok(source) = String::from_utf8(fs::read(&file)?) else {
             continue;

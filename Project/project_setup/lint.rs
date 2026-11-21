@@ -3,8 +3,7 @@
 use super::rust::cargo::Layout;
 use super::template::{CACHE, SOURCE};
 use crate::project_config::Paths;
-use crate::structural_lint::rule_identities::{Kind, RUST_SEED, Structure};
-use crate::structural_lint::rule_set::capabilities;
+use crate::structural_lint::{Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
@@ -29,7 +28,7 @@ const MEMORY_REGISTRIES: [&str; 6] = [
 
 pub fn template(settings: &super::Config, rust: &Layout, language: &str) -> Result<String> {
     let paths = &settings.paths;
-    let mut rules: Vec<Value> = capabilities::ALL
+    let mut rules: Vec<Value> = RULE_KINDS
         .iter()
         .filter(|kind| cataloged(**kind))
         .map(|kind| example(*kind, paths))
@@ -59,7 +58,7 @@ fn tree() -> Value {
 // DECISION: D182
 // DECISION: D184
 fn example(kind: Kind, paths: &Paths) -> Value {
-    let mut rule = capabilities::example(kind, &paths.skills, &["**".into()]);
+    let mut rule = example_rule(kind, &paths.skills, &["**".into()]);
     match kind {
         // DECISION: D116
         // DECISION: D172
@@ -116,7 +115,7 @@ fn cataloged(kind: Kind) -> bool {
 // DECISION: D198
 fn program_language(paths: &Paths, language: &str) -> Value {
     let kind = Kind::Structure(Structure::ProgramLanguage);
-    let mut rule = capabilities::example(kind, &paths.skills, &["**".into()]);
+    let mut rule = example_rule(kind, &paths.skills, &["**".into()]);
     rule["allowed_languages"] = json!([language]);
     let adapters = [paths.service_path("hooks/**"), paths.service_path("bin/**")];
     rule["exclude"] = json!(adapters);
@@ -152,7 +151,7 @@ fn markdown(paths: &Paths) -> Vec<Value> {
 
 fn architecture(skills: &str, rust: &Layout) -> Value {
     let kind = Kind::Structure(Structure::DirectoryArchitecture);
-    let mut rule = capabilities::example(kind, skills, &[]);
+    let mut rule = example_rule(kind, skills, &[]);
     rule["include"] = tree();
     rule["extensions"] = json!([".rs", ".py", ".pyi"]);
     rule["architecture"]["rust_roots"] = json!(rust.roots);

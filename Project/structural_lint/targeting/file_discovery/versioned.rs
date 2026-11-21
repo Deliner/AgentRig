@@ -1,5 +1,5 @@
+use super::inventory::{Inventory, directories};
 use super::unversioned::unversioned;
-use super::{Inventory, directories};
 use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use globset::GlobSet;
@@ -8,7 +8,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn collect(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
+pub fn maintained_files(root: &Path, exclude: &GlobSet) -> Result<Inventory> {
     let (files, directory_paths) =
         if let Some(repository) = crate::shared::vcs::Repository::discover(root)? {
             let files = repository.working_files()?;
