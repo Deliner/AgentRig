@@ -6,23 +6,24 @@ use crate::{
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
 
-pub fn validate(context: &Context, invariant: Invariant<'_>, source: &Path) -> Result<()> {
+pub struct Discovery<'a> {
+    id: &'a str,
+    command: &'a str,
+    oracle: &'a Oracle,
+}
+
+pub fn validate<'a>(
+    context: &'a Context,
+    invariant: Invariant<'_>,
+    source: &Path,
+) -> Result<Discovery<'a>> {
     let Invariant { id, function } = invariant;
-    let oracle = context
+    let (configured, oracle) = context
         .config
         .oracles
-        .get(id)
+        .get_key_value(id)
         .with_context(|| format!("{id}: configure a test oracle"))?;
-    let check = context
-        .config
-        .checks
-        .iter()
-        .find(|c| c.id == oracle.check)
-        .context("oracle check is not configured")?;
-    let name = check
-        .command
-        .as_deref()
-        .context("oracle check has no command")?;
+    let command = command(context, oracle)?;
     let target_function = oracle.target.rsplit("::").next().unwrap_or("");
     let target_function = target_function.split('[').next().unwrap_or("");
     ensure!(
@@ -32,7 +33,7 @@ pub fn validate(context: &Context, invariant: Invariant<'_>, source: &Path) -> R
     match oracle.runner {
         Runner::Pytest => {
             let file = oracle.target.split("::").next().unwrap_or("");
-            let cwd = context.path(&context.config.commands[name].cwd)?;
+            let cwd = context.path(&context.config.commands[command].cwd)?;
             ensure!(
                 crate::shared::paths::resolve(&cwd.join(file))? == source,
                 "{id}: oracle target does not match linked source"
@@ -40,19 +41,43 @@ pub fn validate(context: &Context, invariant: Invariant<'_>, source: &Path) -> R
         }
         Runner::Cargo => {}
     }
-    discover(context, invariant, name, oracle)
+    Ok(Discovery {
+        id: configured,
+        command,
+        oracle,
+    })
 }
-fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
-    match oracle.runner {
+fn command<'a>(context: &'a Context, oracle: &Oracle) -> Result<&'a str> {
+    let check = context
+        .config
+        .checks
+        .iter()
+        .find(|c| c.id == oracle.check)
+        .context("oracle check is not configured")?;
+    check
+        .command
+        .as_deref()
+        .context("oracle check has no command")
+}
+pub fn discover(context: &Context, discoveries: &[Discovery<'_>]) -> Result<()> {
+    let mut pending: Vec<&Discovery<'_>> = discoveries.iter().collect();
+    while let Some(&first) = pending.first() {
+        let (group, rest): (Vec<&Discovery<'_>>, Vec<&Discovery<'_>>) =
+            pending.into_iter().partition(|discovery| {
+                discovery.command == first.command && discovery.oracle.runner == first.oracle.runner
+            });
+        discover_group(context, &group)?;
+        pending = rest;
+    }
+    Ok(())
+}
+fn discovery_arguments(mut argv: Vec<String>, runner: &Runner, targets: &[&str]) -> Vec<String> {
+    match runner {
         Runner::Pytest => {
-            argv.extend(["--collect-only".into(), "-q".into(), oracle.target.clone()]);
+            argv.extend(["--collect-only".into(), "-q".into()]);
+            argv.extend(targets.iter().map(|target| (*target).to_owned()));
         }
         Runner::Cargo => {
-            let separator = argv
-                .iter()
-                .position(|arg| arg == "--")
-                .unwrap_or(argv.len());
-            argv.insert(separator, oracle.target.clone());
             let missing_separator = !argv.iter().any(|arg| arg == "--");
             if missing_separator {
                 argv.push("--".into());
@@ -62,34 +87,41 @@ fn discovery_arguments(mut argv: Vec<String>, oracle: &Oracle) -> Vec<String> {
     }
     argv
 }
-fn discover(
-    context: &Context,
-    invariant: Invariant<'_>,
-    name: &str,
-    oracle: &Oracle,
-) -> Result<()> {
-    let id = invariant.id;
-    let argv = discovery_arguments(command_runner::argv(context, name, &[])?, oracle);
-    let result = command_runner::execute(context, name, argv, command_runner::Capture::Collect)?;
+fn discover_group(context: &Context, group: &[&Discovery<'_>]) -> Result<()> {
+    let Some(first) = group.first() else {
+        return Ok(());
+    };
+    let runner = &first.oracle.runner;
+    let targets: Vec<&str> = group
+        .iter()
+        .map(|each| each.oracle.target.as_str())
+        .collect();
+    let argv = command_runner::argv(context, first.command, &[])?;
+    let argv = discovery_arguments(argv, runner, &targets);
+    let capture = command_runner::Capture::Collect;
+    let result = command_runner::execute(context, first.command, argv, capture)?;
+    let ids: Vec<&str> = group.iter().map(|each| each.id).collect();
     ensure!(
         result.status.success(),
-        "{id}: test discovery failed: {}",
+        "{}: test discovery failed: {}",
+        ids.join(", "),
         String::from_utf8_lossy(&result.stderr)
     );
     let stdout = String::from_utf8_lossy(&result.stdout);
-    let found = match oracle.runner {
-        Runner::Pytest => stdout
-            .lines()
-            .any(|line| line == oracle.target || line.starts_with(&format!("{}[", oracle.target))),
-        Runner::Cargo => stdout
-            .lines()
-            .any(|line| line == format!("{}: test", oracle.target)),
-    };
-    ensure!(
-        found,
-        "{id}: test target {} was not discovered",
-        oracle.target
-    );
+    for discovery in group {
+        let target = &discovery.oracle.target;
+        let found = match runner {
+            Runner::Pytest => stdout
+                .lines()
+                .any(|line| line == target || line.starts_with(&format!("{target}["))),
+            Runner::Cargo => stdout.lines().any(|line| line == format!("{target}: test")),
+        };
+        ensure!(
+            found,
+            "{}: test target {target} was not discovered",
+            discovery.id
+        );
+    }
     Ok(())
 }
 

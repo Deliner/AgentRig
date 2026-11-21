@@ -10,6 +10,28 @@ pub(super) fn read(repository: &Repository<'_>, revision: &str, path: &Path) -> 
     Ok(String::from_utf8(bytes)?)
 }
 
+pub(super) fn read_all(
+    repository: &Repository<'_>,
+    tree: &BTreeMap<String, Entry>,
+    paths: &[String],
+) -> Result<Vec<String>> {
+    let objects = paths
+        .iter()
+        .map(|path| {
+            let entry = tree
+                .get(path)
+                .with_context(|| format!("cannot read committed memory {path}"))?;
+            Ok(entry.object.as_str())
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let mut texts = Vec::new();
+    repository.blobs(&objects, |bytes| {
+        texts.push(String::from_utf8(bytes)?);
+        Ok(())
+    })?;
+    Ok(texts)
+}
+
 pub(super) fn directory(
     context: &Context,
     repository: &Repository<'_>,

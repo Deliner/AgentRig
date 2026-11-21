@@ -1,6 +1,6 @@
 // DECISION: D220
 use crate::shared::vcs::{Entry, FileKind, Repository};
-use anyhow::Result;
+use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -34,18 +34,64 @@ pub(super) struct Contents<'a> {
     pub(super) committed: &'a BTreeMap<String, Entry>,
 }
 
+struct Change<'a> {
+    path: &'a str,
+    before: Vec<Added>,
+    after: Vec<Added>,
+}
+
+struct Request<'a> {
+    path: &'a str,
+    object: &'a str,
+    found: &'a mut Vec<Added>,
+}
+
 pub(super) fn added(
     repository: &Repository<'_>,
     paths: &[String],
     contents: Contents<'_>,
 ) -> Result<Vec<Added>> {
-    let mut added = Vec::new();
-    for path in paths {
-        let before = keyed(repository, path, contents.committed.get(path))?;
-        let after = keyed(repository, path, contents.current.get(path))?;
-        added.extend(beyond(after, before.iter().map(|found| &found.key)));
+    let mut changes: Vec<Change<'_>> = paths
+        .iter()
+        .map(|path| Change {
+            path,
+            before: Vec::new(),
+            after: Vec::new(),
+        })
+        .collect();
+    let requests = requests_for(&mut changes, &contents);
+    let objects: Vec<&str> = requests.iter().map(|request| request.object).collect();
+    let mut pending = requests.into_iter();
+    repository.blobs(&objects, move |content| {
+        let request = pending
+            .next()
+            .context("Git returned an unrequested object")?;
+        *request.found = keyed(request.path, content)?;
+        Ok(())
+    })?;
+    Ok(changes
+        .into_iter()
+        .flat_map(|change| beyond(change.after, change.before.iter().map(|found| &found.key)))
+        .collect())
+}
+fn requests_for<'r>(changes: &'r mut [Change<'_>], contents: &Contents<'r>) -> Vec<Request<'r>> {
+    let mut requests = Vec::new();
+    for change in changes {
+        let path = change.path;
+        let sides = [
+            (contents.committed, &mut change.before),
+            (contents.current, &mut change.after),
+        ];
+        requests.extend(sides.into_iter().filter_map(|(tree, found)| {
+            let object = file_object(tree.get(path))?;
+            Some(Request {
+                path,
+                object,
+                found,
+            })
+        }));
     }
-    Ok(added)
+    requests
 }
 pub(super) fn unapproved(added: Vec<Added>, approved: &[Key]) -> Vec<Added> {
     beyond(added, approved)
@@ -66,15 +112,14 @@ fn beyond<'a>(found: Vec<Added>, known: impl IntoIterator<Item = &'a Key>) -> Ve
         })
         .collect()
 }
-fn keyed(repository: &Repository<'_>, path: &str, entry: Option<&Entry>) -> Result<Vec<Added>> {
-    let Some(entry) = entry else {
-        return Ok(Vec::new());
-    };
+fn file_object(entry: Option<&Entry>) -> Option<&str> {
+    let entry = entry?;
     match entry.kind {
-        FileKind::File | FileKind::Executable => {}
-        FileKind::Symlink | FileKind::Submodule => return Ok(Vec::new()),
+        FileKind::File | FileKind::Executable => Some(&entry.object),
+        FileKind::Symlink | FileKind::Submodule => None,
     }
-    let content = repository.run(&["cat-file", "blob", &entry.object])?;
+}
+fn keyed(path: &str, content: Vec<u8>) -> Result<Vec<Added>> {
     let Ok(source) = String::from_utf8(content) else {
         return Ok(Vec::new());
     };
