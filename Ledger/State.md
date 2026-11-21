@@ -2,27 +2,24 @@
 
 ## Focus
 
-P194 по карточке B201: запись одобрения кладёт в базу объектов Git только файлы, где бывают исключения lint.
-VAC 3: P194 и B201 перенесены в архив с замерами и итогами приёмки.
+Not recorded.
 
 ## Workspace
 
-Branch: feature/hashed-approval
-Revision: 95b78e65b92ba2993696b9444f3566860ba77458
+Not recorded.
 
 ## Progress
 
-Карточки перенесены в Archive/Plan/194.md и Archive/Backlog/201.md, строки индексов перенесены, живые строки сняты.
+Not recorded.
 
 ## Verification
 
-Полный прогон 617 тестов проходит на голове VAC 2, `just lint` без находок. Медиана записи одобрения в `init`
-335,5 → 115 мс, полный прогон в каждой паре быстрее на 14–18,5 с.
+Not recorded.
 
 ## Blockers
 
-Нет.
+Not recorded.
 
 ## Next action
 
-Закоммитить VAC 3 и слить ветку командой `just feature-merge`.
+Not recorded.
