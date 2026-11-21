@@ -2,23 +2,21 @@
 
 ## Focus
 
-P188 (B195): the decision marker check hands its resolved application links to the reference check.
+P188 (B195): archive the delivered card with the timings and the acceptance results.
 
 ## Workspace
 
 Branch: feature/shared-applications
-Revision: 31d425c003dc356f247adb0e1ac51a65b164390f
+Revision: 6d9f9019cd69658afb0b70d91351740b51f90524
 
 ## Progress
 
-VAC 2: the decision marker check resolves each Applies in link once, checks markers in the same order and returns
-the resolved links by decision. The reference check takes them instead of reading Decisions.md and resolving its
-links again.
+VAC 3 moves P188 and B195 into Archive with the Delivery section and removes their Plan and Backlog rows. The
+shared application links landed in VAC 2 `6d9f901`.
 
 ## Verification
 
-`just test` passes 617 tests, as on master `9e1b654`. `just lint` and the rustfmt check report nothing. Memory
-check median 409 → 382.5 ms on AgentRig.
+`just test` passes 617 tests at `6d9f901`, `just lint` reports nothing. Memory check median 409 → 382.5 ms.
 
 ## Blockers
 
@@ -26,4 +24,4 @@ None.
 
 ## Next action
 
-Commit VAC 2, then archive P188 and B195 with the timings and acceptance results and run `just feature-merge`.
+Commit VAC 3, then run `just feature-merge` without a pin; the user pins with `! just approve`.
