@@ -1,4 +1,4 @@
-use crate::project_memory::format::{Catalog, state_template};
+use crate::project_memory::{Catalog, state_template};
 use std::collections::BTreeMap;
 
 pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {

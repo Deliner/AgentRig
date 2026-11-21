@@ -82,7 +82,7 @@ fn checked(context: &Context) -> Result<i32> {
     let passed = code == 0;
     if passed {
         ensure!(
-            crate::project_memory::check_evidence::resume(context)["current"] == true,
+            crate::project_memory::observed_checks(context)["current"] == true,
             "checked merge inputs changed; preserve the native operation and retry after repairing the checks"
         );
     }

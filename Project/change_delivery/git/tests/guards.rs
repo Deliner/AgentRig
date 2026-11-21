@@ -2,7 +2,7 @@
 // DECISION: D011
 // DECISION: D014
 use super::{STATE, commit, installed, read, start};
-use crate::project_memory::format::state_template;
+use crate::project_memory::state_template;
 use crate::shared::testing::{describe_state, git, git_run, hermetic, invoke, run, runtime};
 use std::{fs, path::Path};
 

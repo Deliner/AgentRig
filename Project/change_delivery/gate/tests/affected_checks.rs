@@ -1,5 +1,5 @@
 use super::evidence;
-use crate::project_memory::format::state_template;
+use crate::project_memory::state_template;
 use crate::shared::testing::{REPAIR, Run, git, invoke, project};
 use serde_json::Value;
 use std::{fs, path::Path, path::PathBuf};

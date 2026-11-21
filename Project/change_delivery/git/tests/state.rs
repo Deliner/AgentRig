@@ -1,6 +1,6 @@
 // DECISION: D191
 use super::{STATE, commit, installed, merge, read, start};
-use crate::project_memory::format::state_template;
+use crate::project_memory::state_template;
 use crate::shared::testing::{git, invoke};
 use std::fs;
 

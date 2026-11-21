@@ -3,7 +3,7 @@ use super::integration;
 use super::pin;
 use super::state::State;
 use crate::project_config::Context;
-use crate::project_memory::format::{Catalog, table};
+use crate::project_memory::{Catalog, table};
 use crate::shared::atomic_files::{load_json, replace, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Repository, Revisions};

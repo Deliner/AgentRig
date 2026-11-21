@@ -1,6 +1,6 @@
 // DECISION: D213
 use super::exceptions::{self, Added, Contents, Key};
-use crate::project_config::{Context, protection::Protection};
+use crate::project_config::{Context, Protection};
 use crate::shared::atomic_files::{Overlay, load_json, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};

@@ -5,9 +5,9 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
-pub(crate) mod check_evidence;
+mod check_evidence;
 mod exceptions;
-pub(super) mod format;
+mod format;
 mod history;
 mod invariant_history;
 mod oracles;
@@ -16,6 +16,10 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
+pub use check_evidence::{
+    Attempt, Input, native_index, report as report_checks, resume as observed_checks,
+};
+pub use format::{Catalog, reset_state, state_holds_notes, state_template, table};
 pub use resume::run as resume;
 
 use crate::project_config::Context;
@@ -24,7 +28,7 @@ use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
 use crate::structural_lint;
 use anyhow::{Context as _, Result, ensure};
-use format::{Catalog, Row, sections, table, target};
+use format::{Row, sections, target};
 use source::Invariant;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},

@@ -1,6 +1,6 @@
 // DECISION: D191
 use crate::project_config::Context;
-use crate::project_memory::format::{reset_state, state_holds_notes, state_template};
+use crate::project_memory::{reset_state, state_holds_notes, state_template};
 use crate::shared::console;
 use crate::shared::vcs::Repository;
 use anyhow::{Result, ensure};

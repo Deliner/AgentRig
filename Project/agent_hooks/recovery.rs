@@ -55,7 +55,7 @@ fn within(root: &Path, event: &Value, files: &[String], allowed: &[PathBuf]) -> 
 
 // DECISION: D213
 fn editable(sources: &[PathBuf]) -> Vec<PathBuf> {
-    let protected = project_config::protection::configuration();
+    let protected = project_config::protected_configuration();
     sources
         .iter()
         .filter(|source| !protected.iter().any(|path| *source == Path::new(path)))
@@ -68,7 +68,7 @@ fn message(error: &anyhow::Error, editable: &[PathBuf], skill: &str) -> String {
         .iter()
         .map(|path| path.display().to_string())
         .collect();
-    let protected = project_config::protection::configuration().join(", ");
+    let protected = project_config::protected_configuration().join(", ");
     format!(
         "AgentRig configuration error: {error:#}. Until `just config-check` passes, only edits of {editable}, `cat` of these files, {protected} and {skill}, and `just config-check` are available. ACTION: Apply {skill}: correct the reported file directly, then run `just config-check`. Agents do not change the protected {protected}; when the error lies there, ask the user to correct it.",
         editable = editable.join(", ")
