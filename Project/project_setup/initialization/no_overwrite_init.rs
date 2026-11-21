@@ -90,7 +90,7 @@ fn validate_bundle(files: &Files) -> Result<()> {
 pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result<()> {
     let config = &scaffold.config;
     for (path, contents) in files {
-        let executable = executable(path);
+        let executable = executable(config, path);
         let path = project_config::relative(root, path)?;
         let parent = path
             .parent()
@@ -122,8 +122,10 @@ pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result
     crate::change_delivery::record_approval(&context, &repository)?;
     Ok(())
 }
-fn executable(path: &str) -> bool {
-    Path::new(path)
-        .components()
-        .any(|component| component.as_os_str() == "bin" || component.as_os_str() == "hooks")
+// DECISION: D231
+fn executable(config: &Config, path: &str) -> bool {
+    ["bin/", "hooks/"]
+        .map(|directory| config.paths.service_path(directory))
+        .iter()
+        .any(|directory| path.starts_with(directory))
 }

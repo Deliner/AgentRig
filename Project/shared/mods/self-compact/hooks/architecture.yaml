@@ -1,0 +1,6 @@
+purpose: "Module registration and the compaction tool"
+type: flat
+files:
+  hooks.json: "Names the module that Claude Code loads for the mod"
+  register.ts: "Registers the tool compact, queues a compaction for the end of the turn and resumes work after it"
+directories: {}

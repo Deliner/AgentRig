@@ -87,6 +87,11 @@
   at:
   - [.agentrig, lint.yaml, rules, program-language, allowed_languages, shell]
   - [.agentrig, lint.yaml, rules, program-language, allowed_languages, python]
+- reason: >-
+    The rig keeps the source of the Claude Code mods that init installs in Project/shared/mods; Claude Code loads a mod
+    only as a TypeScript module, so that source is an adapter like the installed copy.
+  at:
+  - [.agentrig, lint.yaml, rules, program-language, exclude, 'Project/shared/mods/**']
 - reason: The rig vendors the tree-sitter Rust grammar, which is generated code outside its architecture.
   at:
   - [.agentrig, lint.yaml, exclude, Project/shared/source_parsers/tree-sitter-rust]

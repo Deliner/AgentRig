@@ -10,7 +10,8 @@ agent that changed them could switch the checks off. The agent hook refuses an
 edit or a `just write` operand that reaches them, and the commit gate refuses a
 staged change of them that the user has not approved. They are:
 
-- the launcher and Git hooks in the service directory (`bin/`, `hooks/`), the
+- the launcher, Git hooks and Claude Code mods in the service directory
+  (`bin/`, `hooks/`, `mods/`), the
   agent hook registrations `.claude/settings.json`, `.codex/hooks.json` and
   `.codex/config.toml`, the recipes `justfile` and `.agentrig/just/`;
 - the configuration modules `.agentrig/project.yaml`, `git.yaml`,

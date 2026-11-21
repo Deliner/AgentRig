@@ -1,0 +1,5 @@
+purpose: "Plugin manifest with the mod's name, version and description"
+type: flat
+files:
+  plugin.json: "Names the mod self-compact with its version and description"
+directories: {}

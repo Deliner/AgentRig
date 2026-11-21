@@ -26,5 +26,16 @@
         ]
       }
     ]
+  },
+  "extraKnownMarketplaces": {
+    "agentrig": {
+      "source": {
+        "source": "directory",
+        "path": ".agentrig/mods"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "self-compact@agentrig": true
   }
 }

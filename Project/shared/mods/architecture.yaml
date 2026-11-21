@@ -1,0 +1,5 @@
+purpose: "Claude Code mods that installed environments receive as a plugin marketplace"
+files: {}
+directories:
+  .claude-plugin: "Marketplace manifest naming the mods and their directories"
+  self-compact: "Mod that lets Claude compact its own conversation when AgentRig requires it"

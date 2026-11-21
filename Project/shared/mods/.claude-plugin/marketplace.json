@@ -1,0 +1,11 @@
+{
+  "name": "agentrig",
+  "owner": { "name": "AgentRig" },
+  "plugins": [
+    {
+      "name": "self-compact",
+      "source": "./self-compact",
+      "description": "Lets Claude compact its own conversation, like /compact, when AgentRig requires it after a merge."
+    }
+  ]
+}

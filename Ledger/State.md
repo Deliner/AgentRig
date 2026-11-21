@@ -2,30 +2,39 @@
 
 ## Focus
 
-P196 (B203) VAC2: a merge requires compaction and the agent hook enforces it (AC1–AC6 in the runtime, D230).
+P196 (B203, D230, D231): after a merged branch the agent compacts its context. VAC3 ships the compaction mod
+`self-compact` with the rig (AC8): source in `Project/shared/mods` as the marketplace `agentrig`; `init` writes it to
+`.agentrig/mods`, enables `self-compact@agentrig` in `.claude/settings.json`, protects `mods/` and excludes it from
+program-language; the rig holds the same files, approved by the user's `! just approve`.
 
 ## Workspace
 
 Branch: feature/compact-after-merge
-Revision: 7352c620e07666c82537682937a17016e7c23361
+Revision: 18c7f5d186dcb03ab4dde44b4a8d81b5393e9819
 
 ## Progress
 
-- `feature-merge` records `compaction` (JSON `true`) in the runtime directory after a merge and ends its output with
-  the instruction in `change_delivery/git/compaction.txt`.
-- The hook refuses every tool with that instruction while it is due, and with the cause when unreadable; the tool
-  `mcp__self-compact__compact` always passes. SessionStart `compact`, `clear` or `startup` lifts it.
-- The record is protected; D230 narrows D200.
+- VAC1 (7352c62) saved B203 and selected P196; VAC2 (18c7f5d) added the requirement, refusal and lift (AC1–AC6).
+- VAC3: the mod without the commit suggestion; `adapters::settings` gives the hooks value that `claude::bundle` extends
+  with the marketplace; the lint template excludes `mods/**`; protection adds `mods`; D231 with its index row.
+- The user approved `.agentrig/mods/**`, `.claude/settings.json`, `.agentrig/lint.yaml` and `rig_differences.yaml`.
 
 ## Verification
 
-`just run test -- change_delivery::git::tests::compaction` passed 3 tests on the first version; `just run lint` passed
-after the record moved to the JSON helpers. The commit gate runs the affected groups.
+- `just run test -- agents`: 6 passed, including `init_enables_the_compaction_mod_that_its_marketplace_ships`.
+- `just run test -- protected`: 6 passed; edits of `.agentrig/mods/...` and `.cache/runtime/compaction` are refused.
+- `just run test -- initialization::tests::rig`: passed after the approval; `just run lint`: clean.
+- First commit gate: 17 failures, since `init` marked the mod's `hooks/` files executable and the tools check took
+  them for tools. Fixed: `init` marks executable only the service `bin/` and `hooks/` (D231); `tool_registry` 3 and
+  `change_delivery::git` 35 tests pass.
+- `project_setup::tests` failed twice with `No space left on device` while the disk was 99% full (8.5 GiB free), then
+  passed 28 of 28 on a rerun.
 
 ## Blockers
 
-None.
+None; the disk has about 8.5 GiB free, so another `No space left on device` needs the user to free space.
 
 ## Next action
 
-Commit VAC2; then VAC3: ship the mod `self-compact` through `init` and into the rig with the user's approval.
+Commit VAC3. Then delete `~/.claude/skills/self-compact` (AC9), check the mod and Codex live with the user (AC8, AC10),
+`just propose-pin HEAD`, archive P196 and B203, `just feature-merge` and check AC7 live.

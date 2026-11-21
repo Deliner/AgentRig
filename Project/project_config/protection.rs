@@ -13,7 +13,8 @@ const FIXED: [&str; 6] = [
 ];
 // DECISION: D214
 const MODULES: [&str; 6] = ["git", "commands", "checks", "hooks", "tools", "rust"];
-const SERVICE: [&str; 2] = ["bin", "hooks"];
+// DECISION: D231
+const SERVICE: [&str; 3] = ["bin", "hooks", "mods"];
 // DECISION: D226
 // DECISION: D230
 const RUNTIME: [&str; 4] = ["reminders", "approved", "consent", "compaction"];

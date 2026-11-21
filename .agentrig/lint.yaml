@@ -108,6 +108,7 @@ rules:
   warning_skill: .agentrig/skills/condense-markdown/SKILL.md
   error_skill: .agentrig/skills/condense-markdown/SKILL.md
 # DECISION: D198
+# DECISION: D231
 - id: program-language
   kind: program-language
   target: file
@@ -116,6 +117,8 @@ rules:
   exclude:
   - .agentrig/hooks/**
   - .agentrig/bin/**
+  - .agentrig/mods/**
+  - Project/shared/mods/**
   allowed_languages:
   - rust
   - shell

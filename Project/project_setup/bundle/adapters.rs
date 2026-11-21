@@ -30,7 +30,7 @@ pub fn vcs_hooks(config: &Config) -> Result<Vec<(String, Vec<u8>)>> {
 
 // DECISION: D188
 // DECISION: D200
-pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result<Vec<u8>> {
+pub fn settings(config: &Config, root_command: &str, agent: Agent) -> serde_json::Value {
     let command = format!(
         "root=$({root_command}) && {binary} hook --root \"$root\" --agent {agent} || {{ echo 'AgentRig hook could not run; repair its launcher and runtime' >&2; exit 2; }}",
         binary = binary(&config.paths.service),
@@ -38,11 +38,18 @@ pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result
     );
     let handler = serde_json::json!({"type": "command", "command": command, "timeout": 30,
         "statusMessage": "Loading worker context and edit guidance"});
-    let value = serde_json::json!({"hooks": {
+    serde_json::json!({"hooks": {
         "SessionStart": [{"matcher": "startup|resume|clear|compact", "hooks": [handler.clone()]}],
         "PreToolUse": [{"matcher": "*", "hooks": [handler]}]
-    }});
-    Ok(serde_json::to_vec_pretty(&value)?)
+    }})
+}
+
+pub fn registration(config: &Config, root_command: &str, agent: Agent) -> Result<Vec<u8>> {
+    Ok(serde_json::to_vec_pretty(&settings(
+        config,
+        root_command,
+        agent,
+    ))?)
 }
 
 pub fn hooks_registered(
@@ -50,11 +57,7 @@ pub fn hooks_registered(
     configured: Option<&serde_json::Value>,
     agent: Agent,
 ) -> Result<bool> {
-    let expected: serde_json::Value = serde_json::from_slice(&registration(
-        config,
-        &generated(config)?.root_command,
-        agent,
-    )?)?;
+    let expected = settings(config, &generated(config)?.root_command, agent);
     Ok(configured.is_some_and(|value| {
         expected["hooks"].as_object().is_some_and(|hooks| {
             hooks.iter().all(|(event, desired)| {
