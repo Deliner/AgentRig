@@ -2,28 +2,25 @@
 
 ## Focus
 
-P180 по B187: регистрация хуков Git читается один раз на решение. VAC 2: одно чтение `core.hooksPath` на решение.
+P180 по B187: регистрация хуков Git читается один раз на решение. VAC 3: архив P180 и B187 с Delivery.
 
 ## Workspace
 
 Branch: feature/hook-registration-read
-Revision: 2dda69225fc770792cc3ceed645bcff19aabe703
+Revision: f3bedc3d1832e6d256be7863c9d846c00f1a0e54
 
-VAC 1 `2dda692` сохранил карточку и пункт плана. Изменены Project/shared/vcs/hooks.rs и Project/project_setup/
-initialization: no_overwrite_init.rs, tests/mod.rs, tests/architecture.yaml.
+VAC 1 `2dda692` сохранил карточку, VAC 2 `f3bedc3` заменил `validate_registration` на `compatible_registration`.
+Строка P180 и карточка перенесены в Ledger/Archive/Plan, строка B187 и карточка в Ledger/Archive/Backlog.
 
 ## Progress
 
-`validate_registration` заменён на `compatible_registration`: он читает настройку один раз, отказывает при чужой
-регистрации и возвращает текущую. `register_hooks` и проверка перед `init` берут значение из него; чтение
-`hook_registration` закрыто внутри hooks.rs. Новый тест `init_refuses_an_existing_hook_registration_and_keeps_it`
-закрепляет оба отказа с прежними текстами; на коде до правки он тоже проходит.
+Delivery P180 содержит VAC, число процессов Git до и после в обоих местах, замер шага регистрации хуков и итоги
+AC1–AC3.
 
 ## Verification
 
-- `just test project_setup::`: 59 прошли, всего тестов 614.
-- `just candidate --version` без предупреждений, `just lint` без находок.
-- Временный замер шага регистрации хуков в `init`, 6 запусков: до 25,0 мс в среднем, после 15,8 мс; откачен.
+- `just test` на `f3bedc3`: 614 из 614, на master `55081f8` их 613.
+- `just lint` без находок; шаг регистрации хуков в `init` 25,0 мс до и 15,8 мс после, по шесть запусков.
 
 ## Blockers
 
@@ -31,4 +28,4 @@ initialization: no_overwrite_init.rs, tests/mod.rs, tests/architecture.yaml.
 
 ## Next action
 
-Закоммитить VAC 2, затем архивировать P180 и B187 с Delivery и слить ветку через `just feature-merge`.
+Закоммитить архив, затем слить ветку через `just feature-merge` без пина.
