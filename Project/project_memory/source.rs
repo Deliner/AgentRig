@@ -2,7 +2,8 @@
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
-    collections::{BTreeSet, HashMap, HashSet, hash_map::Entry},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet, hash_map::Entry},
+    num::NonZero,
     path::{Path, PathBuf},
 };
 use tree_sitter::Node;
@@ -17,6 +18,18 @@ pub struct Sources {
     parsed: HashMap<PathBuf, Option<Source>>,
 }
 impl Sources {
+    pub fn prepare(&mut self, paths: impl IntoIterator<Item = PathBuf>) -> Result<()> {
+        let pending: BTreeSet<PathBuf> = paths
+            .into_iter()
+            .filter(|path| !self.parsed.contains_key(path))
+            .collect();
+        for (path, inspected) in inspect_all(&pending)? {
+            if let Ok(source) = inspected {
+                self.parsed.insert(path, source);
+            }
+        }
+        Ok(())
+    }
     pub fn inspect(&mut self, path: &Path) -> Result<Option<&Source>> {
         let parsed = match self.parsed.entry(path.to_owned()) {
             Entry::Occupied(entry) => entry.into_mut(),
@@ -24,6 +37,28 @@ impl Sources {
         };
         Ok(parsed.as_ref())
     }
+}
+fn inspect_all(paths: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, Result<Option<Source>>>> {
+    let available = std::thread::available_parallelism().map_or(1, NonZero::get);
+    let workers = available.min(paths.len());
+    std::thread::scope(|scope| {
+        let handles = Vec::from_fn(workers, |worker| {
+            scope.spawn(move || {
+                let assigned = paths.iter().skip(worker).step_by(workers);
+                assigned
+                    .map(|path| (path.clone(), inspect(path)))
+                    .collect::<Vec<_>>()
+            })
+        });
+        let mut inspected = BTreeMap::new();
+        for handle in handles {
+            let part = handle
+                .join()
+                .map_err(|panic| anyhow::anyhow!("source inspection panicked: {panic:?}"))?;
+            inspected.extend(part);
+        }
+        Ok(inspected)
+    })
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let bytes = fs::read(path)?;

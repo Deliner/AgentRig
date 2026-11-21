@@ -47,6 +47,23 @@ fn rust_decision_markers_are_comments() {
 }
 
 #[test]
+fn malformed_linked_sources_fail_at_the_first_link() {
+    let (_temp, root) = consumer();
+    record(&root, "src/zeta.rs");
+    let linked = "[code](../src/zeta.rs), [parse](../src/lib.rs)";
+    edit(
+        &root.join("notes/Decisions.md"),
+        "[code](../src/zeta.rs)",
+        linked,
+    );
+    for name in ["src/zeta.rs", "src/lib.rs"] {
+        fs::write(root.join(name), "fn broken( {\n").unwrap();
+    }
+    let first = format!("malformed source {}", root.join("src/zeta.rs").display());
+    rejects(&root, &["memory-check"], &first);
+}
+
+#[test]
 fn source_references_name_recorded_entries() {
     let (_temp, root) = consumer();
     let source = root.join("src/lib.py");
