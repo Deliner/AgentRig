@@ -2,24 +2,25 @@
 
 ## Focus
 
-Not recorded.
+P196 (B203) VAC1: save the agreed card B203 with the user's answers and select it as P196.
 
 ## Workspace
 
-Not recorded.
+Branch: feature/compact-after-merge
+Revision: 273cb8bbfb21d5008713f34f4be6a211e13ff1c5
 
 ## Progress
 
-Not recorded.
+B203 is saved with the Backlog row; P196 is active in Plan with its card and the selection note. No product change yet.
 
 ## Verification
 
-Not recorded.
+Memory check of the staged Ledger change runs before the commit.
 
 ## Blockers
 
-Not recorded.
+None.
 
 ## Next action
 
-Not recorded.
+Commit VAC1; then VAC2: `just feature-merge` records the compaction requirement and the hook enforces it.
