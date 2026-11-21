@@ -2,27 +2,24 @@
 
 ## Focus
 
-P189 (B196): the gate fingerprint of input files reads and hashes the files on several threads.
+Not recorded.
 
 ## Workspace
 
-Branch: feature/parallel-fingerprint
-Revision: 5573cc49852e44f8374bcf66d8749be6ab157e18
+Not recorded.
 
 ## Progress
 
-VAC 1 `88e35dd` saved B196 and selected it as P189; VAC 2 `5573cc4` delivered the parallel fingerprint through the
-shared ordered parallel map. VAC 3 archives P189 and B196 with the timings and acceptance results.
+Not recorded.
 
 ## Verification
 
-The VAC 2 commit gate passed 617 tests; `just lint` at `5573cc4` is clean. Attempt start median 97.3 → 68.5 ms and
-finish median 101.9 → 78.1 ms on AgentRig, release candidate, interleaved warm runs.
+Not recorded.
 
 ## Blockers
 
-None.
+Not recorded.
 
 ## Next action
 
-Commit VAC 3, then run `just feature-merge` without a pin.
+Not recorded.
