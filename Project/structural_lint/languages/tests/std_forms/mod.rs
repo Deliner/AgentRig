@@ -1,4 +1,5 @@
 mod dotted_extension;
+mod eager_fallback;
 mod epsilon_tolerance;
 mod flag_filter;
 mod indexed_array;
