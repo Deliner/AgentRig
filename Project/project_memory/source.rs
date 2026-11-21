@@ -2,8 +2,8 @@
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
-    collections::{BTreeSet, HashMap, HashSet},
-    path::Path,
+    collections::{BTreeSet, HashMap, HashSet, hash_map::Entry},
+    path::{Path, PathBuf},
 };
 use tree_sitter::Node;
 
@@ -11,6 +11,19 @@ pub struct Source {
     pub comments: HashSet<String>,
     pub functions: HashMap<String, Vec<HashSet<String>>>,
     pub marked: HashMap<String, Vec<String>>,
+}
+#[derive(Default)]
+pub struct Sources {
+    parsed: HashMap<PathBuf, Option<Source>>,
+}
+impl Sources {
+    pub fn inspect(&mut self, path: &Path) -> Result<Option<&Source>> {
+        let parsed = match self.parsed.entry(path.to_owned()) {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => entry.insert(inspect(path)?),
+        };
+        Ok(parsed.as_ref())
+    }
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
     let bytes = fs::read(path)?;

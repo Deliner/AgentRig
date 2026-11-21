@@ -29,7 +29,7 @@ use crate::shared::paths::globs;
 use crate::structural_lint;
 use anyhow::{Context as _, Result, ensure};
 use format::{Row, sections, target};
-use source::Invariant;
+use source::{Invariant, Sources};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     path::{Path, PathBuf},
@@ -43,27 +43,28 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     history::check(context, root, revision)?;
     plan(context, &memory)?;
     backlog(context, &memory)?;
-    decisions(context, &memory)?;
-    references(context, &memory)?;
+    let mut sources = Sources::default();
+    decisions(context, &memory, &mut sources)?;
+    references(context, &memory, &mut sources)?;
     exceptions::check(context, &memory)?;
-    invariants(context, &memory)?;
+    invariants(context, &memory, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }
 // DECISION: D037
 // DECISION: D216
-fn references(context: &Context, memory: &Path) -> Result<()> {
+fn references(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let applications = applications(context, memory)?;
     let invariants: HashSet<String> = table(&memory.join("Invariants.md"), Catalog::Invariants)?
         .into_iter()
         .map(|row| row.id)
         .collect();
-    let sources = globs(&context.config.paths.sources)?;
+    let selected = globs(&context.config.paths.sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?.files;
     let mut unlinked = BTreeSet::new();
-    for path in files.iter().filter(|path| sources.is_match(path)) {
+    for path in files.iter().filter(|path| selected.is_match(path)) {
         let file = context.root.join(path);
-        let Some(source) = source::inspect(&file)? else {
+        let Some(source) = sources.inspect(&file)? else {
             continue;
         };
         let file = crate::shared::paths::resolve(&file)?;
@@ -264,7 +265,7 @@ fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
     }
     Ok(())
 }
-fn decisions(context: &Context, memory: &Path) -> Result<()> {
+fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
     details(context, memory, &rows, Catalog::Decisions)?;
     for row in &rows {
@@ -280,7 +281,7 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
             if non_source {
                 continue 'links;
             }
-            match source::inspect(&path)? {
+            match sources.inspect(&path)? {
                 Some(source) => ensure!(
                     source.marker(&row.id),
                     "{}: decision marker absent in {}",
@@ -297,18 +298,19 @@ fn decisions(context: &Context, memory: &Path) -> Result<()> {
     }
     Ok(())
 }
-fn invariants(context: &Context, memory: &Path) -> Result<()> {
+fn invariants(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
     details(context, memory, &rows, Catalog::Invariants)?;
     let mut discoveries = Vec::new();
     for row in &rows {
         let oracle = format::link(&row.cells[2])?;
         let path = target(context, memory, &oracle.path)?;
-        let source = source::inspect(&path)?
+        let source = sources
+            .inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         let id = &row.id;
         ensure!(
-            oracles::marked(context, id, &source)?,
+            oracles::marked(context, id, source)?,
             "{}: marked oracle function {} missing or ambiguous",
             row.id,
             oracle.name
