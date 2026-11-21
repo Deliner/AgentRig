@@ -35,6 +35,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
+type Applications = HashMap<String, HashSet<PathBuf>>;
+
 pub fn check(context: &Context) -> Result<i32> {
     check_with_history(context, &context.root, None)
 }
@@ -44,9 +46,9 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     history::check(context, root, revision, &mut sources)?;
     plan(context, &memory)?;
     backlog(context, &memory)?;
-    decisions(context, &memory, &mut sources)?;
+    let applications = decisions(context, &memory, &mut sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
-    references(context, &memory, &files, &mut sources)?;
+    references(context, &files, &mut sources, &applications)?;
     exceptions::check(context, &memory, &files)?;
     invariants(context, &memory, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
@@ -56,12 +58,12 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
 // DECISION: D216
 fn references(
     context: &Context,
-    memory: &Path,
     files: &[PathBuf],
     sources: &mut Sources,
+    applications: &Applications,
 ) -> Result<()> {
-    let applications = applications(context, memory)?;
-    let invariants = invariant_ids(memory)?;
+    let memory = context.path(&context.config.paths.memory)?;
+    let invariants = invariant_ids(&memory)?;
     let selected = globs(&context.config.paths.sources)?;
     let chosen = files.iter().filter(|path| selected.is_match(path));
     sources.prepare(chosen.clone().map(|path| context.root.join(path)))?;
@@ -99,18 +101,6 @@ fn invariant_ids(memory: &Path) -> Result<HashSet<String>> {
         .into_iter()
         .map(|row| row.id)
         .collect())
-}
-fn applications(context: &Context, memory: &Path) -> Result<HashMap<String, HashSet<PathBuf>>> {
-    let decisions = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
-    let mut applications = HashMap::new();
-    for row in decisions {
-        let paths = format::links(&row.cells[2])
-            .iter()
-            .map(|link| target(context, memory, link))
-            .collect::<Result<HashSet<PathBuf>>>()?;
-        applications.insert(row.id, paths);
-    }
-    Ok(applications)
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> Result<()> {
     let layout = catalog.detail_sections();
@@ -275,61 +265,69 @@ fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
     }
     Ok(())
 }
-fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
+fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<Applications> {
     let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
     details(context, memory, &rows, Catalog::Decisions)?;
-    let linked: Vec<(&Row, Vec<Result<Option<PathBuf>>>)> = rows
+    let linked: Vec<(&Row, Vec<Result<PathBuf>>)> = rows
         .iter()
         .map(|row| {
             let links = format::links(&row.cells[2]);
-            let paths = links
-                .iter()
-                .map(|link| marked_source(context, memory, link));
+            let paths = links.iter().map(|link| target(context, memory, link));
             (row, paths.collect())
         })
         .collect();
     let mut prepared = Vec::new();
-    for path in linked.iter().flat_map(|(_, paths)| paths) {
-        if let Ok(Some(path)) = path {
-            prepared.push(path.clone());
-        }
+    for path in linked.iter().flat_map(|(_, paths)| paths).flatten() {
+        prepared.extend(marked_source(path).then(|| path.clone()));
     }
     sources.prepare(prepared)?;
+    let mut applications = HashMap::new();
     for (row, paths) in linked {
-        markers(row, paths, sources)?;
+        applications.insert(row.id.clone(), markers(row, paths, sources)?);
     }
-    Ok(())
+    Ok(applications)
 }
-fn markers(row: &Row, paths: Vec<Result<Option<PathBuf>>>, sources: &mut Sources) -> Result<()> {
+fn markers(
+    row: &Row,
+    paths: Vec<Result<PathBuf>>,
+    sources: &mut Sources,
+) -> Result<HashSet<PathBuf>> {
     ensure!(!paths.is_empty(), "{}: application link required", row.id);
+    let mut applied = HashSet::new();
     for path in paths {
-        let Some(path) = path? else {
-            continue;
-        };
-        match sources.inspect(&path)? {
-            Some(source) => ensure!(
-                source.marker(&row.id),
-                "{}: decision marker absent in {}",
-                row.id,
-                path.display()
-            ),
-            None => console::stderr(format!(
-                "WARNING [{id}]: marker inspection unsupported for {path}",
-                id = row.id,
-                path = path.display()
-            )),
-        }
+        let path = path?;
+        marker(row, &path, sources)?;
+        applied.insert(path);
+    }
+    Ok(applied)
+}
+fn marker(row: &Row, path: &Path, sources: &mut Sources) -> Result<()> {
+    let markers_unchecked = !marked_source(path);
+    if markers_unchecked {
+        return Ok(());
+    }
+    match sources.inspect(path)? {
+        Some(source) => ensure!(
+            source.marker(&row.id),
+            "{}: decision marker absent in {}",
+            row.id,
+            path.display()
+        ),
+        None => console::stderr(format!(
+            "WARNING [{id}]: marker inspection unsupported for {path}",
+            id = row.id,
+            path = path.display()
+        )),
     }
     Ok(())
 }
-fn marked_source(context: &Context, memory: &Path, link: &str) -> Result<Option<PathBuf>> {
-    let path = target(context, memory, link)?;
+fn marked_source(path: &Path) -> bool {
     let non_source = path.extension().is_some_and(|ext| {
         ["md", "toml", "json", "yaml", "yml", "just"]
             .iter()
             .any(|kind| ext == *kind)
     }) || path.file_name().is_some_and(|name| name == "justfile");
-    Ok((!non_source).then_some(path))
+    !non_source
 }
 fn invariants(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;

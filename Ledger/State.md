@@ -7,17 +7,18 @@ P188 (B195): the decision marker check hands its resolved application links to t
 ## Workspace
 
 Branch: feature/shared-applications
-Revision: 9e1b6542ba83cf1b60a559ab7342ac34f14c8a21
+Revision: 31d425c003dc356f247adb0e1ac51a65b164390f
 
 ## Progress
 
-VAC 1 saves B195 and selects it as P188 by the user's standing instruction to improve the project autonomously. The
-shared application links change is in the working tree, not staged.
+VAC 2: the decision marker check resolves each Applies in link once, checks markers in the same order and returns
+the resolved links by decision. The reference check takes them instead of reading Decisions.md and resolving its
+links again.
 
 ## Verification
 
-Before on `9e1b654`, release candidate on AgentRig, warm runs: memory check 432, 409, 399, 411, 409 and 401 ms.
-With the unstaged change: 382, 386, 393, 378, 378 and 383 ms. `just test` passes 617 tests, `just lint` is clean.
+`just test` passes 617 tests, as on master `9e1b654`. `just lint` and the rustfmt check report nothing. Memory
+check median 409 → 382.5 ms on AgentRig.
 
 ## Blockers
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the shared application links.
+Commit VAC 2, then archive P188 and B195 with the timings and acceptance results and run `just feature-merge`.
