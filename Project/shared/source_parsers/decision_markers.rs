@@ -1,4 +1,4 @@
-use super::parsing::parse;
+use super::parsing::{language, parse};
 use anyhow::Result;
 use std::path::Path;
 use tree_sitter::Node;
@@ -19,10 +19,11 @@ pub fn reference(comment: &str) -> Option<&str> {
     marker(comment).map(|marker| marker.id)
 }
 // DECISION: D219
+pub fn holds_exceptions(path: &Path) -> bool {
+    by_lines(path) || language(path).is_some()
+}
 pub fn exceptions(path: &Path, source: &str) -> Result<Vec<Exception>> {
-    let lines = path
-        .extension()
-        .is_some_and(|extension| extension == "yaml" || extension == "toml");
+    let lines = by_lines(path);
     if lines {
         return Ok(line_exceptions(source));
     }
@@ -33,6 +34,10 @@ pub fn exceptions(path: &Path, source: &str) -> Result<Vec<Exception>> {
     Ok(parse(path, source)?
         .map(|tree| tree_exceptions(tree.root_node(), source))
         .unwrap_or_default())
+}
+fn by_lines(path: &Path) -> bool {
+    path.extension()
+        .is_some_and(|extension| extension == "yaml" || extension == "toml")
 }
 fn ends_in_exception(line: &str) -> bool {
     line.match_indices(['/', '#']).any(|(start, _)| {

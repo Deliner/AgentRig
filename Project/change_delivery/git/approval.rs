@@ -102,7 +102,7 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
         .filter_map(|entry| entry.get(3..))
         .map(str::to_owned)
         .collect();
-    let stageable = repository.stageable(&changed)?;
+    let stageable = exceptions::stageable(repository, &changed)?;
     let committed = committed(repository)?;
     let contents = Contents {
         current: &stageable,
@@ -130,7 +130,7 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
 // DECISION: D226
 pub(super) fn admit(context: &Context, repository: &Repository<'_>, path: &Path) -> Result<()> {
     let name = path.to_string_lossy().into_owned();
-    let stageable = repository.stageable(std::slice::from_ref(&name))?;
+    let stageable = exceptions::stageable(repository, std::slice::from_ref(&name))?;
     let location = record_path(context)?;
     let mut record: Record = load_json(&location)?.unwrap_or_default();
     let content = Content::of(&stageable, &name);

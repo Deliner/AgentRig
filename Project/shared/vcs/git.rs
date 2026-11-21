@@ -8,6 +8,12 @@ pub struct Revisions<'a> {
     pub to: &'a str,
 }
 
+#[derive(Clone, Copy)]
+pub struct Staging<'a> {
+    pub stored: &'a [String],
+    pub hashed: &'a [String],
+}
+
 pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
     let output = Command::new("git").args(args).current_dir(root).output()?;
     let failed = !output.status.success();
@@ -196,16 +202,21 @@ pub(super) fn index(root: &Path) -> Result<BTreeMap<String, Entry>> {
 }
 
 // DECISION: D213
-pub(super) fn stageable(root: &Path, paths: &[String]) -> Result<BTreeMap<String, Entry>> {
+pub(super) fn stageable(root: &Path, staging: Staging<'_>) -> Result<BTreeMap<String, Entry>> {
     let directory = tempfile::tempdir()?;
     let index = directory.path().join("index");
     let run = |args: &[&str]| finish(command(root, args).env("GIT_INDEX_FILE", &index));
     if let Some(head) = head(root)? {
         run(&["read-tree", &head])?;
     }
-    let mut update = vec!["update-index", "--add", "--remove", "--"];
-    update.extend(paths.iter().map(String::as_str));
-    run(&update)?;
+    let store = ["update-index", "--add", "--remove", "--"];
+    let hash = ["update-index", "--add", "--remove", "--info-only", "--"];
+    let updates = [(&store[..], staging.stored), (&hash[..], staging.hashed)];
+    for (command, paths) in updates {
+        let mut update = command.to_vec();
+        update.extend(paths.iter().map(String::as_str));
+        run(&update)?;
+    }
     staged(&run(&["ls-files", "--stage", "-z"])?)
 }
 

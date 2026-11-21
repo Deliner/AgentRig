@@ -1,5 +1,6 @@
 // DECISION: D220
-use crate::shared::vcs::{Entry, FileKind, Repository};
+use crate::shared::source_parsers::{exceptions, holds_exceptions};
+use crate::shared::vcs::{Entry, FileKind, Repository, Staging};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -46,6 +47,19 @@ struct Request<'a> {
     found: &'a mut Vec<Added>,
 }
 
+pub(super) fn stageable(
+    repository: &Repository<'_>,
+    paths: &[String],
+) -> Result<BTreeMap<String, Entry>> {
+    let (stored, hashed): (Vec<String>, Vec<String>) = paths
+        .iter()
+        .cloned()
+        .partition(|path| holds_exceptions(Path::new(path)));
+    repository.stageable(Staging {
+        stored: &stored,
+        hashed: &hashed,
+    })
+}
 pub(super) fn added(
     repository: &Repository<'_>,
     paths: &[String],
@@ -53,6 +67,7 @@ pub(super) fn added(
 ) -> Result<Vec<Added>> {
     let mut changes: Vec<Change<'_>> = paths
         .iter()
+        .filter(|path| holds_exceptions(Path::new(path)))
         .map(|path| Change {
             path,
             before: Vec::new(),
@@ -124,8 +139,7 @@ fn keyed(path: &str, content: Vec<u8>) -> Result<Vec<Added>> {
         return Ok(Vec::new());
     };
     let lines: Vec<&str> = source.lines().collect();
-    let exceptions = crate::shared::source_parsers::exceptions(Path::new(path), &source)?;
-    Ok(exceptions
+    Ok(exceptions(Path::new(path), &source)?
         .into_iter()
         .map(|exception| Added {
             line: exception.line,
