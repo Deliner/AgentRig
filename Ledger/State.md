@@ -7,17 +7,18 @@ P192 (B199): directories Git knows no files in are checked for ignore rules by o
 ## Workspace
 
 Branch: feature/batched-ignore
-Revision: e9097d7937a55ec72fbcea05f8ab812a68664dd6
+Revision: ba8c0e5687d9f920894b622f4bb0f5b3a2d95e3a
 
 ## Progress
 
-VAC 1 saves B199 and selects it as P192 by the user's standing instruction. The batched ignore check in
-shared/vcs/directories.rs is in the working tree, not staged.
+VAC 1 saved B199 and selected it as P192. VAC 2 lets shared/vcs/directories.rs walk the known directories, then pass
+all unknown directories of one pass to a single `git check-ignore --no-index --stdin -z` and walk the visible ones.
 
 ## Verification
 
 Release candidate on AgentRig, `just candidate lint`, warm runs of the file and directory inventory: before on
-`e9097d7` 98, 96, 95, 116 and 116 ms; after 39, 41, 40, 41 and 41 ms. `just test inventory` passes 9 tests.
+`e9097d7` 98, 96, 95, 116 and 116 ms; after 39, 41, 40, 41 and 41 ms. `just test inventory` passes 9 tests;
+Clippy and candidate lint are clean.
 
 ## Blockers
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the batched ignore check as VAC 2.
+Commit VAC 2, then archive P192 and B199 with the timings and the acceptance results as VAC 3.
