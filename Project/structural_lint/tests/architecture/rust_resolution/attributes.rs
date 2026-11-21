@@ -1,4 +1,4 @@
-use super::{INCOMPLETE, declared, rust};
+use crate::structural_lint::tests::architecture::{INCOMPLETE, declared, rust};
 
 // DECISION: D136
 #[test]

@@ -1,5 +1,5 @@
-use super::{Consumer, Language, messages};
 use crate::shared::testing::edit_yaml;
+use crate::structural_lint::tests::architecture::{Consumer, Language, messages};
 use serde_yaml_ng::Value;
 use std::fs;
 

@@ -1,4 +1,4 @@
-use super::{INCOMPLETE, rust};
+use crate::structural_lint::tests::architecture::{INCOMPLETE, rust};
 
 fn owned(body: &str) -> String {
     format!(

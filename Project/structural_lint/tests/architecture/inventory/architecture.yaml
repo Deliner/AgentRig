@@ -1,0 +1,6 @@
+purpose: Verify the file and directory inventories that directory contracts must match, read from the file system or a Git working directory
+files:
+  mod.rs: Declare the file system and Git inventory tests
+  filesystem.rs: Exact file and directory inventories of source-free trees, empty directories and exclusions
+  versioned.rs: Git working-directory inventories of both lint binaries, ignored trees and empty directories
+directories: {}

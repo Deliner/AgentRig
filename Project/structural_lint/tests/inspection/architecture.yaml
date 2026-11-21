@@ -1,0 +1,7 @@
+purpose: Verify the lint-explain, lint-tree and lint-structure commands that describe the project instead of linting it
+files:
+  mod.rs: Declare the inspection command tests
+  explain.rs: Effective selection explanations and diagnostic consistency
+  tree.rs: Directory tree output, ordering, exclusions and rejected paths
+  structure.rs: Structure score kinds, identical output across runs and locations, documentation summaries and rejected paths
+directories: {}

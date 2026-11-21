@@ -1,0 +1,10 @@
+purpose: Verify how Rust attributes, bindings, macros, module wiring, local crates and embedded resources become directory edges or incomplete analysis
+files:
+  mod.rs: Declare the Rust resolution groups of the directory architecture tests
+  attributes.rs: Attributes that name or guard dependencies, string labels and unanalyzed attributes
+  bindings.rs: Rust Self, prelude and generic bound bindings against their lexical owners
+  crates.rs: Local Rust crate edges of compiled consumers and crate settings that cannot hide incomplete analysis
+  macros.rs: Macro arguments and definitions, external macro imports and unknown macro provenance
+  resources.rs: Embedded resource edges and resource targets that are missing, dynamic, escaping or ignored
+  wiring.rs: Rust module declarations, source includes, explicit module paths and visibility paths
+directories: {}

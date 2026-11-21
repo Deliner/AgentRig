@@ -1,4 +1,4 @@
-use super::{INCOMPLETE, declared};
+use crate::structural_lint::tests::architecture::{INCOMPLETE, declared};
 
 const REACHING: [(&str, &str); 7] = [
     (

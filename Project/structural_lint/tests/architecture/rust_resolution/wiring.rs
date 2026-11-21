@@ -1,4 +1,4 @@
-use super::{Consumer, Language};
+use crate::structural_lint::tests::architecture::{Consumer, Language};
 
 const CYCLE: &str = "directory dependency cycle";
 const INCLUDES: [(&str, &str, Option<&str>); 4] = [

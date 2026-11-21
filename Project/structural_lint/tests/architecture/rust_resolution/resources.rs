@@ -1,5 +1,5 @@
-use super::{INCOMPLETE, rust};
 use crate::shared::testing::{git, invoke};
+use crate::structural_lint::tests::architecture::{INCOMPLETE, rust};
 
 const EMBEDDED: [&str; 4] = [
     "include_str!(\"../b/data.txt\")",
