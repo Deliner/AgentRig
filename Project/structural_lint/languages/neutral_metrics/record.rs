@@ -1,12 +1,29 @@
 use crate::shared::source_parsers::Exception;
 use crate::structural_lint::rule_identities::{Kind, Pair};
 use std::collections::BTreeSet;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use tree_sitter::Node;
 
 // DECISION: D229
 pub trait Project: Sync {
     fn foreign_crate(&self, name: &str) -> bool;
+    fn python_import(&self, from: &Path, import: PythonImport<'_>) -> Imported;
+}
+// DECISION: D229
+#[derive(Clone, Copy)]
+pub struct PythonImport<'a> {
+    pub module: &'a str,
+    pub name: &'a str,
+}
+// DECISION: D229
+pub enum Imported {
+    Outside,
+    Inside(Vec<Source>),
+    Unknown,
+}
+pub struct Source {
+    pub path: PathBuf,
+    pub text: String,
 }
 // DECISION: D156
 // DECISION: D229

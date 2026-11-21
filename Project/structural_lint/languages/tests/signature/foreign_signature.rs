@@ -1,4 +1,5 @@
-use crate::structural_lint::languages::{Context, Project, analyze};
+use super::measured_within;
+use crate::structural_lint::languages::{Imported, Project, PythonImport};
 use crate::structural_lint::rule_identities::{ControlFlow, Kind, Signature, Structure};
 use std::path::Path;
 
@@ -11,24 +12,14 @@ impl Project for WithRustls {
     fn foreign_crate(&self, name: &str) -> bool {
         ["std", "core", "alloc", "rustls"].contains(&name)
     }
+    fn python_import(&self, _from: &Path, _import: PythonImport<'_>) -> Imported {
+        Imported::Unknown
+    }
 }
 
 // DECISION: D229
 fn measured(source: &str, kinds: &[Kind]) -> Vec<(usize, String)> {
-    let context = Context {
-        pairs: &[],
-        project: &WithRustls,
-    };
-    let analysis = analyze(Path::new("source.rs"), source, context).unwrap();
-    assert_eq!(analysis.parse_error, None);
-    let mut found: Vec<_> = analysis
-        .measurements
-        .into_iter()
-        .filter(|item| kinds.contains(&item.kind))
-        .map(|item| (item.line, item.symbol))
-        .collect();
-    found.sort();
-    found
+    measured_within(Path::new("source.rs"), source, &WithRustls, kinds)
 }
 
 #[test]

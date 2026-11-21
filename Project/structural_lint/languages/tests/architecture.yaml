@@ -13,6 +13,6 @@ directories:
   errors: Verify measurements of code where an error disappears without a trace, from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis
-  signature: Verify Rust function signature, type shape, trait implementation and conversion measurements from native analysis
+  signature: Verify Rust function signature, type shape, trait implementation and conversion measurements, and the Python signatures a base outside the project sets, from native analysis
   std_forms: Verify Rust measurements of operators and standard library calls whose behavior differs from what the form appears to state, from native analysis
   test_code: Verify Rust measurements of test modules outside the test locations, tests that pass on any panic, items no test build compiles and tests that bind a fixed port, from native analysis

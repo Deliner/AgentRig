@@ -7,6 +7,7 @@ files:
   registry.rs: Rule and measurement capabilities exposed for supported extensions
   program.rs: Known program languages and the language of a file by its extension or the interpreter of its #! line
   python.rs: Python conditions, boolean expressions, function lengths, parameters and comments
+  python_override.rs: Python methods marked with typing.override whose base chain leaves the project, so that code outside it sets their signature
   test_files.rs: Rust and Python test file names and the test file that lies outside a tests directory
 directories:
   neutral_metrics: Located measurement record and the condition, boolean expression, comment, credential, function, nesting, parameter and branch measurements shared by syntax handlers

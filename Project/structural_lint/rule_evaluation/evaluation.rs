@@ -11,9 +11,9 @@ use crate::structural_lint::rule_identities::{ControlFlow, Kind, Reference, Sett
 use crate::structural_lint::rule_set::{capabilities, lint_config};
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::{Context, Result};
-use std::collections::{HashMap, hash_map::Entry};
+use std::collections::{BTreeSet, HashMap, hash_map::Entry};
 use std::io::{BufRead, BufReader, Read};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 struct Evaluation<'a> {
     analyses: HashMap<std::path::PathBuf, languages::Analysis>,
@@ -50,7 +50,16 @@ pub(super) fn evaluate(root: &Path, config: &lint_config::Config) -> Result<Vec<
         .iter()
         .find_map(|rule| rule.architecture.as_ref())
         .unwrap_or(&unset);
-    let project = Declared { settings };
+    let files: BTreeSet<PathBuf> = inventory.files.iter().cloned().collect();
+    let project = Declared {
+        settings,
+        root,
+        python: architecture::Python::new(
+            &settings.python_root,
+            &files,
+            &settings.external.python,
+        )?,
+    };
     let mut evaluation = Evaluation {
         analyses: HashMap::new(),
         output: Vec::new(),

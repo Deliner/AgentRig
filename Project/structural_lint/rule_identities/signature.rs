@@ -52,7 +52,7 @@ const PARAMETERCOUNT: Descriptor = Descriptor {
     default_id: "parameter-count",
     exclude: &[],
     target: "file",
-    metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait",
+    metric: "declared input parameters, excluding method receivers; constructors included; variadics count as one; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait, and a Python method of a module-level class marked with override from typing when every base traces to a module of the architecture external.python list or a builtin class and no project class on the way declares that name",
     skill: "reduce-parameters",
     parameters: Parameters::Thresholds {
         warning: None,
@@ -66,7 +66,7 @@ const BOOLEANPARAMETER: Descriptor = Descriptor {
     default_id: "boolean-parameter",
     exclude: &[],
     target: "file",
-    metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait",
+    metric: "parameters typed as the Rust bool primitive, or annotated bool or defaulting to True or False in Python; each flagged parameter is a finding; not measured where code outside the project sets the signature: a Rust function of an extern block or method of an impl of a trait whose path or import leads to a crate in the architecture external.rust list (default std, core, alloc) or to a standard prelude trait, and a Python method of a module-level class marked with override from typing when every base traces to a module of the architecture external.python list or a builtin class and no project class on the way declares that name",
     skill: "split-boolean-parameter",
     parameters: Parameters::Level {
         default: Severity::Error,

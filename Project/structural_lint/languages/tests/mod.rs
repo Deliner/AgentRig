@@ -1,5 +1,5 @@
 // DECISION: D037
-use super::{Context, Project, analyze};
+use super::{Context, Imported, Project, PythonImport, analyze};
 use crate::structural_lint::rule_identities::{Kind, RUST_SEED, Reference, Signature, Structure};
 use std::path::Path;
 
@@ -7,6 +7,9 @@ struct Detached;
 impl Project for Detached {
     fn foreign_crate(&self, name: &str) -> bool {
         RUST_SEED.contains(&name)
+    }
+    fn python_import(&self, _from: &Path, _import: PythonImport<'_>) -> Imported {
+        Imported::Unknown
     }
 }
 const DETACHED: Context<'static> = Context {

@@ -3,13 +3,17 @@ mod manifest;
 mod neutral_metrics;
 mod program;
 mod python;
+// DECISION: D229
+mod python_override;
 mod registry;
 mod rust;
 // DECISION: D223
 mod test_files;
 #[cfg(test)]
 mod tests;
-pub use neutral_metrics::{Analysis, Code, Context, Measurement, Project, text};
+pub use neutral_metrics::{
+    Analysis, Code, Context, Imported, Measurement, Project, PythonImport, Source, text,
+};
 pub use program::{program_language, program_languages};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::{ENTRY_FILES, in_test_context};

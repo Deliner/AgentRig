@@ -5,7 +5,9 @@ mod record;
 use crate::structural_lint::rule_identities::{Kind, Reference, Signature, Structure};
 pub use conditions::{boolean_expression, condition, mixed_junction};
 pub use nesting::{Branch, Nest, branching, nesting};
-pub use record::{Analysis, Code, Context, Measurement, Project, text};
+pub use record::{
+    Analysis, Code, Context, Imported, Measurement, Project, PythonImport, Source, text,
+};
 use std::path::Path;
 use tree_sitter::{Node, Tree};
 

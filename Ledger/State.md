@@ -2,29 +2,26 @@
 
 ## Focus
 
-P195 / B202: the linter leaves signatures that foreign code sets. VAC1 delivers Rust (AC1–AC4, AC8, AC9 Rust text):
-`parameter-count`, `boolean-parameter` and `tuple-as-record` skip extern-block functions and methods of impls of
-traits whose path leads to a declared external crate or a prelude trait; decision D229.
+P195 (B202, D229) VAC2: a Python method marked with typing.override whose base chain leaves the project gets no
+parameter-count or boolean-parameter findings (AC5-AC7); the two rule texts name it (AC9).
 
 ## Workspace
 
 Branch: feature/foreign-signatures
-Revision: 94b8c2aaaf4dbff1dbf93d42a64ab898161fa35d
+Revision: aab7dae56eeb60da49fa7f94fba6751070ca9cfe
 
 ## Progress
 
-- `languages::analyze` takes a `Context` of pairs and an injected `Project` view; rule evaluation builds it from the
-  directory-architecture settings (`rule_evaluation/foreign_code.rs`).
-- `rust/exemptions/foreign_trait.rs` decides extern members and foreign trait paths through the file's imports.
-- Language tests pass `DETACHED`; new tests in `tests/signature/foreign_signature.rs` and `rule_evaluation/tests`.
-- Descriptors name the unmeasured signatures; D229 detail and index row written.
-- VAC2 (Python `typing.override`, AC5–AC7, AC9 Python text) not started.
+VAC1 (Rust, AC1-AC4, AC8) is committed as aab7dae. VAC2 is complete in the working tree: Project gains python_import
+(Outside, Inside sources or Unknown); languages/python_override.rs traces the base chain; python.rs skips the two
+signature measurements for a foreign override; rule_evaluation/foreign_code.rs answers through the architecture
+Python resolver re-exported at the architecture entry; the parameter-count and boolean-parameter texts name the
+Python case; D229 links the Python owners and tests.
 
 ## Verification
 
-- `just run test -- structural_lint::languages`: 178 passed; signature tests 41 passed after the split.
-- `just run test -- structural_lint::rule_evaluation`: 9 passed.
-- `just lint`, `just run rustfmt`, `just run clippy` and `just check --only memory`: pass.
+On the VAC2 working tree: structural_lint tests 358 passed (5 Python override language tests, 1 evaluation test
+through the real resolver); candidate lint, rustfmt, Clippy and the memory check pass.
 
 ## Blockers
 
@@ -32,4 +29,4 @@ None.
 
 ## Next action
 
-Commit VAC1, then deliver VAC2 for Python.
+Commit VAC2, then run `just propose-pin HEAD`, archive B202 and P195 and run `just feature-merge`.
