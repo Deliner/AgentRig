@@ -14,6 +14,7 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
+| [P192](Plan/192.md) | active | - | [B199](Backlog/199.md): каталоги вне Git проверяются на игнор одним вызовом Git за проход | Каждый запуск lint и каждый гейт идут быстрее. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
@@ -251,3 +252,6 @@ VAC ветки `feature/parallel-lint` от master `3a92de1`. Ветка сли�
 
 2026-11-21 после P190 по тому же поручению карточка B198 сохранена и выбрана как **P191**. Карточка в Git в первом
 VAC ветки `feature/parallel-architecture` от master `679083e`. Ветка сливается без пина, пин ставит пользователь.
+
+2026-11-21 после P191 по тому же поручению карточка B199 сохранена и выбрана как **P192**. Карточка в Git в первом
+VAC ветки `feature/batched-ignore` от master `e9097d7`. Ветка сливается без пина, пин ставит пользователь.
