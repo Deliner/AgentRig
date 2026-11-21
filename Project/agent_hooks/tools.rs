@@ -48,16 +48,31 @@ const PASSIVE: [&str; 43] = [
     "view_image",
 ];
 
+// DECISION: D230
+const COMPACT: &str = "mcp__self-compact__compact";
+
 pub(super) enum Tool {
     Shell,
     Edit,
     Passive,
+    Compact,
     Refused,
+}
+
+impl Tool {
+    // DECISION: D230
+    pub(super) fn waits_for_compaction(&self) -> bool {
+        match self {
+            Self::Compact => false,
+            Self::Shell | Self::Edit | Self::Passive | Self::Refused => true,
+        }
+    }
 }
 
 pub(super) fn classify(event: &Value) -> Tool {
     let input = &event["tool_input"];
     match text(event, "tool_name") {
+        COMPACT => Tool::Compact,
         "Bash" | "Shell" | "exec_command" => Tool::Shell,
         "Monitor" if input.get("command").is_some() => Tool::Shell,
         "Monitor" if input.get("ws").is_some() => Tool::Passive,

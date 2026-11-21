@@ -21,6 +21,7 @@ use self::input::{paths, target, text};
 use self::responses::{Event, context};
 use self::skill_requirements::Answer;
 use self::tools::Tool;
+use crate::change_delivery;
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
@@ -28,6 +29,9 @@ use anyhow::{Result, bail};
 pub use responses::deny;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
+
+// DECISION: D230
+const RENEWING_SOURCES: [&str; 3] = ["startup", "clear", "compact"];
 
 // DECISION: D062
 #[derive(Clone, Copy)]
@@ -58,14 +62,47 @@ pub fn dispatch(root: &Path, event: &Value, agent: Agent) -> Result<Option<Value
     configured.caller.agent = Some(agent);
     match text(event, "hook_event_name") {
         "SessionStart" => session_start(root, event, &configured),
-        "PreToolUse" => match tools::classify(event) {
-            Tool::Shell => shell_event(event, &configured),
-            Tool::Edit => edit_event(root, event, &configured),
-            Tool::Passive => Ok(None),
-            Tool::Refused => Ok(Some(deny(&tools::refusal(event)))),
-        },
+        "PreToolUse" => tool_event(root, event, &configured),
         _ => Ok(None),
     }
+}
+fn tool_event(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
+    let tool = tools::classify(event);
+    let awaited = tool
+        .waits_for_compaction()
+        .then(|| compaction_refusal(configured))
+        .flatten();
+    if let Some(refusal) = awaited {
+        return Ok(Some(refusal));
+    }
+    match tool {
+        Tool::Shell => shell_event(event, configured),
+        Tool::Edit => edit_event(root, event, configured),
+        Tool::Passive | Tool::Compact => Ok(None),
+        Tool::Refused => Ok(Some(deny(&tools::refusal(event)))),
+    }
+}
+// DECISION: D230
+fn compaction_refusal(configured: &Context) -> Option<Value> {
+    match change_delivery::compaction_due(configured) {
+        Ok(due) => due.map(deny),
+        Err(error) => Some(deny(&format!(
+            "AgentRig refused this call: it could not read whether a merge requires compacting this conversation: {error:#}. Ask the user to repair the runtime directory {}.",
+            configured.config.paths.runtime
+        ))),
+    }
+}
+// DECISION: D230
+fn lift_compaction(event: &Value, configured: &Context) -> Option<String> {
+    let renewed = RENEWING_SOURCES.contains(&text(event, "source"));
+    let error = renewed
+        .then(|| change_delivery::lift_compaction(configured).err())
+        .flatten()?;
+    console::stderr(format!("compaction requirement: {error:#}"));
+    Some(format!(
+        "AgentRig could not lift the compaction requirement of the last merge: {error:#}. Every tool call stays refused; ask the user to repair the runtime directory {}.",
+        configured.config.paths.runtime
+    ))
 }
 fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
     let memory = &configured.config.paths.memory;
@@ -75,6 +112,9 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         state = root.join(memory).join("State.md").display(),
         plan = root.join(memory).join("Plan.md").display(),
     );
+    if let Some(failure) = lift_compaction(event, configured) {
+        message.push_str(&format!("\n\n{failure}"));
+    }
     let hooks = &configured.config.hooks;
     let stateful = hooks.reminder.is_some() || !hooks.routes.is_empty();
     let started = stateful

@@ -2,6 +2,7 @@
 // DECISION: D019
 // DECISION: D035
 mod approval;
+mod compaction;
 mod consent;
 mod exceptions;
 mod integration;
@@ -18,6 +19,7 @@ use crate::shared::console;
 use crate::shared::vcs::{Revisions, git_context as git};
 use anyhow::{Result, ensure};
 pub use approval::{approve, record as record_approval};
+pub use compaction::{due as compaction_due, lift as lift_compaction};
 pub use consent::{give as give_consent, list as consented_pins, revoke as revoke_consent};
 use std::{
     io::{self, Read},
@@ -32,6 +34,7 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
     Ok(0)
 }
 
+// DECISION: D230
 pub fn merge(context: &Context) -> Result<i32> {
     let settings = &context.config.git;
     let repository = crate::shared::vcs::Repository::require(&context.root, "integration")?;
@@ -44,8 +47,11 @@ pub fn merge(context: &Context) -> Result<i32> {
     let passed = code == 0;
     if passed {
         console::stdout(format!("merged {feature}; branch retained"));
+        compaction::require(context)?;
         let pushed = push::merged(&repository, settings, &feature);
-        return Ok(cleanup_jobs(context, &feature)?.max(pushed));
+        let cleaned = cleanup_jobs(context, &feature)?;
+        console::stdout(compaction::instruction());
+        return Ok(cleaned.max(pushed));
     }
     Ok(code)
 }

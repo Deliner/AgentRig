@@ -17,8 +17,9 @@ staged change of them that the user has not approved. They are:
   `commands.yaml`, `checks.yaml`, `hooks.yaml`, `tools.yaml` and `rust.yaml`,
   the lint configuration `paths.lint` and its baseline, so a new catalog
   command, `just write` program or check setting is a proposal too;
-- `.git`, the route state `reminders/`, the approval record `approved` and the
-  consent record `consent` in the runtime directory;
+- `.git`, the route state `reminders/`, the approval record `approved`, the
+  consent record `consent` and the compaction requirement `compaction` in the
+  runtime directory;
 - every path listed in `hooks.protected` and the pin named by `git.pin`.
 
 ## Propose
