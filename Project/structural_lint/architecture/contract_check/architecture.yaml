@@ -2,7 +2,7 @@ purpose: Execute architecture analysis over configured scope and convert measure
 files:
   mod.rs: Coordinate inventory validation, dependency analysis and diagnostic conversion
   scope.rs: Select directories and source files while preserving complete responsibility inventories
-  analysis.rs: Read sources, build language resolvers and link local crate dependencies
+  analysis.rs: Read and parse sources on the available threads, build language resolvers and link local crate dependencies
   disallowed.rs: Apply the configured disallowed-path policy with allow globs to resolved external references
   dependency_rules.rs: Measured dependencies and declared groups that the file-cycle, entry-use and entry-bypass rules read
   diagnostic.rs: Conversion of a contract issue into a diagnostic at the rule's level and skill

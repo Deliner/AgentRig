@@ -1,4 +1,5 @@
 use crate::shared::fs_with_context as fs;
+use crate::shared::parallel_map::in_parallel;
 use crate::shared::paths::globs;
 use crate::structural_lint::architecture::{
     contract_rules::{self, Dependency, EnvironmentUse, Issue, Relation, Rooted},
@@ -13,20 +14,21 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, References> {
-    files
-        .iter()
-        .map(|path| {
-            let parsed = read(Rooted { root, path }).unwrap_or_else(|error| References {
-                issues: vec![incomplete(path, None, error)],
-                ..References::default()
-            });
-            (path.clone(), parsed)
+pub fn extract(root: &Path, files: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, References>> {
+    let files: Vec<&PathBuf> = files.iter().collect();
+    let parsed = in_parallel(&files, |path| {
+        read(Rooted { root, path }).unwrap_or_else(|error| References {
+            issues: vec![incomplete(path, None, error)],
+            ..References::default()
         })
-        .collect()
+    })?;
+    Ok(files.into_iter().cloned().zip(parsed).collect())
 }
 
-pub fn rust_sources(root: &Path, files: &BTreeSet<PathBuf>) -> BTreeMap<PathBuf, References> {
+pub fn rust_sources(
+    root: &Path,
+    files: &BTreeSet<PathBuf>,
+) -> Result<BTreeMap<PathBuf, References>> {
     let rust_files: BTreeSet<PathBuf> = files
         .iter()
         .filter(|path| path.extension().is_some_and(|ext| ext == "rs"))
