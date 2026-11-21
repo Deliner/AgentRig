@@ -51,7 +51,7 @@ pub fn generate(request: &Generation<'_>) -> Result<Generated> {
 }
 
 impl Repository<'_> {
-    pub fn hook_registration(&self) -> Result<String> {
+    fn hook_registration(&self) -> Result<String> {
         Ok(String::from_utf8(git::run(
             self.root,
             &["config", "--default", "", "--get", "core.hooksPath"],
@@ -60,13 +60,13 @@ impl Repository<'_> {
         .into())
     }
 
-    pub fn validate_registration(&self, directory: &str) -> Result<()> {
+    pub fn compatible_registration(&self, directory: &str) -> Result<String> {
         let current = self.hook_registration()?;
         ensure!(
             current.is_empty() || current == directory,
             "setup conflict: core.hooksPath={current}; existing registration preserved"
         );
-        Ok(())
+        Ok(current)
     }
 
     pub fn hooks_registered(&self, directory: &str) -> Result<bool> {
@@ -74,8 +74,7 @@ impl Repository<'_> {
     }
 
     pub fn register_hooks(&self, directory: &str) -> Result<()> {
-        self.validate_registration(directory)?;
-        let missing = !self.hooks_registered(directory)?;
+        let missing = self.compatible_registration(directory)?.is_empty();
         if missing {
             git::run(self.root, &["config", "core.hooksPath", directory])?;
         }

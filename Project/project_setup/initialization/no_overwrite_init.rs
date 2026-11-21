@@ -44,8 +44,7 @@ pub(super) fn prepare(root: &Path, config: &Config, files: &Files) -> Result<()>
     check_collisions(root, files.keys().chain(skill_links(config).keys()))?;
     let repository = crate::shared::vcs::Repository::discover(root)?;
     if let Some(repository) = &repository {
-        repository.validate_registration(&config.paths.service_path("hooks"))?;
-        let existing = repository.hook_registration()?;
+        let existing = repository.compatible_registration(&config.paths.service_path("hooks"))?;
         ensure!(
             existing.is_empty(),
             "existing VCS hook registration={existing}; init will not replace it"

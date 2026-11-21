@@ -5,7 +5,7 @@ mod rust_layout;
 mod wizard;
 
 use super::init;
-use crate::shared::testing::repository;
+use crate::shared::testing::{git, repository};
 use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{
@@ -130,6 +130,29 @@ fn init_collision_preserves_existing_files() {
         .collect();
     assert_eq!(entries, [path.clone()]);
     assert_eq!(fs::read_to_string(path).unwrap(), "user contents");
+}
+
+#[test]
+fn init_refuses_an_existing_hook_registration_and_keeps_it() {
+    let refusals = [
+        (
+            "custom-hooks",
+            "setup conflict: core.hooksPath=custom-hooks; existing registration preserved",
+        ),
+        (
+            ".agentrig/hooks",
+            "existing VCS hook registration=.agentrig/hooks; init will not replace it",
+        ),
+    ];
+    for (registered, refusal) in refusals {
+        let (_temp, root) = consumer();
+        git(&root, &["init", "-q"]);
+        git(&root, &["config", "core.hooksPath", registered]);
+        let error = initialize(&root, &[]).unwrap_err().to_string();
+        assert_eq!(error, refusal);
+        assert_eq!(git(&root, &["config", "core.hooksPath"]), registered);
+        assert!(!root.join(".agentrig").exists(), "{registered}");
+    }
 }
 
 // INVARIANT: I020
