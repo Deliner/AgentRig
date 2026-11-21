@@ -7,17 +7,17 @@ P185 (B192): the memory history reads the fork revision once and keeps one reade
 ## Workspace
 
 Branch: feature/history-reads
-Revision: a362a1ca005500ad800b0905401f72ecc1379170
+Revision: fbb479005ad65d213a885aae018499641074742f
 
 ## Progress
 
-VAC 1 saves B192 and selects it as P185 by the user's standing instruction to improve the project autonomously. The
-shared snapshot change and a temporary step probe are in the working tree, not staged.
+VAC 2: `revision_memory.rs` owns a revision snapshot with its tree, memory directory and cached texts. `history.rs`
+loads one snapshot per checked revision and hands the fork snapshot to `invariant_history.rs`, whose `Prior` no
+longer repeats the reading code. The temporary probe is removed.
 
 ## Verification
 
-Before on `a362a1c`, release candidate on AgentRig, warm runs: history step 192, 189, 205, 202, 208 and 203 ms. With
-the unstaged change: 177, 187, 186, 185, 155, 155, 156, 157 and 156 ms.
+`just test` passes 616 tests, as on master `a362a1c`. `just lint` reports nothing. History step median 202 → 157 ms.
 
 ## Blockers
 
@@ -25,4 +25,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then remove the probe, run the suite and lint and commit the shared snapshot.
+Commit VAC 2, then archive P185 and B192 with the timings and acceptance results and run `just feature-merge`.
