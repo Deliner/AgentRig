@@ -6,7 +6,7 @@ use crate::shared::vcs::{Entry, Repository};
 use anyhow::{Result, ensure};
 use format::{Catalog, Row};
 use std::{
-    collections::{BTreeMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     path::Path,
 };
 
@@ -16,6 +16,7 @@ struct Prior<'a> {
     tree: BTreeMap<String, Entry>,
     memory: String,
     oracles: BTreeMap<String, Oracle>,
+    read: HashMap<String, String>,
 }
 
 #[derive(Clone, Copy)]
@@ -33,6 +34,7 @@ pub fn check(context: &Context, repository: &Repository<'_>, fork: &str) -> Resu
         tree,
         memory,
         oracles: BTreeMap::new(),
+        read: HashMap::new(),
     };
     if let Some(text) = prior.text(&module("oracles"))? {
         prior.oracles = crate::shared::strict_yaml::decode(&text)?;
@@ -40,6 +42,7 @@ pub fn check(context: &Context, repository: &Repository<'_>, fork: &str) -> Resu
     let Some(rows) = prior.table("Invariants.md", Catalog::Invariants)? else {
         return Ok(());
     };
+    prior.read_ahead(&rows)?;
     let current_memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&current_memory.join("Invariants.md"), Catalog::Invariants)?;
     let introduced = introduced(&prior, &current_memory)?;
@@ -92,12 +95,30 @@ fn unchanged(context: &Context, prior: &Prior<'_>, change: Change<'_>) -> Result
 }
 
 impl Prior<'_> {
+    fn read_ahead(&mut self, rows: &[Row]) -> Result<()> {
+        let mut paths = BTreeSet::new();
+        for old in rows {
+            paths.extend(self.located(&old.detail).ok());
+            let link = format::link(&old.cells[2]).ok();
+            paths.extend(link.and_then(|link| self.located(&link.path).ok()));
+        }
+        paths.retain(|path| self.tree.contains_key(path));
+        let paths: Vec<String> = paths.into_iter().collect();
+        let texts = revision_memory::read_all(self.repository, &self.tree, &paths)?;
+        self.read = paths.into_iter().zip(texts).collect();
+        Ok(())
+    }
+
     fn text(&self, path: &str) -> Result<Option<String>> {
         let absent = !self.tree.contains_key(path);
         if absent {
             return Ok(None);
         }
-        revision_memory::read(self.repository, self.revision, Path::new(path)).map(Some)
+        let text = match self.read.get(path) {
+            Some(text) => text.clone(),
+            None => revision_memory::read(self.repository, self.revision, Path::new(path))?,
+        };
+        Ok(Some(text))
     }
 
     fn table(&self, name: &str, catalog: Catalog) -> Result<Option<Vec<Row>>> {
