@@ -76,7 +76,7 @@ pub(super) fn guidance(config: &Config) -> Files {
 }
 // DECISION: D175
 fn add_rust_capabilities(files: &mut Files) -> Result<()> {
-    let capabilities = rust::toolchain::Version::rig()?.capabilities();
+    let capabilities = rust::Version::rig()?.capabilities();
     let instructions = files.entry("AGENTS.md".into()).or_default();
     instructions.push(b'\n');
     instructions.extend_from_slice(capabilities.as_bytes());

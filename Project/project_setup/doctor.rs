@@ -1,4 +1,4 @@
-use super::rust::toolchain::Requirement;
+use super::rust::Requirement;
 use crate::command_runner;
 use crate::project_config::{Access, Context};
 use crate::shared::calling_agent::Agent;

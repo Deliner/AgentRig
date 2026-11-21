@@ -1,6 +1,6 @@
 // DECISION: D124
 // DECISION: D138
-use crate::change_delivery::gate::{AffectedMap, files, included};
+use crate::change_delivery::{AffectedMap, checked_files, included};
 use crate::project_config::{Check, Context};
 use crate::shared::diagnostics::{Guidance, rerun};
 use crate::shared::{console, fs_with_context as fs};
@@ -82,7 +82,7 @@ pub fn config_check(context: &Context) -> Result<i32> {
     Ok(code)
 }
 fn report(context: &Context) -> Result<bool> {
-    let files = files(context)?;
+    let files = checked_files(context)?;
     let rerun = rerun(&context.root, &["config-check".into()]);
     let mut found = false;
     for check in &context.config.checks {
@@ -157,7 +157,7 @@ fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result
     for path in files.iter().filter(rust) {
         texts.insert(path.clone(), fs::read_to_string(root.join(path))?);
     }
-    let layout = super::rust::cargo::manifest_layout(root, &manifest.to_string_lossy())?;
+    let layout = super::rust::manifest_layout(root, &manifest.to_string_lossy())?;
     structural_lint::crate_modules(&texts, &layout.roots)
 }
 

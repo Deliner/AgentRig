@@ -1,7 +1,6 @@
 use super::Configured;
 use crate::{
-    change_delivery::git,
-    command_runner,
+    change_delivery, command_runner,
     project_config::Context,
     project_memory, project_setup,
     shared::{console, diagnostics, shared_options::forwarded},
@@ -13,24 +12,23 @@ pub(super) fn configured_command(
     command: Configured,
     args: &[String],
 ) -> Result<i32> {
-    let root = &context.root;
-    let git = &context.config.git;
     match command {
         Configured::Doctor => project_setup::doctor(context),
         Configured::RuntimeAdd => project_setup::runtime_add(context),
         Configured::ConfigCheck => project_setup::config_check(context),
         Configured::GuardReference => {
-            git::guard_reference_with(root, args.first().map(String::as_str).unwrap_or(""), git)
+            let phase = args.first().map(String::as_str).unwrap_or("");
+            change_delivery::guard_reference_with(&context.root, phase, &context.config.git)
         }
-        Configured::FeatureStart => git::start(context, &args[0]),
-        Configured::FeatureMerge => git::merge(context),
-        Configured::FeaturePush => git::push(context),
-        Configured::StateReset => git::reset_state(context),
-        Configured::Approve => git::approval::approve(context),
-        Configured::ProposePin => git::propose_pin(context, &args[0]),
-        Configured::Consent => git::consent::give(context),
-        Configured::RevokeConsent => git::consent::revoke(context),
-        Configured::ConsentedPins => git::consent::list(context),
+        Configured::FeatureStart => change_delivery::feature_start(context, &args[0]),
+        Configured::FeatureMerge => change_delivery::feature_merge(context),
+        Configured::FeaturePush => change_delivery::feature_push(context),
+        Configured::StateReset => change_delivery::reset_state(context),
+        Configured::Approve => change_delivery::approve(context),
+        Configured::ProposePin => change_delivery::propose_pin(context, &args[0]),
+        Configured::Consent => change_delivery::give_consent(context),
+        Configured::RevokeConsent => change_delivery::revoke_consent(context),
+        Configured::ConsentedPins => change_delivery::consented_pins(context),
         Configured::MemoryCheck => project_memory::check(context),
         Configured::Resume => {
             project_memory::resume(context)?;

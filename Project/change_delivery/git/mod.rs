@@ -1,8 +1,8 @@
 // DECISION: D010
 // DECISION: D019
 // DECISION: D035
-pub mod approval;
-pub mod consent;
+mod approval;
+mod consent;
 mod exceptions;
 mod integration;
 mod pin;
@@ -17,6 +17,8 @@ use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::vcs::{Revisions, git_context as git};
 use anyhow::{Result, ensure};
+pub use approval::{approve, record as record_approval};
+pub use consent::{give as give_consent, list as consented_pins, revoke as revoke_consent};
 use std::{
     io::{self, Read},
     path::Path,

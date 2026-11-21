@@ -2,7 +2,7 @@ mod project;
 #[cfg(test)]
 mod tests;
 use crate::{
-    change_delivery::{gate, git},
+    change_delivery,
     command_runner::{self, JobCommand},
     project_config::Context,
     project_setup,
@@ -118,7 +118,9 @@ pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
     match command {
         Command::Init => project_setup::initialization::init(root, args),
         Command::GuardCommit => guard_commit(root, args),
-        Command::Check => gate::selected(root, gate::arguments(args)?),
+        Command::Check => {
+            change_delivery::check_selected(root, change_delivery::check_arguments(args)?)
+        }
         Command::Runner(runner) => run_runner(&Context::load(root)?, runner, args),
         Command::Configured(configured) => {
             validate_arguments(configured, args)?;
@@ -141,7 +143,7 @@ fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
     if unexpected {
         bail!("guard-commit takes no arguments");
     }
-    git::guard_commit(&Context::load(root)?)
+    change_delivery::guard_commit(&Context::load(root)?)
 }
 
 fn validate_arguments(command: Configured, args: &[String]) -> Result<()> {

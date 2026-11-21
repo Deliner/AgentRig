@@ -1,6 +1,6 @@
 // DECISION: D021
 // DECISION: D036
-use super::rust::cargo::Layout;
+use super::rust::Layout;
 use super::template::{CACHE, SOURCE};
 use crate::project_config::Paths;
 use crate::structural_lint::{Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};

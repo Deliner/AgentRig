@@ -1,5 +1,7 @@
-use super::rust::cargo::{self, Layout};
-use super::rust::{clippy, flags, toolchain::Requirement};
+use super::rust::{
+    ClippySettings, Layout, Requirement, build_rustflags, cargo_layout, clippy_argv,
+    clippy_settings,
+};
 use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
     Route, RouteEvent, Rust, Tools, View, Views,
@@ -73,7 +75,7 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
 pub(super) struct Scaffold {
     pub config: Config,
     pub rust: Layout,
-    pub clippy: Option<clippy::Settings>,
+    pub clippy: Option<ClippySettings>,
 }
 pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let python = options["language"] == "python";
@@ -90,9 +92,9 @@ pub(super) fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
             toolchain.met(),
             "init refused for a Rust project: {toolchain}; no files were written"
         );
-        let rust = cargo::layout(root, SOURCE)?;
-        let clippy = clippy::settings(root, &rust)?;
-        (rust, Some(clippy), flags::build_rustflags(root)?)
+        let rust = cargo_layout(root, SOURCE)?;
+        let clippy = clippy_settings(root, &rust)?;
+        (rust, Some(clippy), build_rustflags(root)?)
     };
     let mut config = config(options, &rust, rustflags)?;
     config.git.remote = remote(root)?;
@@ -304,7 +306,7 @@ fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str,
             "clippy",
             check(
                 "Check Rust code with Clippy, denying warnings and the AgentRig profile",
-                clippy::argv(rust),
+                clippy_argv(rust),
             ),
         ));
     }

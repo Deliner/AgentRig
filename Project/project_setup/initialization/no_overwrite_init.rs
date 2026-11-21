@@ -121,7 +121,7 @@ pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result
     repository.register_hooks(&config.paths.service_path("hooks"))?;
     // DECISION: D213
     let context = project_config::Context::load(root)?;
-    crate::change_delivery::git::approval::record(&context, &repository)?;
+    crate::change_delivery::record_approval(&context, &repository)?;
     Ok(())
 }
 fn executable(path: &str) -> bool {

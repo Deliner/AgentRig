@@ -1,2 +1,11 @@
-pub mod gate;
-pub mod git;
+mod gate;
+mod git;
+pub use gate::{
+    AffectedMap, arguments as check_arguments, files as checked_files, included,
+    selected as check_selected,
+};
+pub use git::{
+    approve, consented_pins, give_consent, guard_commit, guard_reference_with,
+    merge as feature_merge, propose_pin, push as feature_push, record_approval, reset_state,
+    revoke_consent, start as feature_start,
+};
