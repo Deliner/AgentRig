@@ -1,6 +1,8 @@
 mod analysis;
 mod baseline;
 mod evaluation;
+mod file_measures;
+mod findings;
 mod lifting;
 mod location;
 #[cfg(test)]
