@@ -2,22 +2,23 @@
 
 ## Focus
 
-P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. This VAC pins the final
-Project head of the branch while both items are still open in Plan, so consent covers the pin.
+P171 B176 entry-use and P172 B178 entry-bypass are complete. This VAC archives P171, P172, B176 and B178 with
+their delivery evidence, AC tables and the B178 AC6 budget table, and moves the D227 and D228 links to the archive.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 23aca35b2163dbb41f562d8b2679a8c55bdee655
+Revision: 3d01ed645e54ffd69d8e14a89afc98fd7b44e3d8
 
 ## Progress
 
-- Every Project change of P171 and P172 is committed; the head 23aca35 aligns the skills and the README.
+- Every Project change is committed and pinned: stable.txt names 23aca35, committed in 3d01ed6.
+- Plan is empty; consent ends with this rotation.
 
 ## Verification
 
-- propose-pin HEAD under consent: the branch gate passed 614 tests, the runtime 23aca35 is installed and
-  stable.txt written.
+- memory check passes; installed lint on the worktree passes with entry-use and entry-bypass enabled.
+- The branch gate of propose-pin at 23aca35 passed 614 tests.
 
 ## Blockers
 
@@ -25,4 +26,4 @@ Revision: 23aca35b2163dbb41f562d8b2679a8c55bdee655
 
 ## Next action
 
-Commit the pin, then archive P171, P172, B176 and B178 with their evidence and run feature-merge.
+Commit the archive VAC, run feature-merge, then select a behavior-preserving improvement card.

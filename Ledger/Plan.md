@@ -14,8 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P171](Plan/171.md) | active | - | [B176](Backlog/176.md): entry-use — свой код не берёт из входа директории | Вход каждой директории читается одинаково: что в ней есть и что она отдаёт. |
-| [P172](Plan/172.md) | pending | - | [B178](Backlog/178.md): entry-bypass — чужую директорию используют только через её вход | Внутренности директории перестраиваются без правки потребителей и чужих тестов. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
