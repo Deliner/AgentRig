@@ -5,14 +5,7 @@ mod units;
 mod words;
 
 use anyhow::Result;
-use std::collections::BTreeMap;
-use std::path::PathBuf;
-
-#[derive(Default)]
-pub struct Texts {
-    pub code: BTreeMap<PathBuf, String>,
-    pub contracts: BTreeMap<PathBuf, String>,
-}
+pub use corpus::Texts;
 
 pub fn report(texts: &Texts) -> Result<String> {
     let scores::Measured { findings, widths } = scores::measure(&corpus::Corpus::new(texts)?);

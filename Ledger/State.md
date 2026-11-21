@@ -2,24 +2,26 @@
 
 ## Focus
 
-P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 20 lets the languages,
-neutral metrics, exemptions and std forms parts use the files that own their items instead of their entries.
+P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 21 moves the last items
+the parts take from their entries: the lint config schema, the selected target and the structure texts.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 0a0a69e2e18bf7053e2207999a6f27fa1af2988f
+Revision: a7ac9032327e7473a19b0f767e926dbc0ed5fee7
 
 ## Progress
 
-- VAC 20: flag_list, manifest and registry import Analysis and Code from neutral_metrics; conditions and nesting
-  import from record.rs; exemptions gains attributes.rs and path_names.rs; std_forms gains call_syntax.rs for the
-  method, sole argument and call search helpers; the architecture.yaml inventories describe the new files.
+- VAC 21: lint_config splits into schema.rs and validation.rs, its entry offers Config, Rule, Thresholds and
+  extension matching; Selected moves into threshold_overrides.rs; Texts moves into corpus.rs; language_support
+  imports Kind from rule_identities. Decision links follow the moved markers: D016, D017, D018, D156, D198 to
+  schema.rs, D156, D198, D225, D227, D228 to validation.rs, D018 selection to threshold_overrides.rs.
 
 ## Verification
 
-- clippy, rustfmt and languages tests 183 pass.
-- Candidate measurement with entry-use, file-cycle and architecture: entry-use 21 to 6, file-cycle 0, architecture 0.
+- clippy, rustfmt and structural_lint tests 346 pass.
+- Candidate measurement with architecture, file-cycle, entry-use and entry-bypass: entry-use 6 to 0, all four
+  rules report nothing.
 
 ## Blockers
 
@@ -27,4 +29,4 @@ Revision: 0a0a69e2e18bf7053e2207999a6f27fa1af2988f
 
 ## Next action
 
-Commit VAC 20, then move the lint config schema, lint target selection and structure texts out of their entries.
+Commit VAC 21, then add entry-use and entry-bypass to .agentrig/lint.yaml and catalog them for init.

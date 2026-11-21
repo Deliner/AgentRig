@@ -1,6 +1,6 @@
 mod threshold_overrides;
 
-pub use threshold_overrides::effective;
+pub use threshold_overrides::{Selected, effective};
 
 use super::file_discovery::Inventory;
 use crate::shared::paths::globs;
@@ -9,13 +9,6 @@ use anyhow::Result;
 use globset::GlobSet;
 use std::path::Path;
 
-// DECISION: D018
-pub struct Selected<'a> {
-    pub path: &'a Path,
-    pub warning: Option<usize>,
-    pub error: Option<usize>,
-    pub overrides: Vec<usize>,
-}
 pub fn select<'a>(rule: &Rule, inventory: &'a Inventory) -> Result<Vec<Selected<'a>>> {
     let disabled = !rule.enabled;
     if disabled {

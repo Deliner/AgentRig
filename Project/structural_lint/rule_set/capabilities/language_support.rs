@@ -1,5 +1,5 @@
-use super::Kind;
 use crate::structural_lint::languages;
+use crate::structural_lint::rule_identities::Kind;
 use anyhow::{Result, bail};
 use std::path::Path;
 

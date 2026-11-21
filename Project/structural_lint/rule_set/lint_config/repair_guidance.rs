@@ -1,4 +1,5 @@
-use super::{Config, Level, Rule};
+use super::schema::{Config, Rule};
+use crate::shared::diagnostics::Level;
 use std::path::Path;
 
 impl Config {

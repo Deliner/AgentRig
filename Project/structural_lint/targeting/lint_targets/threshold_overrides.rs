@@ -1,10 +1,16 @@
-use super::Selected;
 use crate::structural_lint::rule_set::capabilities::{support, supports_path, syntax};
 use crate::structural_lint::rule_set::lint_config::{self, Rule, extension_matches};
 use anyhow::{Context, Result, bail};
 use globset::GlobSet;
 use std::path::Path;
 
+// DECISION: D018
+pub struct Selected<'a> {
+    pub path: &'a Path,
+    pub warning: Option<usize>,
+    pub error: Option<usize>,
+    pub overrides: Vec<usize>,
+}
 pub fn effective<'a>(rule: &Rule, path: &'a Path, overrides: &[GlobSet]) -> Result<Selected<'a>> {
     let incompatible =
         rule.target == "file" && syntax(rule.kind) && !supports_path(rule.kind, path);
