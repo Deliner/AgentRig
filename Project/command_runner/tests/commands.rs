@@ -1,5 +1,5 @@
 use super::{command, configured, jobs};
-use crate::shared::testing::{Run, git, invoke, run, runtime};
+use crate::shared::testing::{Run, commit_identity, git, initialized, invoke, run, runtime};
 use serde_json::json;
 use std::{
     fs,
@@ -42,14 +42,6 @@ wc. Project commands: just list",
         "does not run git with --exec",
     ),
 ];
-
-fn initialized() -> (tempfile::TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let result = invoke(&root, &["init"]);
-    assert_eq!(result.code, Some(0), "{}", result.output());
-    (temp, root)
-}
 
 fn summary(root: &Path, code: &str, noise: &str) -> (Option<i32>, Vec<String>, PathBuf) {
     let result = invoke(root, &["run", "noisy", "--", code, noise]);
@@ -256,8 +248,7 @@ fn write_programs_change_only_the_project() {
 #[test]
 fn write_runs_git_and_its_hooks_outside_the_sandbox() {
     let (_temp, root) = initialized();
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["checkout", "-qb", "probe"]);
     let outside = tempfile::tempdir().unwrap();
     let hooked = outside.path().join("hooked");

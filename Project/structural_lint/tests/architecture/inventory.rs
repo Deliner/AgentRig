@@ -1,4 +1,5 @@
 use super::{Consumer, Language, messages};
+use crate::shared::testing::edit_yaml;
 use serde_yaml_ng::Value;
 use std::fs;
 
@@ -32,10 +33,7 @@ pub fn documents() -> Consumer {
 }
 
 fn edit(consumer: &Consumer, contract: &str, change: fn(&mut Value)) {
-    let path = consumer.root.join(contract);
-    let mut data: Value = serde_yaml_ng::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    change(&mut data);
-    fs::write(path, serde_yaml_ng::to_string(&data).unwrap()).unwrap();
+    edit_yaml(&consumer.root.join(contract), change);
 }
 
 fn reported_only_at(consumer: &Consumer, contract: &str) {

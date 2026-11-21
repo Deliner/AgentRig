@@ -1,5 +1,6 @@
 use super::architecture::binaries;
-use super::consumer::{CONFIG, command_with, consumer, write};
+use super::consumer::{CONFIG, command_with, consumer};
+use crate::shared::testing::write;
 
 const TREE: &str = "src
 ├── a.rs

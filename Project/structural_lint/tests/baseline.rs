@@ -1,8 +1,8 @@
 // DECISION: D123
 // DECISION: D139
 // DECISION: D140
-use super::consumer::{CONFIG, command, consumer, lint, write};
-use crate::shared::testing::{Run, git};
+use super::consumer::{CONFIG, command, consumer, lint};
+use crate::shared::testing::{Run, git, write};
 use serde_json::{Value, json};
 use std::{
     fs,

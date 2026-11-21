@@ -1,5 +1,6 @@
 // DECISION: D018
-use super::consumer::{CONFIG, LANGUAGES, LEVEL, check, configured, consumer, lint, write};
+use super::consumer::{CONFIG, LANGUAGES, LEVEL, check, configured, consumer, lint};
+use crate::shared::testing::write;
 
 const SOURCES: &str = r#"include: ["src/**"]"#;
 const PAIR: &str = r#"pairs: [{open: "begin", close: "commit"}]"#;

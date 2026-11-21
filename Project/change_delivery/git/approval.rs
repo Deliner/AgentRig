@@ -44,8 +44,7 @@ fn record_path(context: &Context) -> Result<PathBuf> {
 }
 
 pub fn approve(context: &Context) -> Result<i32> {
-    let repository = Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("approve requires a VCS repository"))?;
+    let repository = Repository::require(&context.root, "approve")?;
     let mirror = super::proposal::mirror(context)?;
     let overlay = Overlay {
         mirror: &mirror,

@@ -1,17 +1,8 @@
 // DECISION: D201
-use crate::shared::testing::{Run, configure, hermetic, invoke, run};
-use std::path::{Path, PathBuf};
-use tempfile::TempDir;
+use crate::shared::testing::{Run, configure, hermetic, initialized, run};
+use std::path::Path;
 
 const ECHOING_READ: &str = "read:\n  purpose: Print words\n  argv: []\n  accepts_args: true\n  access: read-only\n  programs:\n    echo: {}\n";
-
-fn initialized() -> (TempDir, PathBuf) {
-    let temp = tempfile::tempdir().unwrap();
-    let root = temp.path().canonicalize().unwrap();
-    let result = invoke(&root, &["init"]);
-    assert_eq!(result.code, Some(0), "{}", result.output());
-    (temp, root)
-}
 
 fn just(root: &Path, args: &[&str]) -> Run {
     run(hermetic("just").args(args).current_dir(root), "")

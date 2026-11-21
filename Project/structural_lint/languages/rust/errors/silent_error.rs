@@ -1,4 +1,6 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, descendants, text};
+use crate::structural_lint::languages::neutral_metrics::{
+    Code, Measurement, descendants, text, values,
+};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
@@ -80,13 +82,6 @@ fn ok_receiver<'a>(argument: Node<'a>, source: Code<'_>) -> Option<Node<'a>> {
         .child_by_field_name("field")
         .is_some_and(|field| text(field, source) == "ok");
     ok.then(|| function.child_by_field_name("value")).flatten()
-}
-fn values(arguments: Node<'_>) -> Vec<Node<'_>> {
-    let mut cursor = arguments.walk();
-    arguments
-        .named_children(&mut cursor)
-        .filter(|child| !child.is_extra())
-        .collect()
 }
 fn lines_call(receiver: Node<'_>, source: Code<'_>) -> bool {
     receiver.kind() == "call_expression"

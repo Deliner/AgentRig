@@ -1,5 +1,5 @@
-use super::consumer::{check, consumer, write};
-use crate::shared::testing::{Run, hermetic, repository, run, worker};
+use super::consumer::{check, consumer};
+use crate::shared::testing::{Run, hermetic, repository, run, worker, write};
 use crate::structural_lint::rule_set::capabilities;
 use serde_json::{Value, json};
 use std::{collections::BTreeMap, env, fs, path::Path};

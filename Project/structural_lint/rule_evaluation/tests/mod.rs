@@ -1,16 +1,14 @@
 // DECISION: D036
 use super::evaluation::evaluate;
+use crate::shared::testing::write;
 use crate::structural_lint::rule_set::lint_config::Config;
-use std::fs;
 
 mod lifting;
 
 fn findings(files: &[(&str, &str)], rule: &str) -> Vec<(String, Option<usize>, Option<usize>)> {
     let root = tempfile::tempdir().unwrap();
     for (path, content) in files {
-        let path = root.path().join(path);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, content).unwrap();
+        write(root.path(), path, content);
     }
     let source = format!(
         "version: 1\nconfig_skill: s\nrules:\n- {{{rule}, warning_skill: s, error_skill: s}}\n"

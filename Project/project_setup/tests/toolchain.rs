@@ -1,8 +1,7 @@
 // DECISION: D174
 // DECISION: D175
-use super::write;
 use crate::shared::fs_with_context::{Permissions, PermissionsExt};
-use crate::shared::testing::{Run, repository, run, runtime, search_path};
+use crate::shared::testing::{Run, repository, run, runtime, search_path, write};
 use std::{
     ffi::OsString,
     fs,

@@ -1,5 +1,6 @@
+use super::yaml;
 use crate::project_setup::initialization::init;
-use crate::shared::testing::{git, hermetic, invoke, launch, run, snapshot};
+use crate::shared::testing::{git, hermetic, invoke, launch, run, snapshot, write};
 use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{
@@ -86,19 +87,13 @@ fn rust(root: &Path, args: &[&str]) {
     assert_eq!(initialize(root, &args).unwrap(), 0);
 }
 
-fn yaml(path: &Path) -> Value {
-    serde_yaml_ng::from_str(&fs::read_to_string(path).unwrap()).unwrap()
-}
-
 fn flow(text: &str) -> Value {
     serde_yaml_ng::from_str(text).unwrap()
 }
 
 fn touch(root: &Path, paths: &[&str]) {
     for path in paths {
-        let path = root.join(path);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, "").unwrap();
+        write(root, path, "");
     }
 }
 

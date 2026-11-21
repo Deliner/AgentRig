@@ -1,5 +1,6 @@
 purpose: Run the candidate runtime, installed launchers and Git as processes with a hermetic environment for Rust behavior tests
 files:
-  mod.rs: Locate or build the candidate and the tooling Python, build a minimal configured project and its memory, invoke programs, Git and printed reruns, commit files, extend project configuration, build a committed project with a blocking gate and snapshot files
+  mod.rs: Locate or build the candidate and the tooling Python, build a minimal configured project and its memory, initialize a project, write a file with its directories, invoke programs, Git with a test author and printed reruns, commit files, edit a YAML file, extend project configuration and build a committed project with a blocking gate
+  snapshot.rs: Snapshot every file and directory under a root so that a test can compare what a run changed
   launchers.rs: Behavior tests of the development launchers tooling/worker/build and run, which this support uses to build the candidate
 directories: {}

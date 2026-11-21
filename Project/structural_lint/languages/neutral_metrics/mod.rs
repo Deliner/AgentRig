@@ -19,6 +19,18 @@ pub fn descendants(node: Node<'_>) -> Vec<Node<'_>> {
     }
     found
 }
+pub fn values(list: Node<'_>) -> Vec<Node<'_>> {
+    let mut cursor = list.walk();
+    list.named_children(&mut cursor)
+        .filter(|child| !child.is_extra())
+        .collect()
+}
+pub fn sole(list: Node<'_>) -> Option<Node<'_>> {
+    match values(list).as_slice() {
+        [single] => Some(*single),
+        _ => None,
+    }
+}
 pub fn reparse(path: &Path, fragment: &str) -> Option<Tree> {
     let Ok(Some(parsed)) = crate::shared::source_parsers::parse(path, fragment) else {
         return None;

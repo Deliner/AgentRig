@@ -1,6 +1,6 @@
 // DECISION: D189
 use crate::project_config;
-use crate::shared::testing::{git, invoke, repository};
+use crate::shared::testing::{git, invoke, repository, write};
 use serde::Deserialize;
 use serde_json::{Map, Value};
 use std::{
@@ -35,9 +35,7 @@ fn consumer() -> (TempDir, PathBuf) {
         .as_array()
         .unwrap()
     {
-        let path = root.join(crate_root.as_str().unwrap());
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, "").unwrap();
+        write(&root, crate_root.as_str().unwrap(), "");
     }
     let args = ["init", "--language", "rust", "--base", "master"];
     let initialized = invoke(&root, &args);

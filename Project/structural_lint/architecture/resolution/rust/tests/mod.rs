@@ -1,8 +1,8 @@
 use super::Rust;
+use crate::shared::testing::write;
 use crate::structural_lint::architecture::extraction::{self, References, Target};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    fs,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -344,8 +344,7 @@ fn compiled_consumer_uses_the_resolved_files() {
 fn compile_and_run(files: &[(&str, &str)]) {
     let project = tempfile::tempdir().unwrap();
     for (file, text) in files {
-        fs::create_dir_all(project.path().join(file).parent().unwrap()).unwrap();
-        fs::write(project.path().join(file), text).unwrap();
+        write(project.path(), file, text);
     }
     let output = Command::new("rustc")
         .args(["--edition=2021", "main.rs", "-o", "consumer"])

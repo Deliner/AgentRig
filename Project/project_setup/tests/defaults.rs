@@ -1,8 +1,7 @@
 // DECISION: D021
-use super::write;
 use crate::project_setup::init;
 use crate::shared::strict_yaml;
-use crate::shared::testing::invoke;
+use crate::shared::testing::{invoke, write};
 use serde_json::Value;
 use std::{
     collections::BTreeSet,

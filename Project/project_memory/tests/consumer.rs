@@ -1,4 +1,4 @@
-use crate::shared::testing::{FAIL, git, invoke, memory, project};
+use crate::shared::testing::{FAIL, commit_identity, git, invoke, memory, project};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -56,8 +56,7 @@ pub fn committed() -> (TempDir, PathBuf) {
     let source = "// DECISION: D001\nfn example() {}";
     fs::write(root.join("src/lib.rs"), source).unwrap();
     git(&root, &["init", "-q"]);
-    git(&root, &["config", "user.name", "Test"]);
-    git(&root, &["config", "user.email", "test@example.invalid"]);
+    commit_identity(&root);
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "baseline"]);
     accepts(&root);

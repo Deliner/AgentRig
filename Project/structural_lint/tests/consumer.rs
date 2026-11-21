@@ -1,5 +1,5 @@
 use super::architecture::FRONTMATTER;
-use crate::shared::testing::{Run, launch, run, worker};
+use crate::shared::testing::{Run, launch, run, worker, write};
 use serde_json::Value;
 use std::{
     fs,
@@ -51,12 +51,6 @@ pub fn consumer(config: &str) -> (TempDir, PathBuf) {
     let root = temp.path().canonicalize().unwrap();
     prepare(&root, config);
     (temp, root)
-}
-
-pub fn write(root: &Path, name: &str, text: &str) {
-    let path = root.join(name);
-    fs::create_dir_all(path.parent().unwrap()).unwrap();
-    fs::write(path, text).unwrap();
 }
 
 pub fn command(root: &Path, name: &str, flags: &[&str]) -> Run {
