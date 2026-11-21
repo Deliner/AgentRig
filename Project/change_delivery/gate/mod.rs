@@ -98,8 +98,7 @@ fn prepare(root: &Path, options: &Options<'_>) -> Result<(Option<tempfile::TempD
         return Ok((Some(export(root)?), Input::Index(index)));
     }
     if let Some(reference) = options.revision {
-        let repository = crate::shared::vcs::Repository::discover(root)?
-            .ok_or_else(|| anyhow::anyhow!("revision checking requires a VCS repository"))?;
+        let repository = crate::shared::vcs::Repository::require(root, "revision checking")?;
         let revision = repository.resolve(reference)?;
         let snapshot = repository.export_revision(&revision)?;
         return Ok((Some(snapshot), Input::Revision(revision)));
@@ -214,8 +213,7 @@ fn execute_selected(
 }
 
 fn export(root: &Path) -> Result<tempfile::TempDir> {
-    let repository = crate::shared::vcs::Repository::discover(root)?
-        .ok_or_else(|| anyhow::anyhow!("index export requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(root, "index export")?;
     let directory = repository.export_index()?;
     ensure!(
         directory.path().join(project_config::FILE).is_file(),

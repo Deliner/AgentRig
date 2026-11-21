@@ -111,8 +111,7 @@ pub(super) fn pin(
         .protection
         .pin()
         .context("propose-pin needs the setting git.pin")?;
-    let repository =
-        Repository::discover(&context.root)?.context("propose-pin requires a VCS repository")?;
+    let repository = Repository::require(&context.root, "propose-pin")?;
     let revision = repository.resolve(reference)?;
     let head = repository.resolve("HEAD")?;
     ensure!(

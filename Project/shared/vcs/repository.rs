@@ -1,7 +1,7 @@
 use super::branches::Settings;
 use super::git::{self, Revisions};
 use super::tree_entry::Entry;
-use anyhow::{Result, ensure};
+use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
 
 pub struct Repository<'a> {
@@ -30,6 +30,10 @@ pub fn initialize(root: &Path, base: &str) -> Result<()> {
 impl<'a> Repository<'a> {
     pub fn discover(root: &'a Path) -> Result<Option<Self>> {
         Ok(root.join(".git").exists().then(|| Self::new(root)))
+    }
+
+    pub fn require(root: &'a Path, action: &str) -> Result<Self> {
+        Self::discover(root)?.with_context(|| format!("{action} requires a VCS repository"))
     }
 
     pub fn new(root: &'a Path) -> Self {

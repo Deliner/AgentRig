@@ -43,7 +43,11 @@ pub(super) fn command(root: &Path, args: &[&str]) -> Command {
 }
 
 pub fn run(root: &Path, args: &[&str]) -> Result<Vec<u8>> {
-    let output = command(root, args).output()?;
+    finish(&mut command(root, args))
+}
+
+fn finish(command: &mut Command) -> Result<Vec<u8>> {
+    let output = command.output()?;
     ensure!(
         output.status.success(),
         "git failed: {}",
@@ -195,15 +199,7 @@ pub(super) fn index(root: &Path) -> Result<BTreeMap<String, Entry>> {
 pub(super) fn stageable(root: &Path, paths: &[String]) -> Result<BTreeMap<String, Entry>> {
     let directory = tempfile::tempdir()?;
     let index = directory.path().join("index");
-    let run = |args: &[&str]| -> Result<Vec<u8>> {
-        let output = command(root, args).env("GIT_INDEX_FILE", &index).output()?;
-        ensure!(
-            output.status.success(),
-            "git failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        Ok(output.stdout)
-    };
+    let run = |args: &[&str]| finish(command(root, args).env("GIT_INDEX_FILE", &index));
     if let Some(head) = head(root)? {
         run(&["read-tree", &head])?;
     }

@@ -12,8 +12,7 @@ pub(super) fn propose(context: &Context, reference: &str) -> Result<i32> {
         .protection
         .pin()
         .context("propose-pin needs the setting git.pin")?;
-    let repository =
-        Repository::discover(&context.root)?.context("propose-pin requires a VCS repository")?;
+    let repository = Repository::require(&context.root, "propose-pin")?;
     let revision = repository.resolve(reference)?;
     let pinned = descending(&repository, pin, &revision)?;
     let mirror = super::proposal::mirror(context)?;

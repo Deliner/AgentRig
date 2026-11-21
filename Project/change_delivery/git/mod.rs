@@ -26,8 +26,7 @@ use std::{
 
 pub fn start(context: &Context, name: &str) -> Result<i32> {
     let settings = &context.config.git;
-    let repository = crate::shared::vcs::Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("feature-start requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(&context.root, "feature-start")?;
     let branch = integration::start(&repository, settings, name)?;
     console::stdout(branch);
     Ok(0)
@@ -35,8 +34,7 @@ pub fn start(context: &Context, name: &str) -> Result<i32> {
 
 pub fn merge(context: &Context) -> Result<i32> {
     let settings = &context.config.git;
-    let repository = crate::shared::vcs::Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("integration requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(&context.root, "integration")?;
     let (feature, code) = integration::integrate(
         &repository,
         context,
@@ -54,8 +52,7 @@ pub fn merge(context: &Context) -> Result<i32> {
 
 // DECISION: D191
 pub fn reset_state(context: &Context) -> Result<i32> {
-    let repository = crate::shared::vcs::Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("state-reset requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(&context.root, "state-reset")?;
     let (branch, _) = repository.commit_context()?;
     let feature = branch.starts_with(&context.config.git.prefix);
     if feature {
@@ -65,8 +62,7 @@ pub fn reset_state(context: &Context) -> Result<i32> {
 }
 
 pub fn push(context: &Context) -> Result<i32> {
-    let repository = crate::shared::vcs::Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("feature-push requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(&context.root, "feature-push")?;
     push::committed(&repository, &context.config.git)
 }
 
@@ -132,8 +128,7 @@ fn cleanup_jobs(context: &Context, feature: &str) -> Result<i32> {
 // DECISION: D191
 pub fn guard_commit(context: &Context) -> Result<i32> {
     let settings = &context.config.git;
-    let repository = crate::shared::vcs::Repository::discover(&context.root)?
-        .ok_or_else(|| anyhow::anyhow!("commit guard requires a VCS repository"))?;
+    let repository = crate::shared::vcs::Repository::require(&context.root, "commit guard")?;
     let (branch, merge) = repository.commit_context()?;
     let base = settings.base.as_str();
     let prefix = settings.prefix.as_str();
