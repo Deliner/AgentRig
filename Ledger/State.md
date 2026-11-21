@@ -2,31 +2,28 @@
 
 ## Focus
 
-P195 (B202, D229) VAC2: a Python method marked with typing.override whose base chain leaves the project gets no
-parameter-count or boolean-parameter findings (AC5-AC7); the two rule texts name it (AC9).
+P195 (B202, D229) final VAC: archive P195 and B202 with the delivery and the acceptance results.
 
 ## Workspace
 
 Branch: feature/foreign-signatures
-Revision: aab7dae56eeb60da49fa7f94fba6751070ca9cfe
+Revision: 64c9ec6ef376e49c6bc0f4280b56a1777c091d87
 
 ## Progress
 
-VAC1 (Rust, AC1-AC4, AC8) is committed as aab7dae. VAC2 is complete in the working tree: Project gains python_import
-(Outside, Inside sources or Unknown); languages/python_override.rs traces the base chain; python.rs skips the two
-signature measurements for a foreign override; rule_evaluation/foreign_code.rs answers through the architecture
-Python resolver re-exported at the architecture entry; the parameter-count and boolean-parameter texts name the
-Python case; D229 links the Python owners and tests.
+VAC2 (Rust) aab7dae and VAC3 (Python) 64c9ec6 are committed; AC1-AC10 are met. P195 and B202 moved to Archive with
+Delivery and the acceptance table; D229 links the archived card and delivery.
 
 ## Verification
 
-On the VAC2 working tree: structural_lint tests 358 passed (5 Python override language tests, 1 evaluation test
-through the real resolver); candidate lint, rustfmt, Clippy and the memory check pass.
+The gate at 64c9ec6 passed 551 tests, candidate and installed lint; `just candidate lint` on a scratch project left
+verify_server_cert, size_hint and makeRecord with override and found the control functions; `just candidate
+lint-rule` names the unmeasured signatures of the three rules; memory check passes after the rotation.
 
 ## Blockers
 
-None.
+The pin needs the user: `just propose-pin HEAD` prepared 64c9ec6 and asks for `! just approve`.
 
 ## Next action
 
-Commit VAC2, then run `just propose-pin HEAD`, archive B202 and P195 and run `just feature-merge`.
+Commit the archive; after the user's `! just approve`, commit the pin and run `just feature-merge`.
