@@ -14,7 +14,6 @@ P001-P009 are retained in Archive; P010-P016 moved to B001-B007 under the user's
 
 | ID | Status | Depends on | Feature | User capability |
 | --- | --- | --- | --- | --- |
-| [P181](Plan/181.md) | active | - | [B188](Backlog/188.md): список сопровождаемых файлов строится один раз и без обхода каталогов там, где нужны только файлы | Проверка памяти в каждом гейте, список файлов гейта и lint запускают меньше процессов Git и идут быстрее. |
 
 История выбора и поставки P017–P070 хранится в Delivery архивных карточек [Archive/Plan](Archive/Plan.md) и в тексте этого файла на Git-ревизии c1935e47a3fe0c1b556692aed4f9c81d1a979fbb.
 
