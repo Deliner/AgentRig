@@ -84,15 +84,15 @@ fn example(kind: Kind, paths: &Paths) -> Value {
 }
 
 // DECISION: D195
+// DECISION: D227
+// DECISION: D228
 fn cataloged(kind: Kind) -> bool {
     match kind {
         Kind::Structure(
             Structure::DirectoryArchitecture
             | Structure::LineWidth
             | Structure::ForbiddenFile
-            | Structure::ProgramLanguage
-            | Structure::EntryUse
-            | Structure::EntryBypass,
+            | Structure::ProgramLanguage,
         ) => false,
         Kind::Structure(
             Structure::NonblankLines
@@ -103,7 +103,9 @@ fn cataloged(kind: Kind) -> bool {
             | Structure::EmbeddedText
             | Structure::TestPlacement
             | Structure::TestInCodeFile
-            | Structure::FileCycle,
+            | Structure::FileCycle
+            | Structure::EntryUse
+            | Structure::EntryBypass,
         )
         | Kind::ControlFlow(_)
         | Kind::Signature(_)

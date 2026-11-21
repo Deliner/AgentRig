@@ -307,12 +307,13 @@ fn architecture(root: &Path, expected: &str) {
 #[test]
 fn shipped_architecture_reports_contract_and_cycle() {
     let (_temp, root) = initialized("python");
-    let alpha = "from Project.beta.api import value\n\n\ndef run():\n    return value()\n";
-    write(&root, "Project/alpha/api.py", alpha);
-    write(&root, "Project/beta/api.py", BETA);
+    let alpha = "from Project.beta import value\n\n\ndef run():\n    return value()\n";
+    write(&root, "Project/alpha/__init__.py", alpha);
+    write(&root, "Project/beta/__init__.py", BETA);
     architecture(&root, "missing");
     for name in ["alpha", "beta"] {
-        let contract = format!("purpose: {name}\nfiles:\n  api.py: source\ndirectories: {{}}\n");
+        let contract =
+            format!("purpose: {name}\nfiles:\n  __init__.py: entry\ndirectories: {{}}\n");
         write(
             &root,
             &format!("Project/{name}/architecture.yaml"),
@@ -321,8 +322,8 @@ fn shipped_architecture_reports_contract_and_cycle() {
     }
     write(
         &root,
-        "Project/beta/api.py",
-        &format!("{BETA}import Project.alpha.api\n"),
+        "Project/beta/__init__.py",
+        &format!("{BETA}import Project.alpha\n"),
     );
     architecture(&root, "cycle");
 }

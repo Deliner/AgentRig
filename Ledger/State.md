@@ -2,24 +2,26 @@
 
 ## Focus
 
-P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. This VAC moves the pin to
-the head whose resolver no longer reports a private module reached through its parent's reexport, so the
-installed lint can judge the rig with the entry rules on.
+P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 22 is the second phase:
+the rig lint.yaml adds the entry-use and entry-bypass rules after file-cycle, and init catalogs both kinds.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 452a44bb12826bce4bb9b23c707237d521472c29
+Revision: bfbe7f580db7ccbff4f6d205ca539f2f41756f41
 
 ## Progress
 
-- The rule enabling change, rig lint.yaml rules, init catalog, the Python fixture and the D227 and D228 links,
-  waits in the stash vac22-enable-entry-rules until this pin is committed.
+- lint.yaml appends the two rules only, keeping committed rules unchanged and in order, per D226.
+- project_setup/bundle/lint.rs catalogs EntryUse and EntryBypass, marked D227 and D228; both decisions link the
+  rig rule and the init rule.
+- The shipped architecture test now builds alpha and beta as packages with __init__.py entries, since init's
+  entry-bypass reports the old import of beta/api.py past a missing entry.
 
 ## Verification
 
-- The installed lint at the old pin dae94a4 reported 13 entry-bypass findings that the candidate does not report.
-- propose-pin HEAD under consent: the branch gate passed, the runtime 452a44b is installed and stable.txt written.
+- project_setup tests 58 pass, including I023 rig parity; clippy and rustfmt pass.
+- Installed lint at pin 452a44b with the entry rules on: no findings.
 
 ## Blockers
 
@@ -27,4 +29,4 @@ Revision: 452a44bb12826bce4bb9b23c707237d521472c29
 
 ## Next action
 
-Commit the pin, pop the stash, rerun the installed lint and commit the enabled entry rules.
+Commit VAC 22, then align refactor-large-directory, anchor-at-crate and the architecture README with the rules.
