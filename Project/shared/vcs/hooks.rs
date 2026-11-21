@@ -1,4 +1,5 @@
-use super::{Repository, export, git};
+use super::repository::Repository;
+use super::{export, git};
 use anyhow::{Result, ensure};
 use std::collections::BTreeMap;
 

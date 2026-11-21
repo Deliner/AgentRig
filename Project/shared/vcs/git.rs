@@ -1,6 +1,12 @@
-use super::{Entry, FileKind, Revisions};
+use super::tree_entry::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path, process::Command};
+
+#[derive(Clone, Copy)]
+pub struct Revisions<'a> {
+    pub from: &'a str,
+    pub to: &'a str,
+}
 
 pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
     let output = Command::new("git").args(args).current_dir(root).output()?;

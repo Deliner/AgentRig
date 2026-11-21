@@ -1,4 +1,5 @@
-use super::{FileKind, Repository};
+use super::repository::Repository;
+use super::tree_entry::FileKind;
 use crate::shared::fs_with_context::{self as fs, Permissions, PermissionsExt};
 use anyhow::{Result, bail, ensure};
 use std::{
@@ -7,7 +8,14 @@ use std::{
     path::{Component, Path},
 };
 
-pub(super) fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::TempDir> {
+impl Repository<'_> {
+    pub fn export_revision(&self, reference: &str) -> Result<tempfile::TempDir> {
+        let resolved = self.resolve(reference)?;
+        revision(self, &resolved)
+    }
+}
+
+fn revision(repository: &Repository<'_>, revision: &str) -> Result<tempfile::TempDir> {
     let directory = tempfile::tempdir()?;
     let entries = repository.tree(revision)?;
     let mut links_after_contents = Vec::new();

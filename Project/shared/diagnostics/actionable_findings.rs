@@ -1,3 +1,4 @@
+use super::guidance::Guidance;
 use crate::shared::console;
 use serde::{Deserialize, Serialize};
 
@@ -76,7 +77,7 @@ fn render(group: &[&Diagnostic]) -> String {
     let plural = group.len() > 1;
     let suffix = if plural { "s" } else { "" };
     let location = format!("{} location{suffix}", group.len());
-    let mut text = super::Guidance {
+    let mut text = Guidance {
         level: first.level.name(),
         id: &first.rule,
         location: &location,
