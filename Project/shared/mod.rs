@@ -3,6 +3,7 @@ pub mod calling_agent;
 pub mod console;
 pub mod diagnostics;
 pub mod fs_with_context;
+pub mod parallel_map;
 pub mod paths;
 pub mod shared_options;
 pub mod source_parsers;
