@@ -7,17 +7,19 @@ P186 (B193): the invariant history parses each current linked test once and skip
 ## Workspace
 
 Branch: feature/invariant-parses
-Revision: f3545d39d409e0e4da73e460e5ec0aec8a045afb
+Revision: b6096580af9ff382832f9309d257d05f12a0d453
 
 ## Progress
 
-VAC 1 saves B193 and selects it as P186 by the user's standing instruction to improve the project autonomously. The
-shared source cache change and its test are in the working tree, not staged.
+VAC 2: the memory check creates its source cache before the history step and passes it to the invariant history,
+which prepares the current linked tests in parallel and reads them from that cache. A fork version with the same
+file name and bytes as the current test is not parsed. A new oracle test keeps an invariant whose test file changed
+only outside its function.
 
 ## Verification
 
-Before on `f3545d3`, release candidate on AgentRig, warm runs: history step 186, 188 and 186 ms. With the unstaged
-change: 141, 137, 138, 147, 135 and 136 ms. `just lint` reports nothing on the working tree.
+`just test` passes 617 tests: the 616 of master `f3545d3` and the new one. Dropping the parse fallback fails the new
+test. `just lint` reports nothing. History step median 186 → 138 ms.
 
 ## Blockers
 
@@ -25,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then run the suite and commit the shared source cache with its test.
+Commit VAC 2, then archive P186 and B193 with the timings and acceptance results and run `just feature-merge`.

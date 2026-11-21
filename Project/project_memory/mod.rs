@@ -40,10 +40,10 @@ pub fn check(context: &Context) -> Result<i32> {
 }
 pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>) -> Result<i32> {
     let memory = context.path(&context.config.paths.memory)?;
-    history::check(context, root, revision)?;
+    let mut sources = Sources::default();
+    history::check(context, root, revision, &mut sources)?;
     plan(context, &memory)?;
     backlog(context, &memory)?;
-    let mut sources = Sources::default();
     decisions(context, &memory, &mut sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
     references(context, &memory, &files, &mut sources)?;
