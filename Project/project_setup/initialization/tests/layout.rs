@@ -1,3 +1,4 @@
+use super::yaml;
 use crate::project_setup::initialization::init;
 use crate::shared::testing::{git, hermetic, invoke, launch, run, snapshot, write};
 use anyhow::Result;
@@ -84,10 +85,6 @@ fn initialize(root: &Path, args: &[&str]) -> Result<i32> {
 fn rust(root: &Path, args: &[&str]) {
     let args = [&["--language", "rust"][..], args].concat();
     assert_eq!(initialize(root, &args).unwrap(), 0);
-}
-
-fn yaml(path: &Path) -> Value {
-    serde_yaml_ng::from_str(&fs::read_to_string(path).unwrap()).unwrap()
 }
 
 fn flow(text: &str) -> Value {
