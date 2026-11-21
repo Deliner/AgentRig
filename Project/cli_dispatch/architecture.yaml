@@ -3,7 +3,8 @@ type: flat
 files:
   main.rs: AgentRig process entry with hook and lint command dispatch
   standalone_lint.rs: Standalone agentrig-lint process entry and exit reporting
-  mod.rs: Parse command names, validate arguments and dispatch context-free commands
-  project.rs: Run commands that need the loaded project configuration through their owning features
+  mod.rs: Declare the command table and the dispatcher that the process entry uses
+  commands.rs: Command names, their parse and the validation of their arguments
+  dispatch.rs: Run each parsed command through the feature that owns it, loading the project configuration when the command needs it
 directories:
   tests: Verify failure guidance and reruns of commands

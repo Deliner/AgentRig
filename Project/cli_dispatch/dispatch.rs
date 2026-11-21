@@ -1,17 +1,46 @@
-use super::Configured;
+use super::commands::{Command, Configured, Runner, validate_arguments};
 use crate::{
     change_delivery, command_runner,
     project_config::Context,
     project_memory, project_setup,
     shared::{console, diagnostics, shared_options::forwarded},
 };
-use anyhow::Result;
+use anyhow::{Result, bail};
+use std::path::Path;
 
-pub(super) fn configured_command(
-    context: &Context,
-    command: Configured,
-    args: &[String],
-) -> Result<i32> {
+pub fn run(root: &Path, command: Command, args: &[String]) -> Result<i32> {
+    match command {
+        Command::Init => project_setup::init(root, args),
+        Command::GuardCommit => guard_commit(root, args),
+        Command::Check => {
+            change_delivery::check_selected(root, change_delivery::check_arguments(args)?)
+        }
+        Command::Runner(runner) => run_runner(&Context::load(root)?, runner, args),
+        Command::Configured(configured) => {
+            validate_arguments(configured, args)?;
+            configured_command(&Context::load(root)?, configured, args)
+        }
+    }
+}
+fn run_runner(context: &Context, command: Runner, args: &[String]) -> Result<i32> {
+    match command {
+        Runner::JobStart => command_runner::background(context, args),
+        Runner::JobRun => command_runner::background_run(context, args),
+        Runner::Jobs(job) => {
+            let runtime = context.path(&context.config.paths.runtime)?;
+            command_runner::run_job_command(&runtime, job, args)
+        }
+    }
+}
+fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {
+    let unexpected = !args.is_empty();
+    if unexpected {
+        bail!("guard-commit takes no arguments");
+    }
+    change_delivery::guard_commit(&Context::load(root)?)
+}
+
+fn configured_command(context: &Context, command: Configured, args: &[String]) -> Result<i32> {
     match command {
         Configured::Doctor => project_setup::doctor(context),
         Configured::RuntimeAdd => project_setup::runtime_add(context),

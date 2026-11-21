@@ -1,11 +1,12 @@
 // DECISION: D020
 
+use agentrig::cli_dispatch::{commands::Command, dispatch};
 use agentrig::shared::calling_agent::{Agent, Caller};
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::shared::shared_options::take_option;
 use agentrig::structural_lint::Location;
-use agentrig::{agent_hooks, cli_dispatch, project_config, structural_lint};
+use agentrig::{agent_hooks, project_config, structural_lint};
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::{
@@ -28,8 +29,8 @@ fn run() -> Result<i32> {
         return result;
     }
     let root = project_root(&mut args, &command)?;
-    if let Some(workflow) = cli_dispatch::Command::parse(&command) {
-        return cli_dispatch::run(&root, workflow, &args);
+    if let Some(workflow) = Command::parse(&command) {
+        return dispatch::run(&root, workflow, &args);
     }
     match command.as_str() {
         "hook" => hook(&root, &mut args),

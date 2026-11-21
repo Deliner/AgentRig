@@ -1,7 +1,9 @@
 // DECISION: D045
 // DECISION: D046
+use super::input::{paths, target, text};
+use super::responses::{Event, context, deny};
+use super::shell_guard;
 use super::tools::{self, Tool};
-use super::{Event, context, deny, input::text, paths, shell_guard, target};
 use crate::project_config;
 use crate::shared::{calling_agent::Agent, diagnostics};
 use serde_json::Value;

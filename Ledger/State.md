@@ -2,31 +2,31 @@
 
 ## Focus
 
-P171 and P172: entry-use and entry-bypass. VAC 14 splits project_setup into bundle and inspection so that
-initialization uses siblings and project_setup offers init through its entry.
+P171 and P172: entry-use and entry-bypass. VAC 15 moves the command table and dispatch of cli_dispatch and the hook
+answers and edited paths of agent_hooks out of their entries.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: 22e84257bf49a4bde5921edda8fca00d3788bcca
+Revision: f8a0b8b8b3009722e9c2fcb6668735ed7f87ccb4
 
 ## Progress
 
-- The generator files and the assembly moved into project_setup/bundle; Files, Links and skill_links into
-  bundle/contents.rs.
-- doctor and coverage moved into project_setup/inspection; project_setup/mod.rs only declares and offers.
-- cli_dispatch, agent_hooks tests and project_setup tests call project_setup::init.
-- Decision links follow the moved owners; five dependents budgets rose by one for the split, per the approved AC6.
+- cli_dispatch/commands.rs holds the command table and argument validation; dispatch.rs, renamed from project.rs,
+  runs every command; mod.rs only declares both, and main.rs uses them by their files.
+- agent_hooks/responses.rs holds Event, context and deny; input.rs gains paths and target; mod.rs offers deny.
+- D213, D218 and D226 link the command table in cli_dispatch/commands.rs.
 
 ## Verification
 
-- Candidate entry lint: entry-bypass 2 to 0, entry-use 153 to 143, architecture clean.
+- Candidate entry lint: entry-use 143 to 117, entry-bypass 0, architecture clean.
 - Clippy and rustfmt pass.
 
 ## Blockers
 
-None.
+The affected map in .agentrig/checks.yaml still names cli_dispatch/mod.rs for the git, gate and launcher groups. A
+proposal adding commands.rs and dispatch.rs waits in .cache/runtime/proposal for the user's `! just approve`.
 
 ## Next action
 
-Commit VAC 14, then reduce entry-use clusters, starting with cli_dispatch Configured and the main.rs crate root.
+Commit VAC 15, then move the items of command_runner/jobs and tool_registry entries into named files.
