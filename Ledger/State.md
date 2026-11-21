@@ -3,24 +3,24 @@
 ## Focus
 
 P176 delivers B183: each Project code file that lint warns about by file-size is split by responsibility, or stays
-with its reason, behavior unchanged. VAC 6 splits the Rust resolver tests, 482 lines, by behavior.
+with its reason, behavior unchanged. VAC 7 splits the silent-error measurement tests, 317 lines, along the detectors.
 
 ## Workspace
 
 Branch: feature/cohesive-files
-Revision: f64261d7b3ea4fe1f7464c43fd869b8d6b1e36f7
+Revision: 2f7f3221cf30d5c807c4ba7fa3785cf396fd1516
 
 ## Progress
 
-VACs 1 to 5 split the silent-error detector, rust/mod.rs, rule evaluation and the contract rule tests; template.rs
-stays because both partitions exceed a directory-size or dependents budget. VAC 6 moves the resolver tests into
-module_tree, aliases, external, expansion and compiled files with the shared fixtures in tests/mod.rs; the resolver
-test links of D083 and D136 follow their markers.
+VACs 1 to 6 split the silent-error detector, rust/mod.rs, rule evaluation, the contract rule tests and the Rust
+resolver tests; template.rs stays because both partitions exceed a directory-size or dependents budget. VAC 7 moves
+the silent-error tests into except_pass, collapsed_chain, error_verdict and process_success files with the shared
+finding reader in tests/errors/mod.rs; the test links of D069, D097, D126, D165 and D207 follow their markers.
 
 ## Verification
 
-just test resolution::rust passed the same 16 tests without build warnings; rustfmt on the staged files and memory
-passed.
+just test languages::tests::errors passed the same 15 tests without build warnings; rustfmt on the staged files and
+memory passed.
 
 ## Blockers
 
@@ -28,4 +28,4 @@ None.
 
 ## Next action
 
-Commit VAC 6 through the gate, then split languages/tests/errors/silent_error.rs along the detector split.
+Commit VAC 7 through the gate, then split initialization/tests/layout.rs into general and Rust crate layout tests.
