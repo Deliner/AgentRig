@@ -1,4 +1,5 @@
 use crate::project_config::Context as Project;
+use crate::shared::atomic_files::digest;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
@@ -120,14 +121,11 @@ impl Walk<'_> {
 pub fn native_index(root: &Path) -> Result<String> {
     let repository =
         Repository::discover(root)?.context("a VCS repository is required for --staged")?;
-    Ok(format!("{:x}", Sha256::digest(repository.index_entries()?)))
+    Ok(digest(&repository.index_entries()?))
 }
 
 pub fn index(root: &Path) -> Result<String> {
-    Ok(format!(
-        "{:x}",
-        Sha256::digest(Repository::new(root).index_entries()?)
-    ))
+    Ok(digest(&Repository::new(root).index_entries()?))
 }
 
 pub fn head(root: &Path) -> Result<Option<String>> {

@@ -1,11 +1,11 @@
 // DECISION: D006
 use super::input::{object, text};
 use super::transcript;
+use crate::shared::atomic_files::digest;
 use crate::shared::fs_with_context::{self as fs, File, OpenOptions};
 use anyhow::{Context, Result};
 use fs2::FileExt;
 use serde_json::{Value, json};
-use sha2::{Digest, Sha256};
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -14,9 +14,6 @@ use std::{
 // DECISION: D015
 pub const FULL: &str = include_str!("full-refresh.txt");
 const ATTENTION: &str = include_str!("attention.txt");
-fn hash(value: &str) -> String {
-    format!("{:x}", Sha256::digest(value.as_bytes()))
-}
 fn state_path(event: &Value, directory: &Path) -> Result<(File, PathBuf)> {
     let root = directory;
     fs::create_dir_all(root)?;
@@ -25,7 +22,7 @@ fn state_path(event: &Value, directory: &Path) -> Result<(File, PathBuf)> {
         .map(|key| text(event, key))
         .find(|value| !value.is_empty())
         .unwrap_or("session");
-    let stem = hash(session);
+    let stem = digest(session.as_bytes());
     let lock = fs::open_with(
         OpenOptions::new().create(true).append(true),
         root.join(format!("{stem}.lock")),

@@ -2,26 +2,24 @@
 
 ## Focus
 
-P174, B181: make the gate faster and the rig code simpler without changing behavior. VAC 3 reads many committed
-blobs through one `git cat-file --batch` process instead of one Git process per file.
+P174, B181: make the gate faster and the rig code simpler without changing behavior. VAC 4 lets every hex SHA-256
+of bytes go through the existing owner `shared::atomic_files::digest`.
 
 ## Workspace
 
 Branch: feature/faster-gate
-Revision: 28011d3fe4354211fc72a84ba272bf5d227e8111
+Revision: 6818a9c652d70f58519975fb5a90ea98cf21fdb6
 
 ## Progress
 
-VAC 2 batched invariant oracle discovery. VAC 3 adds `Repository::blobs` in shared/vcs/objects.rs, which asks one
-process for each blob after reading the previous one, so no pipe can fill. The decision history check reads every
-committed decision detail of a revision in one call, and revision export writes each file as it arrives, so its
-memory peak stays one file. Both read objects from the tree they already listed, so contents are the same.
+VAC 2 batched oracle discovery and VAC 3 batched committed blob reads. VAC 4 removes two copies of the same
+computation: the reminder session hash in agent_hooks/reminder.rs and the two index digests in
+check_evidence/input_fingerprint.rs now call `digest`, which before served only its own test. Values are unchanged.
 
 ## Verification
 
-memory-check on this repository took 7.8 s after VAC 2 and 3.2 s after VAC 3 with a warm build; about 460 Git
-processes read decision details before. `just test shared::vcs` passed 8, `just test project_memory` 43 and
-`just test change_delivery::gate` 14. `just lint`, `just run rustfmt` and `just run clippy` are clean.
+`just test agent_hooks::tests::reminders` passed 4, `just test check_evidence` 5 and `just test shared::atomic_files`
+6. `just lint`, `just run rustfmt` and `just run clippy` are clean.
 
 ## Blockers
 
@@ -29,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 3, then measure the test groups and the gate stages again and remove the next largest avoidable cost.
+Commit VAC 4, then run the full test suite and the longest groups against the 103 s baseline of B181.
