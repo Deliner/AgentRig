@@ -1,6 +1,6 @@
-use super::architecture::binaries;
-use super::consumer::{CONFIG, command_with, consumer, lint, lint_with};
 use crate::shared::testing::{launch, run, worker, write};
+use crate::structural_lint::tests::architecture::binaries;
+use crate::structural_lint::tests::consumer::{CONFIG, command_with, consumer, lint, lint_with};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 

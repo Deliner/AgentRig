@@ -14,13 +14,13 @@ use tempfile::TempDir;
 
 mod cli;
 mod coupling;
+mod dependency_rules;
 mod disallowed;
 mod externals;
 mod incomplete;
 mod inventory;
 mod rust_resolution;
 mod settings;
-mod versioned;
 
 const SKILL: &str = ".agents/skills/refactor-large-directory/SKILL.md";
 const REPAIR: &str = ".agents/skills/repair/SKILL.md";

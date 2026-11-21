@@ -6,8 +6,8 @@ files:
   disallowed.rs: Disallowed paths and propagated method calls outside allowed files, and invalid policy entries
   externals.rs: Declared external dependencies that the selected sources never name
   incomplete.rs: Unresolved imports, unanalyzed loaders and attributes, and incomplete analysis beside declared externals
-  inventory.rs: Exact file and directory inventories of source-free trees, empty directories and exclusions
   settings.rs: Invalid architecture settings and crate roots required by enabled Rust rules
-  versioned.rs: Git working-directory inventories of both lint binaries, ignored trees and empty directories
 directories:
+  dependency_rules: Verify the rules that read the dependencies a directory-architecture rule measures, in Rust and Python projects
+  inventory: Verify the file and directory inventories that directory contracts must match, read from the file system or a Git working directory
   rust_resolution: Verify how Rust attributes, bindings, macros, module wiring, local crates and embedded resources become directory edges or incomplete analysis

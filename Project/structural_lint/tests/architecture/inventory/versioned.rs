@@ -1,5 +1,6 @@
-use super::{Consumer, binaries, inventory::documents};
+use super::filesystem::documents;
 use crate::shared::testing::{git, worker};
+use crate::structural_lint::tests::architecture::{Consumer, binaries};
 use serde_json::json;
 use std::fs;
 

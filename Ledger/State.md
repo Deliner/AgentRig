@@ -3,23 +3,25 @@
 ## Focus
 
 P177 delivers B184: each Project code directory that lint warns about by directory-size is split into nested parts
-by responsibility, or stays with its reason, behavior unchanged. VAC 2 regroups structural_lint/tests/architecture.
+by responsibility, or stays with its reason, behavior unchanged. VAC 3 regroups structural_lint/tests.
 
 ## Workspace
 
 Branch: feature/cohesive-directories
-Revision: e211718c99f2a2bed1c3e1a76c8d8c44ada0e1c7
+Revision: afc2a316cdacf5d39c0988b31f9cfa019aa7a2b8
 
 ## Progress
 
-VAC 1 saved and selected B184 as P177. VAC 2 moves the Rust-only attribute, binding, crate, macro, resource and
-wiring tests into structural_lint/tests/architecture/rust_resolution, which imports the parent fixtures by crate
-path; the parent drops from 15 to 10 entries and the D136 test links follow.
+VAC 1 and VAC 2 are committed. VAC 3 moves the lint-explain, lint-tree and lint-structure tests into
+structural_lint/tests/inspection, the dependency rule tests under tests/architecture, whose fixtures they use, and the
+file system and Git inventory tests into tests/architecture/inventory, sharing their fixture through filesystem.rs;
+both directories drop to 10 entries, and the D225, D227 and D228 test links follow. The oracle-bound diagnostics and
+languages tests and the impact-map-bound configuration and discovery tests keep their paths.
 
 ## Verification
 
-just test structural_lint::tests::architecture passed the same 47 tests without build warnings, 614 in total;
-just lint, rustfmt on the staged files and memory passed.
+just test structural_lint::tests passed 109 tests without build warnings, 614 in total; just lint, rustfmt on the
+staged files and memory passed; just lint --warnings lists 11 Project code directories by directory-size instead of 13.
 
 ## Blockers
 
@@ -27,4 +29,4 @@ None.
 
 ## Next action
 
-Commit VAC 2 through the gate, then regroup structural_lint/languages/tests, the next directory with 15 entries.
+Commit VAC 3 through the gate, then regroup structural_lint/languages/tests, which has 15 entries.
