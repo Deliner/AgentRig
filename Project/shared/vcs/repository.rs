@@ -1,5 +1,5 @@
 use super::branches::Settings;
-use super::git::{self, Revisions};
+use super::git::{self, Revisions, Staging};
 use super::tree_entry::Entry;
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeMap, path::Path};
@@ -159,8 +159,8 @@ impl<'a> Repository<'a> {
         git::index(self.root)
     }
 
-    pub fn stageable(&self, paths: &[String]) -> Result<BTreeMap<String, Entry>> {
-        git::stageable(self.root, paths)
+    pub fn stageable(&self, staging: Staging<'_>) -> Result<BTreeMap<String, Entry>> {
+        git::stageable(self.root, staging)
     }
 
     pub fn export_index(&self) -> Result<tempfile::TempDir> {

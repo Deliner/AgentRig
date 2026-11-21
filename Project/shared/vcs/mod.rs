@@ -11,7 +11,7 @@ mod repository;
 mod tests;
 mod tree_entry;
 pub use branches::Settings;
-pub use git::{Revisions, context_text as git_context};
+pub use git::{Revisions, Staging, context_text as git_context};
 pub use hooks::{Generated, Generation, generate};
 pub use observation::Observation;
 pub use repository::{Repository, initialize};
