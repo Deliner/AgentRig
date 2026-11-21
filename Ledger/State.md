@@ -2,26 +2,24 @@
 
 ## Focus
 
-P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. VAC 21 moves the last items
-the parts take from their entries: the lint config schema, the selected target and the structure texts.
+P171 B176 entry-use and P172 B178 entry-bypass, delivered autonomously under consent. This VAC moves the pin to
+the head whose resolver no longer reports a private module reached through its parent's reexport, so the
+installed lint can judge the rig with the entry rules on.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: a7ac9032327e7473a19b0f767e926dbc0ed5fee7
+Revision: 452a44bb12826bce4bb9b23c707237d521472c29
 
 ## Progress
 
-- VAC 21: lint_config splits into schema.rs and validation.rs, its entry offers Config, Rule, Thresholds and
-  extension matching; Selected moves into threshold_overrides.rs; Texts moves into corpus.rs; language_support
-  imports Kind from rule_identities. Decision links follow the moved markers: D016, D017, D018, D156, D198 to
-  schema.rs, D156, D198, D225, D227, D228 to validation.rs, D018 selection to threshold_overrides.rs.
+- The rule enabling change, rig lint.yaml rules, init catalog, the Python fixture and the D227 and D228 links,
+  waits in the stash vac22-enable-entry-rules until this pin is committed.
 
 ## Verification
 
-- clippy, rustfmt and structural_lint tests 346 pass.
-- Candidate measurement with architecture, file-cycle, entry-use and entry-bypass: entry-use 6 to 0, all four
-  rules report nothing.
+- The installed lint at the old pin dae94a4 reported 13 entry-bypass findings that the candidate does not report.
+- propose-pin HEAD under consent: the branch gate passed, the runtime 452a44b is installed and stable.txt written.
 
 ## Blockers
 
@@ -29,4 +27,4 @@ Revision: a7ac9032327e7473a19b0f767e926dbc0ed5fee7
 
 ## Next action
 
-Commit VAC 21, then add entry-use and entry-bypass to .agentrig/lint.yaml and catalog them for init.
+Commit the pin, pop the stash, rerun the installed lint and commit the enabled entry rules.
