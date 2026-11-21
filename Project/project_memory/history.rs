@@ -1,9 +1,8 @@
 // DECISION: D020
 // DECISION: D215
-use super::{format, invariant_history, revision_memory};
+use super::{format, invariant_history, revision_memory::Snapshot};
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
-use crate::shared::vcs::Repository;
 use anyhow::{Context as _, Result, ensure};
 use std::path::Path;
 
@@ -27,29 +26,32 @@ pub fn check(context: &Context, root: &Path, candidate: Option<&str>) -> Result<
         .filter(|fork| !revisions.contains(fork))
         .cloned();
     revisions.extend(unlisted);
+    let mut at_fork = None;
     for revision in &revisions {
-        check_revision(context, &repository, revision)?;
+        let mut prior = Snapshot::load(context, &repository, revision)?;
+        check_revision(context, &mut prior)?;
+        let forked = fork.as_ref().is_some_and(|fork| fork == revision);
+        if forked {
+            at_fork = Some(prior);
+        }
     }
-    match fork {
-        Some(fork) => invariant_history::check(context, &repository, &fork),
+    match at_fork {
+        Some(prior) => invariant_history::check(context, prior),
         None => Ok(()),
     }
 }
 
-fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str) -> Result<()> {
-    let tree = repository.tree(revision)?;
-    let prior_memory = revision_memory::directory(context, repository, revision, &tree)?;
-    let index = format!("{prior_memory}/Decisions.md");
-    let no_prior_memory = !tree.contains_key(&index);
-    if no_prior_memory {
+fn check_revision(context: &Context, prior: &mut Snapshot<'_>) -> Result<()> {
+    let Some(rows) = prior.table("Decisions.md", format::Catalog::Decisions)? else {
         return Ok(());
+    };
+    let paths: Vec<String> = rows.iter().map(|old| prior.path(&old.detail)).collect();
+    prior.read_ahead(&paths)?;
+    let mut details = Vec::new();
+    for path in &paths {
+        let detail = prior.text(path)?;
+        details.push(detail.with_context(|| format!("cannot read committed memory {path}"))?);
     }
-    let rows = committed_table(repository, revision, Path::new(&index))?;
-    let paths: Vec<String> = rows
-        .iter()
-        .map(|old| format!("{prior_memory}/{detail}", detail = old.detail))
-        .collect();
-    let details = revision_memory::read_all(repository, &tree, &paths)?;
     let memory = context.path(&context.config.paths.memory)?;
     let current = format::table(&memory.join("Decisions.md"), format::Catalog::Decisions)?;
     for (old, detail) in rows.into_iter().zip(details) {
@@ -60,18 +62,6 @@ fn check_revision(context: &Context, repository: &Repository<'_>, revision: &str
         preserve(old, row, &detail, &memory)?;
     }
     Ok(())
-}
-
-fn committed_table(
-    repository: &Repository<'_>,
-    revision: &str,
-    path: &Path,
-) -> Result<Vec<format::Row>> {
-    format::parse_table(
-        &revision_memory::read(repository, revision, path)?,
-        path,
-        format::Catalog::Decisions,
-    )
 }
 
 fn preserve(old: format::Row, row: &format::Row, prior_detail: &str, memory: &Path) -> Result<()> {
