@@ -3,23 +3,23 @@
 ## Focus
 
 P176 delivers B183: each Project code file that lint warns about by file-size is split by responsibility, or stays
-with its reason, behavior unchanged. VAC 2 splits the Rust silent-error detector into its three detectors.
+with its reason, behavior unchanged. VAC 3 moves two detector groups out of the Rust handler entry rust/mod.rs.
 
 ## Workspace
 
 Branch: feature/cohesive-files
-Revision: 7230856368642017a2a9ca33339ec8f58a5131a2
+Revision: 9f46e1b09e51731c665f30a3b9607c160252b542
 
 ## Progress
 
-VAC 1 saved B183 and selected it as P176. VAC 2 replaces languages/rust/errors/silent_error.rs, 402 nonblank lines,
-with collapsed_chain.rs for D097, D165 and D207, error_verdict.rs for the D097 Err arm and the Result<bool> and Ok
-readers, process_success.rs for D126 and call_syntax.rs for the zero-argument method receiver both use. verdict_call
-reuses ok_argument. The D097, D126, D165 and D207 links follow the new owners.
+VAC 1 saved and selected the card; VAC 2 split the silent-error detector. VAC 3 moves the discarded-result and spawn
+detector, D090, D099, D114 and D155, into errors/discarded_result.rs, whose tests already sit in tests/errors, and
+the eager fallback, D089 and D168, into std_forms/eager_fallback.rs; std_forms::call offers it to the call dispatch
+and the macro body scan like ownership::call. rust/mod.rs falls from 441 to 265 lines; rust/ keeps 15 entries.
 
 ## Verification
 
-just test errors:: passed 15 tests without build warnings; rustfmt on the staged files and the memory check passed.
+just test languages:: passed 182 tests without build warnings; rustfmt on the staged files and memory passed.
 
 ## Blockers
 
@@ -27,4 +27,4 @@ None.
 
 ## Next action
 
-Commit VAC 2 through the gate, then split the next oversized file and rerun lint with warnings.
+Commit VAC 3 through the gate, then split the next oversized file and rerun lint with warnings.
