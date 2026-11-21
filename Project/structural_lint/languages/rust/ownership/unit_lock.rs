@@ -1,4 +1,4 @@
-use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
+use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, sole, text};
 use crate::structural_lint::languages::rust::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::rule_identities::{Kind, Ownership};
 use tree_sitter::Node;
@@ -46,17 +46,6 @@ pub(super) fn constructed(call: Node<'_>, source: Code<'_>, output: &mut Vec<Mea
     let flagged = unit && inferred(call);
     if flagged {
         report(call, lock, source, output);
-    }
-}
-fn sole(list: Node<'_>) -> Option<Node<'_>> {
-    let mut cursor = list.walk();
-    let items: Vec<_> = list
-        .named_children(&mut cursor)
-        .filter(|item| !item.is_extra())
-        .collect();
-    match items.as_slice() {
-        [single] => Some(*single),
-        _ => None,
     }
 }
 fn inferred(call: Node<'_>) -> bool {
