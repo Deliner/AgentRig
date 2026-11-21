@@ -1,6 +1,7 @@
 use crate::project_config::Context as Project;
 use crate::shared::atomic_files::digest;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
+use crate::shared::parallel_map::in_parallel;
 use crate::shared::vcs::Repository;
 use anyhow::{Context, Result};
 use sha2::{Digest, Sha256};
@@ -42,14 +43,12 @@ pub fn revision_fingerprint(context: &Project, origin: &Path, revision: &str) ->
 fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Result<String> {
     paths.sort();
     paths.dedup();
+    paths.retain(|path| !path.starts_with(runtime));
+    let entries = in_parallel(&paths, |path| Entry::read(&tree.join(path)))?;
     let mut digest = Sha256::new();
-    for path in paths {
-        let runtime_file = path.starts_with(runtime);
-        if runtime_file {
-            continue;
-        }
+    for (path, entry) in paths.iter().zip(entries) {
         feed(&mut digest, path.as_os_str().as_encoded_bytes())?;
-        hash_file(&mut digest, &tree.join(path))?;
+        entry?.feed(&mut digest)?;
     }
     Ok(format!("{:x}", digest.finalize()))
 }
@@ -58,27 +57,51 @@ fn feed(digest: &mut Sha256, bytes: &[u8]) -> Result<()> {
     digest.update(bytes);
     Ok(())
 }
-fn hash_file(digest: &mut Sha256, path: &Path) -> Result<()> {
-    let meta = match fs::symlink_metadata(path) {
-        Ok(meta) => meta,
-        Err(error) if error.missing() => {
-            feed(digest, b"absent")?;
-            return Ok(());
+enum Entry {
+    Absent,
+    Symlink(PathBuf),
+    File { executable: u32, content: Vec<u8> },
+    Directory,
+}
+impl Entry {
+    fn read(path: &Path) -> Result<Self> {
+        let meta = match fs::symlink_metadata(path) {
+            Ok(meta) => meta,
+            Err(error) if error.missing() => return Ok(Self::Absent),
+            Err(error) => return Err(error.into()),
+        };
+        let symlink = meta.file_type().is_symlink();
+        let file = meta.is_file();
+        if symlink {
+            return Ok(Self::Symlink(fs::read_link(path)?));
         }
-        Err(error) => return Err(error.into()),
-    };
-    let symlink = meta.file_type().is_symlink();
-    let file = meta.is_file();
-    if symlink {
-        feed(digest, b"symlink")?;
-        feed(digest, fs::read_link(path)?.as_os_str().as_encoded_bytes())?;
-    } else if file {
-        feed(digest, &(meta.permissions().mode() & 0o111).to_le_bytes())?;
-        feed(digest, &fs::read(path)?)?;
-    } else {
-        feed(digest, b"directory")?;
+        if file {
+            let executable = meta.permissions().mode() & 0o111;
+            let content = Sha256::digest(fs::read(path)?).to_vec();
+            return Ok(Self::File {
+                executable,
+                content,
+            });
+        }
+        Ok(Self::Directory)
     }
-    Ok(())
+    fn feed(&self, digest: &mut Sha256) -> Result<()> {
+        match self {
+            Self::Absent => feed(digest, b"absent"),
+            Self::Symlink(target) => {
+                feed(digest, b"symlink")?;
+                feed(digest, target.as_os_str().as_encoded_bytes())
+            }
+            Self::File {
+                executable,
+                content,
+            } => {
+                feed(digest, &executable.to_le_bytes())?;
+                feed(digest, content)
+            }
+            Self::Directory => feed(digest, b"directory"),
+        }
+    }
 }
 fn paths(root: &Path, tree: Tree) -> Result<Vec<PathBuf>> {
     if let Some(repository) = crate::shared::vcs::Repository::discover(root)? {

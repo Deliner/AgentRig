@@ -1,8 +1,8 @@
 // DECISION: D219
 use super::format::{Catalog, exception_links, table, target};
-use super::source::in_parallel;
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
+use crate::shared::parallel_map::in_parallel;
 use anyhow::{Result, ensure};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};

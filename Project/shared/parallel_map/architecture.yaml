@@ -1,0 +1,4 @@
+purpose: Apply one function to every item on the available threads and return the results in item order
+type: flat
+files:
+  mod.rs: Ordered parallel application of a function to a slice of items

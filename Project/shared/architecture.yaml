@@ -8,6 +8,7 @@ directories:
   console: Own console output for the product with line writers for stdout and stderr and a flushed prompt
   diagnostics: Render failures and actionable repair guidance and validate referenced skills
   fs_with_context: Own filesystem access for the product with errors naming the action and the path
+  parallel_map: Apply one function to many items on the available threads with results in item order
   paths: Resolve filesystem paths and match repository glob patterns consistently across capabilities
   shared_options: Shared command argument extraction
   skills: Canonical agent guidance embedded into installed environments
