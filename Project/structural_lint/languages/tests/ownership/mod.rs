@@ -1,3 +1,4 @@
+mod disabled_raii;
 mod exposed_guard;
 mod global_state;
 mod paired_calls;

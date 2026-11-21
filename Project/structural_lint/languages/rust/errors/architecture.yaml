@@ -2,5 +2,9 @@ purpose: Detect Rust code where an error disappears without a trace instead of b
 type: flat
 files:
   mod.rs: Dispatch error-handling nodes to the error detectors
-  silent_error.rs: Rust swallowed errors, a read_dir chain collapsed over its failed entries, a filter_map or flat_map keeping only the Ok values of any chain, an Err arm answering a bool verdict or a returned process success that never reads the code
+  call_syntax.rs: Receiver of a zero-argument method call with a given name, read by the chain and process success detectors
+  discarded_result.rs: Rust statement that drops a Result, an Option combinator's value, a command's exit status or output, or a spawn handle, also bound to the wildcard pattern
+  collapsed_chain.rs: Rust chain that swallows errors, a read_dir chain collapsed over its failed entries, a filter_map or flat_map keeping only the Ok values of any chain, an ok().flatten() or an ok or fallback on a join
+  error_verdict.rs: Rust Err arm of a match or if let answering a bool verdict in a function returning Result<bool, …>, with the readers of that return type and of the sole Ok argument
+  process_success.rs: Rust returned process success that answers a bool verdict without reading the exit code
 directories: {}

@@ -1,6 +1,8 @@
 // DECISION: D132
 // DECISION: D154
+use super::{initialized, lint, text};
 use crate::project_setup::init;
+use crate::shared::strict_yaml;
 use crate::shared::testing::{repository, snapshot, write};
 use anyhow::Result;
 use serde_yaml_ng::Value;
@@ -150,6 +152,32 @@ fn rust_init_refuses_a_conflicting_clippy_threshold() {
     let error = initialize(&root, &args).unwrap_err().to_string();
     assert!(error.contains("max-struct-bools = 3"), "{error}");
     assert_eq!(snapshot(&root), before);
+}
+
+// DECISION: D184
+#[test]
+fn shipped_rules_check_lowering_flags_of_the_clippy_command() {
+    let (_temp, root) = initialized("rust");
+    let commands = root.join(".agentrig/commands.yaml");
+    let (_, before) = lint(&root);
+    let mut config: serde_json::Value = strict_yaml::read(&commands).unwrap();
+    let argv = config["clippy"]["argv"].as_array_mut().unwrap();
+    argv.extend(["--cap-lints", "allow"].map(serde_json::Value::from));
+    fs::write(&commands, strict_yaml::encode(&config).unwrap()).unwrap();
+    let (code, after) = lint(&root);
+    let skills = |found: &[serde_json::Value]| -> Vec<String> {
+        let reported = |item: &&serde_json::Value| {
+            text(item, "rule") == "allow-justification"
+                && text(item, "path") == ".agentrig/commands.yaml"
+        };
+        let skill = |item: &serde_json::Value| text(item, "skill").to_owned();
+        found.iter().filter(reported).map(skill).collect()
+    };
+    assert_eq!(skills(&before), Vec::<String>::new(), "{before:?}");
+    assert_eq!(code, Some(1), "{after:?}");
+    let after = skills(&after);
+    assert_eq!(after.len(), 1, "{after:?}");
+    assert!(after[0].ends_with("justify-allow/SKILL.md"), "{after:?}");
 }
 
 #[test]

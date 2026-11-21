@@ -1,12 +1,12 @@
+use super::file_measures::structural_measurements;
+use super::findings::{finding, mixed_junction, syntax_error};
 use super::lifting;
-use crate::shared::diagnostics::{Diagnostic, Level};
+use crate::shared::diagnostics::Diagnostic;
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
 use crate::structural_lint::architecture;
 use crate::structural_lint::languages::{self, program_language};
-use crate::structural_lint::rule_identities::{
-    self, CONTRACT_FILENAME, ControlFlow, Kind, MIXED_JUNCTIONS, Pair, Reference, Structure,
-};
+use crate::structural_lint::rule_identities::{ControlFlow, Kind, Pair, Reference, Structure};
 use crate::structural_lint::rule_set::{capabilities, lint_config};
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::{Context, Result};
@@ -199,83 +199,8 @@ fn scalar_findings(
     }
     Ok(())
 }
-// DECISION: D072
-const DUMP_NAMES: &[&str] = &["utils", "helpers", "misc", "common"];
 // DECISION: D198
 const SHEBANG_BYTES: u64 = 256;
-// DECISION: D036
-fn structural_measurements(
-    root: &Path,
-    rule: &lint_config::Rule,
-    selected: &lint_targets::Selected<'_>,
-    inventory: &file_discovery::Inventory,
-) -> Result<Vec<(Option<usize>, usize)>> {
-    let file = root.join(selected.path);
-    let unmeasured = || anyhow::anyhow!("rule kind {} has no structural metric", rule.kind);
-    let Kind::Structure(structure) = rule.kind else {
-        return Err(unmeasured());
-    };
-    Ok(match structure {
-        Structure::NonblankLines => text(&file)?
-            .map(|source| nonblank_lines(&source))
-            .unwrap_or_default(),
-        Structure::LineWidth => text(&file)?
-            .map(|source| line_widths(&source))
-            .unwrap_or_default(),
-        Structure::ForbiddenFile => vec![(None, 1)],
-        Structure::DirectoryEntries => {
-            vec![(
-                None,
-                inventory.file_entries(selected.path, CONTRACT_FILENAME),
-            )]
-        }
-        Structure::DumpName => dump_name(selected.path),
-        Structure::SameText => same_text(root, rule, selected, inventory)?,
-        Structure::FunctionLines
-        | Structure::ProgramLanguage
-        | Structure::EmbeddedText
-        | Structure::DirectoryArchitecture
-        | Structure::TestPlacement
-        | Structure::TestInCodeFile
-        | Structure::FileCycle
-        | Structure::EntryUse
-        | Structure::EntryBypass => return Err(unmeasured()),
-    })
-}
-fn text(file: &Path) -> Result<Option<String>> {
-    Ok(String::from_utf8(fs::read(file)?).ok())
-}
-fn nonblank_lines(source: &str) -> Vec<(Option<usize>, usize)> {
-    let count = source
-        .lines()
-        .filter(|line| !line.trim().is_empty())
-        .count();
-    vec![(None, count)]
-}
-fn line_widths(source: &str) -> Vec<(Option<usize>, usize)> {
-    source
-        .lines()
-        .enumerate()
-        .map(|(index, line)| (Some(index + 1), line.chars().count()))
-        .collect()
-}
-// DECISION: D195
-fn same_text(
-    root: &Path,
-    rule: &lint_config::Rule,
-    selected: &lint_targets::Selected<'_>,
-    inventory: &file_discovery::Inventory,
-) -> Result<Vec<(Option<usize>, usize)>> {
-    let listed = lint_targets::select(rule, inventory)?;
-    let first = listed.first().map_or(selected.path, |first| first.path);
-    let differs = fs::read(root.join(first))? != fs::read(root.join(selected.path))?;
-    Ok(if differs { vec![(None, 1)] } else { Vec::new() })
-}
-fn dump_name(path: &Path) -> Vec<(Option<usize>, usize)> {
-    let name = path.file_name().and_then(|name| name.to_str());
-    let dump = name.is_some_and(|name| DUMP_NAMES.contains(&name));
-    if dump { vec![(None, 1)] } else { Vec::new() }
-}
 fn syntax_findings(
     rule: &lint_config::Rule,
     selected: &lint_targets::Selected<'_>,
@@ -308,74 +233,4 @@ fn syntax_findings(
         );
     }
     Ok(())
-}
-// DECISION: D156
-fn mixed_junction(rule: &lint_config::Rule, path: &Path, line: usize) -> Diagnostic {
-    Diagnostic {
-        rule: rule.id.clone(),
-        path: path.to_string_lossy().into_owned(),
-        level: Level::Error,
-        actual: None,
-        limit: None,
-        skill: rule.error_skill.clone(),
-        message: MIXED_JUNCTIONS.into(),
-        line: Some(line),
-        symbol: Some("expression".into()),
-        rerun: String::new(),
-    }
-}
-fn syntax_error(rule: &lint_config::Rule, path: &Path, line: usize) -> Diagnostic {
-    Diagnostic {
-        rule: "syntax".into(),
-        path: path.to_string_lossy().into_owned(),
-        level: Level::Error,
-        actual: None,
-        limit: None,
-        skill: rule.error_skill.clone(),
-        message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
-        line: Some(line),
-        symbol: None,
-        rerun: String::new(),
-    }
-}
-fn finding(
-    rule: &lint_config::Rule,
-    selected: &lint_targets::Selected<'_>,
-    actual: usize,
-) -> Result<Option<Diagnostic>> {
-    let (warning, error) = (selected.warning, selected.error);
-    let (level, limit) = if let Some(level) = rule.level {
-        (level, None)
-    } else {
-        lint_config::Thresholds { warning, error }.validate()?;
-        match (warning, error) {
-            (_, Some(limit)) if actual > limit => (Level::Error, Some(limit)),
-            (Some(limit), _) if actual > limit => (Level::Warning, Some(limit)),
-            _ => return Ok(None),
-        }
-    };
-    let message = rule_message(rule, limit, actual)?;
-    Ok(Some(Diagnostic {
-        rule: rule.id.clone(),
-        path: selected.path.to_string_lossy().into_owned(),
-        level,
-        actual: Some(actual),
-        limit,
-        skill: rule.skill(level),
-        message,
-        line: None,
-        symbol: None,
-        rerun: String::new(),
-    }))
-}
-fn rule_message(rule: &lint_config::Rule, limit: Option<usize>, actual: usize) -> Result<String> {
-    Ok(match (limit, &rule.kind.descriptor().parameters) {
-        (Some(limit), _) => format!("{} measures {actual}, exceeds {limit}", rule.kind),
-        (None, rule_identities::Parameters::Level { violation, .. }) => {
-            lifting::message(rule, violation)
-        }
-        (None, rule_identities::Parameters::Thresholds { .. }) => {
-            anyhow::bail!("threshold rule reported no limit")
-        }
-    })
 }

@@ -1,5 +1,6 @@
 mod call_syntax;
 mod dotted_extension;
+mod eager_fallback;
 mod epsilon_tolerance;
 mod flag_filter;
 mod indexed_array;
@@ -27,6 +28,9 @@ pub(super) fn inspect(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measure
         symbol: symbol.into(),
         actual: 1,
     });
+}
+pub(super) fn call(node: Node<'_>, source: Code<'_>, output: &mut Vec<Measurement>) {
+    eager_fallback::inspect(node, source, output);
 }
 fn form(node: Node<'_>, source: Code<'_>) -> Option<(Reference, &'static str)> {
     match node.kind() {

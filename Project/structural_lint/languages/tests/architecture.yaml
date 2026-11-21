@@ -1,6 +1,6 @@
 purpose: Verify language-specific measurements from native analysis
 files:
-  mod.rs: Comment, control-flow, boolean-expression, signature, credential and string literal span measurements from native analysis
+  mod.rs: Comment, boolean parameter, credential and string literal span measurements, and the symbol and line readers the declaration and control-flow threshold tests share, from native analysis
   declarations.rs: Rust and Python parameter count and function line measurements of declarations from native analysis
   markers.rs: Disabled-test, allow/expect/cfg_attr suppression and debug-artifact marker measurements from native analysis
   async_code.rs: Rust std lock guards held or released across a later .await and blocking sleep or block_on calls inside or outside async code, from native analysis
@@ -9,7 +9,7 @@ files:
   shell_command.rs: Rust shell launches whose command flag is followed by data in the argument chain, with literal and constant commands, other flags, programs, order and test-only launches skipped, from native analysis
 directories:
   configuration: Verify measurements of TOML and YAML configuration documents from native analysis
-  control_flow: Verify Rust control-flow measurements and mixed boolean junctions in Rust and Python from native analysis
+  control_flow: Verify Rust control-flow measurements, and nesting depth, branch budget, boolean expression operands and mixed boolean junctions in Rust and Python, from native analysis
   errors: Verify measurements of code where an error disappears without a trace, from native analysis
   ownership: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
   reference: Verify Rust measurements of how code reaches a name, a module path or a value slot, from native analysis

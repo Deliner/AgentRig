@@ -1,16 +1,19 @@
 mod agents;
 mod layout;
 mod rig;
+mod rust_layout;
 mod wizard;
 
 use super::init;
 use crate::shared::testing::repository;
+use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{
     collections::{BTreeMap, BTreeSet},
     fs,
-    path::Path,
+    path::{Path, PathBuf},
 };
+use tempfile::TempDir;
 
 // DECISION: D053
 // DECISION: D158
@@ -29,6 +32,21 @@ type Capabilities = BTreeMap<&'static str, BTreeSet<String>>;
 
 fn yaml(path: &Path) -> Value {
     serde_yaml_ng::from_str(&fs::read_to_string(path).unwrap()).unwrap()
+}
+
+fn flow(text: &str) -> Value {
+    serde_yaml_ng::from_str(text).unwrap()
+}
+
+fn consumer() -> (TempDir, PathBuf) {
+    let temp = tempfile::tempdir().unwrap();
+    let root = temp.path().canonicalize().unwrap();
+    (temp, root)
+}
+
+fn initialize(root: &Path, args: &[&str]) -> Result<i32> {
+    let args: Vec<String> = args.iter().copied().map(str::to_owned).collect();
+    init(root, &args)
 }
 
 fn text(value: &Value) -> String {

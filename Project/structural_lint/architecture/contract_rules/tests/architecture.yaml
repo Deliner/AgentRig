@@ -1,4 +1,9 @@
 purpose: Verify directory contracts, feature types, effects and measured cycles
 files:
-  mod.rs: Contract validation, feature types, effects and measured cycle behavior
+  mod.rs: Declare the contract rule test modules and the contract, edge and message fixtures they share
+  contracts.rs: Loading of directory contracts that rejects missing, invalid, generic, linked or escaping descriptions
+  features.rs: Feature types, their required part directories and the inward direction of their dependencies
+  cycles.rs: Directory dependency cycles reported at their closing measured edge
+  zones.rs: Pure zones refusing environment, wall clock, entropy, network, thread and console references in their own files
+  coupling.rs: Incoming coupling of a directory measured against its declared or default dependents budget
 directories: {}

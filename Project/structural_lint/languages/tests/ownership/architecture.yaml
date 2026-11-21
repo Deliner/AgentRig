@@ -1,6 +1,7 @@
 purpose: Verify Rust resource, lock, process-global state, wrapper and paired-call measurements from native analysis
 files:
   mod.rs: Declare the ownership measurement test modules and filter native measurements of one kind under configured pairs
+  disabled_raii.rs: Rust keep, into_path, mem::forget, ManuallyDrop::new and Box::leak calls outside test code, with other leak or inner calls and strings skipped, from native analysis
   exposed_guard.rs: Rust visible fns returning a lock guard or RefCell borrow at any depth, with private and test-only fns and other names skipped, from native analysis
   global_state.rs: Static lock and public static cell measurements, direct and inside lazy_static!/thread_local!, from native analysis
   paired_calls.rs: Rust configured opening calls whose closing call on the same receiver follows an early exit, with closure exits, other receivers and unconfigured pairs skipped, from native analysis

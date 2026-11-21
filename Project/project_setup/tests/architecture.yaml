@@ -1,13 +1,13 @@
 purpose: Verify generated environment policy, runtime readiness diagnostics and delivery of independent projects
 files:
-  mod.rs: Declare the Rust behavior tests of environment setup, write their fixture files and locate the runtime an installation committed
+  mod.rs: Declare the Rust behavior tests of environment setup, write their fixture files, locate the runtime an installation committed, initialize a project and read its lint findings
   delivery.rs: Install, check, guard and integrate independent Python and Rust projects through their installed launchers
   runtime.rs: Run the runtime of the reported platform, refuse without one and add one with runtime-add
   doctor.rs: Diagnose installed hooks, client registration, tools and runtime compatibility
   recipes.rs: Verify generated recipes run on the project of their justfile whatever root the agent's words name
-  defaults.rs: Verify installed Rust and Python lint limits block delivery and accept boundaries, and shipped rule scopes, the rig's flag list and Cargo configurations included
+  defaults.rs: Verify installed Rust and Python lint limits block delivery and accept boundaries, and shipped rule scopes
   coverage.rs: Report affected-map sources and tests left without selected tests through config-check
   toolchain.rs: Verify Rust init and doctor require the rig's Rust version from the project's rustc and init writes the rig's Rust capability section, while Python ones do neither
-  rustflags.rs: Verify Rust init copies the project's build.rustflags into the rig's flag list and leaves the Cargo configuration unchanged
-  clippy.rs: Verify a Rust scaffold delivers the AgentRig Clippy profile equal to the dev gate and its thresholds in the effective Clippy file, refusing a conflicting value, and a Python scaffold none
+  rustflags.rs: Verify Rust init copies the project's build.rustflags into the rig's flag list and leaves the Cargo configuration unchanged, and shipped rules report a lowering flag in the list and rustflags in the Cargo configuration
+  clippy.rs: Verify a Rust scaffold delivers the AgentRig Clippy profile equal to the dev gate and its thresholds in the effective Clippy file, refusing a conflicting value, shipped rules reporting a lowering flag added to its Clippy command, and a Python scaffold none
 directories: {}
