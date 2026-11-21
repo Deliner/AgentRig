@@ -1,4 +1,5 @@
 use super::rust::toolchain::Requirement;
+use crate::command_runner;
 use crate::project_config::{Access, Context};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
@@ -48,12 +49,12 @@ fn installed_binary(context: &Context) -> bool {
     let binary = context
         .root
         .join(context.config.paths.service_path("bin/agentrig"));
-    let installed = crate::command_runner::sandbox::tracked(
+    let installed = command_runner::tracked(
         &context.root,
         &[binary.to_string_lossy().into_owned(), "--version".into()],
-        crate::command_runner::sandbox::Sandboxing {
+        command_runner::Sandboxing {
             access: Access::Unconfined,
-            capture: crate::command_runner::jobs::Capture::Collect,
+            capture: command_runner::Capture::Collect,
             cargo_target: None,
             rustflags: &context.config.rust.rustflags,
         },
@@ -114,7 +115,7 @@ fn sandbox_availability(context: &Context) -> bool {
         .values()
         .any(|command| command.access.sandboxed());
     if sandboxed {
-        let works = crate::command_runner::sandbox::available();
+        let works = command_runner::sandbox_available();
         console::stdout(format!(
             "sandbox backend: {}",
             if works { "available" } else { "UNAVAILABLE" }

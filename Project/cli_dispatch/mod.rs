@@ -3,7 +3,7 @@ mod project;
 mod tests;
 use crate::{
     change_delivery::{gate, git},
-    command_runner::{self, jobs},
+    command_runner::{self, JobCommand},
     project_config::Context,
     project_setup,
 };
@@ -23,7 +23,7 @@ pub enum Command {
 pub enum Runner {
     JobStart,
     JobRun,
-    Jobs(jobs::Command),
+    Jobs(JobCommand),
 }
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Configured {
@@ -88,22 +88,16 @@ const NAMES: &[(&str, Command)] = &[
     ),
     ("job-start", Command::Runner(Runner::JobStart)),
     ("_job-run", Command::Runner(Runner::JobRun)),
-    ("jobs", Command::Runner(Runner::Jobs(jobs::Command::List))),
+    ("jobs", Command::Runner(Runner::Jobs(JobCommand::List))),
     (
         "job-status",
-        Command::Runner(Runner::Jobs(jobs::Command::Status)),
+        Command::Runner(Runner::Jobs(JobCommand::Status)),
     ),
-    (
-        "job-logs",
-        Command::Runner(Runner::Jobs(jobs::Command::Logs)),
-    ),
-    (
-        "job-stop",
-        Command::Runner(Runner::Jobs(jobs::Command::Stop)),
-    ),
+    ("job-logs", Command::Runner(Runner::Jobs(JobCommand::Logs))),
+    ("job-stop", Command::Runner(Runner::Jobs(JobCommand::Stop))),
     (
         "job-cleanup",
-        Command::Runner(Runner::Jobs(jobs::Command::Cleanup)),
+        Command::Runner(Runner::Jobs(JobCommand::Cleanup)),
     ),
 ];
 impl Command {
@@ -136,7 +130,10 @@ fn run_runner(context: &Context, command: Runner, args: &[String]) -> Result<i32
     match command {
         Runner::JobStart => command_runner::background(context, args),
         Runner::JobRun => command_runner::background_run(context, args),
-        Runner::Jobs(job) => jobs::cli(&context.path(&context.config.paths.runtime)?, job, args),
+        Runner::Jobs(job) => {
+            let runtime = context.path(&context.config.paths.runtime)?;
+            command_runner::run_job_command(&runtime, job, args)
+        }
     }
 }
 fn guard_commit(root: &Path, args: &[String]) -> Result<i32> {

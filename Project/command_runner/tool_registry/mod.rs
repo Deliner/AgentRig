@@ -1,7 +1,9 @@
-pub mod placement_check;
+mod placement_check;
 mod removal_records;
 #[cfg(test)]
 mod tests;
+pub use placement_check::{PlacementSource, run as check_placement};
+
 use crate::project_config::{Command, Context};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};

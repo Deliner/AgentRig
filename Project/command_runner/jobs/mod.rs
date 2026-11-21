@@ -2,16 +2,18 @@ use crate::project_config::{Access, Context, Lifetime};
 use crate::shared::console;
 use crate::shared::fs_with_context::{self as fs, OpenOptions};
 mod background;
-pub mod cleanup;
+mod cleanup;
 mod group;
 mod logs;
 mod pid_reuse_guard;
-pub mod process;
-pub mod report;
+mod process;
+mod report;
 mod stop;
-pub use stop::run as cancel;
 mod storage;
 mod streams;
+pub use cleanup::run as clean_jobs;
+pub use process::{execute, exit_code, streamed};
+pub use report::print as print_report;
 
 use anyhow::Result;
 use pid_reuse_guard::Identity;
@@ -207,10 +209,6 @@ pub fn list(runtime: &Path) -> Result<Vec<Value>> {
 }
 pub fn status(runtime: &Path, id: &str) -> Result<Value> {
     observe(runtime, &storage::load(runtime, id)?)
-}
-pub fn directory(runtime: &Path, id: &str) -> Result<PathBuf> {
-    storage::load(runtime, id)?;
-    Ok(runtime.join("jobs").join(id))
 }
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum Command {

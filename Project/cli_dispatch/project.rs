@@ -38,7 +38,7 @@ pub(super) fn configured_command(
             Ok(0)
         }
         Configured::Commands => {
-            command_runner::tool_registry::list(context)?;
+            command_runner::list_tools(context)?;
             Ok(0)
         }
         Configured::Run => run_command(context, args),

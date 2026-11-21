@@ -6,11 +6,16 @@ use crate::shared::vcs::Repository;
 use anyhow::Result;
 use std::path::Path;
 
-pub struct Source<'a> {
+pub struct PlacementSource<'a> {
     pub repository: &'a Path,
     pub exported_revision: Option<&'a str>,
 }
-pub fn run(context: &Context, source: Source<'_>, check: &Check, rerun: &str) -> Result<i32> {
+pub fn run(
+    context: &Context,
+    source: PlacementSource<'_>,
+    check: &Check,
+    rerun: &str,
+) -> Result<i32> {
     let repository = Repository::new(source.repository);
     let files = match source.exported_revision {
         Some(revision) => repository.tree(revision)?.into_keys().collect(),

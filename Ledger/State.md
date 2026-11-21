@@ -2,27 +2,26 @@
 
 ## Focus
 
-P172 delivers B178 entry-bypass. VAC 10 routes the remaining outside uses of structural_lint through its entry:
-file discovery, Rooted, crate module paths for coverage and the rule kinds of project_setup/lint.rs; the lint
-parts are declared privately so the compiler holds the boundary.
+P172 delivers B178 entry-bypass. VAC 11 routes every use of command_runner through its entry: jobs, sandbox
+and tool_registry are declared privately, and the entry offers the job, sandbox and tool check API.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: ed5922c1ab0f2a88fff5b5999940b8831b28d7a4
+Revision: 899d8cdf98a707731771f6ca69f6c7211f6061ad
 
 ## Progress
 
-- file_discovery keeps Inventory in inventory.rs; collect is renamed maintained_files and reexported by the entry.
-- capabilities keeps RULE_KINDS and kind parsing in kinds.rs; example is renamed example_rule.
-- architecture/mod.rs offers crate_modules from file texts, so coverage reads the files and the lint only parses.
-- structural_lint declares dependents 9 by measurement under AC6, 7 before.
-- Decision links of D016, D017, D018, D133, D134 and D144 follow the moved owners.
+- jobs declares its parts privately and offers clean_jobs, execute, exit_code, streamed and print_report.
+- process.rs gains streamed, so Git runs a VCS command through one owner call instead of execute and exit_code.
+- tool_registry offers PlacementSource and check_placement; the unused jobs directory and cancel are removed.
+- gate, git, cli_dispatch, project_memory and project_setup use command_runner only through its entry.
 
 ## Verification
 
-- `just run rustfmt` clean, `just run clippy` clean, `just test` 613 passed.
-- Candidate lint with the entry rules: entry-use 177 to 152, entry-bypass 145 to 97, architecture clean.
+- `just run rustfmt` clean, `just run clippy` clean.
+- Candidate lint with the entry rules: entry-bypass 97 to 64, entry-use 152 to 153 from streamed using Capture,
+  architecture clean.
 
 ## Blockers
 
@@ -30,5 +29,4 @@ None.
 
 ## Next action
 
-Commit VAC 10, then route cross-feature uses of command_runner, project_memory, change_delivery, project_config
-and project_setup through their entries.
+Commit VAC 11, then route the uses of project_memory check_evidence and format through the memory entry.

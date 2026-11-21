@@ -1,5 +1,4 @@
-use crate::command_runner::jobs::Capture;
-use crate::command_runner::sandbox::{self, Sandboxing};
+use crate::command_runner::{Capture, Sandboxing, tracked};
 use crate::project_config::Access;
 use anyhow::{Context, Result};
 use serde::Deserialize;
@@ -126,7 +125,7 @@ fn project_rustc(root: &Path) -> Option<Version> {
         cargo_target: None,
         rustflags: &[],
     };
-    let output = sandbox::tracked(directory, &argv, options, None).ok()?;
+    let output = tracked(directory, &argv, options, None).ok()?;
     let printed = output.status.success().then_some(output.stdout)?;
     let printed = String::from_utf8(printed).ok()?;
     Version::parse(printed.split_whitespace().nth(1)?)

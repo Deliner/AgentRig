@@ -70,8 +70,7 @@ fn discover(
 ) -> Result<()> {
     let id = invariant.id;
     let argv = discovery_arguments(command_runner::argv(context, name, &[])?, oracle);
-    let result =
-        command_runner::execute(context, name, argv, command_runner::jobs::Capture::Collect)?;
+    let result = command_runner::execute(context, name, argv, command_runner::Capture::Collect)?;
     ensure!(
         result.status.success(),
         "{id}: test discovery failed: {}",

@@ -19,6 +19,9 @@ pub fn exit_code(output: &Output) -> i32 {
         .code()
         .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(1))
 }
+pub fn streamed(command: &mut Command) -> Result<i32> {
+    execute(command, Capture::Stream, None).map(|output| exit_code(&output))
+}
 pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -> Result<Output> {
     if let Some(job) = job.as_ref() {
         command

@@ -23,7 +23,7 @@ pub fn run(context: &Context) -> Result<()> {
     let snapshot = claims.snapshot(branch, &recorded);
     let report = json!({"state": state, "plan": plan, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "checks": check_evidence::resume(context),
-        "jobs": crate::command_runner::jobs::list(&context.path(&context.config.paths.runtime)?)?});
+        "jobs": crate::command_runner::list_jobs(&context.path(&context.config.paths.runtime)?)?});
     console::stdout(report);
     Ok(())
 }

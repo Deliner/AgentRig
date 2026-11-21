@@ -3,7 +3,7 @@ use crate::shared::console;
 use std::{path::Path, process::Output};
 
 pub fn print(name: &str, views: &Views, output: &Output, log: Option<&Path>) {
-    let code = super::jobs::process::exit_code(output);
+    let code = super::jobs::exit_code(output);
     let view = match code {
         0 => &views.success,
         _ => &views.failure,
