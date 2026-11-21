@@ -71,9 +71,9 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
         .architecture
         .as_ref()
         .ok_or_else(|| anyhow::anyhow!("architecture rule without settings"))?;
-    let rust_sources = analysis::rust_sources(&root, &files);
+    let rust_sources = analysis::rust_sources(&root, &files)?;
     let (resolvers, issues) = analysis::Resolvers::new(&root, &files, &rust_sources, settings)?;
-    let sources = analysis::extract(&root, &scope.files);
+    let sources = analysis::extract(&root, &scope.files)?;
     let analyzed = dependencies(&resolvers, sources);
     Ok(Some(Measured {
         root,

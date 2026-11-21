@@ -7,12 +7,13 @@ P191 (B198): the architecture rule reads and parses sources on several threads.
 ## Workspace
 
 Branch: feature/parallel-architecture
-Revision: 679083e7eadb80d9bb86e58045962cd2349cb42e
+Revision: 215ef4af24742df4c1d7fb41b793b147d8d96184
 
 ## Progress
 
-VAC 1 saves B198 and selects it as P191 by the user's standing instruction. The parallel extraction in
-structural_lint/architecture/contract_check is in the working tree, not staged.
+VAC 1 `215ef4a` saved B198 and selected it as P191. VAC 2 makes `extract` in contract_check/analysis.rs read and
+parse each source through `in_parallel` and collect the results by path, so both the crate sources and the rule's
+scope are parsed on several threads with the same per-file result.
 
 ## Verification
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the parallel extraction as VAC 2.
+Commit VAC 2 through the gate, run the full test suite, then archive P191 and B198 in VAC 3 and run feature-merge.
