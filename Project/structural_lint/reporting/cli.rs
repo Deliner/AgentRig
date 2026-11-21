@@ -1,11 +1,10 @@
-use super::findings::{Output, configuration_error, run_output};
+use super::findings::{Format, Output, configuration_error, run_output};
 use crate::shared::calling_agent::{Agent, Caller};
 use crate::shared::console;
 use crate::shared::shared_options::take_option;
-use crate::structural_lint::rule_identities;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_evaluation::{Location, Mode};
+use crate::structural_lint::rule_identities::{self, Structure};
 use crate::structural_lint::rule_set::capabilities;
-use crate::structural_lint::{Format, Location, Mode};
 use anyhow::{Result, ensure};
 use std::{env, path::PathBuf};
 
@@ -124,7 +123,7 @@ pub fn discovery(command: &str, args: &[String]) -> Result<i32> {
     let json = args.iter().any(|arg| arg == "--json");
     if example {
         let value = serde_json::json!({"version": 1, "config_skill": ".agentrig/skills/repair/SKILL.md",
-            "rules": [capabilities::example(kind, ".agentrig/skills", &["src/**".into()])]});
+            "rules": [capabilities::example_rule(kind, ".agentrig/skills", &["src/**".into()])]});
         console::stdout(crate::shared::strict_yaml::encode(&value)?);
     } else if json {
         console::stdout(capabilities::describe(kind));
@@ -151,7 +150,7 @@ fn print_rule(kind: rule_identities::Kind) {
     if architecture {
         console::stdout(format!(
             "Architecture settings and limits: {}",
-            crate::structural_lint::architecture::Settings::describe()
+            crate::structural_lint::rule_identities::Settings::describe()
         ));
     }
     console::stdout(format!(

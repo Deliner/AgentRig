@@ -19,7 +19,7 @@ fn initialized(args: &[&str]) -> (tempfile::TempDir, std::path::PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
     let args: Vec<String> = args.iter().copied().map(str::to_owned).collect();
-    crate::project_setup::initialization::init(&root, &args).unwrap();
+    crate::project_setup::init(&root, &args).unwrap();
     (temp, root)
 }
 

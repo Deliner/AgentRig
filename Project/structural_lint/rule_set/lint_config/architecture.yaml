@@ -1,6 +1,8 @@
 purpose: Load strict lint configuration and validate rule selection, severity and repair guidance
 type: flat
 files:
-  mod.rs: YAML schema and validation of rule selection, severity and guidance
+  mod.rs: Offer the configuration schema, its validation and threshold pairs, and match a path against rule extensions
+  schema.rs: YAML schema of the lint configuration, its rules and their threshold overrides
+  validation.rs: Validate a loaded configuration, its rule selection, severity, threshold pairs and rule-specific settings
   repair_guidance.rs: Resolve repair skill paths and choose the skill for a finding level
 directories: {}

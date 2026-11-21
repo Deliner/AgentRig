@@ -1,7 +1,6 @@
-use super::{calls, method, sole_argument};
+use super::call_syntax::{calls, method, sole_argument};
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement};
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
 
 // DECISION: D208

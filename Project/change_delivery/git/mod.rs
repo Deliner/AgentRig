@@ -1,8 +1,8 @@
 // DECISION: D010
 // DECISION: D019
 // DECISION: D035
-pub mod approval;
-pub mod consent;
+mod approval;
+mod consent;
 mod exceptions;
 mod integration;
 mod pin;
@@ -12,11 +12,13 @@ mod state;
 #[cfg(test)]
 mod tests;
 use super::gate;
-use crate::command_runner::sandbox::{CATALOG_ROOT, catalog_run};
+use crate::command_runner::{self, CATALOG_ROOT, catalog_run};
 use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::vcs::{Revisions, git_context as git};
 use anyhow::{Result, ensure};
+pub use approval::{approve, record as record_approval};
+pub use consent::{give as give_consent, list as consented_pins, revoke as revoke_consent};
 use std::{
     io::{self, Read},
     path::Path,
@@ -82,7 +84,7 @@ fn checked(context: &Context) -> Result<i32> {
     let passed = code == 0;
     if passed {
         ensure!(
-            crate::project_memory::check_evidence::resume(context)["current"] == true,
+            crate::project_memory::observed_checks(context)["current"] == true,
             "checked merge inputs changed; preserve the native operation and retry after repairing the checks"
         );
     }
@@ -93,24 +95,17 @@ fn execute_vcs(repository: &crate::shared::vcs::Repository<'_>, args: &[&str]) -
     let mut command = repository.command(args);
     // DECISION: D204
     command.env_remove(CATALOG_ROOT);
-    let output = crate::command_runner::jobs::process::execute(
-        &mut command,
-        crate::command_runner::jobs::Capture::Stream,
-        None,
-    )?;
-    Ok(crate::command_runner::jobs::process::exit_code(&output))
+    command_runner::streamed(&mut command)
 }
 
 fn cleanup_jobs(context: &Context, feature: &str) -> Result<i32> {
-    let identified = crate::command_runner::jobs::owner().is_some();
+    let identified = command_runner::job_owner().is_some();
     let anonymous = !identified;
     if anonymous {
         return Ok(0);
     }
-    let result = crate::command_runner::jobs::cleanup::run(
-        &context.path(&context.config.paths.runtime)?,
-        Some(feature),
-    );
+    let result =
+        command_runner::clean_jobs(&context.path(&context.config.paths.runtime)?, Some(feature));
     match result {
         Ok(report) => {
             let failed = report["errors"]

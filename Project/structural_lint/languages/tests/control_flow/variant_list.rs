@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
+use crate::structural_lint::rule_identities::ControlFlow;
 
 #[test]
 fn rust_flags_arrays_listing_every_unit_variant_of_a_same_file_enum_in_order() {

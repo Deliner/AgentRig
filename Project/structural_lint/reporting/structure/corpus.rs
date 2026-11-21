@@ -1,4 +1,3 @@
-use super::Texts;
 use super::clusters::{self, IDENTIFIERS};
 use super::words::{split, stem};
 use crate::shared::source_parsers;
@@ -7,6 +6,12 @@ use anyhow::Result;
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use tree_sitter::Node;
+
+#[derive(Default)]
+pub struct Texts {
+    pub code: BTreeMap<PathBuf, String>,
+    pub contracts: BTreeMap<PathBuf, String>,
+}
 
 pub type Counts = BTreeMap<String, usize>;
 

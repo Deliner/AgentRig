@@ -1,5 +1,9 @@
-pub mod cli;
-pub mod explain;
-pub mod findings;
+mod cli;
+mod explain;
+mod findings;
 mod structure;
-pub mod tree;
+mod tree;
+
+pub use cli::{discovery, execute, failure, inspection, standalone};
+pub use findings::{Format, check, run};
+pub use tree::lint_structure;

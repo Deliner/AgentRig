@@ -189,7 +189,7 @@ impl Attempt {
             .parent()
             .ok_or_else(|| anyhow::anyhow!("runtime file has no parent"))?;
         fs::create_dir_all(directory)?;
-        crate::shared::atomic_files::atomic_json::save(&self.path, &self.record)
+        crate::shared::atomic_files::save_json(&self.path, &self.record)
     }
 }
 fn read(path: &Path) -> Result<Option<Record>> {

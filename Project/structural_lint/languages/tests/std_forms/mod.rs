@@ -5,8 +5,7 @@ mod indexed_array;
 mod max_fallback;
 mod superseded_form;
 use crate::structural_lint::languages::analyze;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use std::path::Path;
 
 fn measured(source: &str, kind: Reference) -> Vec<(usize, String)> {

@@ -2,7 +2,8 @@ purpose: Interpret agent hook events and deliver command guards, coordinated ski
 type: flat
 files:
   mod.rs: Dispatch session and tool events using configured project services
-  input.rs: Read optional hook state objects and text fields with colocated behavior tests
+  input.rs: Read optional hook state objects, event text fields and the project paths a tool event edits
+  responses.rs: Word the hook answers, the context added to an event and the denial of a tool call
   shell_guard.rs: Parse the permitted outer shell invocation, validate its Just recipe arguments and read the paths a path program writes
   recovery.rs: Keep configuration repair and its check available while the configuration is invalid
   tools.rs: Classify each agent tool as a shell command, a file edit, passive or refused and word the refusal

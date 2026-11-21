@@ -1,4 +1,6 @@
-use super::{Source, Target, compact, scope};
+use super::path_syntax::{compact, scope, string_literal};
+use super::recording::record;
+use crate::structural_lint::architecture::extraction::references::{RustMacro, Source, Target};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
@@ -25,8 +27,58 @@ pub(super) fn inspect(source: &mut Source<'_>, node: Node<'_>) {
         }
         "default" => {}
         "path" => validate_module_path(source, attribute),
-        _ => super::attribute(source, node),
+        _ => macro_attribute(source, node),
     }
+}
+
+// DECISION: D136
+fn macro_attribute(source: &mut Source<'_>, node: Node<'_>) {
+    let path = node
+        .named_children(&mut node.walk())
+        .find(|child| child.kind() == "attribute")
+        .and_then(|attribute| attribute_path(source, attribute))
+        .unwrap_or_default();
+    let builtin = matches!(
+        path.as_str(),
+        "allow"
+            | "warn"
+            | "deny"
+            | "forbid"
+            | "expect"
+            | "doc"
+            | "inline"
+            | "cold"
+            | "must_use"
+            | "deprecated"
+            | "repr"
+            | "non_exhaustive"
+            | "test"
+            | "ignore"
+            | "should_panic"
+            | "track_caller"
+            | "no_mangle"
+            | "export_name"
+    );
+    if builtin {
+        return;
+    }
+    let call = RustMacro {
+        path,
+        scope: scope(source, node),
+        literal: None,
+    };
+    record(source, node, Target::RustMacro(call));
+}
+
+fn attribute_path(source: &Source<'_>, attribute: Node<'_>) -> Option<String> {
+    let path = compact(source.text(attribute.named_child(0)?));
+    let unsafe_wrapper = path == "unsafe";
+    if unsafe_wrapper {
+        let arguments = attribute.child_by_field_name("arguments")?;
+        let inner = arguments.named_child(0)?;
+        return Some(compact(source.text(inner)));
+    }
+    Some(path)
 }
 
 fn validate_module_path(source: &mut Source<'_>, attribute: Node<'_>) {
@@ -43,7 +95,7 @@ fn validate_module_path(source: &mut Source<'_>, attribute: Node<'_>) {
         })
         && attribute
             .child_by_field_name("value")
-            .and_then(|value| super::string_literal(source, value))
+            .and_then(|value| string_literal(source, value))
             .is_some();
     let unsupported = !supported;
     if unsupported {
@@ -73,7 +125,7 @@ pub(super) fn module_path(source: &mut Source<'_>, node: Node<'_>) -> Option<Str
                 }
                 result = attribute
                     .child_by_field_name("value")
-                    .and_then(|value| super::string_literal(source, value));
+                    .and_then(|value| string_literal(source, value));
             }
         }
         previous = item.prev_named_sibling();
@@ -112,7 +164,7 @@ fn derives(source: &mut Source<'_>, attribute: Node<'_>) {
             .iter()
             .map(|node| compact(source.text(*node)))
             .collect();
-        super::record(
+        record(
             source,
             attribute,
             Target::RustDerive {
@@ -136,7 +188,7 @@ fn serialization(source: &mut Source<'_>, attribute: Node<'_>) {
         }
         let value = serde_value(source, &group);
         match value {
-            Some((path, true)) => super::record(
+            Some((path, true)) => record(
                 source,
                 attribute,
                 Target::RustPath {
@@ -169,7 +221,7 @@ fn serde_value(source: &Source<'_>, group: &[Node<'_>]) -> Option<(String, bool)
     let label = matches!(key, "rename" | "rename_all" | "alias");
     let supported = callback || label;
     if supported {
-        return super::string_literal(source, *value).map(|value| (value, callback));
+        return string_literal(source, *value).map(|value| (value, callback));
     }
     None
 }

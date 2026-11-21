@@ -1,7 +1,8 @@
 purpose: Parse Rust, Python and shell sources and recognize exact decision and invariant reference and lint exception comments; the vendored tree-sitter-rust fork beside mod.rs is excluded from lint and typos
 type: flat
 files:
-  mod.rs: Grammar selection by extension and parsing
+  mod.rs: Offer parsing, decision and exception markers and secret recognition
   decision_markers.rs: The exact decision and invariant reference format and the lint exceptions that name a rule
+  parsing.rs: Grammar selection by extension and parsing
   secrets.rs: Recognition of hardcoded credential tokens and private keys in literals
 directories: {}

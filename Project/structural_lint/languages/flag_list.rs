@@ -1,7 +1,5 @@
-use super::Analysis;
-use super::neutral_metrics::Measurement;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
+use super::neutral_metrics::{Analysis, Measurement};
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use yaml_rust2::parser::{Event, Parser};
 
 // DECISION: D183

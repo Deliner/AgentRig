@@ -1,6 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::{Kind, Signature};
 
 const CONSTANT: Kind = Kind::Signature(Signature::ConstantDefault);
 

@@ -1,18 +1,23 @@
 mod analysis;
+mod dependency_rules;
+mod diagnostic;
 mod disallowed;
 mod scope;
 
-use super::{
-    Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, extraction::References,
+use super::contract_rules::{
+    self, Contracts, Dependency, EnvironmentUse, Issue, Loaded, Neighbours, Rooted,
 };
-use crate::shared::diagnostics::actionable_findings::Diagnostic;
-use crate::shared::paths::glob_patterns::globs;
+use super::extraction::References;
+use crate::shared::diagnostics::Diagnostic;
+use crate::shared::paths::globs;
+use crate::structural_lint::rule_identities::{PYTHON_SEED, RUST_SEED, Settings};
 use crate::structural_lint::{
     rule_set::lint_config::Rule,
     targeting::file_discovery::{self, Inventory},
-    targeting::lint_targets,
 };
 use anyhow::Result;
+pub use dependency_rules::{Edges, entry_bypasses, entry_uses, file_cycles};
+use diagnostic::diagnostic;
 use scope::Scope;
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -29,7 +34,7 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
 
 // DECISION: D143
 pub fn edges(
-    directory: super::Rooted<'_>,
+    directory: Rooted<'_>,
     rule: &Rule,
     inventory: &Inventory,
 ) -> Result<Option<Neighbours>> {
@@ -38,7 +43,8 @@ pub fn edges(
         return Ok(None);
     }
     let measured = measure(directory.root, rule, inventory)?;
-    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory.path)))
+    let edges = measured.map(|measured| measured.analyzed.edges);
+    Ok(edges.map(|edges| contract_rules::neighbours(&edges, directory.path)))
 }
 
 struct Measured<'r> {
@@ -58,7 +64,7 @@ fn measure<'r>(root: &Path, rule: &'r Rule, inventory: &Inventory) -> Result<Opt
     }
     let root = crate::shared::fs_with_context::canonicalize(root)?;
     let no_exclusions = globs(&[])?;
-    let files: BTreeSet<_> = file_discovery::collect(&root, &no_exclusions)?
+    let files: BTreeSet<_> = file_discovery::maintained_files(&root, &no_exclusions)?
         .files
         .into_iter()
         .collect();
@@ -86,16 +92,6 @@ pub struct Checked {
     pub edges: Edges,
 }
 
-// DECISION: D225
-#[derive(Default)]
-pub struct Edges(Vec<super::Dependency>);
-
-impl Edges {
-    pub fn append(&mut self, mut more: Edges) {
-        self.0.append(&mut more.0);
-    }
-}
-
 pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
     let Some(Measured {
         root,
@@ -113,9 +109,9 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
     issues.extend(analyzed.issues);
     issues.extend(unused_externals(settings, &scope, analyzed.used.as_ref()));
-    issues.extend(super::graph::cycles(&analyzed.edges));
+    issues.extend(contract_rules::cycles(&analyzed.edges));
     // DECISION: D121
-    issues.extend(super::graph::fan_out(&analyzed.edges, settings));
+    issues.extend(contract_rules::fan_out(&analyzed.edges, settings));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &analyzed.edges));
     // DECISION: D078
@@ -126,25 +122,15 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
         .into_iter()
         .map(|issue| diagnostic(rule, issue))
         .collect::<Result<_>>()?;
-    let edges = Edges(analyzed.edges);
+    let edges = Edges::new(analyzed.edges, contracts.groups());
     Ok(Checked { findings, edges })
 }
 
-// DECISION: D225
-pub fn file_cycles(rule: &Rule, edges: &Edges, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
-    let selected = lint_targets::select(rule, inventory)?;
-    let directories: BTreeSet<&Path> = selected.iter().map(|target| target.path).collect();
-    super::graph::file_cycles(&edges.0, &directories)
-        .into_iter()
-        .map(|issue| diagnostic(rule, issue))
-        .collect()
-}
-
 struct Analysis {
-    edges: Vec<super::Dependency>,
+    edges: Vec<Dependency>,
     issues: Vec<Issue>,
     used: Option<analysis::Externals>,
-    environment: BTreeMap<PathBuf, Vec<super::EnvironmentUse>>,
+    environment: BTreeMap<PathBuf, Vec<EnvironmentUse>>,
 }
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,
@@ -241,22 +227,4 @@ fn common_root(directories: &BTreeSet<PathBuf>) -> PathBuf {
     });
     let top = common.as_os_str().is_empty();
     if top { PathBuf::from(".") } else { common }
-}
-
-fn diagnostic(rule: &Rule, issue: Issue) -> Result<Diagnostic> {
-    let level = rule
-        .level
-        .ok_or_else(|| anyhow::anyhow!("architecture rule without a level"))?;
-    Ok(Diagnostic {
-        rule: rule.id.clone(),
-        path: issue.path.to_string_lossy().into_owned(),
-        level,
-        actual: None,
-        limit: None,
-        skill: rule.skill(level),
-        message: issue.message,
-        line: issue.line,
-        symbol: None,
-        rerun: String::new(),
-    })
 }

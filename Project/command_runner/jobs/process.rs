@@ -1,7 +1,6 @@
-use super::{
-    Capture, Grouping, Job,
-    streams::{self, Readers, Sink},
-};
+use super::job::Job;
+use super::record::Grouping;
+use super::streams::{self, Readers, Sink};
 use anyhow::{Context, Result};
 use signal_hook::{
     consts::{SIGHUP, SIGINT, SIGTERM},
@@ -13,11 +12,28 @@ use std::{
     process::{Command, Output, Stdio},
 };
 
+// DECISION: D062
+#[derive(Clone, Copy)]
+pub enum Capture {
+    Collect,
+    Stream,
+}
+impl Capture {
+    fn collects(self) -> bool {
+        match self {
+            Self::Collect => true,
+            Self::Stream => false,
+        }
+    }
+}
 pub fn exit_code(output: &Output) -> i32 {
     output
         .status
         .code()
         .unwrap_or_else(|| 128 + output.status.signal().unwrap_or(1))
+}
+pub fn streamed(command: &mut Command) -> Result<i32> {
+    execute(command, Capture::Stream, None).map(|output| exit_code(&output))
 }
 pub fn execute(command: &mut Command, capture: Capture, job: Option<&mut Job>) -> Result<Output> {
     if let Some(job) = job.as_ref() {

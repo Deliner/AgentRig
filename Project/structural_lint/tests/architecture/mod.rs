@@ -1,7 +1,8 @@
+use crate::shared::diagnostics::Diagnostic;
 use crate::shared::testing::{Snapshot, launch, run, snapshot, worker};
-use crate::structural_lint::rule_identities::{Kind, structure::Structure};
+use crate::structural_lint::rule_evaluation::{Location, Mode, analyze};
+use crate::structural_lint::rule_identities::{Kind, Structure};
 use crate::structural_lint::rule_set::capabilities;
-use crate::structural_lint::{Diagnostic, Location, Mode, analyze};
 use serde_json::Value;
 use std::{
     collections::BTreeMap,

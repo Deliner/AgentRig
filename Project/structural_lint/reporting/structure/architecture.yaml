@@ -2,7 +2,7 @@ purpose: Score how clearly the names of a Rust tree show its code
 type: flat
 files:
   mod.rs: Ordered structure score report over the code and contract texts of a Rust tree
-  corpus.rs: Corpus of production Rust files with code words, documentation summaries and architecture descriptions
+  corpus.rs: The code and contract texts of a Rust tree and their corpus of production files with code words, documentation summaries and architecture descriptions
   words.rs: Split identifiers and text into words and reduce each word to a stem
   clusters.rs: The syntax kinds of names and the count of clusters of top-level items joined by name references inside one file
   units.rs: Directory and file units of the measured tree with entries, code words, word weights and descriptions

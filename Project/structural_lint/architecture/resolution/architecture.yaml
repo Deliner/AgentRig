@@ -1,7 +1,9 @@
 purpose: Resolve extracted language references into project files or explicitly declared external modules
+group: true
 zone: pure
 files:
-  mod.rs: Shared resolution result and project-relative path normalization
+  mod.rs: Declarations of the language resolvers and their shared result
+  resolved.rs: The project files, initialized packages and external module a reference resolves to
 directories:
   python: Python package and module resolution with behavior tests
   rust: Rust module trees, bindings and macro dependency resolution with behavior tests

@@ -1,6 +1,6 @@
 // DECISION: D125
-use super::{Source, compact};
-use crate::structural_lint::architecture::extraction::references::PropagatedCall;
+use super::path_syntax::compact;
+use crate::structural_lint::architecture::extraction::references::{PropagatedCall, Source};
 use tree_sitter::Node;
 
 pub(super) fn inspect(source: &mut Source<'_>, call: Node<'_>) {

@@ -1,0 +1,11 @@
+purpose: Load the lint configuration, check it or evaluate its rules into lifted findings and apply and record the error baseline
+type: flat
+files:
+  mod.rs: Declarations of the evaluation parts and the location, modes, analysis and baseline commands they offer
+  location.rs: Lint location and the loading of its strict configuration with external repair guidance
+  analysis.rs: Lint modes and the analysis of the configuration or the sources into findings ratcheted by the baseline
+  evaluation.rs: Evaluate configured rules into scalar, syntax and architecture findings, reporting a classification only where it repeats an earlier one
+  baseline.rs: Record accepted error counts per rule and path and apply them in ratchet mode
+  lifting.rs: Lift a finding under an exception naming its rule and report each exception that lifts none
+directories:
+  tests: Verify configured rules evaluated over source trees and the lifting of findings under exceptions

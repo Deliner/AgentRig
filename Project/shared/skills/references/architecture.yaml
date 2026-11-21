@@ -13,6 +13,6 @@ directories:
   handle-discarded: "Handle or propagate a Result or combined value instead of dropping it in a bare statement, or justify the ignored outcome with an exception"
   justify-unwind: "Let a Rust panic propagate instead of catching it with catch_unwind or AssertUnwindSafe, or justify the catch at a boundary with an exception"
   await-not-block: "Await a sleep or future instead of blocking an executor thread with thread::sleep or a nested block_on, or justify the intended block with an exception"
-  anchor-at-crate: "Replace a super::super path with a crate:: path or a re-export at the parent module, or justify the intended reach with an exception"
+  anchor-at-crate: "Replace a super::super path with a crate:: path to the file that owns the item, or justify the intended reach with an exception"
   pass-arguments-apart: "Pass each value to a launched program apart from the shell command string instead of substituting it into that string, or justify the shell code with an exception"
   false-pass: "Repair tests that keep the suite green while the behavior they claim goes unchecked: a disabled test, a should_panic test that passes on any panic and an item compiled out of every test build"

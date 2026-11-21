@@ -2,12 +2,14 @@ purpose: Provide Git repository observation, queries, exports, hook registration
 type: flat
 dependents: 13
 files:
-  mod.rs: Repository types, common Git operations and exports
-  branches.rs: Validate base and feature prefix branch settings
+  mod.rs: Offer the repository, its settings, revision pairs, tree entries, hook generation and observation
+  branches.rs: The base and feature prefix branch settings with their validation
   directories.rs: Discover maintained directories with Git ignore semantics
   export.rs: Export validated repository trees into isolated directories
-  git.rs: Execute Git queries and decode repository contents
+  git.rs: Execute Git queries over revision pairs and decode repository contents
   hooks.rs: Generate, validate and register Git hook adapters
   observation.rs: Observe branch and revision state
+  repository.rs: The repository handle with its initialization, revision queries, paths, renames and diffs
+  tree_entry.rs: A tree or index entry with its file kind and Git mode
 directories:
   tests: Verify repository behavior, hook registration and real repository queries

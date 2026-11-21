@@ -1,10 +1,10 @@
-use super::{Module, Pending, Rust};
+use super::resolver::{Module, Rust};
 use crate::structural_lint::architecture::extraction::{Reference, References, Target};
-use crate::structural_lint::architecture::resolution::{Resolved, normalize};
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},
-    path::{Path, PathBuf},
+    path::{Component, Path, PathBuf},
 };
 
 impl<'a> Rust<'a> {
@@ -41,6 +41,12 @@ impl<'a> Rust<'a> {
     }
 }
 
+// DECISION: D136
+struct Pending {
+    file: PathBuf,
+    base: Vec<String>,
+}
+
 impl Pending {
     fn root(root: &Path) -> Self {
         Self {
@@ -67,6 +73,7 @@ impl Rust<'_> {
             Module {
                 file: root.into(),
                 directory: root.parent().context("crate root has no parent")?.into(),
+                private: false,
             },
         );
         self.files.insert(root.into(), Vec::new());
@@ -171,6 +178,7 @@ impl Rust<'_> {
         );
         Ok(Resolved {
             files: BTreeSet::from([target]),
+            initializers: BTreeSet::new(),
             external: None,
         })
     }
@@ -204,11 +212,23 @@ impl Rust<'_> {
     }
 
     fn module_location(&self, parent: &Module, reference: &Reference) -> Result<Module> {
-        let Target::RustModule { path, inline, file } = &reference.target else {
+        let Target::RustModule {
+            path,
+            inline,
+            private,
+            file,
+        } = &reference.target
+        else {
             bail!("expected Rust module declaration");
         };
         if let Some(value) = file {
-            return self.explicit_module(parent, value);
+            let file = self.explicit_file(parent, value)?;
+            let directory = file.parent().context("module source parent required")?;
+            return Ok(Module {
+                directory: directory.into(),
+                file,
+                private: *private,
+            });
         }
         let name = path.last().context("empty Rust module declaration")?;
         let directory = parent.directory.join(name);
@@ -222,10 +242,14 @@ impl Rust<'_> {
                 )
             })?,
         };
-        Ok(Module { file, directory })
+        Ok(Module {
+            file,
+            directory,
+            private: *private,
+        })
     }
 
-    fn explicit_module(&self, parent: &Module, value: &str) -> Result<Module> {
+    fn explicit_file(&self, parent: &Module, value: &str) -> Result<PathBuf> {
         let file = normalize(
             &parent
                 .file
@@ -238,11 +262,7 @@ impl Rust<'_> {
             "explicit Rust module source is missing: {}",
             file.display()
         );
-        let directory: PathBuf = file
-            .parent()
-            .context("module source parent required")?
-            .into();
-        Ok(Module { file, directory })
+        Ok(file)
     }
 
     fn module_file(&self, directory: &Path) -> Result<PathBuf> {
@@ -262,4 +282,19 @@ impl Rust<'_> {
 fn included_file(source: &Path, file: &str) -> Result<PathBuf> {
     let parent = source.parent().context("included source has no parent")?;
     normalize(&parent.join(file))
+}
+
+pub(super) fn normalize(path: &Path) -> Result<PathBuf> {
+    let mut normalized = PathBuf::new();
+    for part in path.components() {
+        match part {
+            Component::CurDir => {}
+            Component::Normal(name) => normalized.push(name),
+            Component::ParentDir => ensure!(normalized.pop(), "module path escapes project root"),
+            Component::Prefix(_) | Component::RootDir => {
+                bail!("module path must stay project-relative")
+            }
+        }
+    }
+    Ok(normalized)
 }

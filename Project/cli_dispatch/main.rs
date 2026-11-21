@@ -1,11 +1,12 @@
 // DECISION: D020
 
+use agentrig::cli_dispatch::{commands::Command, dispatch};
 use agentrig::shared::calling_agent::{Agent, Caller};
 use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::shared::shared_options::take_option;
 use agentrig::structural_lint::Location;
-use agentrig::{agent_hooks, cli_dispatch, project_config, structural_lint};
+use agentrig::{agent_hooks, project_config, structural_lint};
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::{
@@ -28,15 +29,15 @@ fn run() -> Result<i32> {
         return result;
     }
     let root = project_root(&mut args, &command)?;
-    if let Some(workflow) = cli_dispatch::Command::parse(&command) {
-        return cli_dispatch::run(&root, workflow, &args);
+    if let Some(workflow) = Command::parse(&command) {
+        return dispatch::run(&root, workflow, &args);
     }
     match command.as_str() {
         "hook" => hook(&root, &mut args),
         "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree"
         | "lint-baseline" => run_lint(&root, &mut args, &command),
-        "lint-rules" | "lint-rule" => structural_lint::reporting::cli::discovery(&command, &args),
-        "lint-structure" => structural_lint::reporting::tree::lint_structure(&args),
+        "lint-rules" | "lint-rule" => structural_lint::discovery(&command, &args),
+        "lint-structure" => structural_lint::lint_structure(&args),
         _ => bail!("unknown command {command:?}; run agentrig --help for the command table"),
     }
 }
@@ -103,7 +104,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         None => Ok(root.join("lint.yaml")),
     };
     // DECISION: D143
-    let inspection = structural_lint::reporting::cli::inspection(command);
+    let inspection = structural_lint::inspection(command);
     // DECISION: D123
     let baseline = command == "lint-baseline";
     anyhow::ensure!(
@@ -126,10 +127,10 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
         return inspect(location, args);
     }
     if baseline {
-        return structural_lint::baseline::record(location);
+        return structural_lint::record_baseline(location);
     }
     let mode = structural_lint::Mode::of(command);
-    structural_lint::reporting::cli::execute(location, &caller, args, mode)
+    structural_lint::execute(location, &caller, args, mode)
 }
 fn unresolved(
     caller: &Caller,
@@ -145,7 +146,7 @@ fn unresolved(
         root: &caller.root,
         config: &path,
     };
-    structural_lint::reporting::cli::failure(location, caller, error, &invocation)
+    structural_lint::failure(location, caller, error, &invocation)
 }
 fn project_lint(root: &Path) -> Result<PathBuf> {
     let context = project_config::Context::load(root)?;

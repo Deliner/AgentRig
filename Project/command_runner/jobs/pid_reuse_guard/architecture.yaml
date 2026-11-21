@@ -3,4 +3,5 @@ files:
   mod.rs: Platform-neutral identity, liveness, replacement and resource observation
   linux.rs: Read boot identity and process start, state and resources from /proc
   macos.rs: Read boot time and process start, state and resources through sysctl and proc_pidinfo
+  sample.rs: One platform reading of a process start, zombie state and resource usage
 directories: {}

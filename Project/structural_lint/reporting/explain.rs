@@ -1,8 +1,8 @@
 use crate::shared::console;
-use crate::shared::paths::glob_patterns::globs;
-use crate::structural_lint::Location;
-use crate::structural_lint::architecture::{Rooted, contract_check};
-use crate::structural_lint::rule_identities::{Kind, structure::Structure};
+use crate::shared::paths::globs;
+use crate::structural_lint::architecture::{self, Rooted};
+use crate::structural_lint::rule_evaluation::Location;
+use crate::structural_lint::rule_identities::{Kind, Structure};
 use crate::structural_lint::rule_set::lint_config;
 use crate::structural_lint::targeting::{file_discovery, lint_targets};
 use anyhow::{Result, ensure};
@@ -21,8 +21,8 @@ pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     let path = path.as_path();
     let root = location.root;
     let config = location.load()?;
-    let excluded = crate::shared::paths::glob_patterns::globs(&config.exclude)?;
-    let inventory = file_discovery::collect(root, &excluded)?;
+    let excluded = globs(&config.exclude)?;
+    let inventory = file_discovery::maintained_files(root, &excluded)?;
     let globally_excluded = excluded.is_match(path);
     let exclusion = if globally_excluded {
         Exclusion::Global
@@ -46,12 +46,12 @@ pub(super) fn edges(location: Location<'_>, args: &[String]) -> Result<i32> {
     let (path, json) = arguments("lint-edges", args)?;
     let root = location.root;
     let config = location.load()?;
-    let inventory = file_discovery::collect(root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::maintained_files(root, &globs(&config.exclude)?)?;
     let mut rows = Vec::new();
     for rule in &config.rules {
         let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
         let measured = match architecture {
-            true => contract_check::edges(Rooted { root, path: &path }, rule, &inventory)?,
+            true => architecture::edges(Rooted { root, path: &path }, rule, &inventory)?,
             false => None,
         };
         if let Some(neighbours) = measured {
@@ -134,7 +134,7 @@ fn explain(
     let architecture = rule.kind == Kind::Structure(Structure::DirectoryArchitecture);
     let selected_architecture = architecture && reason.is_none();
     if selected_architecture {
-        let lacks_sources = !contract_check::contains_directory(rule, path, inventory)?;
+        let lacks_sources = !architecture::contains_directory(rule, path, inventory)?;
         if lacks_sources {
             reason = Some("directory has no selected source files");
         }

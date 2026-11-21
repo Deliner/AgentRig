@@ -1,10 +1,13 @@
 purpose: Define and validate project settings independently of loading recovery state or executing workflows
 type: flat
 files:
-  mod.rs: Strict project schema, version constants, YAML reading, project-relative paths and repairable source files
+  mod.rs: Offer the schema types, the configuration files and the project-relative paths
   access.rs: Command access mode, read-only, project or unconfined, as YAML and job records name it
   arguments.rs: Which words of the agent a catalog command takes and their accepts_args form in YAML
   capabilities.rs: Enabled capability declarations and their check consistency
+  checks.rs: Configured checks, their kinds and the tests each set of changed paths affects
+  config.rs: Strict project schema of paths, commands, hooks, oracles, tools and Rust flags with the rig version
+  config_files.rs: Configuration file and modules, their YAML reading and writing, repairable source files and project-relative paths
   flag.rs: Program flags a catalog denies, parsed once, and every spelling the program reads as each flag
-  validation.rs: Structural validation of paths, commands, checks, hooks and oracles
+  validation.rs: Structural validation of paths, commands, checks, hooks and oracles and their names
 directories: {}

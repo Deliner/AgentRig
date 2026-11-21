@@ -1,11 +1,11 @@
 use crate::shared::fs_with_context as fs;
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::architecture::{
-    self as architecture, Dependency, EnvironmentUse, Issue, Rooted, Settings,
+    contract_rules::{self, Dependency, EnvironmentUse, Issue, Relation, Rooted},
     extraction::{self, Reference, References, Target},
-    resolution::{Resolved, python::Python, rust::Rust},
+    resolution::{python::Python, resolved::Resolved, rust::Rust},
 };
-use crate::structural_lint::rule_identities::descriptor::TEST_CODE;
+use crate::structural_lint::rule_identities::{Settings, TEST_CODE};
 use anyhow::{Result, ensure};
 use globset::GlobSet;
 use std::{
@@ -136,7 +136,7 @@ impl<'a> Resolvers<'a> {
             | Target::RustModule { .. }
             | Target::RustInclude { .. } => self.rust(path, target),
         }?;
-        for file in &resolved.files {
+        for file in resolved.files.iter().chain(&resolved.initializers) {
             ensure!(
                 fs::canonicalize(self.root.join(file))?.starts_with(self.root),
                 "dependency target escapes project root: {}",
@@ -229,7 +229,7 @@ impl<'a> Resolvers<'a> {
                         // DECISION: D105
                         violations.extend(self.disallowed.check(path, reference.line, external));
                     }
-                    edges.extend(self.edges(path, &reference, resolved.files));
+                    edges.extend(self.edges(path, &reference, resolved));
                 }
                 Err(error) => gaps.push(incomplete(path, Some(reference.line), error)),
             }
@@ -247,22 +247,21 @@ impl<'a> Resolvers<'a> {
 
     // DECISION: D136
     // DECISION: D146
-    fn edges(
-        &self,
-        path: &Path,
-        reference: &Reference,
-        files: BTreeSet<PathBuf>,
-    ) -> impl Iterator<Item = Dependency> {
-        let relation = reference.target.relation();
+    // DECISION: D227
+    fn edges(&self, path: &Path, reference: &Reference, resolved: Resolved) -> Vec<Dependency> {
         let test = reference.test || self.test_code.is_match(path);
-        let (source, line) = (path.to_path_buf(), reference.line);
-        files.into_iter().map(move |target| Dependency {
-            source: source.clone(),
+        let edge = |target, relation| Dependency {
+            source: path.to_path_buf(),
             target,
-            line,
+            line: reference.line,
             relation,
             test,
-        })
+        };
+        let relation = reference.target.relation();
+        let files = resolved.files.into_iter().map(|file| edge(file, relation));
+        let initialized = resolved.initializers.into_iter();
+        let initializers = initialized.map(|file| edge(file, Relation::Initialization));
+        files.chain(initializers).collect()
     }
 }
 
@@ -270,7 +269,7 @@ impl<'a> Resolvers<'a> {
 // DECISION: D083
 // DECISION: D104
 fn environment_use(line: usize, external: &str) -> Option<EnvironmentUse> {
-    architecture::effect(external).map(|_| EnvironmentUse {
+    contract_rules::effect(external).map(|_| EnvironmentUse {
         line,
         path: external.trim_start_matches("::").to_owned(),
     })

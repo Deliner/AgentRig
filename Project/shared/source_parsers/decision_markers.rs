@@ -1,3 +1,4 @@
+use super::parsing::parse;
 use anyhow::Result;
 use std::path::Path;
 use tree_sitter::Node;
@@ -25,7 +26,7 @@ pub fn exceptions(path: &Path, source: &str) -> Result<Vec<Exception>> {
     if lines {
         return Ok(line_exceptions(source));
     }
-    Ok(super::parse(path, source)?
+    Ok(parse(path, source)?
         .map(|tree| tree_exceptions(tree.root_node(), source))
         .unwrap_or_default())
 }

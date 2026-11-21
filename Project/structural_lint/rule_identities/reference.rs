@@ -1,7 +1,7 @@
 use super::descriptor::{Descriptor, TEST_CODE};
 use super::parameters::Parameters;
 use super::std_form;
-use crate::shared::diagnostics::actionable_findings::Level as Severity;
+use crate::shared::diagnostics::Level as Severity;
 use serde::{Deserialize, Serialize};
 
 // DECISION: D133

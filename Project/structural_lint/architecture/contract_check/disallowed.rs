@@ -1,5 +1,6 @@
-use crate::structural_lint::architecture::extraction::references::PropagatedCall;
-use crate::structural_lint::architecture::{self as architecture, Disallowed, Issue};
+use crate::structural_lint::architecture::contract_rules::{self, Issue};
+use crate::structural_lint::architecture::extraction::PropagatedCall;
+use crate::structural_lint::rule_identities::Disallowed;
 use anyhow::Result;
 use globset::GlobSet;
 use std::path::Path;
@@ -21,7 +22,7 @@ impl<'a> Policy<'a> {
     pub fn check(&self, file: &Path, line: usize, external: &str) -> Option<Issue> {
         let path = external.trim_start_matches("::");
         let (entry, _) = self.entries.iter().find(|(entry, allowed)| {
-            architecture::bounded(path, &[entry.path.as_str()]) && !allowed.is_match(file)
+            contract_rules::bounded(path, &[entry.path.as_str()]) && !allowed.is_match(file)
         })?;
         Some(Issue {
             path: file.into(),

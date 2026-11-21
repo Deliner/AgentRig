@@ -1,6 +1,8 @@
-use super::{Located, Query, Resolved, Rust};
+use super::module_tree::normalize;
+use super::resolver::Rust;
+use super::use_aliases::{Located, Query};
 use crate::structural_lint::architecture::extraction::RustMacro;
-use crate::structural_lint::architecture::resolution::normalize;
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
 use std::{
     collections::BTreeSet,
@@ -31,6 +33,7 @@ impl Rust<'_> {
         ensure!(known, "Rust derive expansion is not analyzed: {origin}");
         Ok(Resolved {
             files: BTreeSet::new(),
+            initializers: BTreeSet::new(),
             external: Some(origin),
         })
     }
@@ -46,6 +49,7 @@ impl Rust<'_> {
         if let Some(file) = self.local_macro(&scope, &call.path) {
             return Ok(Resolved {
                 files: BTreeSet::from([file.to_path_buf()]),
+                initializers: BTreeSet::new(),
                 external: None,
             });
         }
@@ -68,6 +72,7 @@ impl Rust<'_> {
         };
         Ok(Resolved {
             files,
+            initializers: BTreeSet::new(),
             external: Some(origin),
         })
     }
@@ -103,6 +108,7 @@ impl Rust<'_> {
             .context("Rust module scope is unresolved")?;
         let mut query = Query {
             source: &module.file,
+            written: scope.to_vec(),
             visiting: BTreeSet::new(),
         };
         let builtin = standard(path) || derive(path);

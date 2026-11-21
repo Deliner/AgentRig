@@ -1,9 +1,9 @@
 use super::explain::selected_path;
 use super::structure::{self, Texts};
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::shared::{console, fs_with_context as fs};
-use crate::structural_lint::Location;
-use crate::structural_lint::rule_identities::descriptor::TEST_CODE;
+use crate::structural_lint::rule_evaluation::Location;
+use crate::structural_lint::rule_identities::TEST_CODE;
 use crate::structural_lint::targeting::file_discovery;
 use anyhow::{Result, bail, ensure};
 use std::collections::{BTreeMap, BTreeSet};
@@ -17,7 +17,7 @@ pub(super) fn run(location: Location<'_>, args: &[String]) -> Result<i32> {
     };
     let path = selected_path(path)?;
     let config = location.load()?;
-    let inventory = file_discovery::collect(location.root, &globs(&config.exclude)?)?;
+    let inventory = file_discovery::maintained_files(location.root, &globs(&config.exclude)?)?;
     ensure!(
         inventory.directories.contains_key(&path),
         "lint-tree PATH must name a directory of the lint inventory: {}",

@@ -91,7 +91,7 @@ fn launch(
     if let Some(target) = options.cargo_target {
         command.env("CARGO_TARGET_DIR", target);
     }
-    crate::command_runner::jobs::process::execute(&mut command, options.capture, job)
+    super::jobs::execute(&mut command, options.capture, job)
 }
 pub fn available() -> bool {
     let probe = tempfile::tempdir().and_then(|scratch| {

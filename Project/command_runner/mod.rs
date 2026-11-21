@@ -1,12 +1,19 @@
 // DECISION: D005
 // DECISION: D107 allow-justification
 #[expect(unsafe_code)]
-pub mod jobs;
-pub(crate) mod sandbox;
+mod jobs;
+mod sandbox;
 mod summary;
 #[cfg(test)]
 mod tests;
-pub mod tool_registry;
+mod tool_registry;
+pub use jobs::{
+    Capture, Command as JobCommand, clean_jobs, cli as run_job_command, list as list_jobs,
+    owner as job_owner, streamed,
+};
+pub use sandbox::{CATALOG_ROOT, Sandboxing, available as sandbox_available, catalog_run, tracked};
+pub use tool_registry::{PlacementSource, check_placement, list as list_tools};
+
 use crate::project_config::{Access, Arguments, Command, Context, Program};
 use crate::shared::console;
 use anyhow::{Context as _, Result, bail, ensure};
@@ -80,13 +87,13 @@ pub fn run(context: &Context, name: &str, extra: &[String]) -> Result<i32> {
     let views = context.config.commands[name].output.as_ref();
     let summarized = views.is_some();
     let capture = if summarized {
-        jobs::Capture::Collect
+        Capture::Collect
     } else {
-        jobs::Capture::Stream
+        Capture::Stream
     };
     match logged(context, name, argv, capture) {
         Ok((output, log)) => {
-            let code = jobs::process::exit_code(&output);
+            let code = jobs::exit_code(&output);
             if let Some(views) = views {
                 summary::print(name, views, &output, log.as_deref());
             }
@@ -102,7 +109,7 @@ pub fn execute(
     context: &Context,
     name: &str,
     argv: Vec<String>,
-    capture: jobs::Capture,
+    capture: Capture,
 ) -> Result<Output> {
     logged(context, name, argv, capture).map(|(output, _)| output)
 }
@@ -110,18 +117,18 @@ fn logged(
     context: &Context,
     name: &str,
     argv: Vec<String>,
-    capture: jobs::Capture,
+    capture: Capture,
 ) -> Result<(Output, Option<PathBuf>)> {
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
     let access = access(spec, &argv);
-    let options = sandbox::Sandboxing {
+    let options = Sandboxing {
         access,
         capture,
         cargo_target: context.cargo_target.as_deref(),
         rustflags: &context.config.rust.rustflags,
     };
-    let mut job = match crate::command_runner::jobs::Job::create(context, name, &cwd) {
+    let mut job = match jobs::Job::create(context, name, &cwd) {
         Ok(job) => job,
         // DECISION: D193
         Err(refusal) => {
@@ -130,8 +137,8 @@ fn logged(
         }
     };
     job.prepare(&argv, access, spec.lifetime)?;
-    let result = sandbox::tracked(&cwd, &argv, options, Some(&mut job));
-    let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
+    let result = tracked(&cwd, &argv, options, Some(&mut job));
+    let code = result.as_ref().map(jobs::exit_code).unwrap_or(127);
     job.finish(
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),
@@ -139,7 +146,7 @@ fn logged(
     result.map(|output| (output, Some(job.directory().to_owned())))
 }
 pub fn report(context: &Context) -> Result<()> {
-    crate::command_runner::jobs::report::print(&context.runtime)
+    jobs::print_report(&context.runtime)
 }
 pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let (name, extra) = args
@@ -149,7 +156,7 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
-    let mut job = crate::command_runner::jobs::Job::create(context, name, &cwd)?;
+    let mut job = jobs::Job::create(context, name, &cwd)?;
     job.prepare(&argv, access(spec, &argv), spec.lifetime)?;
     let id = job.launch(&std::env::current_exe()?)?;
     console::stdout(serde_json::json!({"run_id": id}));
@@ -158,21 +165,21 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
 pub fn background_run(context: &Context, args: &[String]) -> Result<i32> {
     ensure!(args.len() == 1, "_job-run RUN_ID");
     let runtime = context.runtime.clone();
-    let mut job = crate::command_runner::jobs::Job::adopt(&runtime, &args[0])?;
+    let mut job = jobs::Job::adopt(&runtime, &args[0])?;
     let record = job.record();
     let (cwd, argv, access) = (record.cwd.clone(), record.argv.clone(), record.access);
-    let result = sandbox::tracked(
+    let result = tracked(
         &cwd,
         &argv,
-        sandbox::Sandboxing {
+        Sandboxing {
             access,
-            capture: jobs::Capture::Stream,
+            capture: Capture::Stream,
             cargo_target: None,
             rustflags: &context.config.rust.rustflags,
         },
         Some(&mut job),
     );
-    let code = result.as_ref().map(jobs::process::exit_code).unwrap_or(127);
+    let code = result.as_ref().map(jobs::exit_code).unwrap_or(127);
     job.finish(
         code,
         result.as_ref().err().map(|error| format!("{error:#}")),

@@ -1,10 +1,10 @@
 // DECISION: D213
 use super::exceptions::{self, Added, Contents, Key};
-use crate::project_config::{Context, protection::Protection};
-use crate::shared::atomic_files::{atomic_json, overlay::Overlay};
+use crate::project_config::{Context, Protection};
+use crate::shared::atomic_files::{Overlay, load_json, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Entry, FileKind, Repository, Revisions};
-use crate::structural_lint::lint_files;
+use crate::structural_lint;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
@@ -121,7 +121,7 @@ pub fn record(context: &Context, repository: &Repository<'_>) -> Result<Approved
             .collect(),
         exceptions: added.iter().map(|found| found.key.clone()).collect(),
     };
-    atomic_json::save(&record_path(context)?, &record)?;
+    save_json(&record_path(context)?, &record)?;
     Ok(Approved {
         files,
         exceptions: added.iter().map(Added::describe).collect(),
@@ -133,10 +133,10 @@ pub(super) fn admit(context: &Context, repository: &Repository<'_>, path: &Path)
     let name = path.to_string_lossy().into_owned();
     let stageable = repository.stageable(std::slice::from_ref(&name))?;
     let location = record_path(context)?;
-    let mut record: Record = atomic_json::load(&location)?.unwrap_or_default();
+    let mut record: Record = load_json(&location)?.unwrap_or_default();
     let content = Content::of(&stageable, &name);
     record.files.insert(name, content);
-    atomic_json::save(&location, &record)
+    save_json(&location, &record)
 }
 
 fn committed(repository: &Repository<'_>) -> Result<BTreeMap<String, Entry>> {
@@ -163,7 +163,7 @@ pub(super) fn guard(context: &Context, repository: &Repository<'_>) -> Result<i3
     if unchanged {
         return Ok(0);
     }
-    let record: Record = atomic_json::load(&record_path(context)?)?.unwrap_or_default();
+    let record: Record = load_json(&record_path(context)?)?.unwrap_or_default();
     let review = Review {
         repository,
         index,
@@ -217,13 +217,13 @@ impl Review<'_, '_> {
         let extending = protection.lint() == file && !approved;
         if extending {
             let kept = self.committed.contains_key(path) && self.index.contains_key(path);
-            return Ok(kept && lint_files::only_adds_rules(self.repository, file)?);
+            return Ok(kept && structural_lint::only_adds_rules(self.repository, file)?);
         }
         // DECISION: D214
         let lowerable = protection.baseline() == file && !approved;
         if lowerable {
             let removed = !self.index.contains_key(path);
-            return Ok(removed || lint_files::only_lowers_counts(self.repository, file)?);
+            return Ok(removed || structural_lint::only_lowers_counts(self.repository, file)?);
         }
         Ok(approved)
     }

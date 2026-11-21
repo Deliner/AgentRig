@@ -52,7 +52,7 @@ impl Protection {
         paths.extend(pin.clone());
         // DECISION: D214
         let lint = inside(root, &settings.lint).context("paths.lint")?;
-        let baseline = crate::structural_lint::lint_files::location(&lint);
+        let baseline = crate::structural_lint::baseline_path(&lint);
         paths.extend([lint.clone(), baseline.clone()]);
         Ok(Self {
             paths,

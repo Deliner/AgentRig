@@ -1,18 +1,10 @@
 purpose: Initialize agent environments and inspect their readiness
 files:
-  mod.rs: Generate the environment bundle and read prepared or installed resource contents
-  adapters.rs: Generate Git and agent hook adapters and recognize the agent hook registration in client settings
-  assets.rs: Scaffold memory and agent instructions
-  skills.rs: Ship the canonical skill bodies under their installed names
-  claude.rs: Generate and inspect Claude Code client settings
-  coverage.rs: Check scaffold configuration validity, the lint configuration and source files and tests that a check's affected map leaves without selected tests
-  doctor.rs: Check installed runtime, hooks, tools and client readiness
-  lint.rs: Generate supported lint rule examples for the consumer
-  runtime.rs: Install the platform launcher and the runtime built for the current platform
-  template.rs: Interpret scaffold options and generate project configuration
-  recipes.rs: Generate the root justfile and the grouped Just recipes that forward to the launcher
+  mod.rs: Declare the setup parts and offer init, the doctor, the configuration check, recipes and runtime installation
   README.md: Consumer installation, commands, configuration and delivery guide
 directories:
   tests: Verify generated lint policy and runtime readiness
+  bundle: Generate the environment files that init installs and recognize the hook registrations they contain
   initialization: Initialize the configured environment, keeping existing consumer file contents
+  inspection: Inspect an installed environment's readiness, configuration validity and test coverage
   rust: Read a Rust project's Cargo manifest and compiler flags, complete its Clippy profile and require the rig's Rust version

@@ -1,4 +1,5 @@
-use super::{Repository, git};
+use super::git;
+use super::repository::Repository;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 

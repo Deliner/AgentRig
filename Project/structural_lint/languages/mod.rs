@@ -1,7 +1,7 @@
 mod flag_list;
 mod manifest;
 mod neutral_metrics;
-pub mod program;
+mod program;
 mod python;
 mod registry;
 mod rust;
@@ -10,11 +10,12 @@ mod test_files;
 #[cfg(test)]
 mod tests;
 pub use neutral_metrics::{Analysis, Code, Measurement, text};
+pub use program::{program_language, program_languages};
 pub use registry::{HANDLERS, handler};
 pub(crate) use rust::{ENTRY_FILES, in_test_context};
 
 use crate::shared::source_parsers;
-use crate::structural_lint::rule_identities::ownership::Pair;
+use crate::structural_lint::rule_identities::Pair;
 use anyhow::{Context, Result};
 use std::path::Path;
 

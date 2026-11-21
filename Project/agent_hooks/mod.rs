@@ -5,11 +5,11 @@
 // DECISION: D011
 // DECISION: D003
 // DECISION: D019
-// DECISION: D046
 // DECISION: D047
 pub mod input;
 mod recovery;
 mod reminder;
+mod responses;
 mod shell_guard;
 mod skill_requirements;
 #[cfg(test)]
@@ -17,15 +17,16 @@ mod tests;
 mod tools;
 mod transcript;
 
-use self::input::text;
+use self::input::{paths, target, text};
+use self::responses::{Event, context};
 use self::skill_requirements::Answer;
 use self::tools::Tool;
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
-use crate::shared::paths::resolve;
 use anyhow::{Result, bail};
-use serde_json::{Value, json};
+pub use responses::deny;
+use serde_json::Value;
 use std::path::{Path, PathBuf};
 
 // DECISION: D062
@@ -43,62 +44,6 @@ impl Reminding {
     }
 }
 
-#[derive(Clone, Copy)]
-pub enum Event {
-    SessionStart,
-    PreToolUse,
-}
-impl Event {
-    fn name(self) -> &'static str {
-        match self {
-            Self::SessionStart => "SessionStart",
-            Self::PreToolUse => "PreToolUse",
-        }
-    }
-}
-pub fn context(event: Event, message: &str) -> Value {
-    json!({"hookSpecificOutput": {"hookEventName": event.name(), "additionalContext": message}})
-}
-pub fn deny(reason: &str) -> Value {
-    json!({"hookSpecificOutput": {"hookEventName": "PreToolUse",
-        "permissionDecision": "deny", "permissionDecisionReason": reason}})
-}
-fn paths(event: &Value) -> Vec<String> {
-    let payload = &event["tool_input"];
-    let mut paths = Vec::new();
-    for key in ["file_path", "path", "notebook_path"] {
-        if let Some(path) = payload[key].as_str() {
-            paths.push(path.into());
-        }
-    }
-    let patches = [
-        payload.as_str(),
-        payload["patch"].as_str(),
-        payload["command"].as_str(),
-        payload["input"].as_str(),
-        payload["patch_text"].as_str(),
-    ];
-    for patch in patches.into_iter().flatten() {
-        for line in patch.lines() {
-            for prefix in [
-                "*** Add File: ",
-                "*** Update File: ",
-                "*** Delete File: ",
-                "*** Move to: ",
-            ] {
-                if let Some(path) = line.strip_prefix(prefix) {
-                    paths.push(path.into());
-                }
-            }
-        }
-    }
-    paths
-}
-fn target(root: &Path, event: &Value, path: &str) -> Option<PathBuf> {
-    let cwd = root.join(text(event, "cwd"));
-    let resolved = resolve(&cwd.join(path)).ok()?;
-    resolved.strip_prefix(root).ok().map(Path::to_owned)
-}
 // DECISION: D188
 // DECISION: D200
 pub fn dispatch(root: &Path, event: &Value, agent: Agent) -> Result<Option<Value>> {

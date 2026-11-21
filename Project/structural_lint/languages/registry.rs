@@ -1,13 +1,11 @@
 // DECISION: D033
 // DECISION: D098
 // DECISION: D223
-use super::{Analysis, Code, flag_list, manifest, python, rust, test_files};
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::ownership::{Ownership, Pair};
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::signature::Signature;
-use crate::structural_lint::rule_identities::structure::Structure;
+use super::neutral_metrics::{Analysis, Code};
+use super::{flag_list, manifest, python, rust, test_files};
+use crate::structural_lint::rule_identities::{
+    ControlFlow, Kind, Ownership, Pair, Reference, Signature, Structure,
+};
 use std::path::Path;
 use tree_sitter::Node;
 

@@ -1,7 +1,6 @@
 use super::exemptions::{in_test_context, last_segment};
 use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text};
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::{Kind, Reference};
 use tree_sitter::Node;
 
 const SHELLS: &[&str] = &[

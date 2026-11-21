@@ -1,5 +1,5 @@
 use super::write;
-use crate::project_setup::initialization::init;
+use crate::project_setup::init;
 use serde_yaml_ng::Value;
 use std::fs;
 

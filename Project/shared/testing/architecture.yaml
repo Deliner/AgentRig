@@ -1,4 +1,5 @@
 purpose: Construct configured consumer projects and invoke their workflow commands for behavior tests
+group: true
 type: custom
 dependents: 10
 files: {}

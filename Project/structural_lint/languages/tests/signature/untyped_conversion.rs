@@ -1,6 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::signature::Signature;
+use crate::structural_lint::rule_identities::{Kind, Signature};
 
 const UNTYPED: Kind = Kind::Signature(Signature::UntypedConversion);
 const TRAIT_PATH: Kind = Kind::Signature(Signature::TraitPathCall);

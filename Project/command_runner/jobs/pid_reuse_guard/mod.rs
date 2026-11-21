@@ -1,5 +1,8 @@
 // DECISION: D034
+mod sample;
+
 use anyhow::Result;
+use sample::{Resources, Sample};
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -7,16 +10,6 @@ pub struct Identity {
     pub pid: u32,
     pub start_ticks: u64,
     pub boot: String,
-}
-#[derive(Serialize)]
-pub struct Resources {
-    pub cpu_millis: u64,
-    pub resident_bytes: u64,
-}
-struct Sample {
-    start: u64,
-    zombie: bool,
-    resources: Resources,
 }
 impl Identity {
     pub fn read(pid: u32) -> Result<Self> {

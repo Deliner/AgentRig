@@ -1069,6 +1069,22 @@ rules:
   level: error
   warning_skill: .agentrig/skills/break-file-cycle/SKILL.md
   error_skill: .agentrig/skills/break-file-cycle/SKILL.md
+- id: entry-use
+  kind: entry-use
+  target: directory
+  include:
+  - '**'
+  level: error
+  warning_skill: .agentrig/skills/move-out-of-entry/SKILL.md
+  error_skill: .agentrig/skills/move-out-of-entry/SKILL.md
+- id: entry-bypass
+  kind: entry-bypass
+  target: directory
+  include:
+  - '**'
+  level: error
+  warning_skill: .agentrig/skills/go-through-entry/SKILL.md
+  error_skill: .agentrig/skills/go-through-entry/SKILL.md
 # DECISION: D102
 - id: recursive-deletion
   kind: recursive-deletion

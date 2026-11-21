@@ -1,4 +1,5 @@
-use super::{Python, Resolved, module_parts};
+use super::resolver::{Python, module_parts};
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, ensure};
 use std::{
     collections::BTreeSet,
@@ -10,9 +11,18 @@ pub(super) struct Module {
     package: Option<PathBuf>,
 }
 
+// DECISION: D227
+struct Loaded {
+    module: Module,
+    initializers: BTreeSet<PathBuf>,
+}
+
 impl Python<'_> {
     pub(super) fn local(&self, parts: &[&str], names: &[String]) -> Result<Resolved> {
-        let mut loaded = self.module(parts)?;
+        let Loaded {
+            module: mut loaded,
+            initializers,
+        } = self.module(parts)?;
         let namespace_only = names.is_empty()
             && loaded
                 .package
@@ -31,17 +41,23 @@ impl Python<'_> {
         );
         Ok(Resolved {
             files: loaded.files,
+            initializers,
             external: None,
         })
     }
 
-    fn module(&self, parts: &[&str]) -> Result<Module> {
-        let mut loaded = Module {
-            files: BTreeSet::new(),
-            package: Some(self.root.clone()),
+    // DECISION: D227
+    fn module(&self, parts: &[&str]) -> Result<Loaded> {
+        let mut loaded = Loaded {
+            module: Module {
+                files: BTreeSet::new(),
+                package: Some(self.root.clone()),
+            },
+            initializers: BTreeSet::new(),
         };
         for part in parts {
             let parent = loaded
+                .module
                 .package
                 .as_ref()
                 .context("import traverses a non-package module")?;
@@ -51,8 +67,8 @@ impl Python<'_> {
                     parts.join(".")
                 )
             })?;
-            loaded.files.extend(next.files);
-            loaded.package = next.package;
+            let passed = std::mem::replace(&mut loaded.module, next);
+            loaded.initializers.extend(passed.files);
         }
         Ok(loaded)
     }

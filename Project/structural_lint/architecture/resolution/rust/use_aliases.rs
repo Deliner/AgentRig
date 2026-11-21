@@ -1,8 +1,20 @@
-use super::{Located, Query, Rust};
+use super::resolver::Rust;
 use crate::structural_lint::architecture::extraction::prelude_origin;
-use crate::structural_lint::architecture::resolution::Resolved;
+use crate::structural_lint::architecture::resolution::resolved::Resolved;
 use anyhow::{Context, Result, bail, ensure};
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, path::Path};
+
+pub(super) enum Located {
+    Module(Vec<String>),
+    Item(Vec<String>),
+    External(String),
+}
+
+pub(super) struct Query<'a> {
+    pub(super) source: &'a Path,
+    pub(super) written: Vec<String>,
+    pub(super) visiting: BTreeSet<Vec<String>>,
+}
 
 impl Rust<'_> {
     pub(super) fn path_result(&self, path: &str, scope: &[String]) -> Result<Resolved> {
@@ -12,12 +24,14 @@ impl Rust<'_> {
             .context("Rust module scope is unresolved")?;
         let mut query = Query {
             source: &module.file,
+            written: scope.to_vec(),
             visiting: BTreeSet::new(),
         };
         match self.path(scope, path, &mut query)? {
             Located::Module(module) | Located::Item(module) => self.module_result(&module),
             Located::External(path) => Ok(Resolved {
                 files: BTreeSet::new(),
+                initializers: BTreeSet::new(),
                 external: Some(path),
             }),
         }
@@ -29,6 +43,13 @@ impl Rust<'_> {
         path: &str,
         query: &mut Query<'_>,
     ) -> Result<Located> {
+        let outer = std::mem::replace(&mut query.written, scope.to_vec());
+        let located = self.written_path(scope, path, query);
+        query.written = outer;
+        located
+    }
+
+    fn written_path(&self, scope: &[String], path: &str, query: &mut Query<'_>) -> Result<Located> {
         let parts: Vec<_> = path.trim_start_matches("::").split("::").collect();
         ensure!(
             parts.iter().all(|part| !part.is_empty()),
@@ -65,7 +86,11 @@ impl Rust<'_> {
         for (index, part) in parts.iter().enumerate() {
             let mut key = module.clone();
             key.push((*part).into());
-            let child_module = self.modules.contains_key(&key);
+            let inside = query.written.starts_with(&module);
+            let child_module = self
+                .modules
+                .get(&key)
+                .is_some_and(|child| inside || !child.private);
             if child_module {
                 module = key;
                 continue;
@@ -205,6 +230,7 @@ impl Rust<'_> {
             .context("Rust module is unresolved")?;
         Ok(Resolved {
             files: BTreeSet::from([module.file.clone()]),
+            initializers: BTreeSet::new(),
             external: None,
         })
     }

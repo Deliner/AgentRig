@@ -1,8 +1,6 @@
 // DECISION: D017
 use super::symbol_actuals;
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::signature::Signature;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Signature, Structure};
 
 const PARAMETERS: Kind = Kind::Signature(Signature::ParameterCount);
 const LINES: Kind = Kind::Structure(Structure::FunctionLines);

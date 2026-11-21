@@ -1,22 +1,29 @@
-use super::{Finding, Findings, removal_records};
+use super::finding::{Finding, Findings};
+use super::removal_records;
+use super::tool_files::tools;
 use crate::project_config::{Check, Context, module};
-use crate::shared::diagnostics::actionable_findings::{Diagnostic, Level, print_diagnostics};
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
+use crate::shared::paths::globs;
 use crate::shared::vcs::Repository;
 use anyhow::Result;
 use std::path::Path;
 
-pub struct Source<'a> {
+pub struct PlacementSource<'a> {
     pub repository: &'a Path,
     pub exported_revision: Option<&'a str>,
 }
-pub fn run(context: &Context, source: Source<'_>, check: &Check, rerun: &str) -> Result<i32> {
+pub fn run(
+    context: &Context,
+    source: PlacementSource<'_>,
+    check: &Check,
+    rerun: &str,
+) -> Result<i32> {
     let repository = Repository::new(source.repository);
     let files = match source.exported_revision {
         Some(revision) => repository.tree(revision)?.into_keys().collect(),
         None => repository.working_files()?,
     };
-    let tools = super::tools(context, &files)?;
+    let tools = tools(context, &files)?;
     let mut findings = Findings::new();
     placement(context, &tools, &mut findings)?;
     catalog(context, &mut findings);

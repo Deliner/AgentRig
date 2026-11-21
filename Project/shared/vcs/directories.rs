@@ -1,4 +1,5 @@
-use super::{Repository, git};
+use super::git;
+use super::repository::Repository;
 use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result, ensure};
 use std::{collections::BTreeSet, path::Path};

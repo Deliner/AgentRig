@@ -1,4 +1,4 @@
-use super::attributed;
+use super::attributes::attributed;
 use super::cfg_flags::{cfg_marker, cfg_requires};
 use crate::structural_lint::languages::neutral_metrics::{Code, text};
 use tree_sitter::Node;

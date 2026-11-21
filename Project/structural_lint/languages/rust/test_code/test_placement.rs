@@ -2,8 +2,7 @@ use crate::structural_lint::languages::neutral_metrics::{Code, Measurement, text
 use crate::structural_lint::languages::rust::exemptions::{
     attributed, in_test_context, test_marker,
 };
-use crate::structural_lint::rule_identities::kind::Kind;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::rule_identities::{Kind, Structure};
 use tree_sitter::Node;
 
 // DECISION: D145

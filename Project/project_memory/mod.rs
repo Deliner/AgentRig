@@ -5,9 +5,9 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
-pub(crate) mod check_evidence;
+mod check_evidence;
 mod exceptions;
-pub(super) mod format;
+mod format;
 mod history;
 mod invariant_history;
 mod oracles;
@@ -16,15 +16,19 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
+pub use check_evidence::{
+    Attempt, Input, native_index, report as report_checks, resume as observed_checks,
+};
+pub use format::{Catalog, reset_state, state_holds_notes, state_template, table};
 pub use resume::run as resume;
 
 use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
-use crate::shared::paths::glob_patterns::globs;
-use crate::structural_lint::targeting::file_discovery;
+use crate::shared::paths::globs;
+use crate::structural_lint;
 use anyhow::{Context as _, Result, ensure};
-use format::{Catalog, Row, sections, table, target};
+use format::{Row, sections, target};
 use source::Invariant;
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
@@ -55,7 +59,7 @@ fn references(context: &Context, memory: &Path) -> Result<()> {
         .map(|row| row.id)
         .collect();
     let sources = globs(&context.config.paths.sources)?;
-    let files = file_discovery::collect(&context.root, &globs(&[])?)?.files;
+    let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?.files;
     let mut unlinked = BTreeSet::new();
     for path in files.iter().filter(|path| sources.is_match(path)) {
         let file = context.root.join(path);

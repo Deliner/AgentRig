@@ -1,9 +1,9 @@
 // DECISION: D005
-use crate::change_delivery::gate;
+use crate::change_delivery;
 use crate::command_runner;
 use crate::project_config::Context;
 use crate::project_setup;
-use crate::shared::paths::{glob_patterns::literal, resolve};
+use crate::shared::paths::{literal, resolve};
 use crate::shared::shared_options::forwarded;
 use anyhow::{Result, bail, ensure};
 use serde_json::Value;
@@ -260,7 +260,7 @@ fn recipe_call<'a>(command: &'static str, extra: &'a [String]) -> Result<Call<'a
 fn runtime_arguments(command: &str, args: &[String]) -> Result<()> {
     match command {
         "check" => {
-            gate::arguments(forwarded(args))?;
+            change_delivery::check_arguments(forwarded(args))?;
         }
         "feature-start" => {
             ensure!(forwarded(args).len() == 1, "feature-start NAME");

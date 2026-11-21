@@ -1,4 +1,4 @@
-use super::{Python, module_parts};
+use super::Python;
 use crate::structural_lint::architecture::extraction::{self, Target};
 use anyhow::{Result, ensure};
 use std::{
@@ -20,11 +20,9 @@ fn resolve(paths: &[&str], source: &str, code: &str) -> Result<BTreeSet<PathBuf>
     ensure!(references.issues.is_empty(), "unexpected syntax issue");
     let mut targets = BTreeSet::new();
     for reference in references.items {
-        targets.extend(
-            resolver
-                .resolve(Path::new(source), &reference.target)?
-                .files,
-        );
+        let resolved = resolver.resolve(Path::new(source), &reference.target)?;
+        targets.extend(resolved.files);
+        targets.extend(resolved.initializers);
     }
     Ok(targets)
 }
@@ -41,6 +39,33 @@ fn imports_include_every_regular_package_initializer() {
     assert_eq!(result, files(&paths[1..]));
     let result = resolve(&paths, paths[0], "from pkg.api.model import Value as V\n").unwrap();
     assert_eq!(result, files(&paths[1..]));
+}
+
+// DECISION: D227
+#[test]
+fn the_packages_an_import_passes_are_initializers_and_the_imported_module_is_its_target() {
+    let paths = [
+        "src/main.py",
+        "src/pkg/__init__.py",
+        "src/pkg/api/__init__.py",
+        "src/pkg/api/model.py",
+    ];
+    let inventory = files(&paths);
+    let external = BTreeSet::new();
+    let resolver = Python::new(Path::new("src"), &inventory, &external).unwrap();
+    let source = Path::new(paths[0]);
+    let module = Target::PythonModule("pkg.api.model".into());
+    let resolved = resolver.resolve(source, &module).unwrap();
+    assert_eq!(resolved.files, files(&paths[3..]));
+    assert_eq!(resolved.initializers, files(&paths[1..3]));
+    let names = vec!["Value".to_owned()];
+    let attribute = Target::PythonFrom {
+        module: "pkg.api".into(),
+        names,
+    };
+    let resolved = resolver.resolve(source, &attribute).unwrap();
+    assert_eq!(resolved.files, files(&paths[2..3]));
+    assert_eq!(resolved.initializers, files(&paths[1..2]));
 }
 
 #[test]
@@ -191,9 +216,6 @@ fn roots_names_missing_sources_and_stub_only_targets_are_explicit() {
             )
             .is_err()
     );
-    for name in ["", "../api", "a..b", "a/b", "a-b", "a\\b"] {
-        assert!(module_parts(name).is_err(), "{name}");
-    }
     let resolver = Python::new(Path::new("."), &inventory, &external).unwrap();
     assert_eq!(
         resolver
@@ -202,6 +224,18 @@ fn roots_names_missing_sources_and_stub_only_targets_are_explicit() {
             .files,
         files(&["main.py"])
     );
+}
+
+#[test]
+fn invalid_module_names_are_rejected() {
+    let inventory = files(&["main.py"]);
+    for name in ["", "../api", "a..b", "a/b", "a-b", "a\\b"] {
+        let invalid = BTreeSet::from([name.to_owned()]);
+        assert!(
+            Python::new(Path::new("."), &inventory, &invalid).is_err(),
+            "{name}"
+        );
+    }
 }
 
 #[test]

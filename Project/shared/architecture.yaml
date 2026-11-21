@@ -1,4 +1,5 @@
 purpose: Repository access, path patterns, source parsing, diagnostics, artifacts, skills and test support shared by features
+group: true
 files:
   mod.rs: Shared module declarations
 directories:

@@ -1,4 +1,4 @@
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use crate::structural_lint::{
     rule_set::lint_config::{Rule, extension_matches},
     targeting::{file_discovery::Inventory, lint_targets},

@@ -1,0 +1,5 @@
+purpose: Verify configured rules evaluated over source trees and the lifting of findings under exceptions
+files:
+  mod.rs: Line-width, dump-name, paired-calls, program-language, same-text and forbidden-file findings from native evaluation
+  lifting.rs: Exceptions lifting only the rule they name on the line below and exceptions that lift nothing
+directories: {}

@@ -1,4 +1,4 @@
-use super::{Inventory, directories};
+use super::inventory::{Inventory, directories};
 use crate::shared::fs_with_context as fs;
 use anyhow::Result;
 use globset::GlobSet;

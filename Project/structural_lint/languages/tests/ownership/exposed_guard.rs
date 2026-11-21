@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::ownership::Ownership;
+use crate::structural_lint::rule_identities::Ownership;
 
 // DECISION: D166
 #[test]

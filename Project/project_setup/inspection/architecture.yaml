@@ -1,0 +1,6 @@
+purpose: Inspect an installed environment's readiness, configuration validity and test coverage
+type: flat
+files:
+  mod.rs: Declare the inspections and offer the doctor and the configuration check
+  coverage.rs: Check scaffold configuration validity, the lint configuration and source files and tests that a check's affected map leaves without selected tests
+  doctor.rs: Check installed runtime, hooks, tools and client readiness

@@ -1,5 +1,5 @@
-use super::Kind;
 use crate::structural_lint::languages;
+use crate::structural_lint::rule_identities::Kind;
 use anyhow::{Result, bail};
 use std::path::Path;
 
@@ -34,7 +34,7 @@ pub fn support(kind: Kind) -> String {
 }
 // DECISION: D198
 pub fn validate_program_languages(rule: &str, names: &[String]) -> Result<()> {
-    let known = languages::program::names();
+    let known = languages::program_languages();
     let empty = names.is_empty();
     if empty {
         bail!("{rule}: allowed_languages is empty");

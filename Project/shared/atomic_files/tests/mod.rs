@@ -1,4 +1,4 @@
-use super::{digest, read_regular};
+use super::{Overlay, digest, load_json, read_regular, save_json};
 use std::fs;
 
 #[test]
@@ -36,14 +36,14 @@ fn json_serialization_failure_preserves_the_previous_artifact() {
     let root = tempfile::tempdir().unwrap();
     let path = root.path().join("result.json");
     let original = serde_json::json!({"status": "accepted"});
-    super::atomic_json::save(&path, &original).unwrap();
+    save_json(&path, &original).unwrap();
     let before = fs::read(&path).unwrap();
     let invalid = std::collections::BTreeMap::from([(vec![1, 2], "not a JSON object key")]);
-    assert!(super::atomic_json::save(&path, &invalid).is_err());
+    assert!(save_json(&path, &invalid).is_err());
     assert_eq!(fs::read(&path).unwrap(), before);
     assert_eq!(fs::read_dir(root.path()).unwrap().count(), 1);
     let updated = serde_json::json!({"status": "completed"});
-    super::atomic_json::save(&path, &updated).unwrap();
+    save_json(&path, &updated).unwrap();
     let actual: serde_json::Value = serde_json::from_slice(&fs::read(path).unwrap()).unwrap();
     assert_eq!(actual, updated);
 }
@@ -52,13 +52,13 @@ fn json_serialization_failure_preserves_the_previous_artifact() {
 fn json_loads_saved_values_and_tells_an_absent_file_from_an_invalid_one() {
     let root = tempfile::tempdir().unwrap();
     let path = root.path().join("result.json");
-    let absent: Option<Vec<u8>> = super::atomic_json::load(&path).unwrap();
+    let absent: Option<Vec<u8>> = load_json(&path).unwrap();
     assert_eq!(absent, None);
-    super::atomic_json::save(&path, &vec![1, 2]).unwrap();
-    let loaded: Option<Vec<u8>> = super::atomic_json::load(&path).unwrap();
+    save_json(&path, &vec![1, 2]).unwrap();
+    let loaded: Option<Vec<u8>> = load_json(&path).unwrap();
     assert_eq!(loaded, Some(vec![1, 2]));
     fs::write(&path, b"{").unwrap();
-    let invalid = super::atomic_json::load::<Vec<u8>>(&path).unwrap_err();
+    let invalid = load_json::<Vec<u8>>(&path).unwrap_err();
     assert!(invalid.to_string().contains("result.json"), "{invalid}");
 }
 
@@ -71,7 +71,7 @@ fn an_overlay_restores_replaced_and_created_files_or_commits_by_removing_its_mir
     fs::write(root.join("kept"), "before").unwrap();
     fs::write(mirror.join("kept"), "after").unwrap();
     fs::write(mirror.join("new/file"), "created").unwrap();
-    let overlay = super::overlay::Overlay {
+    let overlay = Overlay {
         mirror: &mirror,
         root: &root,
     };
@@ -94,8 +94,8 @@ fn json_replacement_preserves_symlink_targets_and_reports_missing_parents() {
     let link = root.path().join("result.json");
     fs::write(&source, b"original").unwrap();
     std::os::unix::fs::symlink(&source, &link).unwrap();
-    super::atomic_json::save(&link, &serde_json::json!({"new": true})).unwrap();
+    save_json(&link, &serde_json::json!({"new": true})).unwrap();
     assert!(fs::symlink_metadata(&link).unwrap().is_file());
     assert_eq!(fs::read(source).unwrap(), b"original");
-    assert!(super::atomic_json::save(&root.path().join("missing/result.json"), &0).is_err());
+    assert!(save_json(&root.path().join("missing/result.json"), &0).is_err());
 }

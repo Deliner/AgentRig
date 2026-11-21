@@ -1,5 +1,5 @@
 use super::measured;
-use crate::structural_lint::rule_identities::reference::Reference;
+use crate::structural_lint::rule_identities::Reference;
 
 #[test]
 fn rust_flags_tests_that_bind_a_fixed_port() {

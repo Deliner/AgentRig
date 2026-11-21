@@ -1,15 +1,10 @@
 purpose: Validate directory contracts, feature types, cycles and file fan-out over resolved source dependencies
 type: custom
 files:
-  mod.rs: Resolved dependency and issue records with contract-check composition
-  policy.rs: Strict directory contracts with purpose, inventory, feature type and its parts, zone and dependents budget
-  contracts.rs: Load the contracts of a scope and check inventory, feature types, zones and incoming coupling against them
-  features.rs: Feature classification, required type parts and inward part dependencies
-  inventory.rs: Exact file and child-directory responsibility coverage checks
-  graph.rs: Cycles, per-file fan-out, dependents and directory edges over measured dependencies
+  mod.rs: Declarations of the architecture parts and the contract check they offer
   README.md: Rule configuration, contract format, feature types and source analysis limits
 directories:
   contract_check: Combine configured scope, extraction, resolution and actionable findings
+  contract_rules: Directory contracts, resolved dependency records and the rules checked over them
   extraction: Extract located dependency references from supported syntax
   resolution: Resolve extracted references to concrete project source files
-  tests: Contract validation, feature types and measured cycle behavior

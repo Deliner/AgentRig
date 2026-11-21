@@ -1,4 +1,4 @@
-use super::{Resources, Sample};
+use super::sample::{Resources, Sample};
 use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result};
 

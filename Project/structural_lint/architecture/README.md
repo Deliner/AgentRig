@@ -46,7 +46,8 @@ A contract has `purpose`, one nonempty line, and `files` and `directories`, whic
 except the contract by literal name with a nonempty responsibility; stale entries, wrong kinds and unknown fields are
 errors. Optional: `type` (see Feature types); `zone: pure`, barring its own Rust files from `std::env`, `std::fs`,
 `std::process`, wall clock, entropy, network, threads and console; `dependents`, the most other directories using
-its files (default 6), ignoring `tests/` and `#[cfg(test)]`/`#[test]` items. Contracts stay in the project.
+its files (default 6), ignoring `tests/` and `#[cfg(test)]`/`#[test]` items; `group: true`, independent parts: the
+directory has no `entry-bypass` boundary, each subdirectory keeps its entry. Contracts stay in the project.
 
 ## Feature types
 
@@ -67,9 +68,8 @@ A file in a part may use its own part and inner parts. Files in the feature root
 them, and nothing outside `tests` uses `tests`. Module declarations and dependencies on other features are not
 direction findings, and flat and custom features add no direction rule.
 
-Cycles use actual resolved edges and report source evidence across sibling subsystems. Rust module declarations
-(`mod child;`) express composition and form no cycle, so a child may use a parent-owned type. A source file may use
-source files in at most `fan_out` (default 10) other project directories; crate roots and `__main__.py` are exempt.
+Cycles use resolved edges and cite source evidence across sibling subsystems; Rust `mod child;` forms none. A file may
+use source files in at most `fan_out` (default 10) other project directories; crate roots and `__main__.py` are exempt.
 
 ## Analysis limits
 

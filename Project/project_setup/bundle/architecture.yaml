@@ -1,0 +1,13 @@
+purpose: Generate the environment files that init installs and recognize the hook registrations they contain
+type: flat
+files:
+  mod.rs: Assemble the environment bundle and offer it with the scaffold, skill links, recipes, runtime installation and registration checks
+  contents.rs: Bundle file contents and the skill links installed beside them, keyed by path
+  adapters.rs: Generate Git and agent hook adapters and recognize the agent hook registration in client settings
+  assets.rs: Scaffold memory and agent instructions
+  skills.rs: Ship the canonical skill bodies under their installed names
+  claude.rs: Generate and inspect Claude Code client settings
+  lint.rs: Generate supported lint rule examples for the consumer
+  runtime.rs: Install the platform launcher and the runtime built for the current platform
+  template.rs: Interpret scaffold options and generate project configuration
+  recipes.rs: Generate the root justfile and the grouped Just recipes that forward to the launcher

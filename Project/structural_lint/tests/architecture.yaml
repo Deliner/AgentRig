@@ -5,13 +5,12 @@ files:
   discovery.rs: Rule catalog, examples that pass configuration check and invalid discovery arguments
   diagnostics.rs: Threshold, override, invalid configuration and staged snapshot diagnostics
   explain.rs: Effective selection explanations and diagnostic consistency
-  file_cycle.rs: Cycles among the files of one directory in Rust and Python, the entry left out and the needed architecture rule
   tree.rs: Directory tree output, ordering, exclusions and rejected paths
   structure.rs: Structure score kinds, identical output across runs and locations, documentation summaries and rejected paths
   languages.rs: Rust and Python branch conditions, comment references, syntax errors, language selection and defaults, condition policies, single junctions and classifications repeated across files through lint
-  lifting.rs: Exceptions lifting only the rule they name on the line below and exceptions that lift nothing
   baseline.rs: Recorded error baseline, ratchet failures on growth and lowering-only updates
   portable.rs: Standalone and embedded linter portability scenarios and their shared Git tracked and untracked inventory
-  mod.rs: Line-width, dump-name, paired-calls, same-text and forbidden-file findings from native evaluation
+  mod.rs: Declarations of the composed lint test groups
 directories:
   architecture: Directory architecture findings for Rust and Python consumer projects
+  dependency_rules: File cycles and entry rules over the dependencies the architecture rule measures

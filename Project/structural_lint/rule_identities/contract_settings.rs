@@ -1,5 +1,5 @@
 // DECISION: D044
-use crate::shared::paths::glob_patterns::globs;
+use crate::shared::paths::globs;
 use anyhow::{Context, Result, ensure};
 use globset::GlobSet;
 use serde::{Deserialize, Serialize};
@@ -8,7 +8,7 @@ use std::{
     path::{Component, PathBuf},
 };
 
-pub const FILENAME: &str = "architecture.yaml";
+pub const CONTRACT_FILENAME: &str = "architecture.yaml";
 
 #[derive(Default, Deserialize, Serialize)]
 #[serde(default, deny_unknown_fields)]

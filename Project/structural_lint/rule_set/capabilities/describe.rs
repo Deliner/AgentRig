@@ -1,21 +1,19 @@
+use super::kinds::RULE_KINDS;
 use super::language_support::{extensions, syntax};
-use super::{ALL, Kind};
-use crate::structural_lint::languages::{self, program};
-use crate::structural_lint::rule_identities::contract_settings;
-use crate::structural_lint::rule_identities::control_flow::ControlFlow;
-use crate::structural_lint::rule_identities::ownership::{self, Ownership};
-use crate::structural_lint::rule_identities::reference::Reference;
-use crate::structural_lint::rule_identities::structure::Structure;
+use crate::structural_lint::languages::{self, program_languages};
+use crate::structural_lint::rule_identities::{
+    ControlFlow, Kind, Ownership, Reference, Settings, Structure, default_pairs,
+};
 use serde_json::{Value, json};
 
 pub fn catalog() -> Value {
-    Value::Array(ALL.iter().map(|kind| describe(*kind)).collect())
+    Value::Array(RULE_KINDS.iter().map(|kind| describe(*kind)).collect())
 }
 pub fn describe(kind: Kind) -> Value {
     let descriptor = kind.descriptor();
     let mut value = json!({"kind": kind, "target": descriptor.target,
         "metric": descriptor.metric, "skill": descriptor.skill,
-        "parameters": descriptor.parameters.describe(), "defaults": example(kind, ".agentrig/skills", &["src/**".into()]),
+        "parameters": descriptor.parameters.describe(), "defaults": example_rule(kind, ".agentrig/skills", &["src/**".into()]),
         "languages": "any UTF-8 text", "extensions": "configurable"});
     // DECISION: D222
     value["exception"] = json!(if descriptor.accepts_exception {
@@ -46,7 +44,7 @@ pub fn describe(kind: Kind) -> Value {
 fn describe_settings(kind: Kind, value: &mut Value) {
     match kind {
         Kind::Structure(Structure::DirectoryArchitecture) => {
-            value["architecture"] = contract_settings::Settings::describe();
+            value["architecture"] = Settings::describe();
         }
         Kind::Ownership(Ownership::PairedCalls) => {
             value["pairs"] = json!(
@@ -58,10 +56,12 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         }
         // DECISION: D198
         Kind::Structure(Structure::ProgramLanguage) => {
-            value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program::names()});
+            value["allowed_languages"] = json!({"required": "nonempty list of the program languages the project allows", "known": program_languages()});
         }
         // DECISION: D225
-        Kind::Structure(Structure::FileCycle) => {
+        // DECISION: D227
+        // DECISION: D228
+        Kind::Structure(Structure::FileCycle | Structure::EntryUse | Structure::EntryBypass) => {
             let architecture = describe(Kind::Structure(Structure::DirectoryArchitecture));
             value["languages"] = architecture["languages"].clone();
         }
@@ -72,7 +72,7 @@ fn describe_settings(kind: Kind, value: &mut Value) {
         | Kind::Reference(_) => {}
     }
 }
-pub fn example(kind: Kind, skills: &str, sources: &[String]) -> Value {
+pub fn example_rule(kind: Kind, skills: &str, sources: &[String]) -> Value {
     let descriptor = kind.descriptor();
     let skill = format!("{skills}/{}/SKILL.md", descriptor.skill);
     let mut value = json!({"id": descriptor.default_id, "kind": kind,
@@ -96,7 +96,7 @@ fn example_settings(kind: Kind, value: &mut Value) {
             value["architecture"] = json!({"python_root": ".", "rust_roots": ["src/lib.rs"]});
         }
         // DECISION: D156
-        Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = ownership::default_pairs(),
+        Kind::Ownership(Ownership::PairedCalls) => value["pairs"] = default_pairs(),
         // DECISION: D156
         Kind::ControlFlow(ControlFlow::BooleanExpression) => value["junctions"] = json!("single"),
         // DECISION: D198

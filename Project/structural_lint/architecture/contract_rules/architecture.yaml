@@ -1,0 +1,14 @@
+purpose: Load directory contracts and check them, feature types, cycles, fan-out and entries over resolved dependencies
+files:
+  mod.rs: Declarations of the rule parts and the records and checks the contract check uses
+  dependency.rs: Resolved dependency records with their declaration, use and initialization relations
+  issue.rs: A located contract finding and its construction at a dependency
+  effects.rs: Environment, wall clock, entropy, network, thread and console effects of external paths
+  policy.rs: Strict directory contracts with purpose, inventory, feature type and its parts, zone and dependents budget
+  contracts.rs: Load the contracts of a scope and check inventory, feature types, zones and incoming coupling against them
+  features.rs: Feature classification, required type parts and inward part dependencies
+  inventory.rs: Exact file and child-directory responsibility coverage checks
+  graph.rs: Cycles, per-file fan-out, dependents and directory edges over measured dependencies
+  entries.rs: Uses of a directory entry by the directory's own code and uses that pass a directory's entry, with declared groups
+directories:
+  tests: Contract validation, feature types, effects and measured cycle behavior

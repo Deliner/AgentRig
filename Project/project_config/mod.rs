@@ -1,10 +1,10 @@
-pub mod protection;
-pub(crate) mod settings_schema;
+mod protection;
+mod settings_schema;
 #[cfg(test)]
 mod tests;
 use crate::shared::calling_agent::{Agent, Caller};
 use anyhow::Result;
-pub use protection::Protection;
+pub use protection::{Protection, configuration as protected_configuration};
 pub use settings_schema::{
     Access, AffectedTests, Arguments, Capabilities, Check, CheckKind, Command, Config, FILE, Flag,
     Git, Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,

@@ -1,8 +1,10 @@
 purpose: List registered tools with their owners and check tool placement, registration and removal records
 type: flat
 files:
-  mod.rs: Recognize tool files, print active catalog commands, entry tools and removed tools, hold tool check findings
+  mod.rs: Print active catalog commands, entry tools and removed tools and offer the tool check
+  finding.rs: A tool check finding with its path and message
   placement_check.rs: Run the tool check; report misplaced, unregistered or undescribed tools and stale references
   removal_records.rs: Report invalid removal records and remaining references to removed tools
+  tool_files.rs: Recognize tool files among project files and find the tool a catalog command runs
 directories:
   tests: Verify the registry listing and the tool check through the CLI

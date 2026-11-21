@@ -1,8 +1,9 @@
 purpose: Resolve Rust references through declared crate modules, aliases and supported macro origins
 files:
-  mod.rs: Crate ownership, resolution context and reference dispatch
-  module_tree.rs: Declared module tree construction and module file selection
-  use_aliases.rs: Scoped path lookup, aliases, imported bindings and external names
+  mod.rs: Offer the Rust resolver
+  resolver.rs: The resolver with its declared modules, crate ownership, resolution context and reference dispatch
+  module_tree.rs: Declared module tree construction, module file selection and project-relative path normalization
+  use_aliases.rs: Scoped path lookup and its located results, aliases, imported bindings and external names
   macro_origins.rs: Known macro and derive origins and embedded resource dependencies
 directories:
   tests: Module and alias resolution, incomplete forms and compiled consumer comparisons

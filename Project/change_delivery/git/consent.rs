@@ -3,8 +3,8 @@ use super::integration;
 use super::pin;
 use super::state::State;
 use crate::project_config::Context;
-use crate::project_memory::format::{Catalog, table};
-use crate::shared::atomic_files::{atomic_json, replace};
+use crate::project_memory::{Catalog, table};
+use crate::shared::atomic_files::{load_json, replace, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Repository, Revisions};
 use anyhow::{Context as _, Result, ensure};
@@ -29,10 +29,10 @@ struct Pin {
 
 impl Record {
     fn load(context: &Context) -> Result<Self> {
-        Ok(atomic_json::load(&location(context)?)?.unwrap_or_default())
+        Ok(load_json(&location(context)?)?.unwrap_or_default())
     }
     fn save(&self, context: &Context) -> Result<()> {
-        atomic_json::save(&location(context)?, self)
+        save_json(&location(context)?, self)
     }
     fn add(context: &Context, revision: &str, sources: Vec<String>) -> Result<()> {
         let mut record = Self::load(context)?;
