@@ -1,12 +1,12 @@
 use super::graph::{directory_key, entry};
-use super::{Dependency, Issue};
+use super::{dependency::Dependency, issue::Issue};
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
 };
 
 // DECISION: D227
-pub(super) fn own_uses(dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
+pub fn own_uses(dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
     let own = dependencies.iter().filter(|edge| own_use(edge, selected));
     own.map(|edge| {
         let message = format!(
@@ -29,13 +29,13 @@ fn own_use(edge: &Dependency, selected: &BTreeSet<&Path>) -> bool {
 }
 
 // DECISION: D228
-pub(super) struct Boundaries<'a> {
+pub struct Boundaries<'a> {
     groups: &'a BTreeSet<PathBuf>,
     entries: BTreeMap<&'a Path, Vec<&'a Path>>,
 }
 
 impl<'a> Boundaries<'a> {
-    pub(super) fn new(groups: &'a BTreeSet<PathBuf>, files: &'a [PathBuf]) -> Self {
+    pub fn new(groups: &'a BTreeSet<PathBuf>, files: &'a [PathBuf]) -> Self {
         let mut entries: BTreeMap<&Path, Vec<&Path>> = BTreeMap::new();
         for file in files.iter().filter(|file| entry(file)) {
             if let Some(directory) = file.parent() {
@@ -46,11 +46,7 @@ impl<'a> Boundaries<'a> {
     }
 
     // DECISION: D228
-    pub(super) fn bypasses(
-        &self,
-        dependencies: &[Dependency],
-        selected: &BTreeSet<&Path>,
-    ) -> Vec<Issue> {
+    pub fn bypasses(&self, dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
         let mut issues = Vec::new();
         for edge in dependencies {
             let Some(directory) = edge.source.parent() else {

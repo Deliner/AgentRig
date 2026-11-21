@@ -1,5 +1,5 @@
 use super::{
-    Issue,
+    issue::Issue,
     policy::{Declaration, Rooted},
 };
 use crate::shared::fs_with_context as fs;

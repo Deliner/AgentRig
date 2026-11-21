@@ -3,27 +3,28 @@
 ## Focus
 
 P171 (B176 entry-use) and P172 (B178 entry-bypass), one branch from master, autonomous under the user's consent
-(D226). VAC 7: inner structural_lint parts go through their entries or declared groups.
+(D226). VAC 8: the architecture check is used only through the `architecture` entry.
 
 ## Workspace
 
 Branch: feature/entry-boundaries
-Revision: e3701e0d9434fd77a2f17aed5d5cc67f990a50a8
+Revision: 5cb44659159cf6d29688d7f7e0a2241cbed7071f
 
 ## Progress
 
-- VACs 1 to 6 and the consented pin of dae94a4 are committed.
-- `rule_set`, `targeting` and `architecture/resolution` declare `group: true`; the resolution result moved
-  to `resolution/resolved.rs` and the path normalization to the Rust module tree, so the entry only declares.
-- `languages` exports `program_language` and `program_languages`; `exemptions` exports its async checks;
-  `extraction/rust` exports `prelude_origin`; the D227 resolution link follows `resolved.rs`.
-- A parent cannot reexport a child that uses a file of the parent directory: that is a directory cycle, so
-  `architecture` keeps `contract_check` public until its shared records move out of the parent.
-- Scratch measurement: entry-use 225 to 219, entry-bypass 277 to 171, no architecture finding.
+- VACs 1 to 7 and the consented pin of dae94a4 are committed.
+- The records, effects, contracts and graph rules moved from `architecture` into `architecture/contract_rules`,
+  so `contract_check` no longer uses a file of its parent and the entry reexports its API without a cycle.
+- `architecture/mod.rs` only declares its parts and exports the check, `Neighbours` and `Rooted`; consumers call
+  `architecture::run`, `validate`, `edges` and the dependency rules; the decision links follow the moved owners.
+- `extraction` exports `PropagatedCall`, the type of a public `References` field.
+- The commit guard read the moved D156 variant-equality exception in `policy.rs` as new, so `relative` now
+  matches every `Component` variant and the exception and its D156 link are gone.
+- Scratch measurement before the last export: entry-use 219 to 192, entry-bypass 171 to 160, no cycle.
 
 ## Verification
 
-- `just test structural_lint::` passed 345; `just run rustfmt` passed.
+- `just run clippy` passed; `just test structural_lint::` passed 345; `just run rustfmt` passed.
 
 ## Blockers
 
@@ -31,4 +32,4 @@ None.
 
 ## Next action
 
-Commit this VAC, then move the `architecture` records and core files so `contract_check` can go behind the entry.
+Commit this VAC, then route the cross-feature uses through the entries of the features they use.

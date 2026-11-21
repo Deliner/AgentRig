@@ -1,4 +1,4 @@
-use crate::structural_lint::architecture::Relation;
+use crate::structural_lint::architecture::contract_rules::Relation;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Target {

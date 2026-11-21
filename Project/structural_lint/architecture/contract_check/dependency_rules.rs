@@ -1,7 +1,7 @@
 use super::diagnostic::diagnostic;
 use crate::shared::diagnostics::Diagnostic;
-use crate::structural_lint::architecture::{
-    Dependency, Issue, entries::Boundaries, entries::own_uses, graph,
+use crate::structural_lint::architecture::contract_rules::{
+    self, Boundaries, Dependency, Issue, own_uses,
 };
 use crate::structural_lint::rule_set::lint_config::Rule;
 use crate::structural_lint::targeting::{file_discovery::Inventory, lint_targets};
@@ -35,7 +35,8 @@ impl Edges {
 // DECISION: D225
 pub fn file_cycles(rule: &Rule, edges: &Edges, inventory: &Inventory) -> Result<Vec<Diagnostic>> {
     let directories = directories(rule, inventory)?;
-    findings(rule, graph::file_cycles(&edges.dependencies, &directories))
+    let cycles = contract_rules::file_cycles(&edges.dependencies, &directories);
+    findings(rule, cycles)
 }
 
 // DECISION: D227

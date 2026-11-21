@@ -1,11 +1,11 @@
 use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
 use crate::structural_lint::architecture::{
-    self as architecture, Dependency, EnvironmentUse, Issue, Relation, Rooted, Settings,
+    contract_rules::{self, Dependency, EnvironmentUse, Issue, Relation, Rooted},
     extraction::{self, Reference, References, Target},
     resolution::{python::Python, resolved::Resolved, rust::Rust},
 };
-use crate::structural_lint::rule_identities::TEST_CODE;
+use crate::structural_lint::rule_identities::{Settings, TEST_CODE};
 use anyhow::{Result, ensure};
 use globset::GlobSet;
 use std::{
@@ -269,7 +269,7 @@ impl<'a> Resolvers<'a> {
 // DECISION: D083
 // DECISION: D104
 fn environment_use(line: usize, external: &str) -> Option<EnvironmentUse> {
-    architecture::effect(external).map(|_| EnvironmentUse {
+    contract_rules::effect(external).map(|_| EnvironmentUse {
         line,
         path: external.trim_start_matches("::").to_owned(),
     })

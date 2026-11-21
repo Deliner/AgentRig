@@ -1,5 +1,6 @@
-use super::{Dependency, Issue, Settings};
+use super::{dependency::Dependency, issue::Issue};
 use crate::structural_lint::languages::ENTRY_FILES;
+use crate::structural_lint::rule_identities::Settings;
 use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Path, PathBuf},
@@ -7,7 +8,7 @@ use std::{
 
 type Adjacency<'a> = BTreeMap<PathBuf, BTreeMap<PathBuf, &'a Dependency>>;
 
-pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
+pub fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
     let mut graph: Adjacency<'_> = BTreeMap::new();
     for edge in dependencies {
         let declaration = edge.relation.declares();
@@ -20,7 +21,7 @@ pub(super) fn cycles(dependencies: &[Dependency]) -> Vec<Issue> {
 }
 
 // DECISION: D225
-pub(super) fn file_cycles(dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
+pub fn file_cycles(dependencies: &[Dependency], selected: &BTreeSet<&Path>) -> Vec<Issue> {
     let mut graph: Adjacency<'_> = BTreeMap::new();
     for edge in dependencies {
         let Some(directory) = edge.source.parent() else {
@@ -104,7 +105,7 @@ pub(super) fn dependents(dependencies: &[Dependency]) -> Dependents<'_> {
 pub(super) type Dependents<'a> = BTreeMap<&'a Path, BTreeMap<&'a Path, &'a Dependency>>;
 
 // DECISION: D143
-pub(super) fn neighbours(dependencies: &[Dependency], directory: &Path) -> Neighbours {
+pub fn neighbours(dependencies: &[Dependency], directory: &Path) -> Neighbours {
     let mut neighbours = Neighbours::default();
     for (source, target, edge) in directory_edges(dependencies) {
         let (source, target) = (directory_key(source), directory_key(target));
@@ -148,7 +149,7 @@ pub(super) fn evidence(edge: &Dependency) -> String {
 const FAN_OUT: usize = 10;
 
 // DECISION: D121
-pub(super) fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<Issue> {
+pub fn fan_out(dependencies: &[Dependency], settings: &Settings) -> Vec<Issue> {
     let budget = settings.fan_out.unwrap_or(FAN_OUT);
     let mut used: BTreeMap<&Path, BTreeSet<&Path>> = BTreeMap::new();
     for edge in dependencies {

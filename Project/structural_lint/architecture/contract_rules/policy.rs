@@ -134,7 +134,7 @@ pub struct Rooted<'a> {
 }
 
 impl Rooted<'_> {
-    pub(super) fn absolute(self) -> PathBuf {
+    pub(in crate::structural_lint::architecture) fn absolute(self) -> PathBuf {
         self.root.join(self.path)
     }
 
@@ -192,9 +192,14 @@ impl Rooted<'_> {
 }
 
 fn relative(path: &Path) -> bool {
-    !path.as_os_str().is_empty()
-        && path
-            .components()
-            // DECISION: D156 variant-equality
-            .all(|part| matches!(part, Component::Normal(_)))
+    !path.as_os_str().is_empty() && path.components().all(normal)
+}
+
+fn normal(part: Component<'_>) -> bool {
+    match part {
+        Component::Normal(_) => true,
+        Component::Prefix(_) | Component::RootDir | Component::CurDir | Component::ParentDir => {
+            false
+        }
+    }
 }

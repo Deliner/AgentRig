@@ -267,7 +267,7 @@ fn environment_namespaces_match_only_at_a_path_boundary() {
         "::std::env::var",
         "std::process::Command",
     ] {
-        assert!(super::environment(external), "{external}");
+        assert!(super::effects::environment(external), "{external}");
     }
     for external in [
         "std::collections::BTreeMap",
@@ -277,7 +277,7 @@ fn environment_namespaces_match_only_at_a_path_boundary() {
         "fs::read",
         "crate::fs::read",
     ] {
-        assert!(!super::environment(external), "{external}");
+        assert!(!super::effects::environment(external), "{external}");
     }
 }
 
@@ -332,7 +332,7 @@ fn clock_reads_match_only_the_now_constructors() {
         "std::time::SystemTime::now",
         "::std::time::SystemTime::now",
     ] {
-        assert!(super::clock(external), "{external}");
+        assert!(super::effects::clock(external), "{external}");
     }
     for external in [
         "std::time::Duration",
@@ -340,7 +340,7 @@ fn clock_reads_match_only_the_now_constructors() {
         "std::time::SystemTime::UNIX_EPOCH",
         "std::time::Duration::from_secs",
     ] {
-        assert!(!super::clock(external), "{external}");
+        assert!(!super::effects::clock(external), "{external}");
     }
 }
 
@@ -409,7 +409,7 @@ fn pure_zone_effects_name_entropy_network_threads_and_console() {
         ("std::dbg", None),
     ];
     for (external, expected) in cases {
-        assert_eq!(super::effect(external), expected, "{external}");
+        assert_eq!(super::effects::effect(external), expected, "{external}");
     }
 }
 

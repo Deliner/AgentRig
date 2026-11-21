@@ -150,7 +150,7 @@ fn print_rule(kind: rule_identities::Kind) {
     if architecture {
         console::stdout(format!(
             "Architecture settings and limits: {}",
-            crate::structural_lint::architecture::Settings::describe()
+            crate::structural_lint::rule_identities::Settings::describe()
         ));
     }
     console::stdout(format!(

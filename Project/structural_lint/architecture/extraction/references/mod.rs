@@ -1,7 +1,7 @@
 mod recorder;
 mod reference;
 
-use crate::structural_lint::architecture::Issue;
+use crate::structural_lint::architecture::contract_rules::Issue;
 pub(super) use recorder::Source;
 pub use reference::{Reference, RustMacro, Target};
 

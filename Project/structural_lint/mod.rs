@@ -82,7 +82,7 @@ fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
                 let architecture =
                     rule.kind == rule_identities::Kind::Structure(Structure::DirectoryArchitecture);
                 if architecture {
-                    architecture::contract_check::validate(rule, &inventory)?;
+                    architecture::validate(rule, &inventory)?;
                 }
             }
             Ok(Vec::new())

@@ -1,6 +1,6 @@
 // DECISION: D044
 use super::policy::{Declaration, Kind};
-use super::{Dependency, Issue};
+use super::{dependency::Dependency, issue::Issue};
 use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{

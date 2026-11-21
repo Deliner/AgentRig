@@ -1,5 +1,7 @@
+use super::dependency::Dependency;
+use super::effects::{self, EnvironmentUse};
+use super::issue::Issue;
 use super::policy::{Declaration, Rooted, Zone};
-use super::{Dependency, EnvironmentUse, Issue};
 use crate::structural_lint::rule_identities::CONTRACT_FILENAME;
 use crate::structural_lint::targeting::file_discovery::Inventory;
 use std::{
@@ -14,7 +16,7 @@ pub struct Contracts {
 // DECISION: D083
 // DECISION: D104
 fn zone_message(path: &str) -> Option<String> {
-    let effect = super::effect(path)?;
+    let effect = effects::effect(path)?;
     Some(format!(
         "zone `pure` directory must not {effect}; move the effect out or drop the zone: {path}"
     ))

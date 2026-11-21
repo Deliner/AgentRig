@@ -4,11 +4,13 @@ mod diagnostic;
 mod disallowed;
 mod scope;
 
-use super::{
-    Contracts, Issue, Loaded, Neighbours, PYTHON_SEED, RUST_SEED, Settings, extraction::References,
+use super::contract_rules::{
+    self, Contracts, Dependency, EnvironmentUse, Issue, Loaded, Neighbours, Rooted,
 };
+use super::extraction::References;
 use crate::shared::diagnostics::Diagnostic;
 use crate::shared::paths::globs;
+use crate::structural_lint::rule_identities::{PYTHON_SEED, RUST_SEED, Settings};
 use crate::structural_lint::{
     rule_set::lint_config::Rule,
     targeting::file_discovery::{self, Inventory},
@@ -32,7 +34,7 @@ pub fn contains_directory(rule: &Rule, path: &Path, inventory: &Inventory) -> Re
 
 // DECISION: D143
 pub fn edges(
-    directory: super::Rooted<'_>,
+    directory: Rooted<'_>,
     rule: &Rule,
     inventory: &Inventory,
 ) -> Result<Option<Neighbours>> {
@@ -41,7 +43,8 @@ pub fn edges(
         return Ok(None);
     }
     let measured = measure(directory.root, rule, inventory)?;
-    Ok(measured.map(|measured| super::graph::neighbours(&measured.analyzed.edges, directory.path)))
+    let edges = measured.map(|measured| measured.analyzed.edges);
+    Ok(edges.map(|edges| contract_rules::neighbours(&edges, directory.path)))
 }
 
 struct Measured<'r> {
@@ -106,9 +109,9 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
     issues.extend(contracts.check_inventory(&root, &scope.inventory));
     issues.extend(analyzed.issues);
     issues.extend(unused_externals(settings, &scope, analyzed.used.as_ref()));
-    issues.extend(super::graph::cycles(&analyzed.edges));
+    issues.extend(contract_rules::cycles(&analyzed.edges));
     // DECISION: D121
-    issues.extend(super::graph::fan_out(&analyzed.edges, settings));
+    issues.extend(contract_rules::fan_out(&analyzed.edges, settings));
     let features = settings.feature_root.as_deref();
     issues.extend(contracts.check_features(features, &scope.inventory, &analyzed.edges));
     // DECISION: D078
@@ -124,10 +127,10 @@ pub fn run(root: &Path, rule: &Rule, inventory: &Inventory) -> Result<Checked> {
 }
 
 struct Analysis {
-    edges: Vec<super::Dependency>,
+    edges: Vec<Dependency>,
     issues: Vec<Issue>,
     used: Option<analysis::Externals>,
-    environment: BTreeMap<PathBuf, Vec<super::EnvironmentUse>>,
+    environment: BTreeMap<PathBuf, Vec<EnvironmentUse>>,
 }
 fn dependencies(
     resolvers: &analysis::Resolvers<'_>,

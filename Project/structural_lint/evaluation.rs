@@ -1,4 +1,4 @@
-use super::architecture::contract_check;
+use super::architecture;
 use super::languages::{self, program_language};
 use super::lifting;
 use super::rule_identities::{self, Kind};
@@ -26,11 +26,11 @@ struct Evaluation<'a> {
     // DECISION: D227
     // DECISION: D228
     dependency_rules: Vec<DependencyRule<'a>>,
-    edges: contract_check::Edges,
+    edges: architecture::Edges,
 }
 type DependencyCheck = fn(
     &lint_config::Rule,
-    &contract_check::Edges,
+    &architecture::Edges,
     &file_discovery::Inventory,
 ) -> Result<Vec<Diagnostic>>;
 struct DependencyRule<'a> {
@@ -63,13 +63,13 @@ impl<'a> Evaluation<'a> {
     ) -> Result<()> {
         match rule.kind {
             Kind::Reference(Reference::Comment) => self.comment_rules.push(rule),
-            Kind::Structure(Structure::FileCycle) => self.defer(rule, contract_check::file_cycles),
-            Kind::Structure(Structure::EntryUse) => self.defer(rule, contract_check::entry_uses),
+            Kind::Structure(Structure::FileCycle) => self.defer(rule, architecture::file_cycles),
+            Kind::Structure(Structure::EntryUse) => self.defer(rule, architecture::entry_uses),
             Kind::Structure(Structure::EntryBypass) => {
-                self.defer(rule, contract_check::entry_bypasses);
+                self.defer(rule, architecture::entry_bypasses);
             }
             Kind::Structure(Structure::DirectoryArchitecture) => {
-                let checked = contract_check::run(root, rule, inventory)?;
+                let checked = architecture::run(root, rule, inventory)?;
                 self.output.extend(checked.findings);
                 self.edges.append(checked.edges);
             }

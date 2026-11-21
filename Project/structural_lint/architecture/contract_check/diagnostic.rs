@@ -1,5 +1,5 @@
 use crate::shared::diagnostics::Diagnostic;
-use crate::structural_lint::architecture::Issue;
+use crate::structural_lint::architecture::contract_rules::Issue;
 use crate::structural_lint::rule_set::lint_config::Rule;
 use anyhow::Result;
 
