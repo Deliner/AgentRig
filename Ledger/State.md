@@ -7,17 +7,18 @@ P187 (B194): the memory check scans files for lint exceptions in parallel, as it
 ## Workspace
 
 Branch: feature/parallel-exceptions
-Revision: 6293c8469cc12c2320830491c036f7f16ba51494
+Revision: 031f019680a544bd046242041c11f291a6b13d59
 
 ## Progress
 
-VAC 1 saves B194 and selects it as P187 by the user's standing instruction to improve the project autonomously. The
-ordered parallel helper and its use in the exception scan are in the working tree, not staged.
+VAC 2: the parallel source inspection becomes an ordered helper that maps each item on the available threads and
+returns the results in item order. Source preparation and the exception scan both use it; the exception scan then
+takes the results in file order, so the first error stays the same.
 
 ## Verification
 
-Before on `6293c84`, release candidate on AgentRig, warm runs: exception step 68, 69, 67, 71, 68 and 68 ms. With the
-unstaged change: 28, 29, 30, 27, 29 and 27 ms. `just test` passes 617 tests and `just lint` reports nothing.
+`just test` passes 617 tests, as on master `6293c84`. `just lint` and the rustfmt check report nothing. Exception
+step median 68 → 28.5 ms, memory check median 439 → 402 ms on AgentRig.
 
 ## Blockers
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then commit the parallel exception scan.
+Commit VAC 2, then archive P187 and B194 with the timings and acceptance results and run `just feature-merge`.
