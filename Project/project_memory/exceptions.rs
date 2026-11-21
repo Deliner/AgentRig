@@ -1,5 +1,6 @@
 // DECISION: D219
 use super::format::{Catalog, exception_links, table, target};
+use super::source::in_parallel;
 use crate::project_config::Context;
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
@@ -55,18 +56,23 @@ fn listed(context: &Context, memory: &Path) -> Result<BTreeSet<Entry>> {
 }
 fn carried(context: &Context, files: &[PathBuf]) -> Result<BTreeSet<Entry>> {
     let mut carried = BTreeSet::new();
-    for path in files {
-        let file = crate::shared::paths::resolve(&context.root.join(path))?;
-        let Ok(source) = String::from_utf8(fs::read(&file)?) else {
-            continue;
-        };
-        for exception in crate::shared::source_parsers::exceptions(&file, &source)? {
-            carried.insert(Entry {
-                decision: exception.decision,
-                rule: exception.rule,
-                file: file.clone(),
-            });
-        }
+    for found in in_parallel(files, |path| exceptions_in(context, path))? {
+        carried.extend(found?);
     }
     Ok(carried)
+}
+fn exceptions_in(context: &Context, path: &Path) -> Result<Vec<Entry>> {
+    let file = crate::shared::paths::resolve(&context.root.join(path))?;
+    let Ok(source) = String::from_utf8(fs::read(&file)?) else {
+        return Ok(Vec::new());
+    };
+    let found = crate::shared::source_parsers::exceptions(&file, &source)?;
+    Ok(found
+        .into_iter()
+        .map(|exception| Entry {
+            decision: exception.decision,
+            rule: exception.rule,
+            file: file.clone(),
+        })
+        .collect())
 }

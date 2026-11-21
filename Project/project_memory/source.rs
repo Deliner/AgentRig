@@ -2,7 +2,7 @@
 use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, hash_map::Entry},
+    collections::{BTreeSet, HashMap, HashSet, hash_map::Entry},
     num::NonZero,
     path::{Path, PathBuf},
 };
@@ -19,11 +19,14 @@ pub struct Sources {
 }
 impl Sources {
     pub fn prepare(&mut self, paths: impl IntoIterator<Item = PathBuf>) -> Result<()> {
-        let pending: BTreeSet<PathBuf> = paths
+        let pending: Vec<PathBuf> = paths
             .into_iter()
             .filter(|path| !self.parsed.contains_key(path))
+            .collect::<BTreeSet<_>>()
+            .into_iter()
             .collect();
-        for (path, inspected) in inspect_all(&pending)? {
+        let inspected = in_parallel(&pending, |path| inspect(path))?;
+        for (path, inspected) in pending.into_iter().zip(inspected) {
             if let Ok(source) = inspected {
                 self.parsed.insert(path, source);
             }
@@ -38,26 +41,28 @@ impl Sources {
         Ok(parsed.as_ref())
     }
 }
-fn inspect_all(paths: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, Result<Option<Source>>>> {
+pub fn in_parallel<T: Sync, R: Send>(items: &[T], each: impl Fn(&T) -> R + Sync) -> Result<Vec<R>> {
     let available = std::thread::available_parallelism().map_or(1, NonZero::get);
-    let workers = available.min(paths.len());
+    let workers = available.min(items.len());
+    let each = &each;
     std::thread::scope(|scope| {
         let handles = Vec::from_fn(workers, |worker| {
             scope.spawn(move || {
-                let assigned = paths.iter().skip(worker).step_by(workers);
+                let assigned = items.iter().enumerate().skip(worker).step_by(workers);
                 assigned
-                    .map(|path| (path.clone(), inspect(path)))
+                    .map(|(index, item)| (index, each(item)))
                     .collect::<Vec<_>>()
             })
         });
-        let mut inspected = BTreeMap::new();
+        let mut done = Vec::with_capacity(items.len());
         for handle in handles {
             let part = handle
                 .join()
                 .map_err(|panic| anyhow::anyhow!("source inspection panicked: {panic:?}"))?;
-            inspected.extend(part);
+            done.extend(part);
         }
-        Ok(inspected)
+        done.sort_by_key(|(index, _)| *index);
+        Ok(done.into_iter().map(|(_, result)| result).collect())
     })
 }
 pub fn inspect(path: &Path) -> Result<Option<Source>> {
