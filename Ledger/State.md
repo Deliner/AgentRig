@@ -2,23 +2,28 @@
 
 ## Focus
 
-P179 по B186: код, который никто не вызывает, удалён. VAC 1: карточка B186 сохранена и выбрана как P179.
+P179 по B186: код, который никто не вызывает, удалён. VAC 2: удалены функции без вызовов в продукте.
 
 ## Workspace
 
 Branch: feature/unused-code
-Revision: b03c5fd2e72284ad03c97d66af7f077039186cec
+Revision: b1f082ef9dced9acd97c013c5cd5c0aa1c177833
 
-Ветка от master `b03c5fd`. Изменены Backlog.md, Backlog/186.md, Plan.md и Plan/179.md.
+VAC 1 `b1f082e` сохранил карточку и пункт плана. Изменены файлы в Project/shared/atomic_files, fs_with_context и vcs.
 
 ## Progress
 
-Пробная сборка с закрытыми модулями назвала функции без вызовов в продукте: `FileKind::mode`, `Repository::diff` и
-`atomic_files::read_regular`. Карточка и пункт плана записаны, код ещё не менялся.
+Удалены `FileKind::mode`, `Repository::diff` с проверкой в тесте `revisions_are_read_exactly`, файл
+`bounded_read.rs` с `read_regular`, его двумя тестами и записью в architecture.yaml, реэкспорт `OpenOptionsExt`.
+Проверка `digest` из удалённого теста стала тестом `fingerprints_are_lowercase_sha256_hex_of_the_content`.
 
 ## Verification
 
-`just check --only memory` перед коммитом этого VAC.
+- `just candidate --version` собирается без предупреждений.
+- Пробная сборка с закрытыми модулями находит только реэкспорты типов `AffectedTests`, `Error` и `Observation`,
+  которые вызывающий получает из сигнатур; функций без вызовов нет. Пробная правка lib.rs откачена.
+- `just test shared::`: 32 прошли, отфильтровано 581, всего 613 вместо 614.
+- `just lint` без находок.
 
 ## Blockers
 
@@ -26,4 +31,4 @@ Revision: b03c5fd2e72284ad03c97d66af7f077039186cec
 
 ## Next action
 
-Закоммитить VAC 1, затем удалить три функции, их тесты и проверку `diff` в тесте `revisions_are_read_exactly`.
+Закоммитить VAC 2, затем архивировать P179 и B186 с Delivery и слить ветку через `just feature-merge`.

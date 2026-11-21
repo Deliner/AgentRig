@@ -166,23 +166,6 @@ impl<'a> Repository<'a> {
     pub fn export_index(&self) -> Result<tempfile::TempDir> {
         git::export_index(self.root)
     }
-
-    pub fn diff(&self, revisions: Revisions<'_>) -> Result<String> {
-        let bytes = git::run(
-            self.root,
-            &[
-                "diff",
-                "--no-ext-diff",
-                "--no-textconv",
-                "--binary",
-                "--no-renames",
-                revisions.from,
-                revisions.to,
-                "--",
-            ],
-        )?;
-        Ok(String::from_utf8(bytes)?)
-    }
 }
 
 fn validate_revision(value: String) -> Result<String> {
