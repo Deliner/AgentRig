@@ -7,17 +7,18 @@ P184 (B191): an existing absolute path is resolved by one `canonicalize` call in
 ## Workspace
 
 Branch: feature/fast-resolve
-Revision: 15d8beecfdcb2bb44dc0575e798b55edd878878e
+Revision: 29a41afb05e828b06db21a11d24b2e6245c49e1d
 
 ## Progress
 
-VAC 1 saves B191 and selects it as P184 by the user's standing instruction to improve the project autonomously. The
-resolver change and a temporary step probe are in the working tree, not staged.
+VAC 2: `resolve` in `Project/shared/paths/symlinks.rs` returns `canonicalize` for an absolute path that exists; a
+relative path or a failed `canonicalize` takes the former walk. The resolver test adds an existing path through a
+relative link and `..`.
 
 ## Verification
 
-Before on `15d8bee`, release candidate on AgentRig, three warm runs: memory check 742, 783 and 734 ms. With the
-unstaged change: 472, 475 and 467 ms.
+Full suite: 616 passed. `just lint`: clean. Release candidate on AgentRig, three warm runs with the step probe, since
+removed: memory check 742, 783 and 734 ms on `15d8bee` against 472, 475 and 467 ms.
 
 ## Blockers
 
@@ -25,4 +26,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, then remove the probe, add the existing-link test, run the suite and lint and commit the resolver.
+Commit VAC 2 through the hook, then write Delivery and archive P184 and B191.
