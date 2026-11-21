@@ -1,4 +1,4 @@
-use crate::shared::testing::{configure, git, initialized, invoke};
+use crate::shared::testing::{configure, edit_yaml, git, initialized, invoke};
 use serde_yaml_ng::{Mapping, Value};
 use std::{
     fs,
@@ -54,10 +54,7 @@ const FINDINGS: [(&str, &str); 11] = [
 ];
 
 fn tools(root: &Path, edit: impl FnOnce(&mut Mapping)) {
-    let path = root.join(".agentrig/tools.yaml");
-    let mut settings: Value = serde_yaml_ng::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    edit(settings.as_mapping_mut().unwrap());
-    fs::write(path, serde_yaml_ng::to_string(&settings).unwrap()).unwrap();
+    edit_yaml(&root.join(".agentrig/tools.yaml"), edit);
 }
 
 fn append(settings: &mut Mapping, key: &str, item: &str) {

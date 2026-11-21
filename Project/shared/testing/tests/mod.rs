@@ -1,6 +1,6 @@
+use serde::{Serialize, de::DeserializeOwned};
 use serde_yaml_ng::Value;
 use std::{
-    collections::BTreeMap,
     env,
     ffi::{OsStr, OsString},
     fs,
@@ -12,6 +12,9 @@ use std::{
 use tempfile::TempDir;
 
 mod launchers;
+mod snapshot;
+
+pub use snapshot::{Entry, Snapshot, snapshot};
 
 const FOREIGN: [&str; 8] = [
     "WORKER_OWNER",
@@ -206,19 +209,26 @@ pub fn describe_state(root: &Path, vac: &str) {
     fs::write(&state, template.replacen("Not recorded.", vac, 1)).unwrap();
 }
 
+pub fn edit_yaml<T: DeserializeOwned + Serialize>(path: &Path, edit: impl FnOnce(&mut T)) {
+    let mut value: T = serde_yaml_ng::from_str(&fs::read_to_string(path).unwrap()).unwrap();
+    edit(&mut value);
+    fs::write(path, serde_yaml_ng::to_string(&value).unwrap()).unwrap();
+}
+
 pub fn configure(root: &Path, module: &str, addition: &str) {
     let path = root.join(".agentrig").join(format!("{module}.yaml"));
-    let mut current: Value = serde_yaml_ng::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    let addition: Value = serde_yaml_ng::from_str(addition).unwrap();
-    if let (Some(entries), Some(added)) = (current.as_mapping_mut(), addition.as_mapping()) {
-        entries.extend(added.clone());
-    } else if let (Some(entries), Some(added)) = (current.as_sequence_mut(), addition.as_sequence())
-    {
-        entries.extend(added.iter().cloned());
-    } else {
-        panic!("{module}: the addition must have the configured shape");
-    }
-    fs::write(path, serde_yaml_ng::to_string(&current).unwrap()).unwrap();
+    edit_yaml(&path, |current: &mut Value| {
+        let addition: Value = serde_yaml_ng::from_str(addition).unwrap();
+        if let (Some(entries), Some(added)) = (current.as_mapping_mut(), addition.as_mapping()) {
+            entries.extend(added.clone());
+        } else if let (Some(entries), Some(added)) =
+            (current.as_sequence_mut(), addition.as_sequence())
+        {
+            entries.extend(added.iter().cloned());
+        } else {
+            panic!("{module}: the addition must have the configured shape");
+        }
+    });
 }
 
 pub fn project(root: &Path, commands: &str, checks: &str) {
@@ -284,34 +294,6 @@ pub fn checked_repository() -> (TempDir, PathBuf) {
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "baseline"]);
     (temp, root)
-}
-
-#[derive(Debug, PartialEq)]
-pub enum Entry {
-    Directory,
-    File(Vec<u8>),
-}
-
-pub type Snapshot = BTreeMap<PathBuf, Entry>;
-
-fn entries(directory: &Path, found: &mut Snapshot) {
-    for entry in fs::read_dir(directory).unwrap() {
-        let path = entry.unwrap().path();
-        let nested = path.is_dir();
-        if nested {
-            entries(&path, found);
-            found.insert(path, Entry::Directory);
-        } else {
-            let contents = fs::read(&path).unwrap();
-            found.insert(path, Entry::File(contents));
-        }
-    }
-}
-
-pub fn snapshot(root: &Path) -> Snapshot {
-    let mut found = BTreeMap::new();
-    entries(root, &mut found);
-    found
 }
 
 pub fn rerun(output: &str) -> Run {

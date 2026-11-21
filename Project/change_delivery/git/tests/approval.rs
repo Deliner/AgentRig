@@ -1,6 +1,6 @@
 // DECISION: D213
 use super::{DECISION, committed, installed, read, start};
-use crate::shared::testing::{configure, git, invoke};
+use crate::shared::testing::{configure, edit_yaml, git, invoke};
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -98,10 +98,7 @@ fn approve_applies_a_valid_proposal_and_restores_the_files_after_an_invalid_one(
 }
 
 fn edited(root: &Path, module: &str, edit: impl FnOnce(&mut Value)) {
-    let path = root.join(".agentrig").join(format!("{module}.yaml"));
-    let mut value: Value = serde_yaml_ng::from_str(&fs::read_to_string(&path).unwrap()).unwrap();
-    edit(&mut value);
-    fs::write(path, serde_yaml_ng::to_string(&value).unwrap()).unwrap();
+    edit_yaml(&root.join(".agentrig").join(format!("{module}.yaml")), edit);
 }
 
 fn probe(checks: &mut Value) -> &mut Value {
