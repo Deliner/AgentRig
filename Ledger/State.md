@@ -3,24 +3,24 @@
 ## Focus
 
 P175 delivers B182: each group of copies with the same behavior is replaced by one owner, behavior unchanged.
-VAC 6 lets the layout initialization tests read YAML through the identical yaml of their parent test module.
+VAC 7 lets the rule evaluation and the Rust and Python resolution tests write their files through shared testing
+write, the last standalone copies of that group.
 
 ## Workspace
 
 Branch: feature/faster-commit
-Revision: 073f76300cf84ba0bb1d94031374a93c2d9be564
+Revision: e3c7eda263ffb06c5dfda13f50e2827d1fbc5c7d
 
 ## Progress
 
 VAC 1 saved B182 as P175. VAC 2 added Repository::require and git::finish, VAC 3 neutral_metrics values and sole,
-VAC 4 the initialized and commit_identity fixtures, VAC 5 the shared test write. The two initialize helpers in
-layout.rs and clippy.rs stay: they live in different test directories whose only common owner, shared testing, is
-at its size warning limit.
+VAC 4 the initialized and commit_identity fixtures, VAC 5 the shared test write, VAC 6 one init test yaml reader.
+The write copies left in approval.rs and launchers.rs reuse the path for a later read or permission change.
 
 ## Verification
 
-just test rust_init_keeps_the_agentrig_layout compiled all 614 tests without warnings and passed 1; just lint
-printed no findings.
+just test structural_lint::architecture::resolution compiled all 614 tests without warnings and passed 26;
+structural_lint::rule_evaluation passed 8; just lint printed no findings, so the shared testing budget holds.
 
 ## Blockers
 
@@ -28,4 +28,4 @@ None.
 
 ## Next action
 
-Commit VAC 6, then archive P175 with its evidence and run feature-merge without a pin.
+Commit VAC 7, then give the read, edit and write of a YAML file in tests one owner in shared testing.

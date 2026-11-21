@@ -1,9 +1,9 @@
 use super::Python;
+use crate::shared::testing::write;
 use crate::structural_lint::architecture::extraction::{self, Target};
 use anyhow::{Result, ensure};
 use std::{
     collections::BTreeSet,
-    fs,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -248,9 +248,7 @@ fn resolved_files_agree_with_real_python_imports() {
         "src/main.py",
     ];
     for path in paths {
-        let target = directory.path().join(path);
-        fs::create_dir_all(target.parent().unwrap()).unwrap();
-        fs::write(target, "").unwrap();
+        write(directory.path(), path, "");
     }
     let expected = resolve(&paths, "src/main.py", "import pkg.api.model\n").unwrap();
     let script = "import sys,json,pathlib; root=pathlib.Path(sys.argv[1]); sys.path.insert(0,str(root/'src')); import pkg.api.model; print(json.dumps(sorted(str(pathlib.Path(m.__file__).relative_to(root)) for n,m in sys.modules.items() if n=='pkg' or n.startswith('pkg.'))))";
