@@ -46,7 +46,7 @@ pub fn run(runtime: &Path, id: &str) -> Result<()> {
 fn request(runtime: &Path, id: &str) -> Result<()> {
     fs::open_with(
         OpenOptions::new().create(true).truncate(false).write(true),
-        runtime.join("jobs").join(id).join("stop-requested"),
+        storage::directory(runtime).join(id).join("stop-requested"),
     )?
     .sync_all()?;
     Ok(())

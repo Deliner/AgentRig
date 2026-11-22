@@ -162,6 +162,7 @@ fn git(options: &Options<'_>) -> Git {
         remote: None,
         pin: None,
         install: None,
+        keep: Vec::new(),
     }
 }
 

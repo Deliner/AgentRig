@@ -247,6 +247,40 @@ fn hooks(root: &Path) {
     assert!(!edit("second").contains("deny"));
 }
 
+// DECISION: D233
+fn generated(root: &Path) -> Vec<String> {
+    let listing = [
+        "ls-files",
+        "--others",
+        "--ignored",
+        "--exclude-standard",
+        "--directory",
+    ];
+    let entries: Vec<String> = git(root, &listing)
+        .lines()
+        .filter(|entry| !entry.starts_with(".cache/"))
+        .map(|entry| entry.trim_suffix('/').to_owned())
+        .collect();
+    let built = entries
+        .iter()
+        .any(|entry| GENERATED.iter().any(|name| entry.ends_with(name)));
+    assert!(built, "{entries:?}");
+    entries
+}
+
+fn removed(root: &Path, generated: &[String], output: &str) {
+    for entry in generated {
+        assert!(!root.join(entry).exists(), "{entry}: {output}");
+        assert!(
+            output.contains(&format!("  {entry} (")),
+            "{entry}: {output}"
+        );
+    }
+    let named =
+        output.contains("removed ignored files, freeing") && output.contains("finished runs");
+    assert!(named, "{output}");
+}
+
 // DECISION: D191
 fn integrate(root: &Path, layout: &Layout) {
     git(root, &["add", "."]);
@@ -260,7 +294,10 @@ fn integrate(root: &Path, layout: &Layout) {
     git(root, &["add", "."]);
     let committed = consumer("git", root, &["commit", "-qm", "attach scaffold"]);
     assert_eq!(committed.code, Some(0), "{}", committed.output());
-    just(root, &["feature-merge"]);
+    let generated = generated(root);
+    let merged = consumer("just", root, &["feature-merge"]);
+    assert_eq!(merged.code, Some(0), "{}", merged.output());
+    removed(root, &generated, &merged.stdout);
     assert_eq!(git(root, &["branch", "--show-current"]), layout.base);
     let bootstrap = format!("{}bootstrap", layout.prefix);
     let deleted = git_run(root, &["branch", "-D", &bootstrap]);

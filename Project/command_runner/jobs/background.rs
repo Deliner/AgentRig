@@ -73,7 +73,7 @@ impl Job {
         record.group = Some(supervisor.clone());
         record.supervisor = supervisor;
         let job = Self {
-            directory: runtime.join("jobs").join(id),
+            directory: storage::directory(runtime).join(id),
             record,
             started: Instant::now(),
         };

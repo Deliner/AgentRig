@@ -10,6 +10,7 @@ mod pin;
 mod proposal;
 mod push;
 mod state;
+mod sweep;
 #[cfg(test)]
 mod tests;
 use super::gate;
@@ -50,8 +51,9 @@ pub fn merge(context: &Context) -> Result<i32> {
         compaction::require(context)?;
         let pushed = push::merged(&repository, settings, &feature);
         let cleaned = cleanup_jobs(context, &feature)?;
+        let swept = sweep::ignored(context, &repository);
         console::stdout(compaction::instruction());
-        return Ok(cleaned.max(pushed));
+        return Ok(cleaned.max(pushed).max(swept));
     }
     Ok(code)
 }

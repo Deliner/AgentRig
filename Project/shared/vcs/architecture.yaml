@@ -11,6 +11,7 @@ files:
   objects.rs: Stream the contents of many committed blobs through one Git process
   observation.rs: Observe branch and revision state
   repository.rs: The repository handle with its initialization, revision queries, paths, renames and diffs
+  removal.rs: Remove ignored work-tree entries except kept paths with their freed sizes and failures, keeping each .gitignore while its directory remains
   tree_entry.rs: A tree or index entry with its file kind and Git mode
 directories:
   tests: Verify repository behavior, hook registration and real repository queries

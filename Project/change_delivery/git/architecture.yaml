@@ -12,5 +12,6 @@ files:
   consent.rs: Record the user's standing consent for the open Plan items, pin a gated HEAD while it holds and list those pins
   compaction.rs: Record after a merge that the agent must compact its conversation, report whether that is due and lift it
   compaction.txt: Instruction to compact the conversation that a merge prints and the agent hook repeats
+  sweep.rs: Remove after a merge the finished runs and every file Git ignores except the rig's working state, the pinned runtime and the kept paths, and report what was freed or could not be removed
 directories:
   tests: Feature delivery and native or private transaction behavior scenarios

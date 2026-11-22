@@ -7,6 +7,7 @@ mod pin;
 mod push;
 mod start;
 mod state;
+mod sweep;
 
 use crate::shared::testing::{
     Run, commit_identity, configure, describe_state, git, git_run, invoke,

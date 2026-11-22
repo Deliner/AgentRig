@@ -122,6 +122,10 @@ pub fn remove_file(path: impl AsRef<Path>) -> Result<()> {
     at("remove", path.as_ref(), std::fs::remove_file(&path))
 }
 
+pub fn remove_dir(path: impl AsRef<Path>) -> Result<()> {
+    at("remove", path.as_ref(), std::fs::remove_dir(&path))
+}
+
 pub fn remove_dir_all(path: impl AsRef<Path>) -> Result<()> {
     // DECISION: D106 recursive-deletion
     at("remove", path.as_ref(), std::fs::remove_dir_all(&path))
