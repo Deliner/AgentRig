@@ -27,7 +27,7 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
 serde_path_to_error = "0.1"
 globset = "0.4"
-sha2 = "0.10"
+sha2 = { version = "0.11", default-features = false }
 fs2 = "0.4"
 tempfile = "3"
 shell-words = "1"

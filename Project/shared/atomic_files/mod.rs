@@ -6,6 +6,6 @@ mod replacement;
 mod tests;
 
 pub use atomic_json::{load_json, save_json};
-pub use fingerprint::digest;
+pub use fingerprint::{digest, hex};
 pub use overlay::Overlay;
 pub use replacement::replace;
