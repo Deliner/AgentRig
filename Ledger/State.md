@@ -2,23 +2,24 @@
 
 ## Focus
 
-P196 (B203): after a merge the agent compacts its context. This VAC saves the agreed card B204 (cleanup of ignored
-files after a merge, empty keep list by default) in Backlog; it is not selected for Plan.
+P196 (B203), final VAC: archive the completed card and plan entry, commit the approved pin f72dee2, the catalog
+command `codex` with its rig difference, and the live Codex evidence for AC6 and AC10.
 
 ## Workspace
 
 Branch: feature/compact-after-merge
-Revision: 6101968013669ae8153dd91eec556128407fa0c5
+Revision: f72dee22bbeea601a0af54178616c84cd2293ee5
 
 ## Progress
 
-- VAC1–VAC3 committed: requirement after a merge (D230), mod shipped as a project marketplace (D231).
-- AC9 done: the user deleted `~/.claude/skills/self-compact`.
-- This VAC: Backlog row and card B204, saved after the user's explicit agreement.
+P196 and B203 moved to Archive; Plan is empty; D230 and D231 link the archived card and delivery. The user approved
+`tooling/distribution/stable.txt` (f72dee2), `.agentrig/commands.yaml` (`codex`) and its entry in
+`rig_differences.yaml`. Delivery records AC1-AC6 and AC8-AC10 as met.
 
 ## Verification
 
-The commit gate checks memory links and the Backlog format.
+`just check --only memory` passed. Live Codex in `.tmp/agentrig-live`: after `just feature-merge` the next call was
+refused with the compaction instruction, resume kept the refusal, automatic compaction lifted it and the read passed.
 
 ## Blockers
 
@@ -26,5 +27,5 @@ None.
 
 ## Next action
 
-Archive P196 and B203 with delivery evidence, `just propose-pin HEAD`, commit the pin, `just feature-merge`, then
-check AC7 live in this session.
+Commit this VAC, run `just feature-merge`, then check AC7: the next tool call is refused until
+`mcp__self-compact__compact` compacts the conversation, and calls pass after it.

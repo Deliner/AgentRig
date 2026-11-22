@@ -39,6 +39,11 @@
   - [.agentrig, just, lint.just, '@.agentrig/bin/agentrig lint --root . "$@"']
   - [justfile, "import '.agentrig/just/development.just'"]
   - [.agentrig, just, development.just]
+- reason: >-
+    The rig checks live how the agents it supports work under it, so its agent can run a Codex agent on a task in a
+    test project; init cannot assume Codex is installed.
+  at:
+  - [.agentrig, commands.yaml, codex]
 - reason: The rig checks its Python test fixtures and the spelling of the whole repository with tools pinned in tooling.
   at:
   - [.agentrig, commands.yaml, ruff-format]
