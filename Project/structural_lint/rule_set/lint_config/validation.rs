@@ -21,14 +21,42 @@ impl Thresholds {
         }
     }
 }
+struct Checked<'a> {
+    resources: &'a Path,
+    skills: HashSet<&'a str>,
+    globs: HashSet<&'a [String]>,
+}
+impl<'a> Checked<'a> {
+    fn skill(&mut self, value: &'a str) -> Result<()> {
+        let fresh = !self.skills.contains(value);
+        if fresh {
+            validate_skill(self.resources, value)?;
+            self.skills.insert(value);
+        }
+        Ok(())
+    }
+    fn globs(&mut self, patterns: &'a [String]) -> Result<()> {
+        let fresh = !self.globs.contains(patterns);
+        if fresh {
+            globs(patterns)?;
+            self.globs.insert(patterns);
+        }
+        Ok(())
+    }
+}
 impl Config {
     pub fn validate(&self, resources: &Path) -> Result<()> {
         let unsupported_version = self.version != 1;
         if unsupported_version {
             bail!("unsupported config version {}", self.version);
         }
-        validate_skill(resources, &self.config_skill)?;
-        globs(&self.exclude)?;
+        let mut checked = Checked {
+            resources,
+            skills: HashSet::new(),
+            globs: HashSet::new(),
+        };
+        checked.skill(&self.config_skill)?;
+        checked.globs(&self.exclude)?;
         let missing_rules = self.rules.is_empty();
         if missing_rules {
             bail!("at least one rule is required");
@@ -39,7 +67,7 @@ impl Config {
             if invalid_id {
                 bail!("empty or duplicate rule ID");
             }
-            rule.validate(resources)?;
+            rule.validate(&mut checked)?;
         }
         single_pairs(&self.rules)?;
         measured_dependencies(&self.rules)
@@ -76,7 +104,7 @@ fn single_pairs(rules: &[Rule]) -> Result<()> {
     Ok(())
 }
 impl Rule {
-    fn validate(&self, root: &Path) -> Result<()> {
+    fn validate<'a>(&'a self, checked: &mut Checked<'a>) -> Result<()> {
         let incompatible_target = self.kind.descriptor().target != self.target;
         if incompatible_target {
             bail!("{}: unsupported target {}", self.id, self.target);
@@ -85,8 +113,8 @@ impl Rule {
         if missing_selection {
             bail!("{}: include must select targets", self.id);
         }
-        globs(&self.include)?;
-        globs(&self.exclude)?;
+        checked.globs(&self.include)?;
+        checked.globs(&self.exclude)?;
         let architecture =
             self.kind == capabilities::Kind::Structure(Structure::DirectoryArchitecture);
         let extension_target = if architecture { "file" } else { &self.target };
@@ -98,13 +126,10 @@ impl Rule {
         capabilities::validate_extensions(self.kind, &self.extensions)?;
         capabilities::validate_includes(self.kind, &self.include)?;
         self.validate_severity()?;
-        validate_skill(root, &self.warning_skill)?;
-        let distinct_skills = self.error_skill != self.warning_skill;
-        if distinct_skills {
-            validate_skill(root, &self.error_skill)?;
-        }
+        checked.skill(&self.warning_skill)?;
+        checked.skill(&self.error_skill)?;
         for entry in &self.overrides {
-            self.validate_override(entry)?;
+            self.validate_override(entry, checked)?;
         }
         Ok(())
     }
@@ -198,13 +223,13 @@ impl Rule {
         }
         Ok(())
     }
-    fn validate_override(&self, entry: &Override) -> Result<()> {
+    fn validate_override<'a>(&self, entry: &'a Override, checked: &mut Checked<'a>) -> Result<()> {
         let thresholdless = entry.warning.is_none() && entry.error.is_none();
         let incomplete = entry.include.is_empty() || thresholdless;
         if incomplete {
             bail!("{}: override needs selectors and a threshold", self.id);
         }
-        globs(&entry.include)?;
+        checked.globs(&entry.include)?;
         validate_extensions(&entry.extensions, &self.target)?;
         capabilities::validate_extensions(self.kind, &entry.extensions)?;
         capabilities::validate_includes(self.kind, &entry.include)?;
