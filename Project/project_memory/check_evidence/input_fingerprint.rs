@@ -1,5 +1,5 @@
 use crate::project_config::Context as Project;
-use crate::shared::atomic_files::digest;
+use crate::shared::atomic_files::{digest, hex};
 use crate::shared::fs_with_context::{self as fs, PermissionsExt};
 use crate::shared::parallel_map::in_parallel;
 use crate::shared::vcs::Repository;
@@ -50,7 +50,7 @@ fn fingerprint_paths(tree: &Path, runtime: &str, mut paths: Vec<PathBuf>) -> Res
         feed(&mut digest, path.as_os_str().as_encoded_bytes())?;
         entry?.feed(&mut digest)?;
     }
-    Ok(format!("{:x}", digest.finalize()))
+    Ok(hex(&digest.finalize()))
 }
 fn feed(digest: &mut Sha256, bytes: &[u8]) -> Result<()> {
     digest.update(u64::try_from(bytes.len())?.to_le_bytes());
