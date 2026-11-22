@@ -1,14 +1,21 @@
 # Repository instructions
 
+AgentRig is a deterministic harness that lets AI agents (Claude Code, Codex) develop a project autonomously for long
+without losing code quality or architecture; it ships handlers for Rust and Python projects. The agent chooses the
+engineering, the rig owns the process: Plan → feature branch → verified atomic changes (VACs) → merge. Its hooks route
+agent edits and commands, its gate blocks a failing commit or merge, and its protected files and runtime pin change
+only with the user's approval; VAC boundaries and acceptance remain the agent's. A rig mechanism binds to a point every
+project has, such as a Git event, an agent hook event or a configured path, takes project rules from the `.agentrig/`
+modules and holds without the agent's cooperation; one that needs a project's domain is a project check (D234).
+
 ## Quality standard
 
 AgentRig sets the code standard (D151): code kept 20 years, AI-first and agent-native, clear at once, well structured,
 its architecture minimizing corner cases, undefined states and error-prone places; lint rules derive from it. Code not
 conforming to the rig is repaired. Keep every check that raises quality, even if the rig lacks the construct;
-refactoring cost never rejects one, and decisions may be revised. The rig dogfoods its checks and fully configures any
-project as a controlled, deterministic environment where an agent cannot write code that its built-in linter rejects.
-No backward compatibility (D185): a change may break projects, configurations and runtimes from an older rig, which
-then update by hand. No migration, upgrade path or compatibility shim is required until the user explicitly asks.
+refactoring cost never rejects one, and decisions may be revised. The rig dogfoods its checks. No backward
+compatibility (D185): a change may break projects, configurations and runtimes from an older rig, which then update by
+hand. No migration, upgrade path or compatibility shim is required until the user explicitly asks.
 
 ## Resume and scope
 
@@ -19,10 +26,9 @@ when a value carries an invariant, a mode or a lifecycle, and norm-or-choice for
 
 Use the execute-plan-feature skill for VAC delivery, plan evolution, blockers and branch integration. Explicit
 maintenance instructions independently authorize tooling work; they do not authorize starting unrelated product
-features. This repository develops the portable worker itself. Worker capabilities, including lint, are first-level
-features placed directly in Project under two-word names, with leaf support in Project/shared; tooling holds the
-development launchers, distribution and Python verification configuration, and repository memory is Ledger (D042).
-Runtime paths, Git base/prefix, commands, checks, tools, hook routes, oracles and Rust flags live in .agentrig/ modules.
+features. Worker capabilities, including lint, are first-level features placed directly in Project under two-word
+names, with leaf support in Project/shared; tooling holds the development launchers, distribution and Python
+verification configuration, and repository memory is Ledger (D042); project settings live in .agentrig/ modules.
 
 ## Commands and verification
 
@@ -31,34 +37,30 @@ Runtime paths, Git base/prefix, commands, checks, tools, hook routes, oracles an
 **Per the user's explicit instruction, agents may edit files directly with editing tools such as `apply_patch`, `Edit`
 and `Write`, without a `just write` operation. Do not require a Just wrapper for ordinary file editing.**
 
-Invoke shell operations through the Just recipes grouped under .agentrig/just/ (`just --list`; `just list` shows
-the catalog). Use `just read -- PROGRAM ...` for sandboxed inspection, `just write -- PROGRAM ...` for shell mutations
-with the programs configured in .agentrig/commands.yaml and `just run NAME -- ...` for catalog commands. Each recipe is
-a thin adapter directly preceded by a What/Why comment.
+Invoke shell operations through the Just recipes grouped under .agentrig/just/. Use `just read -- PROGRAM ...` for
+sandboxed inspection, `just write -- PROGRAM ...` for shell mutations with configured programs and
+`just run NAME -- ...` for catalog commands. Each recipe is a thin adapter directly preceded by a What/Why comment.
 
 Choose a cohesive VAC and a falsifiable focused check, edit and correct failures, then inspect and stage only that
-change. When a VAC adds or changes tests, apply testing-discipline: place each test by the behavior it exercises and
-verify through the public surface, not internal state. Commit through .agentrig/hooks/pre-commit, which runs the
-configured exported-index gate with affected test groups plus smoke tests. Do not substitute the full test suite for
-unmapped commit paths; maintain the impact map instead. Never bypass the hook; avoid rerunning the gate just before
-the same commit except for diagnosis. Finish on a clean feature branch with `just feature-merge`, which runs the tests
-affected by the whole branch; retain the branch. Never commit directly to the base configured in .agentrig/git.yaml.
+change. When a VAC adds or changes tests, apply testing-discipline. Commit through .agentrig/hooks/pre-commit, which
+runs the configured exported-index gate with affected test groups plus smoke tests. Do not substitute the full test
+suite for unmapped commit paths; maintain the impact map instead. Never bypass the hook; avoid rerunning the gate just
+before the same commit except for diagnosis. Finish on a clean feature branch with `just feature-merge`, which runs the
+tests affected by the whole branch; retain the branch. Never commit directly to the base set in .agentrig/git.yaml.
 
 ## Memory and skills
 
 Before editing Plan, Archive/Plan, Backlog, Decisions, Invariants or State (including detail files), read the matching
 edit-* skill. Skills keep one copy in Project/shared/skills, which Codex reads via .agents/skills and Claude Code via
-.claude/skills. Hook routes give memory-skill and fail-closed-enforcement guidance and stop the first edit in each
-Project or tooling directory for refactor-large-directory, the first decision edit for norm-or-choice (D186) and the
-first VAC check or commit in a context for edit-state (D047). For opaque shell writes, apply the skill yourself.
+.claude/skills. Hook routes in .agentrig/hooks.yaml give skill guidance, and a blocking route stops the first
+matching edit, check or commit until its skill is read (D186, D047); for opaque shell writes, apply the skill yourself.
 
 Use edit-backlog to draft new ideas and requirement changes in chat; save the shown version only after explicit user
 agreement. New product outcomes pass through Backlog, which has no priority, to Plan, which holds only selected work.
 A selected set runs autonomously without repeated questions between cards; completed work rotates into Archive/.
 
 State describes only the current VAC, with its verification and next action, and each feature commit carries it; the
-commit guard refuses the empty template that post-commit restores, and feature-merge commits it. Plan owns selection
-and delivery, referencing the agreed Backlog outcome and acceptance; Archive keeps completed cards; Git owns history.
+commit guard refuses the empty template that post-commit restores, and feature-merge commits it. Git owns history.
 
 D020 governs consolidation: committed decision IDs, statements and detail contents are immutable; application links
 identify current owners and may migrate with refactoring. Each linked Rust/Python/shell owner needs a real DECISION:
@@ -66,8 +68,7 @@ DNNN comment. Invariants bind a marked Rust/Python test to its exact configured 
 
 ## Runtime changes
 
-Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. The
-recipes reach the installed development runtime through tooling/worker/run, which never builds candidate sources. All
+Run `just bootstrap` once after cloning to install the verified revision in tooling/distribution/stable.txt. All
 command, hook, memory, gate and Git logic belongs to the Rust runtime; adapters only forward calls.
 
 Use `just candidate ...` to build and invoke the product under development. The build check and native test fixture
