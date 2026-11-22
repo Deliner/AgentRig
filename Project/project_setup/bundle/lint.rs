@@ -115,11 +115,16 @@ fn cataloged(kind: Kind) -> bool {
 }
 
 // DECISION: D198
+// DECISION: D231
 fn program_language(paths: &Paths, language: &str) -> Value {
     let kind = Kind::Structure(Structure::ProgramLanguage);
     let mut rule = example_rule(kind, &paths.skills, &["**".into()]);
     rule["allowed_languages"] = json!([language]);
-    let adapters = [paths.service_path("hooks/**"), paths.service_path("bin/**")];
+    let adapters = [
+        paths.service_path("hooks/**"),
+        paths.service_path("bin/**"),
+        paths.service_path("mods/**"),
+    ];
     rule["exclude"] = json!(adapters);
     rule
 }

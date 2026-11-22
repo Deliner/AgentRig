@@ -1,0 +1,5 @@
+purpose: "Marketplace manifest naming the mods and their directories"
+type: flat
+files:
+  marketplace.json: "Names the marketplace agentrig and the directory of each mod"
+directories: {}

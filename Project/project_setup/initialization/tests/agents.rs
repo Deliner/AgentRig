@@ -74,6 +74,33 @@ fn init_registers_both_agents_and_each_sees_skills_through_its_directory() {
     }
 }
 
+fn json(path: &Path) -> Value {
+    serde_json::from_str(&fs::read_to_string(path).unwrap()).unwrap()
+}
+
+// DECISION: D231
+#[test]
+fn init_enables_the_compaction_mod_that_its_marketplace_ships() {
+    let (_temp, root) = initialized();
+    let settings = registration(&root, Agent::ClaudeCode);
+    assert_eq!(settings["enabledPlugins"]["self-compact@agentrig"], true);
+    let source = &settings["extraKnownMarketplaces"]["agentrig"]["source"];
+    assert_eq!(source["source"], "directory", "{settings}");
+    let marketplace = root.join(source["path"].as_str().unwrap());
+    let manifest = json(&marketplace.join(".claude-plugin/marketplace.json"));
+    assert_eq!(manifest["name"], "agentrig");
+    let plugin = &manifest["plugins"][0];
+    assert_eq!(plugin["name"], "self-compact");
+    let directory = marketplace.join(plugin["source"].as_str().unwrap());
+    let named = json(&directory.join(".claude-plugin/plugin.json"));
+    assert_eq!(named["name"], "self-compact");
+    let modules = json(&directory.join("hooks/hooks.json"))["modules"].clone();
+    let module = directory.join("hooks").join(modules[0].as_str().unwrap());
+    let registered = fs::read_to_string(module).unwrap();
+    let tool = "const TOOL = 'mcp__self-compact__compact'";
+    assert!(registered.contains(tool) && registered.contains("name: 'compact'"));
+}
+
 // DECISION: D200
 #[test]
 fn a_hook_that_cannot_start_blocks_the_call_with_its_reason() {

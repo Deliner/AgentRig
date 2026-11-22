@@ -6,12 +6,16 @@ use serde_json::{Value, json};
 use std::path::Path;
 
 const REFUSAL: &str = "protected enforcement files";
-const ENFORCEMENT: [&str; 14] = [
+// DECISION: D230
+// DECISION: D231
+const ENFORCEMENT: [&str; 16] = [
     ".agentrig/bin/agentrig",
     ".agentrig/commands.yaml",
     ".agentrig/checks.yaml",
     ".agentrig/lint-baseline.yaml",
     ".agentrig/hooks/pre-commit",
+    ".agentrig/mods/self-compact/hooks/register.ts",
+    ".cache/runtime/compaction",
     ".git/config",
     ".agentrig/just/x.just",
     "justfile",

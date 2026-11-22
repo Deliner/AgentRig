@@ -1,0 +1,5 @@
+purpose: "Mod that lets Claude compact its own conversation when AgentRig requires it"
+files: {}
+directories:
+  .claude-plugin: "Plugin manifest with the mod's name, version and description"
+  hooks: "Module registration and the compaction tool"

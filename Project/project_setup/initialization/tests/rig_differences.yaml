@@ -39,6 +39,11 @@
   - [.agentrig, just, lint.just, '@.agentrig/bin/agentrig lint --root . "$@"']
   - [justfile, "import '.agentrig/just/development.just'"]
   - [.agentrig, just, development.just]
+- reason: >-
+    The rig checks live how the agents it supports work under it, so its agent can run a Codex agent on a task in a
+    test project; init cannot assume Codex is installed.
+  at:
+  - [.agentrig, commands.yaml, codex]
 - reason: The rig checks its Python test fixtures and the spelling of the whole repository with tools pinned in tooling.
   at:
   - [.agentrig, commands.yaml, ruff-format]
@@ -87,6 +92,11 @@
   at:
   - [.agentrig, lint.yaml, rules, program-language, allowed_languages, shell]
   - [.agentrig, lint.yaml, rules, program-language, allowed_languages, python]
+- reason: >-
+    The rig keeps the source of the Claude Code mods that init installs in Project/shared/mods; Claude Code loads a mod
+    only as a TypeScript module, so that source is an adapter like the installed copy.
+  at:
+  - [.agentrig, lint.yaml, rules, program-language, exclude, 'Project/shared/mods/**']
 - reason: The rig vendors the tree-sitter Rust grammar, which is generated code outside its architecture.
   at:
   - [.agentrig, lint.yaml, exclude, Project/shared/source_parsers/tree-sitter-rust]

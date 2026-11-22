@@ -72,6 +72,10 @@ release:
   argv:
   - bash
   - tooling/distribution/release.sh
+codex:
+  purpose: Run a Codex agent non-interactively on a task, such as a live check of the rig with Codex in a test project
+  argv: [codex, exec]
+  accepts_args: true
 rustfmt:
   purpose: Check Rust formatting
   argv:

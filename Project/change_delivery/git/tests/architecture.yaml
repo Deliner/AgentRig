@@ -6,6 +6,7 @@ files:
   pin.rs: A pin proposal with its changed sources, its install at the user's approval and the approved forward pin at the commit guard
   integration.rs: Feature integration, rebase, conflicts and refusals that preserve branches
   cleanup.rs: Post-merge cleanup of owned runs
+  compaction.rs: The compaction a merge requires, the agent hook refusals until a renewed context and an unreadable requirement
   push.rs: Pushes to a configured remote after commits and merges, and their failures
   start.rs: Feature start from the base carrying pending changes and its refusals
   state.rs: State reset after feature commits and the empty State that integration brings to the base

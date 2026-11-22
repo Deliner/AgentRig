@@ -1,5 +1,6 @@
 mod approval;
 mod cleanup;
+mod compaction;
 mod guards;
 mod integration;
 mod pin;

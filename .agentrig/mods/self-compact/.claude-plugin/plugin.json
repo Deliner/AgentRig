@@ -1,0 +1,5 @@
+{
+  "name": "self-compact",
+  "version": "0.2.0",
+  "description": "Lets Claude compact its own conversation, like /compact, when AgentRig requires it after a merge."
+}
