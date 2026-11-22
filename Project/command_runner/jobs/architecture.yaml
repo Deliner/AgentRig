@@ -5,7 +5,7 @@ files:
   background.rs: Launch and adopt persistent jobs as process group leaders
   cleanup.rs: Clean completed or abandoned jobs according to owner and lifetime
   group.rs: Observe, signal and recognize owned process groups by their leader identity
-  job.rs: The job owner and the handle that registers, prepares, attaches and finishes a job
+  job.rs: The job owner and the handle that registers, attaches and finishes a job
   logs.rs: Read retained job output and report truncation
   process.rs: Execute child processes in their capture mode with signal forwarding and exit status handling
   record.rs: The job record with its process grouping as job directories store it

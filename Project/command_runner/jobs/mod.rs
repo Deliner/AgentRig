@@ -12,7 +12,7 @@ mod stop;
 mod storage;
 mod streams;
 pub use cleanup::run as clean_jobs;
-pub use job::{Job, owner};
+pub use job::{Job, Launch, owner};
 pub use process::{Capture, execute, exit_code, streamed};
 pub use report::print as print_report;
 

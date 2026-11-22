@@ -128,7 +128,14 @@ fn logged(
         cargo_target: context.cargo_target.as_deref(),
         rustflags: &context.config.rust.rustflags,
     };
-    let mut job = match jobs::Job::create(context, name, &cwd) {
+    let launch = jobs::Launch {
+        command: name,
+        cwd: &cwd,
+        argv: &argv,
+        access,
+        lifetime: spec.lifetime,
+    };
+    let mut job = match jobs::Job::create(context, &launch) {
         Ok(job) => job,
         // DECISION: D193
         Err(refusal) => {
@@ -136,7 +143,6 @@ fn logged(
             return Ok((output, None));
         }
     };
-    job.prepare(&argv, access, spec.lifetime)?;
     let result = tracked(&cwd, &argv, options, Some(&mut job));
     let code = result.as_ref().map(jobs::exit_code).unwrap_or(127);
     job.finish(
@@ -156,8 +162,16 @@ pub fn background(context: &Context, args: &[String]) -> Result<i32> {
     let argv = argv(context, name, extra)?;
     let spec = &context.config.commands[name];
     let cwd = context.path(&spec.cwd)?;
-    let mut job = jobs::Job::create(context, name, &cwd)?;
-    job.prepare(&argv, access(spec, &argv), spec.lifetime)?;
+    let job = jobs::Job::create(
+        context,
+        &jobs::Launch {
+            command: name,
+            cwd: &cwd,
+            argv: &argv,
+            access: access(spec, &argv),
+            lifetime: spec.lifetime,
+        },
+    )?;
     let id = job.launch(&std::env::current_exe()?)?;
     console::stdout(serde_json::json!({"run_id": id}));
     Ok(0)

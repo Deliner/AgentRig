@@ -14,8 +14,15 @@ pub struct Job {
     pub(super) record: Record,
     pub(super) started: std::time::Instant,
 }
+pub struct Launch<'a> {
+    pub command: &'a str,
+    pub cwd: &'a Path,
+    pub argv: &'a [String],
+    pub access: Access,
+    pub lifetime: Lifetime,
+}
 impl Job {
-    pub fn create(context: &Context, command: &str, cwd: &Path) -> Result<Self> {
+    pub fn create(context: &Context, launch: &Launch<'_>) -> Result<Self> {
         let project = &context.root;
         let directory = storage::create(&context.runtime)?;
         let run_id = directory
@@ -32,10 +39,10 @@ impl Job {
             owner,
             parent_run: std::env::var("WORKER_PARENT_RUN").ok(),
             project: project.into(),
-            cwd: cwd.into(),
+            cwd: launch.cwd.into(),
             branch,
-            command: command.into(),
-            argv: Vec::new(),
+            command: launch.command.into(),
+            argv: launch.argv.into(),
             started: now()?,
             finished: None,
             exit_code: None,
@@ -45,8 +52,8 @@ impl Job {
             grouping: Grouping::Inherited,
             duration_seconds: None,
             group: None,
-            access: Access::Unconfined,
-            lifetime: Lifetime::Task,
+            access: launch.access,
+            lifetime: launch.lifetime,
             background: false,
         };
         Self::registered(directory, record)
@@ -59,12 +66,6 @@ impl Job {
         };
         job.save()?;
         Ok(job)
-    }
-    pub fn prepare(&mut self, argv: &[String], access: Access, lifetime: Lifetime) -> Result<()> {
-        self.record.argv = argv.into();
-        self.record.access = access;
-        self.record.lifetime = lifetime;
-        self.save()
     }
     pub fn directory(&self) -> &Path {
         &self.directory
