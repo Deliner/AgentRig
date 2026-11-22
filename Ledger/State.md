@@ -2,24 +2,22 @@
 
 ## Focus
 
-Maintenance at the user's request of 2026-11-22: AGENTS.md and CLAUDE.md open with a Purpose section that says what
-AgentRig is and for what, adapted to the current rig, plus the criterion of a rig mechanism; not a Plan card. VAC 1:
-the Purpose section in both files within the 70-line limit, decision D234 for the criterion and the user's request in
-Ledger/Requests.md.
+Maintenance at the user's request of 2026-11-22 on feature/project-purpose. VAC 1 `888dc8c` put the Purpose section
+and D234 into AGENTS.md and CLAUDE.md. VAC 2: save the agreed card B205 on removing the lint ratchet in Backlog; the
+user said on 2026-11-22 «Да, сохраняй и бери в работу и делай, короче».
 
 ## Workspace
 
 Branch: feature/project-purpose
-Revision: 5c28c4a43872fb0bf24df43b5838889445e2d46a
+Revision: 888dc8c421fb0f06e423dc59c0d891703d4d07cb
 
 ## Progress
 
-The user agreed the Purpose text shown in chat. Other sections are condensed by the lines the section adds.
+B205 card and Backlog row written with the text shown in chat.
 
 ## Verification
 
-`just check --only lint` and `just check --only memory` pass on the working tree (AGENTS.md at 70 nonblank lines,
-CLAUDE.md the same text); the commit gate follows.
+Planned: `just check --only memory`, then the commit gate.
 
 ## Blockers
 
@@ -27,4 +25,4 @@ None.
 
 ## Next action
 
-Commit VAC 1, show the user the diff and the draft card on removing the lint ratchet; merge after the user's answer.
+Commit VAC 2, run `just feature-merge`, then select B205 as P198 on a new branch and deliver it.
