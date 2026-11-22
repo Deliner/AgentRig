@@ -43,6 +43,10 @@ signal-hook = "0.3"
 libc = "0.2"
 tree-sitter-bash = "0.25.1"
 
+# DECISION: D232
+[profile.release]
+incremental = true
+
 # DECISION: D176
 [lints.cargo]
 unused_dependencies = "deny"
