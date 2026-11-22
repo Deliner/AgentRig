@@ -28,14 +28,14 @@ const MODS: [(&str, &str); 4] = [
     ),
 ];
 
-pub(super) fn bundle(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
+pub(super) fn bundle(files: &mut Files, config: &Config) -> Result<()> {
     // DECISION: D195
     let instructions = files
         .get("AGENTS.md")
         .context("CLAUDE.md copies AGENTS.md, which the bundle lacks")?
         .clone();
     files.insert("CLAUDE.md".into(), instructions);
-    let mut settings = adapters::settings(config, root_command, Agent::ClaudeCode);
+    let mut settings = adapters::settings(config, Agent::ClaudeCode);
     install_mods(files, config, &mut settings);
     files.insert(
         ".claude/settings.json".into(),
@@ -55,7 +55,7 @@ fn install_mods(files: &mut Files, config: &Config, settings: &mut Value) {
     settings["enabledPlugins"][format!("self-compact@{MARKETPLACE}")] = json!(true);
 }
 
-pub fn registration(context: &Context) -> Result<bool> {
+pub fn registration(context: &Context) -> bool {
     let settings = fs::read(context.root.join(".claude/settings.json"))
         .ok()
         .and_then(|bytes| serde_json::from_slice::<Value>(&bytes).ok());
@@ -65,7 +65,7 @@ pub fn registration(context: &Context) -> Result<bool> {
             .is_none_or(|value| value == false)
     });
     let registered = enabled
-        && adapters::hooks_registered(&context.config, settings.as_ref(), Agent::ClaudeCode)?;
+        && adapters::hooks_registered(&context.config, settings.as_ref(), Agent::ClaudeCode);
     console::stdout(format!(
         "Claude Code registration: {}",
         if registered {
@@ -74,5 +74,5 @@ pub fn registration(context: &Context) -> Result<bool> {
             "MISSING OR CHANGED; inspect .claude/settings.json"
         }
     ));
-    Ok(registered)
+    registered
 }

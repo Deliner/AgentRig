@@ -2,33 +2,39 @@
 
 ## Focus
 
-Maintenance under the user's overnight speed-up authorization, no business logic change: a catalog job registers
-its record once with its argv, access and lifetime instead of saving a placeholder record and then preparing it, so
-each command pays one synchronized record write fewer and no record shows the default access of an unprepared job.
+Maintenance under the user's overnight speed-up authorization, no business logic change: the generated Git hooks
+take the project root from the working directory, where Git runs them, instead of starting
+`git rev-parse --show-toplevel` and passing `--root` on every call. Agent hook adapters keep resolving the root.
 
 ## Workspace
 
 Branch: feature/cwd-git-hooks
-Revision: 4069d7cd92ec3919443ec9ae4333ace818567b63
+Revision: dded29a812c39bccabc24daa00fc4b584855e7fa
 
-Staged: `Project/command_runner/jobs/{job.rs,mod.rs,architecture.yaml}` (`Job::create` takes a `Launch`; `prepare`
-is gone) and `Project/command_runner/mod.rs` (foreground and background callers). Unstaged and kept for the next
-VAC: the Git hooks taking the root from the working directory, which waits for the user's `! just approve`.
+Uncommitted: `Project/shared/vcs/hooks.rs` (git hooks without the root line and `--root`; `generate` returns only
+the files), `Project/project_setup/bundle/adapters.rs` (owns the root command of the agent hooks, its only user;
+git hooks name the service launcher relatively), `bundle/{mod,claude}.rs`, `inspection/doctor.rs` and
+`shared/vcs/mod.rs` (callers without the root parameter; registration checks return `bool`, as nothing fails),
+`Project/change_delivery/git/tests/guards.rs` (commit, State reset and branch retention started in a
+subdirectory), and the user-approved `.agentrig/hooks/{pre-commit,reference-transaction,post-commit}` with the pin
+`tooling/distribution/stable.txt` of 3b1ed2e. dded29a on this branch registers job records once.
 
 ## Progress
 
-Implemented; the record keeps its fields and later attach, launch and finish saves.
+Generator, adapter, callers and test are written. The user approved the matching repository hooks and the pin of
+3b1ed2e; I023 compares the hooks with the init output, so all commit together.
 
 ## Verification
 
-`just run test -- command_runner::` passed 30 tests; `just check --only` clippy, rustfmt and lint pass. A temporary
-probe (removed) ran `run read -- wc -c AGENTS.md` with the release candidate on this repository: 4 x 30 rounds
-averaged 37.0-41.5 ms before and 34.5-35.1 ms after; one synchronized save measured 3.2 ms.
+The full `just run test` passed 633 of 634 tests before approval, failing only the rig parity test on the three
+hook bodies; with the approved hooks that test (I023) passes; Codex and Claude settings match. `just check --only` lint,
+rustfmt, clippy and memory pass. The installed runtime f72dee2 accepts `guard-reference` without `--root` from the
+root. Fixture timing: feature-merge 986 -> 899 ms, commit 419 -> 388 ms; whole suite unchanged.
 
 ## Blockers
 
-None for this commit.
+None.
 
 ## Next action
 
-Commit through the gate, then describe the Git hook VAC again in State.
+Commit the VAC; `just propose-pin HEAD` and ask for the second approval; commit the pin; `just feature-merge`.

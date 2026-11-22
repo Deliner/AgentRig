@@ -31,8 +31,8 @@ pub fn run(context: &Context) -> Result<i32> {
     failed |= !rust_toolchain(context)?;
     failed |= !sandbox_availability(context);
     failed |= !vcs_registration(context)?;
-    failed |= !codex_registration(context)?;
-    failed |= !bundle::claude_registration(context)?;
+    failed |= !codex_registration(context);
+    failed |= !bundle::claude_registration(context);
     if failed {
         let rerun = crate::shared::diagnostics::rerun(&context.root, &["doctor".into()]);
         console::stderr(crate::shared::diagnostics::Guidance {
@@ -145,7 +145,7 @@ fn vcs_registration(context: &Context) -> Result<bool> {
     ));
     Ok(registered)
 }
-fn codex_registration(context: &Context) -> Result<bool> {
+fn codex_registration(context: &Context) -> bool {
     let settings = fs::read_to_string(context.root.join(".codex/config.toml"))
         .ok()
         .and_then(|text| toml::from_str::<toml::Value>(&text).ok());
@@ -159,7 +159,7 @@ fn codex_registration(context: &Context) -> Result<bool> {
         .ok()
         .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
     let codex =
-        enabled && bundle::hooks_registered(&context.config, configured.as_ref(), Agent::Codex)?;
+        enabled && bundle::hooks_registered(&context.config, configured.as_ref(), Agent::Codex);
     console::stdout(format!(
         "Codex registration: {}",
         if codex {
@@ -168,5 +168,5 @@ fn codex_registration(context: &Context) -> Result<bool> {
             "MISSING OR CHANGED; inspect .codex/config.toml and .codex/hooks.json"
         }
     ));
-    Ok(codex)
+    codex
 }
