@@ -3,29 +3,24 @@
 ## Focus
 
 P197 (B204): после успешного `feature-merge` риг удаляет всё, что Git игнорирует, кроме рабочего состояния рига,
-закреплённого рантайма и путей из `git.keep`. VAC 2: очистка в рантайме с тестами AC1–AC6, решение D233, README.
+закреплённого рантайма и путей из `git.keep`. VAC 3: закрепить рантайм `bf418ec`, архивировать P197 и B204,
+перелинковать D233 на архив.
 
 ## Workspace
 
-Branch: feature/merge-cleanup, Revision: 82629dd (VAC 1, выбор P197). Правки VAC 2 не закоммичены.
+Branch: feature/merge-cleanup, Revision: bf418ec (VAC 2: очистка, тесты, D233, README).
 
 ## Progress
 
-- `git.keep` (шаблоны, `Config::keep_matcher`, проверка при загрузке), `Repository::ignored`, `fs::remove_dir`.
-- `shared/vcs/removal.rs`: пофайловое удаление без перехода по ссылкам, каталог только пустым, `.gitignore` только
-  с каталогом; возвращает удалённое с размерами и ошибки.
-- Jobs: `finished` (завершённые запуски), `directory` (каталог запусков) вместо копий `runtime.join("jobs")`.
-- `change_delivery/git/sweep.rs`: план (сохраняемые пути состояния, ревизия из `HEAD:<pin>`, `git.keep`), отчёт
-  «removed ignored files, freeing …», ошибки плана ничего не удаляют; ошибки — stderr и код 1.
-- Тесты: `change_delivery/git/tests/sweep.rs` (AC2–AC6, fail-closed), `project_setup/tests/delivery.rs` (AC1),
-  `merge_cleans_only_owned_task_runs` проверяет отчёт остановки, фикстура гейта хранит `.runtime/checks.json` в `keep`.
-- D232 занят (инкрементальный release), решение записано как D233; README `project_setup` описывает очистку и `keep`.
+- VAC 2 закоммичен: гейт при коммите — все проверки PASS, `rust-test` 636 passed.
+- `just propose-pin HEAD` подготовил пин `bf418ecd544c0d32b9cd1691c32d31ae157966f9`; пользователь выполнил
+  `! just approve`: рантайм установлен, `tooling/distribution/stable.txt` записан.
+- Ротация: P197 и B204 в Archive с итогами AC1–AC6 и строкой о пине, D233 ссылается на архив; `--only memory` PASS.
+- Не сделано: коммит пина и архива, слияние.
 
 ## Verification
 
-На рабочем дереве: `just check --only clippy`, `--only rustfmt` — PASS; `just run test --
-change_delivery:: command_runner:: project_config:: shared::vcs project_memory:: agent_hooks:: project_setup::` —
-255 passed. После маркеров D233, решения и сокращения README: `--only lint` и `--only memory` — PASS.
+Гейт коммита `bf418ec` (pre-commit): build, lint, memory, rustfmt, clippy, rust-test, ruff, mypy, typos, vulture — PASS.
 
 ## Blockers
 
@@ -33,4 +28,4 @@ change_delivery:: command_runner:: project_config:: shared::vcs project_memory::
 
 ## Next action
 
-Закоммитить VAC 2 через хук, затем `just propose-pin HEAD`, закрепить рантайм, архивировать P197/B204, слить ветку.
+Закоммитить пин с архивом, выполнить `just feature-merge` и проверить AC3 и AC4 на живом риге.
