@@ -212,7 +212,7 @@ pub(super) fn stageable(root: &Path, staging: Staging<'_>) -> Result<BTreeMap<St
     let store = ["update-index", "--add", "--remove", "--"];
     let hash = ["update-index", "--add", "--remove", "--info-only", "--"];
     let updates = [(&store[..], staging.stored), (&hash[..], staging.hashed)];
-    for (command, paths) in updates {
+    for (command, paths) in updates.into_iter().filter(|(_, paths)| !paths.is_empty()) {
         let mut update = command.to_vec();
         update.extend(paths.iter().map(String::as_str));
         run(&update)?;

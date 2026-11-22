@@ -104,9 +104,21 @@ pub fn python_path() -> &'static OsStr {
 }
 
 pub fn search_path(first: PathBuf) -> OsString {
-    let inherited = std::env::var_os("PATH").unwrap_or_default();
-    let paths = std::iter::once(first).chain(std::env::split_paths(&inherited));
+    let paths = std::iter::once(first).chain(std::env::split_paths(git_search_path()));
     std::env::join_paths(paths).unwrap()
+}
+
+fn git_search_path() -> &'static OsStr {
+    static PATH: OnceLock<OsString> = OnceLock::new();
+    PATH.get_or_init(|| {
+        let output = Command::new("git").arg("--exec-path").output().unwrap();
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(output.status.success(), "git --exec-path: {stderr}");
+        let exec_path = PathBuf::from(String::from_utf8(output.stdout).unwrap().trim());
+        let inherited = std::env::var_os("PATH").unwrap_or_default();
+        let paths = std::iter::once(exec_path).chain(std::env::split_paths(&inherited));
+        std::env::join_paths(paths).unwrap()
+    })
 }
 
 // DECISION: D160
@@ -126,6 +138,7 @@ fn build() -> PathBuf {
 
 pub fn hermetic(program: impl AsRef<OsStr>) -> Command {
     let mut command = Command::new(program);
+    command.env("PATH", git_search_path());
     for (key, _) in std::env::vars_os() {
         let name = key.to_string_lossy();
         let foreign = name.starts_with("GIT_") || FOREIGN.contains(&name.as_ref());

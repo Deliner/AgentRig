@@ -40,10 +40,6 @@ impl<'a> Snapshot<'a> {
             .filter(|path| !self.read.contains_key(*path))
             .filter_map(|path| Some((path, self.tree.get(path)?.object.as_str())))
             .collect();
-        let nothing_unread = unread.is_empty();
-        if nothing_unread {
-            return Ok(());
-        }
         let objects: Vec<&str> = unread.values().copied().collect();
         let mut texts = Vec::new();
         self.repository.blobs(&objects, |bytes| {
