@@ -42,7 +42,6 @@ const RECIPES: [(&str, &[Entry]); 5] = [
             ("lint", "lint", true),
             ("lint-rules", "lint-rules", false),
             ("lint-config-check", "lint-config-check", true),
-            ("lint-baseline", "lint-baseline", true),
             ("lint-rule", "lint-rule", true),
             ("lint-explain", "lint-explain", true),
             ("lint-edges", "lint-edges", true),

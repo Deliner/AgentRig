@@ -8,11 +8,10 @@ use std::path::Path;
 const REFUSAL: &str = "protected enforcement files";
 // DECISION: D230
 // DECISION: D231
-const ENFORCEMENT: [&str; 16] = [
+const ENFORCEMENT: [&str; 15] = [
     ".agentrig/bin/agentrig",
     ".agentrig/commands.yaml",
     ".agentrig/checks.yaml",
-    ".agentrig/lint-baseline.yaml",
     ".agentrig/hooks/pre-commit",
     ".agentrig/mods/self-compact/hooks/register.ts",
     ".cache/runtime/compaction",
@@ -97,6 +96,8 @@ fn a_proposal_the_lint_configuration_and_ordinary_files_stay_editable() {
     for path in [
         ".cache/runtime/proposal/.agentrig/commands.yaml",
         ".agentrig/lint.yaml",
+        // DECISION: D235
+        ".agentrig/lint-baseline.yaml",
         ".agentrig/oracles.yaml",
         "README.md",
     ] {

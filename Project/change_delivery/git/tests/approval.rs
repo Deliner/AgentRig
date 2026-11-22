@@ -208,45 +208,28 @@ fn a_lint_configuration_commits_without_approval_only_when_it_adds_rules() {
 
 const BASELINE: &str = ".agentrig/lint-baseline.yaml";
 
-fn wide(root: &Path, lines: usize) {
-    let text = format!("{}\n", "x".repeat(130)).repeat(lines);
-    fs::write(root.join("README.md"), text).unwrap();
-}
-
-fn recorded(root: &Path, expected: &str) {
-    let run = invoke(root, &["lint-baseline"]);
-    assert_eq!(run.code, Some(0), "{}", run.output());
-    let baseline = read(root, BASELINE);
-    assert!(baseline.contains(expected), "{baseline}");
-}
-
-fn refused(root: &Path, message: &str) {
-    let run = committed(root, message);
-    assert_ne!(run.code, Some(0), "{}", run.output());
-    assert!(run.stderr.contains(BASELINE), "{}", run.stderr);
-    git(root, &["reset", "-q", "--hard"]);
-}
-
-// DECISION: D214
+// DECISION: D235
 #[test]
-fn a_lint_baseline_commits_without_approval_only_when_it_accepts_no_new_error() {
+fn a_leftover_lint_baseline_needs_no_approval_and_accepts_no_error() {
     let (_temp, root) = installed();
     start(&root, "baseline");
-    wide(&root, 2);
-    recorded(&root, "README.md: 2");
-    let introduced = committed(&root, "introduced");
-    assert_eq!(introduced.code, Some(1), "{}", introduced.output());
-    let approved = invoke(&root, &["approve"]);
-    assert_eq!(approved.code, Some(0), "{}", approved.output());
-    let accepted = committed(&root, "approved");
-    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
-    let raised = read(&root, BASELINE).replace("README.md: 2", "README.md: 3");
-    fs::write(root.join(BASELINE), raised).unwrap();
-    refused(&root, "raised");
-    fs::write(root.join(BASELINE), "{").unwrap();
-    refused(&root, "corrupt");
-    wide(&root, 1);
-    recorded(&root, "README.md: 1");
-    let lowered = committed(&root, "lowered");
-    assert_eq!(lowered.code, Some(0), "{}", lowered.output());
+    let accepting = "markdown-width:\n  README.md: 1\n";
+    fs::write(root.join(BASELINE), accepting).unwrap();
+    let added = committed(&root, "added");
+    assert_eq!(added.code, Some(0), "{}", added.output());
+    fs::write(root.join("README.md"), format!("{}\n", "x".repeat(130))).unwrap();
+    let wide = committed(&root, "wide");
+    assert_eq!(wide.code, Some(1), "{}", wide.output());
+    assert!(
+        wide.output().contains("markdown-width"),
+        "{}",
+        wide.output()
+    );
+    git(&root, &["reset", "-q", "--hard"]);
+    fs::write(root.join(BASELINE), "markdown-width:\n  README.md: 2\n").unwrap();
+    let raised = committed(&root, "raised");
+    assert_eq!(raised.code, Some(0), "{}", raised.output());
+    fs::remove_file(root.join(BASELINE)).unwrap();
+    let removed = committed(&root, "removed");
+    assert_eq!(removed.code, Some(0), "{}", removed.output());
 }

@@ -103,32 +103,6 @@ impl<'a> Repository<'a> {
         paths(&git::changes(self.root, revisions)?)
     }
 
-    // DECISION: D140
-    pub fn renames(&self, base: &str) -> Result<BTreeMap<String, String>> {
-        let arguments = [
-            "diff",
-            "--no-ext-diff",
-            "--no-textconv",
-            "-M",
-            "--name-status",
-            "-z",
-            base,
-            "--",
-        ];
-        let output = String::from_utf8(git::run(self.root, &arguments)?)?;
-        let mut fields = output.split('\0');
-        let mut renames = BTreeMap::new();
-        while let Some(status) = fields.next().filter(|status| !status.is_empty()) {
-            let source = fields.next().unwrap_or_default();
-            let renamed = status.starts_with('R');
-            if renamed {
-                let target = fields.next().unwrap_or_default();
-                renames.insert(source.to_owned(), target.to_owned());
-            }
-        }
-        Ok(renames)
-    }
-
     // DECISION: D233
     pub fn ignored(&self) -> Result<Vec<String>> {
         let arguments = [

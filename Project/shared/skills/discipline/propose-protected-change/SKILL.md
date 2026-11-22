@@ -16,7 +16,7 @@ staged change of them that the user has not approved. They are:
   `.codex/config.toml`, the recipes `justfile` and `.agentrig/just/`;
 - the configuration modules `.agentrig/project.yaml`, `git.yaml`,
   `commands.yaml`, `checks.yaml`, `hooks.yaml`, `tools.yaml` and `rust.yaml`,
-  the lint configuration `paths.lint` and its baseline, so a new catalog
+  the lint configuration `paths.lint`, so a new catalog
   command, `just write` program or check setting is a proposal too;
 - `.git`, the route state `reminders/`, the approval record `approved`, the
   consent record `consent` and the compaction requirement `compaction` in the
@@ -52,11 +52,8 @@ branch gate, installs the revision and writes the pin as approved content;
 commit it with State, and the `consented-pins` command lists those pins.
 Never run the installer with a revision: the hook refuses it, and without one
 it installs the pinned revision. A later change that needs an earlier one in
-the installed runtime waits for the user's approval of a pin mid-branch. The
-gate accepts a lint baseline written by `just lint-baseline` without approval
-only when it raises no count and adds no pair; recording new errors needs the
-user's approval. When the configuration is invalid in a protected file, ask
-the user to correct it.
+the installed runtime waits for the user's approval of a pin mid-branch. When
+the configuration is invalid in a protected file, ask the user to correct it.
 
 Edit the lint configuration itself to add a rule: the gate accepts it without
 approval while every committed rule stays unchanged and in order and the other

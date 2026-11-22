@@ -34,8 +34,9 @@ fn run() -> Result<i32> {
     }
     match command.as_str() {
         "hook" => hook(&root, &mut args),
-        "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree"
-        | "lint-baseline" => run_lint(&root, &mut args, &command),
+        "lint" | "lint-config-check" | "lint-explain" | "lint-edges" | "lint-tree" => {
+            run_lint(&root, &mut args, &command)
+        }
         "lint-rules" | "lint-rule" => structural_lint::discovery(&command, &args),
         "lint-structure" => structural_lint::lint_structure(&args),
         _ => bail!("unknown command {command:?}; run agentrig --help for the command table"),
@@ -71,7 +72,7 @@ fn project_root(args: &mut Vec<String>, command: &str) -> Result<PathBuf> {
 }
 fn print_help() {
     console::stdout(
-        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge | feature-push | state-reset | approve | propose-pin REVISION\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook --agent codex|claude-code | lint | lint-config-check | lint-baseline | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --skills, --service, --base and --prefix.",
+        "agentrig\ninit [--interactive] | runtime-add | doctor | config-check | commands | run NAME [-- ARGS] | report\ncheck [--staged | --revision REV] [--only CHECK_ID] | memory-check | resume | feature-start NAME | feature-merge | feature-push | state-reset | approve | propose-pin REVISION\njobs | job-status RUN_ID | job-logs RUN_ID | job-start COMMAND | job-stop RUN_ID | job-cleanup [--branch BRANCH]\nhook --agent codex|claude-code | lint | lint-config-check | lint-rules | lint-rule ID [--json|--example] | lint-explain PATH [--json] | lint-edges PATH [--json] | lint-tree PATH | lint-structure PATH | guard-commit | guard-reference\nUse --root PATH to select the project. init accepts --language python|rust, --skills, --service, --base and --prefix.",
     );
 }
 // DECISION: D188
@@ -105,13 +106,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     };
     // DECISION: D143
     let inspection = structural_lint::inspection(command);
-    // DECISION: D123
-    let baseline = command == "lint-baseline";
-    anyhow::ensure!(
-        !baseline || args.is_empty(),
-        "lint-baseline takes only --root and --config"
-    );
-    let reported = inspection.is_none() && !baseline;
+    let reported = inspection.is_none();
     // DECISION: D188
     let caller = diagnostics::caller(root, Agent::calling());
     let config = match resolved {
@@ -125,9 +120,6 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     };
     if let Some(inspect) = inspection {
         return inspect(location, args);
-    }
-    if baseline {
-        return structural_lint::record_baseline(location);
     }
     let mode = structural_lint::Mode::of(command);
     structural_lint::execute(location, &caller, args, mode)

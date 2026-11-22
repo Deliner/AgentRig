@@ -5,7 +5,6 @@ files:
   discovery.rs: Rule catalog, examples that pass configuration check and invalid discovery arguments
   diagnostics.rs: Threshold, override, invalid configuration and staged snapshot diagnostics
   languages.rs: Rust and Python branch conditions, comment references, syntax errors, language selection and defaults, condition policies, single junctions and classifications repeated across files through lint
-  baseline.rs: Recorded error baseline, ratchet failures on growth and lowering-only updates
   portable.rs: Standalone and embedded linter portability scenarios and their shared Git tracked and untracked inventory
   mod.rs: Declarations of the composed lint test groups
 directories:

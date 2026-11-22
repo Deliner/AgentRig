@@ -10,10 +10,6 @@ lint-rules:
 lint-config-check *args:
     @.agentrig/bin/agentrig lint-config-check --root . "$@"
 
-# What: record the lint baseline; Why: accept existing errors and fail only when they grow.
-lint-baseline *args:
-    @.agentrig/bin/agentrig lint-baseline --root . "$@"
-
 # What: describe a lint rule; Why: inspect supported parameters and valid examples.
 lint-rule *args:
     @.agentrig/bin/agentrig lint-rule --root . "$@"

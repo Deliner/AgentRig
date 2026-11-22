@@ -1,5 +1,4 @@
 mod analysis;
-mod baseline;
 mod evaluation;
 mod file_measures;
 mod findings;
@@ -9,6 +8,5 @@ mod location;
 #[cfg(test)]
 mod tests;
 
-pub use analysis::{Mode, analyze};
-pub use baseline::{error_count, record_baseline};
+pub use analysis::{Mode, analyze, error_count};
 pub use location::Location;

@@ -124,9 +124,7 @@ fn shell_guard_runs_required_steps_and_refuses_scratch() {
     let scratch = denied(&root, "just scratch -- ls");
     assert!(reason(&scratch).contains("scratch"), "{scratch}");
     rig_bootstrap(&root);
-    for command in ["just lint-baseline", "just bootstrap"] {
-        allowed(&root, command);
-    }
+    allowed(&root, "just bootstrap");
 }
 
 // DECISION: D218
