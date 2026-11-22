@@ -91,8 +91,8 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     for justfile in recipes::justfiles(config) {
         files.insert(justfile.path, justfile.source.into_bytes());
     }
-    client_files(files, config, &generated.root_command)?;
-    for (path, contents) in generated.files {
+    client_files(files, config)?;
+    for (path, contents) in generated {
         ensure!(
             !files.contains_key(&path),
             "generated VCS file conflicts with another resource: {path}"
@@ -102,14 +102,14 @@ fn add_runtime(files: &mut Files, config: &Config) -> Result<()> {
     Ok(())
 }
 // DECISION: D188
-fn client_files(files: &mut Files, config: &Config, root_command: &str) -> Result<()> {
+fn client_files(files: &mut Files, config: &Config) -> Result<()> {
     files.insert(
         ".codex/config.toml".into(),
         adapters::CODEX_CONFIG.as_bytes().to_vec(),
     );
     files.insert(
         ".codex/hooks.json".into(),
-        adapters::registration(config, root_command, Agent::Codex)?,
+        adapters::registration(config, Agent::Codex)?,
     );
-    claude::bundle(files, config, root_command)
+    claude::bundle(files, config)
 }

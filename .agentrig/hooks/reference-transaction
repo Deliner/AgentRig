@@ -2,5 +2,4 @@
 # DECISION: D010
 # DECISION: D015
 set -eu
-root=$(git rev-parse --show-toplevel)
-exec "$root"/.agentrig/bin/agentrig guard-reference --root "$root" "$1"
+exec .agentrig/bin/agentrig guard-reference "$1"

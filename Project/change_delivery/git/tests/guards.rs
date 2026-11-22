@@ -44,6 +44,31 @@ fn staged_commit_preserves_unstaged_work() {
 
 // DECISION: D191
 #[test]
+fn git_hooks_guard_operations_started_in_a_subdirectory() {
+    let (_temp, root) = installed();
+    start(&root, "nested");
+    let nested = root.join("nested");
+    fs::create_dir(&nested).unwrap();
+    fs::write(nested.join("product.txt"), "product").unwrap();
+    describe_state(&root, "A test VAC.");
+    git(&nested, &["add", "-A", ".."]);
+    let mut blocked = hermetic("git");
+    blocked
+        .args(["commit", "-qm", "blocked"])
+        .current_dir(&nested)
+        .env("BLOCK_DELIVERY", "1");
+    let blocked = run(&mut blocked, "");
+    assert_ne!(blocked.code, Some(0), "{}", blocked.output());
+    git(&nested, &["commit", "-qm", "nested"]);
+    assert_eq!(read(&root, STATE), state_template());
+    git(&nested, &["branch", "task/merged", "trunk"]);
+    let deleted = git_run(&nested, &["branch", "-D", "task/merged"]);
+    assert_ne!(deleted.code, Some(0), "{}", deleted.output());
+    assert!(deleted.stderr.contains("retained"), "{}", deleted.stderr);
+}
+
+// DECISION: D191
+#[test]
 fn feature_commits_carry_a_described_state() {
     let (_temp, root) = installed();
     start(&root, "described");
