@@ -1,6 +1,11 @@
 use super::tree_entry::{Entry, FileKind};
 use anyhow::{Context, Result, bail, ensure};
-use std::{collections::BTreeMap, path::Path, process::Command};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+    process::Command,
+    sync::OnceLock,
+};
 
 #[derive(Clone, Copy)]
 pub struct Revisions<'a> {
@@ -15,7 +20,7 @@ pub struct Staging<'a> {
 }
 
 pub fn context_text(root: &Path, args: &[&str]) -> Result<String> {
-    let output = Command::new("git").args(args).current_dir(root).output()?;
+    let output = program().args(args).current_dir(root).output()?;
     let failed = !output.status.success();
     if failed {
         bail!("{}", String::from_utf8_lossy(&output.stderr));
@@ -36,8 +41,23 @@ pub(super) fn branch_name(value: &str) -> bool {
     !rejected && valid_parts
 }
 
+fn program() -> Command {
+    static GIT: OnceLock<PathBuf> = OnceLock::new();
+    Command::new(GIT.get_or_init(|| exec_path_git().unwrap_or_else(|| PathBuf::from("git"))))
+}
+
+fn exec_path_git() -> Option<PathBuf> {
+    let output = Command::new("git").arg("--exec-path").output().ok()?;
+    let failed = !output.status.success();
+    if failed {
+        return None;
+    }
+    let git = Path::new(String::from_utf8(output.stdout).ok()?.trim()).join("git");
+    git.is_file().then_some(git)
+}
+
 pub(super) fn command(root: &Path, args: &[&str]) -> Command {
-    let mut command = Command::new("git");
+    let mut command = program();
     command
         .current_dir(root)
         .env("GIT_OPTIONAL_LOCKS", "0")
