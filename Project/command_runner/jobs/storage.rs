@@ -3,8 +3,11 @@ use crate::shared::fs_with_context as fs;
 use anyhow::{Result, ensure};
 use std::path::{Path, PathBuf};
 
+pub fn directory(runtime: &Path) -> PathBuf {
+    runtime.join("jobs")
+}
 pub fn create(runtime: &Path) -> Result<PathBuf> {
-    let root = runtime.join("jobs");
+    let root = directory(runtime);
     fs::create_dir_all(&root)?;
     // DECISION: D092 disabled-raii
     Ok(tempfile::Builder::new()
@@ -23,11 +26,11 @@ pub fn load(runtime: &Path, id: &str) -> Result<Record> {
                 .all(|byte| byte.is_ascii_alphanumeric() || b"-_".contains(&byte)),
         "invalid run ID"
     );
-    let path = runtime.join("jobs").join(id).join("record.json");
+    let path = directory(runtime).join(id).join("record.json");
     Ok(serde_json::from_slice(&fs::read(path)?)?)
 }
 pub fn list(runtime: &Path) -> Result<Vec<Record>> {
-    let Some(entries) = fs::present(fs::read_dir(runtime.join("jobs")))? else {
+    let Some(entries) = fs::present(fs::read_dir(directory(runtime)))? else {
         return Ok(Vec::new());
     };
     let mut records = Vec::new();

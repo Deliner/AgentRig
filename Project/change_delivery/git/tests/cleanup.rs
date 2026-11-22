@@ -94,12 +94,14 @@ fn merge_cleans_only_owned_task_runs() {
     }
     let merged = owned(&root, "merge-owner", &["feature-merge"]);
     assert_eq!(merged.code, Some(0), "{}", merged.output());
+    let (_, cleanup) = merged.stdout.split_once("post-merge cleanup: ").unwrap();
+    let report: Value = serde_json::from_str(cleanup.lines().next().unwrap()).unwrap();
+    assert_eq!(report["stopped"], json!([task]));
     assert!(
         merged.stdout.contains("shared service"),
         "{}",
         merged.stdout
     );
-    assert_eq!(jobs.state(&task), "cancelled");
     assert_eq!(jobs.state(&service), "running");
     assert_eq!(jobs.state(&other), "running");
 }

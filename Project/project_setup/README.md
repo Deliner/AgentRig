@@ -30,8 +30,7 @@ the target untouched. It shows the configuration and files, rechecks collisions,
 
 ## Commands
 
-Every command accepts `--root PATH`, by default the current directory; the first one given counts. Recipes pass
-`--root .` before the agent's words, so the project is always the one of the justfile.
+Every command accepts `--root PATH` (default: the current directory, first one counts); recipes pass `--root .` first.
 
 | Command | Result |
 | --- | --- |
@@ -57,7 +56,7 @@ version, `config_skill`, `paths` (sources and the locations of service files, me
 data) and `capabilities.lint` (disabling lint requires removing lint checks). Each optional module holds one section as
 its whole content; an absent module is an empty section, and `project.yaml` cannot hold one.
 
-- `git.yaml`: base branch, feature-branch prefix and optional `remote`, the Git remote that receives branches.
+- `git.yaml`: base branch, feature prefix, optional `remote` receiving branches, `keep` globs of ignored paths to keep.
 - `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args` (`operands` refuses words starting with
   `-`), `access` (`read-only`, `project` writing only in the project, `unconfined`), `lifetime`, `programs` and
   `output`. An empty `argv` runs only listed programs, each within `subcommands`, refusing `deny` flags in any
@@ -76,10 +75,10 @@ Unknown fields are errors naming their module; paths cannot escape the root; see
 
 ## Delivery and memory
 
-`feature-start` needs the base and no pending merge or rebase. `feature-merge` commits the reset State, rebases a
-divergent feature, passes the gate on unchanged inputs, merges into the base with `--no-ff` and deletes its run logs;
-no other catalog command changes the base. Pre-commit runs `check --staged`, recorded in `paths.runtime/checks.json`,
-and `guard-commit`, refusing the empty State template on a feature unless only State changes. Post-commit resets State.
+`feature-merge` commits the reset State, rebases a divergent feature, passes the gate on unchanged inputs, merges into
+the base with `--no-ff`, stops its runs and removes what Git ignores except the rig's state and `keep` paths, retrying
+failures on the next merge. No other catalog command changes the base. Pre-commit runs `check --staged` and
+`guard-commit`, refusing the empty State template on a feature unless only State changes. Post-commit resets State.
 With `remote`, merge pushes the base, and merge and post-commit push the feature with `--force-with-lease`.
 
 Memory holds Plan, Backlog, Decisions, Invariants and State. Decision links to Rust, Python or shell owners need a

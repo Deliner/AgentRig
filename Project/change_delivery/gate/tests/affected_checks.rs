@@ -1,6 +1,6 @@
 use super::evidence;
 use crate::project_memory::state_template;
-use crate::shared::testing::{REPAIR, Run, commit_identity, git, invoke, project};
+use crate::shared::testing::{REPAIR, Run, commit_identity, configure, git, invoke, project};
 use serde_json::Value;
 use std::{fs, path::Path, path::PathBuf};
 use tempfile::TempDir;
@@ -44,6 +44,8 @@ fn affected_project() -> (TempDir, PathBuf) {
     let root = temp.path().canonicalize().unwrap();
     let check = format!("- id: tests\n  kind: command\n  command: test\n  skill: {REPAIR}\n");
     project(&root, TARGETS, &(check + GROUPS));
+    // DECISION: D233
+    configure(&root, "git", "keep: [.runtime/checks.json]\n");
     fs::write(root.join(".gitignore"), ".runtime/\n").unwrap();
     fs::write(root.join("src/a.rs"), "before\n").unwrap();
     fs::write(root.join("src/b.rs"), "before\n").unwrap();

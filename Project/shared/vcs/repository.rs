@@ -129,6 +129,19 @@ impl<'a> Repository<'a> {
         Ok(renames)
     }
 
+    // DECISION: D233
+    pub fn ignored(&self) -> Result<Vec<String>> {
+        let arguments = [
+            "ls-files",
+            "-z",
+            "--others",
+            "--ignored",
+            "--exclude-standard",
+            "--directory",
+        ];
+        paths(&git::run(self.root, &arguments)?)
+    }
+
     pub fn working_files(&self) -> Result<Vec<String>> {
         paths(&git::working_files(self.root)?)
     }

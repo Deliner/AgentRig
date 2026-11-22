@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 const RECORD: &str = "compaction";
 const INSTRUCTION: &str = include_str!("compaction.txt");
 
-fn location(context: &Context) -> Result<PathBuf> {
+pub(super) fn location(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 

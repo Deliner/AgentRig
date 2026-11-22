@@ -16,6 +16,9 @@ pub struct Settings {
     // DECISION: D218
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub install: Option<String>,
+    // DECISION: D233
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub keep: Vec<String>,
 }
 
 impl Default for Settings {
@@ -26,6 +29,7 @@ impl Default for Settings {
             remote: None,
             pin: None,
             install: None,
+            keep: Vec::new(),
         }
     }
 }

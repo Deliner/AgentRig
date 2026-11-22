@@ -9,7 +9,7 @@ use std::{
 
 pub fn read(runtime: &Path, id: &str) -> Result<Value> {
     storage::load(runtime, id)?;
-    let directory = runtime.join("jobs").join(id);
+    let directory = storage::directory(runtime).join(id);
     Ok(
         json!({"run_id": id, "stdout": tail(&directory.join("stdout.log"))?,
         "stderr": tail(&directory.join("stderr.log"))?, "launcher": tail(&directory.join("launcher.log"))?}),

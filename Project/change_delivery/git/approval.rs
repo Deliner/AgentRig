@@ -39,7 +39,7 @@ impl Content {
     }
 }
 
-fn record_path(context: &Context) -> Result<PathBuf> {
+pub(super) fn record_path(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 

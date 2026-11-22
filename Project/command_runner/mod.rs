@@ -8,8 +8,9 @@ mod summary;
 mod tests;
 mod tool_registry;
 pub use jobs::{
-    Capture, Command as JobCommand, clean_jobs, cli as run_job_command, list as list_jobs,
-    owner as job_owner, streamed,
+    Capture, Command as JobCommand, clean_jobs, cli as run_job_command,
+    directory as jobs_directory, finished as finished_runs, list as list_jobs, owner as job_owner,
+    streamed,
 };
 pub use sandbox::{CATALOG_ROOT, Sandboxing, available as sandbox_available, catalog_run, tracked};
 pub use tool_registry::{PlacementSource, check_placement, list as list_tools};

@@ -42,7 +42,7 @@ impl Record {
     }
 }
 
-fn location(context: &Context) -> Result<PathBuf> {
+pub(super) fn location(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 

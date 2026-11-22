@@ -80,6 +80,12 @@ impl Paths {
         crate::shared::paths::globs(&self.sources)
     }
 }
+impl Config {
+    // DECISION: D233
+    pub fn keep_matcher(&self) -> Result<globset::GlobSet> {
+        crate::shared::paths::globs(&self.git.keep)
+    }
+}
 fn service() -> String {
     ".agentrig".into()
 }

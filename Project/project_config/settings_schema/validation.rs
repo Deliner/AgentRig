@@ -34,6 +34,9 @@ impl Config {
             "{}: git.install must name a catalog command",
             module("git")
         );
+        // DECISION: D233
+        self.keep_matcher()
+            .with_context(|| format!("{}: git.keep", module("git")))?;
         self.validate_checks(root)
             .with_context(|| module("checks"))?;
         self.hooks.validate(root).with_context(|| module("hooks"))?;
