@@ -2,21 +2,25 @@
 
 ## Focus
 
-Maintenance speed-up without behavior change: building the stageable index skips an `update-index` whose path
-list is empty, since it leaves the temporary index unchanged; admitting one path always had one such call.
+Maintenance speed-up authorized by the user's autonomous goal, with business logic unchanged. VAC: test fixtures
+resolve git through git's exec path ahead of the inherited PATH, so test processes and the workers they start
+skip the macOS xcrun shim on every git spawn.
 
 ## Workspace
 
 Branch: feature/empty-blob-request
-Revision: 1cf44eb3a4c65b290789267eb5cf974f6b344554
+Revision: 747b797c508055aaf49fc53583a0c8a3833438c5
+Changed: Project/shared/testing/tests/mod.rs (search_path and hermetic place the exec-path directory first).
 
 ## Progress
 
-Project/shared/vcs/git.rs filters out empty path lists before running `update-index`.
+The empty blob request skip and the empty update-index skip are committed on this branch. This VAC changes only
+the test helpers; product code is untouched.
 
 ## Verification
 
-`just run test -- shared::vcs change_delivery::git project_setup`: 103 passed.
+Three alternating full-suite runs: about 55 s wall and 111 s user with the exec path first, against about 67 s wall
+and 130 s user with the shim; every test passed in all six runs. change_delivery::git::tests::guards passes.
 
 ## Blockers
 
@@ -24,4 +28,4 @@ None.
 
 ## Next action
 
-Commit through the hook, propose the pin and run feature-merge.
+Commit through the gate, run just propose-pin HEAD, then just feature-merge and compaction.
