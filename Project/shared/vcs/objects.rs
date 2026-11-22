@@ -12,6 +12,10 @@ impl Repository<'_> {
         objects: &[&str],
         mut each: impl FnMut(Vec<u8>) -> Result<()>,
     ) -> Result<()> {
+        let nothing_requested = objects.is_empty();
+        if nothing_requested {
+            return Ok(());
+        }
         let mut child = git::command(self.root, &["cat-file", "--batch"])
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
