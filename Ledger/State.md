@@ -2,25 +2,23 @@
 
 ## Focus
 
-P198 (B205): риг без режима ratchet. VAC 3 пинует ревизию `0c74f22`, в которой ratchet удалён (D235).
+P198 (B205): риг без режима ratchet. VAC 4 архивирует P198 и B205 с итогами приёмки AC1–AC5.
 
 ## Workspace
 
 Branch: feature/lint-ratchet-removal
-Revision: 0c74f22004e14b4058838a5778a677a278ed8f9a
+Revision: a04848f4654d4131ca77a85313cc28bef4834e8a
 
 ## Progress
 
-VAC 1 `0ef0631`: P198 выбран. VAC 2 `0c74f22`: удалены команда, рецепт и пропуск хуком `lint-baseline`, модуль
-baseline и `Repository::renames`; lint, гейт и `agentrig-lint` не читают baseline, он вне защиты; `init` и мастер
-называют число ошибок; D235. `just propose-pin HEAD` подготовил пин `0c74f22`.
+VAC 1 `0ef0631`: P198 выбран. VAC 2 `0c74f22`: ratchet удалён (D235). VAC 3 `a04848f`: пин `0c74f22`, одобренный
+пользователем. VAC 4 в рабочем дереве: P198 и B205 перенесены в Archive с Delivery и итогами AC1–AC5, ссылки D235 на
+архив.
 
 ## Verification
 
-Гейт коммита `0c74f22`: build, candidate-lint, lint, memory, rustfmt, clippy, 635 Rust-тестов, ruff, mypy, typos,
-vulture — PASS.
-
-Пользователь выполнил `just approve`: `0c74f22` установлен, пин записан в `tooling/distribution/stable.txt`.
+`just candidate lint-baseline` — `unknown command "lint-baseline"`; поиск `ratchet` и `baseline` по двум руководствам
+и skill пуст. Проверка памяти после ротации ещё не запускалась.
 
 ## Blockers
 
@@ -28,4 +26,4 @@ vulture — PASS.
 
 ## Next action
 
-Закоммитить пин с State, затем архивировать P198 и B205 и выполнить `just feature-merge`.
+`just check --only memory`, коммит архивации, затем `just feature-merge`.
