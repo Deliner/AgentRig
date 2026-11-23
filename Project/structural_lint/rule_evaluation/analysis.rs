@@ -1,4 +1,4 @@
-use super::{baseline, evaluation, location::Location};
+use super::{evaluation, location::Location};
 use crate::shared::diagnostics::Diagnostic;
 use crate::shared::paths::globs;
 use crate::structural_lint::architecture;
@@ -28,7 +28,7 @@ impl Mode {
 }
 
 pub fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
-    let Location { root, config: path } = location;
+    let root = location.root;
     location.load().and_then(|config| {
         let config_check = mode.config_check();
         if config_check {
@@ -42,9 +42,16 @@ pub fn analyze(location: Location<'_>, mode: Mode) -> Result<Vec<Diagnostic>> {
             }
             Ok(Vec::new())
         } else {
-            let mut diagnostics = evaluation::evaluate(root, &config)?;
-            baseline::ratchet(path, &mut diagnostics)?;
-            Ok(diagnostics)
+            evaluation::evaluate(root, &config)
         }
     })
+}
+
+// DECISION: D235
+pub fn error_count(location: Location<'_>) -> Result<usize> {
+    let diagnostics = analyze(location, Mode::Lint)?;
+    Ok(diagnostics
+        .iter()
+        .filter(|item| item.level.blocking())
+        .count())
 }

@@ -218,12 +218,6 @@ impl Review<'_, '_> {
             let kept = self.committed.contains_key(path) && self.index.contains_key(path);
             return Ok(kept && structural_lint::only_adds_rules(self.repository, file)?);
         }
-        // DECISION: D214
-        let lowerable = protection.baseline() == file && !approved;
-        if lowerable {
-            let removed = !self.index.contains_key(path);
-            return Ok(removed || structural_lint::only_lowers_counts(self.repository, file)?);
-        }
         Ok(approved)
     }
 }
@@ -234,7 +228,7 @@ fn refuse(context: &Context, refused: &[&str], exceptions: &[String]) {
     let files = !refused.is_empty();
     if files {
         reasons.push(format!(
-            "the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint baseline may only lower the committed counts and a staged lint configuration may only add rules",
+            "the user has not approved the staged content of the protected enforcement files {}, or an approved pin does not descend from the committed one; without approval a staged lint configuration may only add rules",
             refused.join(", ")
         ));
     }

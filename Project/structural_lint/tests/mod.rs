@@ -1,5 +1,4 @@
 mod architecture;
-mod baseline;
 mod configuration;
 mod consumer;
 mod diagnostics;

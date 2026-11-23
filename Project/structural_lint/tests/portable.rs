@@ -65,6 +65,22 @@ fn standalone_matches_worker_without_installing_files() {
     }
 }
 
+// DECISION: D235
+#[test]
+fn both_linters_keep_an_error_that_a_leftover_baseline_lists() {
+    let (_temp, base) = portable(CONFIG);
+    write(
+        &base.join("policy"),
+        "lint-baseline.yaml",
+        "source:\n  src/value.py: 1\n",
+    );
+    write(&base.join("consumer"), "src/value.py", &"line\n".repeat(6));
+    for findings in blocked_by_both(&base) {
+        let levels: Vec<_> = findings.iter().map(|item| item["level"].as_str()).collect();
+        assert_eq!(levels, [Some("error")], "{findings:?}");
+    }
+}
+
 #[test]
 fn both_linters_use_native_tracked_and_untracked_inventory() {
     let (_temp, base) = portable(&CONFIG.replace(r#"include: ["src/**"]"#, r#"include: ["**"]"#));

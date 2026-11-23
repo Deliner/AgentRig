@@ -1,6 +1,6 @@
-purpose: Read the lint configuration and baseline at a revision and decide whether a staged one only adds rules or only lowers counts
+purpose: Read the lint configuration at a revision and decide whether a staged one only adds rules
 type: flat
 files:
-  mod.rs: Baseline location, counts per rule and path, their ceiling across renames and the admission of a lowered staged baseline
+  mod.rs: Declaration of the admission of a staged lint configuration
   rules.rs: The admission of a staged lint configuration whose committed rules stay unchanged and in order
 directories: {}

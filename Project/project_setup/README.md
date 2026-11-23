@@ -40,7 +40,6 @@ Every command accepts `--root PATH` (default: the current directory, first one c
 | `commands` / `run NAME -- ARGS` | List the tool registry or execute a command; arguments stay argv elements. |
 | `report` | Summarize command timing, latest check evidence and repeated failures. |
 | `lint` / `lint-config-check` / `lint-rules` | Analyze sources, validate lint settings, list rules. |
-| `lint-baseline` | Record or lower the accepted error counts of ratchet mode. |
 | `check [--staged \| --revision REV] [--only ID]` | Run the [gate](../change_delivery/gate/README.md). |
 | `memory-check` / `resume` | Check memory and its links; return State, Plan, Git and check freshness as JSON. |
 | `feature-start NAME` / `feature-merge` | Create or integrate a feature branch; merge keeps the branch. |

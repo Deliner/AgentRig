@@ -17,12 +17,11 @@ pub(super) fn run(root: &Path, args: &[String]) -> Result<i32> {
         language = options["language"],
         version = project_config::VERSION
     ));
-    offer_ratchet(root, &scaffold.config)?;
+    report_lint_errors(root, &scaffold.config)?;
     Ok(0)
 }
-// DECISION: D123
-// DECISION: D214
-pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
+// DECISION: D235
+pub(super) fn report_lint_errors(root: &Path, config: &Config) -> Result<()> {
     let disabled = !config.capabilities.lint;
     if disabled {
         return Ok(());
@@ -35,7 +34,7 @@ pub(super) fn offer_ratchet(root: &Path, config: &Config) -> Result<()> {
     let existing = errors > 0;
     if existing {
         console::stdout(format!(
-            "Lint errors in existing files: {errors}. To adopt the rules without blocking the gate, run just lint-baseline and approve the recorded baseline with just approve: lint then fails only when a rule's errors in a path grow."
+            "Lint errors in existing files: {errors}. The gate refuses a commit while lint reports an error; just lint lists them for repair."
         ));
     }
     Ok(())

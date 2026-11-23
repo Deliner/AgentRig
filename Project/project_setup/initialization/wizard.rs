@@ -34,7 +34,7 @@ pub fn run(root: &Path) -> Result<i32> {
         crate::shared::fs_with_context::create_dir_all(&root)?;
         super::no_overwrite_init::install(&root, &scaffold, &files)?;
         console::stdout("Installed the worker environment. Authentication remains separate.");
-        super::no_overwrite_init::offer_ratchet(&root, config)?;
+        super::no_overwrite_init::report_lint_errors(&root, config)?;
         inspection::doctor(&project_config::Context::load(&root)?)
     } else {
         cancelled()

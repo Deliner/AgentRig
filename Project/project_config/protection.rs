@@ -29,7 +29,6 @@ pub struct Protection {
     paths: Vec<PathBuf>,
     pin: Option<PathBuf>,
     lint: PathBuf,
-    baseline: PathBuf,
 }
 impl Protection {
     pub(super) fn of(root: &Path, config: &Config) -> Result<Self> {
@@ -54,14 +53,8 @@ impl Protection {
         paths.extend(pin.clone());
         // DECISION: D214
         let lint = inside(root, &settings.lint).context("paths.lint")?;
-        let baseline = crate::structural_lint::baseline_path(&lint);
-        paths.extend([lint.clone(), baseline.clone()]);
-        Ok(Self {
-            paths,
-            pin,
-            lint,
-            baseline,
-        })
+        paths.push(lint.clone());
+        Ok(Self { paths, pin, lint })
     }
     pub fn pin(&self) -> Option<&Path> {
         self.pin.as_deref()
@@ -73,9 +66,6 @@ impl Protection {
     // DECISION: D226
     pub fn closed_to_agents(&self, path: &Path) -> bool {
         path != self.lint && self.touched(path)
-    }
-    pub fn baseline(&self) -> &Path {
-        &self.baseline
     }
     pub fn touched(&self, path: &Path) -> bool {
         self.paths

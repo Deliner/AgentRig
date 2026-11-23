@@ -110,26 +110,25 @@ fn init_starts_a_repository_without_commits_on_its_base_with_an_empty_commit() {
     }
 }
 
-// DECISION: D123
-// DECISION: D214
+// DECISION: D235
 #[test]
-fn init_offers_a_lint_baseline_for_errors_in_existing_files() {
+fn init_names_lint_errors_in_existing_files_without_a_way_to_accept_them() {
     let (_temp, root) = consumer();
     fs::write(root.join("README.md"), format!("{}\n", "x".repeat(130))).unwrap();
     let result = invoke(&root, &["init"]);
     assert_eq!(result.code, Some(0), "{}", result.output());
-    let offered = [
-        "Lint errors in existing files: 1.",
-        "just lint-baseline and approve the recorded baseline with just approve",
-    ];
-    for text in offered {
-        assert!(result.stdout.contains(text), "{}", result.stdout);
-    }
+    let named =
+        "Lint errors in existing files: 1. The gate refuses a commit while lint reports an error;";
+    assert!(result.stdout.contains(named), "{}", result.stdout);
     // DECISION: D212
     let recipes = fs::read_to_string(root.join(".agentrig/just/lint.just")).unwrap();
-    assert!(recipes.contains("lint-baseline *args:"), "{recipes}");
-    let codes = ["lint", "lint-baseline", "lint"].map(|command| invoke(&root, &[command]).code);
-    assert_eq!(codes, [Some(1), Some(0), Some(0)]);
+    assert!(!recipes.contains("lint-baseline"), "{recipes}");
+    let help = invoke(&root, &["--help"]);
+    assert!(!help.stdout.contains("lint-baseline"), "{}", help.stdout);
+    let removed = invoke(&root, &["lint-baseline"]);
+    let unknown = "unknown command \"lint-baseline\"";
+    assert!(removed.stderr.contains(unknown), "{}", removed.output());
+    assert_eq!(invoke(&root, &["lint"]).code, Some(1));
 }
 
 #[test]
