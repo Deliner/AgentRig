@@ -2,25 +2,25 @@
 
 ## Focus
 
-P198 (B205): риг без режима ratchet. VAC 2 удаляет ratchet из рантайма, `init`, защиты, гейта, хука, документации
-и навыка; решение D235.
+P198 (B205): риг без режима ratchet. VAC 3 пинует ревизию `0c74f22`, в которой ratchet удалён (D235).
 
 ## Workspace
 
 Branch: feature/lint-ratchet-removal
-Revision: 0ef0631585c1f7586a6e4138d1ddbdd172961f44
+Revision: 0c74f22004e14b4058838a5778a677a278ed8f9a
 
 ## Progress
 
-VAC 1 `0ef0631`: P198 выбран. VAC 2 в рабочем дереве: удалены команда `lint-baseline`, модуль baseline, его тесты и
-`Repository::renames`; защита и гейт без baseline; `init` и мастер называют число ошибок без предложения принять их;
-тесты AC1–AC4 в `layout.rs`, `portable.rs`, `approval.rs`, `protected.rs`; D235 и ссылки индекса.
+VAC 1 `0ef0631`: P198 выбран. VAC 2 `0c74f22`: удалены команда, рецепт и пропуск хуком `lint-baseline`, модуль
+baseline и `Repository::renames`; lint, гейт и `agentrig-lint` не читают baseline, он вне защиты; `init` и мастер
+называют число ошибок; D235. `just propose-pin HEAD` подготовил пин `0c74f22`.
 
 ## Verification
 
-PASS: `memory`, `build`, `clippy`, `candidate-lint`, `lint`. Тесты `project_setup::`, `agent_hooks::`,
-`change_delivery::git::tests::approval`, `structural_lint::`: 465 прошли; после одобренного пользователем
-`.agentrig/just/lint.just` без `lint-baseline` прошёл и `init_matches_the_rig_setup_except_listed_differences`.
+Гейт коммита `0c74f22`: build, candidate-lint, lint, memory, rustfmt, clippy, 635 Rust-тестов, ruff, mypy, typos,
+vulture — PASS.
+
+Пользователь выполнил `just approve`: `0c74f22` установлен, пин записан в `tooling/distribution/stable.txt`.
 
 ## Blockers
 
@@ -28,4 +28,4 @@ PASS: `memory`, `build`, `clippy`, `candidate-lint`, `lint`. Тесты `project
 
 ## Next action
 
-Закоммитить VAC 2 с одобренным `lint.just`, затем `just propose-pin HEAD`.
+Закоммитить пин с State, затем архивировать P198 и B205 и выполнить `just feature-merge`.
