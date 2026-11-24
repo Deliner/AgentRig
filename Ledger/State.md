@@ -2,24 +2,31 @@
 
 ## Focus
 
-Not recorded.
+Сохранить согласованную карточку B206 о формате новых решений и исключении индексов из лимита размера. Пользователь
+2026-11-25: «ты ее пока сохрани», к выполнению она не выбрана. Plan пуст.
 
 ## Workspace
 
-Not recorded.
+Branch: feature/ledger-redesign-cards
+Revision: dd3d02daee5447c5ed0416634e7e77a5a4e9d556
+
+VAC: `Ledger/Backlog/206.md` и строка B206 в `Ledger/Backlog.md`.
 
 ## Progress
 
-Not recorded.
+Карточка записана в показанном пользователю виде, строка индекса добавлена. Номер 206 не занят ни в Backlog, ни в
+Archive/Backlog.
 
 ## Verification
 
-Not recorded.
+`just check --only memory` на этом содержимом: PASS.
 
 ## Blockers
 
-Not recorded.
+Нет.
 
 ## Next action
 
-Not recorded.
+Закоммитить VAC. Ветку пока не сливать: обсуждение переделки Ledger продолжается, и следующие карточки этого
+обсуждения сохраняются в ту же ветку. Слияние `just feature-merge` — когда обсуждение закончено или пользователь
+попросит.
