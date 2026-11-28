@@ -2,34 +2,30 @@
 
 ## Focus
 
-P205 VAC E (AC6): the session start names the card whose number the current branch carries: `feature/RIG-7-name`
-gives Ledger/Plan/RIG-7.md or Ledger/Plan/RIG-7/RIG-7.md, any other branch Ledger/Plan; resume reports the same card.
+Pause P205 (B209) on feature/card-queue after VAC E: what needs neither an approval nor a new decision is done.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: 7bc4955e1b79e9461dc11ac41a07db9aab95c302
+Revision: e4ed4cc7cb985f4a820ec447b08821f3a67d9f17
 
 ## Progress
 
-- cards.rs finds the card of a branch from the git prefix, the queue key and a number without a leading zero, and
-  returns Plan/KEY-N.md or Plan/KEY-N/KEY-N.md when present, else Plan/; project_memory re-exports it as active_card.
-- The session start reads the branch through Git and names that card, or the error in its place; resume no longer
-  reads Plan.md and reports the path as card.
-- The new hook test switches branches without Git hooks: the reference hook made each switch take about 14 seconds.
-- The inventories and the project setup README name the active card in place of Plan.
+- Delivered here: c870287 (the AC2 to AC5 card checks beside the old indexes), 7bc4955 (AC7, consent by Plan/ cards),
+  and e4ed4cc (AC6, the card of the branch at session start and in resume).
+- Plan.md marks P205 paused; Plan/205.md Delivery records the three commits and the order after the P199 to P204
+  merge.
 
 ## Verification
 
-- `just run test agent_hooks::`: 47 passed; `just run test project_memory::`: 53 passed.
-- `just run rustfmt`, `just lint` and `just candidate memory-check` pass; the memory check prints the known D112, D175
-  and D231 warnings.
+- The gate of e4ed4cc passed: build, lint, memory, rustfmt, clippy and 275 affected tests in 53.7 seconds.
 
 ## Blockers
 
-b209-proposal waits for `! just approve` after the P199 to P204 merge, the rebase of this branch and a pin of its head.
+- The rest of P205 waits for the P199 to P204 merge, the rebase of this branch, a consented pin of its head and the
+  approval of b209-proposal by `! just approve`; its decisions fit the Decisions.md index only after P199 AC5.
 
 ## Next action
 
-Commit VAC E, then pause P205 on this branch with Delivery for c870287, 7bc4955 and VAC E, and switch the checkout
-to feature/decision-sections for the approval of the P199 lint.yaml proposal.
+Commit the pause, restore State and switch the checkout to feature/decision-sections, where `! just approve` applies
+the P199 lint.yaml proposal.
