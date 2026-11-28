@@ -2,26 +2,28 @@
 
 ## Focus
 
-P200 (B109): оракул cargo привязан к своему файлу. VAC: перенос паузы P199 с ветки `feature/decision-sections`.
+P200 (B109 AC1–AC2): this plan-only VAC sets P200 active. P199 stays paused on its retained branch
+feature/decision-sections.
 
 ## Workspace
 
 Branch: feature/cargo-oracle-file
-Revision: 70def14e0e9a7f72835e085d57fc8d95a57d2e3a
-Changed: Ledger/Plan.md (P199 paused), Ledger/Plan/199.md (Delivery) — перенесено из `24fe97d`.
+Revision: f2d04110eed1797bfc77be55e133e46a862f2f28
+Only Ledger/Plan.md and State are staged. The worktree also holds the uncommitted B109 code VAC: exact
+module paths for cargo oracles, with the Cargo manifest reader moved to structural_lint/architecture.
 
 ## Progress
 
-`70def14` — перенесённый выбор P199–P206. P199 стоит на паузе на сохранённой ветке `feature/decision-sections`.
+The P200 row goes from pending to active; Plan/200.md is unchanged.
 
 ## Verification
 
-Коммит через гейт: memory и lint на этом содержимом.
+The commit gate checks this staged tree.
 
 ## Blockers
 
-P199 ждёт `! just approve` предложения `lint.yaml` и пина. Пин этой ветки ждёт `! just consent` или `! just approve`.
+None for this VAC.
 
 ## Next action
 
-Закоммитить перенос, затем сделать P200 активной и реализовать AC1–AC2.
+Commit the activation, then describe the B109 code VAC in State and commit it through the gate.
