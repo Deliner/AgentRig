@@ -37,7 +37,15 @@ fn consumer() -> (TempDir, PathBuf) {
     {
         write(&root, crate_root.as_str().unwrap(), "");
     }
-    let args = ["init", "--language", "rust", "--base", "master"];
+    let args = [
+        "init",
+        "--key",
+        "RIG",
+        "--language",
+        "rust",
+        "--base",
+        "master",
+    ];
     let initialized = invoke(&root, &args);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
     (temp, root)

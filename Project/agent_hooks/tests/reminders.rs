@@ -133,6 +133,7 @@ fn follow_schedule(root: &Path, edit: &Value, agent: Agent) {
     );
 }
 
+// DECISION: D243
 // INVARIANT: I007
 #[test]
 fn portable_reminder_schedule_retry_and_compaction() {
@@ -157,10 +158,15 @@ fn portable_reminder_schedule_retry_and_compaction() {
         assert!(decided.is_none(), "{output}");
         let guided = output.to_string().contains(&skill(agent, "edit-state"));
         assert!(guided, "{output}");
-        for name in ["Plan", "Decisions", "Invariants"] {
-            let edit = writing(&common, &format!("Ledger/{name}.md"));
+        let memory = [
+            ("Plan/RIG-7.md", "edit-plan"),
+            ("Decisions.md", "edit-decisions"),
+            ("Invariants.md", "edit-invariants"),
+        ];
+        for (file, name) in memory {
+            let edit = writing(&common, &format!("Ledger/{file}"));
             let output = answer(&root, &edit, agent).to_string();
-            let guidance = skill(agent, &format!("edit-{}", name.to_lowercase()));
+            let guidance = skill(agent, name);
             assert!(output.contains(&guidance), "{guidance}: {output}");
         }
     }

@@ -27,7 +27,7 @@ if [[ ! -d "$installed" ]]; then
     git -C "$root" archive "$revision" Project rust-toolchain.toml > "$staging/source.tar"
     tar -xf "$staging/source.tar" -C "$staging"
     (cd "$staging" && cargo build --locked --release --manifest-path Project/Cargo.toml --target-dir "$cache/build")
-    "$cache/build/release/agentrig" init --root "$staging/environment" --language rust
+    "$cache/build/release/agentrig" init --root "$staging/environment" --key RIG --language rust
     mv "$staging/environment" "$installed"
 fi
 "$installed/.agentrig/bin/agentrig" --version

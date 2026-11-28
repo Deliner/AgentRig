@@ -1,5 +1,6 @@
 version: 1
 runtime: 0.3.0
+key: RIG
 config_skill: .agentrig/skills/repair/SKILL.md
 paths:
   sources:

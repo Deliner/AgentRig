@@ -5,13 +5,13 @@ routes:
   skill: .agentrig/skills/refactor-large-directory/SKILL.md
   events: [edit]
   block: true
-- include: [Ledger/Plan.md, 'Ledger/Plan/**/*.md']
+- include: ['Ledger/Plan/**']
   skill: .agentrig/skills/edit-plan/SKILL.md
   events: [edit, shell]
-- include: [Ledger/Archive/Plan.md, 'Ledger/Archive/Plan/**/*.md']
+- include: ['Ledger/Archive/**']
   skill: .agentrig/skills/edit-plan/SKILL.md
   events: [edit, shell]
-- include: [Ledger/Backlog.md, 'Ledger/Backlog/**/*.md']
+- include: ['Ledger/Backlog/**']
   skill: .agentrig/skills/edit-backlog/SKILL.md
   events: [edit, shell]
 - include: [Ledger/Decisions.md, 'Ledger/Decisions/**/*.md']

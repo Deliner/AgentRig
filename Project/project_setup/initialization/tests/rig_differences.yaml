@@ -101,3 +101,10 @@
   - [.agentrig, lint.yaml, rules, architecture, architecture, rust_roots,
      Project/shared/testing/examples/rust/Project/lib.rs]
   - [.agentrig, lint.yaml, rules, architecture, architecture, disallowed]
+- reason: >-
+    The rig keeps the memory written before cards as it is, the assets of its old Plan cards and the flat registries
+    of its Plan and Backlog archives; init starts a project with cards only.
+  at:
+  - [.agentrig, lint.yaml, rules, file-size, exclude, 'Ledger/Assets/**']
+  - [.agentrig, lint.yaml, rules, directory-size, exclude, Ledger/Archive/Plan]
+  - [.agentrig, lint.yaml, rules, directory-size, exclude, Ledger/Archive/Backlog]

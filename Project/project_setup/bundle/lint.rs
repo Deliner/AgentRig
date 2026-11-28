@@ -2,7 +2,7 @@
 // DECISION: D036
 use super::template::{CACHE, SOURCE};
 use crate::project_config::{Config, Paths};
-use crate::project_memory::{GLOSSARY, NORTH_STAR};
+use crate::project_memory::{CARD_DIRECTORIES, GLOSSARY, NORTH_STAR, STORED_MATERIALS};
 use crate::structural_lint::{CargoLayout, Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -13,18 +13,7 @@ const FILE_EXTENSIONS: [&str; 15] = [
     ".py", ".sh", ".rs", ".go", ".c", ".h", ".cpp", ".cs", ".java", ".json", ".md", ".toml",
     ".txt", ".yaml", ".yml",
 ];
-// DECISION: D029
-// DECISION: D030
-// DECISION: D048
-// DECISION: D056
-const MEMORY_REGISTRIES: [&str; 6] = [
-    "Decisions",
-    "Invariants",
-    "Plan",
-    "Backlog",
-    "Archive/Plan",
-    "Archive/Backlog",
-];
+const MEMORY_REGISTRIES: [&str; 2] = ["Decisions", "Invariants"];
 
 pub fn template(settings: &Config, rust: &CargoLayout, language: &str) -> Result<String> {
     let paths = &settings.paths;
@@ -60,14 +49,15 @@ fn example(kind: Kind, paths: &Paths) -> Value {
     let mut rule = example_rule(kind, &paths.skills, &["**".into()]);
     match kind {
         // DECISION: D116
-        // DECISION: D172
         // DECISION: D237
+        // DECISION: D242
         Kind::Structure(Structure::NonblankLines) => {
-            let owned = [paths.lint.clone(), format!("{}/Assets/**", paths.memory)];
+            let stored = STORED_MATERIALS.map(|name| format!("{}/**/{name}/**", paths.memory));
             let indexes = MEMORY_REGISTRIES.map(|name| format!("{}/{name}.md", paths.memory));
             let defaults = rule["exclude"].as_array().cloned().unwrap_or_default();
-            let exclude: Vec<Value> = owned
+            let exclude: Vec<Value> = [paths.lint.clone()]
                 .into_iter()
+                .chain(stored)
                 .chain(indexes)
                 .map(Value::from)
                 .chain(defaults)
@@ -75,9 +65,13 @@ fn example(kind: Kind, paths: &Paths) -> Value {
             rule["exclude"] = json!(exclude);
             rule["extensions"] = json!(FILE_EXTENSIONS);
         }
+        // DECISION: D242
         Kind::Structure(Structure::DirectoryEntries) => {
-            let registries = MEMORY_REGISTRIES.map(|name| format!("{}/{name}", paths.memory));
-            rule["exclude"] = json!(registries);
+            let registries = MEMORY_REGISTRIES.into_iter().chain(CARD_DIRECTORIES);
+            let exclude: Vec<String> = registries
+                .map(|name| format!("{}/{name}", paths.memory))
+                .collect();
+            rule["exclude"] = json!(exclude);
         }
         Kind::Structure(Structure::DumpName) => rule["include"] = tree(),
         Kind::Structure(_)

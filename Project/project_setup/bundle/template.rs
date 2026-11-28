@@ -2,7 +2,7 @@ use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Key, Paths,
     Program, Route, RouteEvent, Rust, Tools, View, Views,
 };
-use crate::project_memory::{GLOSSARY, NORTH_STAR};
+use crate::project_memory::{ARCHIVE, BACKLOG, GLOSSARY, NORTH_STAR, PLAN};
 use crate::project_setup::rust::{ClippySettings, Requirement, build_rustflags, clippy_settings};
 use crate::shared::calling_agent::Agent;
 use crate::structural_lint::{CargoLayout, cargo_layout};
@@ -399,24 +399,31 @@ fn routes(options: &Options<'_>) -> Vec<Route> {
     });
     routes
 }
+// DECISION: D242
 fn memory_routes(options: &Options<'_>) -> Vec<Route> {
     let skill_root = &options["skills"];
-    [
-        ("Plan", "edit-plan"),
-        ("Archive/Plan", "edit-plan"),
-        ("Backlog", "edit-backlog"),
+    let cards = [
+        (PLAN, "edit-plan"),
+        (ARCHIVE, "edit-plan"),
+        (BACKLOG, "edit-backlog"),
+    ]
+    .map(|(directory, skill)| (vec![format!("{MEMORY}/{directory}/**")], skill));
+    let registries = [
         ("Decisions", "edit-decisions"),
         ("Invariants", "edit-invariants"),
         ("State", "edit-state"),
     ]
-    .into_iter()
-    .map(|(file, skill)| Route {
-        include: memory_files(file),
-        skill: format!("{skill_root}/{skill}/SKILL.md"),
-        events: vec![RouteEvent::Edit, RouteEvent::Shell],
-        block: false,
-    })
-    .collect()
+    .map(|(file, skill)| (memory_files(file), skill));
+    cards
+        .into_iter()
+        .chain(registries)
+        .map(|(include, skill)| Route {
+            include,
+            skill: format!("{skill_root}/{skill}/SKILL.md"),
+            events: vec![RouteEvent::Edit, RouteEvent::Shell],
+            block: false,
+        })
+        .collect()
 }
 fn memory_files(file: &str) -> Vec<String> {
     vec![

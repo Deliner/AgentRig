@@ -53,13 +53,12 @@ rules:
   - .agentrig/lint.yaml
   # DECISION: D172 -- a Plan card asset is a stored artifact read as one file.
   - Ledger/Assets/**
+  # DECISION: D242 -- the assets and results of a card are stored artifacts read as files.
+  - Ledger/**/assets/**
+  - Ledger/**/results/**
   # DECISION: D237 -- a memory index grows by one row per record and is read as one table.
   - Ledger/Decisions.md
   - Ledger/Invariants.md
-  - Ledger/Plan.md
-  - Ledger/Backlog.md
-  - Ledger/Archive/Plan.md
-  - Ledger/Archive/Backlog.md
   - '**/Cargo.lock'
   - '**/package-lock.json'
   - '**/uv.lock'
@@ -190,10 +189,10 @@ rules:
   exclude:
   - Ledger/Decisions
   - Ledger/Invariants
-  # DECISION: D029 -- memory requires a flat indexed Plan/NNN.md registry.
-  - Ledger/Plan
-  # DECISION: D030 -- Backlog uses the same flat indexed memory representation.
+  # DECISION: D242 -- a card lies in one of three flat directories of cards.
   - Ledger/Backlog
+  - Ledger/Plan
+  - Ledger/Archive
   # DECISION: D048 -- the Plan archive is the same flat indexed registry.
   - Ledger/Archive/Plan
   # DECISION: D056 -- the Backlog archive is the same flat indexed registry.

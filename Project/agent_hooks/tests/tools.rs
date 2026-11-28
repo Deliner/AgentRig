@@ -28,7 +28,7 @@ fn monitor_commands_pass_the_same_shell_checks_and_websocket_watches_pass() {
 #[test]
 fn notebook_edits_get_the_routes_of_the_file_they_change() {
     let (_temp, root) = project();
-    let notebook = root.join("Ledger/Plan.md");
+    let notebook = root.join("Ledger/Plan/RIG-7.md");
     let output = hook(&root, "NotebookEdit", json!({"notebook_path": notebook}));
     assert!(output.to_string().contains("edit-plan"), "{output}");
 }

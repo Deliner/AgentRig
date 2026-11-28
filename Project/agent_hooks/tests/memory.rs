@@ -8,15 +8,19 @@ use std::os::unix::fs::{MetadataExt, symlink};
 use std::{fs, path::Path};
 
 const LEDGER_EDITS: [(&str, &str, &[&str]); 20] = [
-    ("Edit", r#"{"file_path": "Ledger/Plan.md"}"#, &["edit-plan"]),
     (
         "Edit",
-        r#"{"file_path": "Ledger/Backlog.md"}"#,
+        r#"{"file_path": "Ledger/Plan/RIG-7.md"}"#,
+        &["edit-plan"],
+    ),
+    (
+        "Edit",
+        r#"{"file_path": "Ledger/Backlog/RIG-8/assets/sketch.png"}"#,
         &["edit-backlog"],
     ),
     (
         "Write",
-        r#"{"file_path": "Ledger/Backlog/001.md"}"#,
+        r#"{"file_path": "Ledger/Backlog/RIG-8/RIG-8.md"}"#,
         &["edit-backlog"],
     ),
     ("Write", r#"{"path": "Ledger/State.md"}"#, &["edit-state"]),
@@ -37,7 +41,7 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 20] = [
     ),
     (
         "Edit",
-        r#"{"file_path": "Ledger/Plan/001.md"}"#,
+        r#"{"file_path": "Ledger/Archive/RIG-6/results/acceptance.md"}"#,
         &["edit-plan"],
     ),
     (
@@ -65,7 +69,7 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 20] = [
     ("Edit", r#"{"file_path": "{outside}/Ledger/State.md"}"#, &[]),
     (
         "apply_patch",
-        r#""*** Begin Patch\n*** Update File: Ledger/Plan.md\n*** Update File: Ledger/Plan/001.md\n*** Delete File: Ledger/State.md\n*** Add File: Ledger/Invariants/013.md\n*** End Patch""#,
+        r#""*** Begin Patch\n*** Update File: Ledger/Archive/RIG-6.md\n*** Update File: Ledger/Plan/RIG-7.md\n*** Delete File: Ledger/State.md\n*** Add File: Ledger/Invariants/013.md\n*** End Patch""#,
         &["edit-plan", "edit-invariants", "edit-state"],
     ),
     (
@@ -80,12 +84,12 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 20] = [
     ),
     (
         "apply_patch",
-        r#"{"command": "*** Begin Patch\n*** Update File: Ledger/Plan.md\n*** End Patch"}"#,
+        r#"{"command": "*** Begin Patch\n*** Update File: Ledger/Plan/RIG-7.md\n*** End Patch"}"#,
         &["edit-plan"],
     ),
     (
         "apply_patch",
-        r#"{"patch_text": "*** Update File: docs/example.md\n+*** Update File: Ledger/Plan.md\n"}"#,
+        r#"{"patch_text": "*** Update File: docs/example.md\n+*** Update File: Ledger/Plan/RIG-7.md\n"}"#,
         &[],
     ),
 ];
@@ -187,11 +191,11 @@ fn nested_cwd_and_symlinks() {
     let event = pre_tool(
         &root.join("Ledger"),
         "Edit",
-        json!({"file_path": "Plan.md"}),
+        json!({"file_path": "Plan/RIG-7.md"}),
     );
     let guided = in_session(&root, event.clone(), "direct");
     assert!(guided.to_string().contains("edit-plan"), "{guided}");
-    let path = root.join("Ledger/Plan.md");
+    let path = root.join("Ledger/Plan/RIG-7.md");
     symlink(root.parent().unwrap().join("outside.md"), &path).unwrap();
     assert!(in_session(&root, event, "linked").is_null());
 }

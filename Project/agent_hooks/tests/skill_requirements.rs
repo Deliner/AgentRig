@@ -119,9 +119,9 @@ fn patched(files: &[&str]) -> String {
 fn one_response_keeps_every_requirement_in_configured_order() {
     let files = [
         "Project/b/x.rs",
-        "Ledger/Plan.md",
+        "Ledger/Plan/RIG-7.md",
         "Project/a/y.rs",
-        "Ledger/Archive/Plan.md",
+        "Ledger/Archive/RIG-6.md",
         "Project/a/z.rs",
     ];
     let message = patched(&files);
@@ -129,7 +129,7 @@ fn one_response_keeps_every_requirement_in_configured_order() {
     reversed.reverse();
     assert_eq!(patched(&reversed), message);
     let architecture = "- Required: read and apply ROOT/.agents/skills/refactor-large-directory/SKILL.md for edit of Project/a/y.rs; edit of Project/a/z.rs; edit of Project/b/x.rs. Source: hooks.routes[0].";
-    let plan = "- Guidance: read and apply ROOT/.agents/skills/edit-plan/SKILL.md for edit of Ledger/Plan.md; edit of Ledger/Archive/Plan.md. Source: hooks.routes[1], hooks.routes[2].";
+    let plan = "- Guidance: read and apply ROOT/.agents/skills/edit-plan/SKILL.md for edit of Ledger/Plan/RIG-7.md; edit of Ledger/Archive/RIG-6.md. Source: hooks.routes[1], hooks.routes[2].";
     let refresh = message.find("COMPLEXITY_DISCIPLINE_FULL_REFRESH_REQUIRED");
     let positions = [refresh, message.find(architecture), message.find(plan)];
     assert!(positions.iter().all(Option::is_some), "{message}");

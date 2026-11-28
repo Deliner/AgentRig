@@ -19,7 +19,9 @@ mod source;
 #[cfg(test)]
 mod tests;
 pub use briefing::{GLOSSARY, NORTH_STAR, briefing};
-pub use cards::{CARD_DIRECTORIES, PLAN, active_card, planned_cards};
+pub use cards::{
+    ARCHIVE, BACKLOG, CARD_DIRECTORIES, PLAN, STORED_MATERIALS, active_card, planned_cards,
+};
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };

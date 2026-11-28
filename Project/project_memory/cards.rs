@@ -11,11 +11,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub const CARD_DIRECTORIES: [&str; 3] = ["Backlog", PLAN, ARCHIVE];
+pub const CARD_DIRECTORIES: [&str; 3] = [BACKLOG, PLAN, ARCHIVE];
+pub const BACKLOG: &str = "Backlog";
 pub const PLAN: &str = "Plan";
-const ARCHIVE: &str = "Archive";
+pub const ARCHIVE: &str = "Archive";
+pub const STORED_MATERIALS: [&str; 2] = ["assets", "results"];
+const SCENARIOS: &str = "scenarios.md";
 const SECTIONS: [&str; 3] = ["Context", "Proposal", "Expected benefit"];
-const MATERIALS: [&str; 3] = ["assets", "results", "scenarios.md"];
 const PREREQUISITES: &str = "After: ";
 const REGISTRIES: [&str; 4] = ["Plan.md", "Plan", "Backlog.md", "Backlog"];
 
@@ -200,7 +202,8 @@ impl Card {
     fn materials(&self, card: &str) -> Result<()> {
         for entry in fs::read_dir(&self.entry)? {
             let name = entry?.file_name();
-            let held = name == card || MATERIALS.iter().any(|material| name == *material);
+            let stored = STORED_MATERIALS.iter().any(|material| name == *material);
+            let held = name == card || name == SCENARIOS || stored;
             ensure!(
                 held,
                 "{}: a card directory holds only {card}, assets/, results/ and scenarios.md",
