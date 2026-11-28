@@ -2,32 +2,35 @@
 
 ## Focus
 
-P200 (B109 AC1–AC2), decision VAC: record D238, the successor of D157, in the three sections of D236. D238 binds
-a cargo oracle to a module path of its linked file joined with the file-local name of the marked function.
+P200 (B109 AC1–AC2), archive VAC: rotate P200 and B109 into the archives with the acceptance results and commit
+the pin of `e4fcb33` that `just propose-pin HEAD` wrote under the consent of the user.
 
 ## Workspace
 
 Branch: feature/cargo-oracle-file
-Revision: b7587b09d9a23386e621021bc48cded11684ea36
-The branch is rebased onto master 032fddc (P199 merged); the obsolete pause commit of P200 was dropped, so P200
-stays active. Staged: Decisions.md, Decisions/238.md, the markers and State.
+Revision: e4fcb334685e45e579c5da9b401111759cc34d07
+Staged: the P200 and B109 rows and files moved into Ledger/Archive, the archived card link to D157, the D238 card
+and delivery links, tooling/distribution/stable.txt and State.
 
 ## Progress
 
-- Decisions.md: the D238 row with links to oracles.rs, cargo_crates.rs, tests/oracles.rs and the setup guide; the
-  D157 row keeps only its card and the D144 link; the succession note says D238 supersedes D157.
-- Decisions/238.md: Decision, Reasons and Alternatives.
-- Markers: D157 becomes D238 in oracles.rs and tests/oracles.rs; cargo_crates.rs gains D238 above cargo_modules.
+- P200 is complete: AC1 and AC2 are met, with the evidence in Archive/Plan/200.md.
+- `just propose-pin HEAD` ran the branch gate (636 Rust tests and every check passed), installed `e4fcb33` and
+  wrote it to stable.txt under the consent of the user.
+- An AC2 probe pointed the I002 target into a temporary probe.rs while oracles.rs kept the marked function; the
+  installed runtime refused it, and the probe was removed.
 
 ## Verification
 
-- `just candidate memory-check`: passes with the three known marker warnings (D112, D175, D231).
-- The commit gate checks this staged tree with the affected test groups.
+- `just check --only memory` with the installed `e4fcb33`: PASS on the rotated memory, with the three known
+  marker warnings (D112, D175, D231).
+- The commit gate checks this staged tree.
 
 ## Blockers
 
-None for this VAC. Completing P200 needs a pin, which `just propose-pin HEAD` sets under the consent of the user.
+None.
 
 ## Next action
 
-Commit this VAC through the gate, then run `just propose-pin HEAD`, archive P200 and B109 and merge.
+Commit this archive VAC, run `just feature-merge`, compact the conversation, then continue with the next ready Plan
+item.
