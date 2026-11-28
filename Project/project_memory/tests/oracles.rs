@@ -1,4 +1,4 @@
-// DECISION: D157
+// DECISION: D238
 use crate::shared::testing::{
     Run, commit_identity, configure, git, invoke, python_path, run, runtime,
 };
@@ -58,7 +58,7 @@ const CARGO: Runner = Runner {
     marker: "// INVARIANT: I001",
     valid: "// INVARIANT: I001\n#[test]\nfn doubles() {}\n",
     misbound: &["// INVARIANT: I001\nfn unrelated() {}\n"],
-    missing: "was not discovered",
+    missing: "marked oracle function",
     undiscoverable: "// INVARIANT: I001\nfn doubles() {}\n",
     undiscovered: "was not discovered",
     discovery: "--list",
@@ -223,17 +223,42 @@ fn pytest_oracle_rejects_a_repeated_name_and_accepts_parametrized_markers() {
 }
 
 #[test]
-fn cargo_oracle_rejects_another_scope_a_partial_segment_and_an_ambiguous_name() {
+fn cargo_oracle_rejects_another_scope_a_partial_segment_and_a_repeated_name() {
     let unmarked = "#[test]\nfn doubles() {}\n";
     let other = "mod other {\n    // INVARIANT: I001\n    fn doubles() {}\n}\n";
     let partial = "// INVARIANT: I001\nfn oubles() {}\n";
-    let ambiguous = "// INVARIANT: I001\nfn doubles() {}\nmod tests {\n    fn doubles() {}\n}\n";
     for tests in [
         other.to_owned() + unmarked,
         partial.to_owned(),
-        ambiguous.to_owned(),
+        CARGO.valid.to_owned() + unmarked,
     ] {
         let (_temp, root) = project(&CARGO, &tests);
         rejected(&root, "marked oracle function");
     }
+}
+
+#[test]
+fn cargo_oracle_rejects_a_marked_test_in_a_file_its_target_does_not_reach() {
+    let elsewhere = Runner {
+        file: "Project/src/other.rs",
+        ..CARGO
+    };
+    let marked =
+        "#[cfg(test)]\nmod tests {\n    // INVARIANT: I001\n    #[test]\n    fn doubles() {}\n}\n";
+    let (_temp, root) = project(&elsewhere, marked);
+    let crate_root = "Project/src/lib.rs";
+    crate::shared::testing::write(&root, crate_root, "mod feature;\nmod other;\n");
+    write(&root, &CARGO, "#[test]\nfn doubles() {}\n");
+    rejected(&root, "marked oracle function");
+    let detached = "Project/src/detached.rs";
+    crate::shared::testing::write(&root, detached, marked);
+    let index = root.join("Ledger/Invariants.md");
+    let linked = fs::read_to_string(&index)
+        .unwrap()
+        .replace(elsewhere.file, detached);
+    fs::write(&index, linked).unwrap();
+    rejected(
+        &root,
+        "no crate root of the manifest that command test names reaches",
+    );
 }

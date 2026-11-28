@@ -10,7 +10,7 @@ mod targeting;
 #[cfg(test)]
 mod tests;
 
-pub use architecture::{Rooted, crate_modules};
+pub use architecture::{CargoLayout, Rooted, cargo_layout, cargo_modules};
 pub use lint_files::only_adds_rules;
 pub use reporting::{
     Format, check, discovery, execute, failure, inspection, lint_structure, run, standalone,

@@ -2,14 +2,54 @@ use super::source::{Invariant, Source};
 use crate::{
     command_runner,
     project_config::{Context, Oracle, Runner},
+    structural_lint,
 };
 use anyhow::{Context as _, Result, ensure};
-use std::path::Path;
+use std::collections::{BTreeMap, HashMap, hash_map::Entry};
+use std::path::{Path, PathBuf};
+
+type Modules = BTreeMap<PathBuf, Vec<Vec<String>>>;
 
 pub struct Discovery<'a> {
     id: &'a str,
     command: &'a str,
     oracle: &'a Oracle,
+}
+
+pub struct Linked<'a> {
+    pub path: &'a Path,
+    pub source: &'a Source,
+}
+
+pub struct CrateModules<'a> {
+    files: &'a [PathBuf],
+    walked: HashMap<String, Modules>,
+}
+
+impl<'a> CrateModules<'a> {
+    pub fn new(files: &'a [PathBuf]) -> Self {
+        Self {
+            files,
+            walked: HashMap::new(),
+        }
+    }
+
+    fn of(&mut self, context: &Context, command: &str) -> Result<&Modules> {
+        let walked = match self.walked.entry(command.to_owned()) {
+            Entry::Occupied(entry) => entry.into_mut(),
+            Entry::Vacant(entry) => {
+                let configured = &context.config.commands[command];
+                let modules = structural_lint::cargo_modules(
+                    &context.root,
+                    self.files,
+                    &configured.argv,
+                    &configured.cwd,
+                )?;
+                entry.insert(modules)
+            }
+        };
+        Ok(walked)
+    }
 }
 
 pub fn validate<'a>(
@@ -125,7 +165,12 @@ fn discover_group(context: &Context, group: &[&Discovery<'_>]) -> Result<()> {
     Ok(())
 }
 
-pub fn marked(context: &Context, id: &str, source: &Source) -> Result<bool> {
+pub fn marked(
+    context: &Context,
+    id: &str,
+    linked: Linked<'_>,
+    crates: &mut CrateModules<'_>,
+) -> Result<bool> {
     let oracle = context
         .config
         .oracles
@@ -133,15 +178,30 @@ pub fn marked(context: &Context, id: &str, source: &Source) -> Result<bool> {
         .with_context(|| format!("{id}: configure a test oracle"))?;
     let target = oracle.target.split('[').next().unwrap_or("");
     Ok(match oracle.runner {
-        // DECISION: D157
-        Runner::Cargo => source.marked_function(id, |name| {
-            target
-                .strip_suffix(name)
-                .is_some_and(|module| module.is_empty() || module.ends_with("::"))
-        }),
+        // DECISION: D238
+        Runner::Cargo => {
+            let command = command(context, oracle)?;
+            let file = linked.path.strip_prefix(&context.root)?;
+            let modules = crates.of(context, command)?.get(file).with_context(|| {
+                format!(
+                    "{id}: no crate root of the manifest that command {command} names reaches {}",
+                    file.display()
+                )
+            })?;
+            linked.source.marked_function(id, |name| {
+                modules
+                    .iter()
+                    .any(|module| qualified(module, name) == target)
+            })
+        }
         Runner::Pytest => {
             let function = target.split_once("::").map_or("", |(_, function)| function);
-            source.marked_function(id, |name| name == function)
+            linked.source.marked_function(id, |name| name == function)
         }
     })
+}
+
+fn qualified(module: &[String], name: &str) -> String {
+    let path: Vec<&str> = module.iter().map(String::as_str).chain([name]).collect();
+    path.join("::")
 }

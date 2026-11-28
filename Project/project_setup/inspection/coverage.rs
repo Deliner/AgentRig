@@ -129,7 +129,9 @@ fn mapped<'a>(
         return Ok(None);
     }
     let modules = match runner {
-        Runner::Cargo => modules(&context.root, files, &command.argv, &command.cwd)?,
+        Runner::Cargo => {
+            structural_lint::cargo_modules(&context.root, files, &command.argv, &command.cwd)?
+        }
         Runner::Pytest => Modules::new(),
     };
     Ok(Some(Mapped {
@@ -140,37 +142,6 @@ fn mapped<'a>(
         map: AffectedMap::new(check)?,
         modules,
     }))
-}
-
-// DECISION: D144
-fn modules(root: &Path, files: &[PathBuf], argv: &[String], cwd: &str) -> Result<Modules> {
-    let manifest = manifest(argv, cwd);
-    let absent = !root.join(&manifest).is_file();
-    if absent {
-        return Ok(Modules::new());
-    }
-    let directory = manifest.parent().unwrap_or(Path::new(""));
-    let rust = |path: &&PathBuf| {
-        path.starts_with(directory) && path.extension().is_some_and(|extension| extension == "rs")
-    };
-    let mut texts = BTreeMap::new();
-    for path in files.iter().filter(rust) {
-        texts.insert(path.clone(), fs::read_to_string(root.join(path))?);
-    }
-    let layout = crate::project_setup::rust::manifest_layout(root, &manifest.to_string_lossy())?;
-    structural_lint::crate_modules(&texts, &layout.roots)
-}
-
-fn manifest(argv: &[String], cwd: &str) -> PathBuf {
-    let flag = argv.iter().position(|arg| arg == "--manifest-path");
-    let separate = flag
-        .and_then(|index| argv.get(index + 1))
-        .map(String::as_str);
-    let joined = argv
-        .iter()
-        .find_map(|arg| arg.strip_prefix("--manifest-path="));
-    let path = separate.or(joined).unwrap_or("Cargo.toml");
-    normalized(&Path::new(cwd).join(path))
 }
 
 fn finding(mapped: &Mapped<'_>, path: &Path) -> Result<Option<String>> {

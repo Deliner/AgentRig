@@ -1,8 +1,9 @@
-purpose: Validate directory contracts, feature types, cycles and file fan-out over resolved source dependencies
+purpose: Validate directory contracts, feature types, cycles and file fan-out over resolved source dependencies and give the module paths of Cargo crates
 type: custom
 files:
-  mod.rs: Declarations of the architecture parts and the contract check they offer
+  mod.rs: Declarations of the architecture parts and the contract check and Cargo crate layout they offer
   README.md: Rule configuration, contract format, feature types and source analysis limits
+  cargo_crates.rs: The crate roots, local crates and dependency names of a Cargo manifest and the module paths its crate roots give the Rust files of the manifest a cargo command names
 directories:
   contract_check: Combine configured scope, extraction, resolution and actionable findings
   contract_rules: Directory contracts, resolved dependency records and the rules checked over them

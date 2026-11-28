@@ -1,11 +1,11 @@
 purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
 dependents: 10
 files:
-  mod.rs: Declarations of the lint parts and the location, modes, commands, error count, lint file checks, rule kinds, maintained files and crate module paths they offer
+  mod.rs: Declarations of the lint parts and the location, modes, commands, error count, lint file checks, rule kinds, maintained files, Cargo crate layouts and crate module paths they offer
 directories:
   lint_files: Read and compare the lint configuration files without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
-  architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out
+  architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out and read Cargo crate layouts
   languages: Parse source syntax and measure language-specific scalar rules
   reporting: Parse lint commands and print findings, rule discovery, explanations, measured edges and the tree and structure reports
   rule_evaluation: Load the lint configuration, check it or evaluate its rules into lifted findings and count their errors

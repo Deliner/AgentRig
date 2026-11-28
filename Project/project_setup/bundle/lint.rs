@@ -2,8 +2,7 @@
 // DECISION: D036
 use super::template::{CACHE, SOURCE};
 use crate::project_config::{Config, Paths};
-use crate::project_setup::rust::Layout;
-use crate::structural_lint::{Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
+use crate::structural_lint::{CargoLayout, Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
 use anyhow::Result;
 use serde_json::{Value, json};
 use std::collections::BTreeSet;
@@ -26,7 +25,7 @@ const MEMORY_REGISTRIES: [&str; 6] = [
     "Archive/Backlog",
 ];
 
-pub fn template(settings: &Config, rust: &Layout, language: &str) -> Result<String> {
+pub fn template(settings: &Config, rust: &CargoLayout, language: &str) -> Result<String> {
     let paths = &settings.paths;
     let mut rules: Vec<Value> = RULE_KINDS
         .iter()
@@ -163,7 +162,7 @@ fn markdown(paths: &Paths) -> Vec<Value> {
     ]
 }
 
-fn architecture(skills: &str, rust: &Layout) -> Value {
+fn architecture(skills: &str, rust: &CargoLayout) -> Value {
     let kind = Kind::Structure(Structure::DirectoryArchitecture);
     let mut rule = example_rule(kind, skills, &[]);
     rule["include"] = tree();

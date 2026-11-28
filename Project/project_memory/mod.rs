@@ -50,7 +50,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
     references(context, &files, &mut sources, &applications)?;
     exceptions::check(context, &memory, &files)?;
-    invariants(context, &memory, &mut sources)?;
+    invariants(context, &memory, &files, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
     Ok(0)
 }
@@ -354,9 +354,15 @@ fn marked_source(path: &Path) -> bool {
     }) || path.file_name().is_some_and(|name| name == "justfile");
     !non_source
 }
-fn invariants(context: &Context, memory: &Path, sources: &mut Sources) -> Result<()> {
+fn invariants(
+    context: &Context,
+    memory: &Path,
+    files: &[PathBuf],
+    sources: &mut Sources,
+) -> Result<()> {
     let rows = table(&memory.join("Invariants.md"), Catalog::Invariants)?;
     details(context, memory, &rows, Catalog::Invariants)?;
+    let mut crates = oracles::CrateModules::new(files);
     let mut discoveries = Vec::new();
     for row in &rows {
         let oracle = format::link(&row.cells[2])?;
@@ -365,8 +371,12 @@ fn invariants(context: &Context, memory: &Path, sources: &mut Sources) -> Result
             .inspect(&path)?
             .ok_or_else(|| anyhow::anyhow!("{}: unsupported oracle source language", row.id))?;
         let id = &row.id;
+        let linked = oracles::Linked {
+            path: &path,
+            source,
+        };
         ensure!(
-            oracles::marked(context, id, source)?,
+            oracles::marked(context, id, linked, &mut crates)?,
             "{}: marked oracle function {} missing or ambiguous",
             row.id,
             oracle.name
