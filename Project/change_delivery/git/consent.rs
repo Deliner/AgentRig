@@ -1,9 +1,10 @@
 // DECISION: D226
+// DECISION: D242
 use super::integration;
 use super::pin;
 use super::state::State;
 use crate::project_config::Context;
-use crate::project_memory::{Catalog, table};
+use crate::project_memory::planned_cards;
 use crate::shared::atomic_files::{load_json, replace, save_json};
 use crate::shared::console;
 use crate::shared::vcs::{Repository, Revisions};
@@ -12,7 +13,6 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 const RECORD: &str = "consent";
-const OPEN: [&str; 2] = ["pending", "active"];
 
 #[derive(Default, Deserialize, Serialize)]
 #[serde(default)]
@@ -46,27 +46,18 @@ pub(super) fn location(context: &Context) -> Result<PathBuf> {
     Ok(context.path(&context.config.paths.runtime)?.join(RECORD))
 }
 
-fn open_items(context: &Context) -> Result<Vec<String>> {
-    let plan = context.path(&context.config.paths.memory)?.join("Plan.md");
-    Ok(table(&plan, Catalog::Plan)?
-        .into_iter()
-        .filter(|row| OPEN.contains(&row.cells[1].as_str()))
-        .map(|row| row.id)
-        .collect())
-}
-
 pub fn give(context: &Context) -> Result<i32> {
-    let plan = open_items(context)?;
+    let plan = planned_cards(context)?;
     ensure!(
         !plan.is_empty(),
-        "consent covers pending or active Plan items, and the Plan has none"
+        "consent covers the cards in Plan/, and Plan/ holds none"
     );
     let mut record = Record::load(context)?;
-    let items = plan.join(", ");
+    let cards = plan.join(", ");
     record.plan = plan;
     record.save(context)?;
     console::stdout(format!(
-        "Consent given: while {items} stays pending or active, or until `just revoke-consent`, propose-pin installs and pins a gated HEAD itself and `just consented-pins` lists each pin."
+        "Consent given: while any of {cards} stays in Plan/, or until `just revoke-consent`, propose-pin installs and pins a gated HEAD itself and `just consented-pins` lists each pin."
     ));
     Ok(0)
 }
@@ -98,8 +89,8 @@ pub(super) fn holds(context: &Context) -> Result<bool> {
     if absent {
         return Ok(false);
     }
-    let open = open_items(context)?;
-    Ok(record.plan.iter().any(|item| open.contains(item)))
+    let planned = planned_cards(context)?;
+    Ok(record.plan.iter().any(|card| planned.contains(card)))
 }
 
 pub(super) fn pin(

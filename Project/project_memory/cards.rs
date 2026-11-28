@@ -11,7 +11,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const DIRECTORIES: [&str; 3] = ["Backlog", "Plan", "Archive"];
+const DIRECTORIES: [&str; 3] = ["Backlog", PLAN, ARCHIVE];
+const PLAN: &str = "Plan";
 const ARCHIVE: &str = "Archive";
 const SECTIONS: [&str; 3] = ["Context", "Proposal", "Expected benefit"];
 const MATERIALS: [&str; 3] = ["assets", "results", "scenarios.md"];
@@ -69,6 +70,18 @@ pub fn card_of(context: &Context, branch: &str) -> Result<Option<PathBuf>> {
         }
     }
     Ok(None)
+}
+pub fn planned_cards(context: &Context) -> Result<Vec<String>> {
+    let memory = context.path(&context.config.paths.memory)?;
+    let key = context.config.queue_key()?;
+    let mut numbers = BTreeSet::new();
+    for entry in listed(&memory.join(PLAN))? {
+        numbers.insert(Card::at(&context.root, entry)?.number(key)?);
+    }
+    Ok(numbers
+        .iter()
+        .map(|number| format!("{key}-{number}"))
+        .collect())
 }
 fn carried(context: &Context, branch: &str) -> Option<String> {
     let key = context.config.key.as_ref()?;

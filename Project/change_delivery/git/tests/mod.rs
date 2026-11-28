@@ -35,7 +35,10 @@ fn installed() -> (TempDir, PathBuf) {
     git(&root, &["init", "-q", "-b", "trunk"]);
     commit_identity(&root);
     fs::write(root.join("shared.txt"), "initial\n").unwrap();
-    let initialized = invoke(&root, &["init", "--base", "trunk", "--prefix", "task/"]);
+    let args = [
+        "init", "--base", "trunk", "--prefix", "task/", "--key", "RIG",
+    ];
+    let initialized = invoke(&root, &args);
     assert_eq!(initialized.code, Some(0), "{}", initialized.output());
     configure(&root, "commands", PROBE_COMMAND);
     configure(&root, "checks", PROBE_CHECK);
