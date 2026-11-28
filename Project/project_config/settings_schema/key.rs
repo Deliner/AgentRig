@@ -1,8 +1,15 @@
+// DECISION: D242
 use anyhow::{Error, Result, ensure};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as _};
+use std::fmt::{self, Display, Formatter};
 
 pub struct Key {
     letters: String,
+}
+impl Display for Key {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.letters)
+    }
 }
 impl TryFrom<String> for Key {
     type Error = Error;

@@ -222,9 +222,9 @@ fn decision_source_markers() {
 #[test]
 fn repository_layout_and_detail_contract() {
     assert!(repository().join("Project/README.md").is_file());
-    assert!(repository().join("Ledger/Plan.md").is_file());
+    assert!(repository().join("Ledger/Decisions.md").is_file());
     let (_temp, root) = consumer();
-    let detail = root.join("notes/Plan/001.md");
+    let detail = root.join("notes/Decisions/001.md");
     fs::write(&detail, "# Unindexed").unwrap();
     rejects(&root, &["memory-check"], "unindexed detail");
     fs::remove_file(&detail).unwrap();

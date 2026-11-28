@@ -1,7 +1,8 @@
 purpose: Validate project memory contracts, record check evidence and report recovery and session context
 files:
-  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, table, State and briefing functions its parts offer
+  mod.rs: Memory, decision and invariant consistency checks and the check evidence, table, State and briefing functions its parts offer
   briefing.rs: Give the full North Star and glossary that each session receives when its context starts, naming a file it lacks
+  cards.rs: Check that each card in Backlog, Plan and Archive is named by the queue key and its number, holds only its materials, keeps its heading and sections and is ordered after existing cards without a cycle
   exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
   glossary.rs: Check that the glossary is a header followed by entries of a word and its meaning, each word once whatever its letter case

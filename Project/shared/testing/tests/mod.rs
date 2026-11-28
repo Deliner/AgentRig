@@ -247,7 +247,7 @@ pub fn configure(root: &Path, module: &str, addition: &str) {
 pub fn project(root: &Path, commands: &str, checks: &str) {
     let version = env!("CARGO_PKG_VERSION");
     let identity = format!(
-        "version: 1\nruntime: \"{version}\"\nconfig_skill: {REPAIR}\npaths:\n  sources: [src/**]\n  memory: notes\n  skills: guides\n  lint: lint.yaml\n  runtime: .runtime\n"
+        "version: 1\nruntime: \"{version}\"\nkey: RIG\nconfig_skill: {REPAIR}\npaths:\n  sources: [src/**]\n  memory: notes\n  skills: guides\n  lint: lint.yaml\n  runtime: .runtime\n"
     );
     let files = [
         (REPAIR, SKILL),

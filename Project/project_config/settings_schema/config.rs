@@ -5,7 +5,7 @@ use super::checks::Check;
 use super::flag::Flag;
 use super::key::Key;
 use crate::shared::vcs::Settings as Git;
-use anyhow::Result;
+use anyhow::{Context as _, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
@@ -90,6 +90,12 @@ impl Config {
     // DECISION: D233
     pub fn keep_matcher(&self) -> Result<globset::GlobSet> {
         crate::shared::paths::globs(&self.git.keep)
+    }
+    // DECISION: D242
+    pub fn queue_key(&self) -> Result<&Key> {
+        self.key.as_ref().context(
+            "cards are named by the queue key, and .agentrig/project.yaml names none: add key with 2 to 10 uppercase Latin letters, as init --key writes it",
+        )
     }
 }
 fn service() -> String {

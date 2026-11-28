@@ -7,6 +7,16 @@ use tempfile::TempDir;
 
 const MEMORY_CHECK: &str = "- id: memory\n  kind: memory\n  skill: guides/repair/SKILL.md\n";
 const HEADINGS: [&str; 3] = ["Decision", "Reasons", "Alternatives"];
+const CARD: &str = "## Context\n\nA check appeared slow.\n\n## Proposal\n\nShow which check takes the time.\n\n## Expected benefit\n\nLocate avoidable delays.\n";
+
+pub fn card(root: &Path, place: &str, preamble: &str) -> PathBuf {
+    let path = root.join(place);
+    let name = path.file_stem().unwrap().to_string_lossy().into_owned();
+    fs::create_dir_all(path.parent().unwrap()).unwrap();
+    let text = format!("# {name} — Explain slow checks\n\n{preamble}\n\n{CARD}");
+    fs::write(&path, text).unwrap();
+    path
+}
 
 pub fn decision(source: &str) -> String {
     format!("| [D001](Decisions/001.md) | Choice | [code](../{source}) |\n")

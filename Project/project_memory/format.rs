@@ -217,6 +217,15 @@ fn parse_row(
 }
 pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Result<String> {
     let source = fs::read_to_string(path)?;
+    sections_of(&source, path, required, optional)?;
+    Ok(source)
+}
+pub fn sections_of(
+    source: &str,
+    path: &Path,
+    required: &[&str],
+    optional: Option<&str>,
+) -> Result<()> {
     let mut headings = Vec::new();
     let mut body = false;
     for line in source.lines() {
@@ -246,7 +255,7 @@ pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Resul
         required,
         optional
     );
-    Ok(source)
+    Ok(())
 }
 pub fn target(context: &Context, memory: &Path, value: &str) -> Result<PathBuf> {
     ensure!(

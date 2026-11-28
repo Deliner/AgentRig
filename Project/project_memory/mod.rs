@@ -1,11 +1,11 @@
 // DECISION: D019
 // DECISION: D016
 // DECISION: D013
-// DECISION: D012
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
 mod briefing;
+mod cards;
 mod check_evidence;
 mod exceptions;
 mod format;
@@ -34,7 +34,7 @@ use anyhow::{Context as _, Result, ensure};
 use format::{Row, sections, target};
 use source::{Invariant, Sources};
 use std::{
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeSet, HashMap, HashSet},
     path::{Path, PathBuf},
 };
 
@@ -47,8 +47,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     let memory = context.path(&context.config.paths.memory)?;
     let mut sources = Sources::default();
     let committed = history::check(context, root, revision, &mut sources)?;
-    plan(context, &memory)?;
-    backlog(context, &memory)?;
+    cards::check(context, &memory)?;
     let applications = decisions(context, &memory, &committed, &mut sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
     references(context, &files, &mut sources, &applications)?;
@@ -169,123 +168,6 @@ fn reject_unindexed(memory: &Path, catalog: Catalog, known: &HashSet<String>) ->
                 path.display()
             );
         }
-    }
-    Ok(())
-}
-// DECISION: D050
-fn backlog(context: &Context, memory: &Path) -> Result<()> {
-    let mut ids = HashSet::new();
-    for root in [memory.to_path_buf(), memory.join("Archive")] {
-        let path = root.join("Backlog.md");
-        let adopted = fs::try_exists(&path)?;
-        if adopted {
-            let rows = table(&path, Catalog::Backlog)?;
-            details(context, &root, &rows, Catalog::Backlog)?;
-            for row in rows {
-                ensure!(
-                    ids.insert(row.id),
-                    "duplicate ID across Backlog and Archive"
-                );
-            }
-        } else {
-            reject_unindexed(&root, Catalog::Backlog, &HashSet::new())?;
-        }
-    }
-    Ok(())
-}
-// DECISION: D031
-fn plan(context: &Context, memory: &Path) -> Result<()> {
-    let mut rows = plan_rows(context, memory)?;
-    let archive = memory.join("Archive");
-    let archived = fs::try_exists(archive.join("Plan.md"))?;
-    if archived {
-        let completed = plan_rows(context, &archive)?;
-        ensure!(
-            completed.iter().all(|row| row.cells[1] == "complete"),
-            "Archive requires completed Plan outcomes"
-        );
-        rows.extend(completed);
-    } else {
-        reject_unindexed(&archive, Catalog::Plan, &HashSet::new())?;
-    }
-    ensure!(
-        rows.iter().filter(|row| row.cells[1] == "active").count() <= 1,
-        "Plan has multiple active features"
-    );
-    let index: HashMap<_, _> = rows.iter().map(|row| (row.id.as_str(), row)).collect();
-    ensure!(
-        index.len() == rows.len(),
-        "duplicate ID across Plan and Archive"
-    );
-    let mut graph = BTreeMap::new();
-    for row in &rows {
-        graph.insert(row.id.as_str(), dependencies(row, &index)?);
-    }
-    acyclic(&graph)
-}
-fn plan_rows(context: &Context, memory: &Path) -> Result<Vec<Row>> {
-    let rows = table(&memory.join("Plan.md"), Catalog::Plan)?;
-    details(context, memory, &rows, Catalog::Plan)?;
-    for row in &rows {
-        plan_status(row, memory)?;
-    }
-    Ok(rows)
-}
-fn plan_status(row: &Row, memory: &Path) -> Result<()> {
-    let status = row.cells[1].as_str();
-    ensure!(
-        ["pending", "active", "paused", "complete"].contains(&status),
-        "{}: invalid status {status}",
-        row.id
-    );
-    let delivery_required = ["paused", "complete"].contains(&status);
-    if delivery_required {
-        let source = fs::read_to_string(memory.join(&row.detail))?;
-        ensure!(
-            source.lines().any(|line| line == "## Delivery"),
-            "{}: {status} requires Delivery",
-            row.id
-        );
-    }
-    Ok(())
-}
-fn dependencies<'a>(row: &'a Row, index: &HashMap<&str, &Row>) -> Result<Vec<&'a str>> {
-    let independent = row.cells[2] == "-";
-    let dependencies: Vec<_> = if independent {
-        Vec::new()
-    } else {
-        row.cells[2].split(',').map(str::trim).collect()
-    };
-    ensure!(
-        dependencies.iter().collect::<HashSet<_>>().len() == dependencies.len(),
-        "{}: duplicate dependencies",
-        row.id
-    );
-    let requires_completed = ["active", "complete"].contains(&row.cells[1].as_str());
-    for dependency in &dependencies {
-        let prior = index
-            .get(dependency)
-            .ok_or_else(|| anyhow::anyhow!("{}: unknown dependency {dependency}", row.id))?;
-        ensure!(
-            !requires_completed || prior.cells[1] == "complete",
-            "{}: prerequisite {dependency} is incomplete",
-            row.id
-        );
-    }
-    Ok(dependencies)
-}
-// DECISION: D127
-fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
-    let mut done = HashSet::new();
-    while done.len() < graph.len() {
-        let before = done.len();
-        for (id, dependencies) in graph {
-            let ready = dependencies.iter().all(|id| done.contains(id));
-            if ready {
-                done.insert(*id);
-            }
-        }
-        ensure!(done.len() > before, "Plan dependency cycle");
     }
     Ok(())
 }

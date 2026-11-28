@@ -1,13 +1,13 @@
-purpose: Verify project memory contracts, committed decision history and plan and recovery records
+purpose: Verify project memory contracts, committed decision history and card and recovery records
 files:
   mod.rs: Declare the Rust memory scenarios
   oracles.rs: Bind cargo invariant oracles to the marked test of a nested module and reject other bindings
-  consumer.rs: Construct memory consumers and committed decision baselines for memory scenarios
+  consumer.rs: Construct memory consumers, their cards and committed decision baselines for memory scenarios
   resume.rs: Reconcile recorded State with Git repository observations
   history.rs: Preserve committed decision history across revision and merge-parent checks
   validation.rs: Validate markers, references, layout, kept decision history and read-only resume
-  plan.rs: Validate current and archived outcomes, references and delivery transitions
-  backlog.rs: Validate initialized, current and archived idea records
+  plan.rs: Validate the order that After lines give cards and the numbers that tell cards apart
+  cards.rs: Validate card names, card directories, card text, the queue key and the registries kept from before cards
   state.rs: Validate required recovery sections and tolerate reconcilable recorded Git facts
   glossary.rs: Accept a headed glossary of distinct words and name the line of a malformed entry, a missing header or a repeated word
 directories: {}

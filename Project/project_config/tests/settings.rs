@@ -140,12 +140,16 @@ fn rust_module_takes_only_a_list_of_compiler_flags() {
 #[test]
 fn project_key_takes_two_to_ten_uppercase_latin_letters() {
     for key in ["AB", "ABCDEFGHIJ"] {
-        let (_temp, root) = configured(&format!("key: {key}\n"), GATE);
+        let (_temp, root) = configured("", GATE);
+        let line = format!("key: {key}\n");
+        change(&root, "project.yaml", "key: RIG\n", &line);
         let checked = invoke(&root, &["config-check"]);
         assert_eq!(checked.code, Some(0), "{key}: {}", checked.output());
     }
     for key in ["A", "ABCDEFGHIJK", "rig", "RIG1", "RIG-1", "RÏG", "''"] {
-        let (_temp, root) = configured(&format!("key: {key}\n"), GATE);
+        let (_temp, root) = configured("", GATE);
+        let line = format!("key: {key}\n");
+        change(&root, "project.yaml", "key: RIG\n", &line);
         let result = rejected(&root, key);
         let named = result
             .stderr
