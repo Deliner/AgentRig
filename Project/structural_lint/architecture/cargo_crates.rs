@@ -85,6 +85,7 @@ pub fn layout(root: &Path, source: &str) -> Result<Layout> {
 }
 
 // DECISION: D144
+// DECISION: D238
 pub fn cargo_modules(
     root: &Path,
     files: &[PathBuf],

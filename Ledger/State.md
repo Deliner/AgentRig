@@ -2,43 +2,32 @@
 
 ## Focus
 
-P200 (B109 AC1–AC2), code VAC: memory-check binds a cargo oracle to the exact module path of its linked file. The
-target must equal a module path of that file joined by `::` with the file-local qualified name of exactly one
-function carrying the invariant marker; module paths come from the crate roots of the manifest that the command
-of the oracle check names.
+P200 (B109 AC1–AC2), decision VAC: record D238, the successor of D157, in the three sections of D236. D238 binds
+a cargo oracle to a module path of its linked file joined with the file-local name of the marked function.
 
 ## Workspace
 
 Branch: feature/cargo-oracle-file
-Revision: 80fd7d14b9ec8f9c030863d11a8316708b999dbf
-The Cargo manifest reader (project_setup/rust/cargo.rs) and the module path walk of config-check (coverage.rs)
-move together into Project/structural_lint/architecture/cargo_crates.rs, offered as CargoLayout, cargo_layout
-and cargo_modules(root, files, argv, cwd), since project_memory cannot use project_setup (project_setup uses
-project_memory). The manifest path is canonicalized instead of normalized lexically. The fs_with_context budget
-rises from 24 to 25 for this reader; the D136 and D144 links move to the new file.
+Revision: b7587b09d9a23386e621021bc48cded11684ea36
+The branch is rebased onto master 032fddc (P199 merged); the obsolete pause commit of P200 was dropped, so P200
+stays active. Staged: Decisions.md, Decisions/238.md, the markers and State.
 
 ## Progress
 
-- oracles.rs: `marked` compares a cargo target with module path plus qualified name and walks once per command.
-- tests/oracles.rs covers AC1 (another scope, a partial segment, a repeated name) and AC2 (a marked test in a
-  file the target does not reach, a file no crate root reaches).
-- The `// DECISION: D157` marker stays while the code replaces the trailing-segment match of D157. The successor
-  decision D238 follows in the next VAC.
+- Decisions.md: the D238 row with links to oracles.rs, cargo_crates.rs, tests/oracles.rs and the setup guide; the
+  D157 row keeps only its card and the D144 link; the succession note says D238 supersedes D157.
+- Decisions/238.md: Decision, Reasons and Alternatives.
+- Markers: D157 becomes D238 in oracles.rs and tests/oracles.rs; cargo_crates.rs gains D238 above cargo_modules.
 
 ## Verification
 
-These results hold for the tree before the rebase onto master; the gated D238 commit checks the rebased tree.
-
-- `just run test -- project_memory`: 47 passed; `just run test -- structural_lint`: 354 passed.
-- `just run test -- project_setup`: 60 passed.
-- `just check --only rustfmt --staged`: pass after applying the rustfmt line splits.
-- `just lint`: clean.
 - `just candidate memory-check`: passes with the three known marker warnings (D112, D175, D231).
+- The commit gate checks this staged tree with the affected test groups.
 
 ## Blockers
 
-None for this VAC. Completing P200 needs the D157 successor D238 and a pin.
+None for this VAC. Completing P200 needs a pin, which `just propose-pin HEAD` sets under the consent of the user.
 
 ## Next action
 
-Continue the rebase, skip the obsolete pause commit, then record D238 in a gated VAC.
+Commit this VAC through the gate, then run `just propose-pin HEAD`, archive P200 and B109 and merge.

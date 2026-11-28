@@ -178,7 +178,7 @@ pub fn marked(
         .with_context(|| format!("{id}: configure a test oracle"))?;
     let target = oracle.target.split('[').next().unwrap_or("");
     Ok(match oracle.runner {
-        // DECISION: D157
+        // DECISION: D238
         Runner::Cargo => {
             let command = command(context, oracle)?;
             let file = linked.path.strip_prefix(&context.root)?;
