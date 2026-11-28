@@ -43,10 +43,10 @@ pub fn check(context: &Context) -> Result<i32> {
 pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>) -> Result<i32> {
     let memory = context.path(&context.config.paths.memory)?;
     let mut sources = Sources::default();
-    history::check(context, root, revision, &mut sources)?;
+    let committed = history::check(context, root, revision, &mut sources)?;
     plan(context, &memory)?;
     backlog(context, &memory)?;
-    let applications = decisions(context, &memory, &mut sources)?;
+    let applications = decisions(context, &memory, &committed, &mut sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
     references(context, &files, &mut sources, &applications)?;
     exceptions::check(context, &memory, &files)?;
@@ -104,24 +104,43 @@ fn invariant_ids(memory: &Path) -> Result<HashSet<String>> {
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> Result<()> {
     let layout = catalog.detail_sections();
-    let directory = catalog.directory();
-    let mut known = HashSet::new();
     for row in rows {
-        ensure!(
-            row.id
-                .get(1..)
-                .is_some_and(|number| row.detail == format!("{directory}/{number}.md")),
-            "{}: detail path does not match ID",
-            row.id
-        );
-        known.insert(row.detail.clone());
-        sections(
-            &target(context, memory, &row.detail)?,
-            layout.required,
-            layout.optional,
-        )?;
+        let path = detail(context, memory, row, catalog)?;
+        sections(&path, layout.required, layout.optional)?;
     }
-    reject_unindexed(memory, catalog, &known)
+    reject_unindexed(memory, catalog, &indexed(rows))
+}
+fn detail(context: &Context, memory: &Path, row: &Row, catalog: Catalog) -> Result<PathBuf> {
+    let directory = catalog.directory();
+    ensure!(
+        row.id
+            .get(1..)
+            .is_some_and(|number| row.detail == format!("{directory}/{number}.md")),
+        "{}: detail path does not match ID",
+        row.id
+    );
+    target(context, memory, &row.detail)
+}
+fn indexed(rows: &[Row]) -> HashSet<String> {
+    rows.iter().map(|row| row.detail.clone()).collect()
+}
+fn decision_details(
+    context: &Context,
+    memory: &Path,
+    rows: &[Row],
+    committed: &HashSet<String>,
+) -> Result<()> {
+    let layout = Catalog::Decisions.detail_sections();
+    for row in rows {
+        let path = detail(context, memory, row, Catalog::Decisions)?;
+        let prior_layout = committed.contains(&row.id)
+            && sections(&path, format::PRIOR_DECISION_SECTIONS, None).is_ok();
+        if prior_layout {
+            continue;
+        }
+        sections(&path, layout.required, layout.optional)?;
+    }
+    reject_unindexed(memory, Catalog::Decisions, &indexed(rows))
 }
 fn reject_unindexed(memory: &Path, catalog: Catalog, known: &HashSet<String>) -> Result<()> {
     let directory = catalog.directory();
@@ -265,9 +284,14 @@ fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
     }
     Ok(())
 }
-fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<Applications> {
+fn decisions(
+    context: &Context,
+    memory: &Path,
+    committed: &HashSet<String>,
+    sources: &mut Sources,
+) -> Result<Applications> {
     let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;
-    details(context, memory, &rows, Catalog::Decisions)?;
+    decision_details(context, memory, &rows, committed)?;
     let linked: Vec<(&Row, Vec<Result<PathBuf>>)> = rows
         .iter()
         .map(|row| {

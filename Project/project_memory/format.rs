@@ -75,7 +75,7 @@ impl Catalog {
                 optional: None,
             },
             Self::Decisions => Sections {
-                required: &["Context", "Chosen", "Rejected", "Rationale", "Consequences"],
+                required: &["Decision", "Reasons", "Alternatives"],
                 optional: None,
             },
             Self::Invariants => Sections {
@@ -89,6 +89,8 @@ pub struct Sections {
     pub required: &'static [&'static str],
     pub optional: Option<&'static str>,
 }
+pub const PRIOR_DECISION_SECTIONS: &[&str] =
+    &["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
 
 pub struct Row {
     pub id: String,

@@ -6,10 +6,18 @@ use std::{
 use tempfile::TempDir;
 
 const MEMORY_CHECK: &str = "- id: memory\n  kind: memory\n  skill: guides/repair/SKILL.md\n";
-const HEADINGS: [&str; 5] = ["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
+const HEADINGS: [&str; 3] = ["Decision", "Reasons", "Alternatives"];
 
 pub fn decision(source: &str) -> String {
     format!("| [D001](Decisions/001.md) | Choice | [code](../{source}) |\n")
+}
+
+pub fn detail(id: &str, headings: &[&str]) -> String {
+    let sections: Vec<String> = headings
+        .iter()
+        .map(|heading| format!("## {heading}\n\nText."))
+        .collect();
+    format!("# {id}\n\n{}", sections.join("\n\n"))
 }
 
 pub fn append(path: &Path, text: &str) {
@@ -34,9 +42,7 @@ pub fn consumer() -> (TempDir, PathBuf) {
 pub fn record(root: &Path, source: &str) {
     let notes = root.join("notes");
     append(&notes.join("Decisions.md"), &decision(source));
-    let sections = HEADINGS.map(|heading| format!("## {heading}\n\nText."));
-    let detail = format!("# D001\n\n{}", sections.join("\n\n"));
-    fs::write(notes.join("Decisions/001.md"), detail).unwrap();
+    fs::write(notes.join("Decisions/001.md"), detail("D001", &HEADINGS)).unwrap();
 }
 
 pub fn accepts(root: &Path) {
