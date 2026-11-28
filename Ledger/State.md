@@ -2,22 +2,27 @@
 
 ## Focus
 
-Activate P205 (B209): one card per task in three directories, numbered after the project's queue key.
+P205 (B209) VAC A: `.agentrig/project.yaml` accepts an optional queue `key` of 2 to 10 capital Latin letters, the
+first half of AC1, so that a pin can install a runtime that reads the rig module once it names `key: RIG`.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: d7a5074a070f2438ea604a43a16011be9a3a6835
+Revision: ab6fef22036e0ff95d2032757f314286bd251ac1
 
 ## Progress
 
-- The branch starts from master and carries the Plan commits of P199-P204 (selection, activations and pauses).
-- This VAC only sets P205 active in Ledger/Plan.md.
+- `Project/project_config/settings_schema/key.rs`: the `Key` type checks the form in its only constructor
+  (`TryFrom<String>`); its hand-written `Deserialize` goes through that check, as `Flag` does, because the rig
+  dependency analyzer refuses serde `try_from` and `into` type paths.
+- `Config` gains `key: Option<Key>`; init still writes no key, so the I023 comparison with the rig is unchanged.
+- The settings_schema contract and the project_setup README name the key.
 
 ## Verification
 
-- The carried Plan and Backlog equal those of feature/north-star-glossary (git diff shows no difference).
-- The commit gate checks memory for this plan-only change.
+- `project_config::tests::settings::a_queue_key_is_two_to_ten_capital_latin_letters`: config-check accepts AB, RIG
+  and ABCDEFGHIJ and refuses R, ABCDEFGHIJK, rig, R1G, RIG-1 and РИГ, naming `.agentrig/project.yaml: key:`.
+- `just run rustfmt` and `just lint` pass on this content; the commit gate runs the affected groups.
 
 ## Blockers
 
@@ -25,5 +30,5 @@ None for this VAC.
 
 ## Next action
 
-Commit the activation, then let the runtime accept and check an optional queue key in .agentrig/project.yaml (the
-first half of AC1), which a pin must install before the rig module can name its key.
+Commit this VAC, then pause P205: the pin of this VAC and the user's approval of the rig module with `key: RIG`
+(proposal in the session scratchpad as b209-proposal) come before init can require and write the key.

@@ -52,8 +52,9 @@ Lint shows warnings only with `--warnings` and they never fail it; findings exit
 
 Configuration is strict YAML in `.agentrig/`. The required `project.yaml` holds `version: 1`, the exact `runtime`
 version, `config_skill`, `paths` (sources and the locations of service files, memory, skills, lint settings and runtime
-data) and `capabilities.lint` (disabling lint requires removing lint checks). Each optional module holds one section as
-its whole content; an absent module is an empty section, and `project.yaml` cannot hold one.
+data) and `capabilities.lint` (disabling lint requires removing lint checks), and may hold the queue `key` of 2 to 10
+capital Latin letters. Each optional module holds one section as its whole content; an absent module is an empty
+section, and `project.yaml` cannot hold one.
 
 - `git.yaml`: base branch, feature prefix, optional `remote` receiving branches, `keep` globs of ignored paths to keep.
 - `commands.yaml`: per name, `purpose`, `doc`, `argv`, `cwd`, `accepts_args` (`operands` refuses words starting with

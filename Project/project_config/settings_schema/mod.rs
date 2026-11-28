@@ -5,6 +5,7 @@ mod checks;
 mod config;
 mod config_files;
 mod flag;
+mod key;
 mod validation;
 pub use access::Access;
 pub use arguments::Arguments;

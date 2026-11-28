@@ -122,6 +122,7 @@ fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Resul
         version: 1,
         capabilities: project_config::Capabilities::default(),
         runtime: project_config::VERSION.into(),
+        key: None,
         config_skill: repair.clone(),
         paths: Paths {
             service: service.clone(),

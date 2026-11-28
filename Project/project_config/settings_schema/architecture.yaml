@@ -6,8 +6,9 @@ files:
   arguments.rs: Which words of the agent a catalog command takes and their accepts_args form in YAML
   capabilities.rs: Enabled capability declarations and their check consistency
   checks.rs: Configured checks, their kinds and the tests each set of changed paths affects
-  config.rs: Strict project schema of paths, commands, hooks, oracles, tools and Rust flags with the rig version
+  config.rs: Strict project schema of the queue key, paths, commands, hooks, oracles, tools and Rust flags with the rig version
   config_files.rs: Configuration file and modules, their YAML reading and writing, repairable source files and project-relative paths
   flag.rs: Program flags a catalog denies, parsed once, and every spelling the program reads as each flag
+  key.rs: Queue key of the project, 2 to 10 capital Latin letters, checked by its only constructor
   validation.rs: Structural validation of paths, commands, checks, hooks and oracles and their names
 directories: {}

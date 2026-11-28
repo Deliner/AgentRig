@@ -121,6 +121,22 @@ fn configuration_errors_are_actionable() {
     }
 }
 
+#[test]
+fn a_queue_key_is_two_to_ten_capital_latin_letters() {
+    for key in ["AB", "RIG", "ABCDEFGHIJ"] {
+        let (_temp, root) = configured(&format!("key: {key}\n"), GATE);
+        let accepted = invoke(&root, &["config-check"]);
+        assert_eq!(accepted.code, Some(0), "{key}: {}", accepted.output());
+    }
+    for key in ["R", "ABCDEFGHIJK", "rig", "R1G", "RIG-1", "РИГ"] {
+        let (_temp, root) = configured(&format!("key: {key}\n"), GATE);
+        let refused = rejected(&root, key);
+        let named =
+            format!(".agentrig/project.yaml: key: {key:?} is not 2 to 10 capital Latin letters");
+        assert!(refused.stderr.contains(&named), "{key}: {}", refused.stderr);
+    }
+}
+
 // DECISION: D182
 #[test]
 fn rust_module_takes_only_a_list_of_compiler_flags() {
