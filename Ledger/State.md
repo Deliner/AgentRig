@@ -2,34 +2,42 @@
 
 ## Focus
 
-P204 (B208), VAC 2 for the entry part of AC2: the memory check refuses a glossary whose first line is not a header,
-a later nonblank line that is not `- **word** — meaning` with a word and a meaning, or a word written twice in any
-letter case. The sizes and widths of AC1 and AC2 are lint rules of the next VAC.
+P204 (B208), VAC 3: init creates the North Star and the glossary with one header, protects the North Star and bounds
+both in lint; the rig gains its glossary, the edit-glossary skill and the same lint bounds (AC2, AC4–AC7 parts).
 
 ## Workspace
 
 Branch: feature/north-star-glossary
-Revision: 07ac675b98bbc6a7ba6bfba22ddedc93293b2be0
+Revision: 23692d44d435bf33b85185b2ea4437dbacfd6ff1
 
 ## Progress
 
-- `project_memory/glossary.rs` checks `Glossary.md` of the memory directory after the State sections; a missing
-  file is not checked, since init creates it and a session names its absence.
-- A refusal names the file and line with the entry form, the first line for a missing header, and both lines with
-  the word for a repeat.
-- The file name comes from `briefing.rs`, which gives the glossary at session start.
-- Four memory-check scenarios cover a valid glossary, four malformed lines, a missing header and a repeat.
+- VAC 1 (07ac675) gives both files in full at every session start; VAC 2 (23692d4) makes the memory check refuse a
+  malformed glossary entry, a missing header or a repeated word.
+- This VAC: init writes Ledger/NorthStar.md and Ledger/Glossary.md as one header line, lists the North Star in
+  hooks protected and ships north-star and glossary size and width rules (30 and 100 nonblank lines, 120 characters)
+  repaired by propose-protected-change and edit-glossary. bundle/lint.rs builds the State, North Star and glossary
+  bounds in one function. The rig gains Ledger/Glossary.md, the edit-glossary skill, its link and inventory, and the
+  same four rules in .agentrig/lint.yaml.
+- The D196 hook test clears protection before its Ledger tree write, which the protected North Star now refuses.
 
 ## Verification
 
-- `just run test -- project_memory::tests::glossary::`: 4 passed.
-- `just run test -- project_memory::`: 50 passed.
-- `just run rustfmt` and `just lint` pass.
+- `just run test`: 644 passed, 0 failed, on this content.
+- `just run rustfmt`, `just lint` and `just lint-config-check` pass; `just candidate memory-check` passes with the
+  known D112, D175 and D231 warnings.
+- New tests: defaults::shipped_north_star_and_glossary_are_headed_and_bounded (project_setup) and
+  approval::the_north_star_of_an_initialized_project_commits_only_after_the_user_approves_it (change_delivery).
 
 ## Blockers
 
-None for this VAC.
+- The rig North Star, its protection and the glossary edit route (AC5) change protected .agentrig/hooks.yaml and need
+  the user's `! just approve`. The proposal waits in the session scratchpad as b208-proposal: the rig hooks.yaml with
+  Ledger/NorthStar.md in protected and a last route for Ledger/Glossary.md (edit-glossary, edit and shell), and
+  Ledger/NorthStar.md holding `# North Star` and the first AGENTS.md paragraph verbatim. .cache/runtime/proposal/
+  holds the B206 lint.yaml proposal, so this one enters it only after that approval.
+- The pin of this Project change needs the user's `! just approve` or consent.
 
 ## Next action
 
-Commit, then add the size and width lint rules, the init files, the edit-glossary skill and the rig glossary (VAC 3).
+Commit this VAC, then pause P204 in Plan with its Delivery section and the morning steps, then take P205 (B209).

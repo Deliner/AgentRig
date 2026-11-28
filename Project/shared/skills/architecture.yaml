@@ -18,4 +18,4 @@ directories:
   naming: "Bind a value to its place by a name instead of its position or an inline expression: same-type parameters and tuple fields, a bool among tuple fields, the states of an optional flag, a nested option or a struct's flags, positional format placeholders and plain variables passed to a format string, struct literal fields set from another field's name and inline branch conditions"
   values: "Repair how code converts, computes, stores, reads and iterates values where the Clippy profile reports a hazard: an as conversion, a decimal ^ that reads as a power, the host's byte order, a read into an empty vector, a large local array, a loop over a hash collection, a collection never read, an iterator that may never end and a binding spread over assignments"
   discipline: "Review disciplines without an executable oracle: test placement, type-driven modelling, fail-closed verdicts and approved changes of enforcement"
-  memory: "Capture ideas and maintain plans, decisions, invariants and recovery facts"
+  memory: "Capture ideas and maintain plans, decisions, invariants, recovery facts and project words"

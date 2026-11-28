@@ -2,6 +2,7 @@ use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
     Route, RouteEvent, Rust, Tools, View, Views,
 };
+use crate::project_memory::NORTH_STAR;
 use crate::project_setup::rust::{ClippySettings, Requirement, build_rustflags, clippy_settings};
 use crate::shared::calling_agent::Agent;
 use crate::structural_lint::{CargoLayout, cargo_layout};
@@ -141,7 +142,7 @@ fn config(options: &Options<'_>, rust: &CargoLayout, settings: Rust) -> Result<C
             routes: routes(options),
             reminder: Some(format!("{discipline}/context-reminder.json")),
             discipline_skill: Some(format!("{discipline}/SKILL.md")),
-            protected: Vec::new(),
+            protected: vec![format!("{MEMORY}/{NORTH_STAR}.md")],
         },
         oracles: BTreeMap::new(),
         tools: tools(service),

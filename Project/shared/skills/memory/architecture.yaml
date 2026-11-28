@@ -7,3 +7,4 @@ directories:
   edit-decisions: "Preserve contextual choices and their current application links"
   edit-invariants: "Maintain observable predicates linked to exact executable oracles"
   norm-or-choice: "Distinguish contextual choices from executable invariant predicates"
+  edit-glossary: "Keep project words in the meanings the user agreed in chat"

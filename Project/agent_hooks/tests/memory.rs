@@ -239,12 +239,11 @@ fn every_renewed_context_receives_the_north_star_and_the_glossary_in_full() {
 #[test]
 fn a_session_without_the_glossary_names_it_and_starts() {
     let (_temp, root) = project();
-    let north_star = "# North Star\n\nOne line of purpose.";
-    fs::write(root.join("Ledger/NorthStar.md"), format!("{north_star}\n")).unwrap();
-    let context = started(&root, "startup");
     let glossary = root.join("Ledger/Glossary.md");
+    fs::remove_file(&glossary).unwrap();
+    let context = started(&root, "startup");
     let missing = format!("{} is missing", glossary.display());
-    for text in [north_star, missing.as_str(), "Resume from"] {
+    for text in ["# North Star", missing.as_str(), "Resume from"] {
         assert!(context.contains(text), "{text}: {context}");
     }
 }
@@ -253,10 +252,11 @@ fn a_session_without_the_glossary_names_it_and_starts() {
 fn a_session_with_an_unreadable_north_star_names_it_and_starts() {
     let (_temp, root) = project();
     let north_star = root.join("Ledger/NorthStar.md");
+    fs::remove_file(&north_star).unwrap();
     fs::create_dir(&north_star).unwrap();
     let context = started(&root, "startup");
     let unreadable = format!("{} is unreadable", north_star.display());
-    for text in [unreadable.as_str(), "Resume from"] {
+    for text in [unreadable.as_str(), "# Glossary", "Resume from"] {
         assert!(context.contains(text), "{text}: {context}");
     }
 }

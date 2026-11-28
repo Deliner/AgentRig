@@ -1,4 +1,4 @@
-use crate::project_memory::{Catalog, state_template};
+use crate::project_memory::{Catalog, GLOSSARY, NORTH_STAR, state_template};
 use std::collections::BTreeMap;
 
 pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
@@ -22,6 +22,8 @@ pub fn memory() -> anyhow::Result<BTreeMap<&'static str, String>> {
         );
     }
     files.insert("State", state_template());
+    files.insert(NORTH_STAR, "# North Star\n".into());
+    files.insert(GLOSSARY, "# Glossary\n".into());
     Ok(files)
 }
 

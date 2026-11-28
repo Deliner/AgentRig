@@ -150,6 +150,38 @@ rules:
   error: 120
   warning_skill: .agentrig/skills/edit-state/SKILL.md
   error_skill: .agentrig/skills/edit-state/SKILL.md
+- id: north-star-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - Ledger/NorthStar.md
+  error: 30
+  warning_skill: .agentrig/skills/propose-protected-change/SKILL.md
+  error_skill: .agentrig/skills/propose-protected-change/SKILL.md
+- id: north-star-width
+  kind: line-width
+  target: file
+  include:
+  - Ledger/NorthStar.md
+  error: 120
+  warning_skill: .agentrig/skills/propose-protected-change/SKILL.md
+  error_skill: .agentrig/skills/propose-protected-change/SKILL.md
+- id: glossary-size
+  kind: nonblank-lines
+  target: file
+  include:
+  - Ledger/Glossary.md
+  error: 100
+  warning_skill: .agentrig/skills/edit-glossary/SKILL.md
+  error_skill: .agentrig/skills/edit-glossary/SKILL.md
+- id: glossary-width
+  kind: line-width
+  target: file
+  include:
+  - Ledger/Glossary.md
+  error: 120
+  warning_skill: .agentrig/skills/edit-glossary/SKILL.md
+  error_skill: .agentrig/skills/edit-glossary/SKILL.md
 - id: directory-size
   kind: directory-entries
   target: directory

@@ -1,8 +1,8 @@
 use crate::shared::fs_with_context as fs;
 use std::path::Path;
 
-const NORTH_STAR: &str = "NorthStar";
-pub(super) const GLOSSARY: &str = "Glossary";
+pub const NORTH_STAR: &str = "NorthStar";
+pub const GLOSSARY: &str = "Glossary";
 
 pub fn briefing(memory: &Path) -> String {
     [NORTH_STAR, GLOSSARY]
