@@ -23,7 +23,18 @@ const FLAWED: &str = "pub fn narrow(value: u64) -> u32 {
     let unused = 1;
     value as u32
 }
+pub fn parse(text: &str) -> u32 {
+    text.parse().unwrap()
+}
 ";
+const GUIDES: [(&str, &str); 3] = [
+    (
+        "clippy::as_conversions",
+        "guides/convert-without-as/SKILL.md",
+    ),
+    ("clippy::unwrap_used", "guides/handle-panic/SKILL.md"),
+    ("unused_variables", REPAIR),
+];
 const FIXED: &str = "pub fn narrow(value: u64) -> Option<u32> {
     u32::try_from(value).ok()
 }
@@ -77,19 +88,29 @@ fn located(found: &[Value]) -> Vec<String> {
     places
 }
 
+fn configured(found: &[Value]) -> bool {
+    let skill = |item: &Value| item["skill"].as_str().unwrap().ends_with(REPAIR);
+    found.iter().all(skill)
+}
+
+// DECISION: D240
 #[test]
-fn lint_reports_each_clippy_message_of_the_profile_as_an_error() {
+fn lint_reports_each_clippy_message_as_an_error_with_the_skill_that_repairs_it() {
     let (_temp, root) = rust_project(&[("src/lib.rs", FLAWED)]);
     let (code, found) = lint(&root);
     assert_eq!(code, Some(1), "{found:?}");
     let expected = [
         "clippy::as_conversions src/lib.rs:3",
+        "clippy::unwrap_used src/lib.rs:6",
         "unused_variables src/lib.rs:2",
     ];
     assert_eq!(located(&found), expected);
     let guided = found.iter().all(|item| {
+        let rule = item["rule"].as_str().unwrap();
         let skill = item["skill"].as_str().unwrap();
-        item["level"] == "error" && skill.ends_with(REPAIR)
+        let guide = GUIDES.iter().find(|(listed, _)| *listed == rule);
+        let named = guide.is_some_and(|(_, guide)| skill.ends_with(guide));
+        item["level"] == "error" && named
     });
     assert!(guided, "{found:?}");
     write(&root, "src/lib.rs", FIXED);
@@ -132,6 +153,7 @@ fn lint_names_why_clippy_could_not_check_the_project() {
     assert_eq!(located(&found), ["clippy missing/Cargo.toml"]);
     let cause = found[0]["message"].as_str().unwrap();
     assert!(cause.contains("does not exist"), "{cause}");
+    assert!(configured(&found), "{found:?}");
     write(&root, ".agentrig/rust.yaml", RUST);
     write(&root, "src/lib.rs", "pub fn broken( {\n");
     let (code, found) = lint(&root);
@@ -140,7 +162,7 @@ fn lint_names_why_clippy_could_not_check_the_project() {
     let unparsed = places
         .iter()
         .any(|place| place.starts_with("clippy src/lib.rs:"));
-    assert!(unparsed, "{found:?}");
+    assert!(unparsed && configured(&found), "{found:?}");
 }
 
 #[test]
@@ -162,4 +184,5 @@ fn a_lint_the_manifest_denies_is_reported_beyond_the_profile() {
     let (code, found) = lint(&root);
     assert_eq!(code, Some(1), "{found:?}");
     assert_eq!(located(&found), ["clippy::integer_division src/lib.rs:2"]);
+    assert!(configured(&found), "{found:?}");
 }

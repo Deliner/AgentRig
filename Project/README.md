@@ -49,8 +49,8 @@ change policy through a recorded decision.
 
 With `manifest` in `rust.yaml`, lint and the gate's lint check also run Clippy with the AgentRig profile on the
 library, binaries and examples of that `Cargo.toml`, not its tests; `[lints.clippy]` can deny more. Each compiler
-message becomes an error finding with its rule, file, line and the configuration skill, and a run that cannot check
-the project becomes one naming the cause.
+message becomes an error finding with its rule, file and line, and a run that cannot check the project one naming
+the cause. A finding of a profile lint names the skill that repairs it, any other the configuration skill.
 
 `structural_lint/rule_identities` owns each kind's identity, target, metric, parameters, skill and defaults;
 the catalog, validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection

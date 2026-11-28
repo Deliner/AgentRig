@@ -43,7 +43,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "name-if-condition",
-        include_str!("../../shared/skills/name-if-condition/SKILL.md"),
+        include_str!("../../shared/skills/naming/name-if-condition/SKILL.md"),
     ),
     (
         "norm-or-choice",
@@ -369,6 +369,54 @@ const SKILLS: &[(&str, &str)] = &[
     (
         "match-the-ranges",
         include_str!("../../shared/skills/control-flow/match-the-ranges/SKILL.md"),
+    ),
+    (
+        "convert-without-as",
+        include_str!("../../shared/skills/values/convert-without-as/SKILL.md"),
+    ),
+    (
+        "write-the-power",
+        include_str!("../../shared/skills/values/write-the-power/SKILL.md"),
+    ),
+    (
+        "name-the-byte-order",
+        include_str!("../../shared/skills/values/name-the-byte-order/SKILL.md"),
+    ),
+    (
+        "size-the-read-buffer",
+        include_str!("../../shared/skills/values/size-the-read-buffer/SKILL.md"),
+    ),
+    (
+        "box-the-large-array",
+        include_str!("../../shared/skills/values/box-the-large-array/SKILL.md"),
+    ),
+    (
+        "iterate-in-a-fixed-order",
+        include_str!("../../shared/skills/values/iterate-in-a-fixed-order/SKILL.md"),
+    ),
+    (
+        "read-or-remove-the-collection",
+        include_str!("../../shared/skills/values/read-or-remove-the-collection/SKILL.md"),
+    ),
+    (
+        "bound-the-iterator",
+        include_str!("../../shared/skills/values/bound-the-iterator/SKILL.md"),
+    ),
+    (
+        "bind-with-if",
+        include_str!("../../shared/skills/values/bind-with-if/SKILL.md"),
+    ),
+    (
+        "mark-must-use",
+        include_str!("../../shared/skills/signature/mark-must-use/SKILL.md"),
+    ),
+    (
+        "print-through-one-owner",
+        include_str!("../../shared/skills/ownership/print-through-one-owner/SKILL.md"),
+    ),
+    (
+        "move-into-mod-rs",
+        include_str!("../../shared/skills/refactor/move-into-mod-rs/SKILL.md"),
     ),
 ];
 pub fn bodies() -> BTreeMap<&'static str, String> {

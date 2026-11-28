@@ -1,0 +1,12 @@
+purpose: "Repair how code converts, computes, stores, reads and iterates values where the Clippy profile reports a hazard: an as conversion, a decimal ^ that reads as a power, the host's byte order, a read into an empty vector, a large local array, a loop over a hash collection, a collection never read, an iterator that may never end and a binding spread over assignments"
+files: {}
+directories:
+  convert-without-as: "Replace an as conversion with From, TryFrom or a named method, or justify the cast with an exception"
+  write-the-power: "Replace a decimal ^ that reads as a power with pow or a shift, or show the bits of an intended exclusive or"
+  name-the-byte-order: "Replace the host's byte order with the order the format of the data requires, or justify the host's order with an exception"
+  size-the-read-buffer: "Give a read a buffer of the length it should fill, or read to the end of the input"
+  box-the-large-array: "Move a large local array to the heap or into a static item, or justify the stack size with an exception"
+  iterate-in-a-fixed-order: "Loop over an ordered collection or sorted keys instead of a hash collection, or justify the free order with an exception"
+  read-or-remove-the-collection: "Read a collection that code fills but never queries, remove it, or justify keeping it unread with an exception"
+  bound-the-iterator: "Bound an iterator that may never end before a search consumes it, or justify the endless iteration with an exception"
+  bind-with-if: "Bind a variable with an if expression instead of a declaration followed by assignments"

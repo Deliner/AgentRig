@@ -1,0 +1,5 @@
+purpose: "Move a large local array to the heap or into a static item, or justify the stack size with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep a large array off the stack"
+directories: {}

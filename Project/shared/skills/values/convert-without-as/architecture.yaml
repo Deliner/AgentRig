@@ -1,0 +1,5 @@
+purpose: "Replace an as conversion with From, TryFrom or a named method, or justify the cast with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to replace an as conversion with a conversion that shows whether it can lose information"
+directories: {}

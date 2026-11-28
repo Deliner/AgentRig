@@ -25,6 +25,14 @@ no legitimate use, so no exception or reference justifies keeping it.
 Unlike the rules that accept an exception, `debug-artifact` accepts none: a
 `dbg!` cannot be kept with a `DECISION:` or `INVARIANT:` comment; remove it.
 
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::dbg_macro` in the library, binaries
+and examples of the configured Cargo manifest; tests are outside the profile.
+Clippy reports the same `dbg!` macros, and the lint check reports each message
+as an error naming this skill. Remove them as the steps above describe; no
+exception keeps one. Do not weaken the profile merely to pass.
+
 ## Rule binding
 
 The measurement flags every Rust `dbg!` macro invocation, unconditionally. Rerun

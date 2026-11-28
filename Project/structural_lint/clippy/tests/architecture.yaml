@@ -1,0 +1,4 @@
+purpose: Verify that each lint of the Clippy profile leads to a skill of the rig that names it
+files:
+  mod.rs: Each profile lint has a skill under the rig's skills that names the lint
+directories: {}

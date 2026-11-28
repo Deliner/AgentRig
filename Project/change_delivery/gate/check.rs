@@ -35,6 +35,7 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
             let launch = |argv: &[String]| command_runner::output(context, argv);
             let clippy = manifest.as_deref().map(|manifest| structural_lint::Clippy {
                 manifest,
+                skills: Path::new(&context.config.paths.skills),
                 launch: &launch,
             });
             structural_lint::check(location, &context.caller, rerun, clippy)

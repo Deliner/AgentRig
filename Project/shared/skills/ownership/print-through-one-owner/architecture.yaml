@@ -1,0 +1,5 @@
+purpose: "Remove a leftover print macro or write output through the one module that owns the terminal, which an exception justifies"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to print through the owner of the terminal"
+directories: {}

@@ -1,0 +1,5 @@
+purpose: "Replace the host's byte order with the order the format of the data requires, or justify the host's order with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to name the byte order of converted bytes"
+directories: {}

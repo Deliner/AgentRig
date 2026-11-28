@@ -1,6 +1,6 @@
 ---
 name: handle-panic
-description: Return or handle a Rust error instead of unwrap, expect, unwrap_err, expect_err, resume_unwind or a panic macro, or record why the panic is unreachable.
+description: Return or handle a Rust error instead of unwrap, expect, unwrap_err, expect_err, resume_unwind, a panic macro, a string slice by byte range or a process exit outside main, or record why the panic is unreachable or the exit intended.
 ---
 
 # Handle the error instead of panicking
@@ -35,6 +35,31 @@ such panic inside the item without an exception above each call. The attribute
 itself is an `allow-justification` finding: give it its own exception
 `// DECISION: DNNN allow-justification` directly above it, as justify-allow
 describes.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::unwrap_used`, `clippy::expect_used`,
+`clippy::panic`, `clippy::todo`, `clippy::unimplemented`,
+`clippy::unreachable`, `clippy::string_slice` and `clippy::exit` in the
+library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. The lint check reports each Clippy message as an error
+naming this skill. The first six report the calls and macros that the steps
+above repair; the other two report:
+
+- `clippy::string_slice`: a string sliced by a byte range, such as
+  `&text[start..]`, which panics when a bound falls inside a character of
+  several bytes. Take the part with `text.get(start..)` and handle `None`, or
+  cut with `split_once`, `strip_prefix` or `split_at_checked`.
+- `clippy::exit`: a `std::process::exit` call outside `main`, which ends the
+  process without running the destructors on any thread's stack, so no caller
+  can handle the failure. Return the failure to `main` as an error or an
+  `ExitCode`, and let `main` end the process.
+
+When the panic or the exit is the intended outcome, such as slice bounds that
+`char_indices` of the same string places at character boundaries, the
+covering `#[expect]` of the reported lint described above, on the smallest
+item that holds the call and with its own `allow-justification` exception,
+keeps it. Do not weaken the profile merely to pass.
 
 ## Rule binding
 

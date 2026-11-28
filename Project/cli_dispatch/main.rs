@@ -138,6 +138,7 @@ fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let launch = |argv: &[String]| command_runner::output(&rust.context, argv);
     let clippy = Some(structural_lint::Clippy {
         manifest: &rust.manifest,
+        skills: Path::new(&rust.context.config.paths.skills),
         launch: &launch,
     });
     let mode = structural_lint::Mode::Lint { clippy };

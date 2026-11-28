@@ -75,7 +75,13 @@ the newtype and typestate forms need the type resolution the engine omits.
 Whether an operation carries a completeness contract is not syntactic either,
 so exhaustive destructuring stays a review norm. The
 decidable slices already ship as rules: `boolean-parameter`, `tuple-as-record`
-and `global-state`. The mix of open and closed fields in item 5 fails Clippy's
-`partial_pub_fields` in the AgentRig clippy profile. The rest apply in review, where a finding is repaired here.
+and `global-state`. The mix of open and closed fields in item 5 fails
+`clippy::partial_pub_fields`, which the rig's Clippy profile denies in the
+library, binaries and examples of the configured Cargo manifest; the lint
+check reports each message as an error naming this skill. Repair it by item 5:
+every field `pub` for a record, every field private behind the constructor and
+accessors for an abstraction. No exception keeps the mix, so do not suppress
+the lint or weaken the profile merely to pass. The rest apply in review, where
+a finding is repaired here.
 Apply complexity-discipline: a type that closes no named invariant is not
 required.

@@ -1,0 +1,5 @@
+purpose: "Loop over an ordered collection or sorted keys instead of a hash collection, or justify the free order with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to iterate in an order that stays the same between runs"
+directories: {}

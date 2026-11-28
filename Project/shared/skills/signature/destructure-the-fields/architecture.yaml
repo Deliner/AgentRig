@@ -1,5 +1,5 @@
-purpose: "Make a manual comparison, hash or copy name every field of its type, or justify the partial reading with an exception"
+purpose: "Make a manual comparison, hash, copy or Debug name every field of its type and drop the .. of a pattern that binds every field, or justify the partial reading with an exception"
 type: flat
 files:
-  SKILL.md: "Canonical agent instructions to destructure Self without .. in a manual PartialEq, Hash, PartialOrd, Ord or Clone"
+  SKILL.md: "Canonical agent instructions to destructure Self without .. in a manual PartialEq, Hash, PartialOrd, Ord, Clone or Debug"
 directories: {}

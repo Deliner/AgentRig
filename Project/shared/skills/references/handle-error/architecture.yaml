@@ -1,4 +1,4 @@
-purpose: "Handle a swallowed exception, or record why the error is safe to ignore with an exception"
+purpose: "Handle a swallowed exception or a cause that map_err drops, or record why the error is safe to ignore with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to handle a swallowed Python except or justify it"

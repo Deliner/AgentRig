@@ -1,0 +1,5 @@
+purpose: "Read a collection that code fills but never queries, remove it, or justify keeping it unread with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to read a collection where its contents are needed or remove it"
+directories: {}
