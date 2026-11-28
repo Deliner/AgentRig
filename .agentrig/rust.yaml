@@ -1,1 +1,2 @@
 rustflags: []
+manifest: Project/Cargo.toml

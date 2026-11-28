@@ -101,6 +101,7 @@ struct Settings {
     lint: PathBuf,
     rust: Option<RustProject>,
 }
+// DECISION: D239
 struct RustProject {
     context: project_config::Context,
     manifest: PathBuf,

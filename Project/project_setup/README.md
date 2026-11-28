@@ -12,8 +12,8 @@ rejects collisions before writing, creates a Git repository when none exists, gi
 first commit, registers the Git hooks through `core.hooksPath` and sets `remote: origin` when that remote exists.
 Sources go in `Project`, memory in `Ledger`. Options: `--language python|rust`, `--skills`, `--service`, `--base` and
 `--prefix`. There is no update or rollback. Rust projects need a `rustc` of at least the rig's Rust, else init refuses
-before writing, and get `rustfmt`, `clippy` and `rust-test` checks, Clippy running the development gate's profile on
-their own toolchain. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
+before writing, and get `rustfmt` and `rust-test` checks; `manifest` in `rust.yaml` names the `Cargo.toml` lint checks
+with Clippy. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
 `clippy.toml` upward from the manifest directory, or a new root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills and lint settings; the configuration

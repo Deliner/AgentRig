@@ -19,10 +19,6 @@
   kind: command
   skill: .agentrig/skills/repair/SKILL.md
   command: rustfmt
-- id: clippy
-  kind: command
-  skill: .agentrig/skills/repair/SKILL.md
-  command: clippy
 - id: rust-test
   kind: command
   skill: .agentrig/skills/repair/SKILL.md

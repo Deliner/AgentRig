@@ -5,28 +5,17 @@ use yaml_rust2::parser::{Event, Parser};
 // DECISION: D183
 const LOWERING: [&str; 4] = ["-A", "--allow", "--cap-lints", "--force-warn"];
 
-#[derive(Clone, Copy)]
-enum List {
-    Flags,
-    Command,
-}
-
-struct Sequence {
-    list: List,
-    items: Vec<(usize, String)>,
-}
-
 enum Slot {
     Key,
     Value,
-    ListValue(List),
-    Members(Sequence),
+    ListValue,
+    Members(Vec<(usize, String)>),
     Items,
 }
 
 enum Role<'a> {
-    ListValue(List),
-    Member(&'a mut Sequence),
+    ListValue,
+    Member(&'a mut Vec<(usize, String)>),
     Other,
 }
 
@@ -35,7 +24,7 @@ pub(super) fn analyze(source: &str) -> Analysis {
     let mut analysis = Analysis::default();
     let mut parser = Parser::new_from_str(source);
     let mut slots = Vec::new();
-    let mut sequences = Vec::new();
+    let mut lists = Vec::new();
     loop {
         match parser.next_token() {
             Err(error) => {
@@ -43,12 +32,12 @@ pub(super) fn analyze(source: &str) -> Analysis {
                 break;
             }
             Ok((Event::StreamEnd, _)) => break,
-            Ok((event, mark)) => sequences.extend(step(event, mark.line(), &mut slots)),
+            Ok((event, mark)) => lists.extend(step(event, mark.line(), &mut slots)),
         }
     }
-    analysis.measurements = sequences
+    analysis.measurements = lists
         .into_iter()
-        .flat_map(checked_items)
+        .flatten()
         .filter(|(_, flag)| lowering(flag))
         .map(|(line, symbol)| Measurement {
             kind: Kind::Reference(Reference::AllowJustification),
@@ -59,20 +48,17 @@ pub(super) fn analyze(source: &str) -> Analysis {
         .collect();
     analysis
 }
-fn step(event: Event, line: usize, slots: &mut Vec<Slot>) -> Option<Sequence> {
+fn step(event: Event, line: usize, slots: &mut Vec<Slot>) -> Option<Vec<(usize, String)>> {
     match event {
         Event::Scalar(text, ..) => {
-            if let Role::Member(sequence) = advance(slots, &text) {
-                sequence.items.push((line, text));
+            if let Role::Member(items) = advance(slots, &text) {
+                items.push((line, text));
             }
             None
         }
         Event::SequenceStart(..) => {
             let slot = match advance(slots, "") {
-                Role::ListValue(list) => Slot::Members(Sequence {
-                    list,
-                    items: Vec::new(),
-                }),
+                Role::ListValue => Slot::Members(Vec::new()),
                 Role::Member(_) | Role::Other => Slot::Items,
             };
             slots.push(slot);
@@ -88,8 +74,8 @@ fn step(event: Event, line: usize, slots: &mut Vec<Slot>) -> Option<Sequence> {
             None
         }
         Event::SequenceEnd | Event::MappingEnd => match slots.pop() {
-            Some(Slot::Members(sequence)) => Some(sequence),
-            Some(Slot::Key | Slot::Value | Slot::ListValue(_) | Slot::Items) | None => None,
+            Some(Slot::Members(items)) => Some(items),
+            Some(Slot::Key | Slot::Value | Slot::ListValue | Slot::Items) | None => None,
         },
         Event::Nothing
         | Event::StreamStart
@@ -98,6 +84,7 @@ fn step(event: Event, line: usize, slots: &mut Vec<Slot>) -> Option<Sequence> {
         | Event::DocumentEnd => None,
     }
 }
+// DECISION: D239
 fn advance<'a>(slots: &'a mut [Slot], scalar: &str) -> Role<'a> {
     let Some(slot) = slots.last_mut() else {
         return Role::Other;
@@ -105,8 +92,7 @@ fn advance<'a>(slots: &'a mut [Slot], scalar: &str) -> Role<'a> {
     match slot {
         Slot::Key => {
             *slot = match scalar {
-                "rustflags" => Slot::ListValue(List::Flags),
-                "argv" => Slot::ListValue(List::Command),
+                "rustflags" => Slot::ListValue,
                 _ => Slot::Value,
             };
             Role::Other
@@ -115,36 +101,12 @@ fn advance<'a>(slots: &'a mut [Slot], scalar: &str) -> Role<'a> {
             *slot = Slot::Key;
             Role::Other
         }
-        Slot::ListValue(list) => {
-            let list = *list;
+        Slot::ListValue => {
             *slot = Slot::Key;
-            Role::ListValue(list)
+            Role::ListValue
         }
-        Slot::Members(sequence) => Role::Member(sequence),
+        Slot::Members(items) => Role::Member(items),
         Slot::Items => Role::Other,
-    }
-}
-fn checked_items(sequence: Sequence) -> Vec<(usize, String)> {
-    match sequence.list {
-        List::Flags => sequence.items,
-        List::Command => compiler_arguments(sequence.items),
-    }
-}
-// DECISION: D184
-fn compiler_arguments(mut argv: Vec<(usize, String)>) -> Vec<(usize, String)> {
-    let separator = argv.iter().position(|(_, item)| item == "--");
-    let arguments = separator
-        .map(|index| argv.split_off(index + 1))
-        .unwrap_or_default();
-    let cargo = argv.first().is_some_and(|(_, program)| program == "cargo");
-    let compiler = argv
-        .iter()
-        .any(|(_, item)| matches!(item.as_str(), "clippy" | "rustc"));
-    let compiler_command = cargo && compiler;
-    if compiler_command {
-        arguments
-    } else {
-        Vec::new()
     }
 }
 fn lowering(flag: &str) -> bool {

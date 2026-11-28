@@ -5,8 +5,10 @@ use anyhow::{Context, Result, ensure};
 use std::path::Path;
 use std::process::Output;
 
+// DECISION: D159
 const TARGETS: [&str; 4] = ["--bins", "--examples", "--message-format=json", "--"];
 
+// DECISION: D239
 #[derive(Clone, Copy)]
 pub struct Clippy<'a> {
     pub manifest: &'a Path,

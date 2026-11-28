@@ -46,6 +46,7 @@ pub struct Locations<'a> {
     pub manifest: &'a Path,
 }
 
+// DECISION: D239
 impl Locations<'_> {
     pub fn messages(&self, output: &[u8]) -> Result<Vec<Message>> {
         let records = serde_json::Deserializer::from_slice(output).into_iter::<Record>();

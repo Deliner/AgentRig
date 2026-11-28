@@ -30,6 +30,7 @@ fn run_check(context: &Context, source: CheckRun<'_>, check: &Check, rerun: &str
                 root: &context.root,
                 config: &config,
             };
+            // DECISION: D239
             let manifest = context.manifest()?;
             let launch = |argv: &[String]| command_runner::output(context, argv);
             let clippy = manifest.as_deref().map(|manifest| structural_lint::Clippy {

@@ -34,6 +34,7 @@ pub struct Config {
     pub rust: Rust,
 }
 // DECISION: D182
+// DECISION: D239
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rust {

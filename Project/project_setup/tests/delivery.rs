@@ -1,7 +1,7 @@
-use super::installed_runtime;
+use super::{GENERATED, example, installed_runtime};
 use crate::shared::testing::{
     Run, commit_identity, configure, describe_state, git, git_run, hermetic, invoke, launch,
-    python_path, repository, run, worker,
+    python_path, run, worker,
 };
 use serde_json::{Value, json};
 use std::{
@@ -12,7 +12,6 @@ use std::{
 use tempfile::TempDir;
 
 const IGNORED: &str = "**/target/\n**/__pycache__/\n**/.pytest_cache/\n";
-const GENERATED: [&str; 3] = ["target", "__pycache__", ".pytest_cache"];
 const DETAIL: &str =
     "# I001\n\n## Predicate\n\nDoubles correctly.\n\n## Oracle\n\nRun configured I001.\n";
 const SOURCE: &str = "Project";
@@ -90,23 +89,6 @@ fn agentrig(root: &Path, args: &[&str], input: &str) -> Run {
     )
 }
 
-fn copy(from: &Path, to: &Path) {
-    fs::create_dir_all(to).unwrap();
-    for entry in fs::read_dir(from).unwrap() {
-        let entry = entry.unwrap();
-        let name = entry.file_name();
-        let generated = GENERATED.iter().any(|ignored| name == *ignored);
-        let directory = entry.path().is_dir();
-        if generated {
-            continue;
-        } else if directory {
-            copy(&entry.path(), &to.join(&name));
-        } else {
-            fs::copy(entry.path(), to.join(&name)).unwrap();
-        }
-    }
-}
-
 fn bind(root: &Path, layout: &Layout) {
     let oracle = format!(
         "I001: {{check: {}, runner: {}, target: '{}'}}\n",
@@ -131,8 +113,7 @@ fn install(layout: &Layout) -> (TempDir, PathBuf) {
     commit_identity(&root);
     fs::write(root.join(".gitignore"), IGNORED).unwrap();
     let language = layout.language;
-    let examples = repository().join("Project/shared/testing/examples");
-    copy(&examples.join(language).join(SOURCE), &root.join(SOURCE));
+    example(language, &root);
     git(&root, &["add", "."]);
     git(&root, &["commit", "-qm", "base"]);
     let (skills, base, prefix) = (layout.skills, layout.base, layout.prefix);

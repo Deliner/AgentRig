@@ -77,12 +77,12 @@ pub struct Scaffold {
 }
 pub fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let python = options["language"] == "python";
-    let (rust, clippy, rustflags) = if python {
+    let (rust, clippy, settings) = if python {
         let rust = CargoLayout {
             roots: Vec::new(),
             ..CargoLayout::fallback(SOURCE)
         };
-        (rust, None, Vec::new())
+        (rust, None, Rust::default())
     } else {
         // DECISION: D174
         let toolchain = Requirement::inspect(root)?;
@@ -92,9 +92,14 @@ pub fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
         );
         let rust = cargo_layout(root, SOURCE)?;
         let clippy = clippy_settings(root, &rust)?;
-        (rust, Some(clippy), build_rustflags(root)?)
+        // DECISION: D239
+        let settings = Rust {
+            manifest: Some(rust.manifest.clone()),
+            rustflags: build_rustflags(root)?,
+        };
+        (rust, Some(clippy), settings)
     };
-    let mut config = config(options, &rust, rustflags)?;
+    let mut config = config(options, &rust, settings)?;
     config.git.remote = remote(root)?;
     Ok(Scaffold {
         config,
@@ -111,7 +116,7 @@ fn remote(root: &Path) -> Result<Option<String>> {
     let origin = remotes.lines().any(|name| name == ORIGIN);
     Ok(origin.then(|| ORIGIN.to_owned()))
 }
-fn config(options: &Options<'_>, rust: &CargoLayout, rustflags: Vec<String>) -> Result<Config> {
+fn config(options: &Options<'_>, rust: &CargoLayout, settings: Rust) -> Result<Config> {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
@@ -140,10 +145,7 @@ fn config(options: &Options<'_>, rust: &CargoLayout, rustflags: Vec<String>) -> 
         },
         oracles: BTreeMap::new(),
         tools: tools(service),
-        rust: Rust {
-            manifest: None,
-            rustflags,
-        },
+        rust: settings,
     })
 }
 // DECISION: D150
@@ -278,7 +280,6 @@ fn commands(options: &Options<'_>, rust: &CargoLayout) -> Result<BTreeMap<String
         .map(|(id, command)| (id.into(), command))
         .collect())
 }
-// DECISION: D132
 fn language_commands(options: &Options<'_>, rust: &CargoLayout) -> Vec<(&'static str, Command)> {
     let rust_project = options["language"] == "rust";
     let purpose = if rust_project {
@@ -304,20 +305,8 @@ fn language_commands(options: &Options<'_>, rust: &CargoLayout) -> Vec<(&'static
             "rustfmt",
             check("Check Rust formatting", format.map(String::from).into()),
         ));
-        commands.push((
-            "clippy",
-            check(
-                "Check Rust code with Clippy, denying warnings and the AgentRig profile",
-                clippy_argv(rust),
-            ),
-        ));
     }
     commands
-}
-fn clippy_argv(rust: &CargoLayout) -> Vec<String> {
-    let cargo = ["cargo", "clippy", "--manifest-path", &rust.manifest, "--"].map(String::from);
-    let denials = crate::structural_lint::clippy_denials();
-    cargo.into_iter().chain(denials).collect()
 }
 fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
     Command {
@@ -440,7 +429,6 @@ fn checks(options: &Options<'_>, skill_root: &str) -> Vec<Check> {
     // DECISION: D189
     if rust_project {
         checks.push(run("rustfmt", "rustfmt"));
-        checks.push(run("clippy", "clippy"));
         checks.push(run("rust-test", "test"));
     } else {
         checks.push(run("tests", "test"));

@@ -15,6 +15,7 @@ const NARROWING: &str = "pub fn narrow(value: u64) -> u32 {\n    value as u32\n}
 const CHECKED: &str =
     "pub fn narrow(value: u64) -> Option<u32> {\n    u32::try_from(value).ok()\n}\n";
 
+// DECISION: D239
 #[test]
 fn the_lint_check_blocks_a_staged_clippy_finding() {
     let (_temp, root) = gated();

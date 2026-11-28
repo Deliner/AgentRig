@@ -1,5 +1,5 @@
 use crate::project_setup::init;
-use crate::shared::testing::invoke;
+use crate::shared::testing::{invoke, repository};
 use serde_json::Value;
 use std::{
     fs,
@@ -17,6 +17,33 @@ mod runtime;
 mod rustflags;
 mod toolchain;
 
+const GENERATED: [&str; 3] = ["target", "__pycache__", ".pytest_cache"];
+
+fn copy(from: &Path, to: &Path) {
+    fs::create_dir_all(to).unwrap();
+    for entry in fs::read_dir(from).unwrap() {
+        let entry = entry.unwrap();
+        let name = entry.file_name();
+        let generated = GENERATED.iter().any(|ignored| name == *ignored);
+        let directory = entry.path().is_dir();
+        if generated {
+            continue;
+        } else if directory {
+            copy(&entry.path(), &to.join(&name));
+        } else {
+            fs::copy(entry.path(), to.join(&name)).unwrap();
+        }
+    }
+}
+
+fn example(language: &str, root: &Path) {
+    let examples = repository().join("Project/shared/testing/examples");
+    copy(
+        &examples.join(language).join("Project"),
+        &root.join("Project"),
+    );
+}
+
 fn installed_runtime(root: &Path) -> PathBuf {
     let mut runtimes = fs::read_dir(root.join(".agentrig/bin"))
         .unwrap()
@@ -30,6 +57,10 @@ fn installed_runtime(root: &Path) -> PathBuf {
 fn initialized(language: &str) -> (TempDir, PathBuf) {
     let temp = tempfile::tempdir().unwrap();
     let root = temp.path().canonicalize().unwrap();
+    let linted_crate = language == "rust";
+    if linted_crate {
+        example(language, &root);
+    }
     let args = ["--language", language].map(str::to_owned);
     assert_eq!(init(&root, &args).unwrap(), 0);
     (temp, root)

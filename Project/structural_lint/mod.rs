@@ -12,7 +12,7 @@ mod targeting;
 mod tests;
 
 pub use architecture::{CargoLayout, Rooted, cargo_layout, cargo_modules};
-pub use clippy::{Clippy, denials as clippy_denials};
+pub use clippy::Clippy;
 pub use lint_files::only_adds_rules;
 pub use reporting::{
     Format, check, discovery, execute, failure, inspection, lint_structure, run, standalone,
