@@ -2,30 +2,25 @@
 
 ## Focus
 
-P204 (B208) resumes after the user's approval. This VAC commits the approved rig hooks.yaml and North Star, gives a
-project after init the same glossary route, moves the purpose paragraph out of AGENTS.md and CLAUDE.md and records
-D241, which supersedes the placement of D234.
+P204 (B208) completes. This VAC commits the pin 17ff040 that propose-pin set under the consent of the user and
+rotates P204 and B208 into the archive with their acceptance results.
 
 ## Workspace
 
 Branch: feature/north-star-glossary
-Revision: 83527bb3808980c17f1a94d2d6757688881b6d33
+Revision: 17ff040b60311288fc87f2fe2ed30d38ea0bf004
 
 ## Progress
 
-- The user's `! just approve` applied .agentrig/hooks.yaml (Ledger/NorthStar.md protected, the Ledger/Glossary.md
-  route to edit-glossary last) and Ledger/NorthStar.md (# North Star and the AGENTS.md paragraph verbatim).
-- bundle/template.rs ends the init routes with the same glossary route; ledger_edit_guidance edits
-  Ledger/Glossary.md and expects edit-glossary once.
-- AGENTS.md and CLAUDE.md drop the purpose paragraph and stay identical; D241 records the move and D234 links
-  NorthStar.md. P204 is active again, and Plan/204.md Delivery describes the resumption.
+- 17ff040 commits the approved hooks.yaml and North Star, the init glossary route, the purpose move and D241.
+- just propose-pin HEAD pinned 17ff040 under the consent of the user and installed it; stable.txt holds it.
+- Plan/204.md and Backlog/208.md moved to Ledger/Archive with their rows; Delivery records AC1 to AC7 as met, and
+  the D241 links name the archive.
 
 ## Verification
 
-- just run test with agent_hooks::tests::memory and project_setup::initialization::tests::rig passes 9 tests,
-  including ledger_edit_guidance (I012) and init_matches_the_rig_setup_except_listed_differences (I023).
-- just run rustfmt and just lint report nothing; just check --only memory passes on the working tree.
-- The hook of the rig names edit-glossary for a shell write through hooks.routes[10].
+- The commit gate of 17ff040 and the propose-pin gate each passed build, lint, memory, rustfmt and 654 Rust tests.
+- just check --only memory passes on the archived working tree.
 
 ## Blockers
 
@@ -33,5 +28,4 @@ None.
 
 ## Next action
 
-Commit this VAC, run just propose-pin HEAD under the consent of the user and commit the pin, then archive P204 and
-B208 and run just feature-merge.
+Commit this VAC, run just feature-merge, compact, then start P205 (B209) on its own branch from master.
