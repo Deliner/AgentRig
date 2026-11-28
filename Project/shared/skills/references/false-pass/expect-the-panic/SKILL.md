@@ -39,8 +39,14 @@ library, binaries and examples of the configured Cargo manifest. Clippy
 reports a `should_panic` attribute without an expected message in the code the
 profile compiles, and the lint check reports each message as an error naming
 this skill. Tests are outside the profile, so the rule below reports the
-attribute of a test instead; the repair is the same. Do not weaken the profile
-merely to pass.
+attribute of a test instead; the repair is the same. When any panic is the
+intended outcome, as in step 4, record the reasoning as a decision with
+edit-decisions and put `#[expect(clippy::should_panic_without_expect)]` on the
+function, with its exception `// DECISION: DNNN allow-justification` alone on
+the line directly above the attribute. List it in the decision as
+`[exception allow-justification](FILE)`; the user approves a new exception
+through propose-protected-change, as justify-allow describes. Do not weaken
+the profile merely to pass.
 
 ## Rule binding
 
