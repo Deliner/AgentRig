@@ -1,5 +1,5 @@
-use super::cargo::Layout;
 use crate::shared::fs_with_context as fs;
+use crate::structural_lint::CargoLayout;
 use anyhow::{Context, Result, ensure};
 use std::path::{Path, PathBuf};
 
@@ -22,7 +22,7 @@ impl Settings {
 }
 
 // DECISION: D154
-pub fn settings(root: &Path, rust: &Layout) -> Result<Settings> {
+pub fn settings(root: &Path, rust: &CargoLayout) -> Result<Settings> {
     let manifest = root.join(&rust.manifest);
     let directory = manifest
         .parent()
@@ -108,7 +108,7 @@ const PROFILE: &[&str] = &[
     "maybe_infinite_iter",
 ];
 
-pub fn argv(rust: &Layout) -> Vec<String> {
+pub fn argv(rust: &CargoLayout) -> Vec<String> {
     let mut argv: Vec<String> = ["cargo", "clippy", "--manifest-path"]
         .into_iter()
         .map(String::from)

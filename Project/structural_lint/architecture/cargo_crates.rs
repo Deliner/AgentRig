@@ -1,3 +1,5 @@
+use super::extraction;
+use super::resolution::rust::Rust;
 use crate::shared::fs_with_context as fs;
 use anyhow::{Context, Result};
 use globset::Glob;
@@ -6,6 +8,8 @@ use std::{
     collections::{BTreeMap, BTreeSet},
     path::{Component, Path, PathBuf},
 };
+
+type Modules = BTreeMap<PathBuf, Vec<Vec<String>>>;
 
 pub struct Layout {
     pub manifest: String,
@@ -81,7 +85,59 @@ pub fn layout(root: &Path, source: &str) -> Result<Layout> {
 }
 
 // DECISION: D144
-pub fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
+pub fn cargo_modules(
+    root: &Path,
+    files: &[PathBuf],
+    argv: &[String],
+    cwd: &str,
+) -> Result<Modules> {
+    let Some(manifest) = manifest(root, argv, cwd)? else {
+        return Ok(Modules::new());
+    };
+    let directory = manifest.parent().unwrap_or(Path::new(""));
+    let rust = |path: &&PathBuf| {
+        path.starts_with(directory) && path.extension().is_some_and(|extension| extension == "rs")
+    };
+    let mut sources = BTreeMap::new();
+    for path in files.iter().filter(rust) {
+        let text = fs::read_to_string(root.join(path))?;
+        sources.insert(path.clone(), extraction::extract(path, &text)?);
+    }
+    let layout = manifest_layout(root, &manifest.to_string_lossy())?;
+    let mut modules = Modules::new();
+    for crate_root in &layout.roots {
+        for (file, bases) in Rust::modules(Path::new(crate_root), &sources) {
+            modules.entry(file).or_default().extend(bases);
+        }
+    }
+    Ok(modules)
+}
+
+fn manifest(root: &Path, argv: &[String], cwd: &str) -> Result<Option<PathBuf>> {
+    let flag = argv.iter().position(|arg| arg == "--manifest-path");
+    let separate = flag
+        .and_then(|index| argv.get(index + 1))
+        .map(String::as_str);
+    let joined = argv
+        .iter()
+        .find_map(|arg| arg.strip_prefix("--manifest-path="));
+    let named = root
+        .join(cwd)
+        .join(separate.or(joined).unwrap_or("Cargo.toml"));
+    let Some(manifest) = fs::present(fs::canonicalize(&named))? else {
+        return Ok(None);
+    };
+    let inside = manifest.strip_prefix(root).with_context(|| {
+        format!(
+            "cargo manifest {} lies outside the project",
+            named.display()
+        )
+    })?;
+    Ok(Some(inside.to_path_buf()))
+}
+
+// DECISION: D144
+fn manifest_layout(root: &Path, manifest: &str) -> Result<Layout> {
     let directory = Path::new(manifest).parent().unwrap_or(Path::new(""));
     let parsed = read(&root.join(manifest))?;
     let mut layout = Layout {

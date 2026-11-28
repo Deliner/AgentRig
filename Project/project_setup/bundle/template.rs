@@ -3,10 +3,10 @@ use crate::project_config::{
     Route, RouteEvent, Rust, Tools, View, Views,
 };
 use crate::project_setup::rust::{
-    ClippySettings, Layout, Requirement, build_rustflags, cargo_layout, clippy_argv,
-    clippy_settings,
+    ClippySettings, Requirement, build_rustflags, clippy_argv, clippy_settings,
 };
 use crate::shared::calling_agent::Agent;
+use crate::structural_lint::{CargoLayout, cargo_layout};
 use anyhow::{Result, bail, ensure};
 use std::{collections::BTreeMap, path::Path};
 pub type Options<'a> = BTreeMap<&'a str, String>;
@@ -74,15 +74,15 @@ fn validate_options(root: &Path, options: &Options<'_>) -> Result<()> {
 }
 pub struct Scaffold {
     pub config: Config,
-    pub rust: Layout,
+    pub rust: CargoLayout,
     pub clippy: Option<ClippySettings>,
 }
 pub fn scaffold(root: &Path, options: &Options<'_>) -> Result<Scaffold> {
     let python = options["language"] == "python";
     let (rust, clippy, rustflags) = if python {
-        let rust = Layout {
+        let rust = CargoLayout {
             roots: Vec::new(),
-            ..Layout::fallback(SOURCE)
+            ..CargoLayout::fallback(SOURCE)
         };
         (rust, None, Vec::new())
     } else {
@@ -113,7 +113,7 @@ fn remote(root: &Path) -> Result<Option<String>> {
     let origin = remotes.lines().any(|name| name == ORIGIN);
     Ok(origin.then(|| ORIGIN.to_owned()))
 }
-fn config(options: &Options<'_>, rust: &Layout, rustflags: Vec<String>) -> Result<Config> {
+fn config(options: &Options<'_>, rust: &CargoLayout, rustflags: Vec<String>) -> Result<Config> {
     let skill_root = &options["skills"];
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
@@ -250,7 +250,7 @@ fn programs(table: Programs) -> Result<BTreeMap<String, Program>> {
         })
         .collect()
 }
-fn commands(options: &Options<'_>, rust: &Layout) -> Result<BTreeMap<String, Command>> {
+fn commands(options: &Options<'_>, rust: &CargoLayout) -> Result<BTreeMap<String, Command>> {
     let base = |purpose, access, table| -> Result<Command> {
         Ok(Command {
             programs: programs(table)?,
@@ -278,7 +278,7 @@ fn commands(options: &Options<'_>, rust: &Layout) -> Result<BTreeMap<String, Com
         .collect())
 }
 // DECISION: D132
-fn language_commands(options: &Options<'_>, rust: &Layout) -> Vec<(&'static str, Command)> {
+fn language_commands(options: &Options<'_>, rust: &CargoLayout) -> Vec<(&'static str, Command)> {
     let rust_project = options["language"] == "rust";
     let purpose = if rust_project {
         "Run the project tests, optionally filtered by test name"
@@ -344,7 +344,7 @@ fn test_views(options: &Options<'_>) -> Views {
         }
     }
 }
-fn test_command(options: &Options<'_>, rust: &Layout) -> Vec<String> {
+fn test_command(options: &Options<'_>, rust: &CargoLayout) -> Vec<String> {
     let python = options["language"] == "python";
     if python {
         vec![

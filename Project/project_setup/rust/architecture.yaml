@@ -1,8 +1,7 @@
-purpose: Support Rust projects in environment setup from their Cargo manifest, Clippy configuration and Rust version
+purpose: Support Rust projects in environment setup from their Clippy configuration, build flags and Rust version
 type: flat
 files:
-  mod.rs: Declare the Rust project support modules and offer the crate layout, Clippy settings, build flags and toolchain they provide
-  cargo.rs: Derive Rust crate roots, crate names and the test manifest from the consumer's Cargo manifest
+  mod.rs: Declare the Rust project support modules and offer the Clippy settings, build flags and toolchain they provide
   clippy.rs: Build the Clippy command with the AgentRig lint profile and complete the consumer's effective Clippy file with its thresholds
   flags.rs: Read the build.rustflags of the consumer's .cargo/config.toml for init to move into the rig's flag list
   toolchain.rs: Read the rig's Rust version from its rust-toolchain.toml, compare the project's rustc with it and title its capability section
