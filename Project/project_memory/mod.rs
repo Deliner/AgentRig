@@ -19,6 +19,7 @@ mod source;
 #[cfg(test)]
 mod tests;
 pub use briefing::{GLOSSARY, NORTH_STAR, briefing};
+pub use cards::active_card;
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };

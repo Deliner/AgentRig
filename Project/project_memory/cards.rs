@@ -4,6 +4,7 @@
 use super::format::sections_of;
 use crate::project_config::{Context, Key};
 use crate::shared::fs_with_context as fs;
+use crate::shared::vcs::Repository;
 use anyhow::{Context as _, Result, bail, ensure};
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -45,6 +46,38 @@ pub fn check(context: &Context, memory: &Path) -> Result<()> {
         order.insert(*number, after);
     }
     acyclic(key, &order)
+}
+pub fn active_card(context: &Context) -> Result<Option<PathBuf>> {
+    let Some(repository) = Repository::discover(&context.root)? else {
+        return Ok(None);
+    };
+    card_of(context, &repository.observe()?.branch)
+}
+pub fn card_of(context: &Context, branch: &str) -> Result<Option<PathBuf>> {
+    let memory = context.path(&context.config.paths.memory)?;
+    let Some(card) = carried(context, branch) else {
+        return Ok(None);
+    };
+    let places = DIRECTORIES.map(|directory| memory.join(directory));
+    let forms = places
+        .iter()
+        .flat_map(|place| [place.join(format!("{card}.md")), place.join(&card)]);
+    for path in forms {
+        let held = fs::try_exists(&path)?;
+        if held {
+            return Ok(Some(path));
+        }
+    }
+    Ok(None)
+}
+fn carried(context: &Context, branch: &str) -> Option<String> {
+    let key = context.config.key.as_ref()?;
+    let name = branch.strip_prefix(context.config.git.prefix.as_str())?;
+    let numbered = name.strip_prefix(&format!("{key}-"))?;
+    let digits = numbered
+        .split_once('-')
+        .map_or(numbered, |(digits, _)| digits);
+    number(digits).map(|number| format!("{key}-{number}"))
 }
 fn entries(memory: &Path) -> Result<Vec<PathBuf>> {
     let mut found = Vec::new();
@@ -165,7 +198,9 @@ impl Card {
     }
 }
 fn parse(key: &Key, name: &str) -> Option<u32> {
-    let digits = name.strip_prefix(&format!("{key}-"))?;
+    number(name.strip_prefix(&format!("{key}-"))?)
+}
+fn number(digits: &str) -> Option<u32> {
     let number: u32 = digits.parse().ok()?;
     let canonical = number.to_string() == digits;
     canonical.then_some(number)

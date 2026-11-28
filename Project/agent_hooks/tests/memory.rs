@@ -2,7 +2,7 @@
 // DECISION: D014
 // DECISION: D015
 use super::{initialized, pre_tool, project, respond};
-use crate::shared::testing::{run, runtime, snapshot};
+use crate::shared::testing::{git, run, runtime, snapshot, write};
 use serde_json::{Value, json};
 use std::os::unix::fs::{MetadataExt, symlink};
 use std::{fs, path::Path};
@@ -239,6 +239,25 @@ fn every_renewed_context_receives_the_north_star_and_the_glossary_in_full() {
         for text in [north_star, glossary, "Resume from", "Ledger/State.md"] {
             assert!(context.contains(text), "{source}: {text}: {context}");
         }
+    }
+}
+
+// DECISION: D242
+#[test]
+fn the_session_start_names_the_card_of_the_branch_or_else_the_plan() {
+    let (_temp, root) = initialized(&["--key", "RIG"]);
+    let card = "Ledger/Plan/RIG-7.md";
+    write(&root, card, "# RIG-7 — Explain slow checks\n");
+    let state = root.join("Ledger/State.md");
+    let branches = [
+        ("feature/slow-checks", root.join("Ledger/Plan")),
+        ("feature/RIG-7-slow-checks", root.join(card)),
+    ];
+    for (branch, named) in branches {
+        git(&root, &["switch", "-qc", branch]);
+        let context = started(&root, "startup");
+        let resumed = format!("Resume from {} and {}.", state.display(), named.display());
+        assert!(context.contains(&resumed), "{branch}: {context}");
     }
 }
 

@@ -1,3 +1,4 @@
+use super::consumer::card;
 use crate::shared::testing::{
     FAIL, GATE, checked_repository, git, git_run, invoke, memory, project, snapshot,
 };
@@ -105,4 +106,25 @@ fn resume_observes_linked_git_worktree() {
     let before = snapshot(&linked);
     assert_eq!(resumed(&linked)["vcs"]["branch"], "task/linked");
     assert_eq!(snapshot(&linked), before);
+}
+
+// DECISION: D242
+#[test]
+fn resume_names_the_card_whose_number_the_branch_carries() {
+    let (_temp, root) = checked_repository();
+    let planned = card(&root, "notes/Plan/RIG-7.md", "");
+    let archived = card(&root, "notes/Archive/RIG-12/RIG-12.md", "");
+    let branches = [
+        ("trunk", None),
+        ("task/RIG-7-slow-checks", Some(planned.as_path())),
+        ("task/RIG-12-slow-checks", archived.parent()),
+        ("task/RIG-71-slow-checks", None),
+        ("RIG-7-slow-checks", None),
+    ];
+    for (branch, named) in branches {
+        git(&root, &["switch", "-qC", branch]);
+        let value = resumed(&root);
+        let expected = named.map_or(Value::Null, |path| Value::from(path.to_str().unwrap()));
+        assert_eq!(value["card"], expected, "{branch}: {value}");
+    }
 }

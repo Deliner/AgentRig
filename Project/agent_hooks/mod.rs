@@ -109,9 +109,9 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
     let full = full_refresh(configured);
     let briefing = project_memory::briefing(&memory);
     let mut message = format!(
-        "{briefing}\n\nResume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
+        "{briefing}\n\nResume from {state} and {work}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
         state = memory.join("State.md").display(),
-        plan = memory.join("Plan.md").display(),
+        work = resumed(configured, &memory).display(),
     );
     if let Some(failure) = lift_compaction(event, configured) {
         message.push_str(&format!("\n\n{failure}"));
@@ -126,6 +126,17 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
     Ok(Some(context(Event::SessionStart, &message)))
+}
+// DECISION: D242
+fn resumed(configured: &Context, memory: &Path) -> PathBuf {
+    let plan = memory.join("Plan");
+    match project_memory::active_card(configured) {
+        Ok(card) => card.unwrap_or(plan),
+        Err(error) => {
+            console::stderr(format!("active card: {error:#}"));
+            plan
+        }
+    }
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     // DECISION: D201

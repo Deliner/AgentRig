@@ -2,7 +2,7 @@ purpose: Validate project memory contracts, record check evidence and report rec
 files:
   mod.rs: Memory, decision and invariant consistency checks and the check evidence, table, State and briefing functions its parts offer
   briefing.rs: Give the full North Star and glossary that each session receives when its context starts, naming a file it lacks
-  cards.rs: Check that each card in Backlog, Plan and Archive is named by the queue key and its number, holds only its materials, keeps its heading and sections and is ordered after existing cards without a cycle
+  cards.rs: Check that each card in Backlog, Plan and Archive is named by the queue key and its number, holds only its materials, keeps its heading and sections and is ordered after existing cards without a cycle, and find the card whose number the current branch carries
   exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
   glossary.rs: Check that the glossary is a header followed by entries of a word and its meaning, each word once whatever its letter case
@@ -10,7 +10,7 @@ files:
   invariant_history.rs: Refuse an invariant change since the fork from the base unless a new decision names it
   revision_memory.rs: Read a committed memory file and locate the memory directory configured at a revision
   oracles.rs: Bind invariant markers to configured executable test discovery
-  resume.rs: Combine recorded State with current repository, job and check observations
+  resume.rs: Combine recorded State with the card of the current branch and current repository, job and check observations
   source.rs: Inspect supported source syntax for decision and invariant markers
 directories:
   tests: Memory, plan and State behavior scenarios and shared memory fixtures

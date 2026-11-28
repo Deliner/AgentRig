@@ -1,6 +1,7 @@
 // DECISION: D013
 // DECISION: D022
-use super::check_evidence;
+// DECISION: D242
+use super::{cards, check_evidence};
 use crate::project_config::Context;
 use crate::shared::console;
 use crate::shared::fs_with_context as fs;
@@ -11,17 +12,17 @@ use serde_json::{Value, json};
 pub fn run(context: &Context) -> Result<()> {
     let memory = context.path(&context.config.paths.memory)?;
     let state = fs::read_to_string(memory.join("State.md"))?;
-    let plan = fs::read_to_string(memory.join("Plan.md"))?;
     let repository = crate::shared::vcs::Repository::discover(&context.root)?;
     let observed = repository.as_ref().map(Repository::observe).transpose()?;
     let branch = observed.as_ref().map_or("", |value| value.branch.as_str());
     let revision = observed
         .as_ref()
         .map_or("", |value| value.revision.as_str());
+    let card = cards::card_of(context, branch)?;
     let claims = Recorded(&state);
     let recorded = claims.revision(repository.as_ref(), revision);
     let snapshot = claims.snapshot(branch, &recorded);
-    let report = json!({"state": state, "plan": plan, "vcs": observed,
+    let report = json!({"state": state, "card": card, "vcs": observed,
         "snapshot": snapshot, "state_revision": recorded, "checks": check_evidence::resume(context),
         "jobs": crate::command_runner::list_jobs(&context.path(&context.config.paths.runtime)?)?});
     console::stdout(report);
