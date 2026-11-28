@@ -11,8 +11,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const DIRECTORIES: [&str; 3] = ["Backlog", PLAN, ARCHIVE];
-const PLAN: &str = "Plan";
+pub const CARD_DIRECTORIES: [&str; 3] = ["Backlog", PLAN, ARCHIVE];
+pub const PLAN: &str = "Plan";
 const ARCHIVE: &str = "Archive";
 const SECTIONS: [&str; 3] = ["Context", "Proposal", "Expected benefit"];
 const MATERIALS: [&str; 3] = ["assets", "results", "scenarios.md"];
@@ -41,7 +41,7 @@ pub fn check(context: &Context, memory: &Path) -> Result<()> {
                 cards.contains_key(prior),
                 "{}: After names {key}-{prior}, which is no card in {}",
                 card.shown.display(),
-                DIRECTORIES.join(", ")
+                CARD_DIRECTORIES.join(", ")
             );
         }
         order.insert(*number, after);
@@ -59,7 +59,7 @@ pub fn card_of(context: &Context, branch: &str) -> Result<Option<PathBuf>> {
     let Some(card) = carried(context, branch) else {
         return Ok(None);
     };
-    let places = DIRECTORIES.map(|directory| memory.join(directory));
+    let places = CARD_DIRECTORIES.map(|directory| memory.join(directory));
     let forms = places
         .iter()
         .flat_map(|place| [place.join(format!("{card}.md")), place.join(&card)]);
@@ -94,7 +94,7 @@ fn carried(context: &Context, branch: &str) -> Option<String> {
 }
 fn entries(memory: &Path) -> Result<Vec<PathBuf>> {
     let mut found = Vec::new();
-    for directory in DIRECTORIES {
+    for directory in CARD_DIRECTORIES {
         let archive = directory == ARCHIVE;
         let registries: &[&str] = if archive { &REGISTRIES } else { &[] };
         let listed = listed(&memory.join(directory))?;
@@ -194,7 +194,7 @@ impl Card {
             titled,
             "{shown}: the first line of a card is \"{heading}\" followed by its title"
         );
-        sections_of(&text, &file, &SECTIONS, None)?;
+        sections_of(&text, &file, &SECTIONS)?;
         Ok(text)
     }
     fn materials(&self, card: &str) -> Result<()> {

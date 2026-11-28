@@ -129,7 +129,7 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
 }
 // DECISION: D242
 fn resumed(configured: &Context, memory: &Path) -> PathBuf {
-    let plan = memory.join("Plan");
+    let plan = memory.join(project_memory::PLAN);
     match project_memory::active_card(configured) {
         Ok(card) => card.unwrap_or(plan),
         Err(error) => {

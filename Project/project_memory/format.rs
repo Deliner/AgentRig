@@ -34,60 +34,34 @@ pub fn state_holds_notes(path: &Path, committed: &[u8]) -> Result<bool> {
 }
 #[derive(Clone, Copy)]
 pub enum Catalog {
-    Plan,
-    Backlog,
     Decisions,
     Invariants,
 }
 impl Catalog {
     pub fn directory(self) -> &'static str {
         match self {
-            Self::Plan => "Plan",
-            Self::Backlog => "Backlog",
             Self::Decisions => "Decisions",
             Self::Invariants => "Invariants",
         }
     }
     fn prefix(self) -> char {
         match self {
-            Self::Plan => 'P',
-            Self::Backlog => 'B',
             Self::Decisions => 'D',
             Self::Invariants => 'I',
         }
     }
     pub fn columns(self) -> &'static [&'static str] {
         match self {
-            Self::Plan => &["ID", "Status", "Depends on", "Feature", "User capability"],
-            Self::Backlog => &["ID", "Idea", "Expected benefit"],
             Self::Decisions => &["ID", "Decision", "Applies in"],
             Self::Invariants => &["ID", "Invariant", "Enforced by"],
         }
     }
-    pub fn detail_sections(self) -> Sections {
+    pub fn detail_sections(self) -> &'static [&'static str] {
         match self {
-            Self::Plan => Sections {
-                required: &["Feature", "User capability", "Acceptance"],
-                optional: Some("Delivery"),
-            },
-            Self::Backlog => Sections {
-                required: &["Context", "Proposal", "Expected benefit"],
-                optional: None,
-            },
-            Self::Decisions => Sections {
-                required: &["Decision", "Reasons", "Alternatives"],
-                optional: None,
-            },
-            Self::Invariants => Sections {
-                required: &["Predicate", "Oracle"],
-                optional: None,
-            },
+            Self::Decisions => &["Decision", "Reasons", "Alternatives"],
+            Self::Invariants => &["Predicate", "Oracle"],
         }
     }
-}
-pub struct Sections {
-    pub required: &'static [&'static str],
-    pub optional: Option<&'static str>,
 }
 // DECISION: D236
 pub const PRIOR_DECISION_SECTIONS: &[&str] =
@@ -215,17 +189,12 @@ fn parse_row(
     );
     Ok(Row { id, detail, cells })
 }
-pub fn sections(path: &Path, required: &[&str], optional: Option<&str>) -> Result<String> {
+pub fn sections(path: &Path, required: &[&str]) -> Result<String> {
     let source = fs::read_to_string(path)?;
-    sections_of(&source, path, required, optional)?;
+    sections_of(&source, path, required)?;
     Ok(source)
 }
-pub fn sections_of(
-    source: &str,
-    path: &Path,
-    required: &[&str],
-    optional: Option<&str>,
-) -> Result<()> {
+pub fn sections_of(source: &str, path: &Path, required: &[&str]) -> Result<()> {
     let mut headings = Vec::new();
     let mut body = false;
     for line in source.lines() {
@@ -244,16 +213,11 @@ pub fn sections_of(
             }
         }
     }
-    let mut extended = required.to_vec();
-    if let Some(last) = optional {
-        extended.push(last);
-    }
     ensure!(
-        body && (headings == required || headings == extended),
-        "{}: sections must be {:?} followed by {:?}",
+        body && headings == required,
+        "{}: sections must be {:?}",
         path.display(),
-        required,
-        optional
+        required
     );
     Ok(())
 }

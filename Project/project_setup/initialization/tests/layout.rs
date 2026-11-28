@@ -83,6 +83,20 @@ fn init_writes_the_queue_key_it_is_given_and_refuses_another_before_writing() {
     assert_eq!(key, &flow("RIG"));
 }
 
+// DECISION: D242
+#[test]
+fn init_creates_backlog_plan_and_archive_without_card_indexes() {
+    let (_temp, root) = consumer();
+    assert_eq!(initialize(&root, &["--key", "RIG"]).unwrap(), 0);
+    let memory = root.join("Ledger");
+    for directory in ["Backlog", "Plan", "Archive"] {
+        assert!(memory.join(directory).is_dir(), "{directory}");
+    }
+    for index in ["Backlog.md", "Plan.md"] {
+        assert!(!memory.join(index).exists(), "{index}");
+    }
+}
+
 // DECISION: D188
 #[test]
 fn init_links_each_agent_skill_directory_to_the_installed_skills() {

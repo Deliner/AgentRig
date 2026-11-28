@@ -192,7 +192,6 @@ fn nested_cwd_and_symlinks() {
     let guided = in_session(&root, event.clone(), "direct");
     assert!(guided.to_string().contains("edit-plan"), "{guided}");
     let path = root.join("Ledger/Plan.md");
-    fs::remove_file(&path).unwrap();
     symlink(root.parent().unwrap().join("outside.md"), &path).unwrap();
     assert!(in_session(&root, event, "linked").is_null());
 }

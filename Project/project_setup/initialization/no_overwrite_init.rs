@@ -113,12 +113,21 @@ pub(super) fn install(root: &Path, scaffold: &Scaffold, files: &Files) -> Result
         settings.write()?;
     }
     crate::shared::vcs::initialize(root, &config.git.base)?;
-    fs::create_dir_all(project_config::relative(root, &config.paths.runtime)?)?;
+    create_directories(root, config)?;
     let repository = crate::shared::vcs::Repository::new(root);
     repository.register_hooks(&config.paths.service_path("hooks"))?;
     // DECISION: D213
     let context = project_config::Context::load(root)?;
     crate::change_delivery::record_approval(&context, &repository)?;
+    Ok(())
+}
+// DECISION: D242
+fn create_directories(root: &Path, config: &Config) -> Result<()> {
+    fs::create_dir_all(project_config::relative(root, &config.paths.runtime)?)?;
+    let memory = project_config::relative(root, &config.paths.memory)?;
+    for directory in crate::project_memory::CARD_DIRECTORIES {
+        fs::create_dir_all(memory.join(directory))?;
+    }
     Ok(())
 }
 // DECISION: D231

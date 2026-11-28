@@ -19,7 +19,7 @@ mod source;
 #[cfg(test)]
 mod tests;
 pub use briefing::{GLOSSARY, NORTH_STAR, briefing};
-pub use cards::{active_card, planned_cards};
+pub use cards::{CARD_DIRECTORIES, PLAN, active_card, planned_cards};
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };
@@ -54,7 +54,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     references(context, &files, &mut sources, &applications)?;
     exceptions::check(context, &memory, &files)?;
     invariants(context, &memory, &files, &mut sources)?;
-    sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
+    sections(&memory.join("State.md"), format::STATE_SECTIONS)?;
     glossary::check(&memory)?;
     Ok(0)
 }
@@ -107,10 +107,10 @@ fn invariant_ids(memory: &Path) -> Result<HashSet<String>> {
         .collect())
 }
 fn details(context: &Context, memory: &Path, rows: &[Row], catalog: Catalog) -> Result<()> {
-    let layout = catalog.detail_sections();
+    let required = catalog.detail_sections();
     for row in rows {
         let path = detail(context, memory, row, catalog)?;
-        sections(&path, layout.required, layout.optional)?;
+        sections(&path, required)?;
     }
     reject_unindexed(memory, catalog, &indexed(rows))
 }
@@ -135,15 +135,15 @@ fn decision_details(
     rows: &[Row],
     committed: &HashSet<String>,
 ) -> Result<()> {
-    let layout = Catalog::Decisions.detail_sections();
+    let required = Catalog::Decisions.detail_sections();
     for row in rows {
         let path = detail(context, memory, row, Catalog::Decisions)?;
-        let prior_layout = committed.contains(&row.id)
-            && sections(&path, format::PRIOR_DECISION_SECTIONS, None).is_ok();
+        let prior_layout =
+            committed.contains(&row.id) && sections(&path, format::PRIOR_DECISION_SECTIONS).is_ok();
         if prior_layout {
             continue;
         }
-        sections(&path, layout.required, layout.optional)?;
+        sections(&path, required)?;
     }
     reject_unindexed(memory, Catalog::Decisions, &indexed(rows))
 }

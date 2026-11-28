@@ -2,39 +2,35 @@
 
 ## Focus
 
-P205 (B209, one card per task), stage R2a, VAC C: `just consent` records the cards in Plan/ and holds while one of
-them stays there.
+P205 (B209, D242), R2a VAC D: `init` creates `Backlog/`, `Plan/` and `Archive/` in the memory directory and writes no
+Plan or Backlog index; its AGENTS.md describes one card per task, the card the session start names and `results/`.
 
 ## Workspace
 
-- Branch: feature/RIG-209-one-card-per-task
-- Revision: e697aed, with VAC C staged for its commit.
-- Installed runtime: c60786d; `just run test` and `just run lint` build the candidate from the branch.
-- Protected proposals waiting for `! just approve` lie in `.cache/runtime/proposal/`: `key: RIG` in project.yaml,
-  `--key RIG` in bootstrap.sh, the card routes in hooks.yaml, the card excludes in lint.yaml and an entry in
-  rig_differences.yaml.
+Branch: feature/RIG-209-one-card-per-task. Revision: 1ce96cb79631d3abd56dfc3149dcd1408fd51566 plus the VAC D diff.
+The installed runtime is c60786d; the candidate is built from this branch.
 
 ## Progress
 
-- VAC A (da03ef9) checks cards; VAC B (e697aed) names the card of the branch at session start and in resume.
-- VAC C: `project_memory::planned_cards` lists the names of the cards in Plan/ by number. `just consent` records
-  them and refuses when Plan/ holds none; consent holds while any recorded card stays in Plan/, so a card that
-  enters Plan/ later does not renew it.
-- The git test fixture runs `init` with `--key RIG`; the consent tests plan and archive cards instead of editing a
-  Plan.md row. D242 links consent and its tests.
+- `Catalog` keeps only Decisions and Invariants; the optional `Delivery` section that only Plan used is gone, so
+  `sections` and `sections_of` take the required headings alone.
+- `project_memory` exports `CARD_DIRECTORIES` and `PLAN`; `init` creates the three directories beside the runtime
+  directory, and the session start falls back to `PLAN` instead of a second literal.
+- D242 links `init`, its instructions and the layout test; D050 no longer links the shipped instructions.
+- The shared `memory()` fixture writes no Plan index; `nested_cwd_and_symlinks` no longer removes an init Plan.md.
 
 ## Verification
 
-- `just run test -- change_delivery::git::tests`: 43 passed.
-- `just run rustfmt`: clean; `just run lint`: no errors.
-- `just check --only memory` (installed runtime): PASS.
+- `just run rustfmt` and `just run lint` pass on the VAC D tree.
+- `just run test -- project_setup project_memory agent_hooks::tests::memory agent_hooks::tests::tools
+  change_delivery::git::tests::pin`: 128 passed, 0 failed.
+- Not run: the full suite; the commit gate runs the mapped groups.
 
 ## Blockers
 
-The rig's Ledger keeps the old layout until the user's `! just approve` admits the protected proposals; the pin and
-the migration then land in one commit.
+- Protected changes wait for the user's own `! just approve`: `key: RIG`, `--key RIG` in bootstrap.sh, the card routes
+  in hooks.yaml, the lint excludes and the rig_differences entry, staged under `.cache/runtime/proposal/`.
 
 ## Next action
 
-Commit VAC C, then VAC D: `init` creates Backlog/, Plan/ and Archive/ without indexes and its instructions describe
-cards.
+Commit VAC D, then VAC E: the edit-backlog, edit-plan and execute-plan-feature skills describe one card and its moves.

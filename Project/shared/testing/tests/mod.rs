@@ -266,10 +266,6 @@ pub fn project(root: &Path, commands: &str, checks: &str) {
 pub fn memory(root: &Path) {
     let notes = root.join("notes");
     let indexes = [
-        (
-            "Plan",
-            "ID | Status | Depends on | Feature | User capability",
-        ),
         ("Decisions", "ID | Decision | Applies in"),
         ("Invariants", "ID | Invariant | Enforced by"),
     ];
