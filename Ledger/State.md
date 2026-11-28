@@ -2,28 +2,27 @@
 
 ## Focus
 
-P200 (B109 AC1–AC2): this plan-only VAC sets P200 active. P199 stays paused on its retained branch
-feature/decision-sections.
+P201 (B140 AC1–AC2) branch setup: carry over the plan-only pause of P200 (7eabdcb from feature/cargo-oracle-file).
 
 ## Workspace
 
-Branch: feature/cargo-oracle-file
-Revision: f2d04110eed1797bfc77be55e133e46a862f2f28
-Only Ledger/Plan.md and State are staged. The worktree also holds the uncommitted B109 code VAC: exact
-module paths for cargo oracles, with the Cargo manifest reader moved to structural_lint/architecture.
+Branch: feature/structure-reference-rank
+Revision: bacdd128f7cd9c384b5a13a815fe98f786c04e83
+Cherry-pick of 7eabdcb in progress; it changes only Ledger/Plan.md, Ledger/Plan/200.md and State.
 
 ## Progress
 
-The P200 row goes from pending to active; Plan/200.md is unchanged.
+- Carried over: 70def14 (selection of P199–P206), f2d0411 (P199 pause), aa493c7 (P200 activation).
+- This pick sets P200 paused with Depends on P199 and adds its Delivery.
 
 ## Verification
 
-The commit gate checks this staged tree.
+The commit gate checks this pick.
 
 ## Blockers
 
-None for this VAC.
+None for this VAC. P199 and P200 stay paused on their retained branches until the user approves.
 
 ## Next action
 
-Commit the activation, then describe the B109 code VAC in State and commit it through the gate.
+Finish the pick, then activate P201 and build the v36 tree on the P129 base under .cache/b140.
