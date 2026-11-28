@@ -2,24 +2,28 @@
 
 ## Focus
 
-P205 (B209): pin the VAC A runtime `5db166c` under the user's consent, so that the installed hooks and gate accept
-the queue `key` in `.agentrig/project.yaml` before the rig module names `key: RIG`.
+P205 (B209) VAC B, the next part of AC1: `init --key KEY` checks the key through the `Key` type and writes it into
+`.agentrig/project.yaml`; another form refuses before any file is written. Without `--key`, init still writes no key,
+so the rig comparison (I023) holds until the rig module names `key: RIG` with the user's approval.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: 5db166c01a74fc3b856fe64d198c4ea1d77ecb00
+Revision: 188d691a198acf70c083c26b81f2dedf527bd333
 
 ## Progress
 
-- The user typed `! just consent` while P203, P205 and P206 were open; `just propose-pin HEAD` then ran the branch
-  gate, installed `5db166c` and wrote it to `tooling/distribution/stable.txt` (previous pin `0c74f22`).
-- This VAC commits only the pin file and State.
+- `template.rs` accepts `--key`, and `config` parses it once with `Key::try_from` under the context `init --key`;
+  `project_config` exports `Key` as part of its configuration API.
+- The usage line of init, the CLI help and the project_setup README name `--key`.
+- Requiring the key waits for the approved rig module and the bootstrap passing `--key RIG`: a pinned runtime that
+  accepts `--key` lets that bootstrap install any later revision.
 
 ## Verification
 
-- The branch gate of `just propose-pin HEAD` passed every check: 266 tests in 53.9 s, lint, memory, rustfmt, clippy,
-  ruff, mypy, typos and vulture; the installer built `5db166c` in release and ran it.
+- `project_setup::initialization::tests::layout::init_writes_the_queue_key_and_refuses_another_form_before_writing`:
+  `--key rig-1` errs and leaves the consumer unchanged, `--key RIG` writes `key: RIG`; the 9 layout tests pass.
+- `just run rustfmt` and `just lint` pass on this content; the commit gate runs the affected groups.
 
 ## Blockers
 
@@ -27,4 +31,5 @@ None for this VAC.
 
 ## Next action
 
-Commit the pin, then pause P205 in a plan-only VAC: the rig module with `key: RIG` waits for the user's approval.
+Commit VAC B, pin its head under the consent of the user, then pause P205 until the user approves the rig module
+with `key: RIG` and the bootstrap with `--key RIG`.

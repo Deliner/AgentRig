@@ -17,5 +17,6 @@ pub use config::{
 };
 pub use config_files::{FILE, files, module, project_root, read, relative, sources};
 pub use flag::Flag;
+pub use key::Key;
 // DECISION: D005
 pub use crate::shared::vcs::Settings as Git;

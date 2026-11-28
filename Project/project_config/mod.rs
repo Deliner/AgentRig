@@ -7,8 +7,8 @@ use anyhow::Result;
 pub use protection::{Protection, configuration as protected_configuration};
 pub use settings_schema::{
     Access, AffectedTests, Arguments, Capabilities, Check, CheckKind, Command, Config, FILE, Flag,
-    Git, Hooks, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust, Tools,
-    VERSION, View, Views, files, module, read, relative, sources,
+    Git, Hooks, Key, Lifetime, Oracle, Paths, Program, Removed, Route, RouteEvent, Runner, Rust,
+    Tools, VERSION, View, Views, files, module, read, relative, sources,
 };
 use std::path::{Path, PathBuf};
 

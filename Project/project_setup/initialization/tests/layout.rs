@@ -169,6 +169,15 @@ fn custom_rust_service_executes_installed_adapters() {
 }
 
 #[test]
+fn init_writes_the_queue_key_and_refuses_another_form_before_writing() {
+    let (_temp, root) = consumer();
+    refused(&root, &["--key", "rig-1"]);
+    assert_eq!(initialize(&root, &["--key", "RIG"]).unwrap(), 0);
+    let key = &yaml(&root.join(".agentrig/project.yaml"))["key"];
+    assert_eq!(key, &flow("RIG"));
+}
+
+#[test]
 fn invalid_service_leaves_consumer_untouched() {
     for service in ["../escape", "bad\npath", "{{injection}}"] {
         let (_temp, root) = consumer();
