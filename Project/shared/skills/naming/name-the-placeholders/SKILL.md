@@ -1,6 +1,6 @@
 ---
 name: name-the-placeholders
-description: Name every placeholder of a format string with two or more positional ones, binding expressions to names first, or record why the positions must stay.
+description: Name every placeholder of a format string with two or more positional ones, binding expressions to names first, and write a plain variable into its placeholder, or record why the positions must stay.
 ---
 
 # Tie each placeholder to its value by name
@@ -23,6 +23,19 @@ where.
    the decision as `[exception RULE](FILE)`; the user approves a new exception
    through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::uninlined_format_args` in the
+library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports a format macro that passes a plain
+variable as an argument, also to a single placeholder, a width or a precision,
+such as `format!("{}", name)` or `format!("{:1$}", value, width)`, unless
+another argument of the call is an expression; the lint check reports each
+message as an error naming this skill. Write the variable into its
+placeholder: `format!("{name}")` or `format!("{value:width$}")`. The written
+form shows the same value, so no exception keeps the argument; do not suppress
+the lint or weaken the profile merely to pass.
 
 ## Rule binding
 

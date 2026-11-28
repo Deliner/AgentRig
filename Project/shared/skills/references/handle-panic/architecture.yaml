@@ -1,4 +1,4 @@
-purpose: "Return or handle a Rust error instead of unwrap, expect, their _err forms, resume_unwind or a panic macro, or justify the panic with an exception"
+purpose: "Return or handle a Rust error instead of unwrap, expect, their _err forms, resume_unwind, a panic macro, a string slice by byte range or a process exit outside main, or justify the panic or the exit with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to handle a panic path instead of aborting"

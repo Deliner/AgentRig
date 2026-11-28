@@ -1,6 +1,6 @@
 ---
 name: name-the-target
-description: Write the target type of a parse, into, try_into, sum, product, collect, Default::default or From::from bound by a let without a type, call a conversion written through its trait path, such as From::from or FromStr::from_str, on its target type, move the conversion into its use, or record why a later use should choose the type.
+description: Write the target type of a parse, into, try_into, sum, product, collect, Default::default or From::from bound by a let without a type, call a conversion written through its trait path, such as From::from, FromStr::from_str or Default::default, on its target type, move the conversion into its use, or record why a later use should choose the type.
 ---
 
 # Name the type a conversion produces
@@ -33,6 +33,17 @@ it stands.
    decision as `[exception RULE](FILE)`; the user approves a new exception
    through propose-protected-change.
 6. Rerun the reported lint check and the affected behavior checks.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::default_trait_access` in the library,
+binaries and examples of the configured Cargo manifest; tests are outside the
+profile. Clippy reports a `Default::default()` call of a struct, enum or union
+type wherever it stands, also with a typed `let`, as a field value or as an
+argument, and the lint check reports each message as an error naming this
+skill. Call it on the type: `Config::default()`. The named call is the same
+call, so no exception keeps the trait path; do not suppress the lint or weaken
+the profile merely to pass.
 
 ## Rule binding
 

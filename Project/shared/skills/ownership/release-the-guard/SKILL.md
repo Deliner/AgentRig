@@ -1,6 +1,6 @@
 ---
 name: release-the-guard
-description: Release a std Mutex or RwLock guard before the next .await by scoping or dropping it, or switch to an async-aware lock, or record why holding it across the suspension is safe.
+description: Release a std Mutex or RwLock guard before the next .await, or before the arms of a match whose scrutinee creates it, by scoping or dropping it, or switch to an async-aware lock, or record why holding it across the suspension is safe.
 ---
 
 # Release the lock before the task suspends
@@ -33,6 +33,21 @@ threads of a multi-threaded runtime.
 The check reads syntax only: it recognizes the lock by a zero-argument
 `.lock()`, `.read()` or `.write()` call and cannot see the lock's type, so it
 reports a warning rather than an error.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::significant_drop_in_scrutinee` in
+the library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports a temporary in a `match` scrutinee whose
+type has the `clippy::has_significant_drop` attribute, such as a std lock
+guard that a call in the scrutinee creates: it lives until the end of the
+whole `match`, so every arm runs under the lock and an arm that locks again
+deadlocks. The lint check reports each message as an error naming this skill.
+Compute the value in a `let` before the `match`, so that the guard drops at
+the end of that statement, and match the binding; when the arms need the
+lock, bind the guard to a name before the `match`, so that it is held
+visibly. One of these forms states every intent, so no exception keeps the
+temporary; do not suppress the lint or weaken the profile merely to pass.
 
 ## Rule binding
 

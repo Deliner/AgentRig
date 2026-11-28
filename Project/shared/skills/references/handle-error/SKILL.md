@@ -1,6 +1,6 @@
 ---
 name: handle-error
-description: Handle a swallowed error, or record why it is safe to ignore with an exception.
+description: Handle a swallowed error or a cause that map_err drops, or record why it is safe to ignore with an exception.
 ---
 
 # Handle the error, or record why it is safe to ignore
@@ -59,6 +59,26 @@ Only an exact exception `DECISION: DNNN RULE` naming this rule, `silent-error`
 by default, justifies the swallow; a bare `DECISION:` or `INVARIANT:`
 reference lifts nothing. Do not silence the finding with a bare comment, a
 broadened `except`, or by widening the rule.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::map_err_ignore` in the library,
+binaries and examples of the configured Cargo manifest; tests are outside the
+profile. Clippy reports a `map_err` whose closure ignores its argument with
+`_`, such as `.map_err(|_| Error::Parse)`, which replaces the cause of the
+failure with a fixed value; the lint check reports each message as an error
+naming this skill. Carry the original error into the new one, as a variant
+that holds it, `.map_err(Error::Parse)`, or as a field of it,
+`.map_err(|source| Error::Parse { line, source })`. Naming the ignored
+argument `_error` only to pass drops the cause all the same; do not do it.
+When the original error carries nothing the caller can use, record the
+reasoning as a decision with edit-decisions and put
+`#[expect(clippy::map_err_ignore)]` on the smallest item that holds the call,
+with its exception `// DECISION: DNNN allow-justification` alone on the line
+directly above the attribute. List it in the decision as
+`[exception allow-justification](FILE)`; the user approves a new exception
+through propose-protected-change, as justify-allow describes. Do not weaken
+the profile merely to pass.
 
 ## Rule binding
 

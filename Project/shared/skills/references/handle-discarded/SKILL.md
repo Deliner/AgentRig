@@ -1,6 +1,6 @@
 ---
 name: handle-discarded
-description: Handle or propagate a Result, a combined value or a spawn handle instead of dropping it with a bare .ok(), .err(), Option-combinator, .status()?, .output()? or spawn statement, or record why the outcome is ignored.
+description: Handle or propagate a Result, a combined value or a spawn handle instead of dropping it with a bare .ok(), .err(), Option-combinator, .status()?, .output()? or spawn statement or a let _ binding of a must_use value, or record why the outcome is ignored.
 ---
 
 # Handle the Result instead of discarding it
@@ -44,6 +44,24 @@ its panic or error is never observed, and a child process is never waited for.
 An exception naming this rule, `discarded-result` by default, on the line
 directly above the statement keeps it; a bare `DECISION:` or `INVARIANT:`
 reference lifts nothing. Test code is out of scope.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::let_underscore_must_use` in the
+library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports `let _ = expr;` when the type of the value
+or the called function is `#[must_use]`, such as a `Result` or `is_ok()`, and
+the lint check reports each message as an error naming this skill. Handle or
+keep the value as in step 2. Renaming `_` to a name with a leading underscore
+only to pass discards the outcome all the same and keeps the value alive to
+the end of the scope; do not do it. When the outcome is genuinely ignorable,
+as in step 3, record the reasoning as a decision with edit-decisions and put
+`#[expect(clippy::let_underscore_must_use)]` on the statement, with its
+exception `// DECISION: DNNN allow-justification` alone on the line directly
+above the attribute. List it in the decision as
+`[exception allow-justification](FILE)`; the user approves a new exception
+through propose-protected-change, as justify-allow describes. Do not weaken
+the profile merely to pass.
 
 ## Rule binding
 

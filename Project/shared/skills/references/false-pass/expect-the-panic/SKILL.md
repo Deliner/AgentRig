@@ -32,6 +32,16 @@ An exception naming this rule, `untargeted-panic` by default, on the line
 directly above the attribute keeps it; a bare `DECISION:` or `INVARIANT:`
 reference lifts nothing.
 
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::should_panic_without_expect` in the
+library, binaries and examples of the configured Cargo manifest. Clippy
+reports a `should_panic` attribute without an expected message in the code the
+profile compiles, and the lint check reports each message as an error naming
+this skill. Tests are outside the profile, so the rule below reports the
+attribute of a test instead; the repair is the same. Do not weaken the profile
+merely to pass.
+
 ## Rule binding
 
 The measurement flags every Rust attribute whose path ends in `should_panic`

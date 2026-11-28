@@ -1,6 +1,6 @@
 ---
 name: justify-unsafe
-description: Justify every unsafe site (block, function, impl, trait, static mut or unsafe inside a macro body) with an approved exception, or remove the unsafe.
+description: Justify every unsafe site (block, function, impl, trait, static mut or unsafe inside a macro body) with an approved exception, one unsafe operation per block, or remove the unsafe.
 ---
 
 # Record why each unsafe is sound, or remove it
@@ -39,6 +39,20 @@ the soundness: record that explanation as the decision and put its exception
 there. A bare `DECISION:` or `INVARIANT:` reference or any other comment does
 not justify the unsafe. Do not silence the finding with a plain comment or by
 widening the rule.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::multiple_unsafe_ops_per_block` in
+the library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports an unsafe block that performs more than
+one unsafe operation, such as `unsafe { char::from_u32_unchecked(*ptr) }`,
+which dereferences a raw pointer and calls an unsafe function; the lint check
+reports each message as an error naming this skill. Split it into one block
+per operation and bind the value between them: `let code = unsafe { *ptr };`
+and then `unsafe { char::from_u32_unchecked(code) }`. Each block carries its
+own exception, which may name the same decision. A split always exists, so no
+exception keeps several operations in one block; do not suppress the lint or
+weaken the profile merely to pass.
 
 ## Rule binding
 

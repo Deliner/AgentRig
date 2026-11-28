@@ -54,6 +54,16 @@ reason: record that reason as the decision and put its exception there. A bare
 suppression. Do not silence the finding with a plain comment, a `reason`
 string, or by widening the rule.
 
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::allow_attributes` in the library,
+binaries and examples of the configured Cargo manifest; tests are outside the
+profile. Clippy reports every outer `#[allow(..)]`, not an inner
+`#![allow(..)]`, and the lint check reports each message as an error naming
+this skill. Remove the suppression and fix the finding, or write a required
+one as `#[expect(..)]` with its exception, as step 4 describes. No exception
+keeps an `#[allow]`; do not weaken the profile merely to pass.
+
 ## Rule binding
 
 The measurement flags every Rust `#[allow(...)]`, `#![allow(...)]`,

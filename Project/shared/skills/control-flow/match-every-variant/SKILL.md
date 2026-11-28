@@ -1,6 +1,6 @@
 ---
 name: match-every-variant
-description: Replace == or != with an enum variant, or a matches! naming one, with an exhaustive match so that the compiler names each variant added later, or record why the comparison must stay.
+description: Replace == or != with an enum variant, a matches! naming one or a wildcard arm of a match on an enum with an exhaustive match so that the compiler names each variant added later, or record why the comparison or the wildcard must stay.
 ---
 
 # Let the compiler name every variant
@@ -28,6 +28,24 @@ that branch is right for it.
    not fit each site: keep the comparison in one owner, such as a function,
    that carries the exception, and call it from the sites.
 6. Rerun the reported lint check and the affected behavior checks.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::wildcard_enum_match_arm` in the
+library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports a `_` arm, or an arm that only binds a
+name, of a `match` on an enum, which sends every variant added later to that
+arm; the lint check reports each message as an error naming this skill.
+Replace the arm with the variants it stands for, grouped with `|`, as in step
+2. For a foreign enum that is open, such as `io::ErrorKind`, keep the match in
+one owner as in step 5. When the wildcard stays, record the reasoning as a
+decision with edit-decisions and put
+`#[expect(clippy::wildcard_enum_match_arm)]` on the smallest item that holds
+the match, with its exception `// DECISION: DNNN allow-justification` alone on
+the line directly above the attribute. List it in the decision as
+`[exception allow-justification](FILE)`; the user approves a new exception
+through propose-protected-change, as justify-allow describes. Do not weaken
+the profile merely to pass.
 
 ## Rule binding
 

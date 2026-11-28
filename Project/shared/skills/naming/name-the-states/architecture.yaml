@@ -1,4 +1,4 @@
-purpose: "Replace an Option of bool or of Option with an enum naming each state, or justify the type with an exception"
+purpose: "Replace an Option of bool or of Option, or several bool fields of a struct, with enums naming each state, or justify the type with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to give each state of an optional flag or a nested option a name"

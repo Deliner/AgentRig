@@ -1,4 +1,4 @@
-purpose: "Name the placeholders of a format string with two or more positional ones, or justify the positions with an exception"
+purpose: "Name the placeholders of a format string with two or more positional ones and write each plain variable into its placeholder, or justify the positions with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to bind each format placeholder to its value by name"

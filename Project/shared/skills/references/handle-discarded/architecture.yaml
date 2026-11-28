@@ -1,4 +1,4 @@
-purpose: "Handle or propagate a Result or combined value instead of dropping it in a bare statement, or justify the ignored outcome with an exception"
+purpose: "Handle or propagate a Result or combined value instead of dropping it in a bare statement or a let _ binding, or justify the ignored outcome with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to handle or justify a discarded Result"

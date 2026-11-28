@@ -1,11 +1,11 @@
-purpose: "Bind a value to its place by a name instead of its position or an inline expression: same-type parameters and tuple fields, a bool among tuple fields, the states of an optional flag or a nested option, positional format placeholders, struct literal fields set from another field's name, two collections paired by position and inline branch conditions"
+purpose: "Bind a value to its place by a name instead of its position or an inline expression: same-type parameters and tuple fields, a bool among tuple fields, the states of an optional flag, a nested option or a struct's flags, positional format placeholders and plain variables passed to a format string, struct literal fields set from another field's name, two collections paired by position and inline branch conditions"
 files: {}
 directories:
   name-the-arguments: "Give two parameters of one type distinct types or a named record, or justify the signature with an exception"
   name-the-positions: "Name the fields of a tuple struct or tuple variant holding two values of one type, or justify the order with an exception"
   name-the-flag: "Give a bool among the positions of a tuple struct or tuple variant a named field of an enum type, or justify the position with an exception"
-  name-the-states: "Replace an Option of bool or of Option with an enum naming each state, or justify the type with an exception"
-  name-the-placeholders: "Name the placeholders of a format string with two or more positional ones, or justify the positions with an exception"
+  name-the-states: "Replace an Option of bool or of Option, or several bool fields of a struct, with enums naming each state, or justify the type with an exception"
+  name-the-placeholders: "Name the placeholders of a format string with two or more positional ones and write each plain variable into its placeholder, or justify the positions with an exception"
   align-field-names: "Repair a struct literal field set from a variable named after another of its fields, or justify the exchange with an exception"
   keep-pairs-together: "Keep values paired by position in two collections together in one record, or justify the parallel collections with an exception"
   name-if-condition: "Repair unnamed branch conditions while preserving their meaning"

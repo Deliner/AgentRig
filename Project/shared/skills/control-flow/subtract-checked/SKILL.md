@@ -1,6 +1,6 @@
 ---
 name: subtract-checked
-description: Replace a subtraction from .len(), .count(), .count_ones() or .count_zeros() with checked_sub or saturating_sub and handle the short case, rearrange it away, or record the check that guarantees the count.
+description: Replace a subtraction from .len(), .count(), .count_ones() or .count_zeros(), or of a Duration from an Instant or a Duration, with checked_sub or saturating_sub and handle the short case, rearrange it away, or record the check that guarantees the count.
 ---
 
 # Subtract from a count only when it cannot underflow
@@ -30,6 +30,25 @@ subset of the masks, where a decoder should return its ordinary error.
    `[exception RULE](FILE)`; the user approves a new exception through
    propose-protected-change.
 5. Rerun the reported lint check and the affected behavior checks.
+
+## Clippy profile
+
+The rig's Clippy profile denies `clippy::unchecked_time_subtraction` in the
+library, binaries and examples of the configured Cargo manifest; tests are
+outside the profile. Clippy reports a `-` between an `Instant` and a
+`Duration` or between two `Duration` values, which panics when the result
+cannot be represented, such as a negative duration; the lint check reports
+each message as an error naming this skill. Decide what that case means as in
+step 1, then write `deadline.checked_sub(margin)` or
+`budget.checked_sub(spent)` and handle `None`, or
+`budget.saturating_sub(spent)` when zero is the right answer. When a check
+just above guarantees the order, record that guarantee as a decision with
+edit-decisions and put `#[expect(clippy::unchecked_time_subtraction)]` on the
+smallest item that holds the subtraction, with its exception
+`// DECISION: DNNN allow-justification` alone on the line directly above the
+attribute. List it in the decision as `[exception allow-justification](FILE)`;
+the user approves a new exception through propose-protected-change, as
+justify-allow describes. Do not weaken the profile merely to pass.
 
 ## Rule binding
 

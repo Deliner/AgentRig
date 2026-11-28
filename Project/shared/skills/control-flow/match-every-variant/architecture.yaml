@@ -1,4 +1,4 @@
-purpose: "Replace a comparison with one enum variant with an exhaustive match, or justify the comparison with an exception"
+purpose: "Replace a comparison with one enum variant, or a wildcard arm of a match on an enum, with an exhaustive match, or justify the comparison or the wildcard with an exception"
 type: flat
 files:
   SKILL.md: "Canonical agent instructions to make the compiler name each variant a comparison would send to the other branch"
