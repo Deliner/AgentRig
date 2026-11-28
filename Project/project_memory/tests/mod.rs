@@ -1,5 +1,6 @@
 mod backlog;
 mod consumer;
+mod glossary;
 mod history;
 mod oracles;
 mod plan;

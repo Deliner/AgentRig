@@ -35,8 +35,12 @@ routes:
 - include: ['Project/agent_hooks/**', 'Project/change_delivery/**']
   skill: .agentrig/skills/fail-closed-enforcement/SKILL.md
   events: [edit]
+- include: [Ledger/Glossary.md]
+  skill: .agentrig/skills/edit-glossary/SKILL.md
+  events: [edit, shell]
 protected:
 - tooling/worker
 - tooling/distribution/bootstrap.sh
 - .cache/development
 - Project/project_setup/initialization/tests/rig_differences.yaml
+- Ledger/NorthStar.md

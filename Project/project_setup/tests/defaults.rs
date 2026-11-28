@@ -329,3 +329,65 @@ fn shipped_state_bounds() {
     let accepted = invoke(&root, &["lint"]);
     assert_eq!(accepted.code, Some(0), "{}", accepted.output());
 }
+
+struct Bounded {
+    path: &'static str,
+    header: &'static str,
+    lines: usize,
+    skill: &'static str,
+    rules: [&'static str; 2],
+}
+
+const BOUNDED: [Bounded; 2] = [
+    Bounded {
+        path: "Ledger/NorthStar.md",
+        header: "# North Star",
+        lines: 30,
+        skill: "propose-protected-change",
+        rules: ["north-star-size", "north-star-width"],
+    },
+    Bounded {
+        path: "Ledger/Glossary.md",
+        header: "# Glossary",
+        lines: 100,
+        skill: "edit-glossary",
+        rules: ["glossary-size", "glossary-width"],
+    },
+];
+
+fn filled(file: &Bounded, lines: usize, width: usize) -> String {
+    let prose = "a line of meaning\n".repeat(lines - 2);
+    format!("{}\n\n{prose}\n{}\n", file.header, "x".repeat(width))
+}
+
+fn refused(found: &[Value], file: &Bounded) {
+    let of_file = |item: &&Value| text(item, "path") == file.path;
+    let found: Vec<Value> = found.iter().filter(of_file).cloned().collect();
+    let rules: BTreeSet<&str> = found.iter().map(|item| text(item, "rule")).collect();
+    assert_eq!(rules, BTreeSet::from(file.rules), "{found:?}");
+    let skill = format!("{}/SKILL.md", file.skill);
+    assert!(guided(&found, &skill), "{found:?}");
+    for limit in [file.lines, 120] {
+        let exceeds = format!("exceeds {limit}");
+        let message = |item: &Value| text(item, "message").ends_with(&exceeds);
+        assert!(found.iter().any(message), "{exceeds}: {found:?}");
+    }
+}
+
+#[test]
+fn shipped_north_star_and_glossary_are_headed_and_bounded() {
+    let (_temp, root) = initialized("python");
+    for file in &BOUNDED {
+        let created = fs::read_to_string(root.join(file.path)).unwrap();
+        assert_eq!(created, format!("{}\n", file.header), "{}", file.path);
+        write(&root, file.path, &filled(file, file.lines + 1, 121));
+    }
+    let (code, found) = lint(&root);
+    assert_eq!(code, Some(1), "{found:?}");
+    for file in &BOUNDED {
+        refused(&found, file);
+        write(&root, file.path, &filled(file, file.lines, 120));
+    }
+    let accepted = invoke(&root, &["lint"]);
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+}

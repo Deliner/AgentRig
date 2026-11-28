@@ -2,6 +2,7 @@
 // DECISION: D036
 use super::template::{CACHE, SOURCE};
 use crate::project_config::{Config, Paths};
+use crate::project_memory::{GLOSSARY, NORTH_STAR};
 use crate::structural_lint::{CargoLayout, Kind, RULE_KINDS, RUST_SEED, Structure, example_rule};
 use anyhow::Result;
 use serde_json::{Value, json};
@@ -134,14 +135,11 @@ fn program_language(paths: &Paths, language: &str) -> Value {
     rule
 }
 
-// DECISION: D192
 fn markdown(paths: &Paths) -> Vec<Value> {
     let condense = format!("{skills}/condense-markdown/SKILL.md", skills = paths.skills);
-    let edit_state = format!("{skills}/edit-state/SKILL.md", skills = paths.skills);
-    let state = format!("{memory}/State.md", memory = paths.memory);
     let memory_exclude = format!("{memory}/**", memory = paths.memory);
     let sources = &paths.sources;
-    vec![
+    let mut rules = vec![
         json!({"id": "markdown-size", "kind": "nonblank-lines", "target": "file",
             "include": ["**/README.md", "**/AGENTS.md"], "exclude": [memory_exclude],
             "error": 70, "warning_skill": condense, "error_skill": condense}),
@@ -152,13 +150,30 @@ fn markdown(paths: &Paths) -> Vec<Value> {
             "include": sources, "extensions": [".md"],
             "exclude": ["**/README.md", "**/AGENTS.md", "**/SKILL.md"],
             "level": "error", "warning_skill": condense, "error_skill": condense}),
-        json!({"id": "state-size", "kind": "nonblank-lines", "target": "file",
-            "include": [state], "error": 100,
-            "warning_skill": edit_state, "error_skill": edit_state}),
-        json!({"id": "state-width", "kind": "line-width", "target": "file",
-            "include": [state], "error": 120,
-            "warning_skill": edit_state, "error_skill": edit_state}),
-    ]
+    ];
+    rules.extend(bounded(paths));
+    rules
+}
+
+// DECISION: D192
+fn bounded(paths: &Paths) -> Vec<Value> {
+    let documents = [
+        ("state", "State", 100, "edit-state"),
+        ("north-star", NORTH_STAR, 30, "propose-protected-change"),
+        ("glossary", GLOSSARY, 100, "edit-glossary"),
+    ];
+    let mut rules = Vec::new();
+    for (id, name, lines, skill) in documents {
+        let file = format!("{memory}/{name}.md", memory = paths.memory);
+        let skill = format!("{skills}/{skill}/SKILL.md", skills = paths.skills);
+        rules.push(json!({"id": format!("{id}-size"), "kind": "nonblank-lines",
+            "target": "file", "include": [file], "error": lines,
+            "warning_skill": skill, "error_skill": skill}));
+        rules.push(json!({"id": format!("{id}-width"), "kind": "line-width",
+            "target": "file", "include": [file], "error": 120,
+            "warning_skill": skill, "error_skill": skill}));
+    }
+    rules
 }
 
 fn architecture(skills: &str, rust: &CargoLayout) -> Value {

@@ -38,6 +38,23 @@ fn a_change_of_enforcement_commits_only_with_the_content_the_user_approved() {
     assert!(unreadable.stderr.contains(RECORD), "{}", unreadable.stderr);
 }
 
+#[test]
+fn the_north_star_of_an_initialized_project_commits_only_after_the_user_approves_it() {
+    let (_temp, root) = installed();
+    start(&root, "purpose");
+    let north_star = "Ledger/NorthStar.md";
+    let purpose = "# North Star\n\nWhy the project exists.\n";
+    fs::write(root.join(north_star), purpose).unwrap();
+    let unapproved = committed(&root, "unapproved");
+    assert_eq!(unapproved.code, Some(1), "{}", unapproved.output());
+    let named = unapproved.stderr.contains(north_star);
+    assert!(named, "{}", unapproved.stderr);
+    let approved = invoke(&root, &["approve"]);
+    assert_eq!(approved.code, Some(0), "{}", approved.output());
+    let accepted = committed(&root, "approved");
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+}
+
 // DECISION: D220
 #[test]
 fn a_new_lint_exception_commits_only_after_the_user_approves_its_line() {

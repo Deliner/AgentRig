@@ -5,9 +5,11 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
+mod briefing;
 mod check_evidence;
 mod exceptions;
 mod format;
+mod glossary;
 mod history;
 mod invariant_history;
 mod oracles;
@@ -16,6 +18,7 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
+pub use briefing::{GLOSSARY, NORTH_STAR, briefing};
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };
@@ -52,6 +55,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     exceptions::check(context, &memory, &files)?;
     invariants(context, &memory, &files, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
+    glossary::check(&memory)?;
     Ok(0)
 }
 // DECISION: D037

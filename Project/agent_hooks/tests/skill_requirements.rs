@@ -2,6 +2,7 @@
 use super::{hook, pre_tool, project};
 use crate::agent_hooks::dispatch;
 use crate::shared::calling_agent::Agent;
+use crate::shared::testing::configure;
 use serde_json::{Value, json};
 use std::{fs, path::Path};
 
@@ -182,6 +183,7 @@ fn path_program_writes_name_only_the_routes_their_paths_reach() {
     let named = "edit-plan/SKILL.md for shell write of Ledger/Plan/001.md.";
     assert!(plan.contains(named), "{plan}");
     assert!(!plan.contains("edit-backlog"), "{plan}");
+    configure(&root, "hooks", "protected: []\n");
     let tree = write("just run write -- rm -r Ledger");
     let skills = [
         "edit-plan",

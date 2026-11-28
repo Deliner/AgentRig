@@ -21,10 +21,10 @@ use self::input::{paths, target, text};
 use self::responses::{Event, context};
 use self::skill_requirements::Answer;
 use self::tools::Tool;
-use crate::change_delivery;
 use crate::project_config::{Context, RouteEvent};
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
+use crate::{change_delivery, project_memory};
 use anyhow::{Result, bail};
 pub use responses::deny;
 use serde_json::Value;
@@ -105,12 +105,13 @@ fn lift_compaction(event: &Value, configured: &Context) -> Option<String> {
     ))
 }
 fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
-    let memory = &configured.config.paths.memory;
+    let memory = root.join(&configured.config.paths.memory);
     let full = full_refresh(configured);
+    let briefing = project_memory::briefing(&memory);
     let mut message = format!(
-        "Resume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
-        state = root.join(memory).join("State.md").display(),
-        plan = root.join(memory).join("Plan.md").display(),
+        "{briefing}\n\nResume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
+        state = memory.join("State.md").display(),
+        plan = memory.join("Plan.md").display(),
     );
     if let Some(failure) = lift_compaction(event, configured) {
         message.push_str(&format!("\n\n{failure}"));

@@ -22,6 +22,10 @@ const SKILLS: &[(&str, &str)] = &[
         include_str!("../../shared/skills/memory/edit-decisions/SKILL.md"),
     ),
     (
+        "edit-glossary",
+        include_str!("../../shared/skills/memory/edit-glossary/SKILL.md"),
+    ),
+    (
         "edit-invariants",
         include_str!("../../shared/skills/memory/edit-invariants/SKILL.md"),
     ),

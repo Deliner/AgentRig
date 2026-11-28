@@ -1,0 +1,5 @@
+purpose: "Keep project words in the meanings the user agreed in chat"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to add, change or remove a glossary word only after the user's agreement, in the entry form and limits"
+directories: {}
