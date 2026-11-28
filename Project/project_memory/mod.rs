@@ -9,6 +9,7 @@ mod briefing;
 mod check_evidence;
 mod exceptions;
 mod format;
+mod glossary;
 mod history;
 mod invariant_history;
 mod oracles;
@@ -54,6 +55,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     exceptions::check(context, &memory, &files)?;
     invariants(context, &memory, &files, &mut sources)?;
     sections(&memory.join("State.md"), format::STATE_SECTIONS, None)?;
+    glossary::check(&memory)?;
     Ok(0)
 }
 // DECISION: D037
