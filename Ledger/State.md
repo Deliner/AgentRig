@@ -2,29 +2,26 @@
 
 ## Focus
 
-P199–P206: восемь карточек Backlog (B206, B109, B140, B137, B138, B208, B209, B210) выбраны пользователем
-2026-11-28 для автономной поставки. VAC 1 вносит их в Plan; активна P199 (B206).
+P200 (B109): оракул cargo привязан к своему файлу. VAC: перенос паузы P199 с ветки `feature/decision-sections`.
 
 ## Workspace
 
-Branch: feature/decision-sections
-Revision: 5809ad7ed5b62317dfec9d692a1774722a514ab3
-Changed: Ledger/Plan.md, Ledger/Plan/199.md–206.md, Ledger/State.md.
+Branch: feature/cargo-oracle-file
+Revision: 70def14e0e9a7f72835e085d57fc8d95a57d2e3a
+Changed: Ledger/Plan.md (P199 paused), Ledger/Plan/199.md (Delivery) — перенесено из `24fe97d`.
 
 ## Progress
 
-VAC 1: восемь строк и запись о выборе в Ledger/Plan.md, карточки Ledger/Plan/199.md–206.md со ссылками на карточки
-Backlog и их ревизии в Git. Код не менялся.
+`70def14` — перенесённый выбор P199–P206. P199 стоит на паузе на сохранённой ветке `feature/decision-sections`.
 
 ## Verification
 
-`just check --only memory` перед коммитом.
+Коммит через гейт: memory и lint на этом содержимом.
 
 ## Blockers
 
-Нет.
+P199 ждёт `! just approve` предложения `lint.yaml` и пина. Пин этой ветки ждёт `! just consent` или `! just approve`.
 
 ## Next action
 
-Закоммитить VAC 1. Затем пользователь набирает `! just consent`, а исключение шести индексов из `file-size` в
-`.agentrig/lint.yaml` (B206 AC5) одобряет командой `! just approve`.
+Закоммитить перенос, затем сделать P200 активной и реализовать AC1–AC2.
