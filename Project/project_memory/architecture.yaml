@@ -1,14 +1,14 @@
 purpose: Validate project memory contracts, record check evidence and report recovery context
 files:
-  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, Plan cards, catalogs and State functions its parts offer
-  cards.rs: Check the cards named by the queue key in Backlog, Plan and Archive, list the cards in Plan and order cards without a cycle
+  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, Plan and active cards, catalogs and State functions its parts offer
+  cards.rs: Check the cards named by the queue key in Backlog, Plan and Archive, list the cards in Plan, find the card of a branch and order cards without a cycle
   exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
   history.rs: Preserve committed decisions in each checked revision and check invariant history from the fork
   invariant_history.rs: Refuse an invariant change since the fork from the base unless a new decision names it
   revision_memory.rs: Read a committed memory file and locate the memory directory configured at a revision
   oracles.rs: Bind invariant markers to configured executable test discovery
-  resume.rs: Combine recorded State with current repository, job and check observations
+  resume.rs: Combine recorded State and the active card with current repository, job and check observations
   source.rs: Inspect supported source syntax for decision and invariant markers
 directories:
   tests: Memory, plan and State behavior scenarios and shared memory fixtures

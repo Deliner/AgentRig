@@ -2,7 +2,7 @@
 // DECISION: D014
 // DECISION: D015
 use super::{initialized, pre_tool, project, respond};
-use crate::shared::testing::{run, runtime, snapshot};
+use crate::shared::testing::{git, run, runtime, snapshot, write};
 use serde_json::{Value, json};
 use std::os::unix::fs::{MetadataExt, symlink};
 use std::{fs, path::Path};
@@ -211,4 +211,27 @@ fn storage_failure_keeps_recovery_context() {
     }
     let stderr = &result.stderr;
     assert!(stderr.contains("session reminder state"), "{stderr}");
+}
+
+#[test]
+fn session_start_names_the_card_of_the_branch_or_else_the_plan_directory() {
+    let (_temp, root) = initialized(&["--key", "RIG"]);
+    write(&root, "Ledger/Plan/RIG-7.md", "# RIG-7 — Card\n");
+    write(&root, "Ledger/Plan/RIG-8/RIG-8.md", "# RIG-8 — Card\n");
+    let branches = [
+        ("feature/RIG-7-queue", "Ledger/Plan/RIG-7.md"),
+        ("feature/RIG-8-materials", "Ledger/Plan/RIG-8/RIG-8.md"),
+        ("feature/RIG-9-elsewhere", "Ledger/Plan"),
+        ("feature/maintenance", "Ledger/Plan"),
+    ];
+    for (branch, card) in branches {
+        git(
+            &root,
+            &["-c", "core.hooksPath=/dev/null", "switch", "-qc", branch],
+        );
+        let session = respond(&root, &json!({"hook_event_name": "SessionStart"}));
+        let context = session["hookSpecificOutput"]["additionalContext"].as_str();
+        let named = format!(" and {}. ", root.join(card).display());
+        assert!(context.unwrap().contains(&named), "{branch}: {session}");
+    }
 }

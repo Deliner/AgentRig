@@ -1,5 +1,6 @@
 use crate::shared::testing::{
-    FAIL, GATE, checked_repository, git, git_run, invoke, memory, project, snapshot,
+    FAIL, GATE, checked_repository, configure, git, git_run, invoke, memory, project, snapshot,
+    write,
 };
 use serde_json::Value;
 use std::{fs, path::Path};
@@ -93,6 +94,17 @@ fn resume_distinguishes_plain_and_unborn_repositories() {
     assert_eq!(value["vcs"]["revision"], "", "{value}");
     assert!(null(&value["vcs"], "operation"), "{value}");
     assert_eq!(snapshot(&root), before);
+}
+
+#[test]
+fn resume_names_the_card_of_the_branch() {
+    let (_temp, root) = checked_repository();
+    configure(&root, "project", "key: RIG\n");
+    write(&root, "notes/Plan/RIG-7.md", "# RIG-7 — Card\n");
+    let card = |path: &str| root.join(path).to_str().unwrap().to_owned();
+    assert_eq!(resumed(&root)["card"], card("notes/Plan"));
+    git(&root, &["switch", "-qc", "task/RIG-7-queue"]);
+    assert_eq!(resumed(&root)["card"], card("notes/Plan/RIG-7.md"));
 }
 
 #[test]

@@ -53,6 +53,24 @@ pub fn planned(context: &Context) -> Result<Vec<String>> {
         .map(|number| format!("{key}-{number}"))
         .collect())
 }
+pub fn active(context: &Context, branch: &str) -> Result<PathBuf> {
+    let plan = context.path(&context.config.paths.memory)?.join(PLAN);
+    let Some(key) = &context.config.key else {
+        return Ok(plan);
+    };
+    let name = branch.strip_prefix(context.config.git.prefix.as_str());
+    let Some(card) = name.and_then(|name| branched(key, name)) else {
+        return Ok(plan);
+    };
+    let file = format!("{card}.md");
+    for path in [plan.join(&file), plan.join(&card).join(&file)] {
+        let present = fs::try_exists(&path)?;
+        if present {
+            return Ok(path);
+        }
+    }
+    Ok(plan)
+}
 pub(super) fn acyclic<Node: Copy + Ord>(graph: &BTreeMap<Node, Vec<Node>>) -> Result<()> {
     let mut done = BTreeSet::new();
     while done.len() < graph.len() {
@@ -120,7 +138,14 @@ fn numbered(key: &Key, entry: &Path, stem: &str) -> Result<u32> {
     })
 }
 fn number(key: &Key, name: &str) -> Option<u32> {
-    let digits = name.strip_prefix(&format!("{key}-"))?;
+    unpadded(name.strip_prefix(&format!("{key}-"))?)
+}
+fn branched(key: &Key, name: &str) -> Option<String> {
+    let numbered = name.strip_prefix(&format!("{key}-"))?;
+    let number = unpadded(numbered.split('-').next()?)?;
+    Some(format!("{key}-{number}"))
+}
+fn unpadded(digits: &str) -> Option<u32> {
     let number: u32 = digits.parse().ok()?;
     let canonical = number.to_string() == digits;
     canonical.then_some(number)

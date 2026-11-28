@@ -2,33 +2,34 @@
 
 ## Focus
 
-P205 VAC D (AC7): `just consent` records the key-named cards in Plan/ and refuses an empty Plan/; consent holds while
-a recorded card stays in Plan/, so a card moved to Archive/ or a revoke returns propose-pin to a proposal.
+P205 VAC E (AC6): the session start names the card whose number the current branch carries: `feature/RIG-7-name`
+gives Ledger/Plan/RIG-7.md or Ledger/Plan/RIG-7/RIG-7.md, any other branch Ledger/Plan; resume reports the same card.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: c870287c7567717b309c3280b36263de2de4a6f3
+Revision: 7bc4955e1b79e9461dc11ac41a07db9aab95c302
 
 ## Progress
 
-- cards.rs lists the cards named by the queue key in Plan/ (file or directory); project_memory re-exports it as
-  planned_cards, and the table reader is no longer part of its API.
-- consent.rs records and checks those cards instead of pending or active Plan.md rows; its messages name Plan/.
-- The pin tests configure key RIG, write Ledger/Plan/RIG-1.md and move it to Archive/ for the delivered case.
-- The hook refusal of `just consent`, the distribution README and the inventories describe consent by Plan/ cards.
-- Plan/205.md lists the decision on consent by Plan/ cards, the successor of D226, for the end-game VAC.
+- cards.rs finds the card of a branch from the git prefix, the queue key and a number without a leading zero, and
+  returns Plan/KEY-N.md or Plan/KEY-N/KEY-N.md when present, else Plan/; project_memory re-exports it as active_card.
+- The session start reads the branch through Git and names that card, or the error in its place; resume no longer
+  reads Plan.md and reports the path as card.
+- The new hook test switches branches without Git hooks: the reference hook made each switch take about 14 seconds.
+- The inventories and the project setup README name the active card in place of Plan.
 
 ## Verification
 
-- `just run test change_delivery::git::tests::pin::`: 5 passed.
-- `just run test project_memory::tests::`: 47 passed; `just run test agent_hooks::tests::protected::`: 6 passed.
-- `just run rustfmt`, `just lint` and `just candidate memory-check` pass (the known D112, D175, D231 warnings).
+- `just run test agent_hooks::`: 47 passed; `just run test project_memory::`: 53 passed.
+- `just run rustfmt`, `just lint` and `just candidate memory-check` pass; the memory check prints the known D112, D175
+  and D231 warnings.
 
 ## Blockers
 
-b209-proposal waits for `! just approve` after the P199 to P204 merge, the rebase and the pin of the rebased head.
+b209-proposal waits for `! just approve` after the P199 to P204 merge, the rebase of this branch and a pin of its head.
 
 ## Next action
 
-Commit VAC D, then VAC E (AC6): the session start names the active card from the branch instead of Plan.md.
+Commit VAC E, then pause P205 on this branch with Delivery for c870287, 7bc4955 and VAC E, and switch the checkout
+to feature/decision-sections for the approval of the P199 lint.yaml proposal.

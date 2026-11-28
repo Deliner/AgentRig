@@ -17,7 +17,7 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
-pub use cards::planned as planned_cards;
+pub use cards::{active as active_card, planned as planned_cards};
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };

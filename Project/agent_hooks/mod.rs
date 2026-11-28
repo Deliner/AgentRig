@@ -23,8 +23,10 @@ use self::skill_requirements::Answer;
 use self::tools::Tool;
 use crate::change_delivery;
 use crate::project_config::{Context, RouteEvent};
+use crate::project_memory;
 use crate::shared::calling_agent::Agent;
 use crate::shared::console;
+use crate::shared::vcs::Repository;
 use anyhow::{Result, bail};
 pub use responses::deny;
 use serde_json::Value;
@@ -107,10 +109,13 @@ fn lift_compaction(event: &Value, configured: &Context) -> Option<String> {
 fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Option<Value>> {
     let memory = &configured.config.paths.memory;
     let full = full_refresh(configured);
+    let card = match active_card(root, configured) {
+        Ok(card) => card.display().to_string(),
+        Err(error) => format!("the active card, which AgentRig could not find: {error:#}"),
+    };
     let mut message = format!(
-        "Resume from {state} and {plan}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
+        "Resume from {state} and {card}. Compare the recorded task, VAC, checks, blockers, and next action with current Git status, diff, and recent commits before acting. State may be stale after an interruption; current contracts and Git take precedence. Missing State is a recovery task, not evidence that previous work completed.\n\n{full}",
         state = root.join(memory).join("State.md").display(),
-        plan = root.join(memory).join("Plan.md").display(),
     );
     if let Some(failure) = lift_compaction(event, configured) {
         message.push_str(&format!("\n\n{failure}"));
@@ -125,6 +130,12 @@ fn session_start(root: &Path, event: &Value, configured: &Context) -> Result<Opt
         message.push_str(&format!("\n\n{}", state_failure(configured, &error)));
     }
     Ok(Some(context(Event::SessionStart, &message)))
+}
+fn active_card(root: &Path, configured: &Context) -> Result<PathBuf> {
+    let repository = Repository::discover(root)?;
+    let observed = repository.as_ref().map(Repository::observe).transpose()?;
+    let branch = observed.map(|observed| observed.branch).unwrap_or_default();
+    project_memory::active_card(configured, &branch)
 }
 fn shell_event(event: &Value, configured: &Context) -> Result<Option<Value>> {
     // DECISION: D201
