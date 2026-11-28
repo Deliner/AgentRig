@@ -25,7 +25,7 @@ pub fn execute(
     location: Location<'_>,
     caller: &Caller,
     args: &[String],
-    mode: Mode,
+    mode: Mode<'_>,
 ) -> Result<i32> {
     ensure!(
         args.iter()

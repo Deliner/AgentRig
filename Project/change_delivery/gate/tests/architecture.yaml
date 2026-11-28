@@ -1,7 +1,7 @@
 purpose: Verify working, staged and revision check selection and diagnostics
 files:
   mod.rs: Declare the gate behavior tests, build a gated project with an oversized staged source and read check evidence
-  outcomes.rs: Warning and blocking checks, the installed lint beside a candidate, actionable missing commands, targeted reruns and invalid selections
+  outcomes.rs: Warning and blocking checks, the installed lint beside a candidate, a staged Clippy finding that the lint check blocks, actionable missing commands, targeted reruns and invalid selections
   revision.rs: Exact revision inputs, check evidence and invalid selection rejection
   affected_checks.rs: Affected groups select commit and merge targets and record whether the full gate passed
   staged.rs: Staged checks use staged files and configuration, keep their logs and rerun after the export

@@ -44,6 +44,10 @@ impl Context {
     pub fn path(&self, value: &str) -> Result<PathBuf> {
         relative(&self.root, value)
     }
+    pub fn manifest(&self) -> Result<Option<PathBuf>> {
+        let manifest = self.config.rust.manifest.as_deref();
+        manifest.map(|path| self.path(path)).transpose()
+    }
     pub fn protection_skill(&self) -> String {
         let skills = &self.config.paths.skills;
         self.caller

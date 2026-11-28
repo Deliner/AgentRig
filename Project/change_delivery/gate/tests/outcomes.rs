@@ -1,5 +1,5 @@
 use super::{gated, large, stage_an_oversized_source};
-use crate::shared::testing::{FAIL, GATE, REPAIR, invoke, project, rerun};
+use crate::shared::testing::{FAIL, GATE, REPAIR, git, invoke, project, rerun, write};
 use std::fs;
 
 const CANDIDATE: &str = "- id: candidate-lint
@@ -10,6 +10,33 @@ const CANDIDATE: &str = "- id: candidate-lint
   kind: lint
   skill: guides/repair/SKILL.md
 ";
+const MANIFEST: &str = "[package]\nname = \"probe\"\nversion = \"0.1.0\"\nedition = \"2024\"\n";
+const NARROWING: &str = "pub fn narrow(value: u64) -> u32 {\n    value as u32\n}\n";
+const CHECKED: &str =
+    "pub fn narrow(value: u64) -> Option<u32> {\n    u32::try_from(value).ok()\n}\n";
+
+#[test]
+fn the_lint_check_blocks_a_staged_clippy_finding() {
+    let (_temp, root) = gated();
+    write(
+        &root,
+        ".agentrig/rust.yaml",
+        "rustflags: []\nmanifest: Cargo.toml\n",
+    );
+    write(&root, ".gitignore", ".runtime/\ntarget/\n");
+    write(&root, "Cargo.toml", MANIFEST);
+    write(&root, "src/lib.rs", NARROWING);
+    git(&root, &["init", "-q"]);
+    git(&root, &["add", "."]);
+    write(&root, "src/lib.rs", CHECKED);
+    let staged = invoke(&root, &["check", "--staged", "--only", "lint"]);
+    assert_eq!(staged.code, Some(1), "{}", staged.output());
+    let blocked = staged.stderr.contains("ERROR [lint]");
+    let named = staged.stdout.contains("clippy::as_conversions");
+    assert!(blocked && named, "{}", staged.output());
+    let working = invoke(&root, &["check", "--only", "lint"]);
+    assert_eq!(working.code, Some(0), "{}", working.output());
+}
 
 // DECISION: D217
 #[test]

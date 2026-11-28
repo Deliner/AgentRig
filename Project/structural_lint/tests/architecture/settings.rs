@@ -26,7 +26,7 @@ fn enabled_rust_rules_require_crate_roots() {
         let last = format!("error_skill: {SKILL}\n");
         consumer.configure(&last, &format!("{last}    enabled: {enabled}\n"));
         let checked = consumer.analysis(Mode::ConfigCheck).is_ok();
-        let linted = consumer.analysis(Mode::Lint);
+        let linted = consumer.analysis(Mode::Lint { clippy: None });
         let clean = linted.as_ref().map(Vec::is_empty).ok();
         let expected = (!enabled, (!enabled).then_some(true));
         assert_eq!((checked, clean), expected);

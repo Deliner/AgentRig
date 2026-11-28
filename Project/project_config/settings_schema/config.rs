@@ -37,6 +37,8 @@ pub struct Config {
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rust {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest: Option<String>,
     pub rustflags: Vec<String>,
 }
 #[derive(Default, Deserialize, Serialize)]

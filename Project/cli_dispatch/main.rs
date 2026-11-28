@@ -6,7 +6,7 @@ use agentrig::shared::console;
 use agentrig::shared::diagnostics;
 use agentrig::shared::shared_options::take_option;
 use agentrig::structural_lint::Location;
-use agentrig::{agent_hooks, project_config, structural_lint};
+use agentrig::{agent_hooks, command_runner, project_config, structural_lint};
 use anyhow::{Result, bail};
 use serde_json::Value;
 use std::{
@@ -97,32 +97,69 @@ fn hook(root: &Path, args: &mut Vec<String>) -> Result<i32> {
     }
     Ok(0)
 }
+struct Settings {
+    lint: PathBuf,
+    rust: Option<RustProject>,
+}
+struct RustProject {
+    context: project_config::Context,
+    manifest: PathBuf,
+}
+impl RustProject {
+    fn of(context: project_config::Context) -> Result<Option<Self>> {
+        let manifest = context.manifest()?;
+        Ok(manifest.map(|manifest| Self { context, manifest }))
+    }
+}
 fn run_lint(root: &Path, args: &mut Vec<String>, command: &str) -> Result<i32> {
     let explicit = take_option(args, "--config")?;
-    let resolved = match explicit {
-        Some(path) => Ok(root.join(path)),
-        None if root.join(project_config::FILE).is_file() => project_lint(root),
-        None => Ok(root.join("lint.yaml")),
-    };
     // DECISION: D143
     let inspection = structural_lint::inspection(command);
     let reported = inspection.is_none();
     // DECISION: D188
     let caller = diagnostics::caller(root, Agent::calling());
-    let config = match resolved {
-        Ok(config) => config,
+    let settings = match settings(root, explicit, command) {
+        Ok(settings) => settings,
         Err(error) if reported => return unresolved(&caller, command, args, error),
         Err(error) => return Err(error),
     };
     let location = Location {
         root,
-        config: &config,
+        config: &settings.lint,
     };
     if let Some(inspect) = inspection {
         return inspect(location, args);
     }
-    let mode = structural_lint::Mode::of(command);
+    let Some(rust) = &settings.rust else {
+        let mode = structural_lint::Mode::of(command);
+        return structural_lint::execute(location, &caller, args, mode);
+    };
+    let launch = |argv: &[String]| command_runner::output(&rust.context, argv);
+    let clippy = Some(structural_lint::Clippy {
+        manifest: &rust.manifest,
+        launch: &launch,
+    });
+    let mode = structural_lint::Mode::Lint { clippy };
     structural_lint::execute(location, &caller, args, mode)
+}
+fn settings(root: &Path, explicit: Option<String>, command: &str) -> Result<Settings> {
+    let configured = root.join(project_config::FILE).is_file();
+    let linted = command == "lint";
+    let needed = explicit.is_none() || linted;
+    let loaded = configured && needed;
+    let context = loaded
+        .then(|| project_config::Context::load(root))
+        .transpose()?;
+    let lint = match (explicit, &context) {
+        (Some(path), _) => root.join(path),
+        (None, Some(context)) => project_lint(context)?,
+        (None, None) => root.join("lint.yaml"),
+    };
+    let rust = match context {
+        Some(context) if linted => RustProject::of(context)?,
+        Some(_) | None => None,
+    };
+    Ok(Settings { lint, rust })
 }
 fn unresolved(
     caller: &Caller,
@@ -140,8 +177,7 @@ fn unresolved(
     };
     structural_lint::failure(location, caller, error, &invocation)
 }
-fn project_lint(root: &Path) -> Result<PathBuf> {
-    let context = project_config::Context::load(root)?;
+fn project_lint(context: &project_config::Context) -> Result<PathBuf> {
     anyhow::ensure!(
         context.config.capabilities.lint,
         "capabilities.lint is disabled"

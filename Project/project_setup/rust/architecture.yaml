@@ -2,7 +2,7 @@ purpose: Support Rust projects in environment setup from their Clippy configurat
 type: flat
 files:
   mod.rs: Declare the Rust project support modules and offer the Clippy settings, build flags and toolchain they provide
-  clippy.rs: Build the Clippy command with the AgentRig lint profile and complete the consumer's effective Clippy file with its thresholds
+  clippy.rs: Complete the consumer's effective Clippy file with the AgentRig thresholds
   flags.rs: Read the build.rustflags of the consumer's .cargo/config.toml for init to move into the rig's flag list
   toolchain.rs: Read the rig's Rust version from its rust-toolchain.toml, compare the project's rustc with it and title its capability section
   capabilities.txt: The AGENTS.md section body listing the rig's Rust capabilities agents should use

@@ -1,5 +1,6 @@
 use super::lifting;
 use crate::shared::diagnostics::{Diagnostic, Level};
+use crate::structural_lint::clippy::Message;
 use crate::structural_lint::rule_identities::{self, MIXED_JUNCTIONS};
 use crate::structural_lint::rule_set::lint_config;
 use crate::structural_lint::targeting::lint_targets;
@@ -31,6 +32,20 @@ pub(super) fn syntax_error(rule: &lint_config::Rule, path: &Path, line: usize) -
         skill: rule.error_skill.clone(),
         message: "cannot analyze malformed syntax; repair source before evaluating rules".into(),
         line: Some(line),
+        symbol: None,
+        rerun: String::new(),
+    }
+}
+pub(super) fn clippy_finding(reported: Message, skill: &str) -> Diagnostic {
+    Diagnostic {
+        rule: reported.rule,
+        path: reported.path,
+        level: Level::Error,
+        actual: None,
+        limit: None,
+        skill: skill.to_owned(),
+        message: reported.text,
+        line: reported.line,
         symbol: None,
         rerun: String::new(),
     }

@@ -1,14 +1,15 @@
 purpose: Compose lint capabilities into configuration checks, source evaluation and actionable CLI output
 dependents: 10
 files:
-  mod.rs: Declarations of the lint parts and the location, modes, commands, error count, lint file checks, rule kinds, maintained files, Cargo crate layouts and crate module paths they offer
+  mod.rs: Declarations of the lint parts and the location, modes, commands, Clippy run and profile, error count, lint file checks, rule kinds, maintained files, Cargo crate layouts and crate module paths they offer
 directories:
+  clippy: Run Clippy with the AgentRig profile on the library, binaries and examples of the configured Cargo manifest and report its messages
   lint_files: Read and compare the lint configuration files without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out and read Cargo crate layouts
   languages: Parse source syntax and measure language-specific scalar rules
   reporting: Parse lint commands and print findings, rule discovery, explanations, measured edges and the tree and structure reports
-  rule_evaluation: Load the lint configuration, check it or evaluate its rules into lifted findings and count their errors
+  rule_evaluation: Load the lint configuration, check it or evaluate its rules and the Clippy messages into lifted findings and count their errors
   rule_identities: Define stable rule identities, parameters and architecture settings
   rule_set: Describe implemented rule capabilities and load and validate strict lint policy
   targeting: Discover maintained files and directories and select targets with their effective thresholds

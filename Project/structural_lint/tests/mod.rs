@@ -1,4 +1,5 @@
 mod architecture;
+mod clippy;
 mod configuration;
 mod consumer;
 mod diagnostics;

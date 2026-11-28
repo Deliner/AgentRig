@@ -185,7 +185,7 @@ impl Consumer {
         fs::write(path.join("architecture.yaml"), text).unwrap();
     }
 
-    fn analysis(&self, mode: Mode) -> anyhow::Result<Vec<Diagnostic>> {
+    fn analysis(&self, mode: Mode<'_>) -> anyhow::Result<Vec<Diagnostic>> {
         let config = self.root.join("lint.yaml");
         let location = Location {
             root: &self.root,
@@ -195,7 +195,7 @@ impl Consumer {
     }
 
     pub fn lint(&self) -> Vec<Diagnostic> {
-        self.analysis(Mode::Lint).unwrap()
+        self.analysis(Mode::Lint { clippy: None }).unwrap()
     }
 
     pub fn located(&self) -> Vec<(String, Option<usize>, String)> {
@@ -238,7 +238,7 @@ impl Consumer {
     }
 
     pub fn rejects(&self, expected: &str) {
-        match self.analysis(Mode::Lint) {
+        match self.analysis(Mode::Lint { clippy: None }) {
             Ok(_) => self.fails(expected),
             Err(error) => assert!(format!("{error:#}").contains(expected), "{error:#}"),
         }

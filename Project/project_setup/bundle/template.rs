@@ -3,7 +3,7 @@ use crate::project_config::{
     Route, RouteEvent, Rust, Tools, View, Views,
 };
 use crate::project_setup::rust::{
-    ClippySettings, Requirement, build_rustflags, clippy_argv, clippy_settings,
+    ClippySettings, Requirement, build_rustflags, clippy_settings,
 };
 use crate::shared::calling_agent::Agent;
 use crate::structural_lint::{CargoLayout, cargo_layout};
@@ -142,7 +142,10 @@ fn config(options: &Options<'_>, rust: &CargoLayout, rustflags: Vec<String>) -> 
         },
         oracles: BTreeMap::new(),
         tools: tools(service),
-        rust: Rust { rustflags },
+        rust: Rust {
+            manifest: None,
+            rustflags,
+        },
     })
 }
 // DECISION: D150
@@ -312,6 +315,11 @@ fn language_commands(options: &Options<'_>, rust: &CargoLayout) -> Vec<(&'static
         ));
     }
     commands
+}
+fn clippy_argv(rust: &CargoLayout) -> Vec<String> {
+    let cargo = ["cargo", "clippy", "--manifest-path", &rust.manifest, "--"].map(String::from);
+    let denials = crate::structural_lint::clippy_denials();
+    cargo.into_iter().chain(denials).collect()
 }
 fn command(purpose: &str, argv: Vec<String>, access: Access) -> Command {
     Command {

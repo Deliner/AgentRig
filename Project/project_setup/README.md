@@ -68,7 +68,8 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 - `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
   reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, check, runner (`pytest` or `cargo`) and target, for cargo the test's module path.
-- `rust.yaml`: `rustflags`, the only compiler flags of rig-launched cargo runs; init copies `build.rustflags` there.
+- `rust.yaml`: `rustflags`, the only compiler flags of rig-launched cargo runs; init copies `build.rustflags` there. An
+  optional `manifest` names the `Cargo.toml` that lint checks with [Clippy](../README.md#lint).
 
 Unknown fields are errors naming their module; paths cannot escape the root; see [lint settings](../README.md#lint).
 

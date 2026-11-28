@@ -1,5 +1,6 @@
 purpose: Verify composed lint CLI diagnostics and portable consumer behavior
 files:
+  clippy.rs: Clippy messages of the configured manifest's library, binaries and examples as lint findings, the causes that keep Clippy from checking and the suppressions and manifest denials that change its findings
   consumer.rs: Seed a consumer with the size rule and read its lint and configuration check findings
   configuration.rs: Invalid rule, selector, language and setting scenarios of configuration check
   discovery.rs: Rule catalog, examples that pass configuration check and invalid discovery arguments
