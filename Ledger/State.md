@@ -2,29 +2,32 @@
 
 ## Focus
 
-P202 (B137 AC1–AC5), plan-only VAC: activate P202 on its feature branch, which already carries the selection
-and the pauses of P199, P200 and P201.
+Pause P202 (B137) after its first VAC: Plan.md marks P202 paused, and Plan/202.md records the delivery, the
+measurement, the three blockers and the resumption of the second VAC (AC4, AC5).
 
 ## Workspace
 
 Branch: feature/clippy-in-lint
-Revision: 676548a419d9e85c47f3421ffc121cbdbd78de25
-Only Ledger/Plan.md and State are staged; the worktree is otherwise clean.
+Revision: b2b77fca7141955cd34adf872f63e8f84d1163c5
 
 ## Progress
 
-- The P202 row goes from pending to active; no code has changed yet.
+- `b2b77fc` delivers AC1-AC3: lint and the gate's lint check run Clippy with the AgentRig profile on the manifest
+  that the optional `manifest` of `.agentrig/rust.yaml` names; init and the rig modules are unchanged.
+- Plan/202.md gains its Delivery section; the Plan row changes from active to paused.
 
 ## Verification
 
-The commit gate checks this staged tree.
+- The `b2b77fc` commit gate passed every check, 642 tests in 57.8 s.
+- `just report`: 13 runs of the `clippy` command took 1.6 s on average, 5.6 s at most; Plan/202.md records it.
+- The commit gate checks the memory links and lint of this change.
 
 ## Blockers
 
-None for this VAC. Later VACs: the rig configuration (`.agentrig/commands.yaml`, `checks.yaml`, `rust.yaml`) is
-protected and needs the user's approval; the successor decision of D132 needs room in the decision index (P199).
+- A pin on `b2b77fc` must precede `manifest` in the rig's `rust.yaml`; `just propose-pin` waits while P199's
+  `lint.yaml` proposal occupies the proposal directory.
+- The protected files of the second VAC wait for `! just approve`; the successor decision waits for P199.
 
 ## Next action
 
-Commit, then implement Clippy inside lint in Project: run it with the profile, turn its messages into findings
-and fail on a missing manifest or a failed build.
+Commit the pause, then continue the selected set with P204 (B208) on its own branch from master.
