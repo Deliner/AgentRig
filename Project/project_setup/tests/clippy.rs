@@ -1,9 +1,8 @@
-// DECISION: D132
 // DECISION: D154
+// DECISION: D239
 use super::{initialized, lint, text};
 use crate::project_setup::init;
-use crate::shared::strict_yaml;
-use crate::shared::testing::{repository, snapshot, write};
+use crate::shared::testing::{invoke, repository, snapshot, write};
 use anyhow::Result;
 use serde_yaml_ng::Value;
 use std::{
@@ -19,6 +18,11 @@ const TEAM: &str = "# team\nmax-struct-bools = 1\nmsrv = \"1.80\"\n\n[[disallowe
 const PREPENDED: &str = "avoid-breaking-exported-api = false\n";
 const CONFLICT: &str = "max-struct-bools = 3\n";
 const EFFECTIVE: [&str; 3] = ["Project/clippy.toml", "Project/.clippy.toml", "clippy.toml"];
+const NARROWING: &str = "pub fn narrow(value: u64) -> u32 {
+    let unused = 1;
+    value as u32
+}
+";
 
 fn read(path: &Path) -> String {
     fs::read_to_string(path).unwrap()
@@ -60,50 +64,42 @@ fn clippy_files(root: &Path, directory: &Path) -> BTreeSet<PathBuf> {
     found
 }
 
-fn strings(value: &Value) -> Vec<&str> {
-    let items = value.as_sequence().unwrap().iter();
-    items.map(|item| item.as_str().unwrap()).collect()
-}
-
-fn denied(argv: &[&str]) -> BTreeSet<String> {
-    let start = argv.iter().position(|arg| *arg == "--").unwrap() + 1;
-    let flags = &argv[start..];
-    let switches: BTreeSet<&str> = flags.iter().step_by(2).copied().collect();
-    assert_eq!(switches, BTreeSet::from(["-D"]), "{flags:?}");
-    flags
-        .iter()
-        .skip(1)
-        .step_by(2)
-        .map(|lint| (*lint).to_owned())
-        .collect()
-}
-
 #[test]
-fn rust_scaffold_delivers_the_dev_gate_clippy_profile() {
-    let (_temp, root) = rust_project(".");
-    let args = ["--language", "rust"];
-    assert_eq!(initialize(&root, &args).unwrap(), 0);
-    let commands = yaml(&root.join(".agentrig/commands.yaml"));
-    let argv = strings(&commands["clippy"]["argv"]);
-    assert_eq!(
-        argv[..5],
-        ["cargo", "clippy", "--manifest-path", "Cargo.toml", "--"]
-    );
-    let gate = yaml(&repository().join(".agentrig/commands.yaml"));
-    assert_eq!(denied(&argv), denied(&strings(&gate["clippy"]["argv"])));
-    let checks = yaml(&root.join(".agentrig/checks.yaml"));
-    let check = checks
-        .as_sequence()
-        .unwrap()
-        .iter()
-        .find(|check| check["id"] == "clippy");
-    let check = check.unwrap();
-    assert_eq!(
-        (&check["kind"], &check["command"]),
-        (&"command".into(), &"clippy".into())
-    );
+fn rust_scaffold_lints_its_crate_with_the_rig_clippy_profile() {
+    let (_temp, root) = initialized("rust");
+    let service = root.join(".agentrig");
+    let module = yaml(&service.join("rust.yaml"));
+    assert_eq!(module["manifest"], "Project/Cargo.toml", "{module:?}");
+    let commands = yaml(&service.join("commands.yaml"));
+    assert!(commands.get("clippy").is_none(), "{commands:?}");
+    let checks = yaml(&service.join("checks.yaml"));
+    let checks = checks.as_sequence().unwrap();
+    assert!(checks.iter().all(|check| check["id"] != "clippy"));
     let thresholds = read(&repository().join("Project/clippy.toml"));
     assert_eq!(read(&root.join("clippy.toml")), thresholds);
+    let library = root.join("Project/lib.rs");
+    let clean = read(&library);
+    fs::write(&library, format!("{NARROWING}{clean}")).unwrap();
+    let (code, found) = lint(&root);
+    assert_eq!(code, Some(1), "{found:?}");
+    let place = |item: &serde_json::Value| {
+        let rule = text(item, "rule");
+        let path = text(item, "path");
+        let line = &item["line"];
+        format!("{rule} {path}:{line}")
+    };
+    let mut places: Vec<String> = found.iter().map(place).collect();
+    places.sort();
+    let expected = [
+        "clippy::as_conversions Project/lib.rs:3",
+        "unused_variables Project/lib.rs:2",
+    ];
+    assert_eq!(places, expected);
+    let check = invoke(&root, &["check", "--only", "lint"]);
+    assert_eq!(check.code, Some(1), "{}", check.output());
+    assert!(check.stderr.contains("ERROR [lint]"), "{}", check.output());
+    fs::write(&library, clean).unwrap();
+    assert_eq!(lint(&root), (Some(0), Vec::new()));
 }
 
 #[test]
@@ -152,32 +148,6 @@ fn rust_init_refuses_a_conflicting_clippy_threshold() {
     let error = initialize(&root, &args).unwrap_err().to_string();
     assert!(error.contains("max-struct-bools = 3"), "{error}");
     assert_eq!(snapshot(&root), before);
-}
-
-// DECISION: D184
-#[test]
-fn shipped_rules_check_lowering_flags_of_the_clippy_command() {
-    let (_temp, root) = initialized("rust");
-    let commands = root.join(".agentrig/commands.yaml");
-    let (_, before) = lint(&root);
-    let mut config: serde_json::Value = strict_yaml::read(&commands).unwrap();
-    let argv = config["clippy"]["argv"].as_array_mut().unwrap();
-    argv.extend(["--cap-lints", "allow"].map(serde_json::Value::from));
-    fs::write(&commands, strict_yaml::encode(&config).unwrap()).unwrap();
-    let (code, after) = lint(&root);
-    let skills = |found: &[serde_json::Value]| -> Vec<String> {
-        let reported = |item: &&serde_json::Value| {
-            text(item, "rule") == "allow-justification"
-                && text(item, "path") == ".agentrig/commands.yaml"
-        };
-        let skill = |item: &serde_json::Value| text(item, "skill").to_owned();
-        found.iter().filter(reported).map(skill).collect()
-    };
-    assert_eq!(skills(&before), Vec::<String>::new(), "{before:?}");
-    assert_eq!(code, Some(1), "{after:?}");
-    let after = skills(&after);
-    assert_eq!(after.len(), 1, "{after:?}");
-    assert!(after[0].ends_with("justify-allow/SKILL.md"), "{after:?}");
 }
 
 #[test]

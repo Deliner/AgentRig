@@ -114,6 +114,15 @@ pub fn execute(
 ) -> Result<Output> {
     logged(context, name, argv, capture).map(|(output, _)| output)
 }
+pub fn output(context: &Context, argv: &[String]) -> Result<Output> {
+    let options = Sandboxing {
+        access: Access::Unconfined,
+        capture: Capture::Collect,
+        cargo_target: context.cargo_target.as_deref(),
+        rustflags: &context.config.rust.rustflags,
+    };
+    tracked(&context.root, argv, options, None)
+}
 fn logged(
     context: &Context,
     name: &str,

@@ -174,12 +174,12 @@ const DISABLEDTEST: Descriptor = Descriptor {
 // DECISION: D080
 // DECISION: D098
 // DECISION: D183
-// DECISION: D184
+// DECISION: D239
 const ALLOWJUSTIFICATION: Descriptor = Descriptor {
     default_id: "allow-justification",
     exclude: &[],
     target: "file",
-    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, and every item starting with -A, --allow, --cap-lints or --force-warn of a YAML rustflags sequence or after the -- of a YAML argv sequence whose first item is cargo and which names clippy or rustc before the --, reported at the attribute, the key or the item",
+    metric: "every Rust #[allow(...)], #![allow(...)], #[expect(...)] or #![expect(...)] attribute, every #[cfg_attr(...)] carrying allow, expect or ignore as a direct argument, every lint set to \"allow\" or { level = \"allow\" } under a [lints.*] or [workspace.lints.*] table of a TOML manifest, and every item starting with -A, --allow, --cap-lints or --force-warn of a YAML rustflags sequence, reported at the attribute, the key or the item",
     skill: "justify-allow",
     parameters: Parameters::Level {
         default: Severity::Error,

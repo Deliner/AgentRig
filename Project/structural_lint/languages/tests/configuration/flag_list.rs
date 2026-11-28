@@ -71,16 +71,10 @@ const LOWERING_FORMS: [&str; 12] = [
     "--force-warn=clippy::todo",
 ];
 
-// DECISION: D184
+// DECISION: D239
 #[test]
-fn yaml_flags_lowering_items_before_and_after_the_deny_list_of_clippy() {
-    let arguments = [
-        LOWERING_FORMS.as_slice(),
-        &["-D", "warnings"],
-        &LOWERING_FORMS,
-    ]
-    .concat();
-    let items: String = arguments
+fn yaml_leaves_lowering_items_of_a_clippy_command_unread() {
+    let items: String = LOWERING_FORMS
         .iter()
         .map(|item| format!("  - {item}\n"))
         .collect();
@@ -91,54 +85,7 @@ fn yaml_flags_lowering_items_before_and_after_the_deny_list_of_clippy() {
             ".agentrig/commands.yaml",
             &source
         ),
-        [
-            "6:-A",
-            "8:-Aunused",
-            "9:--allow",
-            "11:--allow=dead_code",
-            "12:--cap-lints",
-            "14:--cap-lints=warn",
-            "15:--force-warn",
-            "17:--force-warn=clippy::todo",
-            "20:-A",
-            "22:-Aunused",
-            "23:--allow",
-            "25:--allow=dead_code",
-            "26:--cap-lints",
-            "28:--cap-lints=warn",
-            "29:--force-warn",
-            "31:--force-warn=clippy::todo"
-        ]
-    );
-}
-
-// DECISION: D184
-#[test]
-fn yaml_reads_only_compiler_arguments_of_a_cargo_command() {
-    let source = "clippy:
-  argv:
-  - cargo
-  - clippy
-  - -A
-  - --
-  - -W
-  - clippy::print_stdout
-rustc:
-  argv: [cargo, +1.100.0, rustc, --lib, --, --allow, warnings]
-search:
-  argv: [grep, -A, '3', --, -A]
-package:
-  argv: [cargo, package, --allow-dirty, --, -A]
-test:
-  argv: [cargo, test, --, -A]
-";
-    assert_eq!(
-        findings(
-            Reference::AllowJustification,
-            ".agentrig/commands.yaml",
-            source
-        ),
-        ["10:--allow"]
+        Vec::<String>::new()
     );
 }
 

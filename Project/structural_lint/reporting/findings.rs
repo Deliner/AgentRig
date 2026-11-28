@@ -2,6 +2,7 @@ use crate::shared::calling_agent::Caller;
 use crate::shared::console;
 use crate::shared::diagnostics::{Diagnostic, Level, print_diagnostics};
 use crate::shared::fs_with_context as fs;
+use crate::structural_lint::clippy::Clippy;
 use crate::structural_lint::rule_evaluation::{Location, Mode, analyze};
 use anyhow::Result;
 use std::path::Path;
@@ -18,11 +19,11 @@ pub enum Format {
 pub(super) struct Output<'a> {
     pub(super) format: Format,
     pub(super) warnings: bool,
-    pub(super) mode: Mode,
+    pub(super) mode: Mode<'a>,
     pub(super) rerun: Option<&'a str>,
     pub(super) caller: &'a Caller,
 }
-pub fn run(location: Location<'_>, caller: &Caller, format: Format, mode: Mode) -> Result<i32> {
+pub fn run(location: Location<'_>, caller: &Caller, format: Format, mode: Mode<'_>) -> Result<i32> {
     run_output(
         location,
         Output {
@@ -34,13 +35,18 @@ pub fn run(location: Location<'_>, caller: &Caller, format: Format, mode: Mode) 
         },
     )
 }
-pub fn check(location: Location<'_>, caller: &Caller, rerun: &str) -> Result<i32> {
+pub fn check(
+    location: Location<'_>,
+    caller: &Caller,
+    rerun: &str,
+    clippy: Option<Clippy<'_>>,
+) -> Result<i32> {
     run_output(
         location,
         Output {
             format: Format::Text,
             warnings: false,
-            mode: Mode::Lint,
+            mode: Mode::Lint { clippy },
             rerun: Some(rerun),
             caller,
         },
@@ -52,7 +58,7 @@ pub(super) fn run_output(location: Location<'_>, output: Output<'_>) -> Result<i
     let Location { root, config: path } = location;
     let command = match output.mode {
         Mode::ConfigCheck => "lint-config-check",
-        Mode::Lint => "lint",
+        Mode::Lint { .. } => "lint",
     };
     let result = analyze(location, output.mode);
     let (mut diagnostics, config_error) = match result {

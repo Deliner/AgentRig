@@ -12,8 +12,8 @@ rejects collisions before writing, creates a Git repository when none exists, gi
 first commit, registers the Git hooks through `core.hooksPath` and sets `remote: origin` when that remote exists.
 Sources go in `Project`, memory in `Ledger`. Options: `--language python|rust`, `--skills`, `--service`, `--base` and
 `--prefix`. There is no update or rollback. Rust projects need a `rustc` of at least the rig's Rust, else init refuses
-before writing, and get `rustfmt`, `clippy` and `rust-test` checks, Clippy running the development gate's profile on
-their own toolchain. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
+before writing, and get `rustfmt` and `rust-test` checks; `manifest` in `rust.yaml` names the `Cargo.toml` lint checks
+with Clippy. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
 `clippy.toml` upward from the manifest directory, or a new root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills and lint settings; the configuration
@@ -68,7 +68,8 @@ its whole content; an absent module is an empty section, and `project.yaml` cann
 - `hooks.yaml`: ordered skill routes with paths, events (`edit`, `shell`, `check`) and optional `block`, the
   reminder schedule and discipline skill. A block stops the first event per skill and area in a context window.
 - `oracles.yaml`: per invariant, check, runner (`pytest` or `cargo`) and target, for cargo the test's module path.
-- `rust.yaml`: `rustflags`, the only compiler flags of rig-launched cargo runs; init copies `build.rustflags` there.
+- `rust.yaml`: `rustflags`, the only compiler flags of rig-launched cargo runs; init copies `build.rustflags` there. An
+  optional `manifest` names the `Cargo.toml` that lint checks with [Clippy](../README.md#lint).
 
 Unknown fields are errors naming their module; paths cannot escape the root; see [lint settings](../README.md#lint).
 

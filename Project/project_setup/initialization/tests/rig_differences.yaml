@@ -58,13 +58,9 @@
   - [.agentrig, checks.yaml, vulture]
   - [.agentrig, lint.yaml, rules, architecture, architecture, external, python]
 - reason: >-
-    The rig commits Cargo.lock, keeps every test in its library and also lints its example; init cannot assume a lock
-    file, a library target or a test layout in a project.
+    The rig commits Cargo.lock and keeps every test in its library; init cannot assume a lock file, a library target
+    or a test layout in a project.
   at:
-  - [.agentrig, commands.yaml, clippy, argv, --locked]
-  - [.agentrig, commands.yaml, clippy, argv, --lib]
-  - [.agentrig, commands.yaml, clippy, argv, --bins]
-  - [.agentrig, commands.yaml, clippy, argv, --examples]
   - [.agentrig, commands.yaml, test, argv, --locked]
   - [.agentrig, commands.yaml, test, argv, --lib]
   - [.agentrig, commands.yaml, test, argv, '--']
@@ -73,7 +69,6 @@
     its crate and its tests also read the setup itself.
   at:
   - [.agentrig, checks.yaml, rustfmt, include]
-  - [.agentrig, checks.yaml, clippy, include]
   - [.agentrig, checks.yaml, rust-test, include]
 - reason: The rig maps changed paths to its own test groups.
   at:

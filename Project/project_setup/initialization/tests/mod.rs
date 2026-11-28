@@ -17,10 +17,9 @@ use tempfile::TempDir;
 
 // DECISION: D053
 // DECISION: D158
-const WORKER_LOCAL_CHECKS: [&str; 8] = [
+const WORKER_LOCAL_CHECKS: [&str; 7] = [
     "build",
     "rustfmt",
-    "clippy",
     "ruff-format",
     "ruff",
     "mypy",

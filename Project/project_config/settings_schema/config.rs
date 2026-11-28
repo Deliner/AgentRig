@@ -34,9 +34,12 @@ pub struct Config {
     pub rust: Rust,
 }
 // DECISION: D182
+// DECISION: D239
 #[derive(Default, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Rust {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub manifest: Option<String>,
     pub rustflags: Vec<String>,
 }
 #[derive(Default, Deserialize, Serialize)]

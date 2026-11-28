@@ -55,7 +55,6 @@ fn tree() -> Value {
 }
 
 // DECISION: D182
-// DECISION: D184
 fn example(kind: Kind, paths: &Paths) -> Value {
     let mut rule = example_rule(kind, &paths.skills, &["**".into()]);
     match kind {

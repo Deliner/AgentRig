@@ -47,6 +47,11 @@ Analysis is syntactic: no type checking, macro expansion, decorator alias resolu
 Repository policy and installed defaults block every language rule. Do not add exceptions to turn the gate green;
 change policy through a recorded decision.
 
+With `manifest` in `rust.yaml`, lint and the gate's lint check also run Clippy with the AgentRig profile on the
+library, binaries and examples of that `Cargo.toml`, not its tests; `[lints.clippy]` can deny more. Each compiler
+message becomes an error finding with its rule, file, line and the configuration skill, and a run that cannot check
+the project becomes one naming the cause.
+
 `structural_lint/rule_identities` owns each kind's identity, target, metric, parameters, skill and defaults;
 the catalog, validation and init consume it. `structural_lint/languages/registry.rs` binds grammars and inspection
 functions to extensions and kinds. A new rule or language needs its measurement, registration, repair skill, and tests

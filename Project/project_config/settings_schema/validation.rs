@@ -41,6 +41,9 @@ impl Config {
             .with_context(|| module("checks"))?;
         self.hooks.validate(root).with_context(|| module("hooks"))?;
         self.validate_oracles().with_context(|| module("oracles"))?;
+        if let Some(manifest) = &self.rust.manifest {
+            relative(root, manifest).with_context(|| format!("{}: manifest", module("rust")))?;
+        }
         Ok(())
     }
     fn validate_project(&self, root: &Path) -> Result<()> {

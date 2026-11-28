@@ -7,4 +7,4 @@ directories:
   bundle: Generate the environment files that init installs and recognize the hook registrations they contain
   initialization: Initialize the configured environment, keeping existing consumer file contents
   inspection: Inspect an installed environment's readiness, configuration validity and test coverage
-  rust: Read a Rust project's Cargo manifest and compiler flags, complete its Clippy profile and require the rig's Rust version
+  rust: Read a Rust project's Cargo manifest and compiler flags, complete its Clippy file and require the rig's Rust version
