@@ -2,42 +2,31 @@
 
 ## Focus
 
-P204 (B208), VAC 3: init creates the North Star and the glossary with one header, protects the North Star and bounds
-both in lint; the rig gains its glossary, the edit-glossary skill and the same lint bounds (AC2, AC4–AC7 parts).
+Pause P204 (B208) after its third VAC: Plan.md marks P204 paused, and Plan/204.md records the delivery, the two
+blockers and the resumption (the glossary route in init and the North Star moved out of AGENTS.md).
 
 ## Workspace
 
 Branch: feature/north-star-glossary
-Revision: 23692d44d435bf33b85185b2ea4437dbacfd6ff1
+Revision: 2721c32d95248cc0a1efc8fdb526abee9c72d074
 
 ## Progress
 
-- VAC 1 (07ac675) gives both files in full at every session start; VAC 2 (23692d4) makes the memory check refuse a
-  malformed glossary entry, a missing header or a repeated word.
-- This VAC: init writes Ledger/NorthStar.md and Ledger/Glossary.md as one header line, lists the North Star in
-  hooks protected and ships north-star and glossary size and width rules (30 and 100 nonblank lines, 120 characters)
-  repaired by propose-protected-change and edit-glossary. bundle/lint.rs builds the State, North Star and glossary
-  bounds in one function. The rig gains Ledger/Glossary.md, the edit-glossary skill, its link and inventory, and the
-  same four rules in .agentrig/lint.yaml.
-- The D196 hook test clears protection before its Ledger tree write, which the protected North Star now refuses.
+- `07ac675`, `23692d4` and `2721c32` deliver AC1-AC4, AC6 and the parts of AC2, AC5 and AC7 that need no approval.
+- Plan/204.md gains its Delivery section; the Plan row changes from active to paused.
 
 ## Verification
 
-- `just run test`: 644 passed, 0 failed, on this content.
-- `just run rustfmt`, `just lint` and `just lint-config-check` pass; `just candidate memory-check` passes with the
-  known D112, D175 and D231 warnings.
-- New tests: defaults::shipped_north_star_and_glossary_are_headed_and_bounded (project_setup) and
-  approval::the_north_star_of_an_initialized_project_commits_only_after_the_user_approves_it (change_delivery).
+- The `2721c32` commit gate passed every check, 644 tests in 57.3 s.
+- The commit gate checks the memory links and lint of this change.
 
 ## Blockers
 
-- The rig North Star, its protection and the glossary edit route (AC5) change protected .agentrig/hooks.yaml and need
-  the user's `! just approve`. The proposal waits in the session scratchpad as b208-proposal: the rig hooks.yaml with
-  Ledger/NorthStar.md in protected and a last route for Ledger/Glossary.md (edit-glossary, edit and shell), and
-  Ledger/NorthStar.md holding `# North Star` and the first AGENTS.md paragraph verbatim. .cache/runtime/proposal/
-  holds the B206 lint.yaml proposal, so this one enters it only after that approval.
-- The pin of this Project change needs the user's `! just approve` or consent.
+- Protected .agentrig/hooks.yaml (North Star protection, glossary route) and the rig North Star text wait for the
+  user's `! just approve`; the proposal waits in the session scratchpad as b208-proposal until the P199 lint.yaml
+  proposal leaves .cache/runtime/proposal/.
+- The branch pin waits for the user's `! just approve` or consent.
 
 ## Next action
 
-Commit this VAC, then pause P204 in Plan with its Delivery section and the morning steps, then take P205 (B209).
+Commit the pause, then continue the selected set with P205 (B209) on its own branch from master.
