@@ -2,27 +2,31 @@
 
 ## Focus
 
-P199 (B206) ставится на паузу: plan-only VAC.
+Commit the pin of `24fe97d` on P199 (B206) under the consent of the user, so the installed gate checks new
+decisions in the three sections before the decisions of this branch are written.
 
 ## Workspace
 
 Branch: feature/decision-sections
-Revision: ba0224a36086da4c68b0b0089a81395c2104c314
-Changed: Ledger/Plan.md (P199 paused), Ledger/Plan/199.md (Delivery).
+Revision: 24fe97dc47f90011732c6b27e3ba4da219d320ee
 
 ## Progress
 
-AC1–AC4 закоммичены в `ba0224a`. AC5, решения нового формата и пины ждут пользователя.
+- `propose-pin HEAD` ran the branch gate, installed `24fe97d` and wrote it to tooling/distribution/stable.txt;
+  the previous pin was `0c74f22`.
+- Plan/199.md records the pin, drops the pin from the blocker and orders the resumption: approval of lint.yaml,
+  AC5, decisions in three sections, final pin, integration, with P199 merging first and without a rebase.
 
 ## Verification
 
-Коммит через гейт: memory и lint на этом содержимом.
+- The `propose-pin` branch gate passed every check, 267 affected tests in 57.8 s.
+- `just candidate memory-check` accepted the rig memory with the three-section check before the pin.
+- The commit gate runs the installed memory check of `24fe97d` on this change.
 
 ## Blockers
 
-Предложение `.cache/runtime/proposal/.agentrig/lint.yaml` ждёт `! just approve`; пины ждут `! just consent` или
-`! just approve`. Пользователь недоступен до утра.
+- `.cache/runtime/proposal/.agentrig/lint.yaml` waits for the `! just approve` of the user (AC5).
 
 ## Next action
 
-После коммита перейти на master, начать ветку P200 (B109) и перенести коммиты Plan.
+Commit the pin, then report the batch to the user with the morning order of approvals and branches.
