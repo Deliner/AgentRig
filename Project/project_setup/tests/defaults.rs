@@ -60,6 +60,14 @@ const FUNCTION_LIMIT: usize = 40;
 const PANICKING: &str =
     "fn value() -> u8 {\n    Some(1).unwrap()\n}\nfn raw() {\n    unsafe {}\n}\n";
 const LOCKS: [&str; 3] = ["Cargo.lock", "package-lock.json", "uv.lock"];
+const INDEXES: [&str; 6] = [
+    "Ledger/Decisions.md",
+    "Ledger/Invariants.md",
+    "Ledger/Plan.md",
+    "Ledger/Backlog.md",
+    "Ledger/Archive/Plan.md",
+    "Ledger/Archive/Backlog.md",
+];
 const BETA: &str = "def value():\n    return 7\n";
 const MARKDOWN: [&str; 3] = ["markdown-size", "markdown-width", "markdown-placement"];
 
@@ -201,6 +209,22 @@ fn shipped_file_size_skips_package_manager_lock_files() {
     for name in LOCKS {
         let path = format!("Project/tool/{name}");
         assert!(!flagged(&found, "file-size", &path), "{found:?}");
+    }
+}
+
+// DECISION: D237
+#[test]
+fn shipped_file_size_skips_the_memory_indexes_but_not_their_cards() {
+    let (_temp, root) = initialized("rust");
+    let content = "Line.\n".repeat(600);
+    let card = "Ledger/Plan/001.md";
+    for path in INDEXES.into_iter().chain([card]) {
+        write(&root, path, &content);
+    }
+    let (_, found) = lint(&root);
+    assert!(flagged(&found, "file-size", card), "{found:?}");
+    for path in INDEXES {
+        assert!(!flagged(&found, "file-size", path), "{found:?}");
     }
 }
 
