@@ -1,6 +1,7 @@
-purpose: Validate project memory contracts, record check evidence and report recovery context
+purpose: Validate project memory contracts, record check evidence and report recovery and session context
 files:
-  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, table and State functions its parts offer
+  mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, table, State and briefing functions its parts offer
+  briefing.rs: Give the full North Star and glossary that each session receives when its context starts, naming a file it lacks
   exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
   history.rs: Preserve and name the committed decisions of each checked revision and check invariant history from the fork

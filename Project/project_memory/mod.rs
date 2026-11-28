@@ -5,6 +5,7 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
+mod briefing;
 mod check_evidence;
 mod exceptions;
 mod format;
@@ -16,6 +17,7 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
+pub use briefing::briefing;
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };

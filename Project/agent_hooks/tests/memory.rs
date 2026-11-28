@@ -212,3 +212,51 @@ fn storage_failure_keeps_recovery_context() {
     let stderr = &result.stderr;
     assert!(stderr.contains("session reminder state"), "{stderr}");
 }
+
+fn started(root: &Path, source: &str) -> String {
+    let start = json!({"hook_event_name": "SessionStart", "source": source});
+    let output = respond(root, &start);
+    let context = output["hookSpecificOutput"]["additionalContext"].as_str();
+    context.unwrap_or_else(|| panic!("{output}")).to_owned()
+}
+
+#[test]
+fn every_renewed_context_receives_the_north_star_and_the_glossary_in_full() {
+    let (_temp, root) = project();
+    let north_star =
+        "# North Star\n\nThe rig keeps code clear for twenty years.\n\nIt works alone.";
+    let glossary = "# Glossary\n\n- **очередь** — очередь трекера, а не порядок работ";
+    fs::write(root.join("Ledger/NorthStar.md"), format!("{north_star}\n")).unwrap();
+    fs::write(root.join("Ledger/Glossary.md"), format!("{glossary}\n")).unwrap();
+    for source in ["startup", "clear", "compact"] {
+        let context = started(&root, source);
+        for text in [north_star, glossary, "Resume from", "Ledger/State.md"] {
+            assert!(context.contains(text), "{source}: {text}: {context}");
+        }
+    }
+}
+
+#[test]
+fn a_session_without_the_glossary_names_it_and_starts() {
+    let (_temp, root) = project();
+    let north_star = "# North Star\n\nOne line of purpose.";
+    fs::write(root.join("Ledger/NorthStar.md"), format!("{north_star}\n")).unwrap();
+    let context = started(&root, "startup");
+    let glossary = root.join("Ledger/Glossary.md");
+    let missing = format!("{} is missing", glossary.display());
+    for text in [north_star, missing.as_str(), "Resume from"] {
+        assert!(context.contains(text), "{text}: {context}");
+    }
+}
+
+#[test]
+fn a_session_with_an_unreadable_north_star_names_it_and_starts() {
+    let (_temp, root) = project();
+    let north_star = root.join("Ledger/NorthStar.md");
+    fs::create_dir(&north_star).unwrap();
+    let context = started(&root, "startup");
+    let unreadable = format!("{} is unreadable", north_star.display());
+    for text in [unreadable.as_str(), "Resume from"] {
+        assert!(context.contains(text), "{text}: {context}");
+    }
+}
