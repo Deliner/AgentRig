@@ -7,7 +7,7 @@ use serde_json::{Value, json};
 use std::os::unix::fs::{MetadataExt, symlink};
 use std::{fs, path::Path};
 
-const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
+const LEDGER_EDITS: [(&str, &str, &[&str]); 20] = [
     ("Edit", r#"{"file_path": "Ledger/Plan.md"}"#, &["edit-plan"]),
     (
         "Edit",
@@ -29,6 +29,11 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
         "Write",
         r#"{"file_path": "Ledger/Invariants.md"}"#,
         &["edit-invariants"],
+    ),
+    (
+        "Edit",
+        r#"{"file_path": "Ledger/Glossary.md"}"#,
+        &["edit-glossary"],
     ),
     (
         "Edit",
@@ -84,12 +89,13 @@ const LEDGER_EDITS: [(&str, &str, &[&str]); 19] = [
         &[],
     ),
 ];
-const MEMORY_SKILLS: [&str; 6] = [
+const MEMORY_SKILLS: [&str; 7] = [
     "edit-plan",
     "edit-backlog",
     "edit-decisions",
     "edit-invariants",
     "edit-state",
+    "edit-glossary",
     "norm-or-choice",
 ];
 

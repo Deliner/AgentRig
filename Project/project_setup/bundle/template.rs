@@ -2,7 +2,7 @@ use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
     Route, RouteEvent, Rust, Tools, View, Views,
 };
-use crate::project_memory::NORTH_STAR;
+use crate::project_memory::{GLOSSARY, NORTH_STAR};
 use crate::project_setup::rust::{ClippySettings, Requirement, build_rustflags, clippy_settings};
 use crate::shared::calling_agent::Agent;
 use crate::structural_lint::{CargoLayout, cargo_layout};
@@ -385,6 +385,12 @@ fn routes(options: &Options<'_>) -> Vec<Route> {
         include: vec![format!("{SOURCE}/**")],
         skill: format!("{skill_root}/fail-closed-enforcement/SKILL.md"),
         events: vec![RouteEvent::Edit],
+        block: false,
+    });
+    routes.push(Route {
+        include: vec![format!("{MEMORY}/{GLOSSARY}.md")],
+        skill: format!("{skill_root}/edit-glossary/SKILL.md"),
+        events: vec![RouteEvent::Edit, RouteEvent::Shell],
         block: false,
     });
     routes

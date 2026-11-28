@@ -2,31 +2,36 @@
 
 ## Focus
 
-P204 (B208) stays paused on the approval of protected files. This VAC records in Plan/204.md that the branch now
-rests on master f54d919, how the rebased result was verified and the single remaining blocker.
+P204 (B208) resumes after the user's approval. This VAC commits the approved rig hooks.yaml and North Star, gives a
+project after init the same glossary route, moves the purpose paragraph out of AGENTS.md and CLAUDE.md and records
+D241, which supersedes the placement of D234.
 
 ## Workspace
 
 Branch: feature/north-star-glossary
-Revision: f75c1e93c7453d08d2f01ba1cd405917e7c6dc63
+Revision: 83527bb3808980c17f1a94d2d6757688881b6d33
 
 ## Progress
 
-- d82b42d, 5a7824c, 9a7b9c7, 19433fb and f75c1e9 replay the P204 line on master f54d919. The conflicts in
-  bundle/lint.rs and bundle/template.rs keep the CargoLayout import of master and add the memory constants.
-- Plan/204.md Delivery names the replayed commits, the checks after the rebase, the blocker and the resumption.
+- The user's `! just approve` applied .agentrig/hooks.yaml (Ledger/NorthStar.md protected, the Ledger/Glossary.md
+  route to edit-glossary last) and Ledger/NorthStar.md (# North Star and the AGENTS.md paragraph verbatim).
+- bundle/template.rs ends the init routes with the same glossary route; ledger_edit_guidance edits
+  Ledger/Glossary.md and expects edit-glossary once.
+- AGENTS.md and CLAUDE.md drop the purpose paragraph and stay identical; D241 records the move and D234 links
+  NorthStar.md. P204 is active again, and Plan/204.md Delivery describes the resumption.
 
 ## Verification
 
-- After the rebase, just run rustfmt and just lint report nothing, and just run test with agent_hooks::,
-  project_memory::, project_setup:: and change_delivery::git::tests::approval passes 169 tests.
-- The commit gate checks the memory links and lint of this change.
+- just run test with agent_hooks::tests::memory and project_setup::initialization::tests::rig passes 9 tests,
+  including ledger_edit_guidance (I012) and init_matches_the_rig_setup_except_listed_differences (I023).
+- just run rustfmt and just lint report nothing; just check --only memory passes on the working tree.
+- The hook of the rig names edit-glossary for a shell write through hooks.routes[10].
 
 ## Blockers
 
-- Protected .agentrig/hooks.yaml (North Star protection, glossary route) and the rig North Star text wait for the
-  user's `! just approve`; the proposal goes to .cache/runtime/proposal/ while this branch is checked out.
+None.
 
 ## Next action
 
-Commit this VAC, then start P205 (B209) on its own branch from master.
+Commit this VAC, run just propose-pin HEAD under the consent of the user and commit the pin, then archive P204 and
+B208 and run just feature-merge.
