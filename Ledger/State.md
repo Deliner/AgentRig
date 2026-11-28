@@ -2,32 +2,27 @@
 
 ## Focus
 
-Pause P202 (B137) after its first VAC: Plan.md marks P202 paused, and Plan/202.md records the delivery, the
-measurement, the three blockers and the resumption of the second VAC (AC4, AC5).
+Activate P204 (B208): North Star and the project glossary reach the agent whenever its context starts anew.
 
 ## Workspace
 
-Branch: feature/clippy-in-lint
-Revision: b2b77fca7141955cd34adf872f63e8f84d1163c5
+Branch: feature/north-star-glossary
+Revision: 90c949de2ea1764d3bac32cef13c2f5d43478a9c
 
 ## Progress
 
-- `b2b77fc` delivers AC1-AC3: lint and the gate's lint check run Clippy with the AgentRig profile on the manifest
-  that the optional `manifest` of `.agentrig/rust.yaml` names; init and the rig modules are unchanged.
-- Plan/202.md gains its Delivery section; the Plan row changes from active to paused.
+- The branch starts from master and carries the Plan commits of P199-P202 (selection, activations and pauses).
+- This VAC only sets P204 active in Ledger/Plan.md.
 
 ## Verification
 
-- The `b2b77fc` commit gate passed every check, 642 tests in 57.8 s.
-- `just report`: 13 runs of the `clippy` command took 1.6 s on average, 5.6 s at most; Plan/202.md records it.
-- The commit gate checks the memory links and lint of this change.
+- The carried Plan and Backlog equal those of feature/clippy-in-lint (git diff shows no difference).
+- The commit gate checks memory for this plan-only change.
 
 ## Blockers
 
-- A pin on `b2b77fc` must precede `manifest` in the rig's `rust.yaml`; `just propose-pin` waits while P199's
-  `lint.yaml` proposal occupies the proposal directory.
-- The protected files of the second VAC wait for `! just approve`; the successor decision waits for P199.
+None for this VAC.
 
 ## Next action
 
-Commit the pause, then continue the selected set with P204 (B208) on its own branch from master.
+Commit the activation, then deliver the session start text with both files (AC3) as the first product VAC.
