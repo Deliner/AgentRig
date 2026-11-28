@@ -2,35 +2,33 @@
 
 ## Focus
 
-P205 (B209), VAC C: the memory check refuses malformed cards named by the queue key in Backlog/, Plan/ and Archive/
-(AC2-AC5) beside the old indexes. Entries without the key prefix stay with the old index checks until the last code
-VAC; a project without a key has no card to check yet.
+P205 VAC D (AC7): `just consent` records the key-named cards in Plan/ and refuses an empty Plan/; consent holds while
+a recorded card stays in Plan/, so a card moved to Archive/ or a revoke returns propose-pin to a proposal.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: d8076488ea3bbe8417712320ec864a8af16bee33
+Revision: c870287c7567717b309c3280b36263de2de4a6f3
 
 ## Progress
 
-- Project/project_memory/cards.rs checks each entry named `{KEY}-...`: a file `{KEY}-N.md` or a directory `{KEY}-N`
-  holding `{KEY}-N.md` and only assets, results and scenarios.md, N without a leading zero; first line
-  `# {KEY}-N — name`; the Backlog card sections; at most one `After: {KEY}-N, ...` line before the first section;
-  one number in one place; After names existing cards without a cycle.
-- The Plan cycle check moved from mod.rs into cards.rs as a generic `acyclic`, shared by Plan rows and cards; the
-  D127 marker stays on the Plan graph in mod.rs.
-- `Key` implements Display for card names and messages.
+- cards.rs lists the cards named by the queue key in Plan/ (file or directory); project_memory re-exports it as
+  planned_cards, and the table reader is no longer part of its API.
+- consent.rs records and checks those cards instead of pending or active Plan.md rows; its messages name Plan/.
+- The pin tests configure key RIG, write Ledger/Plan/RIG-1.md and move it to Archive/ for the delivered case.
+- The hook refusal of `just consent`, the distribution README and the inventories describe consent by Plan/ cards.
+- Plan/205.md lists the decision on consent by Plan/ cards, the successor of D226, for the end-game VAC.
 
 ## Verification
 
-- `just run test project_memory::tests::cards::`: 6 passed; `just run test project_memory::tests::`: 47 passed.
-- `just run rustfmt` and `just lint` pass.
+- `just run test change_delivery::git::tests::pin::`: 5 passed.
+- `just run test project_memory::tests::`: 47 passed; `just run test agent_hooks::tests::protected::`: 6 passed.
+- `just run rustfmt`, `just lint` and `just candidate memory-check` pass (the known D112, D175, D231 warnings).
 
 ## Blockers
 
-- Protected files of AC1 (b209-proposal/ in the session scratchpad) wait for the `! just approve` of the user after
-  the P199-P204 merge, the rebase and a pin of the rebased head.
+b209-proposal waits for `! just approve` after the P199 to P204 merge, the rebase and the pin of the rebased head.
 
 ## Next action
 
-Commit VAC C, then VAC D: consent records and holds by Plan/ cards (AC7).
+Commit VAC D, then VAC E (AC6): the session start names the active card from the branch instead of Plan.md.

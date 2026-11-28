@@ -17,10 +17,11 @@ mod revision_memory;
 mod source;
 #[cfg(test)]
 mod tests;
+pub use cards::planned as planned_cards;
 pub use check_evidence::{
     Attempt, Input, native_index, report as report_checks, resume as observed_checks,
 };
-pub use format::{Catalog, reset_state, state_holds_notes, state_template, table};
+pub use format::{Catalog, reset_state, state_holds_notes, state_template};
 pub use resume::run as resume;
 
 use crate::project_config::Context;
@@ -29,7 +30,7 @@ use crate::shared::fs_with_context as fs;
 use crate::shared::paths::globs;
 use crate::structural_lint;
 use anyhow::{Context as _, Result, ensure};
-use format::{Row, sections, target};
+use format::{Row, sections, table, target};
 use source::{Invariant, Sources};
 use std::{
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},

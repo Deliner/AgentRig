@@ -8,7 +8,8 @@ use std::{
     path::{Path, PathBuf},
 };
 
-const PLACES: [&str; 3] = ["Backlog", "Plan", "Archive"];
+const PLAN: &str = "Plan";
+const PLACES: [&str; 3] = ["Backlog", PLAN, "Archive"];
 const MATERIALS: [&str; 3] = ["assets", "results", "scenarios.md"];
 
 struct Card {
@@ -32,6 +33,25 @@ pub fn check(context: &Context, memory: &Path) -> Result<()> {
         }
     }
     order(key, &cards)
+}
+pub fn planned(context: &Context) -> Result<Vec<String>> {
+    let Some(key) = &context.config.key else {
+        return Ok(Vec::new());
+    };
+    let memory = context.path(&context.config.paths.memory)?;
+    let Some(entries) = fs::present(fs::read_dir(memory.join(PLAN)))? else {
+        return Ok(Vec::new());
+    };
+    let mut numbers = BTreeSet::new();
+    for entry in entries {
+        let name = entry?.file_name();
+        let stem = name.to_str().map(|name| name.trim_suffix(".md"));
+        numbers.extend(stem.and_then(|stem| number(key, stem)));
+    }
+    Ok(numbers
+        .into_iter()
+        .map(|number| format!("{key}-{number}"))
+        .collect())
 }
 pub(super) fn acyclic<Node: Copy + Ord>(graph: &BTreeMap<Node, Vec<Node>>) -> Result<()> {
     let mut done = BTreeSet::new();

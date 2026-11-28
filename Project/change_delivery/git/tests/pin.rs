@@ -1,13 +1,15 @@
 // DECISION: D218
 use super::{PROBE_CHECK, commit, committed, installed, read, start};
-use crate::shared::testing::{configure, git, invoke, run, runtime};
+use crate::shared::testing::{configure, git, invoke, run, runtime, write};
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
 const PIN: &str = "stable.txt";
-const PLAN: &str = "Ledger/Plan.md";
+const CARD: &str = "Ledger/Plan/RIG-1.md";
+const DELIVERED: &str = "Ledger/Archive/RIG-1.md";
+const TEXT: &str = "# RIG-1 — Feature\n";
 const PROPOSED: &str = ".cache/runtime/proposal/stable.txt";
 const INSTALLED: &str = ".git/installed";
 const INSTALLER: &str = r#"setup:
@@ -96,12 +98,15 @@ fn approve_installs_a_proposed_pin_before_writing_it() {
     );
 }
 
-fn planned(root: &Path, status: &str) {
-    let plan = format!(
-        "# Plan\n\n| ID | Status | Depends on | Feature | User capability |\n| --- | --- | --- | --- | --- |\n| [P001](Plan/001.md) | {status} | - | Feature | Capability |\n"
-    );
-    fs::write(root.join(PLAN), plan).unwrap();
-    unhooked(root, status);
+fn planned(root: &Path) {
+    write(root, CARD, TEXT);
+    unhooked(root, "planned");
+}
+
+fn delivered(root: &Path) {
+    write(root, DELIVERED, TEXT);
+    fs::remove_file(root.join(CARD)).unwrap();
+    unhooked(root, "delivered");
 }
 
 struct Consented {
@@ -110,12 +115,13 @@ struct Consented {
     first: String,
 }
 
-fn consented_product(settings: &str, status: &str) -> Consented {
+fn consented_product(settings: &str) -> Consented {
     let (temp, root) = installed();
     fs::write(root.join(".agentrig/checks.yaml"), PROBE_CHECK).unwrap();
     configure(&root, "commands", INSTALLER);
+    configure(&root, "project", "key: RIG\n");
     let first = pinned(&root, settings);
-    planned(&root, status);
+    planned(&root);
     start(&root, "consent");
     fs::create_dir_all(root.join("Project")).unwrap();
     fs::write(root.join("Project/product.txt"), "product").unwrap();
@@ -132,8 +138,7 @@ fn consented_product(settings: &str, status: &str) -> Consented {
 // DECISION: D226
 #[test]
 fn under_consent_propose_pin_installs_and_pins_a_gated_head_and_lists_it() {
-    let Consented { _temp, root, .. } =
-        consented_product("pin: stable.txt\ninstall: setup\n", "active");
+    let Consented { _temp, root, .. } = consented_product("pin: stable.txt\ninstall: setup\n");
     let product = head(&root);
     fs::write(root.join(".git/allow"), "").unwrap();
     let pinned = invoke(&root, &["propose-pin", "HEAD"]);
@@ -153,7 +158,7 @@ fn under_consent_propose_pin_installs_and_pins_a_gated_head_and_lists_it() {
 // DECISION: D226
 #[test]
 fn under_consent_propose_pin_refuses_another_revision_a_dirty_tree_and_a_failed_gate() {
-    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n", "pending");
+    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n");
     let earlier = invoke(&root, &["propose-pin", &first]);
     assert_ne!(earlier.code, Some(0), "{}", earlier.output());
     assert!(earlier.stderr.contains("only HEAD"), "{}", earlier.stderr);
@@ -182,7 +187,7 @@ fn under_consent_propose_pin_refuses_another_revision_a_dirty_tree_and_a_failed_
 // DECISION: D226
 #[test]
 fn without_consent_after_its_items_or_once_revoked_propose_pin_prepares_a_proposal() {
-    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n", "active");
+    let Consented { _temp, root, first } = consented_product("pin: stable.txt\n");
     let proposes = |root: &Path| {
         let proposed = invoke(root, &["propose-pin", "HEAD"]);
         assert_eq!(proposed.code, Some(0), "{}", proposed.output());
@@ -198,7 +203,7 @@ fn without_consent_after_its_items_or_once_revoked_propose_pin_prepares_a_propos
     proposes(&root);
     let given = invoke(&root, &["consent"]);
     assert_eq!(given.code, Some(0), "{}", given.output());
-    planned(&root, "complete");
+    delivered(&root);
     proposes(&root);
     let refused = invoke(&root, &["consent"]);
     assert_ne!(refused.code, Some(0), "{}", refused.output());

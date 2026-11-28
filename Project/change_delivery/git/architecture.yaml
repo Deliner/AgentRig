@@ -9,7 +9,7 @@ files:
   exceptions.rs: Find the lint exceptions a content adds over the committed one, keyed by file, decision, rule and the line beneath
   proposal.rs: Locate the directory where proposed protected files wait for the user's approval
   pin.rs: Prepare a forward pin as a proposal with the source files it changes, and install a proposed pin before the user's approval writes it
-  consent.rs: Record the user's standing consent for the open Plan items, pin a gated HEAD while it holds and list those pins
+  consent.rs: Record the user's standing consent for the cards in Plan, pin a gated HEAD while it holds and list those pins
   compaction.rs: Record after a merge that the agent must compact its conversation, report whether that is due and lift it
   compaction.txt: Instruction to compact the conversation that a merge prints and the agent hook repeats
   sweep.rs: Remove after a merge the finished runs and every file Git ignores except the rig's working state, the pinned runtime and the kept paths, and report what was freed or could not be removed

@@ -271,7 +271,7 @@ fn runtime_arguments(command: &str, args: &[String]) -> Result<()> {
         ),
         // DECISION: D226
         "consent" => bail!(
-            "AgentRig refused this call: `just consent` is the user's standing consent to pins while the open Plan items last, so an agent never runs it; ask the user to type `! just consent` in Claude Code or to run it in a terminal."
+            "AgentRig refused this call: `just consent` is the user's standing consent to pins while the cards it records stay in Plan/, so an agent never runs it; ask the user to type `! just consent` in Claude Code or to run it in a terminal."
         ),
         _ => {}
     }

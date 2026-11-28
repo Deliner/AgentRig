@@ -32,8 +32,8 @@ one. The pin only moves forward: the proposal and the approval refuse a revision
 committed pin, and the commit gate refuses an unapproved or backward pin, so a rollback is a new commit that reverts
 the change. This development pin is separate from a consumer's versioned configuration.
 
-To let a selected Plan set run without an approval for each pin, the user types `! just consent`, which the agent hook
-refuses to an agent. While a Plan item that was pending or active then stays so, or until `just revoke-consent`,
+To let the cards selected in Plan/ run without an approval for each pin, the user types `! just consent`, which the
+agent hook refuses to an agent. While a card that was in Plan/ then stays there, or until `just revoke-consent`,
 `just propose-pin HEAD` takes only a clean `HEAD` that descends from the pin, runs the branch gate of
 `just feature-merge`, installs the revision and writes stable.txt as approved content. `just consented-pins` lists each
 such pin with the source files it changes, so the user can review them afterwards.
