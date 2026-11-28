@@ -62,10 +62,17 @@ fn example(kind: Kind, paths: &Paths) -> Value {
     match kind {
         // DECISION: D116
         // DECISION: D172
+        // DECISION: D237
         Kind::Structure(Structure::NonblankLines) => {
             let owned = [paths.lint.clone(), format!("{}/Assets/**", paths.memory)];
+            let indexes = MEMORY_REGISTRIES.map(|name| format!("{}/{name}.md", paths.memory));
             let defaults = rule["exclude"].as_array().cloned().unwrap_or_default();
-            let exclude: Vec<Value> = owned.map(Value::from).into_iter().chain(defaults).collect();
+            let exclude: Vec<Value> = owned
+                .into_iter()
+                .chain(indexes)
+                .map(Value::from)
+                .chain(defaults)
+                .collect();
             rule["exclude"] = json!(exclude);
             rule["extensions"] = json!(FILE_EXTENSIONS);
         }

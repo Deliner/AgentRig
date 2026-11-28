@@ -53,6 +53,13 @@ rules:
   - .agentrig/lint.yaml
   # DECISION: D172 -- a Plan card asset is a stored artifact read as one file.
   - Ledger/Assets/**
+  # DECISION: D237 -- a memory index grows by one row per record and is read as one table.
+  - Ledger/Decisions.md
+  - Ledger/Invariants.md
+  - Ledger/Plan.md
+  - Ledger/Backlog.md
+  - Ledger/Archive/Plan.md
+  - Ledger/Archive/Backlog.md
   - '**/Cargo.lock'
   - '**/package-lock.json'
   - '**/uv.lock'

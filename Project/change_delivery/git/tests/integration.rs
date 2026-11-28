@@ -193,7 +193,7 @@ fn a_decision_changed_earlier_on_the_branch_is_refused_at_merge_and_at_the_next_
         &[&unhooked[..], &["commit", "-qm", "record"]].concat(),
     );
     start(&root, "change");
-    let changed = DECISION.replace("Chosen\n\nText.", "Chosen\n\nChanged.");
+    let changed = DECISION.replace("Decision\n\nText.", "Decision\n\nChanged.");
     fs::write(root.join("Ledger/Decisions/001.md"), changed).unwrap();
     describe_state(&root, "A test VAC.");
     git(&root, &["add", "."]);

@@ -4,8 +4,10 @@
 // DECISION: D008
 // DECISION: D007
 // DECISION: D002
-use super::consumer::{accepts, committed, consumer, decision, edit, record, rejects};
-use crate::shared::testing::{git, invoke, repository, snapshot};
+use super::consumer::{
+    accepts, append, committed, consumer, decision, detail, edit, record, rejects,
+};
+use crate::shared::testing::{commit_identity, git, invoke, repository, snapshot};
 use serde_json::Value;
 use std::fs;
 
@@ -14,6 +16,40 @@ const EXAMPLES: [(&str, &str, &str); 3] = [
     ("py", "value = 1", "#"),
     ("sh", "echo example", "#"),
 ];
+const PRIOR: [&str; 5] = ["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
+const CURRENT: [&str; 3] = ["Decision", "Reasons", "Alternatives"];
+
+fn layout(number: &str) -> String {
+    format!("Decisions/{number}.md: sections must be {CURRENT:?}")
+}
+
+// DECISION: D236
+#[test]
+fn a_new_decision_has_three_sections_while_a_committed_one_keeps_the_prior_five() {
+    let (_temp, root) = consumer();
+    record(&root, "src/lib.rs");
+    let source = "// DECISION: D001\nfn example() {}";
+    fs::write(root.join("src/lib.rs"), source).unwrap();
+    fs::write(root.join("notes/Decisions/001.md"), detail("D001", &PRIOR)).unwrap();
+    rejects(&root, &["memory-check"], &layout("001"));
+    git(&root, &["init", "-q"]);
+    commit_identity(&root);
+    git(&root, &["add", "."]);
+    git(&root, &["commit", "-qm", "prior"]);
+    accepts(&root);
+    let row = "| [D002](Decisions/002.md) | Second | [index](Decisions.md) |\n";
+    append(&root.join("notes/Decisions.md"), row);
+    let second = root.join("notes/Decisions/002.md");
+    fs::write(&second, detail("D002", &PRIOR)).unwrap();
+    git(&root, &["add", "."]);
+    rejects(&root, &["memory-check"], &layout("002"));
+    rejects(&root, &["check", "--staged"], &layout("002"));
+    fs::write(&second, detail("D002", &CURRENT)).unwrap();
+    git(&root, &["add", "."]);
+    accepts(&root);
+    let staged = invoke(&root, &["check", "--staged"]);
+    assert_eq!(staged.code, Some(0), "{}", staged.output());
+}
 
 #[test]
 fn resume_reports_a_stale_snapshot_without_writing() {

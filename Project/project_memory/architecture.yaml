@@ -3,7 +3,7 @@ files:
   mod.rs: Current and archived Plan, Backlog, decision and invariant consistency checks and the check evidence, table and State functions its parts offer
   exceptions.rs: Match the lint exceptions in files with the exception lists of their decisions
   format.rs: Memory document sections, tables, links and source target paths
-  history.rs: Preserve committed decisions in each checked revision and check invariant history from the fork
+  history.rs: Preserve and name the committed decisions of each checked revision and check invariant history from the fork
   invariant_history.rs: Refuse an invariant change since the fork from the base unless a new decision names it
   revision_memory.rs: Read a committed memory file and locate the memory directory configured at a revision
   oracles.rs: Bind invariant markers to configured executable test discovery

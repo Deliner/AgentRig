@@ -194,7 +194,7 @@ fn an_invariant_change_since_the_fork_needs_a_new_decision_that_names_it() {
     let row = "| [D001](Decisions/001.md) | Assert the result in I001 | [oracles](../.agentrig/oracles.yaml) |\n";
     fs::write(&decisions, fs::read_to_string(&decisions).unwrap() + row).unwrap();
     fs::create_dir_all(root.join("Ledger/Decisions")).unwrap();
-    let sections = ["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
+    let sections = ["Decision", "Reasons", "Alternatives"];
     let sections = sections.map(|heading| format!("## {heading}\n\nText.\n"));
     let decision = format!("# D001\n\n{}", sections.join("\n"));
     fs::write(root.join("Ledger/Decisions/001.md"), decision).unwrap();

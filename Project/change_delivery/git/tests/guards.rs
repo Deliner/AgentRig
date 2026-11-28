@@ -1,10 +1,32 @@
 // DECISION: D003
 // DECISION: D011
 // DECISION: D014
-use super::{STATE, commit, installed, read, start};
+use super::{DECISION, STATE, commit, committed, installed, read, start};
 use crate::project_memory::state_template;
 use crate::shared::testing::{describe_state, git, git_run, hermetic, invoke, run, runtime};
 use std::{fs, path::Path};
+
+const PRIOR_DECISION: &str = "# D001\n\n## Context\n\nText.\n\n## Chosen\n\nText.\n\n## Rejected\n\nText.\n\n## Rationale\n\nText.\n\n## Consequences\n\nText.\n";
+
+// DECISION: D236
+#[test]
+fn after_init_the_commit_gate_takes_a_new_decision_only_in_three_sections() {
+    let (_temp, root) = installed();
+    start(&root, "decision");
+    let row = "| [D001](Decisions/001.md) | Choice | [settings](../.agentrig/git.yaml) |\n";
+    let index = read(&root, "Ledger/Decisions.md") + row;
+    fs::write(root.join("Ledger/Decisions.md"), index).unwrap();
+    fs::create_dir_all(root.join("Ledger/Decisions")).unwrap();
+    fs::write(root.join("Ledger/Decisions/001.md"), PRIOR_DECISION).unwrap();
+    let refused = committed(&root, "prior sections");
+    assert_ne!(refused.code, Some(0), "{}", refused.output());
+    let sections = ["Decision", "Reasons", "Alternatives"];
+    let named = format!("Decisions/001.md: sections must be {sections:?}");
+    assert!(refused.output().contains(&named), "{}", refused.output());
+    fs::write(root.join("Ledger/Decisions/001.md"), DECISION).unwrap();
+    let accepted = committed(&root, "three sections");
+    assert_eq!(accepted.code, Some(0), "{}", accepted.output());
+}
 
 // DECISION: D204
 const FROM_FEATURE: [&str; 4] = [
