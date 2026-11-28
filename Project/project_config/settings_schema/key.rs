@@ -1,8 +1,14 @@
 use anyhow::{Error, Result, ensure};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as _};
+use std::fmt;
 
 pub struct Key {
     letters: String,
+}
+impl fmt::Display for Key {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(&self.letters)
+    }
 }
 impl TryFrom<String> for Key {
     type Error = Error;

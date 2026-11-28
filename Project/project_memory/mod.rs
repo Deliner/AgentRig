@@ -5,6 +5,7 @@
 // DECISION: D009
 // DECISION: D008
 // DECISION: D002
+mod cards;
 mod check_evidence;
 mod exceptions;
 mod format;
@@ -45,6 +46,7 @@ pub fn check_with_history(context: &Context, root: &Path, revision: Option<&str>
     let mut sources = Sources::default();
     history::check(context, root, revision, &mut sources)?;
     plan(context, &memory)?;
+    cards::check(context, &memory)?;
     backlog(context, &memory)?;
     let applications = decisions(context, &memory, &mut sources)?;
     let files = structural_lint::maintained_files(&context.root, &globs(&[])?)?;
@@ -169,6 +171,7 @@ fn backlog(context: &Context, memory: &Path) -> Result<()> {
     }
     Ok(())
 }
+// DECISION: D127
 // DECISION: D031
 fn plan(context: &Context, memory: &Path) -> Result<()> {
     let mut rows = plan_rows(context, memory)?;
@@ -197,7 +200,7 @@ fn plan(context: &Context, memory: &Path) -> Result<()> {
     for row in &rows {
         graph.insert(row.id.as_str(), dependencies(row, &index)?);
     }
-    acyclic(&graph)
+    cards::acyclic(&graph)
 }
 fn plan_rows(context: &Context, memory: &Path) -> Result<Vec<Row>> {
     let rows = table(&memory.join("Plan.md"), Catalog::Plan)?;
@@ -249,21 +252,6 @@ fn dependencies<'a>(row: &'a Row, index: &HashMap<&str, &Row>) -> Result<Vec<&'a
         );
     }
     Ok(dependencies)
-}
-// DECISION: D127
-fn acyclic(graph: &BTreeMap<&str, Vec<&str>>) -> Result<()> {
-    let mut done = HashSet::new();
-    while done.len() < graph.len() {
-        let before = done.len();
-        for (id, dependencies) in graph {
-            let ready = dependencies.iter().all(|id| done.contains(id));
-            if ready {
-                done.insert(*id);
-            }
-        }
-        ensure!(done.len() > before, "Plan dependency cycle");
-    }
-    Ok(())
 }
 fn decisions(context: &Context, memory: &Path, sources: &mut Sources) -> Result<Applications> {
     let rows = table(&memory.join("Decisions.md"), Catalog::Decisions)?;

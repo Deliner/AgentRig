@@ -2,27 +2,29 @@
 
 ## Focus
 
-P205 (B209), plan-only VAC: resume P205 before P199-P204 merge for the parts that need neither the approval of
-the user nor a new decision. The card check for entries named by the queue key (AC2-AC5) beside the old indexes,
-consent over Plan/ cards (AC7) and the active card path at session start (AC6) follow as code VACs.
+P205 (B209), VAC C: the memory check refuses malformed cards named by the queue key in Backlog/, Plan/ and Archive/
+(AC2-AC5) beside the old indexes. Entries without the key prefix stay with the old index checks until the last code
+VAC; a project without a key has no card to check yet.
 
 ## Workspace
 
 Branch: feature/card-queue
-Revision: e3bee65617b021d6f2aeadebb98decebb0f794bd
+Revision: d8076488ea3bbe8417712320ec864a8af16bee33
 
 ## Progress
 
-- Ledger/Plan.md: P205 paused -> active; no other item is active and P205 has no dependency.
-- Ledger/Plan/205.md Delivery: the superseded resumption bullet is replaced by the resumption now and the order after
-  the P199-P204 merge. The old index model stays until the last code VAC: removing it changes the oracles of I008
-  and I009, D215 then needs a new decision, and the Decisions.md index takes a new row only after P199 AC5.
-- Chosen: a paused card keeps its record in the State of its retained branch, a delivered card in Git history; the
-  card itself holds neither (B210 AC1).
+- Project/project_memory/cards.rs checks each entry named `{KEY}-...`: a file `{KEY}-N.md` or a directory `{KEY}-N`
+  holding `{KEY}-N.md` and only assets, results and scenarios.md, N without a leading zero; first line
+  `# {KEY}-N — name`; the Backlog card sections; at most one `After: {KEY}-N, ...` line before the first section;
+  one number in one place; After names existing cards without a cycle.
+- The Plan cycle check moved from mod.rs into cards.rs as a generic `acyclic`, shared by Plan rows and cards; the
+  D127 marker stays on the Plan graph in mod.rs.
+- `Key` implements Display for card names and messages.
 
 ## Verification
 
-- Plan-only change; the commit gate runs the installed memory check on it.
+- `just run test project_memory::tests::cards::`: 6 passed; `just run test project_memory::tests::`: 47 passed.
+- `just run rustfmt` and `just lint` pass.
 
 ## Blockers
 
@@ -31,4 +33,4 @@ Revision: e3bee65617b021d6f2aeadebb98decebb0f794bd
 
 ## Next action
 
-Commit this plan-only VAC, then the VAC of the card check for entries named by the queue key.
+Commit VAC C, then VAC D: consent records and holds by Plan/ cards (AC7).
