@@ -1,4 +1,4 @@
-purpose: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction, a call pair or a test's network port an owner with a bounded responsibility, or justify the intended departure with an exception"
+purpose: "Give a resource, a lock guard, the data a lock protects, process-global state, a recursive file-system deletion, a checked value, a wrapper's inner value, a newtype's construction, a call pair, a test's network port or the terminal's output an owner with a bounded responsibility, or justify the intended departure with an exception"
 files: {}
 directories:
   bind-port-zero: "Let a test bind port 0 and read the port the system assigns instead of a fixed port, or justify the fixed port with an exception"
@@ -12,3 +12,4 @@ directories:
   delegate-not-deref: "Replace Deref or DerefMut of a wrapper with methods that delegate what callers need, or justify the deref with an exception"
   construct-explicitly: "Replace From of a raw value for a newtype with a named constructor or a checking TryFrom, or justify the conversion with an exception"
   guard-the-pair: "Close a configured call pair on every path through a guard, or justify the early exit with an exception"
+  print-through-one-owner: "Remove a leftover print macro or write output through the one module that owns the terminal, which an exception justifies"

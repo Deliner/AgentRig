@@ -1,0 +1,5 @@
+purpose: "Bound an iterator that may never end before a search consumes it, or justify the endless iteration with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to bound an iterator that may never end"
+directories: {}

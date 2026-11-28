@@ -1,4 +1,4 @@
-purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields, a trait default that ignores self and a conversion whose target type comes from a later use"
+purpose: "Repair function and type interface smells: excessive inputs, boolean flag parameters, tuples that hide an unnamed record, an order that disagrees with equality, a derived enum order that follows declaration order, a derived Debug that prints a secret, a derived Deserialize that skips a constructor's check, an alias of a primitive, a manual comparison, hash or copy that reads a subset of fields, a trait default that ignores self, a conversion whose target type comes from a later use and a method that returns Self without must_use"
 files: {}
 directories:
   align-order-with-equality: "Make a type's manual order compare the same fields as its equality, or justify a derived field left out with an exception"
@@ -12,3 +12,4 @@ directories:
   wrap-the-primitive: "Replace a type alias of a primitive or String with a newtype, or justify the alias with an exception"
   destructure-the-fields: "Make a manual comparison, hash or copy name every field of its type, or justify the partial reading with an exception"
   require-the-method: "Drop a trait method's default body that ignores self so each implementor decides, or justify the default with an exception"
+  mark-must-use: "Mark a public method that returns Self as must_use, or justify a value that callers may drop with an exception"

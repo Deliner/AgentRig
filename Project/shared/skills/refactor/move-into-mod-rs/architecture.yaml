@@ -1,0 +1,5 @@
+purpose: "Move a module file beside the directory of its child modules into that directory as mod.rs"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to keep the entry of a module inside its directory"
+directories: {}

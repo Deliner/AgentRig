@@ -1,0 +1,5 @@
+purpose: "Bind a variable with an if expression instead of a declaration followed by assignments"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to bind a value with an if expression"
+directories: {}

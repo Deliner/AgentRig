@@ -1,0 +1,5 @@
+purpose: "Give a read a buffer of the length it should fill, or read to the end of the input"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to size the buffer that a read fills"
+directories: {}

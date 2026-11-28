@@ -1,0 +1,5 @@
+purpose: "Replace a decimal ^ that reads as a power with pow or a shift, or show the bits of an intended exclusive or"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to write a power with pow and an intended exclusive or with visible bits"
+directories: {}

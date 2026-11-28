@@ -1,4 +1,4 @@
-purpose: "Decompose an oversized or ill-structured unit by responsibility, break a cycle among the files of one directory, keep a directory entry its table of contents and the only way in, name and group a tree's parts so they show each directory's job, move long embedded text or a misplaced test file where it belongs, rewrite a superseded form in its current one or a program in an allowed language, or correct a standard call whose argument misstates its intent, while preserving its contract"
+purpose: "Decompose an oversized or ill-structured unit by responsibility, break a cycle among the files of one directory, keep a directory entry its table of contents and the only way in, name and group a tree's parts so they show each directory's job, move long embedded text, a misplaced test file or a module file kept beside its directory where it belongs, rewrite a superseded form in its current one or a program in an allowed language, or correct a standard call whose argument misstates its intent, while preserving its contract"
 files: {}
 directories:
   break-file-cycle: "Break a cycle of uses among the files of one directory by moving a shared item to its owner or joining files of one responsibility"
@@ -7,6 +7,7 @@ directories:
   extract-embedded-text: "Move long string literals out of code into their own files while preserving their values"
   go-through-entry: "Let code use another directory only through its entry, and move a test of a directory's inside into its tests/ directory"
   move-out-of-entry: "Let a directory's own code use the file that defines an item instead of the directory entry"
+  move-into-mod-rs: "Move a module file beside the directory of its child modules into that directory as mod.rs"
   move-test-code-out: "Move Rust test code out of a code file into the tests/ directory of its directory, so tests call only what the file opens"
   name-the-tolerance: "Replace f32::EPSILON or f64::EPSILON compared as an absolute tolerance with a named tolerance scaled to the values, or justify it with an exception"
   refactor-large-directory: "Guide structural work by responsibility and change boundaries, and repair architecture findings"

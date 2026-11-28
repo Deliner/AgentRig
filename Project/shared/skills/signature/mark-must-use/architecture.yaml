@@ -1,0 +1,5 @@
+purpose: "Mark a public method that returns Self as must_use, or justify a value that callers may drop with an exception"
+type: flat
+files:
+  SKILL.md: "Canonical agent instructions to mark a method that returns Self as must_use"
+directories: {}
