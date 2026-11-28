@@ -12,6 +12,7 @@ const TARGETS: [&str; 4] = ["--bins", "--examples", "--message-format=json", "--
 #[derive(Clone, Copy)]
 pub struct Clippy<'a> {
     pub manifest: &'a Path,
+    pub skills: &'a Path,
     pub launch: &'a dyn Fn(&[String]) -> Result<Output>,
 }
 
@@ -23,6 +24,7 @@ impl Clippy<'_> {
                 path: self.manifest.trim_prefix(root).display().to_string(),
                 line: None,
                 text: format!("Clippy could not check the project: {error:#}"),
+                skill: None,
             }]
         })
     }
@@ -48,6 +50,7 @@ impl Clippy<'_> {
             root,
             workspace: &workspace.root,
             manifest: self.manifest,
+            skills: self.skills,
         };
         let found = locations.messages(&output.stdout)?;
         let failed = !output.status.success() && found.is_empty();

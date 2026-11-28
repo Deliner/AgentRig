@@ -1,12 +1,14 @@
+use super::profile;
 use anyhow::{Context, Result};
 use serde::Deserialize;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub struct Message {
     pub rule: String,
     pub path: String,
     pub line: Option<usize>,
     pub text: String,
+    pub skill: Option<PathBuf>,
 }
 
 const COMPILER_MESSAGE: &str = "compiler-message";
@@ -44,9 +46,11 @@ pub struct Locations<'a> {
     pub root: &'a Path,
     pub workspace: &'a Path,
     pub manifest: &'a Path,
+    pub skills: &'a Path,
 }
 
 // DECISION: D239
+// DECISION: D240
 impl Locations<'_> {
     pub fn messages(&self, output: &[u8]) -> Result<Vec<Message>> {
         let records = serde_json::Deserializer::from_slice(output).into_iter::<Record>();
@@ -65,13 +69,16 @@ impl Locations<'_> {
             || self.manifest.to_path_buf(),
             |span| self.workspace.join(&span.file_name),
         );
+        let rule = compiled
+            .code
+            .map_or_else(|| "clippy".to_owned(), |code| code.code);
+        let skill = profile::skill(&rule, self.skills);
         (reportable && located).then(|| Message {
-            rule: compiled
-                .code
-                .map_or_else(|| "clippy".to_owned(), |code| code.code),
+            rule,
             path: path.trim_prefix(self.root).display().to_string(),
             line: primary.map(|span| span.line_start),
             text: compiled.message,
+            skill,
         })
     }
 }

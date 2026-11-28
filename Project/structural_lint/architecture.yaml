@@ -3,7 +3,7 @@ dependents: 10
 files:
   mod.rs: Declarations of the lint parts and the location, modes, commands, Clippy run, error count, lint file checks, rule kinds, maintained files, Cargo crate layouts and crate module paths they offer
 directories:
-  clippy: Run Clippy with the AgentRig profile on the library, binaries and examples of the configured Cargo manifest and report its messages
+  clippy: Run Clippy with the AgentRig profile on the library, binaries and examples of the configured Cargo manifest and report its messages with the skill that repairs each profile lint
   lint_files: Read and compare the lint configuration files without evaluating lint
   tests: Verify composed lint CLI diagnostics, explanation and portable consumers
   architecture: Check directory contracts, feature types, measured dependency cycles and file fan-out and read Cargo crate layouts

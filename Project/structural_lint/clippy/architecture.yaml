@@ -1,9 +1,10 @@
-purpose: Run Clippy with the AgentRig profile on the library, binaries and examples of the configured Cargo manifest and report its messages
+purpose: Run Clippy with the AgentRig profile on the library, binaries and examples of the configured Cargo manifest and report its messages with the skill that repairs each profile lint
 type: flat
 files:
   mod.rs: Declarations of the Clippy parts and the run and its messages they offer
-  profile.rs: The AgentRig Clippy profile and the compiler arguments that deny it together with all warnings
+  profile.rs: The AgentRig Clippy profile with the skill that repairs each of its lints and the compiler arguments that deny it together with all warnings
   workspace.rs: Read the workspace root and whether its selected packages have a library from cargo metadata
-  messages.rs: Parse the compiler messages of a Clippy run into rules, project paths, lines and texts
+  messages.rs: Parse the compiler messages of a Clippy run into rules, project paths, lines, texts and the skills of profile lints
   run.rs: Launch cargo metadata and Clippy through the caller's launcher and turn a run that cannot check the project into a message naming its cause
-directories: {}
+directories:
+  tests: Verify that each lint of the Clippy profile leads to a skill of the rig that names it

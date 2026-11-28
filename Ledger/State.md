@@ -2,39 +2,32 @@
 
 ## Focus
 
-P203 (B138 AC1–AC3): the finding of each lint of the rig's Clippy profile names a skill that names the lint.
-VAC 3 of 4: the 15 existing skills that take 24 profile lints name each one as `clippy::LINT`, with the rewrite and
-when an exception is allowed.
+P203 (B138), VAC 4 of 4: each Clippy profile lint leads its finding to the skill that repairs it (AC1, AC2); any
+other compiler message and a run that cannot check the project keep the configuration skill (AC3).
 
 ## Workspace
 
-Branch: feature/clippy-lint-skills
-Revision: 56c4d81
-
-- Each of the 15 skills gains a "Clippy profile" section before its rule binding; type-driven-discipline extends its
-  Enforcement section. Lints: handle-panic (panic, todo, unimplemented, unreachable, expect_used, unwrap_used,
-  string_slice, exit), remove-debug (dbg_macro), expect-the-panic (should_panic_without_expect), name-the-states
-  (option_option, struct_excessive_bools), name-the-placeholders (uninlined_format_args), match-every-variant
-  (wildcard_enum_match_arm), justify-allow (allow_attributes), name-the-target (default_trait_access),
-  handle-discarded (let_underscore_must_use), subtract-checked (unchecked_time_subtraction), handle-error
-  (map_err_ignore), justify-unsafe (multiple_unsafe_ops_per_block), release-the-guard
-  (significant_drop_in_scrutinee), destructure-the-fields (rest_pat_in_fully_bound_structs,
-  missing_fields_in_debug), type-driven-discipline (partial_pub_fields).
-- Where a repair scope grows, the skill description and its architecture purposes say so.
+- Branch: feature/clippy-lint-skills
+- Revision: a8dbc2a
+- Code: `structural_lint/clippy` profile table pairs each lint with its skill; messages carry the skill under the
+  configured `paths.skills`; `rule_evaluation/findings.rs` falls back to `config_skill`; the lint command and the
+  gate pass the skills directory.
+- Tests: `structural_lint/tests/clippy.rs` (as_conversions, unwrap_used, unused_variables), init test in
+  `project_setup/tests/clippy.rs`, profile table test in `structural_lint/clippy/tests`.
+- Memory: D240 narrows D239's configuration skill clause; `Project/README.md` lint paragraph; architecture texts.
 
 ## Progress
 
-- VAC 1 (29508a5): name-if-condition moved into the naming group.
-- VAC 2 (56c4d81): 12 new skills for the 13 profile lints that no skill covered, shipped by init.
-- VAC 3 written and checked; commit pending. Group and top-level purposes name the widened hazards.
-- VAC 4: profile.rs maps each lint to its skill and a Clippy finding carries that skill in lint output and --json;
-  tests for AC1–AC3 and for the completeness of the mapping; D240 narrows the configuration-skill clause of D239.
+- VAC 1 `29508a5`, VAC 2 `56c4d81`, VAC 3 `a8dbc2a`: every profile lint is named in the skill that repairs it.
+- VAC 4 written: profile entries carry skills, findings name them, D240 recorded; commit pending.
 
 ## Verification
 
-VAC 3: `just lint` passes;
-`just run test -- init_delivers_the_universal_capabilities_of_this_repository` (I020) passes; an rg of
-`clippy::NAME` over the skills finds all 37 profile lints.
+- `just run rustfmt` and `just check --only lint` (installed `f2d0320`) pass.
+- `just run test -- clippy`: 19 passed, among them the profile table test and the three changed Clippy tests.
+- Probe in `Project/shared/console/mod.rs`, removed after the run: `just run lint` (candidate) reported
+  `clippy::as_conversions` with `.claude/skills/convert-without-as/SKILL.md`, `clippy::unwrap_used` and
+  `panic-path` with `handle-panic`, `unused_variables` with `repair`.
 
 ## Blockers
 
@@ -42,4 +35,5 @@ None.
 
 ## Next action
 
-Commit VAC 3, then map each profile lint to its skill in code and carry it in the finding (VAC 4).
+Implement VAC 4, run `just candidate lint`, the Clippy tests of structural_lint and project_setup, and commit; then
+`just propose-pin HEAD` under the consent of the user, archive P203 and B138 and run `just feature-merge`.

@@ -1,5 +1,6 @@
 // DECISION: D154
 // DECISION: D239
+// DECISION: D240
 use super::{initialized, lint, text};
 use crate::project_setup::init;
 use crate::shared::testing::{invoke, repository, snapshot, write};
@@ -64,6 +65,16 @@ fn clippy_files(root: &Path, directory: &Path) -> BTreeSet<PathBuf> {
     found
 }
 
+fn guided(found: &[serde_json::Value]) -> bool {
+    let skill = |rule: &str| {
+        let item = found.iter().find(|item| text(item, "rule") == rule);
+        text(item.unwrap(), "skill").to_owned()
+    };
+    let guide = read(Path::new(&skill("clippy::as_conversions")));
+    let named = guide.contains("`clippy::as_conversions`");
+    named && skill("unused_variables").ends_with("/repair/SKILL.md")
+}
+
 #[test]
 fn rust_scaffold_lints_its_crate_with_the_rig_clippy_profile() {
     let (_temp, root) = initialized("rust");
@@ -95,6 +106,7 @@ fn rust_scaffold_lints_its_crate_with_the_rig_clippy_profile() {
         "unused_variables Project/lib.rs:2",
     ];
     assert_eq!(places, expected);
+    assert!(guided(&found), "{found:?}");
     let check = invoke(&root, &["check", "--only", "lint"]);
     assert_eq!(check.code, Some(1), "{}", check.output());
     assert!(check.stderr.contains("ERROR [lint]"), "{}", check.output());

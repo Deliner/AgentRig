@@ -36,14 +36,19 @@ pub(super) fn syntax_error(rule: &lint_config::Rule, path: &Path, line: usize) -
         rerun: String::new(),
     }
 }
-pub(super) fn clippy_finding(reported: Message, skill: &str) -> Diagnostic {
+// DECISION: D240
+pub(super) fn clippy_finding(reported: Message, config_skill: &str) -> Diagnostic {
+    let skill = reported.skill.map_or_else(
+        || config_skill.to_owned(),
+        |skill| skill.to_string_lossy().into_owned(),
+    );
     Diagnostic {
         rule: reported.rule,
         path: reported.path,
         level: Level::Error,
         actual: None,
         limit: None,
-        skill: skill.to_owned(),
+        skill,
         message: reported.text,
         line: reported.line,
         symbol: None,
