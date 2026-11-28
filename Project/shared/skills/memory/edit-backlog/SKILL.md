@@ -13,8 +13,7 @@ storage and execution. More detail is useful only when it removes ambiguity
 without adding behavior. Apply proactively to concrete out-of-scope ideas and
 when asked to prepare or revise a feature.
 
-Read the configured Backlog and relevant Plan entries to avoid duplicates and
-preserve context. Distinguish current evidence, historical observations and
+Read the cards in Backlog and Plan to avoid duplicates and preserve context. Distinguish current evidence, historical observations and
 hypotheses. Do not investigate merely to fill a card or revive a rejected idea
 without new evidence or instruction.
 
@@ -120,11 +119,12 @@ Keep Context, Proposal and Expected benefit in the shown card: request and basis
 obligations, acceptance, boundaries and material unknowns; intended benefit.
 Preserve criterion IDs.
 
-Read paths.memory in .agentrig/project.yaml. Maintain Backlog.md with
-ID | Idea | Expected benefit and Backlog/NNN.md cards. Allocate an unused stable
-BNNN from the live and archived indexes and cards; never renumber other ideas. Save the approved body
-with only necessary identity/navigation metadata, updating the index and card
-together. Use the existing memory check and report failed saves.
+Read paths.memory and key in .agentrig/project.yaml. Save the card in Backlog/
+as KEY-N.md, or as the directory KEY-N/ holding KEY-N.md and only assets/,
+results/ and scenarios.md, with the first line `# KEY-N — title`. N is one above
+the highest number in Backlog/, Plan/ and Archive/; never renumber other cards.
+Save the approved body with only necessary identity/navigation metadata. Use
+the existing memory check and report failed saves.
 Ordinary editing needs no just write. Do not copy secrets or transcripts.
 
 Backlog order is not priority or authorization. Existing saved ideas are not
@@ -133,15 +133,15 @@ not a new registry or proof of machine-verified understanding.
 
 ## Execute and verify the agreed result
 
-All new product outcomes pass through Backlog before Plan. Promotion requires
+All new product outcomes pass through Backlog before Plan. Selection requires
 agreed behavior and acceptance, resolved behavior-changing questions, and the
 user's selection of execution and order. Use edit-plan and execute-plan-feature.
 One instruction authorizes the selected set without repeated per-card permission.
 
-Plan references the accepted contract and criterion IDs instead of maintaining
-a paraphrase. Use Git history to identify the agreed version. Neither a saved
-file nor a status change proves agreement; do not adjust acceptance to fit the
-implementation.
+Selection moves the agreed card unchanged to Plan, so its contract and
+criterion IDs stay one text. Use Git history to identify the agreed version.
+Neither a saved file nor a move proves agreement; do not adjust acceptance to
+fit the implementation.
 
 Provide the executor or verifier with that version, implementation/artifacts and
 means to exercise its scenarios. Delegate or review only under existing
@@ -152,9 +152,9 @@ formats and side effects against scope. Do not invent requirements or claim
 review of criteria outside the review's actual scope.
 
 Keep work required by current acceptance in the task. Only the user defers
-execution. Then record requirements, progress, blocker, branch and resumption
-condition in the agreed card before removing live Plan entries and reconciling
-dependencies; this record keeps the card's contract and needs no new agreement.
-A blocker alone pauses the item in Plan; interruption alone is not deferral.
-Preserve source context and delivery links; replace live links with Archive
-links on completion through edit-plan.
+execution. Then record progress, blocker, branch and resumption condition in
+the card's results/, move it back to Backlog and reconcile the After lines that
+name it; this record keeps the card's contract and needs no new agreement.
+A blocker alone keeps the card in Plan; interruption alone is not deferral.
+Preserve source context and delivery links; on completion edit-plan moves the
+card to Archive, and links into it follow the move.

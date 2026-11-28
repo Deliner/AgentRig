@@ -2,29 +2,29 @@
 
 ## Focus
 
-P205 (B209, D242), R2a VAC D: `init` creates `Backlog/`, `Plan/` and `Archive/` in the memory directory and writes no
-Plan or Backlog index; its AGENTS.md describes one card per task, the card the session start names and `results/`.
+P205 (B209, D242), R2a VAC E: the edit-plan, edit-backlog and execute-plan-feature skills describe one card per task,
+its moves between `Backlog/`, `Plan/` and `Archive/`, the order by number and `After:`, the active card of the branch
+and the delivery record in `results/` (AC9).
 
 ## Workspace
 
-Branch: feature/RIG-209-one-card-per-task. Revision: 1ce96cb79631d3abd56dfc3149dcd1408fd51566 plus the VAC D diff.
+Branch: feature/RIG-209-one-card-per-task. Revision: 74038ca95f62dce111f2cc88dfb42e101ee80ce5 plus the VAC E diff.
 The installed runtime is c60786d; the candidate is built from this branch.
 
 ## Progress
 
-- `Catalog` keeps only Decisions and Invariants; the optional `Delivery` section that only Plan used is gone, so
-  `sections` and `sections_of` take the required headings alone.
-- `project_memory` exports `CARD_DIRECTORIES` and `PLAN`; `init` creates the three directories beside the runtime
-  directory, and the session start falls back to `PLAN` instead of a second literal.
-- D242 links `init`, its instructions and the layout test; D050 no longer links the shipped instructions.
-- The shared `memory()` fixture writes no Plan index; `nested_cwd_and_symlinks` no longer removes an init Plan.md.
+- edit-plan: rewritten selection, deferral, archival and repository binding for cards named `KEY-N`; the archive kept
+  from the earlier indexes stays as it is.
+- edit-backlog: a card is saved in `Backlog/` with the next number of the three directories; selection moves it
+  unchanged and deferral moves it back with its record in `results/`.
+- execute-plan-feature: the active card comes from the branch, `feature-start KEY-N-name`, `After:` instead of
+  Depends on, and `results/` instead of the Delivery section.
+- D242 links the three skills; D050, which D242 supersedes, no longer links them.
 
 ## Verification
 
-- `just run rustfmt` and `just run lint` pass on the VAC D tree.
-- `just run test -- project_setup project_memory agent_hooks::tests::memory agent_hooks::tests::tools
-  change_delivery::git::tests::pin`: 128 passed, 0 failed.
-- Not run: the full suite; the commit gate runs the mapped groups.
+- `just run lint` passes on the VAC E tree.
+- The skills are prose; the commit gate runs the mapped test groups.
 
 ## Blockers
 
@@ -33,4 +33,5 @@ The installed runtime is c60786d; the candidate is built from this branch.
 
 ## Next action
 
-Commit VAC D, then VAC E: the edit-backlog, edit-plan and execute-plan-feature skills describe one card and its moves.
+Commit VAC E. Then, without approval, prepare the rig migration (AC8) text and report; with approval, the approval
+commit, R2b (required key), `just propose-pin HEAD` and the migration.
