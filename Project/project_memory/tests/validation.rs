@@ -23,6 +23,7 @@ fn layout(number: &str) -> String {
     format!("Decisions/{number}.md: sections must be {CURRENT:?}")
 }
 
+// DECISION: D236
 #[test]
 fn a_new_decision_has_three_sections_while_a_committed_one_keeps_the_prior_five() {
     let (_temp, root) = consumer();

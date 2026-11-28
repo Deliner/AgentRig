@@ -89,6 +89,7 @@ pub struct Sections {
     pub required: &'static [&'static str],
     pub optional: Option<&'static str>,
 }
+// DECISION: D236
 pub const PRIOR_DECISION_SECTIONS: &[&str] =
     &["Context", "Chosen", "Rejected", "Rationale", "Consequences"];
 

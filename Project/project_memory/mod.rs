@@ -124,6 +124,7 @@ fn detail(context: &Context, memory: &Path, row: &Row, catalog: Catalog) -> Resu
 fn indexed(rows: &[Row]) -> HashSet<String> {
     rows.iter().map(|row| row.detail.clone()).collect()
 }
+// DECISION: D236
 fn decision_details(
     context: &Context,
     memory: &Path,

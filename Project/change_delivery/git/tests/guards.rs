@@ -8,6 +8,7 @@ use std::{fs, path::Path};
 
 const PRIOR_DECISION: &str = "# D001\n\n## Context\n\nText.\n\n## Chosen\n\nText.\n\n## Rejected\n\nText.\n\n## Rationale\n\nText.\n\n## Consequences\n\nText.\n";
 
+// DECISION: D236
 #[test]
 fn after_init_the_commit_gate_takes_a_new_decision_only_in_three_sections() {
     let (_temp, root) = installed();
