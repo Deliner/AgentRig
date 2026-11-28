@@ -2,9 +2,7 @@ use crate::project_config::{
     self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
     Route, RouteEvent, Rust, Tools, View, Views,
 };
-use crate::project_setup::rust::{
-    ClippySettings, Requirement, build_rustflags, clippy_settings,
-};
+use crate::project_setup::rust::{ClippySettings, Requirement, build_rustflags, clippy_settings};
 use crate::shared::calling_agent::Agent;
 use crate::structural_lint::{CargoLayout, cargo_layout};
 use anyhow::{Result, bail, ensure};
