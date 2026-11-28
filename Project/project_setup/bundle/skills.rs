@@ -43,7 +43,7 @@ const SKILLS: &[(&str, &str)] = &[
     ),
     (
         "name-if-condition",
-        include_str!("../../shared/skills/name-if-condition/SKILL.md"),
+        include_str!("../../shared/skills/naming/name-if-condition/SKILL.md"),
     ),
     (
         "norm-or-choice",
