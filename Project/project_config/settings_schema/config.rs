@@ -3,6 +3,7 @@ use super::arguments::{self, Arguments};
 use super::capabilities::Capabilities;
 use super::checks::Check;
 use super::flag::Flag;
+use super::key::Key;
 use crate::shared::vcs::Settings as Git;
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
@@ -14,6 +15,8 @@ pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 pub struct Config {
     pub version: u32,
     pub runtime: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub key: Option<Key>,
     pub config_skill: String,
     pub paths: Paths,
     #[serde(default)]

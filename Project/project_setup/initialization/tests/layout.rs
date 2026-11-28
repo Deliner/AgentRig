@@ -74,6 +74,15 @@ fn init_always_keeps_memory_in_ledger_and_sources_in_project() {
     assert!(root.join("Ledger/State.md").is_file());
 }
 
+#[test]
+fn init_writes_the_queue_key_it_is_given_and_refuses_another_before_writing() {
+    let (_temp, root) = consumer();
+    refused(&root, &["--key", "rig-1"]);
+    assert_eq!(initialize(&root, &["--key", "RIG"]).unwrap(), 0);
+    let key = &yaml(&root.join(".agentrig/project.yaml"))["key"];
+    assert_eq!(key, &flow("RIG"));
+}
+
 // DECISION: D188
 #[test]
 fn init_links_each_agent_skill_directory_to_the_installed_skills() {

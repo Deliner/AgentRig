@@ -10,11 +10,12 @@ builds both executables with `cargo build --release --locked --manifest-path Pro
 `agentrig init --root CONSUMER` copies its executable and bundled assets, pins the package version in the configuration,
 rejects collisions before writing, creates a Git repository when none exists, gives a base without commits an empty
 first commit, registers the Git hooks through `core.hooksPath` and sets `remote: origin` when that remote exists.
-Sources go in `Project`, memory in `Ledger`. Options: `--language python|rust`, `--skills`, `--service`, `--base` and
-`--prefix`. There is no update or rollback. Rust projects need a `rustc` of at least the rig's Rust, else init refuses
-before writing, and get `rustfmt` and `rust-test` checks; `manifest` in `rust.yaml` names the `Cargo.toml` lint checks
-with Clippy. Init prepends missing AgentRig thresholds to the file Clippy reads, the first `.clippy.toml` or
-`clippy.toml` upward from the manifest directory, or a new root `clippy.toml`; a different value there is a collision.
+Sources go in `Project`, memory in `Ledger`. Options: `--key KEY`, the queue key of 2 to 10 uppercase Latin letters,
+`--language python|rust`, `--skills`, `--service`, `--base` and `--prefix`. There is no update or rollback. Rust
+projects need a `rustc` of at least the rig's Rust, else init refuses before writing, and get `rustfmt` and `rust-test`
+checks; `manifest` in `rust.yaml` names the `Cargo.toml` lint checks with Clippy. Init prepends missing AgentRig
+thresholds to the file Clippy reads, the first `.clippy.toml` or `clippy.toml` upward from the manifest directory, or a
+new root `clippy.toml`; a different value there is a collision.
 
 `paths.service` (default `.agentrig`) holds the runtimes, Git hooks, skills and lint settings; the configuration
 modules and the recipes in `just/` always stay in `.agentrig`, and runtime data goes to `.cache/runtime`, which Git

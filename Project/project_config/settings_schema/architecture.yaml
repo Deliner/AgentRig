@@ -9,5 +9,6 @@ files:
   config.rs: Strict project schema of paths, commands, hooks, oracles, tools and Rust flags with the rig version
   config_files.rs: Configuration file and modules, their YAML reading and writing, repairable source files and project-relative paths
   flag.rs: Program flags a catalog denies, parsed once, and every spelling the program reads as each flag
+  key.rs: Queue key of the project, 2 to 10 uppercase Latin letters, checked when read or given to init
   validation.rs: Structural validation of paths, commands, checks, hooks and oracles and their names
 directories: {}

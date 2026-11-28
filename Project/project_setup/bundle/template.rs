@@ -1,6 +1,6 @@
 use crate::project_config::{
-    self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Paths, Program,
-    Route, RouteEvent, Rust, Tools, View, Views,
+    self, Access, Arguments, Check, CheckKind, Command, Config, Flag, Git, Hooks, Key, Paths,
+    Program, Route, RouteEvent, Rust, Tools, View, Views,
 };
 use crate::project_memory::{GLOSSARY, NORTH_STAR};
 use crate::project_setup::rust::{ClippySettings, Requirement, build_rustflags, clippy_settings};
@@ -16,6 +16,7 @@ const MEMORY: &str = "Ledger";
 // DECISION: D189
 pub(super) const CACHE: &str = ".cache";
 const ORIGIN: &str = "origin";
+const KEY: &str = "key";
 pub fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     let mut options: Options<'_> = [
         ("language", "python"),
@@ -29,12 +30,13 @@ pub fn options<'a>(root: &Path, args: &'a [String]) -> Result<Options<'a>> {
     .collect();
     ensure!(
         args.len().is_multiple_of(2),
-        "init [--language python|rust] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
+        "init [--key KEY] [--language python|rust] [--skills PATH] [--service PATH] [--base BRANCH] [--prefix PREFIX]"
     );
     for pair in args.as_chunks::<2>().0 {
-        let key = pair[0].strip_prefix("--").unwrap_or("");
-        ensure!(options.contains_key(key), "unknown init option {}", pair[0]);
-        options.insert(key, pair[1].clone());
+        let name = pair[0].strip_prefix("--").unwrap_or("");
+        let known = name == KEY || options.contains_key(name);
+        ensure!(known, "unknown init option {}", pair[0]);
+        options.insert(name, pair[1].clone());
     }
     let default_skills = !args
         .as_chunks::<2>()
@@ -122,10 +124,12 @@ fn config(options: &Options<'_>, rust: &CargoLayout, settings: Rust) -> Result<C
     let service = &options["service"];
     let repair = format!("{skill_root}/repair/SKILL.md");
     let discipline = format!("{skill_root}/complexity-discipline");
+    let key = options.get(KEY).cloned().map(Key::try_from).transpose()?;
     Ok(Config {
         version: 1,
         capabilities: project_config::Capabilities::default(),
         runtime: project_config::VERSION.into(),
+        key,
         config_skill: repair.clone(),
         paths: Paths {
             service: service.clone(),
